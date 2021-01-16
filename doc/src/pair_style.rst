@@ -159,6 +159,7 @@ accelerated styles exist.
 * :doc:`eam/cd <pair_eam>` - concentration-dependent EAM
 * :doc:`eam/cd/old <pair_eam>` - older two-site model for concentration-dependent EAM
 * :doc:`eam/fs <pair_eam>` - Finnis-Sinclair EAM
+* :doc:`eam/he <pair_eam>` - Finnis-Sinclair EAM modified for Helium in metals
 * :doc:`edip <pair_edip>` - three-body EDIP potential
 * :doc:`edip/multi <pair_edip>` - multi-element EDIP potential
 * :doc:`edpd <pair_mesodpd>` - eDPD particle interactions

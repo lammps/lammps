@@ -34,6 +34,9 @@ class PairTersoff : public Pair {
   virtual void init_style();
   double init_one(int, int);
 
+  template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
+  void eval();
+
   static constexpr int NPARAMS_PER_LINE = 17;
 
  protected:
@@ -66,6 +69,9 @@ class PairTersoff : public Pair {
   int maxshort;                 // size of short neighbor list array
   int *neighshort;              // short neighbor list array
 
+  int shift_flag;               // flag to turn on/off shift
+  double shift;                 // negative change in equilibrium bond length
+
   virtual void allocate();
   virtual void read_file(char *);
   virtual void setup_params();
@@ -83,7 +89,8 @@ class PairTersoff : public Pair {
   virtual double ters_bij(double, Param *);
   virtual double ters_bij_d(double, Param *);
 
-  virtual void ters_zetaterm_d(double, double *, double, double *, double,
+  virtual void ters_zetaterm_d(double, double *, double, double,
+                               double *, double, double,
                                double *, double *, double *, Param *);
   void costheta_d(double *, double, double *, double,
                   double *, double *, double *);
@@ -129,6 +136,7 @@ class PairTersoff : public Pair {
     z[1] = k*x[1]+y[1];
     z[2] = k*x[2]+y[2];
   }
+
 };
 
 }

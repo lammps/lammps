@@ -1450,15 +1450,17 @@ class lammps(object):
 
     result = {}
     for p in ['GPU', 'KOKKOS', 'USER-INTEL', 'USER-OMP']:
-      c = 'api'
       result[p] = {}
+      c = 'api'
+      result[p][c] = []
       for s in ['cuda', 'hip', 'pthreads', 'opencl', 'openmp', 'serial']:
         if self.lib.lammps_config_accelerator(p.encode(),c.encode(),s.encode()):
-          result[p][c] = s
+          result[p][c].append(s)
       c = 'precision'
+      result[p][c] = []
       for s in ['double', 'mixed', 'single']:
         if self.lib.lammps_config_accelerator(p.encode(),c.encode(),s.encode()):
-          result[p][c] = s
+          result[p][c].append(s)
     return result
 
   # -------------------------------------------------------------------------

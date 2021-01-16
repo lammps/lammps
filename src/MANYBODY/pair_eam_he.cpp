@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEAMHE::PairEAMHE(LAMMPS *lmp) : PairEAMFS(lmp), PairEAM(lmp)
+PairEAMHE::PairEAMHE(LAMMPS *lmp) : PairEAM(lmp), PairEAMFS(lmp)
 {
   he_flag = 1;
 }

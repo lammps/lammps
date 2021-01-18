@@ -94,6 +94,7 @@ enum {COMPUTES=1<<0,
       REGION_STYLES=1<<23,
       DUMP_STYLES=1<<24,
       COMMAND_STYLES=1<<25,
+      ACCELERATOR=1<<26,
       ALL=~0};
 
 static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
@@ -197,6 +198,9 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if (strncmp(arg[idx],"coeffs",3) == 0) {
       flags |= COEFFS;
+      ++idx;
+    } else if (strncmp(arg[idx],"accelerator",3) == 0) {
+      flags |= ACCELERATOR;
       ++idx;
     } else if (strncmp(arg[idx],"styles",3) == 0) {
       if (idx+1 < narg) {
@@ -312,6 +316,59 @@ void Info::command(int narg, char **arg)
       ncline += ncword + 1;
     }
     fputs("\n",out);
+  }
+
+  if (flags & ACCELERATOR) {
+    fputs("\nAccelerator configuration:\n\n",out);
+    std::string mesg;
+    if (has_package("GPU")) {
+      mesg = "GPU package API:";
+      if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";
+      if (has_accelerator_feature("GPU","api","hip"))    mesg += " HIP";
+      if (has_accelerator_feature("GPU","api","opencl")) mesg += " OpenCL";
+      mesg +=  "\nGPU package precision:";
+      if (has_accelerator_feature("GPU","precision","single")) mesg += " single";
+      if (has_accelerator_feature("GPU","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("GPU","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("KOKKOS")) {
+      mesg = "KOKKOS package API:";
+      if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
+      if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
+      if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
+      if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
+      mesg +=  "\nKOKKOS package precision:";
+      if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
+      if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("USER-OMP")) {
+      mesg = "USER-OMP package API:";
+      if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
+      mesg +=  "\nUSER-OMP package precision:";
+      if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
+      if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("USER-INTEL")) {
+      mesg = "USER-INTEL package API:";
+      if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
+      if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
+      mesg +=  "\nUSER-INTEL package precision:";
+      if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
+      if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
   }
 
   if (flags & MEMORY) {
@@ -1120,12 +1177,94 @@ bool Info::has_exceptions() {
 #endif
 }
 
-bool Info::has_package(const char * package_name) {
+bool Info::has_package(const std::string &package_name) {
   for (int i = 0; LAMMPS::installed_packages[i] != nullptr; ++i) {
-    if (strcmp(package_name, LAMMPS::installed_packages[i]) == 0) {
+    if (package_name == LAMMPS::installed_packages[i]) {
       return true;
     }
   }
+  return false;
+}
+
+#if defined(LMP_GPU)
+extern bool lmp_gpu_config(const std::string &, const std::string &);
+#endif
+
+#if defined(LMP_KOKKOS)
+#include "Kokkos_Macros.hpp"
+#endif
+
+bool Info::has_accelerator_feature(const std::string &package,
+                                   const std::string &category,
+                                   const std::string &setting)
+{
+#if defined(LMP_KOKKOS)
+  if (package == "KOKKOS") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else return false;
+    }
+    if (category == "api") {
+#if defined(KOKKOS_ENABLE_OPENMP)
+      if (setting == "openmp") return true;
+#endif
+#if defined(KOKKOS_ENABLE_SERIAL)
+      if (setting == "serial") return true;
+#endif
+#if defined(KOKKOS_ENABLE_THREADS)
+      if (setting == "pthreads") return true;
+#endif
+#if defined(KOKKOS_ENABLE_CUDA)
+      if (setting == "cuda") return true;
+#endif
+#if defined(KOKKOS_ENABLE_HIP)
+      if (setting == "hip") return true;
+#endif
+      return false;
+    }
+  }
+#endif
+#if defined(LMP_GPU)
+  if (package == "GPU") {
+    return lmp_gpu_config(category,setting);
+  }
+#endif
+#if defined(LMP_USER_OMP)
+  if (package == "USER-OMP") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else return false;
+    }
+    if (category == "api") {
+#if defined(_OPENMP)
+      if (setting == "openmp") return true;
+#else
+      if (setting == "serial") return true;
+#endif
+      return false;
+    }
+  }
+#endif
+#if defined(LMP_USER_INTEL)
+  if (package == "USER-INTEL") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else if (setting == "mixed") return true;
+      else if (setting == "single")return true;
+      else return false;
+    }
+    if (category == "api") {
+#if defined(LMP_INTEL_OFFLOAD)
+      if (setting == "phi") return true;
+#elif defined(_OPENMP)
+      if (setting == "openmp") return true;
+#else
+      if (setting == "serial") return true;
+#endif
+      return false;
+    }
+  }
+#endif
   return false;
 }
 

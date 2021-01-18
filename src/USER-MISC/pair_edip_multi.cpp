@@ -19,20 +19,22 @@
 
 #include "pair_edip_multi.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "citeme.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -57,6 +59,16 @@ static const char cite_pair_edip[] =
 // max number of interaction per atom for f(Z) environment potential
 
 static constexpr int leadDimInteractionList = 64;
+
+static inline void costheta_d(const double *dr_ij, const double r_ij,
+                              const double *dr_ik, const double r_ik,
+                              double *dri, double *drj, double *drk)
+{
+  const double costheta = dot3(dr_ij, dr_ik) / r_ij / r_ik;
+  scaleadd3(1 / r_ij / r_ik, dr_ik, -costheta / r_ij / r_ij, dr_ij, drj);
+  scaleadd3(1 / r_ij / r_ik, dr_ij, -costheta / r_ik / r_ik, dr_ik, drk);
+  scaleadd3(-1, drj, -1, drk, dri);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -247,7 +259,7 @@ void PairEDIPMulti::compute(int eflag, int vflag)
 
           r_ik = sqrt(r_ik);
 
-          costheta=vec3_dot(dr_ij, dr_ik) / r_ij / r_ik;
+          costheta=dot3(dr_ij, dr_ik) / r_ij / r_ik;
 
           double v1, v2, v3, v4, v5, v6, v7;
 

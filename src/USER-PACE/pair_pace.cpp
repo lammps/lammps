@@ -28,6 +28,12 @@ using namespace MathConst;
 #define DELTA 4
 
 //added YL
+
+//keywords for ACE evaluator style
+#define RECURSIVE_KEYWORD "recursive"
+#define PRODUCT_KEYWORD "product"
+
+
 int elements_num_pace = 104;
 char const *const elements_pace[104] = {"X", "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na",
                                         "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn",
@@ -45,6 +51,7 @@ int AtomicNumberByName_pace(char *elname) {
             return i;
     return -1;
 }
+
 
 /* ---------------------------------------------------------------------- */
 PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp) {
@@ -237,14 +244,20 @@ void PairPACE::allocate() {
 ------------------------------------------------------------------------- */
 
 void PairPACE::settings(int narg, char **arg) {
-    if (narg > 1)
+    if (narg > 1) {
         error->all(FLERR,
-                   "Illegal pair_style command. Correct form:\n\tpair_style pace\nor\n\tpair_style pace recursive");
-
+                   "Illegal pair_style command. Correct form:\n\tpair_style pace\nor\n\tpair_style pace ");
+        error->all(FLERR, RECURSIVE_KEYWORD);
+        error->all(FLERR, "or\n\tpair_style pace ");
+        error->all(FLERR, PRODUCT_KEYWORD);
+    }
+    recursive = true; // default evaluator style: RECURSIVE
     if (narg > 0) {
-        if (strcmp(arg[0], "recursive") == 0)
+        if (strcmp(arg[0], RECURSIVE_KEYWORD) == 0)
             recursive = true;
-        else {
+        else if (strcmp(arg[0], PRODUCT_KEYWORD) == 0) {
+            recursive = false;
+        } else {
             error->all(FLERR,
                        "Illegal pair_style command: pair_style pace ");
             error->all(FLERR, arg[0]);
@@ -257,11 +270,11 @@ void PairPACE::settings(int narg, char **arg) {
         if (logfile) fprintf(logfile, "ACE version: %d.%d.%d\n", VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
 
         if (recursive) {
-            if (screen) fprintf(screen, "Recursive evaluator version are used\n");
-            if (logfile) fprintf(logfile, "Recursive evaluator version are used\n");
+            if (screen) fprintf(screen, "Recursive evaluator is used\n");
+            if (logfile) fprintf(logfile, "Recursive evaluator is used\n");
         } else {
-            if (screen) fprintf(screen, "Product evaluator version are used\n");
-            if (logfile) fprintf(logfile, "Product evaluator version are used\n");
+            if (screen) fprintf(screen, "Product evaluator is used\n");
+            if (logfile) fprintf(logfile, "Product evaluator is used\n");
         }
     }
 

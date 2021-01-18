@@ -1,5 +1,5 @@
 //
-// Created by Yury Lysogorskiy on 31.01.20.
+// Created by Christoph Ortner on 20.12.2020
 //
 
 #ifndef ACE_RECURSIVE_H

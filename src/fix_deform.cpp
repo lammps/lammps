@@ -362,7 +362,7 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
 
 FixDeform::~FixDeform()
 {
-  if(set) {
+  if (set) {
     for (int i = 0; i < 6; i++) {
       delete [] set[i].hstr;
       delete [] set[i].hratestr;

@@ -152,6 +152,8 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]*GPU[^ \t]* //' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_GPU |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lgpu |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
@@ -171,6 +173,7 @@ elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]*GPU[^ \t]* //' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then

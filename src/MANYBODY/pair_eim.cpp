@@ -476,7 +476,7 @@ void PairEIM::read_file(char *filename)
   setfl->tp = new int[npair];
 
   // read potential file
-  if( comm->me == 0) {
+  if ( comm->me == 0) {
     EIMPotentialFileReader reader(lmp, filename, unit_convert_flag);
 
     reader.get_global(setfl);
@@ -1108,7 +1108,7 @@ char * EIMPotentialFileReader::next_line(FILE * fp) {
     n = strlen(line);
   }
 
-  while(n == 0 || concat) {
+  while (n == 0 || concat) {
     char *ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
@@ -1143,7 +1143,7 @@ void EIMPotentialFileReader::parse(FILE * fp)
   char * line = nullptr;
   bool found_global = false;
 
-  while((line = next_line(fp))) {
+  while ((line = next_line(fp))) {
     ValueTokenizer values(line);
     std::string type = values.next_string();
 

@@ -12,7 +12,7 @@ See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_react.h"
@@ -118,6 +118,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
   rxnID = 0;
+  maxnconstraints = 0;
   narrhenius = 0;
   status = PROCEED;
 
@@ -334,7 +335,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     strcpy(files[rxn],arg[iarg]);
     iarg++;
 
-    while (iarg < narg && strcmp(arg[iarg],"react") != 0 ) {
+    while (iarg < narg && strcmp(arg[iarg],"react") != 0) {
       if (strcmp(arg[iarg],"prob") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                       "'prob' keyword has too few arguments");
@@ -443,7 +444,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed (Arrhenius prob)
 
-  rrhandom = new class RanMars*[narrhenius];
+  rrhandom = new RanMars*[narrhenius];
   int tmp = 0;
   for (int i = 0; i < nreacts; i++) {
     for (int j = 0; j < nconstraints[i]; j++) {
@@ -481,7 +482,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed ('prob' keyword)
 
-  random = new class RanMars*[nreacts];
+  random = new RanMars*[nreacts];
   for (int i = 0; i < nreacts; i++) {
     random[i] = new RanMars(lmp,seed[i] + me);
   }
@@ -1293,7 +1294,7 @@ void FixBondReact::superimpose_algorithm()
               nxspecial[local_atom2][0] == nxspecial[local_atom1][0]) &&
              (nxspecial[local_atom1][0] == 0 ||
               xspecial[local_atom1][0] == atom->tag[local_atom2]) &&
-             check_constraints() ) {
+             check_constraints()) {
           status = ACCEPT;
           glove_ghostcheck();
         } else
@@ -1966,12 +1967,11 @@ int FixBondReact::check_constraints()
   }
 
   if (nconstraints[rxnID] > 0) {
-    char evalstr[MAXLINE],*ptr,valstr;
+    char evalstr[MAXLINE],*ptr;
     strcpy(evalstr,constraintstr[rxnID]);
     for (int i = 0; i < nconstraints[rxnID]; i++) {
-      sprintf(&valstr,"%d", satisfied[i]);
       ptr = strchr(evalstr,'C');
-      *ptr = valstr;
+      *ptr = satisfied[i] ? '1' : '0';
     }
     double verdict = input->variable->evaluate_boolean(evalstr);
     if (verdict == 0.0) return 0;
@@ -2772,7 +2772,7 @@ void FixBondReact::update_everything()
               for (int p = 0; p < twomol->natoms; p++) {
                 int pp = equivalences[p][1][rxnID]-1;
                 if (p!=j && special[atom->map(update_mega_glove[jj+1][i])][k] == update_mega_glove[pp+1][i]
-                    && landlocked_atoms[p][rxnID] == 1 ) {
+                    && landlocked_atoms[p][rxnID] == 1) {
                   for (int n = k; n < nspecial[atom->map(update_mega_glove[jj+1][i])][2]-1; n++) {
                     special[atom->map(update_mega_glove[jj+1][i])][n] = special[atom->map(update_mega_glove[jj+1][i])][n+1];
                   }
@@ -3243,7 +3243,8 @@ void FixBondReact::read(int myrxn)
     else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
     else if (strstr(line,"constraints")) {
       sscanf(line,"%d",&nconstraints[myrxn]);
-      memory->grow(constraints,nconstraints[myrxn],nreacts,"bond/react:constraints");
+      if (maxnconstraints < nconstraints[myrxn]) maxnconstraints = nconstraints[myrxn];
+      memory->grow(constraints,maxnconstraints,nreacts,"bond/react:constraints");
     } else break;
   }
 
@@ -3385,25 +3386,25 @@ void FixBondReact::ReadConstraints(char *line, int myrxn)
   strcpy(constraintstr[myrxn],"("); // string for boolean constraint logic
   for (int i = 0; i < nconstraints[myrxn]; i++) {
     readline(line);
-    if (ptr = strrchr(line,'(')) { // reverse char search
+    if ((ptr = strrchr(line,'('))) { // reverse char search
       strncat(constraintstr[myrxn],line,ptr-line+1);
       line = ptr + 1;
     }
     // 'C' indicates where to sub in next constraint
     strcat(constraintstr[myrxn],"C");
-    if (ptr = strchr(line,')')) {
+    if ((ptr = strchr(line,')'))) {
       strncat(constraintstr[myrxn],ptr,strrchr(line,')')-ptr+1);
     }
-    if (ptr = strstr(line,"&&")) {
+    if ((ptr = strstr(line,"&&"))) {
       strcat(constraintstr[myrxn],"&&");
       *ptr = '\0';
-    } else if (ptr = strstr(line,"||")) {
+    } else if ((ptr = strstr(line,"||"))) {
       strcat(constraintstr[myrxn],"||");
       *ptr = '\0';
-    } else if (i+1 < nconstraints[myrxn]){
+    } else if (i+1 < nconstraints[myrxn]) {
       strcat(constraintstr[myrxn],"&&");
     }
-    if (ptr = strchr(line,')'))
+    if ((ptr = strchr(line,')')))
       *ptr = '\0';
     sscanf(line,"%s",constraint_type);
     if (strcmp(constraint_type,"distance") == 0) {

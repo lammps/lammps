@@ -105,7 +105,7 @@ double FixTempCSVR::sumnoises(int nn) {
   the system so it samples the canonical ensemble
 ---------------------------------------------------------------------- */
 
-double FixTempCSVR::resamplekin(double ekin_old, double ekin_new){
+double FixTempCSVR::resamplekin(double ekin_old, double ekin_new) {
   const double tdof = temperature->dof;
   const double c1 = exp(-update->dt/t_period);
   const double c2 = (1.0-c1)*ekin_new/ekin_old/tdof;

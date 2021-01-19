@@ -21,7 +21,6 @@ KSpaceStyle(ewald/disp,EwaldDisp)
 #define LMP_EWALD_DISP_H
 
 #include "kspace.h"
-#include "math_complex.h"
 
 namespace LAMMPS_NS {
 
@@ -29,10 +28,6 @@ namespace LAMMPS_NS {
 #define EWALD_NFUNCS        4
 #define EWALD_MAX_NSUMS     10
 #define EWALD_NSUMS        {1, 1, 7, 1}
-
-typedef struct cvector { complex x, y, z; } cvector;
-typedef struct hvector { double x, y, z; } hvector;
-typedef struct kvector { long x, y, z; } kvector;
 
 class EwaldDisp : public KSpace {
  public:
@@ -58,13 +53,13 @@ class EwaldDisp : public KSpace {
   double *kvirial, virial_self[EWALD_NFUNCS];
   double **energy_self_peratom;
   double **virial_self_peratom;
-  cvector *ekr_local;
-  hvector *hvec;
-  kvector *kvec;
+  struct cvector *ekr_local;
+  struct hvector *hvec;
+  struct kvector *kvec;
 
   double mumurd2e, dielectric, *B, volume;
   struct Sum { double x, x2; } sum[EWALD_MAX_NSUMS];
-  complex *cek_local, *cek_global;
+  struct complex *cek_local, *cek_global;
 
   double rms(int, double, bigint, double, double, double);
   void reallocate();

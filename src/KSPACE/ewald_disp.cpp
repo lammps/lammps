@@ -23,8 +23,8 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "math_special.h"
-#include "math_vector.h"
 #include "memory.h"
 #include "pair.h"
 #include "update.h"
@@ -35,10 +35,56 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
+using namespace MathExtra;
 
 #define SMALL 0.00001
 
 //#define DEBUG
+
+struct LAMMPS_NS::complex { double re, im; };
+struct LAMMPS_NS::cvector { complex x, y, z; };
+struct LAMMPS_NS::hvector { double x, y, z; };
+struct LAMMPS_NS::kvector { long x, y, z; };
+
+#define COMPLEX_NULL {0, 0}
+
+#define C_RMULT(d, x, y) { \
+  complex t = x; \
+  d.re = t.re*y.re-t.im*y.im; \
+  d.im = t.re*y.im+t.im*y.re; }
+
+#define C_CRMULT(d, x, y) { \
+  complex t = x; \
+  d.re = t.re*y.re-t.im*y.im; \
+  d.im = -t.re*y.im-t.im*y.re; }
+
+#define C_SET(d, x, y) { \
+  d.re = x; \
+  d.im = y; }
+
+#define C_CONJ(d, x) {                          \
+  d.re = x.re; \
+  d.im = -x.im; }
+
+#define C_ANGLE(d, angle) { \
+  double a = angle; \
+  d.re = cos(a); \
+  d.im = sin(a); }
+
+static inline void shape_add(double *dest, const double *src) {                // h_a+h_b
+  dest[0] += src[0]; dest[1] += src[1]; dest[2] += src[2];
+  dest[3] += src[3]; dest[4] += src[4]; dest[5] += src[5]; }
+
+static inline void shape_subtr(double *dest, const double *src) {                // h_a-h_b
+  dest[0] -= src[0]; dest[1] -= src[1]; dest[2] -= src[2];
+  dest[3] -= src[3]; dest[4] -= src[4]; dest[5] -= src[5]; }
+
+static inline double shape_det(double *s) {
+  return s[0]*s[1]*s[2]; }
+
+static inline void shape_scalar_mult(double *dest, double f) {                // f*h
+  dest[0] *= f; dest[1] *= f; dest[2] *= f;
+  dest[3] *= f; dest[4] *= f; dest[5] *= f; }
 
 /* ---------------------------------------------------------------------- */
 
@@ -245,7 +291,7 @@ void EwaldDisp::init()
 void EwaldDisp::setup()
 {
   volume = shape_det(domain->h)*slab_volfactor;
-  memcpy(unit, domain->h_inv, sizeof(shape));
+  memcpy(unit, domain->h_inv, 6*sizeof(double));
   shape_scalar_mult(unit, 2.0*MY_PI);
   unit[2] /= slab_volfactor;
 
@@ -338,7 +384,7 @@ void EwaldDisp::reallocate()
 {
   int ix, iy, iz;
   int nkvec_max = nkvec;
-  vector h;
+  double h[3];
 
   nkvec = 0;
   int *kflag = new int[(nbox+1)*(2*nbox+1)*(2*nbox+1)];
@@ -448,7 +494,7 @@ void EwaldDisp::deallocate()                                // free memory
 
 void EwaldDisp::coefficients()
 {
-  vector h;
+  double h[3];
   hvector *hi = hvec, *nh;
   double eta2 = 0.25/(g_ewald*g_ewald);
   double b1, b2, expb2, h1, h2, c1, c2;
@@ -457,8 +503,8 @@ void EwaldDisp::coefficients()
       func3 = function[3];
 
   for (nh = (hi = hvec)+nkvec; hi<nh; ++hi) {                // wave vectors
-    memcpy(h, hi, sizeof(vector));
-    expb2 = exp(-(b2 = (h2 = vec_dot(h, h))*eta2));
+    memcpy(h, hi, 3*sizeof(double));
+    expb2 = exp(-(b2 = (h2 = dot3(h, h))*eta2));
     if (func0) {                                        // qi*qj/r coeffs
       *(ke++) = c1 = expb2/h2;
       *(kv++) = c1-(c2 = 2.0*c1*(1.0+b2)/h2)*h[0]*h[0];
@@ -731,7 +777,7 @@ void EwaldDisp::compute_ek()
   cvector *z = new cvector[2*nbox+1];
   cvector z1, *zx, *zy, *zz, *zn = z+2*nbox;
   complex *cek, zxyz, zxy = COMPLEX_NULL, cx = COMPLEX_NULL;
-  vector mui;
+  double mui[3];
   double *x = atom->x[0], *xn = x+3*atom->nlocal, *q = atom->q, qi = 0.0;
   double bi = 0.0, ci[7];
   double *mu = atom->mu ? atom->mu[0] : nullptr;
@@ -764,7 +810,7 @@ void EwaldDisp::compute_ek()
     if (func[1]) bi = B[*type];
     if (func[2]) memcpy(ci, B+7*type[0], 7*sizeof(double));
     if (func[3]) {
-      memcpy(mui, mu, sizeof(vector));
+      memcpy(mui, mu, 3*sizeof(double));
       mu += 4;
       h = hvec;
     }
@@ -803,7 +849,7 @@ void EwaldDisp::compute_force()
   kvector *k;
   hvector *h, *nh;
   cvector *z = ekr_local;
-  vector sum[EWALD_MAX_NSUMS], mui = COMPLEX_NULL;
+  double sum[3][EWALD_MAX_NSUMS], mui[3] = {0.0,0.0,0.0};
   complex *cek, zc, zx = COMPLEX_NULL, zxy = COMPLEX_NULL;
   complex *cek_coul;
   double *f = atom->f[0], *fn = f+3*atom->nlocal, *q = atom->q, *t = nullptr;
@@ -817,13 +863,13 @@ void EwaldDisp::compute_force()
 
   if (atom->torque) t = atom->torque[0];
   memcpy(func, function, EWALD_NFUNCS*sizeof(int));
-  memset(sum, 0, EWALD_MAX_NSUMS*sizeof(vector));        // fj = -dE/dr =
+  memset(sum, 0, EWALD_MAX_NSUMS*3*sizeof(double));        // fj = -dE/dr =
   for (; f<fn; f+=3) {                                    //      -i*qj*fac*
     k = kvec;                                         //       Sum[conj(d)-d]
     kx = ky = -1;                                        // d = k*conj(ekj)*ek
     ke = kenergy;
     cek = cek_global;
-    memset(sum, 0, EWALD_MAX_NSUMS*sizeof(vector));
+    memset(sum, 0, EWALD_MAX_NSUMS*3*sizeof(double));
     if (func[3]) {
       double di = c[3];
       mui[0] = di*(mu++)[0]; mui[1] = di*(mu++)[0]; mui[2] = di*(mu++)[0];
@@ -913,8 +959,7 @@ void EwaldDisp::compute_surface()
   if (!function[3]) return;
   if (!atom->mu) return;
 
-  vector sum_local = VECTOR_NULL, sum_total;
-  memset(sum_local, 0, sizeof(vector));
+  double sum_local[3] = {0.0,0.0,0.0}, sum_total[3] = {0.0,0.0,0.0};
   double *i, *n, *mu = atom->mu[0];
 
   for (n = (i = mu) + 4*atom->nlocal; i < n; ++i) {
@@ -925,7 +970,7 @@ void EwaldDisp::compute_surface()
   MPI_Allreduce(sum_local, sum_total, 3, MPI_DOUBLE, MPI_SUM, world);
 
   virial_self[3] =
-    mumurd2e*(2.0*MY_PI*vec_dot(sum_total,sum_total)/(2.0*dielectric+1)/volume);
+    mumurd2e*(2.0*MY_PI*dot3(sum_total,sum_total)/(2.0*dielectric+1)/volume);
   energy_self[3] -= virial_self[3];
 
   if (!(vflag_atom || eflag_atom)) return;
@@ -996,7 +1041,7 @@ void EwaldDisp::compute_energy_peratom()
   kvector *k;
   hvector *h, *nh;
   cvector *z = ekr_local;
-  vector  mui = VECTOR_NULL;
+  double mui[3] = {0.0,0.0,0.0};
   double sum[EWALD_MAX_NSUMS];
   complex *cek, zc = COMPLEX_NULL, zx = COMPLEX_NULL, zxy = COMPLEX_NULL;
   complex *cek_coul;
@@ -1086,7 +1131,7 @@ void EwaldDisp::compute_energy_peratom()
 
 void EwaldDisp::compute_virial()
 {
-  memset(virial, 0, sizeof(shape));
+  memset(virial, 0, 6*sizeof(double));
   if (!vflag_global) return;
 
   complex *cek = cek_global;
@@ -1096,11 +1141,11 @@ void EwaldDisp::compute_virial()
   double c[EWALD_NFUNCS] = {
     4.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(24.0*volume),
     2.0*MY_PI*MY_PIS/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
-  shape sum[EWALD_NFUNCS];
+  double sum[6][EWALD_NFUNCS];
   int func[EWALD_NFUNCS];
 
   memcpy(func, function, EWALD_NFUNCS*sizeof(int));
-  memset(sum, 0, EWALD_NFUNCS*sizeof(shape));
+  memset(sum, 0, EWALD_NFUNCS*6*sizeof(double));
   for (int k=0; k<nkvec; ++k) {                      // sum over k vectors
     if (func[0]) {                                         // 1/r
       double r = cek->re*cek->re+cek->im*cek->im;
@@ -1138,7 +1183,7 @@ void EwaldDisp::compute_virial()
   }
   for (int k=0; k<EWALD_NFUNCS; ++k)
     if (func[k]) {
-      shape self = {virial_self[k], virial_self[k], virial_self[k], 0, 0, 0};
+      double self[6] = {virial_self[k], virial_self[k], virial_self[k], 0, 0, 0};
       shape_scalar_mult(sum[k], c[k]);
       shape_add(virial, sum[k]);
       shape_subtr(virial, self);
@@ -1154,7 +1199,7 @@ void EwaldDisp::compute_virial_dipole()
   kvector *k;
   hvector *h, *nh;
   cvector *z = ekr_local;
-  vector mui = COMPLEX_NULL;
+  double mui[3] = {0.0,0.0,0.0};
   double sum[6];
   double sum_total[6];
   complex *cek, zc, zx = COMPLEX_NULL, zxy = COMPLEX_NULL;
@@ -1250,7 +1295,7 @@ void EwaldDisp::compute_virial_peratom()
   kvector *k;
   hvector *h, *nh;
   cvector *z = ekr_local;
-  vector  mui = VECTOR_NULL;
+  double  mui[3] = {0.0,0.0,0.0};
   complex *cek, zc = COMPLEX_NULL, zx = COMPLEX_NULL, zxy = COMPLEX_NULL;
   complex *cek_coul;
   double *kv;
@@ -1261,7 +1306,7 @@ void EwaldDisp::compute_virial_peratom()
   double c[EWALD_NFUNCS] = {
     4.0*MY_PI*qscale/volume, 2.0*MY_PI*MY_PIS/(24.0*volume),
     2.0*MY_PI*MY_PIS/(192.0*volume), 4.0*MY_PI*mumurd2e/volume};
-  shape sum[EWALD_MAX_NSUMS];
+  double sum[6][EWALD_MAX_NSUMS];
   int func[EWALD_NFUNCS];
 
   memcpy(func, function, EWALD_NFUNCS*sizeof(int));
@@ -1271,7 +1316,7 @@ void EwaldDisp::compute_virial_peratom()
     kx = ky = -1;
     kv = kvirial;
     cek = cek_global;
-    memset(sum, 0, EWALD_MAX_NSUMS*sizeof(shape));
+    memset(sum, 0, EWALD_MAX_NSUMS*6*sizeof(double));
     if (func[3]) {
       double di = c[3];
       mui[0] = di*(mu++)[0]; mui[1] = di*(mu++)[0]; mui[2] = di*(mu++)[0];

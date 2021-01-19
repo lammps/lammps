@@ -26,5 +26,5 @@ MLIAPDescriptor::MLIAPDescriptor(LAMMPS *lmp) : Pointers(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPDescriptor::~MLIAPDescriptor(){}
+MLIAPDescriptor::~MLIAPDescriptor() {}
 

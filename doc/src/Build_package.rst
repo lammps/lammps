@@ -1,5 +1,4 @@
 Include packages in build
-
 =========================
 
 In LAMMPS, a package is a group of files that enable a specific set of

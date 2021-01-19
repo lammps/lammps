@@ -147,9 +147,9 @@ class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
 
   struct params_qeq{
     KOKKOS_INLINE_FUNCTION
-    params_qeq(){chi=0;eta=0;gamma=0;};
+    params_qeq() {chi=0;eta=0;gamma=0;};
     KOKKOS_INLINE_FUNCTION
-    params_qeq(int /*i*/){chi=0;eta=0;gamma=0;};
+    params_qeq(int /*i*/) {chi=0;eta=0;gamma=0;};
     F_FLOAT chi, eta, gamma;
   };
 

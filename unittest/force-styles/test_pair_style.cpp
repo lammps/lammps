@@ -831,7 +831,9 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
-    if ((test_config.pair_style == "rebo") || utils::strmatch(test_config.pair_style, "^dpd")) {
+    if ((test_config.pair_style == "rebo")
+        || utils::strmatch(test_config.pair_style, "^dpd")
+        || utils::strmatch(test_config.pair_style, "^tersoff.* shift ")) {
         std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

@@ -94,6 +94,7 @@ enum {COMPUTES=1<<0,
       REGION_STYLES=1<<23,
       DUMP_STYLES=1<<24,
       COMMAND_STYLES=1<<25,
+      ACCELERATOR=1<<26,
       ALL=~0};
 
 static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
@@ -197,6 +198,9 @@ void Info::command(int narg, char **arg)
       ++idx;
     } else if (strncmp(arg[idx],"coeffs",3) == 0) {
       flags |= COEFFS;
+      ++idx;
+    } else if (strncmp(arg[idx],"accelerator",3) == 0) {
+      flags |= ACCELERATOR;
       ++idx;
     } else if (strncmp(arg[idx],"styles",3) == 0) {
       if (idx+1 < narg) {
@@ -312,6 +316,59 @@ void Info::command(int narg, char **arg)
       ncline += ncword + 1;
     }
     fputs("\n",out);
+  }
+
+  if (flags & ACCELERATOR) {
+    fputs("\nAccelerator configuration:\n\n",out);
+    std::string mesg;
+    if (has_package("GPU")) {
+      mesg = "GPU package API:";
+      if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";
+      if (has_accelerator_feature("GPU","api","hip"))    mesg += " HIP";
+      if (has_accelerator_feature("GPU","api","opencl")) mesg += " OpenCL";
+      mesg +=  "\nGPU package precision:";
+      if (has_accelerator_feature("GPU","precision","single")) mesg += " single";
+      if (has_accelerator_feature("GPU","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("GPU","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("KOKKOS")) {
+      mesg = "KOKKOS package API:";
+      if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
+      if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
+      if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
+      if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
+      mesg +=  "\nKOKKOS package precision:";
+      if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
+      if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("USER-OMP")) {
+      mesg = "USER-OMP package API:";
+      if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
+      if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
+      mesg +=  "\nUSER-OMP package precision:";
+      if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
+      if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
+    if (has_package("USER-INTEL")) {
+      mesg = "USER-INTEL package API:";
+      if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
+      if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
+      mesg +=  "\nUSER-INTEL package precision:";
+      if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
+      if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
+      if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
+      mesg += "\n";
+      fputs(mesg.c_str(),out);
+    }
   }
 
   if (flags & MEMORY) {
@@ -654,20 +711,20 @@ void Info::available_styles(FILE * out, int flags)
 
   fputs("\nStyles information:\n",out);
 
-  if(flags & ATOM_STYLES)      atom_styles(out);
-  if(flags & INTEGRATE_STYLES) integrate_styles(out);
-  if(flags & MINIMIZE_STYLES)  minimize_styles(out);
-  if(flags & PAIR_STYLES)      pair_styles(out);
-  if(flags & BOND_STYLES)      bond_styles(out);
-  if(flags & ANGLE_STYLES)     angle_styles(out);
-  if(flags & DIHEDRAL_STYLES)  dihedral_styles(out);
-  if(flags & IMPROPER_STYLES)  improper_styles(out);
-  if(flags & KSPACE_STYLES)    kspace_styles(out);
-  if(flags & FIX_STYLES)       fix_styles(out);
-  if(flags & COMPUTE_STYLES)   compute_styles(out);
-  if(flags & REGION_STYLES)    region_styles(out);
-  if(flags & DUMP_STYLES)      dump_styles(out);
-  if(flags & COMMAND_STYLES)   command_styles(out);
+  if (flags & ATOM_STYLES)      atom_styles(out);
+  if (flags & INTEGRATE_STYLES) integrate_styles(out);
+  if (flags & MINIMIZE_STYLES)  minimize_styles(out);
+  if (flags & PAIR_STYLES)      pair_styles(out);
+  if (flags & BOND_STYLES)      bond_styles(out);
+  if (flags & ANGLE_STYLES)     angle_styles(out);
+  if (flags & DIHEDRAL_STYLES)  dihedral_styles(out);
+  if (flags & IMPROPER_STYLES)  improper_styles(out);
+  if (flags & KSPACE_STYLES)    kspace_styles(out);
+  if (flags & FIX_STYLES)       fix_styles(out);
+  if (flags & COMPUTE_STYLES)   compute_styles(out);
+  if (flags & REGION_STYLES)    region_styles(out);
+  if (flags & DUMP_STYLES)      dump_styles(out);
+  if (flags & COMMAND_STYLES)   command_styles(out);
 }
 
 void Info::atom_styles(FILE *out)
@@ -933,33 +990,33 @@ bool Info::is_defined(const char *category, const char *name)
 
 bool Info::has_style(const std::string &category, const std::string &name)
 {
-  if ( category == "atom" ) {
+  if (category == "atom") {
     return find_style(lmp, atom->avec_map, name, false);
-  } else if( category == "integrate" ) {
+  } else if (category == "integrate") {
     return find_style(lmp, update->integrate_map, name, true);
-  } else if( category == "minimize" ) {
+  } else if (category == "minimize") {
     return find_style(lmp, update->minimize_map, name, true);
-  } else if( category == "pair" ) {
+  } else if (category == "pair") {
     return find_style(lmp, force->pair_map, name, true);
-  } else if( category == "bond" ) {
+  } else if (category == "bond") {
     return find_style(lmp, force->bond_map, name, true);
-  } else if( category == "angle" ) {
+  } else if (category == "angle") {
     return find_style(lmp, force->angle_map, name, true);
-  } else if( category == "dihedral" ) {
+  } else if (category == "dihedral") {
     return find_style(lmp, force->dihedral_map, name, true);
-  } else if( category == "improper" ) {
+  } else if (category == "improper") {
     return find_style(lmp, force->improper_map, name, true);
-  } else if( category == "kspace" ) {
+  } else if (category == "kspace") {
     return find_style(lmp, force->kspace_map, name, true);
-  } else if( category == "fix" ) {
+  } else if (category == "fix") {
     return find_style(lmp, modify->fix_map, name, true);
-  } else if( category == "compute" ) {
+  } else if (category == "compute") {
     return find_style(lmp, modify->compute_map, name, true);
-  } else if( category == "region" ) {
+  } else if (category == "region") {
     return find_style(lmp, domain->region_map, name, false);
-  } else if( category == "dump" ) {
+  } else if (category == "dump") {
     return find_style(lmp, output->dump_map, name, false);
-  } else if( category == "command" ) {
+  } else if (category == "command") {
     return find_style(lmp, input->command_map, name, false);
   }
   return false;
@@ -967,33 +1024,33 @@ bool Info::has_style(const std::string &category, const std::string &name)
 
 std::vector<std::string> Info::get_available_styles(const std::string &category)
 {
-  if ( category == "atom" ) {
+  if (category == "atom") {
     return get_style_names(atom->avec_map);
-  } else if( category == "integrate" ) {
+  } else if (category == "integrate") {
     return get_style_names(update->integrate_map);
-  } else if( category == "minimize" ) {
+  } else if (category == "minimize") {
     return get_style_names(update->minimize_map);
-  } else if( category == "pair" ) {
+  } else if (category == "pair") {
     return get_style_names(force->pair_map);
-  } else if( category == "bond" ) {
+  } else if (category == "bond") {
     return get_style_names(force->bond_map);
-  } else if( category == "angle" ) {
+  } else if (category == "angle") {
     return get_style_names(force->angle_map);
-  } else if( category == "dihedral" ) {
+  } else if (category == "dihedral") {
     return get_style_names(force->dihedral_map);
-  } else if( category == "improper" ) {
+  } else if (category == "improper") {
     return get_style_names(force->improper_map);
-  } else if( category == "kspace" ) {
+  } else if (category == "kspace") {
     return get_style_names(force->kspace_map);
-  } else if( category == "fix" ) {
+  } else if (category == "fix") {
     return get_style_names(modify->fix_map);
-  } else if( category == "compute" ) {
+  } else if (category == "compute") {
     return get_style_names(modify->compute_map);
-  } else if( category == "region" ) {
+  } else if (category == "region") {
     return get_style_names(domain->region_map);
-  } else if( category == "dump" ) {
+  } else if (category == "dump") {
     return get_style_names(output->dump_map);
-  } else if( category == "command" ) {
+  } else if (category == "command") {
     return get_style_names(input->command_map);
   }
   return std::vector<std::string>();
@@ -1005,7 +1062,7 @@ static std::vector<std::string> get_style_names(std::map<std::string, ValueType>
   std::vector<std::string> names;
 
   names.reserve(styles->size());
-  for(auto const& kv : *styles) {
+  for (auto const& kv : *styles) {
     // skip "secret" styles
     if (isupper(kv.first[0])) continue;
     names.push_back(kv.first);
@@ -1049,7 +1106,7 @@ static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
 
   // std::map keys are already sorted
   int pos = 80;
-  for(typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
+  for (typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
     const std::string &style_name = it->first;
 
     // skip "secret" styles
@@ -1120,12 +1177,94 @@ bool Info::has_exceptions() {
 #endif
 }
 
-bool Info::has_package(const char * package_name) {
-  for(int i = 0; LAMMPS::installed_packages[i] != nullptr; ++i) {
-    if(strcmp(package_name, LAMMPS::installed_packages[i]) == 0) {
+bool Info::has_package(const std::string &package_name) {
+  for (int i = 0; LAMMPS::installed_packages[i] != nullptr; ++i) {
+    if (package_name == LAMMPS::installed_packages[i]) {
       return true;
     }
   }
+  return false;
+}
+
+#if defined(LMP_GPU)
+extern bool lmp_gpu_config(const std::string &, const std::string &);
+#endif
+
+#if defined(LMP_KOKKOS)
+#include "Kokkos_Macros.hpp"
+#endif
+
+bool Info::has_accelerator_feature(const std::string &package,
+                                   const std::string &category,
+                                   const std::string &setting)
+{
+#if defined(LMP_KOKKOS)
+  if (package == "KOKKOS") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else return false;
+    }
+    if (category == "api") {
+#if defined(KOKKOS_ENABLE_OPENMP)
+      if (setting == "openmp") return true;
+#endif
+#if defined(KOKKOS_ENABLE_SERIAL)
+      if (setting == "serial") return true;
+#endif
+#if defined(KOKKOS_ENABLE_THREADS)
+      if (setting == "pthreads") return true;
+#endif
+#if defined(KOKKOS_ENABLE_CUDA)
+      if (setting == "cuda") return true;
+#endif
+#if defined(KOKKOS_ENABLE_HIP)
+      if (setting == "hip") return true;
+#endif
+      return false;
+    }
+  }
+#endif
+#if defined(LMP_GPU)
+  if (package == "GPU") {
+    return lmp_gpu_config(category,setting);
+  }
+#endif
+#if defined(LMP_USER_OMP)
+  if (package == "USER-OMP") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else return false;
+    }
+    if (category == "api") {
+#if defined(_OPENMP)
+      if (setting == "openmp") return true;
+#else
+      if (setting == "serial") return true;
+#endif
+      return false;
+    }
+  }
+#endif
+#if defined(LMP_USER_INTEL)
+  if (package == "USER-INTEL") {
+    if (category == "precision") {
+      if (setting == "double") return true;
+      else if (setting == "mixed") return true;
+      else if (setting == "single")return true;
+      else return false;
+    }
+    if (category == "api") {
+#if defined(LMP_INTEL_OFFLOAD)
+      if (setting == "phi") return true;
+#elif defined(_OPENMP)
+      if (setting == "openmp") return true;
+#else
+      if (setting == "serial") return true;
+#endif
+      return false;
+    }
+  }
+#endif
   return false;
 }
 

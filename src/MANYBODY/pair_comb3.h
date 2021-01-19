@@ -250,20 +250,6 @@ class PairComb3 : public Pair {
   void unpack_reverse_comm(int, int *, double *);
   int pack_forward_comm(int , int *, double *, int, int *);
   void unpack_forward_comm(int , int , double *);
-
-  // vector functions, inline for efficiency
-  inline double vec3_dot(double *x, double *y) {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-  }
-  inline void vec3_add(double *x, double *y, double *z) {
-    z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
-  }
-  inline void vec3_scale(double k, double *x, double *y) {
-    y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
-  }
-  inline void vec3_scaleadd(double k, double *x, double *y, double *z) {
-    z[0] = k*x[0]+y[0];  z[1] = k*x[1]+y[1];  z[2] = k*x[2]+y[2];
-  }
  };
 }
 

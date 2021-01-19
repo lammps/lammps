@@ -610,7 +610,8 @@ void Molecule::read(int flag)
       dbodyflag = 1;
       body(flag,1,line);
 
-    } else error->one(FLERR,"Unknown section in molecule file");
+    } else error->one(FLERR,fmt::format("Unknown section '{}' in molecule "
+                                        "file", keyword));
 
     parse_keyword(1,line,keyword);
   }
@@ -796,7 +797,7 @@ void Molecule::fragments(char *line)
 
       fragmentnames[i] = values.next_string();
 
-      while(values.has_next()) {
+      while (values.has_next()) {
         int atomID = values.next_int();
         if (atomID <= 0 || atomID > natoms)
           error->one(FLERR,"Invalid atom ID in Fragments section of molecule file");
@@ -1630,11 +1631,11 @@ void Molecule::body(int flag, int pflag, char *line)
 
       if (flag) {
         if (pflag == 0) {
-          while(values.has_next()) {
+          while (values.has_next()) {
             ibodyparams[nword++] = values.next_int();
           }
         } else {
-          while(values.has_next()) {
+          while (values.has_next()) {
             dbodyparams[nword++] = values.next_double();
           }
         }
@@ -2004,10 +2005,10 @@ void Molecule::parse_keyword(int flag, char *line, char *keyword)
     MPI_Bcast(line,n,MPI_CHAR,0,world);
   }
 
-  // copy non-whitespace portion of line into keyword
+  // copy non-whitespace and non-comment portion of line into keyword
 
   int start = strspn(line," \t\n\r");
-  int stop = strlen(line) - 1;
+  int stop = strcspn(line,"#") - 1;
   while (line[stop] == ' ' || line[stop] == '\t'
          || line[stop] == '\n' || line[stop] == '\r') stop--;
   line[stop+1] = '\0';

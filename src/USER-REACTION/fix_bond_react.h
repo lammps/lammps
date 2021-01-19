@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+   Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -33,7 +33,7 @@ class FixBondReact : public Fix {
 
   enum {MAXLINE=256}; // max length of line read from files
   enum {MAXCONIDS=4}; // max # of IDs used by any constraint
-  enum {MAXCONPAR=4}; // max # of constraint parameters
+  enum {MAXCONPAR=5}; // max # of constraint parameters
 
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact();
@@ -68,6 +68,7 @@ class FixBondReact : public Fix {
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
   int *molecule_keyword;
+  int maxnconstraints;
   int *nconstraints;
   char **constraintstr;
   int narrhenius;

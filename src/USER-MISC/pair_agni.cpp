@@ -34,8 +34,6 @@
 #include <cmath>
 #include <cstring>
 
-#include <iostream>
-
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
@@ -135,7 +133,6 @@ PairAGNI::~PairAGNI()
 
 void PairAGNI::compute(int eflag, int vflag)
 {
-  std::cout<<"a\n";
   int i,j,k,ii,jj,inum,jnum,itype;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double rsq;
@@ -155,10 +152,7 @@ void PairAGNI::compute(int eflag, int vflag)
   double fxtmp,fytmp,fztmp;
   double *Vx, *Vy, *Vz;
 
-  std::cout<<"b\n";
-
   // loop over full neighbor list of my atoms
-
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = map[type[i]];
@@ -167,17 +161,14 @@ void PairAGNI::compute(int eflag, int vflag)
     ztmp = x[i][2];
     fxtmp = fytmp = fztmp = 0.0;
 
-    std::cout<<"c\n";
-
     const Param &iparam = params[elem2param[itype]];
-    std::cout<<"d\n";
     Vx = new double[iparam.numeta];
     Vy = new double[iparam.numeta];
     Vz = new double[iparam.numeta];
     memset(Vx,0,iparam.numeta*sizeof(double));
     memset(Vy,0,iparam.numeta*sizeof(double));
     memset(Vz,0,iparam.numeta*sizeof(double));
-std::cout<<"e\n";
+
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
@@ -467,8 +458,8 @@ void PairAGNI::read_file(char *filename)
           values = reader.next_values(params[wantdata].numeta + 2);
           for (i = 0; i < params[wantdata].numeta; ++i) 
             params[wantdata].xU[i][j] = values.next_double();
-          params[wantdata].alpha[j] = values.next_double();
           values.next_double(); // ignore
+          params[wantdata].alpha[j] = values.next_double();   
         } 
       }else
         error->all(FLERR,"Invalid AGNI potential file");
@@ -476,33 +467,14 @@ void PairAGNI::read_file(char *filename)
       error->one(FLERR, e.what());
     }
   }
+  
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&atomic_feature_version, 1, MPI_INT, 0, world);
   if(comm->me != 0) {
     params = memory->create(params,nparams,"pair:params");
     memset(params,0,nparams*sizeof(Param));
   }
-  for(i = 0; i < nparams; i++){ 
-    MPI_Bcast(&params[i].ielement, 1, MPI_INT, 0, world);
-    MPI_Bcast(&params[i].numeta, 1, MPI_INT, 0, world);
-    MPI_Bcast(&params[i].numtrain, 1, MPI_INT, 0, world);
-    MPI_Bcast(&params[i].b, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&params[i].gwidth, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&params[i].sigma, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&params[i].cut, 1, MPI_DOUBLE, 0, world);
-    if(comm->me != 0) {
-      params[i].alpha = new double[params[i].numtrain];
-      params[i].eta = new double[params[i].numeta];
-      params[i].xU = new double*[params[i].numeta];
-      for (j = 0; j < params[i].numeta; ++j)
-        params[i].xU[j] = new double[params[i].numtrain];
-    }
-    MPI_Bcast(&params[i].alpha, params[i].numtrain, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&params[i].eta, params[i].numeta, MPI_DOUBLE, 0, world);
-    for(j = 0; j < params[i].numeta; j++)
-      MPI_Bcast(&params[i].xU[j], params[i].numtrain, MPI_DOUBLE, 0, world); 
-  }
-  std::cout<<" "<<params[i].ielement<<"\n";
+  MPI_Bcast(params, nparams*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */

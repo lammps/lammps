@@ -389,9 +389,9 @@ void PairAGNI::read_file(char *filename)
       values = reader.next_values(2);
       values.next_string(); // ignore
       for (i = 0; i < nparams; ++i) {
-        const char* element = values.next_string().c_str();
+        std::string element = values.next_string();
         for (j = 0; j < nelements; ++j)
-          if (strcmp(element,elements[j]) == 0) break;
+          if (strcmp(element.c_str(),elements[j]) == 0) break;
         if (j == nelements)
           error->all(FLERR,"No suitable parameters for requested element found");
         else params[i].ielement = j;
@@ -400,8 +400,8 @@ void PairAGNI::read_file(char *filename)
       values = reader.next_values(2);
       values.next_string(); // ignore
       for (i = 0; i < nparams; ++i){
-        const char* element = values.next_string().c_str();
-        if (strcmp(element,elements[params[i].ielement]) == 0) curparam = i;
+        std::string element = values.next_string();
+        if (strcmp(element.c_str(),elements[params[i].ielement]) == 0) curparam = i;
       }
 
       values = reader.next_values(2);

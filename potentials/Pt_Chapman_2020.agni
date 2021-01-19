@@ -1,10 +1,10 @@
 # DATE: 2020-11-12 CONTRIBUTOR: James Chapman, email chapman37@llnl.gov
 # James Chapman and Rampi Ramprasad, Multiscale Modeling of Defect Phenomena in Platinum Using Machine Learning of Force Fields, JOM, (2020) 
-
 n_elements 1
 element Pt
 interaction Pt
 generation 1
+neta 8
 eta +1.00000000E+00 +5.33741212E-01 +2.84879681E-01 +1.52052026E-01 +8.11564326E-02 +4.33165327E-02 +2.31198186E-02 +1.23400000E-02 
 Rc 8.0
 n_train 4500

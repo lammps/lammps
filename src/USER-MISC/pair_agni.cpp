@@ -472,14 +472,6 @@ void PairAGNI::read_file(char *filename)
   }
   MPI_Bcast(params, nparams*sizeof(Param), MPI_BYTE, 0, world);
   for (i = 0; i < nparams; i++) {
-    MPI_Bcast(&params[i].ielement, 1, MPI_INT, 0, world);
-    MPI_Bcast(&params[i].numeta, 1, MPI_INT, 0, world);
-    MPI_Bcast(&params[i].numtrain, 1, MPI_INT, 0, world);
-    MPI_Bcast(&params[i].b, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&params[i].gwidth, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&params[i].sigma, 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&params[i].cut, 1, MPI_DOUBLE, 0, world);
-
     if (comm->me != 0) {
       params[i].alpha = new double[params[i].numtrain];
       params[i].eta = new double[params[i].numeta];

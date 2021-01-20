@@ -191,11 +191,11 @@ void PairAGNI::compute(int eflag, int vflag)
         for (k = 0; k < iparam.numeta; ++k) {
           double e = 0.0;
 
-		if(atomic_feature_version == AGNI_VERSION_1)
-	    e = exp(-(iparam.eta[k]*rsq));
-		else if(atomic_feature_version == AGNI_VERSION_2)
-			e = (1.0 / (square(iparam.eta[k]) * iparam.gwidth * sqrt(MathConst::MY_2PI))) * exp(-(square(r - iparam.eta[k])) / (2.0 * square(iparam.gwidth)));
-		
+          if (atomic_feature_version == AGNI_VERSION_1)
+            e = exp(-(iparam.eta[k]*rsq));
+          else if (atomic_feature_version == AGNI_VERSION_2)
+            e = (1.0 / (square(iparam.eta[k]) * iparam.gwidth * sqrt(MathConst::MY_2PI))) * exp(-(square(r - iparam.eta[k])) / (2.0 * square(iparam.gwidth)));
+
           Vx[k] += wX*e;
           Vy[k] += wY*e;
           Vz[k] += wZ*e;
@@ -318,7 +318,7 @@ void PairAGNI::coeff(int narg, char **arg)
   for (int i = 1; i <= n; i++)
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
-  
+
   // set setflag i,j for type pairs where both are mapped to elements
 
   int count = 0;
@@ -370,7 +370,7 @@ void PairAGNI::read_file(char *filename)
   wantdata = -1;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "agni", unit_convert_flag);
 
     char * line;
@@ -378,91 +378,82 @@ void PairAGNI::read_file(char *filename)
     while ((line = reader.next_line())) {
       try {
         ValueTokenizer values(line);
-        if(wantdata == -1){
+        if (wantdata == -1) {
           std::string tag = values.next_string();
 
-          if(tag == "n_elements"){
+          if (tag == "n_elements") {
             nparams = values.next_int();
 
             if ((nparams < 1) || params) // sanity check
               error->all(FLERR,"Invalid AGNI potential file");
             params = memory->create(params,nparams,"pair:params");
             memset(params,0,nparams*sizeof(Param));
-        
+
             curparam = -1;
             wantdata = -1;
-          }
-          else if(tag == "interaction"){
-            for (j = 0; j < nparams; ++j){
+          } else if (tag == "interaction") {
+            for (j = 0; j < nparams; ++j) {
               std::string element = values.next_string();
-              if (element == elements[params[j].ielement]) 
+              if (element == elements[params[j].ielement])
                 curparam = j;
-              }
-          }
-          else if(tag == "element"){
+            }
+          } else if (tag == "element") {
             for (j = 0; j < nparams; ++j) {
               std::string element = values.next_string();
               for (k = 0; k < nelements; ++k)
-                if (element == elements[k]) 
-                  break;
-                if (k == nelements)
-                  error->all(FLERR,"No suitable parameters for requested element found");
-                else params[j].ielement = k;
+                if (element == elements[k]) break;
+              if (k == nelements)
+                error->all(FLERR,"No suitable parameters for requested element found");
+              else params[j].ielement = k;
             }
-          }
-          else if(tag == "generation"){
+          } else if (tag == "generation") {
             atomic_feature_version = values.next_int();
             if (atomic_feature_version != AGNI_VERSION_1 && atomic_feature_version != AGNI_VERSION_2)
               error->all(FLERR,"Incompatible AGNI potential file version");
-          }
-          else if(tag == "eta"){
+          } else if (tag == "eta") {
             params[curparam].numeta = values.count() - 1;
             params[curparam].eta = new double[params[curparam].numeta];
             params[curparam].xU = new double*[params[curparam].numeta];
 
-            for(j = 0; j < params[curparam].numeta; j++)
+            for (j = 0; j < params[curparam].numeta; j++)
               params[curparam].eta[j] = values.next_double();
-          }
-          else if(tag == "gwidth")
+          } else if (tag == "gwidth")
             params[curparam].gwidth = values.next_double();
-          else if(tag == "Rc")
+          else if (tag == "Rc")
             params[curparam].cut = values.next_double();
-          else if(tag == "n_train"){
+          else if (tag == "n_train") {
             params[curparam].numtrain = values.next_int();
             params[curparam].alpha = new double[params[curparam].numtrain];
             for (j = 0; j < params[curparam].numeta; ++j)
               params[curparam].xU[j] = new double[params[curparam].numtrain];
-          }  
-          else if(tag == "sigma")
+          } else if (tag == "sigma")
             params[curparam].sigma = values.next_double();
-          else if(tag == "sigma")
+          else if (tag == "sigma")
             params[curparam].sigma = values.next_double();
-          else if(tag == "b")
+          else if (tag == "b")
             params[curparam].b = values.next_double();
-          else if(tag == "endVar"){
-            if(atomic_feature_version == AGNI_VERSION_1)
+          else if (tag == "endVar") {
+            if (atomic_feature_version == AGNI_VERSION_1)
               params[curparam].gwidth = 0.0;
             wantdata = curparam;
             curparam = -1;
-          }
-          else
-            error->warning(FLERR,"Ignoring unknown content in AGNI potential file.");
-        }
-        else{
-          if (params && wantdata >=0){
-            if(values.count() == params[wantdata].numeta + 2){
-              for (k = 0; k < params[wantdata].numeta; ++k) 
+          } else error->warning(FLERR,fmt::format("Ignoring unknown tag '{}' "
+                                                  "in AGNI potential file.",tag));
+        } else {
+          if (params && wantdata >=0) {
+            if (values.count() == params[wantdata].numeta + 2) {
+              for (k = 0; k < params[wantdata].numeta; ++k)
                 params[wantdata].xU[k][fp_counter] = values.next_double();
               values.next_double(); // ignore
-              params[wantdata].alpha[fp_counter] = values.next_double();  
-              fp_counter++; 
+              params[wantdata].alpha[fp_counter] = values.next_double();
+              fp_counter++;
             }
-            else if(values.count() == params[wantdata].numeta + 3){
+            else if (values.count() == params[wantdata].numeta + 3) {
               values.next_double(); // ignore
-              for (k = 0; k < params[wantdata].numeta; ++k) 
+              for (k = 0; k < params[wantdata].numeta; ++k)
                 params[wantdata].xU[k][fp_counter] = values.next_double();
               values.next_double(); // ignore
-              params[wantdata].alpha[fp_counter] = values.next_double();   
+              params[wantdata].alpha[fp_counter] = values.next_double();
               fp_counter++;
             }
             else
@@ -470,19 +461,19 @@ void PairAGNI::read_file(char *filename)
           }
         }
       }
-      catch (TokenizerException &e){ 
-          error->one(FLERR, e.what());
+      catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
     }
   }
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&atomic_feature_version, 1, MPI_INT, 0, world);
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = memory->create(params,nparams,"pair:params");
     memset(params,0,nparams*sizeof(Param));
   }
   MPI_Bcast(params, nparams*sizeof(Param), MPI_BYTE, 0, world);
-  for(i = 0; i < nparams; i++){ 
+  for (i = 0; i < nparams; i++) {
     MPI_Bcast(&params[i].ielement, 1, MPI_INT, 0, world);
     MPI_Bcast(&params[i].numeta, 1, MPI_INT, 0, world);
     MPI_Bcast(&params[i].numtrain, 1, MPI_INT, 0, world);
@@ -491,7 +482,7 @@ void PairAGNI::read_file(char *filename)
     MPI_Bcast(&params[i].sigma, 1, MPI_DOUBLE, 0, world);
     MPI_Bcast(&params[i].cut, 1, MPI_DOUBLE, 0, world);
 
-    if(comm->me != 0) {
+    if (comm->me != 0) {
       params[i].alpha = new double[params[i].numtrain];
       params[i].eta = new double[params[i].numeta];
       params[i].xU = new double*[params[i].numeta];

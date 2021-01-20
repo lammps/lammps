@@ -72,7 +72,6 @@ static const char cite_pair_agni[] =
 
 #define MAXLINE 10240
 #define MAXWORD 40
-enum { AGNI_VERSION_UNKNOWN, AGNI_VERSION_1, AGNI_VERSION_2 };
 
 /* ---------------------------------------------------------------------- */
 
@@ -302,7 +301,7 @@ void PairAGNI::coeff(int narg, char **arg)
     }
   }
   if (nelements != 1)
-        error->all(FLERR,"Cannot handle multi-element systems with this potential");
+    error->all(FLERR,"Cannot handle multi-element systems with this potential");
 
   // read potential file and initialize potential parameters
 
@@ -521,4 +520,3 @@ void PairAGNI::setup_params()
     if (rtmp > cutmax) cutmax = rtmp;
   }
 }
-

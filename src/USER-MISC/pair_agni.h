@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class PairAGNI : public Pair {
  public:
+  enum { AGNI_VERSION_UNKNOWN, AGNI_VERSION_1, AGNI_VERSION_2 };
   PairAGNI(class LAMMPS *);
   virtual ~PairAGNI();
   virtual void compute(int, int);

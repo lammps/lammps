@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Axel Kohlmeyer (Temple U), Venkatesh Botu
+   Contributing authors: Axel Kohlmeyer (Temple U), Venkatesh Botu, James Chapman (Lawrence Livermore National Lab)
 ------------------------------------------------------------------------- */
 
 #include "pair_agni.h"
@@ -68,6 +68,22 @@ static const char cite_pair_agni[] =
   " number    = {1},\n"
   " pages     = {511},\n"
   " year      = {2017},\n"
+  "}\n\n"
+  "@article{huan2019jpc,\n"
+  " author    = {Huan, T. and Batra, R. and Chapman, J. and Kim, C. and Chandrasekaran, A. and Ramprasad, Rampi},\n"
+  " journal   = {J. Phys. Chem. C},\n"
+  " volume    = {121},\n"
+  " number    = {34},\n"
+  " pages     = {20715},\n"
+  " year      = {2019},\n"
+  "}\n\n"
+  "@article{chapman2020cms,\n"
+  " author    = {Chapman, J. and Batra, R. and Ramprasad, Rampi},\n"
+  " journal   = {Comp. Mat. Sci.},\n"
+  " volume    = {174},\n"
+  " number    = {1},\n"
+  " pages     = {109483},\n"
+  " year      = {2020},\n"
   "}\n\n";
 
 #define MAXLINE 10240

@@ -34,6 +34,8 @@
 #include <cmath>
 #include <cstring>
 
+#include <iostream>
+
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
@@ -364,110 +366,117 @@ void PairAGNI::read_file(char *filename)
   params = nullptr;
   nparams = 0;
 
-  int i,j,curparam,wantdata,fp_counter;
+  int i,j,k,curparam,wantdata,fp_counter;
 
   fp_counter = 0;
+  wantdata = -1;
 
   // read potential file
   if(comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "agni", unit_convert_flag);
 
-    try {
-      ValueTokenizer values = reader.next_values(2);
+    char * line;
 
-      values.next_string(); // ignore
-      nparams = values.next_int();
+    while ((line = reader.next_line())) {
+      try {
+        ValueTokenizer values(line);
+        if(wantdata == -1){
+          std::string tag = values.next_string();
 
-      if ((nparams < 1) || params) // sanity check
-        error->all(FLERR,"Invalid AGNI potential file");
-      params = memory->create(params,nparams,"pair:params");
-      memset(params,0,nparams*sizeof(Param));
-      
-      curparam = -1;
-      wantdata = -1;
+          if(tag == "n_elements"){
+            nparams = values.next_int();
 
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      for (i = 0; i < nparams; ++i) {
-        std::string element = values.next_string();
-        for (j = 0; j < nelements; ++j)
-          if (strcmp(element.c_str(),elements[j]) == 0) break;
-        if (j == nelements)
-          error->all(FLERR,"No suitable parameters for requested element found");
-        else params[i].ielement = j;
+            if ((nparams < 1) || params) // sanity check
+              error->all(FLERR,"Invalid AGNI potential file");
+            params = memory->create(params,nparams,"pair:params");
+            memset(params,0,nparams*sizeof(Param));
+        
+            curparam = -1;
+            wantdata = -1;
+          }
+          else if(tag == "interaction"){
+            for (j = 0; j < nparams; ++j){
+              std::string element = values.next_string();
+              if (element == elements[params[j].ielement]) 
+                curparam = j;
+              }
+          }
+          else if(tag == "element"){
+            for (j = 0; j < nparams; ++j) {
+              std::string element = values.next_string();
+              for (k = 0; k < nelements; ++k)
+                if (element == elements[k]) 
+                  break;
+                if (k == nelements)
+                  error->all(FLERR,"No suitable parameters for requested element found");
+                else params[j].ielement = k;
+            }
+          }
+          else if(tag == "generation"){
+            atomic_feature_version = values.next_int();
+            if (atomic_feature_version != AGNI_VERSION_1 && atomic_feature_version != AGNI_VERSION_2)
+              error->all(FLERR,"Incompatible AGNI potential file version");
+          }
+          else if(tag == "eta"){
+            params[curparam].numeta = values.count() - 1;
+            params[curparam].eta = new double[params[curparam].numeta];
+            params[curparam].xU = new double*[params[curparam].numeta];
+
+            for(j = 0; j < params[curparam].numeta; j++)
+              params[curparam].eta[j] = values.next_double();
+          }
+          else if(tag == "gwidth")
+            params[curparam].gwidth = values.next_double();
+          else if(tag == "Rc")
+            params[curparam].cut = values.next_double();
+          else if(tag == "n_train"){
+            params[curparam].numtrain = values.next_int();
+            params[curparam].alpha = new double[params[curparam].numtrain];
+            for (j = 0; j < params[curparam].numeta; ++j)
+              params[curparam].xU[j] = new double[params[curparam].numtrain];
+          }  
+          else if(tag == "sigma")
+            params[curparam].sigma = values.next_double();
+          else if(tag == "sigma")
+            params[curparam].sigma = values.next_double();
+          else if(tag == "b")
+            params[curparam].b = values.next_double();
+          else if(tag == "endVar"){
+            if(atomic_feature_version == AGNI_VERSION_1)
+              params[curparam].gwidth = 0.0;
+            wantdata = curparam;
+            curparam = -1;
+          }
+          else
+            error->warning(FLERR,"Ignoring unknown content in AGNI potential file.");
+        }
+        else{
+          if (params && wantdata >=0){
+            if(values.count() == params[wantdata].numeta + 2){
+              for (k = 0; k < params[wantdata].numeta; ++k) 
+                params[wantdata].xU[k][fp_counter] = values.next_double();
+              values.next_double(); // ignore
+              params[wantdata].alpha[fp_counter] = values.next_double();  
+              fp_counter++; 
+            }
+            else if(values.count() == params[wantdata].numeta + 3){
+              values.next_double(); // ignore
+              for (k = 0; k < params[wantdata].numeta; ++k) 
+                params[wantdata].xU[k][fp_counter] = values.next_double();
+              values.next_double(); // ignore
+              params[wantdata].alpha[fp_counter] = values.next_double();   
+              fp_counter++;
+            }
+            else
+              error->all(FLERR,"Invalid AGNI potential file");
+          }
+        }
       }
-
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      for (i = 0; i < nparams; ++i){
-        std::string element = values.next_string();
-        if (strcmp(element.c_str(),elements[params[i].ielement]) == 0) curparam = i;
+      catch (TokenizerException &e){ 
+          error->one(FLERR, e.what());
       }
-
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      atomic_feature_version = values.next_int();
-      if (atomic_feature_version != AGNI_VERSION_1 && atomic_feature_version != AGNI_VERSION_2)
-        error->all(FLERR,"Incompatible AGNI potential file version");
-
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      params[curparam].numeta = values.next_int();
-      params[curparam].eta = new double[params[curparam].numeta];
-      params[curparam].xU = new double*[params[curparam].numeta];
-
-      values = reader.next_values(params[curparam].numeta + 1);
-      values.next_string(); // ignore
-      for(i = 0; i < params[curparam].numeta; i++)
-        params[curparam].eta[i] = values.next_double();
-      
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      params[curparam].gwidth = values.next_double();
-      
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      params[curparam].cut = values.next_double();
-      
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      params[curparam].numtrain = values.next_int();
-      params[curparam].alpha = new double[params[curparam].numtrain];
-      for (i = 0; i < params[curparam].numeta; ++i)
-        params[curparam].xU[i] = new double[params[curparam].numtrain];
-
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      params[curparam].sigma = values.next_double();
-
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      values.next_double(); // ignore
-
-      values = reader.next_values(2);
-      values.next_string(); // ignore
-      params[curparam].b = values.next_double();
-
-      values = reader.next_values(1);
-      values.next_string(); // ignore
-      wantdata = curparam;
-      curparam = -1;
-
-      if (params && wantdata >=0){
-        for(j = 0; j < params[wantdata].numtrain; j++){
-          values = reader.next_values(params[wantdata].numeta + 2);
-          for (i = 0; i < params[wantdata].numeta; ++i) 
-            params[wantdata].xU[i][j] = values.next_double();
-          values.next_double(); // ignore
-          params[wantdata].alpha[j] = values.next_double();   
-        } 
-      }else
-        error->all(FLERR,"Invalid AGNI potential file");
-    } catch (TokenizerException &e) {
-      error->one(FLERR, e.what());
     }
   }
-  
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&atomic_feature_version, 1, MPI_INT, 0, world);
   if(comm->me != 0) {
@@ -475,6 +484,27 @@ void PairAGNI::read_file(char *filename)
     memset(params,0,nparams*sizeof(Param));
   }
   MPI_Bcast(params, nparams*sizeof(Param), MPI_BYTE, 0, world);
+  for(i = 0; i < nparams; i++){ 
+    MPI_Bcast(&params[i].ielement, 1, MPI_INT, 0, world);
+    MPI_Bcast(&params[i].numeta, 1, MPI_INT, 0, world);
+    MPI_Bcast(&params[i].numtrain, 1, MPI_INT, 0, world);
+    MPI_Bcast(&params[i].b, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].gwidth, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].sigma, 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].cut, 1, MPI_DOUBLE, 0, world);
+
+    if(comm->me != 0) {
+      params[i].alpha = new double[params[i].numtrain];
+      params[i].eta = new double[params[i].numeta];
+      params[i].xU = new double*[params[i].numeta];
+      for (j = 0; j < params[i].numeta; ++j)
+        params[i].xU[j] = new double[params[i].numtrain];
+    }
+
+    MPI_Bcast(&params[i].alpha, params[i].numtrain, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].eta, params[i].numeta, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&params[i].xU[0][0],params[i].numtrain * params[i].numeta,MPI_DOUBLE,0,world);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

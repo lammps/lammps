@@ -109,10 +109,12 @@ PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
   n_sp_f   = nullptr;
   n_sp_g   = nullptr;
 
+  cutsq = nullptr;
+
   n_sort = atom->ntypes;
 
-  comm_forward = 1;
-  comm_reverse = 1;
+  // comm_forward = 1;
+  // comm_reverse = 1;
 
   periodic[0] = domain->xperiodic;
   periodic[1] = domain->yperiodic;
@@ -205,36 +207,67 @@ PairLS::~PairLS()
 
 void PairLS::compute(int eflag, int vflag)
 {
-  int i,j,ii,jj,m,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
-  double *coeff;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  // int i,j,ii,jj,m,inum,jnum,itype,jtype;
+  // double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  // double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
+  // double *coeff;
+  // int *ilist,*jlist,*numneigh,**firstneigh;
+
+  // int n,inum_half,inum_full,errorflag;
+  // int *ilist_half,*numneigh_half,**firstneigh_half;
+  // int *ilist_full,*numneigh_full,**firstneigh_full;
 
   // ev_init(eflag,vflag);
 
 
+  int n_at = atom->nlocal;
   double **x = atom->x;
   double **f = atom->f;
   double **v = atom->v;
   int *type = atom->type;
+
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
   double sizex, sizey, sizez;
-  int n_at = atom->natoms;
 
-  memory->create(if_true_i,,"PairLS:if_true_i");
+  // memory->create(if_true_i,,"PairLS:if_true_i");
 
   sizex = domain->xprd; // global x box dimension
   sizey = domain->yprd; // global y box dimension
   sizez = domain->zprd; // global z box dimension
+
+  eflag = 3;
+  vflag = 1;
+  // setting up eatom and vatom arrays with method of the parent Pair class
+  ev_init(eflag,vflag);
+
+  e_force_fi_emb(eatom, f, px_at, vatom, pz_at,  x, type, n_at, sizex, sizey, sizez);
+  // neighbor list info
+
+  // inum_half = listhalf->inum;
+  // ilist_half = listhalf->ilist;
+  // numneigh_half = listhalf->numneigh;
+  // firstneigh_half = listhalf->firstneigh;
+
+  // inum_full = listfull->inum;
+  // ilist_full = listfull->ilist;  
+  // numneigh_full = listfull->numneigh;
+  // firstneigh_full = listfull->firstneigh;
+
+  // // inum = list->inum;
+  // // ilist = list->ilist;
+  // // numneigh = list->numneigh;
+  // // firstneigh = list->firstneigh;
+
+  // inum = inum_full;
+  // ilist = ilist_full;
+  // numneigh = numneigh_full;
+  // firstneigh = firstneigh_full;
+
+
+
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
@@ -564,7 +597,7 @@ void PairLS::init_style()
   // file2array();
   // array2spline();
 
-  neighbor->request(this,instance_me);
+  // neighbor->request(this,instance_me);
   // embedstep = -1;
 
 // void PairMEAMC::init_style()
@@ -572,14 +605,14 @@ void PairLS::init_style()
 //   if (force->newton_pair == 0)
 //     error->all(FLERR,"Pair style MEAM requires newton pair on");
 
-//   // need full and half neighbor list
+  // need full and half neighbor list
 
-//   int irequest_full = neighbor->request(this,instance_me);
-//   neighbor->requests[irequest_full]->id = 1;
-//   neighbor->requests[irequest_full]->half = 0;
-//   neighbor->requests[irequest_full]->full = 1;
-//   int irequest_half = neighbor->request(this,instance_me);
-//   neighbor->requests[irequest_half]->id = 2;
+  int irequest_full = neighbor->request(this,instance_me);
+  neighbor->requests[irequest_full]->id = 1;
+  neighbor->requests[irequest_full]->half = 0;
+  neighbor->requests[irequest_full]->full = 1;
+  int irequest_half = neighbor->request(this,instance_me);
+  neighbor->requests[irequest_half]->id = 2;
 
 // void PairTersoff::init_style()
 // {
@@ -614,23 +647,9 @@ void PairLS::init_list(int id, NeighList *ptr)
 double PairLS::init_one(int i, int j)
 {
   // single global cutoff = max of cut from all files read in
-  // for funcfl could be multiple files
-  // for setfl or fs, just one file
-
-  // if (setflag[i][j] == 0) scale[i][j] = 1.0;
-  // scale[j][i] = scale[i][j];
-
-  // if (funcfl) {
-  //   cutmax = 0.0;
-  //   for (int m = 0; m < nfuncfl; m++)
-  //     cutmax = MAX(cutmax,funcfl[m].cut);
-  // } else if (setfl) cutmax = setfl->cut;
-  // else if (fs) cutmax = fs->cut;
-
-  // cutforcesq = cutmax*cutmax;
-
-  // return cutmax;
-  return 3.14;
+    cutsq[i][j] = Rc_fi*Rc_fi;
+    cutsq[j][i] = cutsq[i][j];
+    return Rc_fi;
 }
 
 
@@ -2039,9 +2058,9 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
   int inum = list->inum; // # of I atoms neighbors are stored for (the length of the neighborlists list)
   int gnum = list->gnum; // # of ghost atoms neighbors are stored for
 
-  ilist = list->ilist;           // local indices of I atoms (list of "i" atoms for which neighbor lists exist)
-  numneigh = list->numneigh;     // # of J neighbors for each I atom (the length of each these neigbor list)
-  firstneigh = list->firstneigh; // ptr to 1st J int value of each I atom (the pointer to the list of neighbors of "i")
+  ilist = listfull->ilist;           // local indices of I atoms (list of "i" atoms for which neighbor lists exist)
+  numneigh = listfull->numneigh;     // # of J neighbors for each I atom (the length of each these neigbor list)
+  firstneigh = listfull->firstneigh; // ptr to 1st J int value of each I atom (the pointer to the list of neighbors of "i")
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
@@ -2343,6 +2362,8 @@ void PairLS::e_force_g3(double *e_at, double **f_at, double *px_at, double *py_a
 {
 
 }
+
+
 
 
 
@@ -2893,498 +2914,3 @@ double PairLS::funpp_fi_ZBL(double r, int is, int js)
 
   return funpp_fi_ZBL;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// // LAPACK subroutines and functions translated from Fortran to C++
-// // dgesv.f
-// void PairLS::DGESV(int N, int NRHS, double **A, int LDA, int *IPIV, double **B, int LDB, int *INFO)
-// {
-
-//   // *  DGESV computes the solution to a real system of linear equations
-//   // *     A * X = B,
-//   // *  where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
-//   // *
-//   // *  The LU decomposition with partial pivoting and row interchanges is
-//   // *  used to factor A as
-//   // *     A = P * L * U,
-//   // *  where P is a permutation matrix, L is unit lower triangular, and U is
-//   // *  upper triangular.  The factored form of A is then used to solve the
-//   // *  system of equations A * X = B.
-//   // 
-//   // *  Arguments
-//   // *  =========
-//   // *
-//   // *  N       (input) INTEGER
-//   // *          The number of linear equations, i.e., the order of the
-//   // *          matrix A.  N >= 0.
-//   // *
-//   // *  NRHS    (input) INTEGER
-//   // *          The number of right hand sides, i.e., the number of columns
-//   // *          of the matrix B.  NRHS >= 0.
-//   // *
-//   // *  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
-//   // *          On entry, the N-by-N coefficient matrix A.
-//   // *          On exit, the factors L and U from the factorization
-//   // *          A = P*L*U; the unit diagonal elements of L are not stored.
-//   // *
-//   // *  LDA     (input) INTEGER
-//   // *          The leading dimension of the array A.  LDA >= max(1,N).
-//   // *
-//   // *  IPIV    (output) INTEGER array, dimension (N)
-//   // *          The pivot indices that define the permutation matrix P;
-//   // *          row i of the matrix was interchanged with row IPIV(i).
-//   // *
-//   // *  B       (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS)
-//   // *          On entry, the N-by-NRHS matrix of right hand side matrix B.
-//   // *          On exit, if INFO = 0, the N-by-NRHS solution matrix X.
-//   // *
-//   // *  LDB     (input) INTEGER
-//   // *          The leading dimension of the array B.  LDB >= max(1,N).
-//   // *
-//   // *  INFO    (output) INTEGER
-//   // *          = 0:  successful exit
-//   // *          < 0:  if INFO = -i, the i-th argument had an illegal value
-//   // *          > 0:  if INFO = i, U(i,i) is exactly zero.  The factorization
-//   // *                has been completed, but the factor U is exactly
-//   // *                singular, so the solution could not be computed.
-//   // *
-//   // *  =====================================================================
-//   // 
-//   // *     .. Executable Statements ..
-//   // *
-//   // *     Test the input parameters.
-//   INFO = 0;
-//   if (N < 0) 
-//   {
-//     INFO = -1;
-//     std::cout << "PairLS::DGESV Illegal value of parameter N = " << N << std::endl;  
-//   } 
-//   else if (NRHS < 0) 
-//   {
-//     INFO = -2;
-//     std::cout << "PairLS::DGESV Illegal value of parameter NRHS = " << NRHS << std::endl;  
-//   } 
-//   else if (LDA < MAX(1, N)) 
-//   {
-//     INFO = -4;
-//     std::cout << "PairLS::DGESV Illegal values of parameters LDA = " << LDA << "and/or N = " << N << std::endl;  
-//   } 
-//   else if (LDB < MAX(1, N)) 
-//   {
-//     INFO = -7;
-//     std::cout << "PairLS::DGESV Illegal values of parameters LDB = " << LDB << "and/or N = " << N << std::endl;  
-//   }
-
-//   if (INFO != 0) 
-//   {
-//       // XERBLA("DGESV ", -INFO);
-//       return;
-//   }
-//   //*
-//   //*     Compute the LU factorization of A.
-//   //*
-//   DGETRF(N, N, A, LDA, IPIV, INFO);
-//   if (INFO == 0) 
-//   {
-//       //*
-//       //*        Solve the system A*X = B, overwriting B with X.
-//       //*
-//       DGETRS("No transpose", N, NRHS, A, LDA, IPIV, B, LDB, INFO);
-//   }
-//   return;
-// }
-
-// // dgetrf.f
-// void PairLS::DGETRF(int M, int N, double **A, int LDA, int *IPIV, int *INFO)
-// {
-//   // *  DGETRF computes an LU factorization of a general M-by-N matrix A
-//   // *  using partial pivoting with row interchanges.
-//   // *
-//   // *  The factorization has the form
-//   // *     A = P * L * U
-//   // *  where P is a permutation matrix, L is lower triangular with unit
-//   // *  diagonal elements (lower trapezoidal if m > n), and U is upper
-//   // *  triangular (upper trapezoidal if m < n).
-//   // *
-//   // *  This is the right-looking Level 3 BLAS version of the algorithm.
-//   // *
-//   // *  Arguments
-//   // *  =========
-//   // *
-//   // *  M       (input) INTEGER
-//   // *          The number of rows of the matrix A.  M >= 0.
-//   // *
-//   // *  N       (input) INTEGER
-//   // *          The number of columns of the matrix A.  N >= 0.
-//   // *
-//   // *  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
-//   // *          On entry, the M-by-N matrix to be factored.
-//   // *          On exit, the factors L and U from the factorization
-//   // *          A = P*L*U; the unit diagonal elements of L are not stored.
-//   // *
-//   // *  LDA     (input) INTEGER
-//   // *          The leading dimension of the array A.  LDA >= max(1,M).
-//   // *
-//   // *  IPIV    (output) INTEGER array, dimension (min(M,N))
-//   // *          The pivot indices; for 1 <= i <= min(M,N), row i of the
-//   // *          matrix was interchanged with row IPIV(i).
-//   // *
-//   // *  INFO    (output) INTEGER
-//   // *          = 0:  successful exit
-//   // *          < 0:  if INFO = -i, the i-th argument had an illegal value
-//   // *          > 0:  if INFO = i, U(i,i) is exactly zero. The factorization
-//   // *                has been completed, but the factor U is exactly
-//   // *                singular, and division by zero will occur if it is used
-//   // *                to solve a system of equations.
-//   // *
-//   // *  =====================================================================
-
-//   //*     .. Parameters ..
-//   double const ONE = 1.0;
-
-//   //*     ..
-//   //*     .. Local Scalars ..
-//   int I, IINFO, J, JB, NB;
-//   //*     .. Additional Local Scalars for C-like indexing of arrays
-//   int II, JJ; 
-//   //*     ..
-//   //*     .. External Subroutines ..
-//   // EXTERNAL DGEMM, DGETF2, DLASWP, DTRSM, XERBLA;
-//   //*     ..
-//   //*     .. External Functions ..
-//   // int ILAENV;
-//   // EXTERNAL ILAENV;
-//   //*     ..
-//   //*     .. Intrinsic Functions ..
-//   // INTRINSIC MAX, MIN;
-//   //*     ..
-//   //*     .. Executable Statements ..
-//   //*
-//   //*     Test the input parameters.
-//   //*
-//   INFO = 0;
-//   if (M < 0) 
-//   {
-//     INFO = -1;
-//     std::cout << "PairLS::DGETRF Illegal value of parameter M = " << M << std::endl;  
-//   } 
-//   else if (N < 0) 
-//   {
-//     INFO = -2;
-//     std::cout << "PairLS::DGETRF Illegal value of parameter N = " << N << std::endl;  
-//   } 
-//   else if (LDA < MAX(1, M)) 
-//   {
-//     INFO = -4;
-//     std::cout << "PairLS::DGETRF Illegal values of parameters LDA = " << LDA << "and/or M = " << M << std::endl;  
-//   }
-
-//   if (INFO != 0) 
-//   {
-//     // XERBLA("DGETRF", -INFO);
-//     return;
-//   }
-//   //*
-//   //*     Quick return if possible
-//   //*
-//   if (M == 0 || N == 0) return;
-//   //*
-//   //*     Determine the block size for this environment.
-//   //*
-//   NB = ILAENV(1, "DGETRF", " ", M, N, -1, -1); // check what this means
-//   if (NB <= 1 || NB >= MIN(M, N)) 
-//   {
-//     //*
-//     //*        Use unblocked code.
-//     //*
-//     DGETF2(M, N, A, LDA, IPIV, INFO);
-//   } 
-//   else
-//   {
-//     //*
-//     //*        Use blocked code.
-//     //*
-//     for (J = 1, J <= MIN(M, N), J += NB)    // decide what to use
-//     // for (JJ = 1, JJ <= MIN(M, N), JJ += NB)    // decide what to use
-//     // for (J = 0, J < MIN(M, N), J += NB)  // decide what to use
-//     {
-//       // J = JJ - 1;
-//       JB = MIN(MIN(M, N) - J + 1, NB);  // decide what to use
-//       // JB = MIN(MIN(M, N) - (J+1) + 1, NB); // decide what to use
-//       //*
-//       //*           Factor diagonal and subdiagonal blocks and test for exact
-//       //*           singularity.
-//       //*
-//       DGETF2(M - J + 1, JB, A[J-1][J-1], LDA, IPIV[0:J-1], IINFO); // decide what to use
-//       // DGETF2(M - J + 1, JB, A(J, J), LDA, IPIV(J), IINFO);        // decide what to use
-//       // DGETF2(M - (J+1) + 1, JB, A[0:J][0:J], LDA, IPIV[0:J], IINFO); // decide what to use
-//       //*
-//       //*           Adjust INFO and the pivot indices.
-//       //*
-//       if (INFO == 0 && IINFO > 0) INFO = IINFO + J - 1;
-//       for(I = J, I <= MIN(M, J + JB - 1), I++)
-//       {
-//         IPIV[I-1] = J - 1 + IPIV[I-1];     // decide what to use
-//         // IPIV[I] = (J+1) - 1 + IPIV[I];   // decide what to use
-//       }
-//       //*
-//       //*           Apply interchanges to columns 1:J-1.
-//       //*
-//       DLASWP(J - 1, A, LDA, J, J + JB - 1, IPIV, 1);                 // decide what to use
-//       // DLASWP((J+1) - 1, A, LDA, (J+1), (J+1) + JB - 1, IPIV, 1);  // decide what to use
-//       //*
-//       if (J + JB <= N)         // decide what to use
-//       // if (J+1 + JB <= N)    // decide what to use
-//       {
-//         //*
-//         //*              Apply interchanges to columns J+JB:N.
-//         //*
-//         DLASWP(N - J - JB + 1, A[1][J + JB], LDA, J, J + JB - 1,  IPIV, 1);      // decide what to use 
-//         // DLASWP(N - (J+1) - JB + 1, A[1][(J+1) + JB], LDA, J, J + JB - 1,  IPIV, 1); // decide what to use
-//         //*
-//         //*              Compute block row of U.
-//         //*
-//         // DTRSM("Left", "Lower", "No transpose", "Unit", JB, N - J - JB + 1, ONE, A(J, J), LDA, A(J, J + JB),                     LDA);
-//         DTRSM("Left", "Lower", "No transpose", "Unit", JB, N - (J+1) - JB + 1, ONE, A[0:J][0:J], LDA, A(J, J + JB),                     LDA);
-//         if (J+1 + JB <= M) 
-//         {
-//           //*
-//           //*                 Update trailing submatrix.
-//           //*
-//           DGEMM("No transpose", "No transpose", M - J - JB + 1,    N - J - JB + 1, JB, -ONE, A(J + JB, J), LDA,                        A(J, J + JB), LDA, ONE, A(J + JB, J + JB),                        LDA);
-//         }
-//       }
-          
-//     }
-//   }
-//   return;
-
-// }
-
-// // ilaenv.f
-// int PairLS::ILAENV()
-// {
-
-// }
-
-// // ieeeck.f
-// int PairLS::IEEECK()
-// {
-
-// }
-
-// // lsame.f
-// bool PairLS::LSAME()
-// {
-
-// }
-
-
-
-// // dgetf2.f
-// void PairLS::DGETF2(int M, int N, double **A, int LDA, int *IPIV, int *INFO)
-// {
-
-// }
-
-// // dlaswp.f
-// void PairLS::DLASWP(int N, double **A, int LDA, int K1, int K2, int *IPIV, int INCX)
-// {
-//   //*
-//   //*  -- LAPACK auxiliary routine (version 2.0) --
-//   //*     Univ. of Tennessee, Univ. of California Berkeley, NAG Ltd.,
-//   //*     Courant Institute, Argonne National Lab, and Rice University
-//   //*     October 31, 1992
-//   //*
-//   //*     .. Scalar Arguments ..
-//   // int INCX, K1, K2, LDA, N;
-//   //*     ..
-//   //*     .. Array Arguments ..
-//   // int IPIV[*];
-//   // double A(LDA, *);
-//   //*     ..
-//   //*
-//   //*  Purpose
-//   //*  =======
-//   //*
-//   //*  DLASWP performs a series of row interchanges on the matrix A.
-//   //*  One row interchange is initiated for each of rows K1 through K2 of A.
-//   //*
-//   //*  Arguments
-//   //*  =========
-//   //*
-//   //*  N       (input) INTEGER
-//   //*          The number of columns of the matrix A.
-//   //*
-//   //*  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N)
-//   //*          On entry, the matrix of column dimension N to which the row
-//   //*          interchanges will be applied.
-//   //*          On exit, the permuted matrix.
-//   //*
-//   //*  LDA     (input) INTEGER
-//   //*          The leading dimension of the array A.
-//   //*
-//   //*  K1      (input) INTEGER
-//   //*          The first element of IPIV for which a row interchange will
-//   //*          be done.
-//   //*
-//   //*  K2      (input) INTEGER
-//   //*          The last element of IPIV for which a row interchange will
-//   //*          be done.
-//   //*
-//   //*  IPIV    (input) INTEGER array, dimension (M*abs(INCX))
-//   //*          The vector of pivot indices.  Only the elements in positions
-//   //*          K1 through K2 of IPIV are accessed.
-//   //*          IPIV(K) = L implies rows K and L are to be interchanged.
-//   //*
-//   //*  INCX    (input) INTEGER
-//   //*          The increment between successive values of IPIV.  If IPIV
-//   //*          is negative, the pivots are applied in reverse order.
-//   //*
-//   //* =====================================================================
-//   //*
-//   //*     .. Local Scalars ..
-//   int I, IP, IX;
-//   //*     ..
-//   //*     .. External Subroutines ..
-//   // EXTERNAL DSWAP;
-//   //*     ..
-//   //*     .. Executable Statements ..
-//   //*
-//   //*     Interchange row I with row IPIV(I) for each of rows K1 through K2.
-//   //*
-//   if (INCX == 0) return;
-//   if (INCX > 0) 
-//   {
-//     IX = K1;
-//   } 
-//   else
-//   {
-//     IX = 1 + (1 - K2)*INCX;
-//   }
-
-//   if (INCX == 1) 
-//   {
-//     for(I = K1; I <= K2; I++)
-//     {
-//       IP = IPIV[I-1];
-//       if (IP != I) 
-//       {
-//         // DSWAP(N, A(I, 1), LDA, A(IP, 1), LDA);
-//         DSWAP(N, A[0:I][0], LDA, A(IP, 1), LDA);
-//       }
-//     }
-//   } 
-//   else if (INCX > 1) 
-//   {
-//     for(I = K1; I <= K2; I++)
-//     {
-//       IP = IPIV[IX];
-//       if (IP != I) 
-//       {
-//         DSWAP(N, A(I, 1), LDA, A(IP, 1), LDA);
-//       }
-//       IX = IX + INCX;
-//     }
-//   } 
-//   else if (INCX < 0) 
-//   {
-//       for(I = K2, K1, I -= 1)
-//       {
-//         IP = IPIV[IX];
-//         if (IP != I) 
-//         {
-//           DSWAP(N, A(I, 1), LDA, A(IP, 1), LDA);
-//         }
-//         IX = IX + INCX;
-//       }
-//   }
-//   return;
-// }
-
-// void PairLS::DSWAP(int N, double **A, int LDA, int K1, int K2, int *IPIV, int INCX)
-// {
-
-// }
-
-// // dtrsm.f
-// void PairLS::DTRSM()
-// {
-
-// }
-
-
-// // dgemm.f
-// void PairLS::DGEMM()
-// {
-
-// }
-
-// // dgetrs.f
-// void PairLS::DGETRS()
-// {
-
-// }
-
-// void PairLS::DGER()
-// {
-  
-// }
-
-// // idamax.f
-// int PairLS::idamax()
-// {
-
-// }
-
-// // dscal.f
-// int PairLS::dscal()
-// {
-
-// }

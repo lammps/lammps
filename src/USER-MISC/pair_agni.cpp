@@ -121,6 +121,7 @@ PairAGNI::~PairAGNI()
     memory->destroy(params);
     params = nullptr;
   }
+  memory->destroy(elem2param);
 
   if (allocated) {
     memory->destroy(setflag);

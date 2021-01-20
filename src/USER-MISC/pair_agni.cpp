@@ -442,23 +442,20 @@ void PairAGNI::read_file(char *filename)
                                                   "in AGNI potential file.",tag));
         } else {
           if (params && wantdata >=0) {
-            if (values.count() == params[wantdata].numeta + 2) {
+            if ((int)values.count() == params[wantdata].numeta + 2) {
               for (k = 0; k < params[wantdata].numeta; ++k)
                 params[wantdata].xU[k][fp_counter] = values.next_double();
               values.next_double(); // ignore
               params[wantdata].alpha[fp_counter] = values.next_double();
               fp_counter++;
-            }
-            else if (values.count() == params[wantdata].numeta + 3) {
+            } else if ((int)values.count() == params[wantdata].numeta + 3) {
               values.next_double(); // ignore
               for (k = 0; k < params[wantdata].numeta; ++k)
                 params[wantdata].xU[k][fp_counter] = values.next_double();
               values.next_double(); // ignore
               params[wantdata].alpha[fp_counter] = values.next_double();
               fp_counter++;
-            }
-            else
-              error->all(FLERR,"Invalid AGNI potential file");
+            } else error->all(FLERR,"Invalid AGNI potential file");
           }
         }
       }

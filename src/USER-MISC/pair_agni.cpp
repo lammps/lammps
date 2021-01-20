@@ -490,7 +490,8 @@ void PairAGNI::read_file(char *filename)
 
     MPI_Bcast(&params[i].alpha, params[i].numtrain, MPI_DOUBLE, 0, world);
     MPI_Bcast(&params[i].eta, params[i].numeta, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&params[i].xU[0][0],params[i].numtrain * params[i].numeta,MPI_DOUBLE,0,world);
+    for (j = 0; j < params[i].numeta; ++j)
+      MPI_Bcast(&params[i].xU[j][0],params[i].numtrain,MPI_DOUBLE,0,world);
   }
 }
 

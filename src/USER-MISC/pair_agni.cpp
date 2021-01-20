@@ -418,21 +418,19 @@ void PairAGNI::read_file(char *filename)
             memory->create(params[curparam].eta,params[curparam].numeta,"agni:eta");
             for (j = 0; j < params[curparam].numeta; j++)
               params[curparam].eta[j] = values.next_double();
-          } else if (tag == "gwidth")
+          } else if (tag == "gwidth") {
             params[curparam].gwidth = values.next_double();
-          else if (tag == "Rc")
+          } else if (tag == "Rc") {
             params[curparam].cut = values.next_double();
-          else if (tag == "n_train") {
+          } else if (tag == "n_train") {
             params[curparam].numtrain = values.next_int();
             memory->create(params[curparam].alpha,params[curparam].numtrain,"agni:alpha");
             memory->create(params[curparam].xU,params[curparam].numtrain,params[curparam].numtrain,"agni:xU");
-          } else if (tag == "sigma")
+          } else if (tag == "sigma") {
             params[curparam].sigma = values.next_double();
-          else if (tag == "sigma")
-            params[curparam].sigma = values.next_double();
-          else if (tag == "b")
+          } else if (tag == "b") {
             params[curparam].b = values.next_double();
-          else if (tag == "endVar") {
+          } else if (tag == "endVar") {
             if (atomic_feature_version == AGNI_VERSION_1)
               params[curparam].gwidth = 0.0;
             wantdata = curparam;

@@ -100,10 +100,13 @@ void LabelMap::modify_lmap(int narg, char **arg)
 
   int itype;
   int iarg = 1;
+  char *charlabel;
   while (iarg < narg) {
     itype = utils::inumeric(FLERR,arg[iarg++],false,lmp);
+    charlabel = arg[iarg++];
     if (itype > ntypes) error->all(FLERR,"Topology type exceeds system topology type");
-    (*labels)[itype-1] = arg[iarg++];
+    if (!isalpha(charlabel[0])) error->all(FLERR,"Type labels must begin with a letter");
+    (*labels)[itype-1] = charlabel;
   }
 }
 

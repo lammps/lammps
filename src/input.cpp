@@ -1560,6 +1560,7 @@ void Input::labelmap()
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Labelmap command before simulation box is defined");
+  if (!atom->labelmapflag) atom->add_label_map();
   atom->lmap->modify_lmap(narg,arg);
 }
 

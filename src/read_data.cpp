@@ -441,7 +441,6 @@ void ReadData::command(int narg, char **arg)
       else n = static_cast<int> (LB_FACTOR * atom->natoms / comm->nprocs);
 
       atom->allocate_type_arrays();
-      atom->add_label_map();
       atom->deallocate_topology();
 
       // allocate atom arrays to N, rounded up by AtomVec->DELTA
@@ -1975,7 +1974,7 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
   char *buf = new char[myntypes*MAXLINE];
 
   labelflag = 1;
-  atom->labelmapflag = 1;
+  if (atom->labelmapflag == 0) atom->add_label_map();
 
   int eof = comm->read_lines_from_file(fp,myntypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");

@@ -1991,6 +1991,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
 
 void Atom::add_label_map()
 {
+  labelmapflag = 1;
   lmap = new LabelMap(lmp);
   lmap->natomtypes = ntypes;
   lmap->nbondtypes = nbondtypes;

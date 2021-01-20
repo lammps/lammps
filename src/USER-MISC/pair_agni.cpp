@@ -357,11 +357,18 @@ double PairAGNI::init_one(int i, int j)
 
 void PairAGNI::read_file(char *filename)
 {
-  memory->sfree(params);
-  params = nullptr;
-  nparams = 0;
-
   int i,j,k,curparam,wantdata,fp_counter;
+
+  if (params) {
+    for (int i = 0; i < nparams; ++i) {
+      memory->destroy(params[i].eta);
+      memory->destroy(params[i].alpha);
+      memory->destroy(params[i].xU);
+    }
+    memory->destroy(params);
+    params = nullptr;
+  }
+  nparams = 0;
 
   fp_counter = 0;
   wantdata = -1;

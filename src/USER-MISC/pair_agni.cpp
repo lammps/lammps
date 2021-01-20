@@ -110,13 +110,9 @@ PairAGNI::~PairAGNI()
   delete [] elements;
   if (params) {
     for (int i = 0; i < nparams; ++i) {
-      int n = params[i].numeta;
-      for (int j = 0; j < n; ++j) {
-        delete [] params[i].xU[j];
-      }
-      delete [] params[i].eta;
-      delete [] params[i].alpha;
-      delete [] params[i].xU;
+      memory->destroy(params[i].eta);
+      memory->destroy(params[i].alpha);
+      memory->destroy(params[i].xU);
     }
     memory->destroy(params);
     params = nullptr;
@@ -413,9 +409,7 @@ void PairAGNI::read_file(char *filename)
               error->all(FLERR,"Incompatible AGNI potential file version");
           } else if (tag == "eta") {
             params[curparam].numeta = values.count() - 1;
-            params[curparam].eta = new double[params[curparam].numeta];
-            params[curparam].xU = new double*[params[curparam].numeta];
-
+            memory->create(params[curparam].eta,params[curparam].numeta,"agni:eta");
             for (j = 0; j < params[curparam].numeta; j++)
               params[curparam].eta[j] = values.next_double();
           } else if (tag == "gwidth")
@@ -424,9 +418,8 @@ void PairAGNI::read_file(char *filename)
             params[curparam].cut = values.next_double();
           else if (tag == "n_train") {
             params[curparam].numtrain = values.next_int();
-            params[curparam].alpha = new double[params[curparam].numtrain];
-            for (j = 0; j < params[curparam].numeta; ++j)
-              params[curparam].xU[j] = new double[params[curparam].numtrain];
+            memory->create(params[curparam].alpha,params[curparam].numtrain,"agni:alpha");
+            memory->create(params[curparam].xU,params[curparam].numtrain,params[curparam].numtrain,"agni:xU");
           } else if (tag == "sigma")
             params[curparam].sigma = values.next_double();
           else if (tag == "sigma")
@@ -473,17 +466,14 @@ void PairAGNI::read_file(char *filename)
   MPI_Bcast(params, nparams*sizeof(Param), MPI_BYTE, 0, world);
   for (i = 0; i < nparams; i++) {
     if (comm->me != 0) {
-      params[i].alpha = new double[params[i].numtrain];
-      params[i].eta = new double[params[i].numeta];
-      params[i].xU = new double*[params[i].numeta];
-      for (j = 0; j < params[i].numeta; ++j)
-        params[i].xU[j] = new double[params[i].numtrain];
+      memory->create(params[i].alpha,params[i].numtrain,"agni:alpha");
+      memory->create(params[i].eta,params[i].numeta,"agni:eta");
+      memory->create(params[i].xU,params[i].numeta,params[i].numtrain,"agni:xU");
     }
 
     MPI_Bcast(params[i].alpha, params[i].numtrain, MPI_DOUBLE, 0, world);
     MPI_Bcast(params[i].eta, params[i].numeta, MPI_DOUBLE, 0, world);
-    for (j = 0; j < params[i].numeta; ++j)
-      MPI_Bcast(&params[i].xU[j][0],params[i].numtrain,MPI_DOUBLE,0,world);
+    MPI_Bcast(&params[i].xU[0][0],params[i].numtrain*params[i].numeta,MPI_DOUBLE,0,world);
   }
 }
 

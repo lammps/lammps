@@ -472,6 +472,7 @@ These are the section keywords for the body of the file.
 
 * *Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
+* *Atom Type Labels, Bond Type Labels, Angle Type Labels, Dihedral Type Labels, Improper Type Labels* = type label map
 * *Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs* = force field sections
 * *BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs* = class 2 force field sections
 
@@ -528,6 +529,18 @@ angle style.  See the :doc:`angle_style <angle_style>` and
 :doc:`angle_coeff <angle_coeff>` commands for details.  Coefficients can
 also be set via the :doc:`angle_coeff <angle_coeff>` command in the
 input script.
+
+----------
+
+*Angle Type Labels* section:
+
+* one line per angle type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = angle type (1-N)
+       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
 
 ----------
 
@@ -589,6 +602,18 @@ integers (1, not 1.0).
 
        ID = dihedral type (1-N)
        coeffs = list of coeffs (see :doc:`dihedral_coeff <dihedral_coeff>`)
+
+----------
+
+*Atom Type Labels* section:
+
+* one line per atom type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = atom type (1-N)
+       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
 
 ----------
 
@@ -917,6 +942,18 @@ script.
 
 ----------
 
+*Bond Type Labels* section:
+
+* one line per bond type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = bond type (1-N)
+       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
+
+----------
+
 *BondAngle Coeffs* section:
 
 * one line per angle type
@@ -996,6 +1033,18 @@ dihedral style.  See the :doc:`dihedral_style <dihedral_style>` and
 :doc:`dihedral_coeff <dihedral_coeff>` commands for details.
 Coefficients can also be set via the
 :doc:`dihedral_coeff <dihedral_coeff>` command in the input script.
+
+----------
+
+*Dihedral Type Labels* section:
+
+* one line per dihedral type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = dihedral type (1-N)
+       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
 
 ----------
 
@@ -1097,6 +1146,18 @@ improper style.  See the :doc:`improper_style <improper_style>` and
 :doc:`improper_coeff <improper_coeff>` commands for details.
 Coefficients can also be set via the
 :doc:`improper_coeff <improper_coeff>` command in the input script.
+
+----------
+
+*Improper Type Labels* section:
+
+* one line per improper type
+* line syntax: ID label
+
+  .. parsed-literal::
+
+       ID = improper type (1-N)
+       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
 
 ----------
 

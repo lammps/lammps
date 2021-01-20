@@ -173,6 +173,13 @@ These are the allowed section keywords for the body of the file.
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
 
+For the Types, Bonds, Angles, Dihedrals, and Impropers sections,  each
+atom, bond, etc. type can be listed either as a number (numeric type)
+or as an alphanumeric :doc:`type label <labelmap>`. Type labels must
+begin with letter, and a label map must have previously been defined
+by a :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
+command.
+
 If a Bonds section is specified then the Special Bond Counts and
 Special Bonds sections can also be used, if desired, to explicitly
 list the 1-2, 1-3, 1-4 neighbors within the molecule topology (see
@@ -222,7 +229,7 @@ order.
 
 * one line per atom
 * line syntax: ID type
-* type = atom type of atom
+* type = atom type of atom (1-Natomtype, or type label)
 
 ----------
 
@@ -289,7 +296,7 @@ included, the default mass for each atom is derived from its volume
 
 * one line per bond
 * line syntax: ID type atom1 atom2
-* type = bond type (1-Nbondtype)
+* type = bond type (1-Nbondtype, or type label)
 * atom1,atom2 = IDs of atoms in bond
 
 The IDs for the two atoms in each bond should be values
@@ -301,7 +308,7 @@ from 1 to Natoms, where Natoms = # of atoms in the molecule.
 
 * one line per angle
 * line syntax: ID type atom1 atom2 atom3
-* type = angle type (1-Nangletype)
+* type = angle type (1-Nangletype, or type label)
 * atom1,atom2,atom3 = IDs of atoms in angle
 
 The IDs for the three atoms in each angle should be values from 1 to
@@ -315,7 +322,7 @@ which the angle is computed) is the atom2 in the list.
 
 * one line per dihedral
 * line syntax: ID type atom1 atom2 atom3 atom4
-* type = dihedral type (1-Ndihedraltype)
+* type = dihedral type (1-Ndihedraltype, or type label)
 * atom1,atom2,atom3,atom4 = IDs of atoms in dihedral
 
 The IDs for the four atoms in each dihedral should be values from 1 to
@@ -328,7 +335,7 @@ ordered linearly within the dihedral.
 
 * one line per improper
 * line syntax: ID type atom1 atom2 atom3 atom4
-* type = improper type (1-Nimpropertype)
+* type = improper type (1-Nimpropertype, or type label)
 * atom1,atom2,atom3,atom4 = IDs of atoms in improper
 
 The IDs for the four atoms in each improper should be values from 1 to

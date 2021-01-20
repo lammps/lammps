@@ -18,6 +18,6 @@ fix 5 all momentum 1 linear 1 1 1
 thermo 100
 thermo_style custom step ke etotal temp
 
-dump MyDump all custom 250 dump.atoms id type x y z vx vy vz fx fy fz
+# dump MyDump all custom 250 dump.atoms id type x y z vx vy vz fx fy fz
 
 run 1000

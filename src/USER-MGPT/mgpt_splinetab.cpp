@@ -20,7 +20,7 @@
 
 static void trisolve(int n,double A[][3],double y[]) {
   /* Backward elimination */
-  for(int i = n-1; i>0; i--) {
+  for (int i = n-1; i>0; i--) {
     double q = A[i-1][2] / A[i][1];
     A[i-1][1] = A[i-1][1] - q*A[i][0];
     y[i-1] = y[i-1] - q*y[i];
@@ -28,7 +28,7 @@ static void trisolve(int n,double A[][3],double y[]) {
 
   /* Forward substitution */
   y[0] = y[0] / A[0][1];
-  for(int i = 1; i<n; i++)
+  for (int i = 1; i<n; i++)
     y[i] = (y[i] - A[i][0]*y[i-1]) / A[i][1];
 }
 
@@ -51,7 +51,7 @@ void makespline(int ntab,int stride,double tab[],double C[][4]) {
     4.0*tab[stride*(ntab-3)] - 1.0*tab[stride*(ntab-4)];
 
   A[0][0] = 0.0;  A[0][1] = 0.0;  A[0][2] = 2.0;  y[0] = h_left;
-  for(i = 1; i<ntab-1; i++) {
+  for (i = 1; i<ntab-1; i++) {
     j = 3*(i-1);
     d = tab[stride*i] - tab[stride*(i-1)];
     A[j+1][0] = 1.0;  A[j+1][1] = 1.0;  A[j+1][2] =  1.0;  y[j+1] = d;
@@ -66,7 +66,7 @@ void makespline(int ntab,int stride,double tab[],double C[][4]) {
 
   trisolve(n,A,y);
 
-  for(i = 0; i<ntab-1; i++) {
+  for (i = 0; i<ntab-1; i++) {
     C[i][0] = tab[stride*i];
     C[i][1] = y[3*i+0];
     C[i][2] = y[3*i+1];
@@ -99,12 +99,12 @@ void evalspline(int n,double x0,double x1,double C[][4],
   xhat = (x-x0)/(x1-x0) * n;
 
   idx = (int) xhat;
-  if(idx < 0) idx = 0;
-  if(idx > n-1) idx = n-1;
+  if (idx < 0) idx = 0;
+  if (idx > n-1) idx = n-1;
   xhat = xhat - idx;
   p = C[idx];
 
-  if(0) {
+  if (0) {
     *y = p[0] + xhat*(p[1] + xhat*(p[2] + xhat*p[3]));
 
     *dy = p[1] + xhat*(2*p[2] + xhat*3*p[3]);

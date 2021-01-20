@@ -16,7 +16,6 @@
                          Aidan Thompson (Sandia, athomps@sandia.gov)
 ------------------------------------------------------------------------- */
 
-
 #include <cmath>
 #include <cstdio>
 
@@ -44,6 +43,7 @@ PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
   one_coeff = 1;
   no_virial_fdotr_compute = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   map = nullptr;
   quip_potential = nullptr;
@@ -162,17 +162,17 @@ void PairQUIP::compute(int eflag, int vflag)
 
   iquip = 0;
   for (ii = 0; ii < ntotal; ii++) {
-     for( jj = 0; jj < 3; jj++ ) {
+     for (jj = 0; jj < 3; jj++) {
         f[ii][jj] += quip_force[iquip];
         iquip++;
      }
   }
 
-  if(eflag_global) {
+  if (eflag_global) {
     eng_vdwl = quip_energy;
   }
 
-  if(eflag_atom) {
+  if (eflag_atom) {
     for (ii = 0; ii < ntotal; ii++) {
       eatom[ii] = quip_local_e[ii];
     }
@@ -187,9 +187,9 @@ void PairQUIP::compute(int eflag, int vflag)
       virial[5] = (quip_virial[5] + quip_virial[7])*0.5;
   }
 
-  if(vflag_atom) {
+  if (vflag_atom) {
     int iatom = 0;
-     for(ii = 0; ii < ntotal; ii++) {
+     for (ii = 0; ii < ntotal; ii++) {
        vatom[ii][0] += quip_local_virial[iatom+0];
        vatom[ii][1] += quip_local_virial[iatom+4];
        vatom[ii][2] += quip_local_virial[iatom+8];

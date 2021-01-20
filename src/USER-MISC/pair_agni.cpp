@@ -20,6 +20,7 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "force.h"
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -81,6 +82,7 @@ PairAGNI::PairAGNI(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   no_virial_fdotr_compute = 1;
 
@@ -198,7 +200,7 @@ void PairAGNI::compute(int eflag, int vflag)
       double ky = 0.0;
       double kz = 0.0;
 
-      for(int k = 0; k < iparam.numeta; ++k) {
+      for (int k = 0; k < iparam.numeta; ++k) {
         const double xu = iparam.xU[k][j];
         kx += square(Vx[k] - xu);
         ky += square(Vy[k] - xu);

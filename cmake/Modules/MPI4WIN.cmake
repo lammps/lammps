@@ -1,7 +1,7 @@
 # Download and configure custom MPICH files for Windows
 message(STATUS "Downloading and configuring MPICH-1.4.1 for Windows")
 include(ExternalProject)
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
   ExternalProject_Add(mpi4win_build
     URL https://download.lammps.org/thirdparty/mpich2-win64-devel.tar.gz
     URL_MD5 4939fdb59d13182fd5dd65211e469f14

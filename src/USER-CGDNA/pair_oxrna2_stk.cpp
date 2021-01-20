@@ -262,6 +262,7 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int a,b,in,atype,btype;
 
@@ -279,9 +280,9 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     a = bondlist[in][1];
     b = bondlist[in][0];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
-    qb=bonus[b].quat;
+    qb=bonus[ellipsoid[b]].quat;
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
     // vector COM a - 3'-stacking site a

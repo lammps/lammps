@@ -148,7 +148,7 @@ bigint ReaderXYZ::read_header(double /*box*/[3][3], int &boxinfo, int &/*triclin
          (fieldtype[i] == Y) ||
          (fieldtype[i] == Z) ||
          (fieldtype[i] == ID) ||
-         (fieldtype[i] == TYPE) ) {
+         (fieldtype[i] == TYPE)) {
       fieldindex[i] = fieldtype[i];
     } else {
       fieldflag = 1;

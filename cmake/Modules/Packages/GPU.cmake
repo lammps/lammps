@@ -2,6 +2,7 @@ set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
 set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                 ${GPU_SOURCES_DIR}/fix_gpu.h
                 ${GPU_SOURCES_DIR}/fix_gpu.cpp)
+target_compile_definitions(lammps PRIVATE -DLMP_GPU)
 
 set(GPU_API "opencl" CACHE STRING "API used by GPU package")
 set(GPU_API_VALUES opencl cuda hip)

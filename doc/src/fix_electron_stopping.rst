@@ -1,28 +1,41 @@
 .. index:: fix electron/stopping
+.. index:: fix electron/stopping/fit
 
 fix electron/stopping command
 =============================
+
+fix electron/stopping/fit command
+=================================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   fix ID group-ID electron/stopping Ecut file keyword value ...
+   fix ID group-ID style args
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* electron/stopping = style name of this fix command
-* Ecut = minimum kinetic energy for electronic stopping (energy units)
-* file = name of the file containing the electronic stopping power table
-* zero or more keyword/value pairs may be appended to args
-* keyword = *region* or *minneigh*
+* style = *electron/stopping* or *electron/stopping/fit*
 
   .. parsed-literal::
 
+   *electron/stopping* args = Ecut file keyword value ...
+     Ecut  = minimum kinetic energy for electronic stopping (energy units)
+     file  = name of the file containing the electronic stopping power table
+
+   *electron/stopping/fit* args = Ecut c1 c2 ...
+     Ecut  = minimum kinetic energy for electronic stopping (energy units)
+     c1 c2 = linear and quadratic coefficients for the fitted quadratic polynomial
+
+* zero or more keyword/value pairs may be appended to args for style = *electron/stopping*
+
+  .. parsed-literal::
+
+    keyword = *region* or *minneigh*
        *region* value = region-ID
-         region-ID = region, whose atoms will be affected by this fix
+          region-ID = region whose atoms will be affected by this fix
        *minneigh* value = minneigh
-         minneigh = minimum number of neighbors an atom to have stopping applied
+          minneigh = minimum number of neighbors an atom to have stopping applied
 
 Examples
 """"""""
@@ -32,6 +45,8 @@ Examples
    fix el all electron/stopping 10.0 elstop-table.txt
    fix el all electron/stopping 10.0 elstop-table.txt minneigh 3
    fix el mygroup electron/stopping 1.0 elstop-table.txt region bulk
+   fix 1 all electron/stopping/fit 4.63 3.3e-3 4.0e-8
+   fix 1 all electron/stopping/fit 3.49 1.8e-3 9.0e-8 7.57 4.2e-3 5.0e-8
 
 Description
 """""""""""
@@ -129,6 +144,19 @@ scientific publications, experimental databases or by using
 of the impact parameter of the ion; these results can be used
 to derive the stopping power.
 
+----------
+
+Style *electron/stopping/fit* calculates the electronic stopping power
+and cumulative energy lost to the electron gas via a quadratic functional
+and applies a drag force to the classical equations-of-motion for all
+atoms moving above some minimum cutoff velocity (i.e., kinetic energy).
+These coefficients can be determined by fitting a quadratic polynomial to
+electronic stopping data predicted by, for example, SRIM or TD-DFT. Multiple
+'Ecut c1 c2' values can be provided for multi-species simulations in the order
+of the atom types. There is an examples/USER/misc/electron_stopping/ directory,
+which illustrates uses of this command. Details of this implementation are
+further described in :ref:`Stewart2018 <Stewart2018>` and :ref:`Lee2020 <Lee2020>`.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -181,3 +209,11 @@ The default is no limitation by region, and minneigh = 1.
 .. _PASS:
 
 **(PASS)** PASS webpage: https://www.sdu.dk/en/DPASS
+
+.. _Stewart2018:
+
+**(Stewart2018)** J.A. Stewart, et al. (2018) Journal of Applied Physics, 123(16), 165902.
+
+.. _Lee2020:
+
+**(Lee2020)** C.W. Lee, et al. (2020) Physical Review B, 102(2), 024107.

@@ -931,29 +931,6 @@ void SharedAllocationRecord<Kokkos::CudaHostPinnedSpace, void>::print_records(
 // </editor-fold> end SharedAllocationRecord::print_records() }}}1
 //==============================================================================
 
-void *cuda_resize_scratch_space(std::int64_t bytes, bool force_shrink) {
-  static void *ptr                 = nullptr;
-  static std::int64_t current_size = 0;
-  if (current_size == 0) {
-    current_size = bytes;
-    ptr = Kokkos::kokkos_malloc<Kokkos::CudaSpace>("CudaSpace::ScratchMemory",
-                                                   current_size);
-  }
-  if (bytes > current_size) {
-    current_size = bytes;
-    Kokkos::kokkos_free<Kokkos::CudaSpace>(ptr);
-    ptr = Kokkos::kokkos_malloc<Kokkos::CudaSpace>("CudaSpace::ScratchMemory",
-                                                   current_size);
-  }
-  if ((bytes < current_size) && (force_shrink)) {
-    current_size = bytes;
-    Kokkos::kokkos_free<Kokkos::CudaSpace>(ptr);
-    ptr = Kokkos::kokkos_malloc<Kokkos::CudaSpace>("CudaSpace::ScratchMemory",
-                                                   current_size);
-  }
-  return ptr;
-}
-
 void cuda_prefetch_pointer(const Cuda &space, const void *ptr, size_t bytes,
                            bool to_device) {
   if ((ptr == nullptr) || (bytes == 0)) return;

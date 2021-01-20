@@ -491,7 +491,7 @@ void FixAveCorrelateLong::end_of_step()
   evaluate();
 
   if (fp && me == 0) {
-    if(overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
       fprintf(fp, "%lg ", t[i]*update->dt*nevery);
@@ -590,7 +590,7 @@ void FixAveCorrelateLong::accumulate()
 /* ----------------------------------------------------------------------
    Add a scalar value to the autocorrelator k of pair i
 ------------------------------------------------------------------------- */
-void FixAveCorrelateLong::add(const int i, const double w, const int k){
+void FixAveCorrelateLong::add(const int i, const double w, const int k) {
   // If we exceed the correlator side, the value is discarded
   if (k == numcorrelators) return;
   if (k > kmax) kmax=k;

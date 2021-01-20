@@ -62,7 +62,7 @@ with:
 
 The field value in Tesla is multiplied by the gyromagnetic
 ratio, :math:`g \cdot \mu_B/\hbar`, converting it into a precession frequency in
-rad.THz (in metal units and with :math:`\mu_B = 5.788 eV/T`).
+rad.THz (in metal units and with :math:`\mu_B = 5.788\cdot 10^{-5}` eV/T).
 
 As a comparison, the figure below displays the simulation of a
 single spin (of norm :math:`\mu_i = 1.0`) submitted to an external

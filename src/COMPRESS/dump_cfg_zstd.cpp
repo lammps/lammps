@@ -173,7 +173,7 @@ void DumpCFGZstd::write()
 int DumpCFGZstd::modify_param(int narg, char **arg)
 {
   int consumed = DumpCFG::modify_param(narg, arg);
-  if(consumed == 0) {
+  if (consumed == 0) {
     try {
       if (strcmp(arg[0],"checksum") == 0) {
         if (narg < 2) error->all(FLERR,"Illegal dump_modify command");

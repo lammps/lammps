@@ -52,6 +52,7 @@ PairATM::PairATM(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 1;
   one_coeff = 0;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ----------------------------------------------------------------------

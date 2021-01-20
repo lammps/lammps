@@ -502,7 +502,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
   acc_t *f_scalar = &f_start[0].x;                                      \
   int f_stride4 = f_stride * 4;                                         \
   int t;                                                                \
-  if (vflag == 2) t = 4; else t = 1;                                    \
+  if (vflag == VIRIAL_FDOTR) t = 4; else t = 1;                         \
   acc_t *f_scalar2 = f_scalar + f_stride4 * t;                          \
   for ( ; t < nthreads; t++) {                                          \
     _use_simd_pragma("vector aligned")                                  \
@@ -512,7 +512,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
     f_scalar2 += f_stride4;                                             \
   }                                                                     \
                                                                         \
-  if (vflag == 2) {                                                     \
+  if (vflag == VIRIAL_FDOTR) {                                          \
     int nt_min = MIN(4,nthreads);                                       \
     IP_PRE_fdotr_acc_force_l5(iifrom, iito, minlocal, nt_min, f_start,  \
                               f_stride, pos, ov0, ov1, ov2, ov3, ov4,   \

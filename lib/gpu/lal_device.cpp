@@ -783,3 +783,39 @@ double lmp_gpu_forces(double **f, double **tor, double *eatom,
                       double **vatom, double *virial, double &ecoul) {
   return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul);
 }
+
+bool lmp_gpu_config(const std::string &category, const std::string &setting)
+{
+  if (category == "api") {
+#if defined(USE_OPENCL)
+    return setting == "opencl";
+#elif defined(USE_HIP)
+    return setting == "hip";
+#elif defined(USE_CUDA)
+    return setting == "cuda";
+#endif
+    return false;
+  }
+  if (category == "precision") {
+    if (setting == "single") {
+#if defined(_SINGLE_SINGLE)
+      return true;
+#else
+      return false;
+#endif
+    } else if (setting == "mixed") {
+#if defined(_SINGLE_DOUBLE)
+      return true;
+#else
+      return false;
+#endif
+    } else if (setting == "double") {
+#if defined(_DOUBLE_DOUBLE)
+      return true;
+#else
+      return false;
+#endif
+    } else return false;
+  }
+  return false;
+}

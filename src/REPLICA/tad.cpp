@@ -554,7 +554,10 @@ void TAD::log_event(int ievent)
     timer->barrier_start();
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
+    // must reset whichflag so that computes won't fail.
+    update->whichflag = 1;
     output->write_dump(update->ntimestep);
+    update->whichflag = 0;
     timer->barrier_stop();
     time_output += timer->get_wall(Timer::TOTAL);
   }

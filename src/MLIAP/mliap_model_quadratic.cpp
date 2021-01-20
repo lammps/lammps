@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "mliap_model_quadratic.h"
 #include "pair_mliap.h"
 #include "mliap_data.h"
@@ -22,15 +26,16 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+  MLIAPModelSimple(lmp, coefffilename)
 {
+  if (coefffilename) read_coeffs(coefffilename);
   if (nparams > 0) ndescriptors = sqrt(2*nparams)-1;
   nonlinearflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelQuadratic::~MLIAPModelQuadratic(){}
+MLIAPModelQuadratic::~MLIAPModelQuadratic() {}
 
 /* ----------------------------------------------------------------------
    get number of parameters
@@ -52,8 +57,9 @@ int MLIAPModelQuadratic::get_nparams()
 
 void MLIAPModelQuadratic::compute_gradients(MLIAPData* data)
 {
+  data->energy = 0.0;
+
   for (int ii = 0; ii < data->natoms; ii++) {
-    const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
     double* coeffi = coeffelem[ielem];
@@ -99,7 +105,8 @@ void MLIAPModelQuadratic::compute_gradients(MLIAPData* data)
           etmp += coeffi[k++]*bveci*bvecj;
         }
       }
-      data->pairmliap->e_tally(i,etmp);
+      data->energy += etmp;
+      data->eatoms[ii] = etmp;
     }
   }
 }

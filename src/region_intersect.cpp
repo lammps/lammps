@@ -313,7 +313,7 @@ void RegIntersect::write_restart(FILE *fp)
   fwrite(style, 1, sizestyle, fp);
   fwrite(&nregion,sizeof(int),1,fp);
 
-  for (int ilist = 0; ilist < nregion; ilist++){
+  for (int ilist = 0; ilist < nregion; ilist++) {
     domain->regions[list[ilist]]->write_restart(fp);
   }
 }

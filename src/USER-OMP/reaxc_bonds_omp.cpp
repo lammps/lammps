@@ -174,7 +174,7 @@ void BondsOMP( reax_system *system, control_params * /* control */,
         }
       }
     }
-  } // for(i)
+  } // for (i)
 
  } // omp
 

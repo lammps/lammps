@@ -40,6 +40,7 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   nelements = 0;
   elements = nullptr;
@@ -176,7 +177,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      if(chemflag)
+      if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -343,7 +344,7 @@ void PairSNAP::compute_bispectrum()
     else
       snaptr->compute_bi(0);
 
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++){
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
       bispectrum[ii][icoeff] = snaptr->blist[icoeff];
     }
   }
@@ -656,7 +657,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
-  chunksize = 2000;
+  chunksize = 4096;
 
   // open SNAP parameter file on proc 0
 

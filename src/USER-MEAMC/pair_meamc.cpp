@@ -17,7 +17,6 @@
 
 #include "pair_meamc.h"
 
-
 #include <cstring>
 
 #include "meam.h"
@@ -29,8 +28,6 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-
-
 
 using namespace LAMMPS_NS;
 
@@ -52,6 +49,7 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   allocated = 0;
 

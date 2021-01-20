@@ -111,7 +111,7 @@ FixRhok::init()
   int nThisLocal = 0;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
+  for (int i = 0; i < nlocal; i++) {   // Iterate through all atoms on this CPU
     if (mask[i] & groupbit) {          // ...only those affected by this fix
       nThisLocal++;
     }
@@ -156,7 +156,7 @@ FixRhok::post_force( int /*inVFlag*/ )
   mRhoKLocal[0] = 0.0;
   mRhoKLocal[1] = 0.0;
 
-  for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
+  for (int i = 0; i < nlocal; i++) {   // Iterate through all atoms on this CPU
     if (mask[i] & groupbit) {          // ...only those affected by this fix
 
       // rho_k = sum_i exp( - i k.r_i )
@@ -179,7 +179,7 @@ FixRhok::post_force( int /*inVFlag*/ )
   double rhoK = sqrt( mRhoKGlobal[0]*mRhoKGlobal[0]
                       + mRhoKGlobal[1]*mRhoKGlobal[1] );
 
-  for( int i = 0; i < nlocal; i++ ) {   // Iterate through all atoms on this CPU
+  for (int i = 0; i < nlocal; i++) {   // Iterate through all atoms on this CPU
     if (mask[i] & groupbit) {          // ...only those affected by this fix
 
       // Calculate forces
@@ -235,9 +235,9 @@ FixRhok::compute_vector( int inI )
 {
   if (inI == 0)
     return mRhoKGlobal[0];   // Real part
-  else if( inI == 1 )
+  else if (inI == 1)
     return mRhoKGlobal[1];   // Imagniary part
-  else if( inI == 2 )
+  else if (inI == 2)
     return sqrt( mRhoKGlobal[0]*mRhoKGlobal[0]
                  + mRhoKGlobal[1]*mRhoKGlobal[1] );
   else

@@ -30,7 +30,6 @@
 #include "memory.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -186,6 +185,8 @@ void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 }
 }
 
+/* ---------------------------------------------------------------------- */
+
 FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
@@ -193,6 +194,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix gle command. Expecting: fix <fix-ID>"
                " <group-ID> gle <ns> <Tstart> <Tstop> <seed> <Amatrix>");
 
+  ecouple_flag = 1;
   restart_peratom = 1;
   time_integrate = 1;
 
@@ -395,9 +397,6 @@ int FixGLE::setmask()
   mask |= FINAL_INTEGRATE;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
-  mask |= THERMO_ENERGY;
-
-
   return mask;
 }
 
@@ -499,7 +498,6 @@ void FixGLE::init_gles()
   return;
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 void FixGLE::setup(int vflag)
@@ -512,6 +510,8 @@ void FixGLE::setup(int vflag)
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
   }
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixGLE::gle_integrate()
 {

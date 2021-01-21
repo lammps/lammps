@@ -273,19 +273,18 @@ namespace FixConst {
     FINAL_INTEGRATE =         1<<8,
     END_OF_STEP =             1<<9,
     POST_RUN =                1<<10,
-    //THERMO_ENERGY =           1<<11,   // remove when done with refactoring
-    INITIAL_INTEGRATE_RESPA = 1<<12,
-    POST_INTEGRATE_RESPA =    1<<13,
-    PRE_FORCE_RESPA =         1<<14,
-    POST_FORCE_RESPA =        1<<15,
-    FINAL_INTEGRATE_RESPA =   1<<16,
-    MIN_PRE_EXCHANGE =        1<<17,
-    MIN_PRE_NEIGHBOR =        1<<18,
-    MIN_POST_NEIGHBOR =       1<<19,
-    MIN_PRE_FORCE =           1<<20,
-    MIN_PRE_REVERSE =         1<<21,
-    MIN_POST_FORCE =          1<<22,
-    MIN_ENERGY =              1<<23
+    INITIAL_INTEGRATE_RESPA = 1<<11,
+    POST_INTEGRATE_RESPA =    1<<12,
+    PRE_FORCE_RESPA =         1<<13,
+    POST_FORCE_RESPA =        1<<14,
+    FINAL_INTEGRATE_RESPA =   1<<15,
+    MIN_PRE_EXCHANGE =        1<<16,
+    MIN_PRE_NEIGHBOR =        1<<17,
+    MIN_POST_NEIGHBOR =       1<<18,
+    MIN_PRE_FORCE =           1<<19,
+    MIN_PRE_REVERSE =         1<<20,
+    MIN_POST_FORCE =          1<<21,
+    MIN_ENERGY =              1<<22
   };
 }
 

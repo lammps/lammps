@@ -46,6 +46,8 @@ static const char cite_flow_gauss[] =
   "pages = {189--207}\n"
   "}\n\n";
 
+/* ---------------------------------------------------------------------- */
+
 FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
@@ -61,6 +63,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
   size_vector = 3;
+  energy_global_flag = 1;
   global_freq = 1;    //data available every timestep
   respa_level_support = 1;
   //default respa level=outermost level is set in init()
@@ -109,7 +112,6 @@ int FixFlowGauss::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -154,6 +156,7 @@ void FixFlowGauss::setup(int vflag)
 /* ----------------------------------------------------------------------
    this is where Gaussian dynamics constraint is applied
    ------------------------------------------------------------------------- */
+
 void FixFlowGauss::post_force(int /*vflag*/)
 {
   double **f   = atom->f;
@@ -218,8 +221,9 @@ void FixFlowGauss::post_force(int /*vflag*/)
     MPI_Allreduce(&peAdded,&pe_tmp,1,MPI_DOUBLE,MPI_SUM,world);
     pe_tot += pe_tmp;
   }
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixFlowGauss::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
@@ -230,6 +234,7 @@ void FixFlowGauss::post_force_respa(int vflag, int ilevel, int /*iloop*/)
    negative of work done by this fix
    This is only computed if requested, either with fix_modify energy yes, or with the energy keyword. Otherwise returns 0.
    ------------------------------------------------------------------------- */
+
 double FixFlowGauss::compute_scalar()
 {
   return -pe_tot*dt;

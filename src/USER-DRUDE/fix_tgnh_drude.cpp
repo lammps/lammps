@@ -66,7 +66,8 @@ FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
-
+  ecouple_flag = 1;
+  
   // default values
 
   pcouple = NONE;
@@ -585,7 +586,6 @@ int FixTGNHDrude::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;

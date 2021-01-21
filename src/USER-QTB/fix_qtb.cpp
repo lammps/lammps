@@ -33,8 +33,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -48,10 +46,7 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all(FLERR,"Illegal fix qtb command");
 
   // default parameters
-  global_freq = 1;
-  extscalar = 1;
-  nevery = 1;
-
+  
   t_target = 300.0;
   t_period = 1.0;
   fric_coef = 1/t_period;
@@ -147,7 +142,6 @@ int FixQTB::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 

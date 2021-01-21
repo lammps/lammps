@@ -21,7 +21,6 @@
 #include <cmath>
 #include <cstring>
 
-
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -34,8 +33,6 @@
 #include "error.h"
 #include "kspace.h"
 #include "math_const.h"
-
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,6 +63,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix qbmsst command");
 
   // default parameters
+  
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
@@ -75,7 +73,8 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 5;
-
+  ecouple_flag = 1;
+  
   qmass = 1.0e1;
   mu = 0.0;
   p0 = 0.0;
@@ -96,6 +95,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   qtb_set = 0;
 
   // reading parameters
+  
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"q") == 0) {
@@ -282,6 +282,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 /* ----------------------------------------------------------------------
    release memories
 ------------------------------------------------------------------------- */
+
 FixQBMSST::~FixQBMSST()
 {
   delete [] rfix;
@@ -309,18 +310,19 @@ FixQBMSST::~FixQBMSST()
 /* ----------------------------------------------------------------------
    setmask
 ------------------------------------------------------------------------- */
+
 int FixQBMSST::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
 /* ----------------------------------------------------------------------
    fix initiation
 ------------------------------------------------------------------------- */
+
 void FixQBMSST::init()
 {
   // copy parameters from other classes
@@ -929,6 +931,7 @@ int FixQBMSST::modify_param(int narg, char **arg)
 /* ----------------------------------------------------------------------
    compute scalar
 ------------------------------------------------------------------------- */
+
 double FixQBMSST::compute_scalar()
 {
   // compute new pressure and volume.

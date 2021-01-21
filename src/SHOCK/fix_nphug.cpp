@@ -32,7 +32,6 @@ enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg), pe(nullptr), id_pe(nullptr)
 {
-
   // Prevent masses from being updated every timestep
 
   eta_mass_flag = 0;
@@ -345,6 +344,8 @@ double FixNPHug::compute_up()
 
   return up;
 }
+
+/* ----------------------------------------------------------------------- */
 
 // look for index in local class
 // if index not found, look in base class

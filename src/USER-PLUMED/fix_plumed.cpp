@@ -210,10 +210,10 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   double dt=update->dt;
   p->cmd("setTimestep",&dt);
 
-  virial_flag=1;
-  thermo_virial=1;
   scalar_flag = 1;
-
+  energy_global_flag = virial_global_flag = 1;
+  thermo_energy = thermo_virial = 1;
+  
   // This is the real initialization:
 
   p->cmd("init");
@@ -288,7 +288,6 @@ int FixPlumed::setmask()
   // set with a bitmask how and when apply the force from plumed
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;

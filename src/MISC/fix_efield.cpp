@@ -49,13 +49,13 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   scalar_flag = 1;
   size_vector = 3;
-  energy_global_flag = 1;
   global_freq = 1;
   extvector = 1;
   extscalar = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
 
   qe2f = force->qe2f;
   xstr = ystr = zstr = nullptr;
@@ -257,10 +257,9 @@ void FixEfield::post_force(int vflag)
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  // energy and virial setup
+  // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // reallocate efield array if necessary
 
@@ -319,7 +318,7 @@ void FixEfield::post_force(int vflag)
             v[3] = fx*unwrap[1];
             v[4] = fx*unwrap[2];
             v[5] = fy*unwrap[2];
-            v_tally(i, v);
+            v_tally(i,v);
           }
         }
     }

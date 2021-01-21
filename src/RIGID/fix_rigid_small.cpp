@@ -41,8 +41,6 @@
 #include "error.h"
 #include "rigid_const.h"
 
-
-
 #include <map>
 
 using namespace LAMMPS_NS;
@@ -69,7 +67,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   time_integrate = 1;
   rigid_flag = 1;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
@@ -725,8 +723,7 @@ void FixRigidSmall::setup(int vflag)
 
   // virial setup before call to set_v
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // compute and forward communicate vcm and omega of all bodies
 
@@ -797,8 +794,7 @@ void FixRigidSmall::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // forward communicate updated info of all bodies
 

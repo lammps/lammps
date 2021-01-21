@@ -37,8 +37,6 @@
 #include "error.h"
 #include "rigid_const.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -64,7 +62,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   time_integrate = 1;
   rigid_flag = 1;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
@@ -887,8 +885,7 @@ void FixRigid::setup(int vflag)
 
   // virial setup before call to set_v
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set velocities from angmom & omega
 
@@ -951,8 +948,7 @@ void FixRigid::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from quarternion and omega

@@ -352,7 +352,7 @@ void FixAddForce::post_force(int vflag)
           v[3] = xstyle ? xvalue*unwrap[1] : 0.0;
           v[4] = xstyle ? xvalue*unwrap[2] : 0.0;
           v[5] = ystyle ? yvalue*unwrap[2] : 0.0;
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
     }

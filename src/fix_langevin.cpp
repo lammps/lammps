@@ -39,7 +39,6 @@
 #include "error.h"
 #include "group.h"
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -62,6 +61,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  ecouple_flag = 1;
   nevery = 1;
 
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -159,7 +159,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   id_temp = nullptr;
   temperature = nullptr;
 
-  energy = 0.0;
+  ecouple = 0.0;
 
   // flangevin is unallocated until first call to setup()
   // compute_scalar checks for this and returns 0.0
@@ -192,7 +192,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       lv[i][2] = 0.0;
     }
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -224,7 +223,6 @@ int FixLangevin::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -992,7 +990,7 @@ void FixLangevin::end_of_step()
       }
   }
 
-  energy += energy_onestep*update->dt;
+  ecouple += energy_onestep*update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1070,7 +1068,7 @@ double FixLangevin::compute_scalar()
         if (mask[i] & groupbit)
           energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
                             flangevin[i][2]*v[i][2];
-      energy = 0.5*energy_onestep*update->dt;
+      ecouple = 0.5*energy_onestep*update->dt;
     } else {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -1081,13 +1079,13 @@ double FixLangevin::compute_scalar()
           if (tbiasflag)
             temperature->restore_bias(i, lv[i]);
         }
-      energy = -0.5*energy_onestep*update->dt;
+      ecouple = -0.5*energy_onestep*update->dt;
     }
   }
 
   // convert midstep energy back to previous fullstep energy
 
-  double energy_me = energy - 0.5*energy_onestep*update->dt;
+  double energy_me = ecouple - 0.5*energy_onestep*update->dt;
 
   double energy_all;
   MPI_Allreduce(&energy_me,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);

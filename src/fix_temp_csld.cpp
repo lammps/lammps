@@ -32,7 +32,6 @@
 #include "random_mars.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -52,6 +51,7 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   nevery = 1;
   scalar_flag = 1;
+  ecouple_flag = 1;
   global_freq = nevery;
   dynamic_group_allow = 1;
   extscalar = 1;
@@ -92,7 +92,7 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
 
   vhold = nullptr;
   nmax = -1;
-  energy = 0.0;
+  ecouple = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,7 +118,6 @@ int FixTempCSLD::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -251,7 +250,7 @@ void FixTempCSLD::end_of_step()
   // tally the kinetic energy transferred between heat bath and system
 
   t_current = temperature->compute_scalar();
-  energy +=  ekin_old - t_current * 0.5 * temperature->dof * force->boltz;
+  ecouple +=  ekin_old - t_current * 0.5 * temperature->dof * force->boltz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -295,9 +294,8 @@ void FixTempCSLD::reset_target(double t_new)
 
 double FixTempCSLD::compute_scalar()
 {
-  return energy;
+  return ecouple;
 }
-
 
 /* ----------------------------------------------------------------------
    pack entire state of Fix into one write
@@ -306,11 +304,11 @@ double FixTempCSLD::compute_scalar()
 void FixTempCSLD::write_restart(FILE *fp)
 {
   const int PRNGSIZE = 98+2+3;
-  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
+  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + ecouple
   double *list = nullptr;
   if (comm->me == 0) {
     list = new double[nsize];
-    list[0] = energy;
+    list[0] = ecouple;
     list[1] = comm->nprocs;
   }
   double state[PRNGSIZE];
@@ -333,7 +331,7 @@ void FixTempCSLD::restart(char *buf)
 {
   double *list = (double *) buf;
 
-  energy = list[0];
+  ecouple = list[0];
   int nprocs = (int) list[1];
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)

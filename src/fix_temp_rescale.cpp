@@ -48,6 +48,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
+  ecouple_flag = 1;
   dynamic_group_allow = 1;
 
   tstr = nullptr;
@@ -77,7 +78,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(cmd);
   tflag = 1;
 
-  energy = 0.0;
+  ecouple = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,7 +99,6 @@ int FixTempRescale::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -171,7 +171,7 @@ void FixTempRescale::end_of_step()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    energy += (t_current-t_target) * efactor;
+    ecouple += (t_current-t_target) * efactor;
 
     if (which == NOBIAS) {
       for (int i = 0; i < nlocal; i++) {
@@ -236,7 +236,7 @@ void FixTempRescale::reset_target(double t_new)
 
 double FixTempRescale::compute_scalar()
 {
-  return energy;
+  return ecouple;
 }
 
 /* ----------------------------------------------------------------------
@@ -247,7 +247,7 @@ void FixTempRescale::write_restart(FILE *fp)
 {
   int n = 0;
   double list[1];
-  list[n++] = energy;
+  list[n++] = ecouple;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -265,7 +265,7 @@ void FixTempRescale::restart(char *buf)
   int n = 0;
   double *list = (double *) buf;
 
-  energy = list[n++];
+  ecouple = list[n++];
 }
 
 /* ----------------------------------------------------------------------

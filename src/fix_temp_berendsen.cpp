@@ -26,7 +26,6 @@
 #include "compute.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -45,10 +44,11 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = 1;
   dynamic_group_allow = 1;
-  nevery = 1;
   scalar_flag = 1;
-  global_freq = nevery;
   extscalar = 1;
+  ecouple_flag = 1;
+  nevery = 1;
+  global_freq = nevery;
 
   tstr = nullptr;
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -81,7 +81,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(cmd);
   tflag = 1;
 
-  energy = 0;
+  ecouple = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,7 +102,6 @@ int FixTempBerendsen::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -171,7 +170,7 @@ void FixTempBerendsen::end_of_step()
 
   double lamda = sqrt(1.0 + update->dt/t_period*(t_target/t_current - 1.0));
   double efactor = 0.5 * force->boltz * tdof;
-  energy += t_current * (1.0-lamda*lamda) * efactor;
+  ecouple += t_current * (1.0-lamda*lamda) * efactor;
 
   double **v = atom->v;
   int *mask = atom->mask;
@@ -239,7 +238,7 @@ void FixTempBerendsen::reset_target(double t_new)
 
 double FixTempBerendsen::compute_scalar()
 {
-  return energy;
+  return ecouple;
 }
 
 /* ----------------------------------------------------------------------
@@ -250,7 +249,7 @@ void FixTempBerendsen::write_restart(FILE *fp)
 {
   int n = 0;
   double list[1];
-  list[n++] = energy;
+  list[n++] = ecouple;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -267,7 +266,7 @@ void FixTempBerendsen::restart(char *buf)
 {
   double *list = (double *) buf;
 
-  energy = list[0];
+  ecouple = list[0];
 }
 
 /* ----------------------------------------------------------------------

@@ -219,8 +219,10 @@ void ComputeStressAtom::compute_peratom()
   //   and fix ave/spatial uses a per-atom stress from this compute as input
 
   if (fixflag) {
-    for (int ifix = 0; ifix < modify->nfix; ifix++)
-      if (modify->fix[ifix]->virial_flag) {
+    Fix **fix = modify->fix;
+    int nfix = modify->nfix;
+    for (int ifix = 0; ifix < nfix; ifix++)
+      if (fix[i]->virial_atom_flag && fix[ifix]->virial_flag) {
         double **vatom = modify->fix[ifix]->vatom;
         if (vatom)
           for (i = 0; i < nlocal; i++)

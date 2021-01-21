@@ -1366,7 +1366,8 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     compute_enthalpy();
 
   } else if (strcmp(word,"ecouple") == 0) compute_ecouple();
-  } else if (strcmp(word,"econserve") == 0) {
+
+  else if (strcmp(word,"econserve") == 0) {
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
@@ -1765,7 +1766,7 @@ void Thermo::compute_etotal()
 
 void Thermo::compute_ecouple()
 {
-  dvalue = modify->ecouple();
+  dvalue = modify->energy_couple();
 }
 
 /* ---------------------------------------------------------------------- */

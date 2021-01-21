@@ -222,7 +222,7 @@ void ComputeStressAtom::compute_peratom()
     Fix **fix = modify->fix;
     int nfix = modify->nfix;
     for (int ifix = 0; ifix < nfix; ifix++)
-      if (fix[i]->virial_peratom_flag && fix[ifix]->virial_flag) {
+      if (fix[i]->virial_peratom_flag && fix[ifix]->thermo_virial) {
         double **vatom = modify->fix[ifix]->vatom;
         if (vatom)
           for (i = 0; i < nlocal; i++)

@@ -58,7 +58,7 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_global_flag = virial_atom_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
 
   int argoffs=3;
   if (strcmp(arg[argoffs],"cvel") == 0) {

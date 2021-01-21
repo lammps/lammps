@@ -72,10 +72,10 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;          // computes scalar
   global_freq = 1;          // values can be computed at every timestep
   extscalar = 1;            // scalar scales with # of atoms
-  energy_global_flag = 1;
   peratom_flag = 1;         // quantities are per atom quantities
   size_peratom_cols = 2;    // # of per atom quantities
-  peratom_freq = 1;         //
+  peratom_freq = 1;
+  energy_global_flag = 1;
 
   // parse input parameters
 

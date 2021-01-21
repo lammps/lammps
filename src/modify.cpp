@@ -489,7 +489,7 @@ void Modify::end_of_step()
 
 /* ----------------------------------------------------------------------
    coupling energy call, only for relevant fixes
-   stored by each fix in ecouple variable
+   each thermostsat fix returns this via compute_scalar()
    ecouple = cumulative energy added to reservoir by thermostatting
 ------------------------------------------------------------------------- */
 
@@ -497,7 +497,7 @@ double Modify::energy_couple()
 {
   double energy = 0.0;
   for (int i = 0; i < n_energy_couple; i++)
-    energy += fix[list_energy_couple[i]]->ecouple;
+    energy += fix[list_energy_couple[i]]->compute_scalar();
   return energy;
 }
 

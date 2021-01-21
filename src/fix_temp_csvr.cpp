@@ -92,7 +92,7 @@ FixTempCSVR::FixTempCSVR(LAMMPS *lmp, int narg, char **arg) :
   tflag = 1;
 
   nmax = -1;
-  ecouple = 0.0;
+  energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -206,7 +206,7 @@ void FixTempCSVR::end_of_step()
 
   // tally the kinetic energy transferred between heat bath and system
 
-  ecouple += ekin_old * (1.0 - lamda*lamda);
+  energy += ekin_old * (1.0 - lamda*lamda);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -329,7 +329,7 @@ void FixTempCSVR::reset_target(double t_new)
 
 double FixTempCSVR::compute_scalar()
 {
-  return ecouple;
+  return energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -339,11 +339,11 @@ double FixTempCSVR::compute_scalar()
 void FixTempCSVR::write_restart(FILE *fp)
 {
   const int PRNGSIZE = 98+2+3;
-  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + ecouple
+  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
   double *list = nullptr;
   if (comm->me == 0) {
     list = new double[nsize];
-    list[0] = ecouple;
+    list[0] = energy;
     list[1] = comm->nprocs;
   }
   double state[PRNGSIZE];
@@ -366,7 +366,7 @@ void FixTempCSVR::restart(char *buf)
 {
   double *list = (double *) buf;
 
-  ecouple = list[0];
+  energy = list[0];
   int nprocs = (int) list[1];
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)

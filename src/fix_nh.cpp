@@ -51,7 +51,8 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
+  id_temp(nullptr), id_press(nullptr),
   eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
   eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
   etap_mass(nullptr)
@@ -784,7 +785,8 @@ void FixNH::setup(int /*vflag*/)
       } else {
         t0 = temperature->compute_scalar();
         if (t0 < EPSILON)
-          error->all(FLERR, "Current temperature too close to zero, consider using ptemp setting");
+          error->all(FLERR,"Current temperature too close to zero, "
+		     "consider using ptemp setting");
       }
     }
     t_target = t0;

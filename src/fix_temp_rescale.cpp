@@ -78,7 +78,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(cmd);
   tflag = 1;
 
-  ecouple = 0.0;
+  energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -171,7 +171,7 @@ void FixTempRescale::end_of_step()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
-    ecouple += (t_current-t_target) * efactor;
+    energy += (t_current-t_target) * efactor;
 
     if (which == NOBIAS) {
       for (int i = 0; i < nlocal; i++) {
@@ -236,7 +236,7 @@ void FixTempRescale::reset_target(double t_new)
 
 double FixTempRescale::compute_scalar()
 {
-  return ecouple;
+  return energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -247,7 +247,7 @@ void FixTempRescale::write_restart(FILE *fp)
 {
   int n = 0;
   double list[1];
-  list[n++] = ecouple;
+  list[n++] = energy;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -265,7 +265,7 @@ void FixTempRescale::restart(char *buf)
   int n = 0;
   double *list = (double *) buf;
 
-  ecouple = list[n++];
+  energy = list[n++];
 }
 
 /* ----------------------------------------------------------------------

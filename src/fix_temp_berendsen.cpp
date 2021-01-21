@@ -81,7 +81,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(cmd);
   tflag = 1;
 
-  ecouple = 0;
+  energy = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,7 +170,7 @@ void FixTempBerendsen::end_of_step()
 
   double lamda = sqrt(1.0 + update->dt/t_period*(t_target/t_current - 1.0));
   double efactor = 0.5 * force->boltz * tdof;
-  ecouple += t_current * (1.0-lamda*lamda) * efactor;
+  energy += t_current * (1.0-lamda*lamda) * efactor;
 
   double **v = atom->v;
   int *mask = atom->mask;
@@ -238,7 +238,7 @@ void FixTempBerendsen::reset_target(double t_new)
 
 double FixTempBerendsen::compute_scalar()
 {
-  return ecouple;
+  return energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -249,7 +249,7 @@ void FixTempBerendsen::write_restart(FILE *fp)
 {
   int n = 0;
   double list[1];
-  list[n++] = ecouple;
+  list[n++] = energy;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -266,7 +266,7 @@ void FixTempBerendsen::restart(char *buf)
 {
   double *list = (double *) buf;
 
-  ecouple = list[0];
+  energy = list[0];
 }
 
 /* ----------------------------------------------------------------------

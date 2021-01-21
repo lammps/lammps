@@ -47,7 +47,8 @@ class Fix : protected Pointers {
   int energy_atom_flag;          // 1 if contributes to peratom eng
   int virial_global_flag;        // 1 if contributes to global virial
   int virial_peratom_flag;       // 1 if contributes to peratom virial
-  int ecouple_flag;              // 1 if thermostat which accumulates eng to ecouple
+  int ecouple_flag;              // 1 if thermostat fix outputs cumulative
+                                 //      reservoir energy via compute_scalar()
   int time_integrate;            // 1 if performs time integration, 0 if no
   int rigid_flag;                // 1 if integrates rigid bodies, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
@@ -102,9 +103,8 @@ class Fix : protected Pointers {
   int comm_reverse;              // size of reverse communication (0 if none)
   int comm_border;               // size of border communication (0 if none)
 
-  double ecouple;            // cumulative energy added to reservoir by thermostatting
-  double virial[6];          // virial for this timestep
-  double *eatom,**vatom;     // per-atom energy/virial for this timestep
+  double virial[6];              // virial for this timestep
+  double *eatom,**vatom;         // per-atom energy/virial for this timestep
 
   int centroidstressflag;        // centroid stress compared to two-body stress
                                  // CENTROID_SAME = same as two-body stress

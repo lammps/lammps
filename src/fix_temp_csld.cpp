@@ -92,7 +92,7 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
 
   vhold = nullptr;
   nmax = -1;
-  ecouple = 0.0;
+  energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -250,7 +250,7 @@ void FixTempCSLD::end_of_step()
   // tally the kinetic energy transferred between heat bath and system
 
   t_current = temperature->compute_scalar();
-  ecouple +=  ekin_old - t_current * 0.5 * temperature->dof * force->boltz;
+  energy +=  ekin_old - t_current * 0.5 * temperature->dof * force->boltz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -294,7 +294,7 @@ void FixTempCSLD::reset_target(double t_new)
 
 double FixTempCSLD::compute_scalar()
 {
-  return ecouple;
+  return energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -304,11 +304,11 @@ double FixTempCSLD::compute_scalar()
 void FixTempCSLD::write_restart(FILE *fp)
 {
   const int PRNGSIZE = 98+2+3;
-  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + ecouple
+  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
   double *list = nullptr;
   if (comm->me == 0) {
     list = new double[nsize];
-    list[0] = ecouple;
+    list[0] = energy;
     list[1] = comm->nprocs;
   }
   double state[PRNGSIZE];
@@ -331,7 +331,7 @@ void FixTempCSLD::restart(char *buf)
 {
   double *list = (double *) buf;
 
-  ecouple = list[0];
+  energy = list[0];
   int nprocs = (int) list[1];
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)

@@ -53,7 +53,8 @@ enum{CONSTANT,EQUAL,ATOM};
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   gjfflag(0), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), tstr(nullptr),
-  flangevin(nullptr), tforce(nullptr), franprev(nullptr), lv(nullptr), id_temp(nullptr), random(nullptr)
+  flangevin(nullptr), tforce(nullptr), franprev(nullptr),
+  lv(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
@@ -159,7 +160,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   id_temp = nullptr;
   temperature = nullptr;
 
-  ecouple = 0.0;
+  energy = 0.0;
 
   // flangevin is unallocated until first call to setup()
   // compute_scalar checks for this and returns 0.0
@@ -990,7 +991,7 @@ void FixLangevin::end_of_step()
       }
   }
 
-  ecouple += energy_onestep*update->dt;
+  energy += energy_onestep*update->dt;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1068,7 +1069,7 @@ double FixLangevin::compute_scalar()
         if (mask[i] & groupbit)
           energy_onestep += flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
                             flangevin[i][2]*v[i][2];
-      ecouple = 0.5*energy_onestep*update->dt;
+      energy = 0.5*energy_onestep*update->dt;
     } else {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -1079,13 +1080,13 @@ double FixLangevin::compute_scalar()
           if (tbiasflag)
             temperature->restore_bias(i, lv[i]);
         }
-      ecouple = -0.5*energy_onestep*update->dt;
+      energy = -0.5*energy_onestep*update->dt;
     }
   }
 
   // convert midstep energy back to previous fullstep energy
 
-  double energy_me = ecouple - 0.5*energy_onestep*update->dt;
+  double energy_me = energy - 0.5*energy_onestep*update->dt;
 
   double energy_all;
   MPI_Allreduce(&energy_me,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);

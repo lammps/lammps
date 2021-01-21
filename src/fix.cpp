@@ -67,7 +67,6 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   virial_global_flag = virial_peratom_flag = 0;
   ecouple_flag = 0;
   rigid_flag = 0;
-  peatom_flag = 0;
   no_change_box = 0;
   time_integrate = 0;
   time_depend = 0;
@@ -152,7 +151,8 @@ void Fix::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) thermo_energy = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) {
-        if (energy_flag == 0) error->all(FLERR,"Illegal fix_modify command");
+        if (energy_global_flag == 0 && energy_peratom_flag == 0)
+	  error->all(FLERR,"Illegal fix_modify command");
         thermo_energy = 1;
       } else error->all(FLERR,"Illegal fix_modify command");
       iarg += 2;
@@ -160,7 +160,8 @@ void Fix::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix_modify command");
       if (strcmp(arg[iarg+1],"no") == 0) thermo_virial = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) {
-        if (virial_flag == 0) error->all(FLERR,"Illegal fix_modify command");
+        if (virial_global_flag == 0 && virial_peratom_flag == 0)
+	  error->all(FLERR,"Illegal fix_modify command");
         thermo_virial = 1;
       } else error->all(FLERR,"Illegal fix_modify command");
       iarg += 2;

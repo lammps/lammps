@@ -510,7 +510,7 @@ double Modify::energy_couple()
 double Modify::energy_global()
 {
   double energy = 0.0;
-  for (i = 0; i < n_energy_global; i++)
+  for (int i = 0; i < n_energy_global; i++)
     energy += fix[list_energy_global[i]]->compute_scalar();
   return energy;
 }

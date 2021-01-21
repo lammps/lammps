@@ -217,10 +217,24 @@ void PairLS::compute(int eflag, int vflag)
   // int *ilist_half,*numneigh_half,**firstneigh_half;
   // int *ilist_full,*numneigh_full,**firstneigh_full;
 
-  // ev_init(eflag,vflag);
+  // setting up eatom and vatom arrays with method of the parent Pair class
+/* ----------------------------------------------------------------------
+   eflag = 0 = no energy computation
+   eflag = 1 = global energy only
+   eflag = 2 = per-atom energy only
+   eflag = 3 = both global and per-atom energy
+   vflag = 0 = no virial computation (pressure)
+   vflag = 1 = global virial with pair portion via sum of pairwise interactions
+   vflag = 2 = global virial with pair portion via F dot r including ghosts
+   vflag = 4 = per-atom virial only
+   vflag = 5 or 6 = both global and per-atom virial
+   vflag = 8 = per-atom centroid virial only
+   vflag = 9 or 10 = both global and per-atom centroid virial
+   vflag = 12 = both per-atom virial and per-atom centroid virial
+   vflag = 13 or 15 = global, per-atom virial and per-atom centroid virial
+------------------------------------------------------------------------- */  
+  ev_init(eflag,vflag);
 
-
-  int n_at = atom->nlocal;
   double **x = atom->x;
   double **f = atom->f;
   double **v = atom->v;
@@ -230,20 +244,21 @@ void PairLS::compute(int eflag, int vflag)
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
-  double sizex, sizey, sizez;
+  double sizex = domain->xprd; // global x box dimension
+  double sizey = domain->yprd; // global y box dimension
+  double sizez = domain->zprd; // global z box dimension
 
-  // memory->create(if_true_i,,"PairLS:if_true_i");
+  // local pressure arrays for this pair style, maybe they will not be needed
+  double *px_at, *py_at, *pz_at;
 
-  sizex = domain->xprd; // global x box dimension
-  sizey = domain->yprd; // global y box dimension
-  sizez = domain->zprd; // global z box dimension
+  memory->create(px_at,nlocal,"PairLS:px_at");
+  memory->create(py_at,nlocal,"PairLS:py_at");
+  memory->create(pz_at,nlocal,"PairLS:pz_at");
 
-  eflag = 3;
-  vflag = 1;
-  // setting up eatom and vatom arrays with method of the parent Pair class
-  ev_init(eflag,vflag);
+  e_force_fi_emb(eflag, eatom, f, px_at, py_at, pz_at, x, type, nlocal, sizex, sizey, sizez);
 
-  e_force_fi_emb(eatom, f, px_at, vatom, pz_at,  x, type, n_at, sizex, sizey, sizez);
+  if (if_g3_pot) e_force_g3(eflag, eatom, f, px_at, py_at, pz_at, x, type, nlocal, sizex, sizey, sizez);
+
   // neighbor list info
 
   // inum_half = listhalf->inum;
@@ -270,6 +285,11 @@ void PairLS::compute(int eflag, int vflag)
 
 
   if (vflag_fdotr) virial_fdotr_compute();
+
+  memory->destroy(px_at);
+  memory->destroy(py_at);
+  memory->destroy(pz_at);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -2029,18 +2049,16 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
 
 // e_force_fi_emb.f
 // void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double *sizex, double *sizey, double *sizez)
-void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
+void PairLS::e_force_fi_emb(int eflag, double *eatom, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
 {
 
-  // Array Arguments
-  // int *i_sort_at = atom->type // aary with atom types that must range from 1 to specified # of types.
   // Scalar Arguments
   double e_sum, pressure, sxx, syy, szz;
   
   // Local Scalars
   int i, j, ii, jj, jnum, is, js;
   int n_i, in_list;
-  double rr_pot[10][10], size[3];
+  double rr_pot[10][10];
   double sizex05, sizey05, sizez05, x, y, z, xx, yy, zz, rr, r, r1;
   double roi, roj, w, ropi, ropj, w1, w2, w3;
   int i1, i2, i3, iw;
@@ -2050,19 +2068,17 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
 
   // pointers to LAMMPS arrays 
   int *ilist,*jlist,*numneigh,**firstneigh;
-  // double **x = atom->x;
-  // double **f = atom->f;
-  // int *type = atom->type; // Atom types must range from 1 to specified # of types.
-  // int nlocal = atom->nlocal;
-  // int newton_pair = force->newton_pair;
-  int inum = list->inum; // # of I atoms neighbors are stored for (the length of the neighborlists list)
-  int gnum = list->gnum; // # of ghost atoms neighbors are stored for
+  int inum = listfull->inum; // # of I atoms neighbors are stored for (the length of the neighborlists list)
+  int gnum = listfull->gnum; // # of ghost atoms neighbors are stored for
+
+  int inum_st = list->inum;
+  int gnum_st = list->gnum;
 
   ilist = listfull->ilist;           // local indices of I atoms (list of "i" atoms for which neighbor lists exist)
   numneigh = listfull->numneigh;     // # of J neighbors for each I atom (the length of each these neigbor list)
   firstneigh = listfull->firstneigh; // ptr to 1st J int value of each I atom (the pointer to the list of neighbors of "i")
 
-  int nlocal = atom->nlocal;
+  int nlocal = atom->nlocal;         // nlocal == n_at for this function
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
 
@@ -2087,7 +2103,7 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
     for (i = 0; i < nall; i++) 
     {
       rosum[i] = 0.0;
-      e_at[i] = 0.0;
+      // if (eflag > 0) eatom[i] = 0.0; // already set to 0.0 in Pair::ev_setup(int eflag, int vflag, int alloc)
     }
   } 
   else 
@@ -2095,7 +2111,7 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
     for (i = 0; i < nlocal; i++) 
     {
       rosum[i] = 0.0;
-      e_at[i] = 0.0;
+      // if (eflag > 0) eatom[i] = 0.0;  // already set to 0.0 in Pair::ev_setup(int eflag, int vflag, int alloc)
     }
   }
 
@@ -2152,22 +2168,23 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
   std::cout << " i indexes of atoms in the LAMMPS neighbour list" << "  "; 
   for (ii = 0; ii < inum; ii++) // inum is the # of I atoms neighbors are stored for
   {
-    i = ilist[ii];  // index of atom i
-    std::cout << i << "  ";
+    i = ilist[ii];  // local index of atom i
     x = r_at[i][0];
     y = r_at[i][1];
     z = r_at[i][2];
     is = i_sort_at[i];
     jnum = numneigh[i];    // # of J neighbors for the atom i
     jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
+    std::cout << "There are " << jnum << " neighbours of atom " << i << "  ";
 
     for (jj = 0; jj < jnum; jj++) 
     {
-      j = jlist[jj];  // index of atom j
+      j = jlist[jj];  // local index of atom j
+      std::cout << "j = " << j << "  ";
       js = type[j];
-      xx = r_at[j][1] - x;
-      yy = r_at[j][2] - y;
-      zz = r_at[j][3] - z;
+      xx = r_at[j][0] - x;
+      yy = r_at[j][1] - y;
+      zz = r_at[j][2] - z;
       // if (domain->xperiodic && xx >  domain->xprd_half) xx = xx - sizex;
       // if (domain->xperiodic && xx < -domain->xprd_half) xx = xx + sizex;
       // if (domain->yperiodic && yy >  domain->yprd_half) yy = yy - sizey;
@@ -2225,11 +2242,8 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
         r = sqrt(rr);
         roj = fun_ro(r, js, is);
         rosum[i] = rosum[i] + roj;
-        if (if_true_i[i])     // check what it mean
-        {
-          w = fun_fi(r, is, js);
-          e_at[i] = e_at[i] + w; 
-        }
+        w = fun_fi(r, is, js);
+        if (eflag > 0) eatom[i] += w; 
       }
     }
   }
@@ -2238,129 +2252,274 @@ void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *
   // == calc energies: e_at(n_at) ==>
   for (i = 0; i < n_at; i++)
   {
-    // if (.not.if_true_i(i)) cycle;
-    w = fun_emb(rosum[i], i_sort_at(i)) + 0.5D0*e_at(i);
-    e_at(i) = w;
+    w = fun_emb(rosum[i], i_sort_at[i]) + 0.5*eatom[i];
+    eatom[i] = w;
   }
 
-
-  //c
-  //c
-  //c
-  //c == calc funp_emb(n_at) and put one into rosum(n_at) ==>
-  do i = 1, n_at
-  //c	    if(.not.if_true_i(i)) cycle
-  rosum[i] = funp_emb(rosum[i], i_sort_at(i));
-  }do;
-
+  // == calc funp_emb(n_at) and put one into rosum(n_at) ==>
+  for (i = 0; i < n_at; i++)
+  {
+    rosum[i] = funp_emb(rosum[i], i_sort_at[i]);
+  }
 
   //c
   //c == calc forces: f_at(3,n_at) ==============================>
-  //c
-  f_at = 0.0D0;
-  px_at = 0.0D0;
-  py_at = 0.0D0;
-  pz_at = 0.0D0;
-  pressure = 0.0D0;
-
-  // Loop over the Verlet"s listundefinedundefined
-  i = 1 // start atom i;
-  in_list = 1 // start list of atom i;
-  do;
-  if (i > n_at) exit;
-  n_i = neighbour_list(in_list) // number of neighbours of atom i;
-  if (n_i =  = 0) goto g222;
-  if (.not.if_true_i(i)) goto g222;
-  x = r_at(1, i); y = r_at(2, i); z = r_at(3, i); is = i_sort_at(i);;
-  // Loop over neighbours of atom i
-  do jj = in_list + 1, in_list + n_i
-  j = neighbour_list(jj);
-  js = i_sort_at(j);
-  xx = r_at(1, j) - x; yy = r_at(2, j) - y; zz = r_at(3, j) - z;;
-  if (periodic(1)) && (xx > sizex05) xx = xx - sizex;
-  if (periodic(1)) && (xx < - sizex05) xx = xx + sizex;
-  if (periodic(2)) && (yy > sizey05) yy = yy - sizey;
-  if (periodic(2)) && (yy < - sizey05) yy = yy + sizey;
-  if (periodic(3)) && (zz > sizez05) zz = zz - sizez;
-  if (periodic(3)) && (zz < - sizez05) zz = zz + sizez;
-  rr = xx**2 + yy**2 + zz**2;
-  if (rr < rr_pot[js, is]) 
+  // may be this is an unnessessarily cycle as these arrays should be zeroed earlier
+  for (i = 0; i < n_at; i++)
   {
-  r = dsqrt(rr);
-  r1 = 1.0D0/r;
-  ropi = funp_ro(r, is, js);
-  if (js =  = is) 
-  {
-  ropj = ropi;
-  } else
-  {
-  ropj = funp_ro(r, js, is);
+    f_at[i][0] = 0.0; 
+    f_at[i][1] = 0.0; 
+    f_at[i][2] = 0.0; 
+    px_at[i] = 0.0;
+    py_at[i] = 0.0;
+    pz_at[i] = 0.0;
   }
-  w = ((rosum[i]*ropj + rosum[j]*ropi) + funp_fi(r, is, js))*r1;
-  w1 = w*xx; w2 = w*yy; w3 = w*zz;;
-  f_at(1, i) = f_at(1, i) + w1;
-  f_at(2, i) = f_at(2, i) + w2 // add the fi force j = >i;
-  f_at(3, i) = f_at(3, i) + w3;
-  w1 = w1*xx;
-  w2 = w2*yy;
-  w3 = w3*zz;
-  px_at(i) = px_at(i) + w1;
-  py_at(i) = py_at(i) + w2;
-  pz_at(i) = pz_at(i) + w3;
-  //c			px_at(j)=px_at(j)+w1
-  //c		        py_at(j)=py_at(j)+w2
-  //c			pz_at(j)=pz_at(j)+w3
+
+  pressure = 0.0;
+
+  // Loop over the Verlet"s list
+  for (ii = 0; ii < inum; ii++) // inum is the # of I atoms neighbors are stored for
+  {
+    i = ilist[ii];  // local index of atom i
+    x = r_at[i][0];
+    y = r_at[i][1];
+    z = r_at[i][2];
+    is = i_sort_at[i];
+    jnum = numneigh[i];    // # of J neighbors for the atom i
+    jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
+    // std::cout << "There are " << jnum << " neighbours of atom " << i << "  ";
+
+    for (jj = 0; jj < jnum; jj++) 
+    {
+      j = jlist[jj];  // local index of atom j
+      // std::cout << "j = " << j << "  ";
+      js = type[j];
+      xx = r_at[j][0] - x;
+      yy = r_at[j][1] - y;
+      zz = r_at[j][2] - z;
+      if (periodic[0] && xx >  sizex05) xx = xx - sizex;
+      if (periodic[0] && xx < -sizex05) xx = xx + sizex;
+      if (periodic[1] && yy >  sizey05) yy = yy - sizey;
+      if (periodic[1] && yy < -sizey05) yy = yy + sizey;
+      if (periodic[2] && zz >  sizez05) zz = zz - sizez;
+      if (periodic[2] && zz < -sizez05) zz = zz + sizez;
+      rr = xx**2 + yy**2 + zz**2;
+      if (rr < rr_pot[js][is]); 
+      {
+        r = sqrt(rr);
+        r1 = 1.0/r;
+        ropi = funp_ro(r, is, js);
+        if (js == is) 
+        {
+          ropj = ropi;
+        } 
+        else
+        {
+          ropj = funp_ro(r, js, is);
+        }
+        w = ((rosum[i]*ropj + rosum[j]*ropi) + funp_fi(r, is, js))*r1;
+        w1 = w*xx; 
+        w2 = w*yy; 
+        w3 = w*zz;
+        f_at[i][0] += w1;
+        f_at[i][1] += w2; // add the fi force j = >i;
+        f_at[i][2] += w3;
+        w1 = w1*xx;
+        w2 = w2*yy;
+        w3 = w3*zz;
+        px_at[i] += w1;
+        py_at[i] += w2;
+        pz_at[i] += w3;
+      }
+    }
   }
-  }do // end loop over jj;
 
+  w = 0.5*(-1.0)/(sizex*sizey*sizez);
+  for (i = 0; i < n_at; i++)
+  {
+    px_at[i] = w*px_at[i];
+    py_at[i] = w*py_at[i];
+    pz_at[i] = w*pz_at[i];
+  }
 
-
-  g222:
-
-  // Set starting position of next atom i
-  i = i + 1;
-  in_list = in_list + n_i + 1;
-  }do;
-
-
-  //c
-  //c	sxx=0.0D0
-  //c	syy=0.0D0
-  //c	szz=0.0D0
-  //c	    e_sum=0.0D0
-
-  w = 0.5D0*(-1.0D0)/(sizex*sizey*sizez);
-  do i = 1, n_at
-  //c	if(.not.if_true_i(i)) cycle
-  //c	    e_sum=e_sum+e_at(i)
-  //c	sxx=sxx + px_at(i)
-  //c	syy=syy + py_at(i)
-  //c	szz=szz + pz_at(i)
-  px_at(i) = w*px_at(i);
-  py_at(i) = w*py_at(i);
-  pz_at(i) = w*pz_at(i);
-  }do;
-
-
-  ;
-  //c	sxx=0.5D0*(-1.0D0)*sxx/(sizex*sizey*sizez)
-  //c	syy=0.5D0*(-1.0D0)*syy/(sizex*sizey*sizez)
-  //c	szz=0.5D0*(-1.0D0)*szz/(sizex*sizey*sizez)
-  ;
-  //c	pressure=(1.0D0/3.0D0)*(sxx+syy+szz)
-  //c
-  // g777:
-
-  // time2 = timesec(idum);
-  // t_e_force_fi_emb = t_e_force_fi_emb + (time2 - time1);
-  //c
   memory->destroy(rosum);
   return;
 }
 
-void PairLS::e_force_g3(double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
+void PairLS::e_force_g3(int eflag, double *eatom, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
 {
+  // Scalar Arguments
+  double e_sum, pressure, sxx, syy, szz;
+  
+  // Local Scalars
+  int i,j,k,jj,kk,l,i1,i2,i3;
+  int n_i,in_list,n_neighb;
+  double w,ww,funfi,funfip;
+  double e_angle,Gmn_i,eta,fung,fungp,Gmn[3],Dmn;
+  double sizex05,sizey05,sizez05, x,y,z,xx,yy,zz,rop;
+  double xx0,yy0,zz0,rr,r,r1,w1,w2,w3,cosl,wp;
+  double p_Gmn[3],fx,fy,fz;
+  int is,js,ks,iw,i_bas,i1_bas,i2_bas,jnum;
 
+  // Local Arrays
+  double rr_pot[10][10];
+  double **rosum;
+  double **funemb, **funembp;
+  double **funf, **funfp;
+  double *evek_x, *evek_y, *evek_z;
+  double *vek_x, *vek_y, *vek_z, *r_1;
+  int *nom_j;
+
+  // pointers to LAMMPS arrays 
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  int inum = listfull->inum; // # of I atoms neighbors are stored for (the length of the neighborlists list)
+  int gnum = listfull->gnum; // # of ghost atoms neighbors are stored for
+
+  int inum_st = list->inum;
+  int gnum_st = list->gnum;
+
+  ilist = listfull->ilist;           // local indices of I atoms (list of "i" atoms for which neighbor lists exist)
+  numneigh = listfull->numneigh;     // # of J neighbors for each I atom (the length of each these neigbor list)
+  firstneigh = listfull->firstneigh; // ptr to 1st J int value of each I atom (the pointer to the list of neighbors of "i")
+
+  int nlocal = atom->nlocal;         // nlocal == n_at for this function
+  int nall = nlocal + atom->nghost;
+  int newton_pair = force->newton_pair;
+
+
+  for (is = 1; is <= n_sort; is++)
+  {
+    for (js = 1; js <= n_sort; js++)
+    {
+      rr_pot[js][is] = pow(R_sp_fi[n_sp_fi-1][js][is],2);
+    }
+  }
+
+  //c == angle 3 ========================================================
+
+  // Loop over the Verlet"s list (j>i and j<i neighbours are included)
+  for (ii = 0; ii < inum; ii++) // inum is the # of I atoms neighbors are stored for
+  {
+    i = ilist[ii];  // local index of atom i
+    x = r_at[i][0];
+    y = r_at[i][1];
+    z = r_at[i][2];
+    is = i_sort_at[i];
+    jnum = numneigh[i];    // # of J neighbors for the atom i
+    jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
+    // std::cout << "There are " << jnum << " neighbours of atom " << i << "  ";
+    n_neighb = 0;
+
+    for (jj = 0; jj < jnum; jj++) 
+    {
+      j = jlist[jj];  // local index of atom j
+      // std::cout << "j = " << j << "  ";
+      js = type[j];
+      xx = r_at[j][0] - x;
+      yy = r_at[j][1] - y;
+      zz = r_at[j][2] - z;
+      if (periodic[0] && xx >  sizex05) xx = xx - sizex;
+      if (periodic[0] && xx < -sizex05) xx = xx + sizex;
+      if (periodic[1] && yy >  sizey05) yy = yy - sizey;
+      if (periodic[1] && yy < -sizey05) yy = yy + sizey;
+      if (periodic[2] && zz >  sizez05) zz = zz - sizez;
+      if (periodic[2] && zz < -sizez05) zz = zz + sizez;
+      rr = xx**2 + yy**2 + zz**2;
+      if (rr < rr_pot[js][is]); 
+      {
+        r = sqrt(rr);
+        r1 = 1.0/r;
+        n_neighb += 1;
+      
+        // calc the parameters for the angle part
+        for (i_bas = 0; i_bas < n_f3[is]; i_bas++)
+        {
+          funf[i_bas][n_neighb] = fun_f3(r, i_bas, js, is);
+          funfp[i_bas][n_neighb] = funp_f3(r, i_bas, js, is);
+        }
+
+        evek_x[n_neighb] = xx*r1;
+        evek_y[n_neighb] = yy*r1;
+        evek_z[n_neighb] = zz*r1;
+        r_1[n_neighb] = r1;
+        vek_x[n_neighb] = xx;
+        vek_y[n_neighb] = yy;
+        vek_z[n_neighb] = zz;
+        nom_j[n_neighb] = j;
+      }
+    }  // end loop over jj
+
+    // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle
+
+    e_angle = 0.0;
+    if (n_neighb > 1) 
+    {
+      for (jj = 0; jj < n_neighb; jj++)
+      {
+        j = nom_j[jj]; // j is n in formul for Dmn and j is m in formul for Gmn;
+        js = i_sort_at[j];
+
+        Dmn = 0.0;
+        Gmn = 0.0;
+        p_Gmn = 0.0;
+        for (kk = 0; kk < n_neighb; kk++)
+        {
+          if (kk == jj) continue;
+          k = nom_j[kk];
+          ks = i_sort_at[k];
+          Gmn_i = 0.0;
+          eta = evek_x[jj]*evek_x[kk] + evek_y[jj]*evek_y[kk] + evek_z[jj]*evek_z[kk]; // cos_nmk;
+          for (i1_bas = 0; i1_bas < n_f3[is]; i1_bas++) // do i1_bas = 1, n_f3(is)
+          {
+            for (i2_bas = 0; i2_bas < n_f3[is]; i2_bas++) // do i2_bas = 1, n_f3(is)
+            {
+              fung = fun_g3(eta, i1_bas, i2_bas, is);
+              fungp = funp_g3(eta, i1_bas, i2_bas, is);
+              Dmn = Dmn + (funfp[i1_bas][jj]*funf[i2_bas][kk]*fung + funf[i1_bas][jj]*funf[i2_bas][kk]*fungp*(r_1[kk] - r_1[jj]*eta));
+              Gmn_i = Gmn_i + funf[i1_bas][jj]*funf[i2_bas][kk]*fungp;
+              if (kk>jj) e_angle = e_angle + funf[i1_bas][jj]*funf[i2_bas][kk]*fung;
+            }
+          }
+          w1 = Gmn_i*(r_1[jj]*r_1[kk]*(vek_x[jj] - vek_x[kk]));
+          w2 = Gmn_i*(r_1[jj]*r_1[kk]*(vek_y[jj] - vek_y[kk]));
+          w3 = Gmn_i*(r_1[jj]*r_1[kk]*(vek_z[jj] - vek_z[kk]));
+          Gmn[0] += w1;
+          Gmn[1] += w2;
+          Gmn[2] += w3;
+
+          // for pressure
+          p_Gmn[0] = p_Gmn[0] - w1*(vek_x[jj] - vek_x[kk]);
+          p_Gmn[1] = p_Gmn[1] - w2*(vek_y[jj] - vek_y[kk]);
+          p_Gmn[2] = p_Gmn[2] - w3*(vek_z[jj] - vek_z[kk]);
+        }
+
+        f_at[i][0] += Dmn*evek_x(jj); // force n = >m;
+        f_at[i][1] += Dmn*evek_y(jj);
+        f_at[i][2] += Dmn*evek_z(jj);
+        f_at[j][0] += (Gmn[0] - Dmn*evek_x[jj]);
+        f_at[j][1] += (Gmn[1] - Dmn*evek_y[jj]);
+        f_at[j][2] += (Gmn[2] - Dmn*evek_z[jj]);
+
+        // for pressure
+        w = 0.5*(-1.0)/(sizex*sizey*sizez);
+        px_at[i] = px_at[i]/w + Dmn*evek_x[jj]*vek_x[jj];
+        py_at[i] = py_at[i]/w + Dmn*evek_y[jj]*vek_y[jj];
+        pz_at[i] = pz_at[i]/w + Dmn*evek_z[jj]*vek_z[jj];
+        px_at[j] = px_at[j]/w + (p_Gmn[0] + Dmn*evek_x[jj]*vek_x[jj]);
+        py_at[j] = py_at[j]/w + (p_Gmn[1] + Dmn*evek_y[jj]*vek_y[jj]);
+        pz_at[j] = pz_at[j]/w + (p_Gmn[2] + Dmn*evek_z[jj]*vek_z[jj]);
+      }
+    }
+    eatom[i] += e_angle;
+  }
+  w = 0.5*(-1.0)/(sizex*sizey*sizez);
+  for (i = 0; i < n_at; i++)
+  {
+    px_at[i] = w*px_at[i];
+    py_at[i] = w*py_at[i];
+    pz_at[i] = w*pz_at[i];
+  }
+  return;
 }
 
 

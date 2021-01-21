@@ -42,7 +42,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
   energy_global_flag = 1;
-  virial_global_flag = virial_atom_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 

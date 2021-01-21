@@ -63,8 +63,8 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   box_change = NO_BOX_CHANGE;
   thermo_energy = 0;
   thermo_virial = 0;
-  energy_global_flag = energy_atom_flag = 0;
-  virial_global_flag = virial_atom_flag = 0;
+  energy_global_flag = energy_peratom_flag = 0;
+  virial_global_flag = virial_peratom_flag = 0;
   ecouple_flag = 0;
   rigid_flag = 0;
   peatom_flag = 0;

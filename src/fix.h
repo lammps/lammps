@@ -44,7 +44,7 @@ class Fix : protected Pointers {
   int thermo_energy;             // 1 if fix_modify energy enabled, 0 if not
   int thermo_virial;             // 1 if fix_modify virial enabled, 0 if not
   int energy_global_flag;        // 1 if contributes to global eng
-  int energy_atom_flag;          // 1 if contributes to peratom eng
+  int energy_peratom_flag;       // 1 if contributes to peratom eng
   int virial_global_flag;        // 1 if contributes to global virial
   int virial_peratom_flag;       // 1 if contributes to peratom virial
   int ecouple_flag;              // 1 if thermostat fix outputs cumulative

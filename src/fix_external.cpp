@@ -36,8 +36,8 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-  energy_global_flag = energy_atom_flag = 1;
-  virial_global_flag = virial_atom_flag = 1;
+  energy_global_flag = energy_peratom_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_energy = thermo_virial = 1;
 
   if (strcmp(arg[3],"pf/callback") == 0) {

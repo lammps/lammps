@@ -1667,25 +1667,6 @@ void Modify::list_init_energy_couple(int &n, int *&list)
 }
 
 /* ----------------------------------------------------------------------
-   create list of fix indices for fixes that compute peratom energy
-   only added to list if fix has energy_atom_flag and thermo_energy set
-------------------------------------------------------------------------- */
-
-void Modify::list_init_energy_atom(int &n, int *&list)
-{
-  delete [] list;
-
-  n = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->energy_atom_flag && fix[i]->thermo_energy) n++;
-  list = new int[n];
-
-  n = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->energy_atom_flag && fix[i]->thermo_energy) list[n++] = i;
-}
-
-/* ----------------------------------------------------------------------
    create list of fix indices for fixes that compute global energy
    only added to list if fix has energy_global_flag and thermo_energy set
 ------------------------------------------------------------------------- */
@@ -1706,7 +1687,7 @@ void Modify::list_init_energy_global(int &n, int *&list)
 
 /* ----------------------------------------------------------------------
    create list of fix indices for fixes that compute peratom energy
-   only added to list if fix has energy_atom_flag and thermo_energy set
+   only added to list if fix has energy_peratom_flag and thermo_energy set
 ------------------------------------------------------------------------- */
 
 void Modify::list_init_energy_atom(int &n, int *&list)
@@ -1715,12 +1696,12 @@ void Modify::list_init_energy_atom(int &n, int *&list)
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->energy_atom_flag && fix[i]->thermo_energy) n++;
+    if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) n++;
   list = new int[n];
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->energy_atom_flag && fix[i]->thermo_energy) list[n++] = i;
+    if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------

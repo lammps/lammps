@@ -33,8 +33,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -55,6 +53,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
+  ecouple_flag = 1;
 
   // set defaults
 
@@ -238,7 +237,6 @@ int FixMSST::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 

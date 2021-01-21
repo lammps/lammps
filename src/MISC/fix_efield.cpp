@@ -49,6 +49,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   scalar_flag = 1;
   size_vector = 3;
+  energy_global_flag = 1;
   global_freq = 1;
   extvector = 1;
   extscalar = 1;
@@ -138,7 +139,6 @@ FixEfield::~FixEfield()
 int FixEfield::setmask()
 {
   int mask = 0;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;

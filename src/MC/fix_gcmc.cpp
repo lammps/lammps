@@ -2334,9 +2334,9 @@ double FixGCMC::energy_full()
   if (modify->n_post_force) modify->post_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
 
-  // NOTE: all fixes with THERMO_ENERGY mask set and which
+  // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force() or end_of_step()
-  //   and which user has enable via fix_modify thermo yes,
+  //   and which user has enabled via fix_modify energy yes,
   //   will contribute to total MC energy via pe->compute_scalar()
 
   update->eflag_global = update->ntimestep;

@@ -187,7 +187,8 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq1 > params[iparam_ij].cutsq) continue;
 
-      scale3(1.0/rsq1, delr1, r1_hat);
+      const double r1inv = 1.0/rsq1;
+      scale3(r1inv, delr1, r1_hat);
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 

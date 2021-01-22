@@ -653,7 +653,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
       atomKK->sync(execution_space,UCOND_MASK | UMECH_MASK);
       auto l_uCond = uCond;
       auto l_uMech = uMech;
-      Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nlocal+nghost), LAMMPS_LAMBDA (const int i) {
         l_uCond(i) = 0.0;
         l_uMech(i) = 0.0;
       });

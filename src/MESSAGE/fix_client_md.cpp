@@ -158,10 +158,9 @@ void FixClientMD::min_setup(int vflag)
 
 void FixClientMD::post_force(int vflag)
 {
-  // energy and virial setup
+  // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // STEP send every step
   // required fields: COORDS

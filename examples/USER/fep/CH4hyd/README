@@ -19,16 +19,16 @@ finite-difference thermodynamic integration (FDTI):
   `data.lmp`
 
 * `fep01` -- Calculation using FEP, multi-stage creation of a methane
-  molecule. Results in `fep01.lmp`
+  molecule. Results in `fep01.fep`
 
 * `fep10` -- Calculation using FEP, multi-stage deletion of a methane
-  molecule. Results in `fep10.lmp`
+  molecule. Results in `fep10.fep`
 
 * `fdti01` -- Calculation using TI/FDTI, creation of a methane
-  molecule. Results in `fdti01.lmp`
+  molecule. Results in `fdti01.fep`
 
 * `fdti10` -- Calculation using TI/FDTI, deletion a methane
-  molecule. Results in `fdti10.lmp`
+  molecule. Results in `fdti10.fep`
 
 The free-energy profiles can be observed by plotting the values in the
 third column of the results files. The Python scripts `fep.py`,
@@ -36,17 +36,17 @@ third column of the results files. The Python scripts `fep.py`,
 calculate the free-energy differences corresponding to the above
 transformations:
 
-    fep.py 300 < fep01.lmp
+    fep.py 300 < fep01.fep
 
-    fep.py 300 < fep10.lmp
+    fep.py 300 < fep10.fep
 
-    nti.py 300 0.002 < fdti01.lmp
+    nti.py 300 0.002 < fdti01.fep
 
-    nti.py 300 0.002 < fdti10.lmp
+    nti.py 300 0.002 < fdti10.fep
 
-    fdti.py 300 0.002 < fdti01.lmp
+    fdti.py 300 0.002 < fdti01.fep
 
-    fdti.py 300 0.002 < fdti10.lmp
+    fdti.py 300 0.002 < fdti10.fep
 
 The outputs are in kcal/mol and can be compared with the experimental
 value of 2.0 kcal/mol, or with a simulation value from the literature

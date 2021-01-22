@@ -2,7 +2,7 @@ compute fep examples
 ====================
 
 * `CH4hyd` -- free energy of hydration of methane (very simple). FEP
-  and TI methods.
+  and FDTI methods.
 
 * `CH4-CF4` -- free energy difference of transforming methane into
   perfluoromethane, in water (simple). BAR method.

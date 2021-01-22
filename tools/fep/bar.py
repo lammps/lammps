@@ -1,15 +1,16 @@
 #!/usr/bin/env python
 # bar.py - Bennet's acceptance ratio method for free energy calculation
 
-import sys, math
+import sys
+import math
 
 if len(sys.argv) < 4:
-    print "Bennet's acceptance ratio method"
-    print "usage: bar.py temperature datafile01 datafile10 [delf_lo delf_hi]"
-    print "  datafile01 contains (U_1 - U_0)_0 in 2nd column"
-    print "  datafile10 contains (U_0 - U_1)_1 in 2nd column"
-    print "  (first column is index, time step, etc. and is ignored)"
-    print "  delf_lo and delf_hi are optional guesses bracketing the solution"
+    print("Bennet acceptance ratio method")
+    print("usage: bar.py temperature datafile01 datafile10 [delf_lo delf_hi]")
+    print("  datafile01 contains (U_1 - U_0)_0 in 2nd column")
+    print("  datafile10 contains (U_0 - U_1)_1 in 2nd column")
+    print("  (first column is index, time step, etc. and is ignored)")
+    print("  delf_lo and delf_hi are optional guesses bracketing the solution")
     sys.exit()
 
 if len(sys.argv) == 6:
@@ -58,8 +59,8 @@ def bisect(func, xlo, xhi, xtol = 1.0e-4, maxit = 20):
             return xmid
     return xmid
 
-print "Bennet's acceptance ratio method"
-print sys.argv[1], " K"
+print("Bennet acceptance ratio method")
+print(sys.argv[1], " K")
 rt = 0.008314 / 4.184 * float(sys.argv[1])
 
 eng01 = []                                # read datafiles
@@ -78,11 +79,11 @@ with open(sys.argv[3], 'r') as f:
 
 sys.stdout.write("solving")
 delf = bisect(bareq, delf_lo, delf_hi)
-print "."
+print(".")
 
 ave0 = avefermi(eng01, -delf)
 ave1 = avefermi(eng10,  delf)
 
-print "<...>0 = ", ave0
-print "<...>1 = ", ave1
-print "deltaA = ", delf
+print("<...>0 = ", ave0)
+print("<...>1 = ", ave1)
+print("deltaA = ", delf)

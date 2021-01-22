@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # fdti.py - integrate compute fep results using the trapezoidal rule
 
-import sys, math
+import sys
+import math
 
 if len(sys.argv) < 3:
-    print "Finite Difference Thermodynamic Integration (Mezei 1987)"
-    print "Trapezoidal integration of compute_fep results at equally-spaced points"
-    print "usage: fdti.py temperature hderiv < fep.lmp"
+    print("Finite Difference Thermodynamic Integration (Mezei 1987)")
+    print("Trapezoidal integration of compute_fep results at equally-spaced points")
+    print("usage: fdti.py temperature hderiv < out.fep")
     sys.exit()
 
 rt = 0.008314 / 4.184 * float(sys.argv[1])
@@ -33,4 +34,4 @@ for line in sys.stdin:
     lo = hi
     i += 1
 
-print sum / i      # int_0^1: divide by i == multiply by delta
+print(sum/(i - 1))    # int_0^1: divide by i - 1 == multiply by delta

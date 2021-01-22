@@ -573,7 +573,7 @@ static void compute_all_items(
                  Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom) {
   if (eflag || vflag) {
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,inum),
-    LAMMPS_LAMBDA(int i, EV_FLOAT& energy_virial) {
+     LAMMPS_LAMBDA(int i, EV_FLOAT& energy_virial) {
         energy_virial +=
           compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,1,NEWTON_PAIR>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
@@ -584,7 +584,7 @@ static void compute_all_items(
     }, ev);
   } else {
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,inum),
-    LAMMPS_LAMBDA(int i) {
+     LAMMPS_LAMBDA(int i) {
         compute_item<DeviceType,NEIGHFLAG,STACKPARAMS,TABSTYLE,0,NEWTON_PAIR>(
             i, nlocal, d_ilist, d_neighbors, d_numneigh, x, type,
             mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2,
@@ -607,7 +607,7 @@ static void getAllMixingWeights(
     Kokkos::View<double*, DeviceType> const& mixWtSite1,
     Kokkos::View<double*, DeviceType> const& mixWtSite2) {
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ntotal),
-  LAMMPS_LAMBDA(int i) {
+   LAMMPS_LAMBDA(int i) {
       getMixingWeights<DeviceType>(dvector,nspecies,isite1,isite2,fractionalWeighting,
         i, mixWtSite1old(i), mixWtSite2old(i), mixWtSite1(i), mixWtSite2(i));
   });

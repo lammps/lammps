@@ -60,7 +60,7 @@ static double get_kinetic_energy(
     atomKK->sync(execution_space, RMASS_MASK);
     typename AT::t_float_1d_randomread rmass = atomKK->k_rmass.view<DeviceType>();
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-      LAMMPS_LAMBDA(int i, double& update) {
+     LAMMPS_LAMBDA(int i, double& update) {
       if (mask(i) & groupbit)
         update += rmass(i) *
           (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
@@ -71,7 +71,7 @@ static double get_kinetic_energy(
     typename AT::t_int_1d_randomread type = atomKK->k_type.view<DeviceType>();
     typename AT::t_float_1d_randomread mass = atomKK->k_mass.view<DeviceType>();
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-      LAMMPS_LAMBDA(int i, double& update) {
+     LAMMPS_LAMBDA(int i, double& update) {
       if (mask(i) & groupbit)
         update += mass(type(i)) *
           (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
@@ -124,7 +124,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     auto zflag2 = zflag;
 
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-      LAMMPS_LAMBDA(int i) {
+     LAMMPS_LAMBDA(int i) {
       if (mask(i) & groupbit2) {
         if (xflag2) v(i,0) -= vcm[0];
         if (yflag2) v(i,1) -= vcm[1];
@@ -163,7 +163,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     auto h = Few<double,6>(domain->h);
     auto triclinic = domain->triclinic;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-      LAMMPS_LAMBDA(int i) {
+     LAMMPS_LAMBDA(int i) {
       if (mask[i] & groupbit2) {
         Few<double,3> x_i;
         x_i[0] = x(i,0);
@@ -190,7 +190,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     double factor = 1.0;
     if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
-      LAMMPS_LAMBDA(int i) {
+     LAMMPS_LAMBDA(int i) {
       if (mask(i) & groupbit2) {
         v(i,0) *= factor;
         v(i,1) *= factor;

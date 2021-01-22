@@ -242,7 +242,8 @@ void FixShakeKokkos<DeviceType>::pre_neighbor()
     auto d_nlist = this->d_nlist;
     auto map_array = this->map_array;
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(const int& i) {
       if (d_shake_flag[i]) {
         if (d_shake_flag[i] == 2) {
           const int atom1 = map_array(d_shake_atom(i,0));
@@ -480,7 +481,8 @@ int FixShakeKokkos<DeviceType>::dof(int igroup)
     auto mask = this->d_mask;
     auto groupbit = group->bitmask[igroup];
 
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i, int& n) {
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(const int& i, int& n) {
       if (!(mask[i] & groupbit)) return;
       if (d_shake_flag[i] == 0) return;
       if (d_shake_atom(i,0) != tag[i]) return;
@@ -536,7 +538,8 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
 
       auto rmass = this->d_rmass;
 
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+       LAMMPS_LAMBDA(const int& i) {
         if (d_shake_flag[i]) {
           const double dtfmsq = dtfsq / rmass[i];
           d_xshake(i,0) = x(i,0) + dtv*v(i,0) + dtfmsq*f(i,0);
@@ -549,7 +552,8 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
       auto mass = this->d_mass;
       auto type = this->d_type;
 
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i) {
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+       LAMMPS_LAMBDA(const int& i) {
         if (d_shake_flag[i]) {
           const double dtfmsq = dtfsq / mass[type[i]];
           d_xshake(i,0) = x(i,0) + dtv*v(i,0) + dtfmsq*f(i,0);

@@ -71,12 +71,28 @@ compute FEP all fep ${TK} &
   atom charge 1 v_dq1 &
   atom charge 2 v_dq2
 
-fix FEP all ave/time 20 4000 100000 c_FEP[1] c_FEP[2] file fdti10.lmp
+fix FEP all ave/time 20 4000 100000 c_FEP[1] c_FEP[2] file fdti10.fep
 
 dump TRAJ all custom 20000 dump.lammpstrj id mol type element x y z ix iy iz
 dump_modify TRAJ element C H O H
 
 run 2000000
+
+unfix ADAPT
+
+variable lambda equal 0.002
+pair_coeff    1    3  lj/cut/tip4p/long/soft   0.1036   3.3279  ${lambda}  # C4H Ow
+pair_coeff    1    4  lj/cut/tip4p/long/soft   0.0000   1.0000  ${lambda}  # C4H Hw
+pair_coeff    2    3  lj/cut/tip4p/long/soft   0.0699   2.8126  ${lambda}  # H Ow
+pair_coeff    2    4  lj/cut/tip4p/long/soft   0.0000   1.0000  ${lambda}  # H Hw
+
+variable q1 equal -0.24*v_lambda
+variable q2 equal  0.06*v_lambda
+
+set type 1 charge ${q1}
+set type 2 charge ${q2}
+
+run 100000
 
 # write_restart restart.*.lmp
 write_data data.*.lmp

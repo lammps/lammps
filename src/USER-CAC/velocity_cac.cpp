@@ -349,17 +349,17 @@ void VelocityCAC::create(double t_desired, int seed)
         v[i][1] = 0;
         v[i][2] = 0;
         random->reset(seed,x[i]);
-        if (dist_flag == 0) {
-          vx = random->uniform() - 0.5;
-          vy = random->uniform() - 0.5;
-          vz = random->uniform() - 0.5;
-        } else {
-          vx = random->gaussian();
-          vy = random->gaussian();
-          vz = random->gaussian();
-        }
         for (int ipoly = 0; ipoly < poly_count[i];ipoly++) {	
           for(int k=0; k<nodes_per_element; k++){
+            if (dist_flag == 0) {
+              vx = random->uniform() - 0.5;
+              vy = random->uniform() - 0.5;
+              vz = random->uniform() - 0.5;
+            } else {
+              vx = random->gaussian();
+              vy = random->gaussian();
+              vz = random->gaussian();
+            }
             if (rmass) factor = 1.0/sqrt(rmass[i]);
             else factor = 1.0/sqrt(mass[node_types[i][ipoly]]);
             nodal_velocities[i][ipoly][k][0] = vx * factor;

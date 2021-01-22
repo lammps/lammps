@@ -148,9 +148,6 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
       iparam_ij = elem2param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
-      double r1inv = 1.0/sqrt(dot3(delr1, delr1));
-      scale3(r1inv, delr1, r1_hat);
-
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
 
       // correct force for shift in rsq

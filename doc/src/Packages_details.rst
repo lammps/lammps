@@ -1498,7 +1498,7 @@ methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt
 which have a "soft" in their style name.  There are auxiliary tools
 for using this package in tools/fep; see its README file.
 
-**Author:** Agilio Padua (Universite Blaise Pascal Clermont-Ferrand)
+**Author:** Agilio Padua (ENS de Lyon)
 
 **Supporting info:**
 

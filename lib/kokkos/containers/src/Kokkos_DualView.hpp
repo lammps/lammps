@@ -444,18 +444,24 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   }
   static constexpr const int view_header_size = 128;
   void impl_report_host_sync() const noexcept {
-    Kokkos::Tools::syncDualView(
-        h_view.label(),
-        reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(h_view.data()) -
-                                view_header_size),
-        false);
+    if (Kokkos::Tools::Experimental::get_callbacks().sync_dual_view !=
+        nullptr) {
+      Kokkos::Tools::syncDualView(
+          h_view.label(),
+          reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(h_view.data()) -
+                                  view_header_size),
+          false);
+    }
   }
   void impl_report_device_sync() const noexcept {
-    Kokkos::Tools::syncDualView(
-        d_view.label(),
-        reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(d_view.data()) -
-                                view_header_size),
-        true);
+    if (Kokkos::Tools::Experimental::get_callbacks().sync_dual_view !=
+        nullptr) {
+      Kokkos::Tools::syncDualView(
+          d_view.label(),
+          reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(d_view.data()) -
+                                  view_header_size),
+          true);
+    }
   }
   /// \brief Update data on device or host only if data in the other
   ///   space has been marked as modified.
@@ -625,18 +631,24 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     return modified_flags(1) < modified_flags(0);
   }
   void impl_report_device_modification() {
-    Kokkos::Tools::modifyDualView(
-        d_view.label(),
-        reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(d_view.data()) -
-                                view_header_size),
-        true);
+    if (Kokkos::Tools::Experimental::get_callbacks().modify_dual_view !=
+        nullptr) {
+      Kokkos::Tools::modifyDualView(
+          d_view.label(),
+          reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(d_view.data()) -
+                                  view_header_size),
+          true);
+    }
   }
   void impl_report_host_modification() {
-    Kokkos::Tools::modifyDualView(
-        h_view.label(),
-        reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(h_view.data()) -
-                                view_header_size),
-        false);
+    if (Kokkos::Tools::Experimental::get_callbacks().modify_dual_view !=
+        nullptr) {
+      Kokkos::Tools::modifyDualView(
+          h_view.label(),
+          reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(h_view.data()) -
+                                  view_header_size),
+          false);
+    }
   }
   /// \brief Mark data as modified on the given device \c Device.
   ///

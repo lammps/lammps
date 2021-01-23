@@ -1,5 +1,12 @@
 # Change Log
 
+## [3.3.01](https://github.com/kokkos/kokkos/tree/3.3.01) (2021-01-06)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.3.00...3.3.01)
+
+**Bug Fixes:**
+- Fix severe performance bug in DualView which added memcpys for sync and modify [\#3693](https://github.com/kokkos/kokkos/issues/#3693)
+- Fix performance bug in CUDA backend, where the cuda Cache config was not set correct.
+
 ## [3.3.00](https://github.com/kokkos/kokkos/tree/3.3.00) (2020-12-16)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/3.2.01...3.3.00)
 

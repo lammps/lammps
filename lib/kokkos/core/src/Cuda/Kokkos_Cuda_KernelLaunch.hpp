@@ -158,7 +158,7 @@ inline void check_shmem_request(CudaInternal const* cuda_instance, int shmem) {
   }
 }
 
-template <class KernelFuncPtr>
+template <class DriverType, class LaunchBounds, class KernelFuncPtr>
 inline void configure_shmem_preference(KernelFuncPtr const& func,
                                        bool prefer_shmem) {
 #ifndef KOKKOS_ARCH_KEPLER
@@ -355,7 +355,9 @@ struct CudaParallelLaunchKernelInvoker<
 
     if (!Impl::is_empty_launch(grid, block)) {
       Impl::check_shmem_request(cuda_instance, shmem);
-      Impl::configure_shmem_preference(base_t::get_kernel_func(), prefer_shmem);
+      Impl::configure_shmem_preference<DriverType, LaunchBounds,
+                                       decltype(base_t::get_kernel_func())>(
+          base_t::get_kernel_func(), prefer_shmem);
 
       void const* args[] = {&driver};
 
@@ -447,7 +449,9 @@ struct CudaParallelLaunchKernelInvoker<
 
     if (!Impl::is_empty_launch(grid, block)) {
       Impl::check_shmem_request(cuda_instance, shmem);
-      Impl::configure_shmem_preference(base_t::get_kernel_func(), prefer_shmem);
+      Impl::configure_shmem_preference<DriverType, LaunchBounds,
+                                       decltype(base_t::get_kernel_func())>(
+          base_t::get_kernel_func(), prefer_shmem);
 
       auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(driver);
 
@@ -622,7 +626,10 @@ struct CudaParallelLaunchImpl<
           driver.get_policy(), cuda_instance->m_deviceProp,
           get_cuda_func_attributes(), block, shmem, prefer_shmem);
 
-      Impl::configure_shmem_preference(base_t::get_kernel_func(), prefer_shmem);
+      Impl::configure_shmem_preference<
+          DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
+          decltype(base_t::get_kernel_func())>(base_t::get_kernel_func(),
+                                               prefer_shmem);
 
       KOKKOS_ENSURE_CUDA_LOCK_ARRAYS_ON_DEVICE();
 

@@ -96,6 +96,7 @@ OPT.
    * :doc:`eam/cd <pair_eam>`
    * :doc:`eam/cd/old <pair_eam>`
    * :doc:`eam/fs (gikot) <pair_eam>`
+   * :doc:`eam/he <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
    * :doc:`edpd <pair_mesodpd>`

@@ -75,32 +75,6 @@ class PairEDIPMulti : public Pair {
   void edip_tau(double, Param *, double &, double &);
   void edip_h(double, double, Param *, double &, double &, double &);
   void edip_fcut3(double, Param *, double &, double &);
-
-  double vec3_dot(double x[3], double y[3])
-  {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-  }
-
-  void vec3_add(double k1, double x[3], double k2, double y[3], double *z)
-  {
-    z[0] = k1 * x[0] + k2 * y[0];
-    z[1] = k1 * x[1] + k2 * y[1];
-    z[2] = k1 * x[2] + k2 * y[2];
-  }
-
-  //dr_ij=r_j - r_i
-  //dr_ik=r_k - r_i
-  void costheta_d(double *dr_ij, double r_ij, double *dr_ik, double r_ik,
-                  double *dri, double *drj, double *drk)
-  {
-    double costheta;
-
-    costheta = vec3_dot(dr_ij, dr_ik) / r_ij / r_ik;
-    vec3_add(1 / r_ij / r_ik, dr_ik, -costheta / r_ij / r_ij, dr_ij, drj);
-    vec3_add(1 / r_ij / r_ik, dr_ij, -costheta / r_ik / r_ik, dr_ik, drk);
-    vec3_add(-1, drj, -1, drk, dri);
-  }
-
 };
 
 }

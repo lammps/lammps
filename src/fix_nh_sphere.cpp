@@ -22,7 +22,6 @@
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
-#include "math_vector.h"
 
 #include <cmath>
 #include <cstring>
@@ -146,8 +145,8 @@ void FixNHSphere::nve_x()
           }
     } else {
       // Integrate orientation following Dullweber-Leimkuhler-Maclachlan scheme
-      vector w, w_temp, a;
-      matrix Q, Q_temp, R;
+      double w[3], w_temp[3], a[3];
+      double Q[3][3], Q_temp[3][3], R[3][3];
       double scale,s2,inv_len_mu;
 
       for (int i = 0; i < nlocal; i++) {

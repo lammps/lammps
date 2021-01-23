@@ -35,6 +35,7 @@ class PairEAMFS : virtual public PairEAM {
  protected:
   void read_file(char *);
   void file2array();
+  int he_flag;
 };
 
 }

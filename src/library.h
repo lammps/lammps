@@ -195,6 +195,8 @@ int lammps_config_has_package(const char *);
 int lammps_config_package_count();
 int lammps_config_package_name(int, char *, int);
 
+int lammps_config_accelerator(const char *, const char *, const char *);
+
 int lammps_has_style(void *, const char *, const char *);
 int lammps_style_count(void *, const char *);
 int lammps_style_name(void *, const char *, int, char *, int);

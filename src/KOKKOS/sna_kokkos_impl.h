@@ -290,8 +290,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int
   natom = newnatom;
   nmax = newnmax;
 
-  int natom_div = (natom + vector_length - 1) / vector_length;
-
   rij = t_sna_3d(Kokkos::NoInit("sna:rij"),natom,nmax,3);
   wj = t_sna_2d(Kokkos::NoInit("sna:wj"),natom,nmax);
   rcutij = t_sna_2d(Kokkos::NoInit("sna:rcutij"),natom,nmax);
@@ -301,6 +299,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::grow_rij(int newnatom, int
 
 #ifdef LMP_KOKKOS_GPU
   if (!host_flag) {
+    const int natom_div = (natom + vector_length - 1) / vector_length;
+
     a_pack = t_sna_3c_ll(Kokkos::NoInit("sna:a_pack"),vector_length,nmax,natom_div);
     b_pack = t_sna_3c_ll(Kokkos::NoInit("sna:b_pack"),vector_length,nmax,natom_div);
     da_pack = t_sna_4c_ll(Kokkos::NoInit("sna:da_pack"),vector_length,nmax,natom_div,3);
@@ -518,15 +518,12 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_ui(const typename 
     // this is "creeping up the side"
     for (int j = 1; j <= j_bend; j++) {
 
-      int jjup = idxu_half_block[j-1];
-
       constexpr int mb = 0; // intentional for readability, compiler should optimize this out
 
       complex ulist_accum = complex::zero();
 
       int ma;
       for (ma = 0; ma < j; ma++) {
-        const int jjup_index = idxu_half_block[j - 1] + mb * j + ma;
 
         // grab the cached value
         const complex ulist_prev = ulist_wrapper.get(ma);
@@ -928,8 +925,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_fused_deidrj(const
     // this is "creeping up the side"
     for (int j = 1; j <= j_bend; j++) {
 
-      int jjup = idxu_half_block[j-1];
-
       constexpr int mb = 0; // intentional for readability, compiler should optimize this out
 
       complex ulist_accum = complex::zero();
@@ -937,7 +932,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_fused_deidrj(const
 
       int ma;
       for (ma = 0; ma < j; ma++) {
-        const int jjup_index = idxu_half_block[j - 1] + mb * j + ma;
 
         // grab the cached value
         const complex ulist_prev = ulist_wrapper.get(ma);

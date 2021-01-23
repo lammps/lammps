@@ -43,7 +43,10 @@ class Info : protected Pointers {
   static bool has_jpeg_support();
   static bool has_ffmpeg_support();
   static bool has_exceptions();
-  static bool has_package(const char * package_name);
+  static bool has_package(const std::string &);
+  static bool has_accelerator_feature(const std::string &,
+                                      const std::string &,
+                                      const std::string &);
 
   static std::string get_os_info();
   static std::string get_compiler_info();

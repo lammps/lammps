@@ -72,7 +72,7 @@ compute FEP all fep ${TK} &
   atom charge 1 v_dq1 &
   atom charge 2 v_dq2
 
-fix FEP all ave/time 20 4000 100000 c_FEP[1] c_FEP[2] file fep01.lmp
+fix FEP all ave/time 20 4000 100000 c_FEP[1] c_FEP[2] file fep01.fep
 
 dump TRAJ all custom 20000 dump.lammpstrj id mol type element x y z ix iy iz
 dump_modify TRAJ element C H O H

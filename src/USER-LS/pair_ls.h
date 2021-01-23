@@ -50,6 +50,7 @@ class PairLS : public Pair {
   void settings(int, char **);
   virtual void coeff(int, char **);
   void init_style();
+  void init_list(int, class NeighList *);  
   double init_one(int, int);
 
   // maybe not needed public methods
@@ -65,14 +66,15 @@ class PairLS : public Pair {
 
 
  protected:
- 
+
+  // Domain *domain; 
   int *map;                   // which element each atom type maps to
 
   // Begin max_at.h (may be it is not needed in the LAMMPS implementation)
   const int  n_mark_at=10;
   const long  max_at=100000;
   const int  max_at_def=100;
-  const int  max_neighb=200;
+  const int  max_neighb=500;
   const long  max_pair_at=max_at*max_neighb;
   const long  max_pair_at_def=max_at_def*max_neighb;
   const long  max_list=max_pair_at+max_at;
@@ -162,8 +164,8 @@ class PairLS : public Pair {
   void LA30(int, double *, double *, double *, double *, double *, int *);
 
   // subroutines for calculating energies and forces
-  void e_force_fi_emb(int, double *, double **, double *, double *, double *,  double **, int *, int, double *, double *, double *);
-  void e_force_g3(int, double *, double **, double *, double *, double *,  double **, int *, int, double *, double *, double *);
+  void e_force_fi_emb(int, double *, double **, double *, double *, double *,  double **, int *, int, double, double, double);
+  void e_force_g3(int, double *, double **, double *, double *, double *,  double **, int *, int, double, double, double);
 
   // potential functions and their derivatives
   double fun_fi(double, int, int);

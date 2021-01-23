@@ -38,8 +38,8 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
   ExternalProject_Add(kokkos_build
-    URL https://github.com/kokkos/kokkos/archive/3.3.00.tar.gz
-    URL_MD5 daf0f03ce07c003ae1572bb415cdcf4c
+    URL https://github.com/kokkos/kokkos/archive/3.3.01.tar.gz
+    URL_MD5 08201d1c7cf5bc458ce0f5b44a629d5a
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a
   )

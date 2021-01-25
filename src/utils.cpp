@@ -548,7 +548,8 @@ int utils::expand_args(const char *file, int line, int narg, char **arg,
    Return string without leading or trailing whitespace
 ------------------------------------------------------------------------- */
 
-std::string utils::trim(const std::string &line) {
+std::string utils::trim(const std::string &line)
+{
   int beg = re_match(line.c_str(),"\\S+");
   int end = re_match(line.c_str(),"\\s+$");
   if (beg < 0) beg = 0;
@@ -561,12 +562,58 @@ std::string utils::trim(const std::string &line) {
    Return string without trailing # comment
 ------------------------------------------------------------------------- */
 
-std::string utils::trim_comment(const std::string &line) {
+std::string utils::trim_comment(const std::string &line)
+{
   auto end = line.find_first_of("#");
   if (end != std::string::npos) {
     return line.substr(0, end);
   }
   return std::string(line);
+}
+
+/* ----------------------------------------------------------------------
+   Replace UTF-8 encoded chars with known ASCII equivalents
+------------------------------------------------------------------------- */
+
+std::string utils::utf8_subst(const std::string &line)
+{
+  const unsigned char * const in = (const unsigned char *)line.c_str();
+  const int len = line.size();
+  std::string out;
+
+  for (int i=0; i < len; ++i) {
+
+    // UTF-8 2-byte character
+    if ((in[i] & 0xe0U) == 0xc0U) {
+      if ((i+1) < len) {
+        // MODIFIER LETTER PLUS SIGN (U+02D6)
+        if ((in[i] == 0xcbU) && (in[i+1] == 0x96U))
+          out += '+', ++i;
+        // MODIFIER LETTER MINUS SIGN (U+02D7)
+        if ((in[i] == 0xcbU) && (in[i+1] == 0x97U))
+          out += '-', ++i;
+      }
+    // UTF-8 3-byte character
+    } else if ((in[i] & 0xf0U) == 0xe0U) {
+      if ((i+2) < len) {
+        // INVISIBLE SEPARATOR (U+2063)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x81U) && (in[i+2] == 0xa3U))
+          out += ' ', i += 2;
+        // INVISIBLE PLUS (U+2064)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x81U) && (in[i+2] == 0xa4U))
+          out += '+', i += 2;
+        // MINUS SIGN (U+2212)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x88U) && (in[i+2] == 0x92U))
+          out += '-', i += 2;
+      }
+    // UTF-8 4-byte character
+    } else if ((in[i] & 0xe8U) == 0xf0U) {
+      if ((i+3) < len) {
+        ;
+      }
+    } else out += in[i];
+  }
+  return out;
 }
 
 /* ----------------------------------------------------------------------

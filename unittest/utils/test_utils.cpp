@@ -54,6 +54,23 @@ TEST(Utils, trim_comment)
     ASSERT_THAT(trimmed, StrEq("some text "));
 }
 
+TEST(Utils, has_utf8)
+{
+    const char ascii_string[] = " -2";
+    const char utf8_string[] = " −2";
+    ASSERT_FALSE(utils::has_utf8(ascii_string));
+    ASSERT_TRUE(utils::has_utf8(utf8_string));
+}
+
+TEST(Utils, utf8_subst)
+{
+    const char ascii_string[] = " -2";
+    const char utf8_string[] = " −2";
+    auto ascii = utils::utf8_subst(ascii_string);
+    auto utf8  = utils::utf8_subst(utf8_string);
+    ASSERT_TRUE(ascii == utf8);
+}
+
 TEST(Utils, count_words)
 {
     ASSERT_EQ(utils::count_words("some text # comment"), 4);

@@ -287,9 +287,11 @@ void PairLS::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 
   std::cout << "Energies and forces on atoms on step " << update->ntimestep << std::endl;
+  // std::cout << "i_at  e_at       x        y        z       f_x        f_y        f_z" << std::endl;
   std::cout << "i_at  e_at       f_x        f_y        f_z" << std::endl;
   for (int i = 0; i < nlocal; i++)
   {
+    // std::cout << i+1 << " " << x[i][0] << " " << x[i][1] << " " << x[i][2] <<"    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
     std::cout << i+1 << "    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
   }
   memory->destroy(px_at);
@@ -2345,13 +2347,16 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
 
   // Local Arrays
   double rr_pot[10][10];
-  double **rosum;
-  double **funemb, **funembp;
-  double **funf, **funfp;
-  double *evek_x, *evek_y, *evek_z;
-  double *vek_x, *vek_y, *vek_z, *r_1;
-  int *nom_j;
-  // int nom_j[200];
+  double funf[max_neighb][mf3], funfp[max_neighb][mf3];
+  double evek_x[max_neighb], evek_y[max_neighb], evek_z[max_neighb];
+  double vek_x[max_neighb], vek_y[max_neighb], vek_z[max_neighb], r_1[max_neighb];
+  int nom_j[max_neighb];
+  // arrays in heap
+  // double **funf, **funfp;
+  // double *evek_x, *evek_y, *evek_z;
+  // double *vek_x, *vek_y, *vek_z, *r_1;
+  // int *nom_j;
+
 
   // pointers to LAMMPS arrays 
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -2370,29 +2375,29 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
   int newton_pair = force->newton_pair;
 
   // memory allocation for local arrays
-  memory->create(rosum, mf3, nall, "PairLS:rosum_g3");
-  memory->create(funemb, mf3, nall, "PairLS:funemb_g3");
-  memory->create(funembp, mf3, nall, "PairLS:funembp_g3");
-  memory->create(funf, mf3, max_neighb, "PairLS:funf_g3");
-  memory->create(funfp, mf3, max_neighb, "PairLS:funfp_g3");
-  memory->create(evek_x, max_neighb, "PairLS:evek_x_g3");
-  memory->create(evek_y, max_neighb, "PairLS:evek_y_g3");
-  memory->create(evek_z, max_neighb, "PairLS:evek_z_g3");
-  memory->create(vek_x, max_neighb, "PairLS:vek_x_g3");
-  memory->create(vek_y, max_neighb, "PairLS:vek_y_g3");
-  memory->create(vek_z, max_neighb, "PairLS:vek_z_g3");
-  memory->create(r_1, max_neighb, "PairLS:r_1_g3");
-  memory->create(nom_j, max_neighb, "PairLS:nom_j_g3");
-
+  // memory->create(funf, max_neighb, mf3, "PairLS:funf_g3");
+  // memory->create(funfp, max_neighb, mf3, "PairLS:funfp_g3");
+  // memory->create(evek_x, max_neighb, "PairLS:evek_x_g3");
+  // memory->create(evek_y, max_neighb, "PairLS:evek_y_g3");
+  // memory->create(evek_z, max_neighb, "PairLS:evek_z_g3");
+  // memory->create(vek_x, max_neighb, "PairLS:vek_x_g3");
+  // memory->create(vek_y, max_neighb, "PairLS:vek_y_g3");
+  // memory->create(vek_z, max_neighb, "PairLS:vek_z_g3");
+  // memory->create(r_1, max_neighb, "PairLS:r_1_g3");
+  // memory->create(nom_j, max_neighb, "PairLS:nom_j_g3");
 
   for (is = 1; is <= n_sort; is++)
   {
     for (js = 1; js <= n_sort; js++)
     {
-      rr_pot[js][is] = pow(R_sp_fi[n_sp_fi[js][is]-1][js][is],2);
+      rr_pot[js][is] = R_sp_f[n_sp_f[js][is]-1][js][is]*R_sp_f[n_sp_f[js][is]-1][js][is];
       // rr_pot[js][is] = cutsq[js][is];
     }
   }
+
+  sizex05 = sizex*0.5;
+  sizey05 = sizey*0.5;
+  sizez05 = sizez*0.5;
 
   //c == angle 3 ========================================================
 
@@ -2400,11 +2405,12 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
   for (ii = 0; ii < inum; ii++) // inum is the # of I atoms neighbors are stored for
   {
     i = ilist[ii];  // local index of atom i
+    jnum = numneigh[i];    // # of J neighbors for the atom i
+    if (jnum < 2) continue;
     x = r_at[i][0];
     y = r_at[i][1];
     z = r_at[i][2];
     is = i_sort_at[i];
-    jnum = numneigh[i];    // # of J neighbors for the atom i
     jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
     // std::cout << "There are " << jnum << " neighbours of atom " << i << std::endl;
     n_neighb = 0;
@@ -2434,8 +2440,8 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
         // calc the parameters for the angle part
         for (i_bas = 0; i_bas < n_f3[is]; i_bas++)
         {
-          funf[i_bas][n_neighb] = fun_f3(r, i_bas, js, is);
-          funfp[i_bas][n_neighb] = funp_f3(r, i_bas, js, is);
+          funf[n_neighb][i_bas] = fun_f3(r, i_bas, js, is);
+          funfp[n_neighb][i_bas] = funp_f3(r, i_bas, js, is);
         }
 
         evek_x[n_neighb] = xx*r1;
@@ -2447,6 +2453,9 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
         vek_z[n_neighb] = zz;
         nom_j[n_neighb] = j;
         // // !std::cout << " nom_j[" << n_neighb << "]= " <<  nom_j[n_neighb] << std::endl;
+        
+        // trying merge two loops over j neighbors to one
+
         n_neighb += 1;
       }
     }  // end loop over jj
@@ -2486,12 +2495,14 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
           {
             for (i2_bas = 0; i2_bas < n_f3[is]; i2_bas++) // do i2_bas = 1, n_f3(is)
             {
+              // fung = 1.0;
               fung = fun_g3(eta, i1_bas, i2_bas, is);
               // std::cout << "fun_g3 work done for i1_bas="<<i1_bas << ", i2_bas=" <<i2_bas<< " and triplet of atoms  i=" << i << " j=" << j << " k=" << k << "  ";
+              // fungp = 1.0;
               fungp = funp_g3(eta, i1_bas, i2_bas, is);
-              Dmn = Dmn + (funfp[i1_bas][jj]*funf[i2_bas][kk]*fung + funf[i1_bas][jj]*funf[i2_bas][kk]*fungp*(r_1[kk] - r_1[jj]*eta));
-              Gmn_i = Gmn_i + funf[i1_bas][jj]*funf[i2_bas][kk]*fungp;
-              if (kk>jj) e_angle = e_angle + funf[i1_bas][jj]*funf[i2_bas][kk]*fung;
+              Dmn = Dmn + (funfp[jj][i1_bas]*funf[kk][i2_bas]*fung + funf[jj][i1_bas]*funf[kk][i2_bas]*fungp*(r_1[kk] - r_1[jj]*eta));
+              Gmn_i = Gmn_i + funf[jj][i1_bas]*funf[kk][i2_bas]*fungp;
+              if (kk>jj) e_angle = e_angle + funf[jj][i1_bas]*funf[kk][i2_bas]*fung;
             }
           }
           w1 = Gmn_i*(r_1[jj]*r_1[kk]*(vek_x[jj] - vek_x[kk]));
@@ -2502,9 +2513,9 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
           Gmn[2] += w3;
 
           // for pressure
-          p_Gmn[0] = p_Gmn[0] - w1*(vek_x[jj] - vek_x[kk]);
-          p_Gmn[1] = p_Gmn[1] - w2*(vek_y[jj] - vek_y[kk]);
-          p_Gmn[2] = p_Gmn[2] - w3*(vek_z[jj] - vek_z[kk]);
+          // p_Gmn[0] = p_Gmn[0] - w1*(vek_x[jj] - vek_x[kk]);
+          // p_Gmn[1] = p_Gmn[1] - w2*(vek_y[jj] - vek_y[kk]);
+          // p_Gmn[2] = p_Gmn[2] - w3*(vek_z[jj] - vek_z[kk]);
         }
 
         f_at[i][0] += Dmn*evek_x[jj]; // force n = >m;
@@ -2516,7 +2527,7 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
         f_at[j][2] += (Gmn[2] - Dmn*evek_z[jj]);
 
         // for pressure
-        w = 0.5*(-1.0)/(sizex*sizey*sizez);
+        // w = 0.5*(-1.0)/(sizex*sizey*sizez);
         // px_at[i] = px_at[i]/w + Dmn*evek_x[jj]*vek_x[jj];
         // py_at[i] = py_at[i]/w + Dmn*evek_y[jj]*vek_y[jj];
         // pz_at[i] = pz_at[i]/w + Dmn*evek_z[jj]*vek_z[jj];
@@ -2538,19 +2549,17 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
     py_at[i] = w*py_at[i];
     pz_at[i] = w*pz_at[i];
   }
-  memory->destroy(rosum);  
-  memory->destroy(funemb); 
-  memory->destroy(funembp);
-  memory->destroy(funf);   
-  memory->destroy(funfp);  
-  memory->destroy(evek_x); 
-  memory->destroy(evek_y); 
-  memory->destroy(evek_z); 
-  memory->destroy(vek_x);  
-  memory->destroy(vek_y);  
-  memory->destroy(vek_z);  
-  memory->destroy(r_1);    
-  memory->destroy(nom_j);  
+
+  // memory->destroy(funf);   
+  // memory->destroy(funfp);  
+  // memory->destroy(evek_x); 
+  // memory->destroy(evek_y); 
+  // memory->destroy(evek_z); 
+  // memory->destroy(vek_x);  
+  // memory->destroy(vek_y);  
+  // memory->destroy(vek_z);  
+  // memory->destroy(r_1);    
+  // memory->destroy(nom_j);  
   
   return;
 }

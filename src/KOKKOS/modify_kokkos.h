@@ -37,9 +37,7 @@ class ModifyKokkos : public Modify {
   void post_force(int);
   void final_integrate();
   void end_of_step();
-  double energy_couple();
-  double energy_global();
-  void energy_atom();
+  double thermo_energy();
   void post_run();
 
   void setup_pre_force_respa(int, int);

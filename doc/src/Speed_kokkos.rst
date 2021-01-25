@@ -33,7 +33,7 @@ produce an executable compatible with a specific hardware.
    some compilers, it may be necessary to add a flag to enable c++14 support.
    For example, the GNU compiler uses the -std=c++14 flag. For a list of
    compilers that have been tested with the Kokkos library, see the Kokkos
-   `README <https://github.com/kokkos/kokkos/README.md>`_.
+   `README <https://github.com/kokkos/kokkos/blob/master/README.md>`_.
 
 .. admonition:: NVIDIA CUDA support
    :class: note

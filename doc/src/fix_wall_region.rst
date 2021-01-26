@@ -203,7 +203,7 @@ this fix is :doc:`fix_modify energy no <fix_modify>`.
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
 this fix to add the contribution due to the interaction between atoms
 and the region wall to both the global pressure and per-atom stress of
-the system via the :doc:`compute pressure <compute_pressure>`
+the system via the :doc:`compute pressure <compute_pressure>` and
 :doc:`compute stress/atom <compute_stress_atom>` commands.  The former
 can be accessed by :doc:`thermodynamic output <thermo_style>`.  The
 default setting for this fix is :doc:`fix_modify virial no

@@ -237,28 +237,27 @@ double utils::numeric(const char *file, int line, const char *str,
 
   if (str) n = strlen(str);
   if (n == 0) {
-    if (do_abort)
-      lmp->error->one(file,line,"Expected floating point parameter instead of"
-                      " NULL or empty string in input script or data file");
-    else
-      lmp->error->all(file,line,"Expected floating point parameter instead of"
-                      " NULL or empty string in input script or data file");
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i])) continue;
-    if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
-    if (str[i] == 'e' || str[i] == 'E') continue;
-    std::string msg("Expected floating point parameter instead of '");
-    msg += str;
-    msg += "' in input script or data file";
+    const char msg[] = "Expected floating point parameter instead of"
+      " NULL or empty string in input script or data file";
     if (do_abort)
       lmp->error->one(file,line,msg);
     else
       lmp->error->all(file,line,msg);
   }
 
-  return atof(str);
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  if (buf.find_first_not_of("0123456789-+.eE") != std::string::npos) {
+    std::string msg("Expected floating point parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return atof(buf.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -274,26 +273,27 @@ int utils::inumeric(const char *file, int line, const char *str,
 
   if (str) n = strlen(str);
   if (n == 0) {
-    if (do_abort)
-      lmp->error->one(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-    else
-      lmp->error->all(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg("Expected integer parameter instead of '");
-    msg += str;
-    msg += "' in input script or data file";
+    const char msg[] = "Expected integer parameter instead of"
+      " NULL or empty string in input script or data file";
     if (do_abort)
       lmp->error->one(file,line,msg);
     else
       lmp->error->all(file,line,msg);
   }
 
-  return atoi(str);
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+    std::string msg("Expected integer parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return atoi(buf.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -309,26 +309,27 @@ bigint utils::bnumeric(const char *file, int line, const char *str,
 
   if (str) n = strlen(str);
   if (n == 0) {
-    if (do_abort)
-      lmp->error->one(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-    else
-      lmp->error->all(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg("Expected integer parameter instead of '");
-    msg += str;
-    msg += "' in input script or data file";
+    const char msg[] = "Expected integer parameter instead of"
+      " NULL or empty string in input script or data file";
     if (do_abort)
       lmp->error->one(file,line,msg);
     else
       lmp->error->all(file,line,msg);
   }
 
-  return ATOBIGINT(str);
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+    std::string msg("Expected integer parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return ATOBIGINT(buf.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -344,26 +345,27 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 
   if (str) n = strlen(str);
   if (n == 0) {
-    if (do_abort)
-      lmp->error->one(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-    else
-      lmp->error->all(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg("Expected integer parameter instead of '");
-    msg += str;
-    msg += "' in input script or data file";
+    const char msg[] = "Expected integer parameter instead of"
+      " NULL or empty string in input script or data file";
     if (do_abort)
       lmp->error->one(file,line,msg);
     else
       lmp->error->all(file,line,msg);
   }
 
-  return ATOTAGINT(str);
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+    std::string msg("Expected integer parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return ATOTAGINT(buf.c_str());
 }
 
 /* ----------------------------------------------------------------------

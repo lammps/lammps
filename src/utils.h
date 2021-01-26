@@ -220,7 +220,9 @@ namespace LAMMPS_NS {
      * limited to 21-bits.
      *
      * For the sake of efficiency this test only checks if a character in the string
-     * has the highest two bits set and thus is likely an UTF-8 character.  It
+     * has the highest bit set and thus is very likely an UTF-8 character.  It will
+     * not be able to tell this this is a valid UTF-8 character or whether it is a
+     * 2-byte, 3-byte, or 4-byte character.
      *
 \verbatim embed:rst
 
@@ -234,7 +236,7 @@ namespace LAMMPS_NS {
     inline bool has_utf8(const std::string &line)
     {
       const unsigned char * const in = (const unsigned char *)line.c_str();
-      for (int i=0; i < line.size(); ++i) if (in[i] & 0xc0U) return true;
+      for (int i=0; i < line.size(); ++i) if (in[i] & 0x80U) return true;
       return false;
     }
 

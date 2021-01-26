@@ -1064,7 +1064,7 @@ double FixQBMSST::compute_egrand()
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * temperature->dof * force->boltz;
   ecouple = compute_scalar();
-  etot = epot + ekin + econserve;
+  etot = epot + ekin + ecouple;
   return etot;
 }
 

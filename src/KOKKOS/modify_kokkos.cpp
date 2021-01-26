@@ -355,7 +355,7 @@ void ModifyKokkos::end_of_step()
    ecouple = cumulative energy added to reservoir by thermostatting
 ------------------------------------------------------------------------- */
 
-double Modify::energy_couple()
+double ModifyKokkos::energy_couple()
 {
   double energy = 0.0;
   for (int i = 0; i < n_energy_couple; i++) {
@@ -375,7 +375,7 @@ double Modify::energy_couple()
    called by compute pe
 ------------------------------------------------------------------------- */
 
-double Modify::energy_global()
+double ModifyKokkos::energy_global()
 {
   double energy = 0.0;
   for (int i = 0; i < n_energy_global; i++) {
@@ -394,7 +394,7 @@ double Modify::energy_global()
    called by compute pe/atom
 ------------------------------------------------------------------------- */
 
-void Modify::energy_atom(int nlocal, double *energy)
+void ModifyKokkos::energy_atom(int nlocal, double *energy)
 {
   int i,j;
   double *eatom;

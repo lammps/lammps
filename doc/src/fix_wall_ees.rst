@@ -134,11 +134,6 @@ system as part of :doc:`thermodynamic output <thermo_style>`.  The
 default settings for thes fixes are :doc:`fix_modify energy no
 <fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by
-these rixes to add the contribution due to the interaction between
-atoms and each wall to the system's virial as part of
-:doc:`thermodynamic output <thermo_style>`. The default is *virial no*
-
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by
 these fixes. This allows to set at which level of the :doc:`r-RESPA
 <run_style>` integrator the fix is adding its forces. Default is the

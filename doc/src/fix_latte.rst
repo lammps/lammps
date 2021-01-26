@@ -117,6 +117,13 @@ potential energy of the system as part of :doc:`thermodynamic output
 energy yes <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution compute by LATTE to the global
+pressure of the system via the :doc:`compute pressure
+<compute_pressure>` command.  This can be accessed by
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify virial yes <fix_modify>`.
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
 this fix to add the contribution computed by LATTE to the global
 pressure of the system as part of :doc:`thermodynamic output
 <thermo_style>`.  The default setting for this fix is :doc:`fix_modify

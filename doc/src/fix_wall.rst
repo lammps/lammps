@@ -342,8 +342,12 @@ for this fix is :doc:`fix_modify energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
 this fix to add the contribution due to the interaction between atoms
-and each wall to the system's virial as part of :doc:`thermodynamic
-output <thermo_style>`. The default is *virial no*
+and all the specified walls to both the global pressure and per-atom
+stress of the system via the :doc:`compute pressure
+<compute_pressure>` :doc:`compute stress/atom <compute_stress_atom>`
+commands.  The former can be accessed by :doc:`thermodynamic output
+<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
+virial no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA

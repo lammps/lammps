@@ -80,10 +80,11 @@ the global potential energy of the system as part of
 this fix is :doc:`fix_modify energy yes <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
-this fix to add the contribution computed by the external program to
-the global pressure of the system as part of :doc:`thermodynamic
-output <thermo_style>`.  The default setting for this fix is
-:doc:`fix_modify virial yes <fix_modify>`.
+this fix to add the contribution computed by the server application to
+the global pressure of the system via the :doc:`compute pressure
+<compute_pressure>` command.  This can be accessed by
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the potential

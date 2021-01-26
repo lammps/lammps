@@ -148,28 +148,28 @@ void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
 {
   if (mode == ATOM)
     for (int i = 0; i < natomtypes; i++)
-      lmap2lmap.atom[i] = find(typelabel[i],lmap2->typelabel,
-                               lmap2->natomtypes);
+      lmap2lmap.atom[i] = search(typelabel[i],lmap2->typelabel,
+                                 lmap2->natomtypes);
 
   if (mode == BOND)
     for (int i = 0; i < nbondtypes; i++)
-      lmap2lmap.bond[i] = find(btypelabel[i],lmap2->btypelabel,
-                               lmap2->nbondtypes);
+      lmap2lmap.bond[i] = search(btypelabel[i],lmap2->btypelabel,
+                                 lmap2->nbondtypes);
 
   if (mode == ANGLE)
     for (int i = 0; i < nangletypes; i++)
-      lmap2lmap.angle[i] = find(atypelabel[i],lmap2->atypelabel,
-                                lmap2->nangletypes);
+      lmap2lmap.angle[i] = search(atypelabel[i],lmap2->atypelabel,
+                                  lmap2->nangletypes);
 
   if (mode == DIHEDRAL)
     for (int i = 0; i < ndihedraltypes; i++)
-      lmap2lmap.dihedral[i] = find(dtypelabel[i],lmap2->dtypelabel,
-                                   lmap2->ndihedraltypes);
+      lmap2lmap.dihedral[i] = search(dtypelabel[i],lmap2->dtypelabel,
+                                     lmap2->ndihedraltypes);
 
   if (mode == IMPROPER)
     for (int i = 0; i < nimpropertypes; i++)
-      lmap2lmap.improper[i] = find(itypelabel[i],lmap2->itypelabel,
-                                   lmap2->nimpropertypes);
+      lmap2lmap.improper[i] = search(itypelabel[i],lmap2->itypelabel,
+                                     lmap2->nimpropertypes);
 }
 
 /* ----------------------------------------------------------------------
@@ -199,11 +199,34 @@ int LabelMap::find_or_create(std::string mylabel, std::vector<std::string> &labe
 }
 
 /* ----------------------------------------------------------------------
-   find integer type given a type label
+   return numeric type given a type label
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */
 
-int LabelMap::find(std::string mylabel, std::vector<std::string> labels, int ntypes)
+int LabelMap::find(std::string mylabel, int mode)
+{
+  if (mode == ATOM)
+    return search(mylabel,typelabel,natomtypes);
+
+  if (mode == BOND)
+    return search(mylabel,btypelabel,nbondtypes);
+
+  if (mode == ANGLE)
+    return search(mylabel,atypelabel,nangletypes);
+
+  if (mode == DIHEDRAL)
+    return search(mylabel,dtypelabel,ndihedraltypes);
+
+  if (mode == IMPROPER)
+    return search(mylabel,itypelabel,nimpropertypes);
+}
+
+/* ----------------------------------------------------------------------
+   get index+1 given vector of strings
+   return -1 if type not yet defined
+------------------------------------------------------------------------- */
+
+int LabelMap::search(std::string mylabel, std::vector<std::string> labels, int ntypes)
 {
   for (int i = 0; i < ntypes; i++)
     if (labels[i] == mylabel) return i+1;

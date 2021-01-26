@@ -4541,19 +4541,19 @@ int Variable::labelmap_function(char *word, char *contents, Tree **tree,
   std::string typestr = contents;
 
   if (strcmp(word,"label") == 0) {
-    value = atom->lmap->find(typestr,atom->lmap->typelabel,atom->ntypes);
+    value = atom->lmap->find(typestr,atom->lmap->ATOM);
 
   } else if (strcmp(word,"blabel") == 0) {
-    value = atom->lmap->find(typestr,atom->lmap->btypelabel,atom->nbondtypes);
+    value = atom->lmap->find(typestr,atom->lmap->BOND);
 
   } else if (strcmp(word,"alabel") == 0) {
-    value = atom->lmap->find(typestr,atom->lmap->atypelabel,atom->nangletypes);
+    value = atom->lmap->find(typestr,atom->lmap->ANGLE);
 
   } else if (strcmp(word,"dlabel") == 0) {
-    value = atom->lmap->find(typestr,atom->lmap->dtypelabel,atom->ndihedraltypes);
+    value = atom->lmap->find(typestr,atom->lmap->DIHEDRAL);
 
   } else if (strcmp(word,"ilabel") == 0) {
-    value = atom->lmap->find(typestr,atom->lmap->itypelabel,atom->nimpropertypes);
+    value = atom->lmap->find(typestr,atom->lmap->IMPROPER);
   }
 
   if (value == -1)

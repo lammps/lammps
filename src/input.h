@@ -38,6 +38,7 @@ class Input : protected Pointers {
   char *one(const std::string&); // process a single command
   void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
+  void readtype(char *&, int);   // substitute type label with numeric type
   void write_echo(const std::string &); // send text to active echo file pointers
 
  protected:

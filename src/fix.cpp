@@ -152,7 +152,7 @@ void Fix::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"no") == 0) thermo_energy = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) {
         if (energy_global_flag == 0 && energy_peratom_flag == 0)
-	  error->all(FLERR,"Illegal fix_modify command");
+          error->all(FLERR,"Illegal fix_modify command");
         thermo_energy = 1;
       } else error->all(FLERR,"Illegal fix_modify command");
       iarg += 2;
@@ -161,7 +161,7 @@ void Fix::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"no") == 0) thermo_virial = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) {
         if (virial_global_flag == 0 && virial_peratom_flag == 0)
-	  error->all(FLERR,"Illegal fix_modify command");
+          error->all(FLERR,"Illegal fix_modify command");
         thermo_virial = 1;
       } else error->all(FLERR,"Illegal fix_modify command");
       iarg += 2;

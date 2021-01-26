@@ -65,7 +65,7 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
   energy_global_flag = 1;
-  
+
   // disallow resetting the time step, while this fix is defined
   time_depend = 1;
 

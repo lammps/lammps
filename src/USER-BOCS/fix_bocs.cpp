@@ -88,7 +88,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 0;
   ecouple_flag = 1;
-  
+
   // default values
 
   pcouple = NONE;

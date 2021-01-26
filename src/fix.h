@@ -245,7 +245,7 @@ class Fix : protected Pointers {
   void ev_init(int eflag, int vflag) {
     if ((eflag && thermo_energy) || (vflag && thermo_virial)) ev_setup(eflag, vflag);
     else evflag = eflag_either = eflag_global = eflag_atom =
-	 vflag_either = vflag_global = vflag_atom = 0;
+         vflag_either = vflag_global = vflag_atom = 0;
   }
   void ev_setup(int, int);
   void ev_tally(int, int *, double, double, double *);

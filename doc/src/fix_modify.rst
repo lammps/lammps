@@ -86,7 +86,7 @@ appropriate fix.
    For most fixes that suppport the *energy* keyword, the default
    setting is *no*.  For a few it is *yes*, when a user would expect
    that to be the case.  The doc page of each fix gives the default.
-   
+
 The *virial* keyword can be used with fixes that support it, which is
 explained at the bottom of their doc page.  *Virial yes* will add a
 contribution to the virial of the system.  More specifically, the

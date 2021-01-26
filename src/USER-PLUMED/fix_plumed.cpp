@@ -213,7 +213,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   energy_global_flag = virial_global_flag = 1;
   thermo_energy = thermo_virial = 1;
-  
+
   // This is the real initialization:
 
   p->cmd("init");

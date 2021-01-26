@@ -57,7 +57,7 @@ value of 1 in their constructor:
 * *energy_peratom_flag* to contribute to peratom energy, :doc:`fix cmap <fix_cmap>`
 * *virial_global_flag* to contribute to global virial, example: :doc:`fix wall <fix_wall>`
 * *virial_peratom_flag* to contribute to peratom virial, example: :doc:`fix wall <fix_wall>`
-  
+
 The fix must also do the following:
 
 * For global energy, implement a compute_scalar() method that returns

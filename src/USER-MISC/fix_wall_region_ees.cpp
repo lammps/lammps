@@ -38,7 +38,7 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix wall/region/ees command");
-  
+
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
@@ -46,7 +46,7 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
   energy_global_flag = 1;
-  
+
   // parse args
 
   iregion = domain->find_region(arg[3]);

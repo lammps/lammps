@@ -299,7 +299,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   restart_global = 1;
   energy_global_flag = 1;
-  
+
   me = comm->me;
   root2root = MPI_COMM_NULL;
 

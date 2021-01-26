@@ -46,7 +46,7 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all(FLERR,"Illegal fix qtb command");
 
   // default parameters
-  
+
   t_target = 300.0;
   t_period = 1.0;
   fric_coef = 1/t_period;

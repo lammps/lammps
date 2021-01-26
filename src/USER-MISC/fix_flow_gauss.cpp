@@ -82,7 +82,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // by default, do not compute work done
-  
+
   workflag=0;
 
   // process optional keyword
@@ -137,11 +137,11 @@ void FixFlowGauss::init()
 void FixFlowGauss::setup(int vflag)
 {
   // need to compute work done if fix_modify energy yes is set
-  
+
   if (thermo_energy) workflag = 1;
 
   // get total mass of group
-  
+
   mTot=group->mass(igroup);
   if (mTot <= 0.0)
     error->all(FLERR,"Invalid group mass in fix flow/gauss");

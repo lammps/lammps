@@ -786,7 +786,7 @@ void FixNH::setup(int /*vflag*/)
         t0 = temperature->compute_scalar();
         if (t0 < EPSILON)
           error->all(FLERR,"Current temperature too close to zero, "
-		     "consider using ptemp setting");
+                     "consider using ptemp setting");
       }
     }
     t_target = t0;

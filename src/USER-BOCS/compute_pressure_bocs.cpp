@@ -231,7 +231,7 @@ double ComputePressureBocs::find_index(double * grid, double value)
 ------------------------------------------------------------------------- */
 
 double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
-					  double vCG)
+                                          double vCG)
 {
   int i = find_index(grid[0],vCG);
   double correction, deltax = vCG - grid[0][i];
@@ -259,8 +259,8 @@ double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
 ------------------------------------------------------------------------- */
 
 void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
-				       double *sent_phi_coeff, int sent_N_mol,
-				       double sent_vavg)
+                                       double *sent_phi_coeff, int sent_N_mol,
+                                       double sent_vavg)
 {
   if (basis_type == BASIS_ANALYTIC) { p_basis_type = BASIS_ANALYTIC; }
   else
@@ -285,7 +285,7 @@ void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
 ------------------------------------------------------------------------- */
 
 void ComputePressureBocs::send_cg_info(int basis_type,
-				       double ** in_splines, int gridsize)
+                                       double ** in_splines, int gridsize)
 {
   if (basis_type == BASIS_LINEAR_SPLINE) { p_basis_type = BASIS_LINEAR_SPLINE; }
   else if (basis_type == BASIS_CUBIC_SPLINE) { p_basis_type = BASIS_CUBIC_SPLINE; }

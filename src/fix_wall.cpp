@@ -315,7 +315,7 @@ void FixWall::post_force(int vflag)
   v_init(vflag);
 
   // energy intialize
-  
+
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
   // coord = current position of wall

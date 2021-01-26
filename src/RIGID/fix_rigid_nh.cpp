@@ -50,7 +50,7 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
   id_press(nullptr), temperature(nullptr), pressure(nullptr)
 {
   if (tstat_flag || pstat_flag) ecouple_flag = 1;
-  
+
   // error checks: could be moved up to FixRigid
 
   if ((p_flag[0] == 1 && p_period[0] <= 0.0) ||

@@ -298,7 +298,7 @@ thermostatting or barostatting to their coupling reservoirs.  I.e. it
 is *pe* + *ke* + *econserve*\ .  Ideally, for a simulation in the NVE,
 NPH, or NPT ensembles, the *econserve* quantity should remain constant
 over time.
-   
+
 The *fmax* and *fnorm* keywords are useful for monitoring the progress
 of an :doc:`energy minimization <minimize>`.  The *fmax* keyword
 calculates the maximum force in any dimension on any atom in the

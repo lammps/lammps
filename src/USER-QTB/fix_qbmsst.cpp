@@ -63,7 +63,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     error->all(FLERR,"Illegal fix qbmsst command");
 
   // default parameters
-  
+
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
@@ -74,7 +74,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   vector_flag = 1;
   size_vector = 5;
   ecouple_flag = 1;
-  
+
   qmass = 1.0e1;
   mu = 0.0;
   p0 = 0.0;
@@ -95,7 +95,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   qtb_set = 0;
 
   // reading parameters
-  
+
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"q") == 0) {

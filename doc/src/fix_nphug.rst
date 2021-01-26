@@ -168,43 +168,47 @@ specified, then the instantaneous value in the system at the start of
 the simulation is used.
 
 The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
-supported by these fixes.  You can use them to assign a
-:doc:`compute <compute>` you have defined to this fix which will be used
-in its thermostatting or barostatting procedure, as described above.
-If you do this, note that the kinetic energy derived from the compute
+supported by this fix.  You can use them to assign a :doc:`compute
+<compute>` you have defined to this fix which will be used in its
+thermostatting or barostatting procedure, as described above.  If you
+do this, note that the kinetic energy derived from the compute
 temperature should be consistent with the virial term computed using
 all atoms for the pressure.  LAMMPS will warn you if you choose to
 compute temperature on a subset of atoms.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by these
-fixes to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`. Either way, this energy is \*not\*
-included in the definition of internal energy E when calculating the value
-of Delta in the above equation.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.  Note that this energy is \*not\* included in
+the definition of internal energy E when calculating the value of
+Delta in the above equation.
 
-These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar value calculated by these fixes is "extensive"; the vector
-values are "intensive".
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
-The scalar is the cumulative energy change due to the fix.
+This fix also computes a global vector of quantities, which can be
+accessed by various :doc:`output commands <Howto_output>`.  The scalar
+The vector values are "intensive".
 
-The vector stores three quantities unique to this fix (:math:`\Delta`, Us, and up),
-followed by all the internal Nose/Hoover thermostat and barostat
-variables defined for :doc:`fix npt <fix_nh>`. Delta is the deviation
-of the temperature from the target temperature, given by the above equation.
-Us and up are the shock and particle velocity corresponding to a steady
-shock calculated from the RH conditions. They have units of distance/time.
+The vector stores three quantities unique to this fix (:math:`\Delta`,
+Us, and up), followed by all the internal Nose/Hoover thermostat and
+barostat variables defined for :doc:`fix npt <fix_nh>`. Delta is the
+deviation of the temperature from the target temperature, given by the
+above equation.  Us and up are the shock and particle velocity
+corresponding to a steady shock calculated from the RH
+conditions. They have units of distance/time.
 
 Restrictions
 """"""""""""
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` doc page for more info.
 
-All the usual restrictions for :doc:`fix npt <fix_nh>` apply,
-plus the additional ones mentioned above.
+All the usual restrictions for :doc:`fix npt <fix_nh>` apply, plus the
+additional ones mentioned above.
 
 Related commands
 """"""""""""""""

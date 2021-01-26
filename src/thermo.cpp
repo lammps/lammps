@@ -1773,12 +1773,10 @@ void Thermo::compute_ecouple()
 
 void Thermo::compute_econserve()
 {
-  compute_pe();
-  double dvalue_pe = dvalue;
-  compute_ke();
-  double dvalue_ke = dvalue;
+  compute_etotal();
+  double dvalue_etotal = dvalue;
   compute_ecouple();
-  dvalue += dvalue_pe + dvalue_ke;
+  dvalue += dvalue_etotal;
 }
 
 /* ---------------------------------------------------------------------- */

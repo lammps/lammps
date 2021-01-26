@@ -41,8 +41,8 @@ using namespace MathConst;
 /* ----------------------------------------------------------------------
    read parameters
 ------------------------------------------------------------------------- */
-FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+
+FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qbmsst command");
 
@@ -1048,7 +1048,6 @@ double FixQBMSST::compute_etotal()
 {
   double epot,ekin,etot;
   epot = pe->compute_scalar();
-  if (thermo_energy) epot -= compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * temperature->dof * force->boltz;
   etot = epot+ekin;
@@ -1060,12 +1059,12 @@ double FixQBMSST::compute_etotal()
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_egrand()
 {
-  double epot,ekin,etot;
+  double epot,ekin,ecouple,etot;
   epot = pe->compute_scalar();
-  if (!thermo_energy) epot += compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * temperature->dof * force->boltz;
-  etot = epot+ekin;
+  ecouple = compute_scalar();
+  etot = epot + ekin + econserve;
   return etot;
 }
 

@@ -152,13 +152,30 @@ Because the state of the random number generator is not written to
 "exactly" in an uninterrupted fashion. However, in a statistical
 sense, a restarted simulation should produce similar behaviors of the
 system as if it is not interrupted.  To achieve such a restart, one
-should write explicitly the same value for *q*\ , *mu*\ , *damp*\ , *f_max*,
-*N_f*, *eta*\ , and *beta* and set *tscale* = 0 if the system is
-compressed during the first run.
+should write explicitly the same value for *q*\ , *mu*\ , *damp*\ ,
+*f_max*, *N_f*, *eta*\ , and *beta* and set *tscale* = 0 if the system
+is compressed during the first run.
+
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
+
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
 The progress of the QBMSST can be monitored by printing the global
-scalar and global vector quantities computed by the fix.  The global
-vector contains five values in this order:
+scalar and global vector quantities computed by the fix.
+
+As mentioned above, the scalar is the cumulative energy change due to
+the fix.  By monitoring the thermodynamic *econserve* output, this can
+be used to test if the MD timestep is sufficiently small for accurate
+integration of the dynamic equations.
+
+The global vector contains five values in the following order.  The
+vector values output by this fix are "intensive".
 
 [\ *dhugoniot*\ , *drayleigh*\ , *lagrangian_speed*, *lagrangian_position*,
 *quantum_temperature*]
@@ -170,29 +187,21 @@ vector contains five values in this order:
 5. *quantum_temperature* is the temperature of the quantum thermal bath :math:`T^{qm}`.
 
 To print these quantities to the log file with descriptive column
-headers, the following LAMMPS commands are suggested. Here the
-:doc:`fix_modify <fix_modify>` energy command is also enabled to allow
-the thermo keyword *etotal* to print the quantity :math:`E^{tot}`.  See
-also the :doc:`thermo_style <thermo_style>` command.
+headers, the following LAMMPS commands are suggested.
 
 .. parsed-literal::
 
    fix             fix_id all msst z
-   fix_modify      fix_id energy yes
    variable        dhug    equal f_fix_id[1]
    variable        dray    equal f_fix_id[2]
    variable        lgr_vel equal f_fix_id[3]
    variable        lgr_pos equal f_fix_id[4]
    variable        T_qm    equal f_fix_id[5]
-   thermo_style    custom  step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id
+   thermo_style    custom  step temp ke pe lz pzz econserve v_dhug v_dray v_lgr_vel v_lgr_pos v_T_qm f_fix_id
 
-The global scalar under the entry f_fix_id is the quantity of thermo
-energy as an extra part of :math:`E^{tot}`. This global scalar and the
-vector of 5 quantities can be accessed by various :doc:`output commands <Howto_output>`.
-It is worth noting that the temp keyword
-under the :doc:`thermo_style <thermo_style>` command print the
-instantaneous classical temperature :math:`T^{cl}` as described
-in the command :doc:`fix qtb <fix_qtb>`.
+It is worth noting that the temp keyword for the :doc:`thermo_style
+<thermo_style>` command prints the instantaneous classical temperature
+:math:`T^{cl}` as described by the :doc:`fix qtb <fix_qtb>` command.
 
 ----------
 
@@ -200,7 +209,8 @@ Restrictions
 """"""""""""
 
 This fix style is part of the USER-QTB package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The QBMSST fix has been tested only for the group-ID

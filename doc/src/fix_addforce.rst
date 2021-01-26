@@ -118,20 +118,24 @@ converge properly.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential "energy" inferred by the added force to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  This is a fictitious quantity but is
-needed so that the :doc:`minimize <minimize>` command can include the
-forces added by this fix in a consistent manner.  I.e. there is a
-decrease in potential energy when atoms move in the direction of the
-added force.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the global potential "energy" inferred by the added
+force to the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify energy no <fix_modify>`.  Note that this
+energy is a fictitious quantity but is needed so that the
+:doc:`minimize <minimize>` command can include the forces added by
+this fix in a consistent manner.  I.e. there is a decrease in
+potential energy when atoms move in the direction of the added force.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to the added forces on atoms to the
-system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial no*
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the added forces on atoms to
+the global pressure of the system as part of :doc:`thermodynamic
+output <thermo_style>`.  The default setting for this fix is
+:doc:`fix_modify virial no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`

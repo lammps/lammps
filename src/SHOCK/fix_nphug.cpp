@@ -170,13 +170,11 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
 
 FixNPHug::~FixNPHug()
 {
-
   // temp and press computes handled by base class
   // delete pe compute
 
   if (peflag) modify->delete_compute(id_pe);
   delete [] id_pe;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -248,7 +246,6 @@ double FixNPHug::compute_etotal()
 {
   double epot,ekin,etot;
   epot = pe->compute_scalar();
-  if (thermo_energy) epot -= compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * tdof * force->boltz;
   etot = epot+ekin;

@@ -288,7 +288,7 @@ void DumpNetCDF::openfile()
       // Fixme! Perform checks if dimensions and variables conform with
       // data structure standard.
       if (not utils::file_is_readable(filecurrent))
-        error->all(FLERR, fmt::format("cannot append to a non-existant file {}",
+        error->all(FLERR, fmt::format("cannot append to non-existant file {}",
                                       filecurrent));
 
       if (singlefile_opened) return;

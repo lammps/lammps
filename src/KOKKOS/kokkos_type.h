@@ -1154,11 +1154,7 @@ typedef SNAComplex<SNAreal> SNAcomplex;
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#ifdef LMP_KOKKOS_GPU
-#define LAMMPS_LAMBDA [=] __device__
-#else
-#define LAMMPS_LAMBDA [=]
-#endif
+#define LAMMPS_LAMBDA KOKKOS_LAMBDA
 
 #ifdef LMP_KOKKOS_GPU
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)

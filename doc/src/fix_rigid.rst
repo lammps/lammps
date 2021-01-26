@@ -799,6 +799,14 @@ accessed by various :doc:`output commands <Howto_output>`.  The scalar
 is the same cumulative energy change due to these fixes described
 above.  The scalar value calculated by this fix is "extensive".
 
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+these fixes to add the contribution due to the added forces on atoms
+to both the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
+
 All of the *rigid* styles (not the *rigid/small* styles) compute a
 global array of values which can be accessed by various :doc:`output
 commands <Howto_output>`.  Similar information about the bodies

@@ -165,7 +165,8 @@ LAMMPS was built with that package.  See the :doc:`Build package
 Related commands
 """"""""""""""""
 
-:doc:`fix addforce <fix_addforce>`, :doc:`compute temp/profile <compute_temp_profile>`, :doc:`velocity <velocity>`
+:doc:`fix addforce <fix_addforce>`, :doc:`compute temp/profile
+     <compute_temp_profile>`, :doc:`velocity <velocity>`
 
 Default
 """""""

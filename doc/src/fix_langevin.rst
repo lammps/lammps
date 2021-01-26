@@ -230,7 +230,7 @@ conservation.
 
 .. note::
 
-   this accumulated energy does NOT include kinetic energy removed
+   This accumulated energy does NOT include kinetic energy removed
    by the *zero* flag. LAMMPS will print a warning when both options are
    active.
 
@@ -244,7 +244,8 @@ to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
-The keyword *gjf* can be used to run the :ref:`Gronbech-Jensen/Farago <Gronbech-Jensen>` time-discretization of the Langevin model.  As
+The keyword *gjf* can be used to run the :ref:`Gronbech-Jensen/Farago
+<Gronbech-Jensen>` time-discretization of the Langevin model.  As
 described in the papers cited below, the purpose of this method is to
 enable longer timesteps to be used (up to the numerical stability
 limit of the integrator), while still producing the correct Boltzmann
@@ -252,19 +253,20 @@ distribution of atom positions.
 
 The current implementation provides the user with the option to output
 the velocity in one of two forms: *vfull* or *vhalf*\ , which replaces
-the outdated option *yes*\ . The *gjf* option *vfull* outputs the on-site
-velocity given in :ref:`Gronbech-Jensen/Farago <Gronbech-Jensen>`; this velocity
-is shown to be systematically lower than the target temperature by a small
-amount, which grows quadratically with the timestep.
-The *gjf* option *vhalf* outputs the 2GJ half-step velocity given in
-:ref:`Gronbech Jensen/Gronbech-Jensen <2Gronbech-Jensen>`; for linear systems,
-this velocity is shown to not have any statistical errors for any stable time step.
-An overview of statistically correct Boltzmann and Maxwell-Boltzmann
-sampling of true on-site and true half-step velocities is given in
-:ref:`Gronbech-Jensen <1Gronbech-Jensen>`.
-Regardless of the choice of output velocity, the sampling of the configurational
-distribution of atom positions is the same, and linearly consistent with the
-target temperature.
+the outdated option *yes*\ . The *gjf* option *vfull* outputs the
+on-site velocity given in :ref:`Gronbech-Jensen/Farago
+<Gronbech-Jensen>`; this velocity is shown to be systematically lower
+than the target temperature by a small amount, which grows
+quadratically with the timestep.  The *gjf* option *vhalf* outputs the
+2GJ half-step velocity given in :ref:`Gronbech Jensen/Gronbech-Jensen
+<2Gronbech-Jensen>`; for linear systems, this velocity is shown to not
+have any statistical errors for any stable time step.  An overview of
+statistically correct Boltzmann and Maxwell-Boltzmann sampling of true
+on-site and true half-step velocities is given in
+:ref:`Gronbech-Jensen <1Gronbech-Jensen>`.  Regardless of the choice
+of output velocity, the sampling of the configurational distribution
+of atom positions is the same, and linearly consistent with the target
+temperature.
 
 ----------
 

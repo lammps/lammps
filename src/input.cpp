@@ -662,12 +662,15 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 /* ----------------------------------------------------------------------
    substitute type labels with numeric value
    reallocate str to hold expanded version if necessary
-   if type already starts with a number, do not modify
+   if type is a valid numerical string (can include *), do not modify
 ------------------------------------------------------------------------- */
 
 void Input::readtype(char *&str, int mode)
 {
-  if (isdigit(str[0])) return;
+  int numflag = 1;
+  for (int i = 0; i < strlen(str); i++)
+    if (!isdigit(str[i]) && str[i] != '*') numflag = 0;
+  if (numflag) return;
   if (!atom->labelmapflag) error->all(FLERR,fmt::format("Invalid type {}",str));
 
   int type,max,max2;

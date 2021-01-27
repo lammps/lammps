@@ -219,6 +219,8 @@ int LabelMap::find(std::string mylabel, int mode)
 
   if (mode == IMPROPER)
     return search(mylabel,itypelabel,nimpropertypes);
+
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

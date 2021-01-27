@@ -11,12 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include <cstring>
 
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
+#ifdef MLIAP_PYTHON
+#include "mliap_model_python.h"
+#endif
+
 #include "compute_mliap.h"
 #include "atom.h"
 #include "update.h"
@@ -65,7 +73,14 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
         model = new MLIAPModelQuadratic(lmp);
         iarg += 2;
-      } else error->all(FLERR,"Illegal compute mliap command");
+      }
+#ifdef MLIAP_PYTHON
+      else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+      model = new MLIAPModelPython(lmp);
+      iarg += 2;
+      }
+#endif
+      else error->all(FLERR,"Illegal compute mliap command");
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute mliap command");

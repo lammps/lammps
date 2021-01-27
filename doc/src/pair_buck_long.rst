@@ -117,7 +117,7 @@ global Coulombic cutoff is allowed.
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This pair styles does not support mixing.  Thus, coefficients for all
+This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift

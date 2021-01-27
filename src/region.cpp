@@ -496,7 +496,7 @@ void Region::set_velocity()
     prev[3] = theta;
   }
 
-  if (varshape){
+  if (varshape) {
     set_velocity_shape();
   }
 }
@@ -514,12 +514,12 @@ void Region::velocity_contact(double *vwall, double *x, int ic)
 
   vwall[0] = vwall[1] = vwall[2] = 0.0;
 
-  if (moveflag){
+  if (moveflag) {
     vwall[0] = v[0];
     vwall[1] = v[1];
     vwall[2] = v[2];
   }
-  if (rotateflag){
+  if (rotateflag) {
     xc[0] = x[0] - contact[ic].delx;
     xc[1] = x[1] - contact[ic].dely;
     xc[2] = x[2] - contact[ic].delz;

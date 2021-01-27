@@ -241,7 +241,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static)
 #endif
-  for(int k = 0; k < system->N; ++k) {
+  for (int k = 0; k < system->N; ++k) {
     num_bonds[k] = system->my_atoms[k].num_bonds;
     num_hbonds[k] = system->my_atoms[k].num_hbonds;
   }
@@ -293,7 +293,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
 
-  if(fixspecies_flag) {
+  if (fixspecies_flag) {
     if (system->N > nmax) {
       memory->destroy(tmpid);
       memory->destroy(tmpbo);
@@ -365,7 +365,7 @@ void PairReaxCOMP::init_style( )
     error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
                    "increased neighbor list skin.");
 
-  for( int i = 0; i < LIST_N; ++i )
+  for (int i = 0; i < LIST_N; ++i)
     lists[i].allocated = 0;
 
   if (fix_reax == nullptr) {
@@ -424,7 +424,7 @@ void PairReaxCOMP::setup( )
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
-    if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
+    if (!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
                   lists+FAR_NBRS))
       error->all(FLERR,"Pair reax/c problem in far neighbor list");
 
@@ -433,7 +433,7 @@ void PairReaxCOMP::setup( )
     InitializeOMP( system, control, data, workspace, &lists, out_control,
                 mpi_data, world );
 
-    for( int k = 0; k < system->N; ++k ) {
+    for (int k = 0; k < system->N; ++k) {
       num_bonds[k] = system->my_atoms[k].num_bonds;
       num_hbonds[k] = system->my_atoms[k].num_hbonds;
     }
@@ -446,7 +446,7 @@ void PairReaxCOMP::setup( )
 
     // reset the bond list info for new atoms
 
-    for(int k = oldN; k < system->N; ++k)
+    for (int k = oldN; k < system->N; ++k)
       Set_End_Index( k, Start_Index( k, lists+BONDS ), lists+BONDS );
 
     // estimate far neighbor list size
@@ -472,7 +472,7 @@ void PairReaxCOMP::write_reax_atoms()
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)
 #endif
-  for( int i = 0; i < system->N; ++i ){
+  for (int i = 0; i < system->N; ++i) {
     system->my_atoms[i].orig_id = atom->tag[i];
     system->my_atoms[i].type = map[atom->type[i]];
     system->my_atoms[i].x[0] = atom->x[i][0];
@@ -596,7 +596,7 @@ void PairReaxCOMP::read_reax_forces(int /* vflag */)
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static) default(shared)
 #endif
-  for( int i = 0; i < system->N; ++i ) {
+  for (int i = 0; i < system->N; ++i) {
     system->my_atoms[i].f[0] = workspace->f[i][0];
     system->my_atoms[i].f[1] = workspace->f[i][1];
     system->my_atoms[i].f[2] = workspace->f[i][2];
@@ -622,14 +622,14 @@ void PairReaxCOMP::FindBond()
     bond_data *bo_ij;
 
     nj = 0;
-    for( pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj ) {
+    for (pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj) {
       bo_ij = &( lists->select.bond_list[pj] );
       j = bo_ij->nbr;
       if (j < i) continue;
 
       bo_tmp = bo_ij->bo_data.BO;
 
-      if (bo_tmp >= bo_cut ) {
+      if (bo_tmp >= bo_cut) {
         tmpid[i][nj] = j;
         tmpbo[i][nj] = bo_tmp;
         nj ++;

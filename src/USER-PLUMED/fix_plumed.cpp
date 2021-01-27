@@ -76,11 +76,11 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Check API version
 
-  int api_version;
+  int api_version=0;
   p->cmd("getApiVersion",&api_version);
-  if ((api_version < 5) || (api_version > 7))
+  if ((api_version < 5) || (api_version > 8))
     error->all(FLERR,"Incompatible API version for PLUMED in fix plumed. "
-               "Only Plumed 2.4.x, 2.5.x, and 2.6.x are tested and supported.");
+               "Only Plumed 2.4.x, 2.5.x, 2.6.x, 2.7.x are tested and supported.");
 
 #if !defined(MPI_STUBS)
   // If the -partition option is activated then enable
@@ -118,7 +118,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   // LAMMPS units wrt kj/mol - nm - ps
   // Set up units
 
-  if(strcmp(update->unit_style,"lj") == 0) {
+  if (strcmp(update->unit_style,"lj") == 0) {
     // LAMMPS units lj
     p->cmd("setNaturalUnits");
   } else {
@@ -486,7 +486,7 @@ void FixPlumed::post_force(int /* vflag */)
   // do the real calculation:
   p->cmd("performCalc");
 
-  if(plumedStopCondition) timer->force_timeout();
+  if (plumedStopCondition) timer->force_timeout();
 
   // retransform virial to lammps representation and assign it to this
   // fix's virial. If the energy is biased, Plumed is giving back the full

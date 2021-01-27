@@ -93,7 +93,7 @@ void PairGayBerneIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -276,7 +276,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   double *timer_compute = fix->off_watch_pair();
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(special_lj:length(0) alloc_if(0) free_if(0)) \
     in(ijc,lj34,ic:length(0) alloc_if(0) free_if(0)) \
     in(rsq_formi, delx_formi, dely_formi: length(0) alloc_if(0) free_if(0)) \
@@ -399,7 +399,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
         if (EFLAG) fwtmp = sevdwl = (acc_t)0.0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
 
         bool multiple_forms = false;
         int packed_j = 0;

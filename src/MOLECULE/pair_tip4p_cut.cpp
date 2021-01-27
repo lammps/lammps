@@ -264,7 +264,7 @@ void PairTIP4PCut::compute(int eflag, int vflag)
             f[iH2][1] += fH[1];
             f[iH2][2] += fH[2];
 
-            if(vflag) {
+            if (vflag) {
               xH1 = x[iH1];
               xH2 = x[iH2];
               v[0] = x[i][0]*fO[0] + xH1[0]*fH[0] + xH2[0]*fH[0];

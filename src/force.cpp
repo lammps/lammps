@@ -245,13 +245,22 @@ void Force::create_pair(const std::string &style, int trysuffix)
 /* ----------------------------------------------------------------------
    generate a pair class
    if trysuffix = 1, try first with suffix1/2 appended
-   return sflag = 0 for no suffix added, 1 or 2 for suffix1/2 added
+   return sflag = 0 for no suffix added, 1 or 2 or 3 for suffix1/2/p added
+   special case: if suffixp exists only try suffixp, not suffix
 ------------------------------------------------------------------------- */
 
 Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
+    if (lmp->suffixp) {
+      sflag = 3;
+      std::string estyle = style + "/" + lmp->suffixp;
+      if (pair_map->find(estyle) != pair_map->end()) {
+        PairCreator &pair_creator = (*pair_map)[estyle];
+        return pair_creator(lmp);
+      }
+    }
+    if (lmp->suffix && !lmp->suffixp) {
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (pair_map->find(estyle) != pair_map->end()) {
@@ -727,7 +736,7 @@ KSpace *Force::kspace_match(const std::string &word, int exact)
 /* ----------------------------------------------------------------------
    store style name in str allocated here
    if sflag = 0, no suffix
-   if sflag = 1/2, append suffix or suffix2 to style
+   if sflag = 1/2/3, append suffix or suffix2 or suffixp to style
 ------------------------------------------------------------------------- */
 
 void Force::store_style(char *&str, const std::string &style, int sflag)
@@ -736,6 +745,7 @@ void Force::store_style(char *&str, const std::string &style, int sflag)
 
   if (sflag == 1) estyle += std::string("/") + lmp->suffix;
   else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
+  else if (sflag == 3) estyle += std::string("/") + lmp->suffixp;
 
   str = new char[estyle.size()+1];
   strcpy(str,estyle.c_str());

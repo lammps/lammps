@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+   Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -31,7 +31,9 @@ namespace LAMMPS_NS {
 class FixBondReact : public Fix {
  public:
 
-  enum {MAXLINE=256};
+  enum {MAXLINE=256}; // max length of line read from files
+  enum {MAXCONIDS=4}; // max # of IDs used by any constraint
+  enum {MAXCONPAR=5}; // max # of constraint parameters
 
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact();
@@ -65,9 +67,11 @@ class FixBondReact : public Fix {
   int custom_exclude_flag;
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
-  int nconstraints;
+  int *molecule_keyword;
+  int maxnconstraints;
+  int *nconstraints;
+  char **constraintstr;
   int narrhenius;
-  double **constraints;
   int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
   int *groupbits;
@@ -113,7 +117,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ndelete,nchiral,nconstr; // # edge, equivalent atoms in mapping file
+  int nedge,nequivalent,ndelete,nchiral; // # edge, equivalent atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;
@@ -154,7 +158,7 @@ class FixBondReact : public Fix {
   void DeleteAtoms(char *, int);
   void CustomCharges(int, int);
   void ChiralCenters(char *, int);
-  void Constraints(char *, int);
+  void ReadConstraints(char *, int);
   void readID(char *, int, int, int);
 
   void make_a_guess ();
@@ -193,6 +197,14 @@ class FixBondReact : public Fix {
     int reaction_count_total;
   };
   Set *set;
+
+  struct Constraint {
+    int type;
+    int id[MAXCONIDS];
+    int idtype[MAXCONIDS];
+    double par[MAXCONPAR];
+  };
+  Constraint **constraints;
 
   // DEBUG
 

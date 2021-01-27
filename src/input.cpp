@@ -189,8 +189,15 @@ void Input::file()
     // if line ends in continuation char '&', concatenate next line
 
     if (me == 0) {
+
       m = 0;
       while (1) {
+
+        if (infile == nullptr) {
+          n = 0;
+          break;
+        }
+
         if (maxline-m < 2) reallocate(line,maxline,0);
 
         // end of file reached, so break
@@ -1708,7 +1715,10 @@ void Input::pair_style()
     int match = 0;
     if (style == force->pair_style) match = 1;
     if (!match && lmp->suffix_enable) {
-      if (lmp->suffix)
+      if (lmp->suffixp)
+        if (style + "/" + lmp->suffixp == force->pair_style) match = 1;
+
+      if (lmp->suffix && !lmp->suffixp)
         if (style + "/" + lmp->suffix == force->pair_style) match = 1;
 
       if (lmp->suffix2)

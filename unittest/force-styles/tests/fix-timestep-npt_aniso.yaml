@@ -1,7 +1,7 @@
 ---
 lammps_version: 24 Aug 2020
 date_generated: Tue Sep 15 09:44:40 202
-epsilon: 2e-12
+epsilon: 4e-11
 prerequisites: ! |
   atom full
   fix npt

@@ -43,9 +43,6 @@ void Replicate::command(int narg, char **arg)
     error->all(FLERR,"Replicate command before simulation box is defined");
   if (narg < 3 || narg > 4) error->all(FLERR,"Illegal replicate command");
 
-  if (atom->molecular == Atom::TEMPLATE)
-    error->all(FLERR,"Cannot use replicate command with atom style template");
-
   int me = comm->me;
   int nprocs = comm->nprocs;
 
@@ -162,6 +159,20 @@ void Replicate::command(int narg, char **arg)
   else atom = new Atom(lmp);
 
   atom->settings(old);
+
+  // transfer molecule templates. needs to be done early for atom style template
+
+  if (old->nmolecule) {
+    atom->molecules = (Molecule **) memory->smalloc((old->nmolecule)*sizeof(Molecule *),
+                                                    "atom::molecules");
+    atom->nmolecule = old->nmolecule;
+    for (int i = 0; i < old->nmolecule; ++i)
+      atom->molecules[i] = old->molecules[i];
+    memory->sfree(old->molecules);
+    old->molecules = nullptr;
+    old->nmolecule = 0;
+  }
+
   atom->create_avec(old->atom_style,old->avec->nargcopy,old->avec->argcopy,0);
 
   // check that new system will not be too large
@@ -499,12 +510,12 @@ void Replicate::command(int narg, char **arg)
             if (!xoverlap) {
               if (xboxlo < 0) {
                 _xoverlap1 = 1;
-                if ( _lo[0] > (subhi[0] - EPSILON) ) _xoverlap1 = 0;
+                if (_lo[0] > (subhi[0] - EPSILON)) _xoverlap1 = 0;
               }
 
               if (xboxhi > 0) {
                 _xoverlap2 = 1;
-                if ( _hi[0] < (sublo[0] + EPSILON) ) _xoverlap2 = 0;
+                if (_hi[0] < (sublo[0] + EPSILON)) _xoverlap2 = 0;
               }
 
               if (_xoverlap1 || _xoverlap2) xoverlap = 1;
@@ -515,12 +526,12 @@ void Replicate::command(int narg, char **arg)
             if (!yoverlap) {
               if (yboxlo < 0) {
                 _yoverlap1 = 1;
-                if ( _lo[1] > (subhi[1] - EPSILON) ) _yoverlap1 = 0;
+                if (_lo[1] > (subhi[1] - EPSILON)) _yoverlap1 = 0;
               }
 
               if (yboxhi > 0) {
                 _yoverlap2 = 1;
-                if ( _hi[1] < (sublo[1] + EPSILON) ) _yoverlap2 = 0;
+                if (_hi[1] < (sublo[1] + EPSILON)) _yoverlap2 = 0;
               }
 
               if (_yoverlap1 || _yoverlap2) yoverlap = 1;
@@ -532,12 +543,12 @@ void Replicate::command(int narg, char **arg)
             if (!zoverlap) {
               if (zboxlo < 0) {
                 _zoverlap1 = 1;
-                if ( _lo[2] > (subhi[2] - EPSILON) ) _zoverlap1 = 0;
+                if (_lo[2] > (subhi[2] - EPSILON)) _zoverlap1 = 0;
               }
 
               if (zboxhi > 0) {
                 _zoverlap2 = 1;
-                if ( _hi[2] < (sublo[2] + EPSILON) ) _zoverlap2 = 0;
+                if (_hi[2] < (sublo[2] + EPSILON)) _zoverlap2 = 0;
               }
 
               if (_zoverlap1 || _zoverlap2) zoverlap = 1;
@@ -749,17 +760,19 @@ void Replicate::command(int narg, char **arg)
     error->all(FLERR,"Replicate did not assign all atoms correctly");
 
   if (me == 0) {
+    const char *molstyle = "";
+    if (atom->molecular == Atom::TEMPLATE) molstyle = "template ";
     if (atom->nbonds) {
-      utils::logmesg(lmp,fmt::format("  {} bonds\n",atom->nbonds));
+      utils::logmesg(lmp,fmt::format("  {} {}bonds\n",atom->nbonds,molstyle));
     }
     if (atom->nangles) {
-      utils::logmesg(lmp,fmt::format("  {} angles\n",atom->nangles));
+      utils::logmesg(lmp,fmt::format("  {} {}angles\n",atom->nangles,molstyle));
     }
     if (atom->ndihedrals) {
-      utils::logmesg(lmp,fmt::format("  {} dihedrals\n",atom->ndihedrals));
+      utils::logmesg(lmp,fmt::format("  {} {}dihedrals\n",atom->ndihedrals,molstyle));
     }
     if (atom->nimpropers) {
-      utils::logmesg(lmp,fmt::format("  {} impropers\n",atom->nimpropers));
+      utils::logmesg(lmp,fmt::format("  {} {}impropers\n",atom->nimpropers,molstyle));
     }
   }
 

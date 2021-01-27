@@ -173,7 +173,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int citeflag = 1;
   int helpflag = 0;
 
-  suffix = suffix2 = nullptr;
+  suffix = suffix2 = suffixp = nullptr;
   suffix_enable = 0;
   if (arg) exename = arg[0];
   else exename = nullptr;
@@ -456,6 +456,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
     if (universe->me == 0) {
       if (inflag == 0) infile = stdin;
+      else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
         error->one(FLERR,fmt::format("Cannot open input script {}: {}",
@@ -530,10 +531,12 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                                        str, utils::getsyserror()));
       }
 
-      infile = fopen(arg[inflag],"r");
-      if (infile == nullptr)
-        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                     arg[inflag], utils::getsyserror()));
+      if (strcmp(arg[inflag], "none") != 0) {
+        infile = fopen(arg[inflag],"r");
+        if (infile == nullptr)
+          error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                       arg[inflag], utils::getsyserror()));
+      }
     }
 
     // screen and logfile messages for universe and world
@@ -711,6 +714,7 @@ LAMMPS::~LAMMPS()
   delete kokkos;
   delete [] suffix;
   delete [] suffix2;
+  delete [] suffixp;
 
   // free the MPI comm created by -mpi command-line arg processed in constructor
   // it was passed to universe as if original universe world
@@ -1103,7 +1107,7 @@ void _noopt LAMMPS::help()
           "List of command line options supported by this LAMMPS executable:\n\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"
           "-help                       : print this help message (-h)\n"
-          "-in filename                : read input from file, not stdin (-i)\n"
+          "-in none/filename           : read input from file or stdin (default) (-i)\n"
           "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
           "-log none/filename          : where to send log output (-l)\n"
           "-mpicolor color             : which exe in a multi-exe mpirun cmd (-m)\n"

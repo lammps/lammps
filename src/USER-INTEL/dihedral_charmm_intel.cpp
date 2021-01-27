@@ -91,7 +91,7 @@ void DihedralCharmmIntel::compute(int eflag, int vflag,
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (weightflag && vflag_global == 2)
+  if (weightflag && vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   if (evflag) {

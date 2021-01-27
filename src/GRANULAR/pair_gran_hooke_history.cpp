@@ -34,7 +34,6 @@
 #include "memory.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -43,6 +42,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   history = 1;
   size_history = 3;
 

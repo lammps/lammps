@@ -203,7 +203,7 @@ int DumpCFG::convert_string(int n, double *mybuf)
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
-        } else if (j >= 5 ) {
+        } else if (j >= 5) {
           if (vtype[j] == Dump::INT)
             offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
@@ -279,7 +279,7 @@ void DumpCFG::write_lines(int n, double *mybuf)
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           fprintf(fp,vformat[j],unwrap_coord);
-        } else if (j >= 5 ) {
+        } else if (j >= 5) {
           if (vtype[j] == Dump::INT)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)

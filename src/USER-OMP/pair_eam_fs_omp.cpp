@@ -116,7 +116,7 @@ void PairEAMFSOMP::read_file(char *filename)
   Fs *file = fs;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(PairEAM::lmp, filename,
                                "eam/fs", unit_convert_flag);
 

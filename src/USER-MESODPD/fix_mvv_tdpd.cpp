@@ -44,7 +44,7 @@ FixMvvTDPD::FixMvvTDPD(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix mvv/tdpd command");
 
   verlet = 0.5;
-  if(narg > 3) verlet = utils::numeric(FLERR,arg[3],false,lmp);
+  if (narg > 3) verlet = utils::numeric(FLERR,arg[3],false,lmp);
 
   cc_species = atom->cc_species;
 
@@ -107,7 +107,7 @@ void FixMvvTDPD::initial_integrate(int /*vflag*/)
      v[i][0] += 2.0 * verlet * dtfm * f[i][0];
      v[i][1] += 2.0 * verlet * dtfm * f[i][1];
      v[i][2] += 2.0 * verlet * dtfm * f[i][2];
-     for(int k = 0; k < cc_species; k++)
+     for (int k = 0; k < cc_species; k++)
         cc[i][k] += 0.5 * dtv * cc_flux[i][k];
   }
 }
@@ -140,7 +140,7 @@ void FixMvvTDPD::final_integrate()
      v[i][0] = vest[i][0] + dtfm * f[i][0];
      v[i][1] = vest[i][1] + dtfm * f[i][1];
      v[i][2] = vest[i][2] + dtfm * f[i][2];
-     for(int k = 0; k < cc_species; k++)
+     for (int k = 0; k < cc_species; k++)
         cc[i][k] += 0.5 * dtv * cc_flux[i][k];
   }
 }

@@ -358,7 +358,7 @@ void FixAppendAtoms::post_force(int /*vflag*/)
     }
     for (int i = 0; i < nlocal; i++) {
       // SET TEMP AHEAD OF SHOCK
-      if (tempflag && x[i][2] >= domain->boxhi[2] - t_extent ) {
+      if (tempflag && x[i][2] >= domain->boxhi[2] - t_extent) {
         gamma1 = gfactor1[type[i]];
         gamma2 = gfactor2[type[i]] * tsqrt;
         f[i][0] += gamma1*v[i][0] + gamma2*(randomt->uniform()-0.5);
@@ -386,7 +386,7 @@ void FixAppendAtoms::post_force(int /*vflag*/)
 
       // set temp ahead of shock
 
-      if (tempflag && x[i][2] >= domain->boxhi[2] - t_extent ) {
+      if (tempflag && x[i][2] >= domain->boxhi[2] - t_extent) {
         gamma1 = -rmass[i] / t_period / ftm2v;
         gamma2 = sqrt(rmass[i]) * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
         gamma2 *= tsqrt;

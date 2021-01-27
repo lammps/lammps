@@ -143,9 +143,9 @@ void ACEDAG::init(Array2D<int> xAspec,
             dag_idx++;
         }
     }
-
+#ifdef DEBUG
     cout << "num2_int = " << num2_int << "; num2_leaf = " << num2_leaf << "\n";
-
+#endif
     // free up memory that is no longer needed
     nodes_pre.resize(0, 0);
     coeffs_pre.resize(0, 0);
@@ -247,16 +247,12 @@ void ACEDAG::insert_node(TDAGMAP &DAGmap, vector<int> a, vector<DOUBLE_TYPE> c) 
             insert_node(DAGmap, p.second, cz);
         else
             insert_node(DAGmap, p.first, cz);
-        // if (heuristic == 1) {
-        //     cout << "-";
-        // }
     }
 
         /* Second heuristic : heuristic == 1
          * Focus on inserting artificial 2-correlations
          */
     else if (heuristic == 1) {
-        // cout << "+";
         // and we also know that longest_length == 1 and nu = a.size >= 4.
         int nu = a.size();
         // generate an artificial partition
@@ -530,11 +526,8 @@ void ACERecursiveEvaluator::acejlformat() {
                     cout << "WARNING - ms_ind == ms_ind2 \n";
                 }
 
-                // cout << "order = " << int(order) << " || " << "ms_ind, ms_ind2 = " << ms_ind << ", " << ms_ind2 << "\n";
-
                 // now we need to overwrite the coefficients
                 if (found_opposite) {
-                    // cout << "+";
                     int sig = 1;
                     for (t = 0; t < order; t++)
                         if (ms[t] < 0)
@@ -626,9 +619,7 @@ void ACERecursiveEvaluator::test_acejlformat() {
     Array2D<int> AAspec = jl_AAspec;
     Array2D<int> Aspec = jl_Aspec;
     Array1D<int> AAorders = jl_orders;
-
     cout << "num2 = " << AAorders.get_dim(0) << "\n";
-
     int func_ms_ind = 0;
     int func_ms_t_ind = 0;// index for dB
     int j, jj, func_ind, ms_ind;

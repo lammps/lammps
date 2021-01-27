@@ -22,7 +22,7 @@
 
 using namespace std;
 
-typedef list<pair<vector<int>, vector<int> > > TPARTITIONS;
+typedef list <pair<vector<int>, vector<int> >> TPARTITIONS;
 typedef pair<vector<int>, vector<int> > TPARTITION;
 typedef map<vector<int>, int> TDAGMAP;
 

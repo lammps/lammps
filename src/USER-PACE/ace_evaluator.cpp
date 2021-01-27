@@ -387,6 +387,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
             }
 
             B = A_forward_prod[t];
+            
 #ifdef DEBUG_FORCES_CALCULATIONS
             printf("B = (%f, %f)\n", (B).real, (B).img);
 #endif
@@ -562,6 +563,7 @@ ACECTildeEvaluator::compute_atom(int i, DOUBLE_TYPE **x, const SPECIES_TYPE *typ
                         continue;
                     //counting for -m cases if m>0
                     if (m > 0) w *= 2;
+
                     DY = DY_cache_jj(l, m);
                     Y_DR = Y_cache_jj(l, m) * DR;
 

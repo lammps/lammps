@@ -23,6 +23,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "math_special.h"
 
 #include <cmath>
 #include <cstdlib>

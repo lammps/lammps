@@ -59,8 +59,8 @@ class PairLS : public Pair {
 
   // virtual int pack_forward_comm(int, int *, double *, int, int *);
   // virtual void unpack_forward_comm(int, int, double *);
-  // int pack_reverse_comm(int, int, double *);
-  // void unpack_reverse_comm(int, int *, double *);
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
   // double memory_usage();
 
 
@@ -69,6 +69,9 @@ class PairLS : public Pair {
 
   // Domain *domain; 
   int *map;                   // which element each atom type maps to
+
+  // Per-atom Arrays
+  double *rosum;
 
   // Begin max_at.h (may be it is not needed in the LAMMPS implementation)
   const int  n_mark_at=10;
@@ -87,13 +90,13 @@ class PairLS : public Pair {
   // End max_at.h
 
   // Begin pot_ls.h
-  const int mf3=4;            // max_f3
+  static const int mf3=4;            // max_f3
   const int mfi=30;           // max_sp_fi
   const int mro=25;           // max_sp_ro
   const int memb=10;          // max_sp_emb
   const int mf=15;            // max_sp_f
-  const int mg=15;            // max_sp_g
-  const int mi=6;             // max_sort_at (actually is equal to mi-1 since C-arrays are started form 0 while the atom indexes are started from 1)
+  static const int mg=15;            // max_sp_g
+  static const int mi=6;             // max_sort_at (actually is equal to mi-1 since C-arrays are started form 0 while the atom indexes are started from 1)
 
 
 
@@ -111,8 +114,11 @@ class PairLS : public Pair {
   double **a_sp_emb, **b_sp_emb, **c_sp_emb, **d_sp_emb; 
   // spline coefficients determining basis functions f3(R_ij) in the second term describing three-body interactions in the equation for total energy
   double ****a_sp_f3, ****b_sp_f3, ****c_sp_f3, ****d_sp_f3;  
+//   double ****a_sp_f3, ****b_sp_f3, ****c_sp_f3, ****d_sp_f3;  
   // spline coefficients determining expansion coefficients g3(cos(theta_ijk)) for basis functions f3(R_ij) in the third term describing three-body interactions in the equation for total energy    
-  double ****a_sp_g3, ****b_sp_g3, ****c_sp_g3, ****d_sp_g3;   
+  double a_sp_g3[mi][mg][mf3][mf3], b_sp_g3[mi][mg][mf3][mf3], c_sp_g3[mi][mg][mf3][mf3], d_sp_g3[mi][mg][mf3][mf3];   
+//   double a_sp_g3[mi][mf3][mf3][mg], b_sp_g3[mi][mf3][mf3][mg], c_sp_g3[mi][mf3][mf3][mg], d_sp_g3[mi][mf3][mf3][mg];   
+//   double ****a_sp_g3, ****b_sp_g3, ****c_sp_g3, ****d_sp_g3;   
   // spline coefficients determining basis functions f4(R_ij) in the third term describing four-body interactions in the equation for total energy   
   double ***a_sp_f4, ***b_sp_f4, ***c_sp_f4, ***d_sp_f4;
   // spline coefficients determining expansion coefficients g4(cos(theta_ijk),cos(theta_jkl),cos(theta_ilj)) for basis functions f4(R_ij) in the third term describing four-body interactions in the equation for total energy    

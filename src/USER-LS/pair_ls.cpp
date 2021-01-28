@@ -50,6 +50,8 @@ PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
 {
   // !std::cout << "!!!!! PairLS debug mode !!!!! " << "PairLS constructor started working"  << std::endl;
 
+  rosum = nullptr;
+
   shag_sp_fi  = nullptr;
   shag_sp_ro  = nullptr;
   shag_sp_emb = nullptr;
@@ -81,10 +83,10 @@ PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
   c_sp_f3 = nullptr;
   d_sp_f3 = nullptr;
 
-  a_sp_g3 = nullptr;
-  b_sp_g3 = nullptr;
-  c_sp_g3 = nullptr;
-  d_sp_g3 = nullptr; 
+  // a_sp_g3 = nullptr;
+  // b_sp_g3 = nullptr;
+  // c_sp_g3 = nullptr;
+  // d_sp_g3 = nullptr; 
 
   a_sp_f4 = nullptr;
   b_sp_f4 = nullptr;
@@ -115,8 +117,8 @@ PairLS::PairLS(LAMMPS *lmp) : Pair(lmp)
 
   n_sort = atom->ntypes;
 
-  // comm_forward = 1;
-  // comm_reverse = 1;
+  comm_forward = 1;
+  comm_reverse = 1;
 
   periodic[0] = domain->xperiodic;
   periodic[1] = domain->yperiodic;
@@ -168,10 +170,10 @@ PairLS::~PairLS()
     memory->destroy(c_sp_f3);
     memory->destroy(d_sp_f3);
 
-    memory->destroy(a_sp_g3);
-    memory->destroy(b_sp_g3);
-    memory->destroy(c_sp_g3);
-    memory->destroy(d_sp_g3);
+    // memory->destroy(a_sp_g3);
+    // memory->destroy(b_sp_g3);
+    // memory->destroy(c_sp_g3);
+    // memory->destroy(d_sp_g3);
 
     memory->destroy(a_sp_f4);
     memory->destroy(b_sp_f4);
@@ -200,6 +202,7 @@ PairLS::~PairLS()
     memory->destroy(n_sp_emb);
     memory->destroy(n_sp_f);
     memory->destroy(n_sp_g);
+    memory->destroy(n_f3);
   }
 
 
@@ -209,16 +212,6 @@ PairLS::~PairLS()
 
 void PairLS::compute(int eflag, int vflag)
 {
-  // int i,j,ii,jj,m,inum,jnum,itype,jtype;
-  // double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  // double rsq,r,p,rhoip,rhojp,z2,z2p,recip,phip,psip,phi;
-  // double *coeff;
-  // int *ilist,*jlist,*numneigh,**firstneigh;
-
-  // int n,inum_half,inum_full,errorflag;
-  // int *ilist_half,*numneigh_half,**firstneigh_half;
-  // int *ilist_full,*numneigh_full,**firstneigh_full;
-
   // setting up eatom and vatom arrays with method of the parent Pair class
 /* ----------------------------------------------------------------------
    eflag = 0 = no energy computation
@@ -246,6 +239,7 @@ void PairLS::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
+  tagint *tag = atom->tag;
 
   double sizex = domain->xprd; // global x box dimension
   double sizey = domain->yprd; // global y box dimension
@@ -257,6 +251,9 @@ void PairLS::compute(int eflag, int vflag)
   memory->create(px_at,nlocal,"PairLS:px_at");
   memory->create(py_at,nlocal,"PairLS:py_at");
   memory->create(pz_at,nlocal,"PairLS:pz_at");
+
+  atom->map_init(1);
+  atom->map_set();
 
   e_force_fi_emb(eflag, eatom, f, px_at, py_at, pz_at, x, type, nlocal, sizex, sizey, sizez);
 
@@ -288,11 +285,11 @@ void PairLS::compute(int eflag, int vflag)
 
   std::cout << "Energies and forces on atoms on step " << update->ntimestep << std::endl;
   // std::cout << "i_at  e_at       x        y        z       f_x        f_y        f_z" << std::endl;
-  std::cout << "i_at  e_at       f_x        f_y        f_z" << std::endl;
+  // std::cout << "i_at  e_at       f_x        f_y        f_z" << std::endl;
   for (int i = 0; i < nlocal; i++)
   {
-    // std::cout << i+1 << " " << x[i][0] << " " << x[i][1] << " " << x[i][2] <<"    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
-    std::cout << i+1 << "    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
+  //   std::cout << i+1 << " " << x[i][0] << " " << x[i][1] << " " << x[i][2] <<"    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
+    std::cout << tag[i] << "    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
   }
   memory->destroy(px_at);
   memory->destroy(py_at);
@@ -325,41 +322,41 @@ void PairLS::allocate()
   memory->create(shag_sp_emb,mi,"PairLS:shag_sp_emb");
   memory->create(shag_sp_f,mi,mi,"PairLS:shag_sp_f");
 
-  memory->create(R_sp_fi,mfi,mi,mi,"PairLS:R_sp_fi");
-  memory->create(R_sp_ro,mfi,mi,mi,"PairLS:R_sp_ro");
-  memory->create(R_sp_emb,memb,mi,"PairLS:R_sp_emb");
-  memory->create(R_sp_f,mf,mi,mi,"PairLS:R_sp_f");
+  memory->create(R_sp_fi,mi,mi,mfi,"PairLS:R_sp_fi");
+  memory->create(R_sp_ro,mi,mi,mfi,"PairLS:R_sp_ro");
+  memory->create(R_sp_emb,mi,memb,"PairLS:R_sp_emb");
+  memory->create(R_sp_f,mi,mi,mf,"PairLS:R_sp_f");
   memory->create(R_sp_g,mg,"PairLS:R_sp_g");
 
-  memory->create(a_sp_fi,mfi,mi,mi,"PairLS:a_sp_fi");
-  memory->create(b_sp_fi,mfi,mi,mi,"PairLS:b_sp_fi");
-  memory->create(c_sp_fi,mfi,mi,mi,"PairLS:c_sp_fi");
-  memory->create(d_sp_fi,mfi,mi,mi,"PairLS:d_sp_fi");
+  memory->create(a_sp_fi,mi,mi,mfi,"PairLS:a_sp_fi");
+  memory->create(b_sp_fi,mi,mi,mfi,"PairLS:b_sp_fi");
+  memory->create(c_sp_fi,mi,mi,mfi,"PairLS:c_sp_fi");
+  memory->create(d_sp_fi,mi,mi,mfi,"PairLS:d_sp_fi");
 
-  memory->create(a_sp_ro,mro,mi,mi,"PairLS:a_sp_ro");
-  memory->create(b_sp_ro,mro,mi,mi,"PairLS:b_sp_ro");
-  memory->create(c_sp_ro,mro,mi,mi,"PairLS:c_sp_ro");
-  memory->create(d_sp_ro,mro,mi,mi,"PairLS:d_sp_ro");
+  memory->create(a_sp_ro,mi,mi,mro,"PairLS:a_sp_ro");
+  memory->create(b_sp_ro,mi,mi,mro,"PairLS:b_sp_ro");
+  memory->create(c_sp_ro,mi,mi,mro,"PairLS:c_sp_ro");
+  memory->create(d_sp_ro,mi,mi,mro,"PairLS:d_sp_ro");
 
-  memory->create(a_sp_emb,memb,mi,"PairLS:a_sp_emb");
-  memory->create(b_sp_emb,memb,mi,"PairLS:b_sp_emb");
-  memory->create(c_sp_emb,memb,mi,"PairLS:c_sp_emb");
-  memory->create(d_sp_emb,memb,mi,"PairLS:d_sp_emb");
+  memory->create(a_sp_emb,mi,memb,"PairLS:a_sp_emb");
+  memory->create(b_sp_emb,mi,memb,"PairLS:b_sp_emb");
+  memory->create(c_sp_emb,mi,memb,"PairLS:c_sp_emb");
+  memory->create(d_sp_emb,mi,memb,"PairLS:d_sp_emb");
 
-  memory->create(a_sp_f3,mf,mf3,mi,mi,"PairLS:a_sp_f3");
-  memory->create(b_sp_f3,mf,mf3,mi,mi,"PairLS:b_sp_f3");
-  memory->create(c_sp_f3,mf,mf3,mi,mi,"PairLS:c_sp_f3");
-  memory->create(d_sp_f3,mf,mf3,mi,mi,"PairLS:d_sp_f3");
+  memory->create(a_sp_f3,mi,mi,mf3,mf,"PairLS:a_sp_f3");
+  memory->create(b_sp_f3,mi,mi,mf3,mf,"PairLS:b_sp_f3");
+  memory->create(c_sp_f3,mi,mi,mf3,mf,"PairLS:c_sp_f3");
+  memory->create(d_sp_f3,mi,mi,mf3,mf,"PairLS:d_sp_f3");
 
-  memory->create(a_sp_g3,mg,mf3,mf3,mi,"PairLS:a_sp_g3");
-  memory->create(b_sp_g3,mg,mf3,mf3,mi,"PairLS:b_sp_g3");
-  memory->create(c_sp_g3,mg,mf3,mf3,mi,"PairLS:c_sp_g3");
-  memory->create(d_sp_g3,mg,mf3,mf3,mi,"PairLS:d_sp_g3");
+  // memory->create(a_sp_g3,mi,mf3,mf3,mg,"PairLS:a_sp_g3");
+  // memory->create(b_sp_g3,mi,mf3,mf3,mg,"PairLS:b_sp_g3");
+  // memory->create(c_sp_g3,mi,mf3,mf3,mg,"PairLS:c_sp_g3");
+  // memory->create(d_sp_g3,mi,mf3,mf3,mg,"PairLS:d_sp_g3");
 
-  memory->create(a_sp_f4,mf,mi,mi,"PairLS:a_sp_f4");
-  memory->create(b_sp_f4,mf,mi,mi,"PairLS:b_sp_f4");
-  memory->create(c_sp_f4,mf,mi,mi,"PairLS:c_sp_f4");
-  memory->create(d_sp_f4,mf,mi,mi,"PairLS:d_sp_f4");
+  memory->create(a_sp_f4,mi,mi,mf,"PairLS:a_sp_f4");
+  memory->create(b_sp_f4,mi,mi,mf,"PairLS:b_sp_f4");
+  memory->create(c_sp_f4,mi,mi,mf,"PairLS:c_sp_f4");
+  memory->create(d_sp_f4,mi,mi,mf,"PairLS:d_sp_f4");
 
   memory->create(a_sp_g4,mi,mi,"PairLS:a_sp_g4");
   memory->create(b_sp_g4,mi,mi,"PairLS:b_sp_g4");
@@ -370,9 +367,7 @@ void PairLS::allocate()
 
   memory->create(z_ion,mi,"PairLS:z_ion");
   memory->create(c_ZBL,4,"PairLS:c_ZBL");
-  // memory->create(c_ZBL,4,mi,mi,"PairLS:c_ZBL");
   memory->create(d_ZBL,4,"PairLS:d_ZBL");
-  // memory->create(d_ZBL,4,mi,mi,"PairLS:d_ZBL");
   memory->create(zz_ZBL,mi,mi,"PairLS:zz_ZBL");
   memory->create(a_ZBL,mi,mi,"PairLS:a_ZBL");
   memory->create(e0_ZBL,mi,mi,"PairLS:e0_ZBL");
@@ -510,10 +505,10 @@ void PairLS::coeff(int narg, char **arg)
 	// Rc_fi=w
 	// r_pot=Rc_fi
 
-	w = R_sp_fi[n_sp_fi[1][1]-1][1][1];
+	w = R_sp_fi[1][1][n_sp_fi[1][1]-1];
 	for (i = 1; i <= n_sort; i++)
     {
-      if (R_sp_fi[n_sp_fi[i][i]-1][i][i] > w) w = R_sp_fi[n_sp_f[i][i]-1][i][i];
+      if (R_sp_fi[i][i][n_sp_fi[i][i]-1] > w) w = R_sp_fi[i][i][n_sp_f[i][i]-1];
     }
 	Rc_fi = w;
 	r_pot = Rc_fi;
@@ -525,10 +520,10 @@ void PairLS::coeff(int narg, char **arg)
 	// enddo
 	// Rc_f=w
 
-	w = R_sp_f[n_sp_f[1][1]-1][1][1];
+	w = R_sp_f[1][1][n_sp_f[1][1]-1];
 	for (i = 1; i <= n_sort; i++)
     {
-      if (R_sp_f[n_sp_f[i][i]-1][i][i] > w) w = R_sp_f[n_sp_f[i][i]-1][i][i];
+      if (R_sp_f[i][i][n_sp_f[i][i]-1] > w) w = R_sp_f[i][i][n_sp_f[i][i]-1];
     }
 	Rc_f = w;
 
@@ -635,13 +630,14 @@ void PairLS::init_style()
 //     error->all(FLERR,"Pair style MEAM requires newton pair on");
 
   // need full and half neighbor list
+  // force->newton_pair = 0;
 
   int irequest_full = neighbor->request(this,instance_me);
   neighbor->requests[irequest_full]->id = 1;
   neighbor->requests[irequest_full]->half = 0;
   neighbor->requests[irequest_full]->full = 1;
-  // int irequest_half = neighbor->request(this,instance_me);
-  // neighbor->requests[irequest_half]->id = 2;
+  int irequest_half = neighbor->request(this,instance_me);
+  neighbor->requests[irequest_half]->id = 2;
 
 // void PairTersoff::init_style()
 // {
@@ -679,6 +675,31 @@ double PairLS::init_one(int i, int j)
     cutsq[i][j] = Rc_fi*Rc_fi;
     cutsq[j][i] = cutsq[i][j];
     return Rc_fi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int PairLS::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) buf[m++] = rosum[i];
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLS::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    rosum[j] += buf[m++];
+  }
 }
 
 
@@ -728,10 +749,10 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
       for (int n = 0; n < n_sp_fi[is][is]; n++)
       {
         ValueTokenizer sp_fi_values = reader.next_values(2);
-        R_sp_fi[n][is][is] = lcf*sp_fi_values.next_double();
-        a_sp_fi[n][is][is] = ecf*sp_fi_values.next_double();
-        // !std::cout << " R_sp_fi[" << n << "][" << is << "][" << is << "] = " << R_sp_fi[n][is][is] << "   ";
-        // !std::cout << " a_sp_fi[" << n << "][" << is << "][" << is << "] = " << a_sp_fi[n][is][is] << std::endl;
+        R_sp_fi[is][is][n] = lcf*sp_fi_values.next_double();
+        a_sp_fi[is][is][n] = ecf*sp_fi_values.next_double();
+        // !std::cout << " R_sp_fi[" << n << "][" << is << "][" << is << "] = " << R_sp_fi[is][is][n] << "   ";
+        // !std::cout << " a_sp_fi[" << n << "][" << is << "][" << is << "] = " << a_sp_fi[is][is][n] << std::endl;
       }
 
       // wr_pot_ls_is.f (84-86):
@@ -758,10 +779,10 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
       for (int n = 0; n < n_sp_ro[is][is]; n++)
       {
         ValueTokenizer sp_ro_values = reader.next_values(2);
-        R_sp_ro[n][is][is] = lcf*sp_ro_values.next_double();
-        a_sp_ro[n][is][is] = ecf*sp_ro_values.next_double();
-        // !std::cout << " R_sp_ro[" << n << "][" << is << "][" << is << "] = " << R_sp_ro[n][is][is] << "   ";
-        // !std::cout << " a_sp_ro[" << n << "][" << is << "][" << is << "] = " << a_sp_ro[n][is][is] << std::endl;
+        R_sp_ro[is][is][n] = lcf*sp_ro_values.next_double();
+        a_sp_ro[is][is][n] = ecf*sp_ro_values.next_double();
+        // !std::cout << " R_sp_ro[" << n << "][" << is << "][" << is << "] = " << R_sp_ro[is][is][n] << "   ";
+        // !std::cout << " a_sp_ro[" << n << "][" << is << "][" << is << "] = " << a_sp_ro[is][is][n] << std::endl;
       }    
 
       // wr_pot_ls_is.f (92-95):
@@ -775,10 +796,10 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
       for (int n = 0; n < n_sp_emb[is][is]; n++)
       {
         ValueTokenizer sp_emb_values = reader.next_values(2);
-        R_sp_emb[n][is] = lcf*sp_emb_values.next_double();
-        a_sp_emb[n][is] = ecf*sp_emb_values.next_double();
-        // !std::cout << " R_sp_emb[" << n << "][" << is << "] = " << R_sp_emb[n][is] << "   ";
-        // !std::cout << " a_sp_emb[" << n << "][" << is << "] = " << a_sp_emb[n][is] << std::endl;
+        R_sp_emb[is][n] = lcf*sp_emb_values.next_double();
+        a_sp_emb[is][n] = ecf*sp_emb_values.next_double();
+        // !std::cout << " R_sp_emb[" << n << "][" << is << "] = " << R_sp_emb[is][n] << "   ";
+        // !std::cout << " a_sp_emb[" << n << "][" << is << "] = " << a_sp_emb[is][n] << std::endl;
       }         
 
       // wr_pot_ls_is.f (97-101):
@@ -795,12 +816,12 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
       for (int n = 0; n < n_sp_f[is][is]; n++)
       {
         ValueTokenizer sp_f_values = reader.next_values(n_f3[is]+1);
-        R_sp_f[n][is][is] = lcf*sp_f_values.next_double();
-        // !std::cout << " R_sp_f[" << n << "][" << is << "][" << is << "] = " << R_sp_f[n][is][is] << "   ";
+        R_sp_f[is][is][n] = lcf*sp_f_values.next_double();
+        // !std::cout << " R_sp_f[" << n << "][" << is << "][" << is << "] = " << R_sp_f[is][is][n] << "   ";
         for (int n1 = 0; n1 < n_f3[is]; n1++)
         {
-          a_sp_f3[n][n1][is][is] = ecf*sp_f_values.next_double();
-          // !std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is << "][" << is << "] = " << a_sp_f3[n][n1][is][is] << "  ";
+          a_sp_f3[is][is][n1][n] = ecf*sp_f_values.next_double();
+          // !std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is << "][" << is << "] = " << a_sp_f3[is][is][n1][n] << "  ";
         }
         // !std::cout << std::endl;
 
@@ -832,8 +853,11 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
           ValueTokenizer sp_g_values = reader.next_values(n_sp_g[is][is]);
           for (int n2 = 0; n2 < n_sp_g[is][is]; n2++)
           {
-            a_sp_g3[n2][n][n1][is] = ecf*sp_g_values.next_double();
-            // !std::cout << " a_sp_f[" << n2 << "][" << n << "]["<< n1 << "][" << is << "] = " << a_sp_g3[n2][n][n1][is] << "  ";
+            // a_sp_g3[is][n1][n][n2] = ecf*sp_g_values.next_double();
+
+            a_sp_g3[is][n2][n][n1] = ecf*sp_g_values.next_double();
+            // a_sp_g3[is][n][n1][n2] = ecf*sp_g_values.next_double();
+            // !std::cout << " a_sp_f[" << n2 << "][" << n << "]["<< n1 << "][" << is << "] = " << a_sp_g3[is][n1][n][n2] << "  ";
           }
           // !std::cout << std::endl;
         }
@@ -858,9 +882,9 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
 
       for (int n = 0; n < 4; n++)
       {
-        // d_ZBL[n][is][is] = reader.next_double();
+        // d_ZBL[is][is][n] = reader.next_double();
         d_ZBL[n] = ecf*reader.next_double();
-        // // !std::cout << " d_ZBL[" << n << "]["<< is << "][" << is << "] = " << d_ZBL[n][is][is]<< std::endl;
+        // // !std::cout << " d_ZBL[" << n << "]["<< is << "][" << is << "] = " << d_ZBL[is][is][n]<< std::endl;
         // !std::cout << " d_ZBL[" << n <<  "] = " << d_ZBL[n]<< std::endl;
       }
     }
@@ -901,8 +925,8 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
   MPI_Bcast(&n_sp_fi[is][is], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_fi[is][is]; n++)
   {
-    MPI_Bcast(&R_sp_fi[n][is][is], 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&a_sp_fi[n][is][is], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_fi[is][is][n], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_fi[is][is][n], 1, MPI_DOUBLE, 0, world);
   }
 
   MPI_Bcast(&fip_rmin[is][is], 1, MPI_DOUBLE, 0, world);
@@ -912,25 +936,25 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
   MPI_Bcast(&n_sp_ro[is][is], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_ro[is][is]; n++)
   {
-    MPI_Bcast(&R_sp_ro[n][is][is], 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&a_sp_ro[n][is][is], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_ro[is][is][n], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_ro[is][is][n], 1, MPI_DOUBLE, 0, world);
   }
 
   MPI_Bcast(&n_sp_emb[is][is], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_emb[is][is]; n++)
   {  
-    MPI_Bcast(&R_sp_emb[n][is], 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&a_sp_emb[n][is], 1, MPI_DOUBLE, 0, world);  
+    MPI_Bcast(&R_sp_emb[is][n], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_emb[is][n], 1, MPI_DOUBLE, 0, world);  
   }
 
   MPI_Bcast(&n_sp_f[is][is], 1, MPI_INT, 0, world);
   MPI_Bcast(&n_f3[is], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_f[is][is]; n++)
   {
-    MPI_Bcast(&R_sp_f[n][is][is], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_f[is][is][n], 1, MPI_DOUBLE, 0, world);
     for (int n1 = 0; n1 < n_f3[is]; n1++)
     {
-      MPI_Bcast(&a_sp_f3[n][n1][is][is], 1, MPI_DOUBLE, 0, world);
+      MPI_Bcast(&a_sp_f3[is][is][n1][n], 1, MPI_DOUBLE, 0, world);
     }    
   }
 
@@ -946,7 +970,7 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
     {
       for (int n2 = 0; n2 < n_sp_g[is][is]; n2++)
       {
-        MPI_Bcast(&a_sp_g3[n2][n][n1][is], 1, MPI_DOUBLE, 0, world);
+        MPI_Bcast(&a_sp_g3[is][n2][n][n1], 1, MPI_DOUBLE, 0, world);
       }
     }
   }  
@@ -994,10 +1018,10 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
       for (int n = 0; n < n_sp_fi[is1][is2]; n++)
       {
         ValueTokenizer sp_fi_values = reader.next_values(2);
-        R_sp_fi[n][is1][is2] = lcf*sp_fi_values.next_double();
-        a_sp_fi[n][is1][is2] = ecf*sp_fi_values.next_double();
-        // !std::cout << " R_sp_fi[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_fi[n][is1][is2] << "   ";
-        // !std::cout << " a_sp_fi[" << n << "][" << is1 << "][" << is2 << "] = " << a_sp_fi[n][is1][is2] << std::endl;
+        R_sp_fi[is1][is2][n] = lcf*sp_fi_values.next_double();
+        a_sp_fi[is1][is2][n] = ecf*sp_fi_values.next_double();
+        // !std::cout << " R_sp_fi[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_fi[is1][is2][n] << "   ";
+        // !std::cout << " a_sp_fi[" << n << "][" << is1 << "][" << is2 << "] = " << a_sp_fi[is1][is2][n] << std::endl;
       }
 
       // wr_pot_ls_is1_is2.f (61-63):
@@ -1026,10 +1050,10 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
       n_sp_fi[is2][is1] = n_sp_fi[is1][is2];
       for (int n = 0; n < n_sp_fi[is1][is2]; n++)
       {
-        R_sp_fi[n][is2][is1] = lcf*R_sp_fi[n][is1][is2];
-        a_sp_fi[n][is2][is1] = ecf*a_sp_fi[n][is1][is2];
-        // !std::cout << " R_sp_fi[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_fi[n][is2][is1] << "   ";
-        // !std::cout << " a_sp_fi[" << n << "][" << is2 << "][" << is1 << "] = " << a_sp_fi[n][is2][is1] << std::endl;
+        R_sp_fi[is2][is1][n] = lcf*R_sp_fi[is1][is2][n];
+        a_sp_fi[is2][is1][n] = ecf*a_sp_fi[is1][is2][n];
+        // !std::cout << " R_sp_fi[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_fi[is2][is1][n] << "   ";
+        // !std::cout << " a_sp_fi[" << n << "][" << is2 << "][" << is1 << "] = " << a_sp_fi[is2][is1][n] << std::endl;
       }
 
       fip_rmin[is2][is1] = fip_rmin[is1][is2];
@@ -1054,19 +1078,19 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
       for (int n = 0; n < n_sp_ro[is1][is2]; n++)
       {
         ValueTokenizer sp_ro_is1_values = reader.next_values(2);
-        R_sp_ro[n][is1][is2] = lcf*sp_ro_is1_values.next_double();
-        a_sp_ro[n][is1][is2] = ecf*sp_ro_is1_values.next_double();
-        // !std::cout << " R_sp_ro[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_ro[n][is1][is2] << "   ";
-        // !std::cout << " a_sp_ro[" << n << "][" << is1 << "][" << is2 << "] = " << a_sp_ro[n][is1][is2] << std::endl;
+        R_sp_ro[is1][is2][n] = lcf*sp_ro_is1_values.next_double();
+        a_sp_ro[is1][is2][n] = ecf*sp_ro_is1_values.next_double();
+        // !std::cout << " R_sp_ro[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_ro[is1][is2][n] << "   ";
+        // !std::cout << " a_sp_ro[" << n << "][" << is1 << "][" << is2 << "] = " << a_sp_ro[is1][is2][n] << std::endl;
       }    
 
       for (int n = 0; n < n_sp_ro[is2][is1]; n++)
       {
         ValueTokenizer sp_ro_is2_values = reader.next_values(2);
-        R_sp_ro[n][is2][is1] = lcf*sp_ro_is2_values.next_double();
-        a_sp_ro[n][is2][is1] = ecf*sp_ro_is2_values.next_double();
-        // !std::cout << " R_sp_ro[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_ro[n][is2][is1] << "   ";
-        // !std::cout << " a_sp_ro[" << n << "][" << is2 << "][" << is1 << "] = " << a_sp_ro[n][is2][is1] << std::endl;
+        R_sp_ro[is2][is1][n] = lcf*sp_ro_is2_values.next_double();
+        a_sp_ro[is2][is1][n] = ecf*sp_ro_is2_values.next_double();
+        // !std::cout << " R_sp_ro[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_ro[is2][is1][n] << "   ";
+        // !std::cout << " a_sp_ro[" << n << "][" << is2 << "][" << is1 << "] = " << a_sp_ro[is2][is1][n] << std::endl;
       }   
 
       // wr_pot_ls_is1_is2.f (85-88):
@@ -1083,12 +1107,12 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
       for (int n = 0; n < n_sp_f[is2][is1]; n++)
       {
         ValueTokenizer sp_f_is1_values = reader.next_values(n_f3[is1]+1);
-        R_sp_f[n][is2][is1] = lcf*sp_f_is1_values.next_double();
-        // !std::cout << " R_sp_f[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_f[n][is2][is1] << "   ";
+        R_sp_f[is2][is1][n] = lcf*sp_f_is1_values.next_double();
+        // !std::cout << " R_sp_f[" << n << "][" << is2 << "][" << is1 << "] = " << R_sp_f[is2][is1][n] << "   ";
         for (int n1 = 0; n1 < n_f3[is1]; n1++)
         {
-          a_sp_f3[n][n1][is2][is1] = ecf*sp_f_is1_values.next_double();
-          // !std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is2 << "][" << is1 << "] = " << a_sp_f3[n][n1][is2][is1] << "  ";
+          a_sp_f3[is2][is1][n1][n] = ecf*sp_f_is1_values.next_double();
+          // !std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is2 << "][" << is1 << "] = " << a_sp_f3[is2][is1][n1][n] << "  ";
         }
         // !std::cout << std::endl;
 
@@ -1108,12 +1132,12 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
       for (int n = 0; n < n_sp_f[is1][is2]; n++)
       {
         ValueTokenizer sp_f_is2_values = reader.next_values(n_f3[is2]+1);
-        R_sp_f[n][is1][is2] = lcf*sp_f_is2_values.next_double();
-        // !std::cout << " R_sp_f[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_f[n][is1][is2] << "   ";
+        R_sp_f[is1][is2][n] = lcf*sp_f_is2_values.next_double();
+        // !std::cout << " R_sp_f[" << n << "][" << is1 << "][" << is2 << "] = " << R_sp_f[is1][is2][n] << "   ";
         for (int n1 = 0; n1 < n_f3[is2]; n1++)
         {
-          a_sp_f3[n][n1][is1][is2] = ecf*sp_f_is2_values.next_double();
-          // !std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is1 << "][" << is2 << "] = " << a_sp_f3[n][n1][is1][is2] << "  ";
+          a_sp_f3[is1][is2][n1][n] = ecf*sp_f_is2_values.next_double();
+          // !std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is1 << "][" << is2 << "] = " << a_sp_f3[is1][is2][n1][n] << "  ";
         }
         // !std::cout << std::endl;
 
@@ -1129,8 +1153,8 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
   MPI_Bcast(&n_sp_fi[is1][is2], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_fi[is1][is2]; n++)
   {
-    MPI_Bcast(&R_sp_fi[n][is1][is2], 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&a_sp_fi[n][is1][is2], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_fi[is1][is2][n], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_fi[is1][is2][n], 1, MPI_DOUBLE, 0, world);
   }
 
   MPI_Bcast(&fip_rmin[is1][is2], 1, MPI_DOUBLE, 0, world);
@@ -1140,8 +1164,8 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
   MPI_Bcast(&n_sp_fi[is2][is1], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_fi[is2][is1]; n++)
   {
-    MPI_Bcast(&R_sp_fi[n][is2][is1], 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&a_sp_fi[n][is2][is1], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_fi[is2][is1][n], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_fi[is2][is1][n], 1, MPI_DOUBLE, 0, world);
   }
 
   MPI_Bcast(&fip_rmin[is2][is1], 1, MPI_DOUBLE, 0, world);
@@ -1151,25 +1175,25 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
   MPI_Bcast(&n_sp_ro[is1][is2], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_ro[is1][is2]; n++)
   {
-    MPI_Bcast(&R_sp_ro[n][is1][is2], 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&a_sp_ro[n][is1][is2], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_ro[is1][is2][n], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_ro[is1][is2][n], 1, MPI_DOUBLE, 0, world);
   }
 
   MPI_Bcast(&n_sp_ro[is2][is1], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_ro[is2][is1]; n++)
   {
-    MPI_Bcast(&R_sp_ro[n][is2][is1], 1, MPI_DOUBLE, 0, world);
-    MPI_Bcast(&a_sp_ro[n][is2][is1], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_ro[is2][is1][n], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&a_sp_ro[is2][is1][n], 1, MPI_DOUBLE, 0, world);
   }
 
   MPI_Bcast(&n_sp_f[is2][is1], 1, MPI_INT, 0, world);
   MPI_Bcast(&n_f3[is1], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_f[is2][is1]; n++)
   {
-    MPI_Bcast(&R_sp_f[n][is2][is1], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_f[is2][is1][n], 1, MPI_DOUBLE, 0, world);
     for (int n1 = 0; n1 < n_f3[is1]; n1++)
     {
-      MPI_Bcast(&a_sp_f3[n][n1][is2][is1], 1, MPI_DOUBLE, 0, world);
+      MPI_Bcast(&a_sp_f3[is2][is1][n1][n], 1, MPI_DOUBLE, 0, world);
     }    
   }
 
@@ -1177,10 +1201,10 @@ void PairLS::r_pot_ls_is1_is2(char *name_32, int is1, int is2, double lcf, doubl
   MPI_Bcast(&n_f3[is2], 1, MPI_INT, 0, world);
   for (int n = 0; n < n_sp_f[is1][is2]; n++)
   {
-    MPI_Bcast(&R_sp_f[n][is1][is2], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&R_sp_f[is1][is2][n], 1, MPI_DOUBLE, 0, world);
     for (int n1 = 0; n1 < n_f3[is2]; n1++)
     {
-      MPI_Bcast(&a_sp_f3[n][n1][is1][is2], 1, MPI_DOUBLE, 0, world);
+      MPI_Bcast(&a_sp_f3[is1][is2][n1][n], 1, MPI_DOUBLE, 0, world);
     }    
   }
 
@@ -1247,11 +1271,11 @@ void PairLS::par2pot_is(int is)
 	n_sp = n_sp_fi[is][is];
 	for (i = 0; i < n_sp; i++)
   {
-    R_sp[i]=R_sp_fi[i][is][is];
+    R_sp[i]=R_sp_fi[is][is][i];
   }
 	for (i = 0; i < n_sp-1; i++)
   {
-    a_sp[i]=a_sp_fi[i][is][is];
+    a_sp[i]=a_sp_fi[is][is][i];
   }  
 	a_sp[n_sp-1] = 0.0;
 
@@ -1275,18 +1299,18 @@ void PairLS::par2pot_is(int is)
   // !std::cout << "!!!!!!!!!!!! Fi" << std::endl;
 	for (i = 0; i < n_sp; i++)
   {
-    a_sp_fi[i][is][is] = a_sp[i];
-    b_sp_fi[i][is][is] = b_sp[i];
-    c_sp_fi[i][is][is] = c_sp[i];
-    d_sp_fi[i][is][is] = d_sp[i];
-    // !std::cout << " R_sp_fi[" << i << "][" << is << "][" << is << "] = " << R_sp_fi[i][is][is] << "   ";
-    // !std::cout << " a_sp_fi[" << i << "][" << is << "][" << is << "] = " << a_sp_fi[i][is][is] << "   ";    
-    // !std::cout << " b_sp_fi[" << i << "][" << is << "][" << is << "] = " << b_sp_fi[i][is][is] << "   ";    
-    // !std::cout << " c_sp_fi[" << i << "][" << is << "][" << is << "] = " << c_sp_fi[i][is][is] << "   ";    
-    // !std::cout << " d_sp_fi[" << i << "][" << is << "][" << is << "] = " << d_sp_fi[i][is][is] << std::endl;    
+    a_sp_fi[is][is][i] = a_sp[i];
+    b_sp_fi[is][is][i] = b_sp[i];
+    c_sp_fi[is][is][i] = c_sp[i];
+    d_sp_fi[is][is][i] = d_sp[i];
+    // !std::cout << " R_sp_fi[" << i << "][" << is << "][" << is << "] = " << R_sp_fi[is][is][i] << "   ";
+    // !std::cout << " a_sp_fi[" << i << "][" << is << "][" << is << "] = " << a_sp_fi[is][is][i] << "   ";    
+    // !std::cout << " b_sp_fi[" << i << "][" << is << "][" << is << "] = " << b_sp_fi[is][is][i] << "   ";    
+    // !std::cout << " c_sp_fi[" << i << "][" << is << "][" << is << "] = " << c_sp_fi[is][is][i] << "   ";    
+    // !std::cout << " d_sp_fi[" << i << "][" << is << "][" << is << "] = " << d_sp_fi[is][is][i] << std::endl;    
   }
 	
-	shag_sp_fi[is][is] = 1.0/((R_sp_fi[n_sp-1][is][is]-R_sp_fi[0][is][is])/(n_sp-1));
+	shag_sp_fi[is][is] = 1.0/((R_sp_fi[is][is][n_sp-1]-R_sp_fi[is][is][0])/(n_sp-1));
 
   // par2pot_is.f(39-49):
   // c fi_ZBL
@@ -1306,10 +1330,10 @@ void PairLS::par2pot_is(int is)
 	f1 = v_ZBL(r1, is, is) + e0_ZBL[is][is];
 	fp1 = vp_ZBL(r1, is, is);
 	fpp1 = vpp_ZBL(r1, is, is);
-  r2 = R_sp_fi[0][is][is];
-  f2 = a_sp_fi[0][is][is];
-  fp2 = b_sp_fi[0][is][is];
-  fpp2 = 2.0*c_sp_fi[0][is][is];	
+  r2 = R_sp_fi[is][is][0];
+  f2 = a_sp_fi[is][is][0];
+  fp2 = b_sp_fi[is][is][0];
+  fpp2 = 2.0*c_sp_fi[is][is][0];	
 	
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " now smooth_zero_22 function will be called" << std::endl;
 
@@ -1329,8 +1353,8 @@ void PairLS::par2pot_is(int is)
 
   for (i = 0; i < 6; i++)
   {
-    c_fi_ZBL[i][is][is] = B6[i];
-    // !std::cout << c_fi_ZBL[i][is][is] << "  ";
+    c_fi_ZBL[is][is][i] = B6[i];
+    // !std::cout << c_fi_ZBL[is][is][i] << "  ";
   }
   // !std::cout << std::endl;
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < 6; i++) worked well" << std::endl;
@@ -1359,9 +1383,9 @@ void PairLS::par2pot_is(int is)
   // !std::cout << " n_sp = " << n_sp_ro[is][is] << std::endl;
   for (i = 0; i < n_sp; i++)
   {
-    // !std::cout << " i = " << i << " R_sp_ro[i][is][is] = " << R_sp_ro[i][is][is] << std::endl;
-    R_sp[i] = R_sp_ro[i][is][is];
-    a_sp[i] = a_sp_ro[i][is][is];
+    // !std::cout << " i = " << i << " R_sp_ro[is][is][i] = " << R_sp_ro[is][is][i] << std::endl;
+    R_sp[i] = R_sp_ro[is][is][i];
+    a_sp[i] = a_sp_ro[is][is][i];
   }
   p1=0.0;
 
@@ -1375,17 +1399,17 @@ void PairLS::par2pot_is(int is)
   // !std::cout << "!!!!!!!!!!!! Rho" << std::endl;
 	for (i = 0; i < n_sp; i++)
   {  
-    a_sp_ro[i][is][is] = a_sp[i];
-    b_sp_ro[i][is][is] = b_sp[i];
-    c_sp_ro[i][is][is] = c_sp[i];
-    d_sp_ro[i][is][is] = d_sp[i];
-    // !std::cout << " R_sp_ro[" << i << "][" << is << "][" << is << "] = " << R_sp_ro[i][is][is] << "   ";
-    // !std::cout << " a_sp_ro[" << i << "][" << is << "][" << is << "] = " << a_sp_ro[i][is][is] << "   ";    
-    // !std::cout << " b_sp_ro[" << i << "][" << is << "][" << is << "] = " << b_sp_ro[i][is][is] << "   ";    
-    // !std::cout << " c_sp_ro[" << i << "][" << is << "][" << is << "] = " << c_sp_ro[i][is][is] << "   ";    
-    // !std::cout << " d_sp_ro[" << i << "][" << is << "][" << is << "] = " << d_sp_ro[i][is][is] << std::endl;     
+    a_sp_ro[is][is][i] = a_sp[i];
+    b_sp_ro[is][is][i] = b_sp[i];
+    c_sp_ro[is][is][i] = c_sp[i];
+    d_sp_ro[is][is][i] = d_sp[i];
+    // !std::cout << " R_sp_ro[" << i << "][" << is << "][" << is << "] = " << R_sp_ro[is][is][i] << "   ";
+    // !std::cout << " a_sp_ro[" << i << "][" << is << "][" << is << "] = " << a_sp_ro[is][is][i] << "   ";    
+    // !std::cout << " b_sp_ro[" << i << "][" << is << "][" << is << "] = " << b_sp_ro[is][is][i] << "   ";    
+    // !std::cout << " c_sp_ro[" << i << "][" << is << "][" << is << "] = " << c_sp_ro[is][is][i] << "   ";    
+    // !std::cout << " d_sp_ro[" << i << "][" << is << "][" << is << "] = " << d_sp_ro[is][is][i] << std::endl;     
   }
-	shag_sp_ro[is][is] = 1.0/((R_sp_ro[n_sp-1][is][is]-R_sp_ro[0][is][is])/(n_sp-1));
+	shag_sp_ro[is][is] = 1.0/((R_sp_ro[is][is][n_sp-1]-R_sp_ro[is][is][0])/(n_sp-1));
 
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < n_sp; i++) worked well" << std::endl;
 
@@ -1416,8 +1440,8 @@ void PairLS::par2pot_is(int is)
 	n = n_sp_emb[is][is];
   for (i = 0; i < n_sp; i++)
   {
-    R_sp[i] = R_sp_emb[i][is];
-    a_sp[i] = a_sp_emb[i][is];
+    R_sp[i] = R_sp_emb[is][i];
+    a_sp[i] = a_sp_emb[is][i];
   }  
 	a_sp[0] = 0.0;
 
@@ -1429,10 +1453,10 @@ void PairLS::par2pot_is(int is)
   // !std::cout << "!!!!!!!!!!!! Emb" << std::endl;
 	for (i = 0; i < n_sp; i++)
   {  
-    a_sp_emb[i][is] = a_sp[i];
-    b_sp_emb[i][is] = b_sp[i];
-    c_sp_emb[i][is] = c_sp[i];
-    d_sp_emb[i][is] = d_sp[i];
+    a_sp_emb[is][i] = a_sp[i];
+    b_sp_emb[is][i] = b_sp[i];
+    c_sp_emb[is][i] = c_sp[i];
+    d_sp_emb[is][i] = d_sp[i];
     // !std::cout << " R_sp_emb[" << i << "][" << is << "] = " << R_sp_emb[i][is] << "   ";
     // !std::cout << " a_sp_emb[" << i << "][" << is << "] = " << a_sp_emb[i][is] << "   ";    
     // !std::cout << " b_sp_emb[" << i << "][" << is << "] = " << b_sp_emb[i][is] << "   ";    
@@ -1440,7 +1464,7 @@ void PairLS::par2pot_is(int is)
     // !std::cout << " d_sp_emb[" << i << "][" << is << "] = " << d_sp_emb[i][is] << std::endl;     
   }
 
-	shag_sp_emb[is] = 1.0/((R_sp_emb[n_sp-1][is] - R_sp_emb[0][is])/(n_sp - 1)); 
+	shag_sp_emb[is] = 1.0/((R_sp_emb[is][n_sp-1] - R_sp_emb[is][0])/(n_sp - 1)); 
 
   // par2pot_is.f(97-115):
   // ! f3
@@ -1467,7 +1491,7 @@ void PairLS::par2pot_is(int is)
 	n_sp = n_sp_f[is][is];
   for (i = 0; i < n_sp; i++)
   {
-    R_sp[i] = R_sp_f[i][is][is];
+    R_sp[i] = R_sp_f[is][is][i];
   }
 
   // !std::cout << "!!!!!!!!!!!! f3" << std::endl;
@@ -1475,7 +1499,7 @@ void PairLS::par2pot_is(int is)
   {
     for (i = 0; i < n_sp; i++)
     {
-      a_sp[i] = a_sp_f3[i][i1][is][is];
+      a_sp[i] = a_sp_f3[is][is][i1][i];
     }
     p1 = 0.0;
     // SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
@@ -1483,18 +1507,18 @@ void PairLS::par2pot_is(int is)
     // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp) worked well" << std::endl;
     for (i = 0; i < n_sp; i++)
     { 
-      a_sp_f3[i][i1][is][is] = a_sp[i];
-      b_sp_f3[i][i1][is][is] = b_sp[i];
-      c_sp_f3[i][i1][is][is] = c_sp[i];
-      d_sp_f3[i][i1][is][is] = d_sp[i];
-      // !std::cout << " R_sp_f3[" << i << "][" << is << "][" << is << "] = " << R_sp_f[i][is][is] << "   ";
-      // !std::cout << " a_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << a_sp_f3[i][i1][is][is] << "   ";    
-      // !std::cout << " b_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << b_sp_f3[i][i1][is][is] << "   ";    
-      // !std::cout << " c_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << c_sp_f3[i][i1][is][is] << "   ";    
-      // !std::cout << " d_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << d_sp_f3[i][i1][is][is] << std::endl;      
+      a_sp_f3[is][is][i1][i] = a_sp[i];
+      b_sp_f3[is][is][i1][i] = b_sp[i];
+      c_sp_f3[is][is][i1][i] = c_sp[i];
+      d_sp_f3[is][is][i1][i] = d_sp[i];
+      // !std::cout << " R_sp_f3[" << i << "][" << is << "][" << is << "] = " << R_sp_f[is][is][i] << "   ";
+      // !std::cout << " a_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << a_sp_f3[is][is][i1][i] << "   ";    
+      // !std::cout << " b_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << b_sp_f3[is][is][i1][i] << "   ";    
+      // !std::cout << " c_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << c_sp_f3[is][is][i1][i] << "   ";    
+      // !std::cout << " d_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << d_sp_f3[is][is][i1][i] << std::endl;      
     }
   }
-	shag_sp_f[is][is] = 1.0/((R_sp_f[n_sp-1][is][is]-R_sp_f[0][is][is])/(n_sp-1));
+	shag_sp_f[is][is] = 1.0/((R_sp_f[is][is][n_sp-1]-R_sp_f[is][is][0])/(n_sp-1));
 
   // par2pot_is.f(117-150):
   // ! g3
@@ -1544,7 +1568,8 @@ void PairLS::par2pot_is(int is)
     {
       for (i = 0; i < n_sp; i++)
       {
-        a_sp[i] = a_sp_g3[i][i1][i2][is];
+        a_sp[i] = a_sp_g3[is][i][i1][i2];
+        // a_sp[i] = a_sp_g3[is][i1][i2][i];
       }
       p1 = 0.0;
       p2 = 0.0;
@@ -1553,25 +1578,25 @@ void PairLS::par2pot_is(int is)
       // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, p2, b_sp, c_sp, d_sp) worked well" << std::endl;
       for (i = 0; i < n_sp; i++)
       { 
-        a_sp_g3[i][i1][i2][is] = a_sp[i];
-        a_sp_g3[i][i2][i1][is] = a_sp[i];
-        b_sp_g3[i][i1][i2][is] = b_sp[i];
-        b_sp_g3[i][i2][i1][is] = b_sp[i];
-        c_sp_g3[i][i1][i2][is] = c_sp[i];
-        c_sp_g3[i][i2][i1][is] = c_sp[i];
-        d_sp_g3[i][i1][i2][is] = d_sp[i];
-        d_sp_g3[i][i2][i1][is] = d_sp[i];
+        a_sp_g3[is][i][i1][i2] = a_sp[i];
+        a_sp_g3[is][i][i2][i1] = a_sp[i];
+        b_sp_g3[is][i][i1][i2] = b_sp[i];
+        b_sp_g3[is][i][i2][i1] = b_sp[i];
+        c_sp_g3[is][i][i1][i2] = c_sp[i];
+        c_sp_g3[is][i][i2][i1] = c_sp[i];
+        d_sp_g3[is][i][i1][i2] = d_sp[i];
+        d_sp_g3[is][i][i2][i1] = d_sp[i];
         // !std::cout << " R_sp_g3[" << i <<  "] = " << R_sp_g[i] << "   ";
-        // !std::cout << " a_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << a_sp_g3[i][i1][i2][is] << "   ";    
-        // !std::cout << " b_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << b_sp_g3[i][i1][i2][is] << "   ";    
-        // !std::cout << " c_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << c_sp_g3[i][i1][i2][is] << "   ";    
-        // !std::cout << " d_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << d_sp_g3[i][i1][i2][is] << std::endl;   
+        // !std::cout << " a_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << a_sp_g3[is][i][i1][i2] << "   ";    
+        // !std::cout << " b_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << b_sp_g3[is][i][i1][i2] << "   ";    
+        // !std::cout << " c_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << c_sp_g3[is][i][i1][i2] << "   ";    
+        // !std::cout << " d_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << d_sp_g3[is][i][i1][i2] << std::endl;   
         // 
         // !std::cout << " R_sp_g3[" << i <<  "] = " << R_sp_g[i] << "   ";
-        // !std::cout << " a_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << a_sp_g3[i][i2][i1][is] << "   ";    
-        // !std::cout << " b_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << b_sp_g3[i][i2][i1][is] << "   ";    
-        // !std::cout << " c_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << c_sp_g3[i][i2][i1][is] << "   ";    
-        // !std::cout << " d_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << d_sp_g3[i][i2][i1][is] << std::endl;     
+        // !std::cout << " a_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << a_sp_g3[is][i][i2][i1] << "   ";    
+        // !std::cout << " b_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << b_sp_g3[is][i][i2][i1] << "   ";    
+        // !std::cout << " c_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << c_sp_g3[is][i][i2][i1] << "   ";    
+        // !std::cout << " d_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << d_sp_g3[is][i][i2][i1] << std::endl;     
       }
     }  
   }
@@ -1632,11 +1657,11 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
 	n_sp = n_sp_fi[is1][is2];
 	for (i = 0; i < n_sp; i++)
   {
-    R_sp[i]=R_sp_fi[i][is1][is2];
+    R_sp[i]=R_sp_fi[is1][is2][i];
   }
 	for (i = 0; i < n_sp-1; i++)
   {
-    a_sp[i]=a_sp_fi[i][is1][is2];
+    a_sp[i]=a_sp_fi[is1][is2][i];
   }  
 	a_sp[n_sp-1] = 0.0;
 
@@ -1647,28 +1672,28 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
   // !std::cout << "!!!!!!!!!!!! Fi" << std::endl;
 	for (i = 0; i < n_sp; i++)
   {
-    a_sp_fi[i][is1][is2] = a_sp[i];
-    b_sp_fi[i][is1][is2] = b_sp[i];
-    c_sp_fi[i][is1][is2] = c_sp[i];
-    d_sp_fi[i][is1][is2] = d_sp[i];
-    // !std::cout << " R_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << R_sp_fi[i][is1][is2] << "   ";
-    // !std::cout << " a_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << a_sp_fi[i][is1][is2] << "   ";    
-    // !std::cout << " b_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << b_sp_fi[i][is1][is2] << "   ";    
-    // !std::cout << " c_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << c_sp_fi[i][is1][is2] << "   ";    
-    // !std::cout << " d_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << d_sp_fi[i][is1][is2] << std::endl;    
+    a_sp_fi[is1][is2][i] = a_sp[i];
+    b_sp_fi[is1][is2][i] = b_sp[i];
+    c_sp_fi[is1][is2][i] = c_sp[i];
+    d_sp_fi[is1][is2][i] = d_sp[i];
+    // !std::cout << " R_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << R_sp_fi[is1][is2][i] << "   ";
+    // !std::cout << " a_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << a_sp_fi[is1][is2][i] << "   ";    
+    // !std::cout << " b_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << b_sp_fi[is1][is2][i] << "   ";    
+    // !std::cout << " c_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << c_sp_fi[is1][is2][i] << "   ";    
+    // !std::cout << " d_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << d_sp_fi[is1][is2][i] << std::endl;    
   }
 	
-	shag_sp_fi[is1][is2] = 1.0/((R_sp_fi[n_sp-1][is1][is2]-R_sp_fi[0][is1][is2])/(n_sp-1));
+	shag_sp_fi[is1][is2] = 1.0/((R_sp_fi[is1][is2][n_sp-1]-R_sp_fi[is1][is2][0])/(n_sp-1));
 
 
 	r1 = Rmin_fi_ZBL[is1][is2];
 	f1 = v_ZBL(r1, is1, is2) + e0_ZBL[is1][is2];
 	fp1 = vp_ZBL(r1, is1, is2);
 	fpp1 = vpp_ZBL(r1, is1, is2);
-  r2 = R_sp_fi[0][is1][is2];
-  f2 = a_sp_fi[0][is1][is2];
-  fp2 = b_sp_fi[0][is1][is2];
-  fpp2 = 2.0*c_sp_fi[0][is1][is2];	
+  r2 = R_sp_fi[is1][is2][0];
+  f2 = a_sp_fi[is1][is2][0];
+  fp2 = b_sp_fi[is1][is2][0];
+  fpp2 = 2.0*c_sp_fi[is1][is2][0];	
 	
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " now smooth_zero_22 function will be called" << std::endl;
 
@@ -1688,8 +1713,8 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
 
   for (i = 0; i < 6; i++)
   {
-    c_fi_ZBL[i][is1][is2] = B6[i];
-    // !std::cout << c_fi_ZBL[i][is1][is2] << "  ";
+    c_fi_ZBL[is1][is2][i] = B6[i];
+    // !std::cout << c_fi_ZBL[is1][is2][i] << "  ";
   }
   // !std::cout << std::endl;
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < 6; i++) worked well" << std::endl;
@@ -1700,9 +1725,9 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
   // !std::cout << " n_sp = " << n_sp_ro[is1][is2] << std::endl;
   for (i = 0; i < n_sp; i++)
   {
-    // // !std::cout << " i = " << i << " R_sp_ro[i][is][is] = " << R_sp_ro[i][is1][is2] << std::endl;
-    R_sp[i] = R_sp_ro[i][is1][is2];
-    a_sp[i] = a_sp_ro[i][is1][is2];
+    // // !std::cout << " i = " << i << " R_sp_ro[is][is][i] = " << R_sp_ro[is1][is2][i] << std::endl;
+    R_sp[i] = R_sp_ro[is1][is2][i];
+    a_sp[i] = a_sp_ro[is1][is2][i];
   }
   p1=0.0;
 
@@ -1716,17 +1741,17 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
   // !std::cout << "!!!!!!!!!!!! Rho" << std::endl;
 	for (i = 0; i < n_sp; i++)
   {  
-    a_sp_ro[i][is1][is2] = a_sp[i];
-    b_sp_ro[i][is1][is2] = b_sp[i];
-    c_sp_ro[i][is1][is2] = c_sp[i];
-    d_sp_ro[i][is1][is2] = d_sp[i];
-    // !std::cout << " R_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << R_sp_ro[i][is1][is2] << "   ";
-    // !std::cout << " a_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << a_sp_ro[i][is1][is2] << "   ";    
-    // !std::cout << " b_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << b_sp_ro[i][is1][is2] << "   ";    
-    // !std::cout << " c_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << c_sp_ro[i][is1][is2] << "   ";    
-    // !std::cout << " d_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << d_sp_ro[i][is1][is2] << std::endl;     
+    a_sp_ro[is1][is2][i] = a_sp[i];
+    b_sp_ro[is1][is2][i] = b_sp[i];
+    c_sp_ro[is1][is2][i] = c_sp[i];
+    d_sp_ro[is1][is2][i] = d_sp[i];
+    // !std::cout << " R_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << R_sp_ro[is1][is2][i] << "   ";
+    // !std::cout << " a_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << a_sp_ro[is1][is2][i] << "   ";    
+    // !std::cout << " b_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << b_sp_ro[is1][is2][i] << "   ";    
+    // !std::cout << " c_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << c_sp_ro[is1][is2][i] << "   ";    
+    // !std::cout << " d_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << d_sp_ro[is1][is2][i] << std::endl;     
   }
-	shag_sp_ro[is1][is2] = 1.0/((R_sp_ro[n_sp-1][is1][is2]-R_sp_ro[0][is1][is2])/(n_sp-1));
+	shag_sp_ro[is1][is2] = 1.0/((R_sp_ro[is1][is2][n_sp-1]-R_sp_ro[is1][is2][0])/(n_sp-1));
 
 
   // f3
@@ -1734,7 +1759,7 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
 	n_sp = n_sp_f[is1][is2];
   for (i = 0; i < n_sp; i++)
   {
-    R_sp[i] = R_sp_f[i][is1][is2];
+    R_sp[i] = R_sp_f[is1][is2][i];
   }
 
   // !std::cout << "!!!!!!!!!!!! f3" << std::endl;
@@ -1742,7 +1767,7 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
   {
     for (i = 0; i < n_sp; i++)
     {
-      a_sp[i] = a_sp_f3[i][i1][is1][is2];
+      a_sp[i] = a_sp_f3[is1][is2][i1][i];
     }
     p1 = 0.0;
     // SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
@@ -1750,18 +1775,18 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
     // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp) worked well" << std::endl;
     for (i = 0; i < n_sp; i++)
     { 
-      a_sp_f3[i][i1][is1][is2] = a_sp[i];
-      b_sp_f3[i][i1][is1][is2] = b_sp[i];
-      c_sp_f3[i][i1][is1][is2] = c_sp[i];
-      d_sp_f3[i][i1][is1][is2] = d_sp[i];
-      // !std::cout << " R_sp_f3[" << i << "][" << is1 << "][" << is2 << "] = " << R_sp_f[i][is1][is2] << "   ";
-      // !std::cout << " a_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << a_sp_f3[i][i1][is1][is2] << "   ";    
-      // !std::cout << " b_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << b_sp_f3[i][i1][is1][is2] << "   ";    
-      // !std::cout << " c_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << c_sp_f3[i][i1][is1][is2] << "   ";    
-      // !std::cout << " d_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << d_sp_f3[i][i1][is1][is2] << std::endl;      
+      a_sp_f3[is1][is2][i1][i] = a_sp[i];
+      b_sp_f3[is1][is2][i1][i] = b_sp[i];
+      c_sp_f3[is1][is2][i1][i] = c_sp[i];
+      d_sp_f3[is1][is2][i1][i] = d_sp[i];
+      // !std::cout << " R_sp_f3[" << i << "][" << is1 << "][" << is2 << "] = " << R_sp_f[is1][is2][i] << "   ";
+      // !std::cout << " a_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << a_sp_f3[is1][is2][i1][i] << "   ";    
+      // !std::cout << " b_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << b_sp_f3[is1][is2][i1][i] << "   ";    
+      // !std::cout << " c_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << c_sp_f3[is1][is2][i1][i] << "   ";    
+      // !std::cout << " d_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << d_sp_f3[is1][is2][i1][i] << std::endl;      
     }
   }
-	shag_sp_f[is1][is2] = 1.0/((R_sp_f[n_sp-1][is1][is2]-R_sp_f[0][is1][is2])/(n_sp-1));
+	shag_sp_f[is1][is2] = 1.0/((R_sp_f[is1][is2][n_sp-1]-R_sp_f[is1][is2][0])/(n_sp-1));
 
 }
 
@@ -2065,31 +2090,42 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
   double e_sum, pressure, sxx, syy, szz;
   
   // Local Scalars
-  int i, j, ii, jj, jnum, is, js;
+  int i, j, ii, jj, jnum, is, js, li, lj;
   int n_i, in_list;
   double rr_pot[10][10];
   double sizex05, sizey05, sizez05, x, y, z, xx, yy, zz, rr, r, r1;
   double roi, roj, w, ropi, ropj, w1, w2, w3;
   int i1, i2, i3, iw;
 
-  // Local Arrays
-  double *rosum;
+  // // Local Arrays
+  // double *rosum;
 
   // pointers to LAMMPS arrays 
+
+  // full neighbor list
   int *ilist,*jlist,*numneigh,**firstneigh;
   int inum = listfull->inum; // # of I atoms neighbors are stored for (the length of the neighborlists list)
   int gnum = listfull->gnum; // # of ghost atoms neighbors are stored for
-
-  // int inum_st = list->inum;
-  // int gnum_st = list->gnum;
 
   ilist = listfull->ilist;           // local indices of I atoms (list of "i" atoms for which neighbor lists exist)
   numneigh = listfull->numneigh;     // # of J neighbors for each I atom (the length of each these neigbor list)
   firstneigh = listfull->firstneigh; // ptr to 1st J int value of each I atom (the pointer to the list of neighbors of "i")
 
+
+  // standard (half) neighbor list
+  // int *ilist,*jlist,*numneigh,**firstneigh;
+  // int inum = listhalf->inum; // # of I atoms neighbors are stored for (the length of the neighborlists list)
+  // int gnum = listhalf->gnum; // # of ghost atoms neighbors are stored for
+
+  // ilist = listhalf->ilist;           // local indices of I atoms (list of "i" atoms for which neighbor lists exist)
+  // numneigh = listhalf->numneigh;     // # of J neighbors for each I atom (the length of each these neigbor list)
+  // firstneigh = listhalf->firstneigh; // ptr to 1st J int value of each I atom (the pointer to the list of neighbors of "i")
+
+
   int nlocal = atom->nlocal;         // nlocal == n_at for this function
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
+  tagint *tag = atom->tag;
 
   memory->create(rosum, nall, "PairLS:rosum");
  
@@ -2097,38 +2133,27 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
   sizex05 = sizex*0.5;
   sizey05 = sizey*0.5;
   sizez05 = sizez*0.5;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " e_force_fi_emb rr_pot[js][is]"  << std::endl;
 
   for (is = 1; is <= n_sort; is++)
   {
     for (js = 1; js <= n_sort; js++)
     {
-      // rr_pot[js][is] = pow(R_sp_fi[n_sp_fi[js][is]-1][js][is],2);
-      rr_pot[js][is] = cutsq[js][is];
+      rr_pot[js][is] = R_sp_fi[js][is][n_sp_fi[js][is]-1]*R_sp_fi[js][is][n_sp_fi[js][is]-1];
+      // rr_pot[js][is] = pow(R_sp_fi[js][is][n_sp_fi[js][is]-1],2);
+      // rr_pot[js][is] = cutsq[js][is];
+      // std::cout << " rr_pot["<<js<<"]["<<is<<"]  = " << rr_pot[js][is]  << std::endl;
     }
   }
   
- // set rosum = {0.0}; and e_at = {0.0};
-  if (newton_pair) 
-  {
-    for (i = 0; i < nall; i++) 
-    {
-      rosum[i] = 0.0;
-      // if (eflag > 0) eatom[i] = 0.0; // already set to 0.0 in Pair::ev_setup(int eflag, int vflag, int alloc)
-    }
-  } 
-  else 
-  {
-    for (i = 0; i < nlocal; i++) 
-    {
-      rosum[i] = 0.0;
-      // if (eflag > 0) eatom[i] = 0.0;  // already set to 0.0 in Pair::ev_setup(int eflag, int vflag, int alloc)
-    }
-  }
+ // set rosum = {0.0} as it was done for rho in pair_eam.cpp (182-184);
+  if (newton_pair) {
+    for (i = 0; i < nall; i++) rosum[i] = 0.0;
+  } else for (i = 0; i < nlocal; i++) rosum[i] = 0.0;
 
   // == calc rosum(n_at) =========================>
 
   // Loop over the LAMMPS full neighbour list 
-  // // !std::cout << " i indexes of atoms in the LAMMPS neighbour list" << std::endl; 
   for (ii = 0; ii < inum; ii++) // inum is the # of I atoms neighbors are stored for
   {
     i = ilist[ii];  // local index of atom i
@@ -2138,80 +2163,36 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
     is = i_sort_at[i];
     jnum = numneigh[i];    // # of J neighbors for the atom i
     jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
-    // // !std::cout << "There are " << jnum << " neighbours of atom " << i << std::endl;
-
+    // std::cout << "There are " << jnum << " neighbours of atom " << i << std::endl;
+    int n_neighb = 0;
     for (jj = 0; jj < jnum; jj++) 
     {
-      j = jlist[jj];  // local index of atom j
-      // // !std::cout << "j = " << j << std::endl;
+      j = jlist[jj];  // local or ghost index of atom j
+      j &= NEIGHMASK;  // from pair_eam.cpp 
+      // std::cout << "j = " << j << std::endl;
       js = i_sort_at[j];
       xx = r_at[j][0] - x;
       yy = r_at[j][1] - y;
       zz = r_at[j][2] - z;
-      // if (domain->xperiodic && xx >  domain->xprd_half) xx = xx - sizex;
-      // if (domain->xperiodic && xx < -domain->xprd_half) xx = xx + sizex;
-      // if (domain->yperiodic && yy >  domain->yprd_half) yy = yy - sizey;
-      // if (domain->yperiodic && yy < -domain->yprd_half) yy = yy + sizey;
-      // if (domain->zperiodic && zz >  domain->zprd_half) zz = zz - sizez;
-      // if (domain->zperiodic && zz < -domain->zprd_half) zz = zz + sizez;
-      /////////////////////////////////////
       // if (periodic[0] && xx >  sizex05) xx = xx - sizex;
       // if (periodic[0] && xx < -sizex05) xx = xx + sizex;
       // if (periodic[1] && yy >  sizey05) yy = yy - sizey;
       // if (periodic[1] && yy < -sizey05) yy = yy + sizey;
       // if (periodic[2] && zz >  sizez05) zz = zz - sizez;
       // if (periodic[2] && zz < -sizez05) zz = zz + sizez;
-      // Start debugging version
-      // if (domain->xperiodic && xx >  domain->xprd_half) 
-      // if (periodic[0] && xx > sizex05) 
-      // {
-      //   // !std::cout << " domain->xperiodic && xx > domain->xprd_half is true" << std::endl;
-      //   xx = xx - sizex;
-      // }
-      // // if (domain->xperiodic && xx < -domain->xprd_half) 
-      // if (periodic[0] && xx < -sizex05) 
-      // {
-      //   // !std::cout << " domain->xperiodic && xx < -domain->xprd_half is true" << std::endl;
-      //   xx = xx + sizex;
-      // }
-      // // if (domain->yperiodic && yy >  domain->yprd_half) 
-      // if (periodic[1] && yy > sizey05) 
-      // {
-      //   // !std::cout << " domain->yperiodic && yy >  domain->yprd_half is true" << std::endl;
-      //   yy = yy - sizey;
-      // }
-      // // if (domain->yperiodic && yy < -domain->yprd_half) 
-      // if (periodic[1] && yy < -sizey05) 
-      // {
-      //   // !std::cout << " domain->yperiodic && yy < -domain->yprd_half is true" << std::endl;
-      //   yy = yy + sizey;
-      // }
-      // // if (domain->zperiodic && zz >  domain->zprd_half) 
-      // if (periodic[2] && zz > sizez05) 
-      // {
-      //   // !std::cout << " domain->zperiodic && zz >  domain->zprd_half is true" << std::endl;
-      //   zz = zz - sizez;
-      // }
-      // // if (domain->zperiodic && zz < -domain->zprd_half) 
-      // if (periodic[2] && zz < -sizez05) 
-      // {
-      //   // !std::cout << " domain->zperiodic && zz < -domain->zprd_half is true" << std::endl;
-      //   zz = zz + sizez;  
-      // }
-      // End debugging version
-      // // !std::cout << "End debugging version" << std::endl;
       rr = xx*xx + yy*yy + zz*zz;
       // // !std::cout << "r = " << sqrt(rr) << std::endl;
       if (rr < rr_pot[js][is]) 
       {
         r = sqrt(rr);
-        // // !std::cout << "r = " << r << std::endl;
         roj = fun_ro(r, js, is);
-        // // !std::cout << "roj = " << roj << std::endl;
-        rosum[i] = rosum[i] + roj;
-        // // !std::cout << "rosum[" << i << "] = " << rosum[i] << std::endl;
+        rosum[i] += roj;
+        // for half list
+          // lj = atom->map(tag[j]); // mapped local index of atom j
+          // roj = fun_ro(r, is, js);
+          // if (newton_pair || j < nlocal) rosum[j] += roj;
+        // end for half list
         w = fun_fi(r, is, js);
-        // // !std::cout << "w = " << w << std::endl;
         // if (eflag > 0) 
         // {
         //   // !std::cout << "eflag [" << i << "] = " << eflag << std::endl; 
@@ -2219,10 +2200,12 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
         //   if (eflag_atom) e_at[i] += w;
         // } 
         e_at[i] += w;
-        // // !std::cout << "e_at[" << i << "] += " << w << std::endl;
-        // // !std::cout << "e_at[" << i << "] = " << e_at[i] << std::endl;
+        // std::cout << "rr < rr_pot["<<js<<"]["<<is<<"] j = " << j << " rr =" << rr << " r =" << r << " roj =" << roj << " fun_fi("<<r<<","<<is<<","<<js<<") =" << w << std::endl;
+        n_neighb += 1;
       }
     }
+    // std::cout << tag[i] << " n_neighb = " << n_neighb << "   rosum[  " << tag[i] << "   ] = " << rosum[i] << std::endl;
+    // std::cout << "e_at[" << i+1 << "]_fi = " << e_at[i] << std::endl;
   }
   //////////////////////////////////////////////////
   // std::cout << "Finished 1st loop over the LAMMPS full neighbour list in e_force_fi_emb" << std::endl;
@@ -2232,17 +2215,44 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
   {
     // // !std::cout << "i = " << i << std::endl;
     // // !std::cout << "e_at[" << i << "] += " << e_at[i] << std::endl;
+    // with full meighbor list
     w = fun_emb(rosum[i], i_sort_at[i]) + 0.5*e_at[i];
+    // with half neighbor list
+    // w = fun_emb(rosum[i], i_sort_at[i]) + e_at[i];
     e_at[i] = w;
+    eng_vdwl += w;
+    // std::cout << "e_at[" << i+1 << "]_fi_emb = " << e_at[i] << std::endl;
   }
   // !std::cout << "Finished calc energies: e_at(n_at)  " << std::endl;
 
+  // communicate and sum densities
+
+
   // == calc funp_emb(n_at) and put one into rosum(n_at) ==>
-  for (i = 0; i < n_at; i++)
+  // for (i = 0; i < n_at; i++)
+  // {
+  //   rosum[i] = funp_emb(rosum[i], i_sort_at[i]);
+  //   // std::cout << "rosum[" << i+1 << "]_fi_emb = " << rosum[i] << std::endl;
+  // }
+  for (i = 0; i < nall; i++)
   {
-    rosum[i] = funp_emb(rosum[i], i_sort_at[i]);
+    if (i < nlocal) // set rosum for local atoms 
+    {
+      // std::cout << tag[i] << "  funp_emb( " << rosum[i] << " , " << i_sort_at[i]<< " ) = ";
+      rosum[i] = funp_emb(rosum[i], i_sort_at[i]);
+      // std::cout << rosum[i] << std::endl;
+    }
+    // else // set rosum for ghost atoms 
+    // {
+    //   li = atom->map(tag[i]); // mapped local index of atom i
+    //   if (li > 0) rosum[i] = funp_emb(rosum[li], i_sort_at[li]); // if ghost atoms are owned by this proc due to pbc
+    //   else rosum[i] = funp_emb(rosum[i], i_sort_at[i]); // if ghost atoms are owned by other proc
+    // } 
   }
   // !std::cout << "Finished calc funp_emb(n_at) and put one into rosum(n_at)C  " << std::endl;
+
+  if (newton_pair) comm->reverse_comm_pair(this);
+
 
   //c
   //c == calc forces: f_at(3,n_at) ==============================>
@@ -2252,18 +2262,19 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
     f_at[i][0] = 0.0; 
     f_at[i][1] = 0.0; 
     f_at[i][2] = 0.0; 
-    px_at[i] = 0.0;
-    py_at[i] = 0.0;
-    pz_at[i] = 0.0;
   }
   // !std::cout << "Finished calc f_at[i][0] = 0.0 etc.  " << std::endl;
 
   pressure = 0.0;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " start calculating forces in e_force_fi_emb"  << std::endl;
 
   // Loop over the Verlet"s list
   for (ii = 0; ii < inum; ii++) // inum is the # of I atoms neighbors are stored for
   {
     i = ilist[ii];  // local index of atom i
+    // li = atom->map(tag[i]);    // mapped local index of atom i
+    // std::cout << "Local index of atom i = " << i << "  li = " << li << std::endl;
+    // std::cout << "Global index of atom i = " << tag[i] << std::endl;
     x = r_at[i][0];
     y = r_at[i][1];
     z = r_at[i][2];
@@ -2271,11 +2282,13 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
     jnum = numneigh[i];    // # of J neighbors for the atom i
     jlist = firstneigh[i]; // ptr to 1st J int value of the atom i
     // // !std::cout << "There are " << jnum << " neighbours of atom " << i << "  ";
-
+    int n_neighb = 0;
     for (jj = 0; jj < jnum; jj++) 
     {
-      j = jlist[jj];  // local index of atom j
-      // // !std::cout << "j = " << j << "  ";
+      j = jlist[jj];  // index of atom j (maybe local or ghost)
+      // j &= NEIGHMASK;  // from pair_eam.cpp 
+      lj = atom->map(tag[j]); // mapped local index of atom j
+      // std::cout << "j = " << j << "  lj = " << lj << std::endl;
       js = i_sort_at[j];
       xx = r_at[j][0] - x;
       yy = r_at[j][1] - y;
@@ -2287,7 +2300,7 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
       // if (periodic[2] && zz >  sizez05) zz = zz - sizez;
       // if (periodic[2] && zz < -sizez05) zz = zz + sizez;
       rr = xx*xx + yy*yy + zz*zz;
-      if (rr < rr_pot[js][is]); 
+      if (rr < rr_pot[js][is]) 
       {
         r = sqrt(rr);
         r1 = 1.0/r;
@@ -2300,30 +2313,71 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
         {
           ropj = funp_ro(r, js, is);
         }
-        w = ((rosum[i]*ropj + rosum[j]*ropi) + funp_fi(r, is, js))*r1;
+        if (lj >= 0) 
+        {
+          w = ((rosum[i]*ropj + rosum[lj]*ropi) + funp_fi(r, is, js))*r1; // if j is a ghost atom which correspond to local atom on this proc
+        }
+        else 
+        {
+          // std::cout << " lj<=0
+          w = ((rosum[i]*ropj + rosum[j]*ropi) + funp_fi(r, is, js))*r1;  
+        }
         w1 = w*xx; 
         w2 = w*yy; 
         w3 = w*zz;
         f_at[i][0] += w1;
         f_at[i][1] += w2; // add the fi force j = >i;
         f_at[i][2] += w3;
-        w1 = w1*xx;
-        w2 = w2*yy;
-        w3 = w3*zz;
-        px_at[i] += w1;
-        py_at[i] += w2;
-        pz_at[i] += w3;
+        // if (newton_pair || j < nlocal) 
+        // {
+        //   f_at[j][0] -= w1;
+        //   f_at[j][1] -= w1;
+        //   f_at[j][2] -= w1;
+        // }
+        // if (tag[i] == 350)
+        // {
+        // // if (lj => 0) 
+        // // {
+        //   // std::cout << " i = " << tag[i] << " j = "<< tag[j] << "  rr_pot["<<js<<"]["<<is<<"] j = " << tag[j] << " rr =" << rr << " r =" << r << " ropi =" << ropi << " ropj =" << ropj  << " funp_fi("<<r<<","<<is<<","<<js<<") =" << funp_fi(r, is, js)  << " rosum["<<tag[i]<<"] = "<<rosum[i] << " rosum["<<tag[j]<<"] = "<<rosum[lj] << "  w = "<< w << "  w1 = "<< w1 << "  w2 = "<< w2 << "  w3 = "<< w3 << std::endl;
+        // // }
+        // // else 
+        // // {
+        // //   std::cout << "rr < rr_pot["<<js<<"]["<<is<<"] j = " << j << " rr =" << rr << " r =" << r << " ropi =" << ropi << " ropj =" << ropj  << " funp_fi("<<r<<","<<is<<","<<js<<") =" << funp_fi(r, is, js)  << " rosum["<<i<<"] = "<<rosum[i] << " rosum["<<j<<"] = "<<rosum[j] << "  w = "<< w << "  w1 = "<< w1 << "  w2 = "<< w2 << "  w3 = "<< w3 << std::endl;
+        // // }
+        // }
+        // std::cout << "r = " << r <<" xx = " << xx << " yy = " << yy << " zz = " << zz << "  w1 =" << w1 << "  w2 =" << w2 << "  w3 =" << w3 << std::endl;
+        // std::cout << "r = " << r <<" xx = " << xx << " yy = " << yy << " zz = " << zz << "  f_at["<<i<<"][0]=" << f_at[i][0] << "  f_at["<<i<<"][1] =" << f_at[i][1] << "  f_at["<<i<<"][2] =" << f_at[i][2] << std::endl;
+        n_neighb += 1;
       }
     }
+    // std::cout << " There are " << n_neighb << " considered pair and centrosymmetric many-body interactions for atom "<< i <<" with " <<x<<" "<<y<<"  "<<z<<" coordinates"<< std::endl;
+    // std::cout << " There are " << n_neighb << " considered pair and centrosymmetric many-body interactions for atom "<< tag[i] << std::endl;
+    // std::cout << "f_at[" << i+1 << "]_fi_emb = " << f_at[i][0] << " " << f_at[i][1] << " "  << f_at[i][2]<< std::endl;
   }
   // std::cout << "Finished 2nd loop over the LAMMPS full neighbour list in e_force_fi_emb" << std::endl;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " End calculating forces in e_force_fi_emb"  << std::endl;
 
-  w = 0.5*(-1.0)/(sizex*sizey*sizez);
-  for (i = 0; i < n_at; i++)
+  // w = 0.5*(-1.0)/(sizex*sizey*sizez);
+  // for (i = 0; i < n_at; i++)
+  // {
+  //   px_at[i] = w*px_at[i];
+  //   py_at[i] = w*py_at[i];
+  //   pz_at[i] = w*pz_at[i];
+  // }
+
+  double r_at_i_tot, f_at_i_tot;
+  std::cout << "e_force_fi_emb on timestep " << update->ntimestep << std::endl;
+  // std::cout << "i_at  e_at       r_at_tot       f_at_tot" << std::endl;
+  // std::cout << "i_at_gl     x        y        z       e_at      f_x        f_y        f_z" << std::endl;
+  std::cout << "i_at  e_at       f_x        f_y        f_z" << std::endl;
+  for (int i = 0; i < nlocal; i++)
   {
-    px_at[i] = w*px_at[i];
-    py_at[i] = w*py_at[i];
-    pz_at[i] = w*pz_at[i];
+    // r_at_i_tot = sqrt(r_at[i][0]*r_at[i][0] + r_at[i][1]*r_at[i][1] + r_at[i][2]*r_at[i][2]);
+    // f_at_i_tot = sqrt(f_at[i][0]*f_at[i][0] + f_at[i][1]*f_at[i][1] + f_at[i][2]*f_at[i][2]);
+    // std::cout << i+1  << "    " << e_at[i] << "    " << r_at_i_tot << "    " << f_at_i_tot << std::endl;
+    // std::cout << tag[i] << "   " << r_at[i][0] << " " << r_at[i][1] << " " << r_at[i][2] <<"    " << e_at[i] << " " << f_at[i][0] << " " << f_at[i][1] << " " << f_at[i][2] << std::endl;
+    std::cout << tag[i] << "  " << e_at[i] << " " << f_at[i][0] << " " << f_at[i][1] << " " << f_at[i][2] << std::endl;
+    // std::cout << i+1 << "    " << e_at[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
   }
 
   memory->destroy(rosum);
@@ -2336,7 +2390,7 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
   double e_sum, pressure, sxx, syy, szz;
   
   // Local Scalars
-  int i,j,k,ii,jj,kk,l,i1,i2,i3;
+  int i,j,k,ii,jj,kk,l,i1,i2,i3, li, lj;
   int n_i,in_list,n_neighb;
   double w,ww,funfi,funfip;
   double e_angle,Gmn_i,eta,fung,fungp,Gmn[3],Dmn;
@@ -2356,7 +2410,7 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
   // double *evek_x, *evek_y, *evek_z;
   // double *vek_x, *vek_y, *vek_z, *r_1;
   // int *nom_j;
-
+  tagint *tag = atom->tag;
 
   // pointers to LAMMPS arrays 
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -2385,13 +2439,14 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
   // memory->create(vek_z, max_neighb, "PairLS:vek_z_g3");
   // memory->create(r_1, max_neighb, "PairLS:r_1_g3");
   // memory->create(nom_j, max_neighb, "PairLS:nom_j_g3");
-
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " e_force_g3 rr_pot[js][is]"  << std::endl;
   for (is = 1; is <= n_sort; is++)
   {
     for (js = 1; js <= n_sort; js++)
     {
-      rr_pot[js][is] = R_sp_f[n_sp_f[js][is]-1][js][is]*R_sp_f[n_sp_f[js][is]-1][js][is];
+      rr_pot[js][is] = R_sp_f[js][is][n_sp_f[js][is]-1]*R_sp_f[js][is][n_sp_f[js][is]-1];
       // rr_pot[js][is] = cutsq[js][is];
+      // std::cout << " rr_pot["<<js<<"]["<<is<<"]  = " << rr_pot[js][is]  << std::endl;
     }
   }
 
@@ -2418,9 +2473,10 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
 
     for (jj = 0; jj < jnum; jj++) 
     {
-      j = jlist[jj];  // local index of atom j
+      j = jlist[jj];  // local or ghost index of atom j
       // // !std::cout << "j = " << j << std::endl;
-      js = i_sort_at[j];
+      js = i_sort_at[j]; 
+      lj = atom->map(tag[j]);  // mapped local index of atom j
       xx = r_at[j][0] - x;
       yy = r_at[j][1] - y;
       zz = r_at[j][2] - z;
@@ -2431,7 +2487,7 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
       // if (periodic[2] && zz >  sizez05) zz = zz - sizez;
       // if (periodic[2] && zz < -sizez05) zz = zz + sizez;
       rr = xx*xx + yy*yy + zz*zz;
-      if (rr < rr_pot[js][is]); 
+      if (rr < rr_pot[js][is])
       {
         r = sqrt(rr);
         r1 = 1.0/r;
@@ -2453,8 +2509,6 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
         vek_z[n_neighb] = zz;
         nom_j[n_neighb] = j;
         // // !std::cout << " nom_j[" << n_neighb << "]= " <<  nom_j[n_neighb] << std::endl;
-        
-        // trying merge two loops over j neighbors to one
 
         n_neighb += 1;
       }
@@ -2463,7 +2517,7 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
 
     // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle
     // // !std::cout << "n_neighb of atom " << i << " = " << n_neighb << std::endl;
-    // std::cout << "There are " << n_neighb << " neighbours will be considered " << i << std::endl;
+    std::cout << "There are " << n_neighb << " j neighbours of atom " << tag[i] << " that will be considered for angle interactions"<< std::endl;
 
     e_angle = 0.0;
     if (n_neighb > 1) 
@@ -2472,9 +2526,10 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
       for (jj = 0; jj < n_neighb; jj++)
       {
         j = nom_j[jj]; // j is n in formul for Dmn and j is m in formul for Gmn;
+        lj = atom->map(tag[j]);  // mapped local index of atom j
         // // !std::cout << "jj = " << jj << std::endl;
         // // !std::cout << "j = " << j << std::endl;
-        // // !std::cout << " nom_j[" << jj << "]= " <<  nom_j[jj] << std::endl;
+        std::cout << " nom_j[" << jj+1 << "]= " <<  tag[j] << std::endl;
         js = i_sort_at[j];
 
         Dmn = 0.0;
@@ -2491,23 +2546,46 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
           ks = i_sort_at[k];
           Gmn_i = 0.0;
           eta = evek_x[jj]*evek_x[kk] + evek_y[jj]*evek_y[kk] + evek_z[jj]*evek_z[kk]; // cos_nmk;
+          // std::cout << "eta = " << eta << std::endl;
+          // Start fun_g3
+          int iii = int((eta - R_sp_g[0])*shag_sp_g);
+          iii += 1; 
+          if (iii >= n_sp_g[is][is]) iii = n_sp_g[is][is] - 1;
+          double dr = eta - R_sp_g[iii-1];
+          iii -= 1;
+          // End fun_g3
           for (i1_bas = 0; i1_bas < n_f3[is]; i1_bas++) // do i1_bas = 1, n_f3(is)
           {
             for (i2_bas = 0; i2_bas < n_f3[is]; i2_bas++) // do i2_bas = 1, n_f3(is)
             {
               // fung = 1.0;
-              fung = fun_g3(eta, i1_bas, i2_bas, is);
-              // std::cout << "fun_g3 work done for i1_bas="<<i1_bas << ", i2_bas=" <<i2_bas<< " and triplet of atoms  i=" << i << " j=" << j << " k=" << k << "  ";
-              // fungp = 1.0;
-              fungp = funp_g3(eta, i1_bas, i2_bas, is);
-              Dmn = Dmn + (funfp[jj][i1_bas]*funf[kk][i2_bas]*fung + funf[jj][i1_bas]*funf[kk][i2_bas]*fungp*(r_1[kk] - r_1[jj]*eta));
-              Gmn_i = Gmn_i + funf[jj][i1_bas]*funf[kk][i2_bas]*fungp;
-              if (kk>jj) e_angle = e_angle + funf[jj][i1_bas]*funf[kk][i2_bas]*fung;
+              // fung = fun_g3(eta, i1_bas, i2_bas, is);
+              // fungp = funp_g3(eta, i1_bas, i2_bas, is);
+              // optimized call of fun_g3 and funp_g3
+              fung = a_sp_g3[is][iii][i1_bas][i2_bas] + dr*(b_sp_g3[is][iii][i1_bas][i2_bas] + dr*(c_sp_g3[is][iii][i1_bas][i2_bas] + dr*(d_sp_g3[is][iii][i1_bas][i2_bas])));
+              fungp = b_sp_g3[is][iii][i1_bas][i2_bas] + dr*(2.0*c_sp_g3[is][iii][i1_bas][i2_bas] + dr*(3.0*d_sp_g3[is][iii][i1_bas][i2_bas]));
+              // std::cout << "fungp = " << fungp << std::endl;
+              Dmn += (funfp[jj][i1_bas]*funf[kk][i2_bas]*fung + funf[jj][i1_bas]*funf[kk][i2_bas]*fungp*(r_1[kk] - r_1[jj]*eta));
+              Gmn_i += funf[jj][i1_bas]*funf[kk][i2_bas]*fungp;
+              // std::cout << "k = " << tag[k] << " j = " << tag[j]  << std::endl;
+              // std::cout << "Dmn += " << (funfp[jj][i1_bas]*funf[kk][i2_bas]*fung + funf[jj][i1_bas]*funf[kk][i2_bas]*fungp*(r_1[kk] - r_1[jj]*eta)) << std::endl;
+              // std::cout << "Gmn_i += " << funf[jj][i1_bas]*funf[kk][i2_bas]*fungp << std::endl;
+              if (kk>jj) e_angle += funf[jj][i1_bas]*funf[kk][i2_bas]*fung;
+              // if (kk>jj) 
+              // {
+              //   // std::cout << "funf["<<tag[j]<<"]["<<i1_bas+1<<"]*funf["<<tag[k]<<"]["<<i2_bas+1<<"]*fung = "<<funf[jj][i1_bas]*funf[kk][i2_bas]*fung << std::endl;
+              //   std::cout << "funf["<<tag[j]<<"]["<<i1_bas+1<<"] = " << funf[jj][i1_bas] << std::endl;
+              //   std::cout << "funf["<<tag[k]<<"]["<<i2_bas+1<<"] = " << funf[kk][i2_bas] << std::endl;
+              //   std::cout << "fung = " << fung << std::endl;
+              // }
             }
           }
           w1 = Gmn_i*(r_1[jj]*r_1[kk]*(vek_x[jj] - vek_x[kk]));
           w2 = Gmn_i*(r_1[jj]*r_1[kk]*(vek_y[jj] - vek_y[kk]));
           w3 = Gmn_i*(r_1[jj]*r_1[kk]*(vek_z[jj] - vek_z[kk]));
+          // std::cout << "w1 = " << w1 << std::endl;
+          // std::cout << "w2 = " << w2 << std::endl;
+          // std::cout << "w3 = " << w3 << std::endl;
           Gmn[0] += w1;
           Gmn[1] += w2;
           Gmn[2] += w3;
@@ -2522,9 +2600,9 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
         f_at[i][1] += Dmn*evek_y[jj];
         f_at[i][2] += Dmn*evek_z[jj];
 
-        f_at[j][0] += (Gmn[0] - Dmn*evek_x[jj]);
-        f_at[j][1] += (Gmn[1] - Dmn*evek_y[jj]);
-        f_at[j][2] += (Gmn[2] - Dmn*evek_z[jj]);
+        f_at[lj][0] += (Gmn[0] - Dmn*evek_x[jj]);
+        f_at[lj][1] += (Gmn[1] - Dmn*evek_y[jj]);
+        f_at[lj][2] += (Gmn[2] - Dmn*evek_z[jj]);
 
         // for pressure
         // w = 0.5*(-1.0)/(sizex*sizey*sizez);
@@ -2534,21 +2612,26 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
         // px_at[j] = px_at[j]/w + (p_Gmn[0] + Dmn*evek_x[jj]*vek_x[jj]);
         // py_at[j] = py_at[j]/w + (p_Gmn[1] + Dmn*evek_y[jj]*vek_y[jj]);
         // pz_at[j] = pz_at[j]/w + (p_Gmn[2] + Dmn*evek_z[jj]*vek_z[jj]);
+
       }
     }
     // std::cout << "The energies and forces are calculated for atom " << i << std::endl;
 
     e_at[i] += e_angle;
+    eng_vdwl += e_angle;
+    // std::cout << "e_at[ " << tag[i] << " ]_g3 = " << e_angle << std::endl;
+    // std::cout << "e_at[" << i+1 << "]_tot = " << e_at[i] << std::endl;
+    // std::cout << "f_at[" << i+1 << "]_tot = " << f_at[i][0] << " " << f_at[i][1] << " "  << f_at[i][2]<< std::endl;
   }
   // !std::cout << "Finished loop over the LAMMPS full neighbour list in e_force_g3" << std::endl;
 
-  w = 0.5*(-1.0)/(sizex*sizey*sizez);
-  for (i = 0; i < n_at; i++)
-  {
-    px_at[i] = w*px_at[i];
-    py_at[i] = w*py_at[i];
-    pz_at[i] = w*pz_at[i];
-  }
+  // w = 0.5*(-1.0)/(sizex*sizey*sizez);
+  // for (i = 0; i < n_at; i++)
+  // {
+  //   px_at[i] = w*px_at[i];
+  //   py_at[i] = w*py_at[i];
+  //   pz_at[i] = w*pz_at[i];
+  // }
 
   // memory->destroy(funf);   
   // memory->destroy(funfp);  
@@ -2578,35 +2661,35 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
 double PairLS::fun_fi(double r, int is, int js)
 {
   int i;
-  double fun_fi, dr, r0_min;
+  double fun_fi_value, dr, r0_min;
 
-  if (r >= R_sp_fi[n_sp_fi[is][js]-1][is][js]) 
+  if (r >= R_sp_fi[is][js][n_sp_fi[is][js]-1]) 
   {
-    fun_fi = 0.0;
-    return fun_fi;
+    fun_fi_value = 0.0;
+    return fun_fi_value;
   }
 
   if (r < Rmin_fi_ZBL[is][js]) 
   {
-    fun_fi = v_ZBL(r, is, js) + e0_ZBL[is][js];
-    return fun_fi;
+    fun_fi_value = v_ZBL(r, is, js) + e0_ZBL[is][js];
+    return fun_fi_value;
   }
 
-  r0_min = R_sp_fi[0][is][js];
+  r0_min = R_sp_fi[is][js][0];
 
   if (r < r0_min) 
   {
-    fun_fi = fun_fi_ZBL(r, is, js);
-    return fun_fi;
+    fun_fi_value = fun_fi_ZBL(r, is, js);
+    return fun_fi_value;
   }
 
-  i = int((r - R_sp_fi[0][is][js])*shag_sp_fi[is][js]);
+  i = int((r - R_sp_fi[is][js][0])*shag_sp_fi[is][js]);
   i = i + 1;
   if (i < 1) i = 1;
-  dr = r - R_sp_fi[i-1][is][js];
-  fun_fi = a_sp_fi[i-1][is][js] + dr*(b_sp_fi[i-1][is][js] + dr*(c_sp_fi[i-1][is][js] + dr*(d_sp_fi[i-1][is][js])));
+  dr = r - R_sp_fi[is][js][i-1];
+  fun_fi_value = a_sp_fi[is][js][i-1] + dr*(b_sp_fi[is][js][i-1] + dr*(c_sp_fi[is][js][i-1] + dr*(d_sp_fi[is][js][i-1])));
 
-  return fun_fi;
+  return fun_fi_value;
 
 }
 
@@ -2614,70 +2697,70 @@ double PairLS::fun_fi(double r, int is, int js)
 double PairLS::funp_fi(double r, int is, int js)
 {
   int i;
-  double funp_fi, dr, r0_min;
+  double funp_fi_value, dr, r0_min;
 
-  if (r >= R_sp_fi[n_sp_fi[is][js]-1][is][js]) 
+  if (r >= R_sp_fi[is][js][n_sp_fi[is][js]-1]) 
   {
-    funp_fi = 0.0;
-    return funp_fi;
+    funp_fi_value = 0.0;
+    return funp_fi_value;
   }
 
   if (r < Rmin_fi_ZBL[is][js]) 
   {
-    funp_fi = vp_ZBL(r, is, js);
-    return funp_fi;
+    funp_fi_value = vp_ZBL(r, is, js);
+    return funp_fi_value;
   }
 
-  r0_min = R_sp_fi[0][is][js];
+  r0_min = R_sp_fi[is][js][0];
 
   if (r < r0_min) 
   {
-    funp_fi = funp_fi_ZBL(r, is, js);
-    return funp_fi;
+    funp_fi_value = funp_fi_ZBL(r, is, js);
+    return funp_fi_value;
   }
 
-  i = int((r - R_sp_fi[0][is][js])*shag_sp_fi[is][js]);
+  i = int((r - R_sp_fi[is][js][0])*shag_sp_fi[is][js]);
   i = i + 1;
   if (i < 1) i = 1;
-  dr = r - R_sp_fi[i-1][is][js];
-  funp_fi = b_sp_fi[i-1][is][js] + dr*(2.0*c_sp_fi[i-1][is][js] + dr*(3.0*d_sp_fi[i-1][is][js]));
+  dr = r - R_sp_fi[is][js][i-1];
+  funp_fi_value = b_sp_fi[is][js][i-1] + dr*(2.0*c_sp_fi[is][js][i-1] + dr*(3.0*d_sp_fi[is][js][i-1]));
 
-  return funp_fi;
+  return funp_fi_value;
 }
 
 // fun_pot_ls.f(74-106):
 double PairLS::funpp_fi(double r, int is, int js)
 {
   int i;
-  double funpp_fi, dr, r0_min;
+  double funpp_fi_value, dr, r0_min;
 
-  if (r >= R_sp_fi[n_sp_fi[is][js]-1][is][js]) 
+  if (r >= R_sp_fi[is][js][n_sp_fi[is][js]-1]) 
   {
-    funpp_fi = 0.0;
-    return funpp_fi;
+    funpp_fi_value = 0.0;
+    return funpp_fi_value;
   }
 
   if (r < Rmin_fi_ZBL[is][js]) 
   {
-    funpp_fi = vpp_ZBL(r, is, js);
-    return funpp_fi;
+    funpp_fi_value = vpp_ZBL(r, is, js);
+    return funpp_fi_value;
   }
 
-  r0_min = R_sp_fi[0][is][js];
+  r0_min = R_sp_fi[is][js][0];
 
   if (r < r0_min) 
   {
-    funpp_fi = funpp_fi_ZBL(r, is, js);
-    return funpp_fi;
+    funpp_fi_value = funpp_fi_ZBL(r, is, js);
+    return funpp_fi_value;
   }
 
   i = int((r - r0_min)*shag_sp_fi[is][js]);
   i = i + 1;
   if (i < 1) i = 1;
-  dr = r - R_sp_fi[i-1][is][js];
-  funpp_fi = 2.0*c_sp_fi[i-1][is][js] + dr*(6.0*d_sp_fi[i-1][is][js]);
+  dr = r - R_sp_fi[is][js][i-1];
+  funpp_fi_value = 2.0*c_sp_fi[is][js][i-1] + dr*(6.0*d_sp_fi[is][js][i-1]);
 
-  return funpp_fi;
+  return funpp_fi_value;
 }
 
 
@@ -2686,85 +2769,85 @@ double PairLS::funpp_fi(double r, int is, int js)
 double PairLS::fun_ro(double r, int is, int js)
 {
   int i;
-  double fun_ro, dr, r0_min;
+  double fun_ro_value, dr, r0_min;
 
-  if (r >= R_sp_ro[n_sp_ro[is][js]-1][is][js]) 
+  if (r >= R_sp_ro[is][js][n_sp_ro[is][js]-1]) 
   {
-    fun_ro = 0.0;
-    return fun_ro;
+    fun_ro_value = 0.0;
+    return fun_ro_value;
   }
 
-  r0_min = R_sp_ro[0][is][js];
+  r0_min = R_sp_ro[is][js][0];
 
   if (r < r0_min) 
   {
-    fun_ro = a_sp_ro[0][is][js];
-    return fun_ro;
+    fun_ro_value = a_sp_ro[is][js][0];
+    return fun_ro_value;
   }
 
   i = int((r - r0_min)*shag_sp_ro[is][js]);
   i = i + 1;
-  dr = r - R_sp_ro[i-1][is][js];
-  fun_ro = a_sp_ro[i-1][is][js] + dr*(b_sp_ro[i-1][is][js] + dr*(c_sp_ro[i-1][is][js] + dr*(d_sp_ro[i-1][is][js])));
+  dr = r - R_sp_ro[is][js][i-1];
+  fun_ro_value = a_sp_ro[is][js][i-1] + dr*(b_sp_ro[is][js][i-1] + dr*(c_sp_ro[is][js][i-1] + dr*(d_sp_ro[is][js][i-1])));
 
-  return fun_ro;
+  return fun_ro_value;
 }
 
 // fun_pot_ls.f(142-169):
 double PairLS::funp_ro(double r, int is, int js)
 {
   int i;
-  double funp_ro, dr, r0_min;
+  double funp_ro_value, dr, r0_min;
 
-  if (r >= R_sp_ro[n_sp_ro[is][js]-1][is][js]) 
+  if (r >= R_sp_ro[is][js][n_sp_ro[is][js]-1]) 
   {
-    funp_ro = 0.0;
-    return funp_ro;
+    funp_ro_value = 0.0;
+    return funp_ro_value;
   }
 
-  r0_min = R_sp_ro[0][is][js];
+  r0_min = R_sp_ro[is][js][0];
 
   if (r < r0_min) 
   {
-    funp_ro = 0.0;
-    return funp_ro;
+    funp_ro_value = 0.0;
+    return funp_ro_value;
   }
 
   i = int((r - r0_min)*shag_sp_ro[is][js]);
   i = i + 1;
-  dr = r - R_sp_ro[i-1][is][js];
-  funp_ro = b_sp_ro[i-1][is][js] + dr*(2.0*c_sp_ro[i-1][is][js] + dr*(3.0*d_sp_ro[i-1][is][js]));
+  dr = r - R_sp_ro[is][js][i-1];
+  funp_ro_value = b_sp_ro[is][js][i-1] + dr*(2.0*c_sp_ro[is][js][i-1] + dr*(3.0*d_sp_ro[is][js][i-1]));
 
-  return funp_ro;  
+  return funp_ro_value;  
 }
 
 // fun_pot_ls.f(173-200):
 double PairLS::funpp_ro(double r, int is, int js)
 {
   int i;
-  double funpp_ro, dr, r0_min;
+  double funpp_ro_value, dr, r0_min;
 
-  if (r >= R_sp_ro[n_sp_ro[is][js]-1][is][js]) 
+  if (r >= R_sp_ro[is][js][n_sp_ro[is][js]-1]) 
   {
-    funpp_ro = 0.0;
-    return funpp_ro;
+    funpp_ro_value = 0.0;
+    return funpp_ro_value;
   }
 
-  r0_min = R_sp_ro[0][is][js];
+  r0_min = R_sp_ro[is][js][0];
 
   if (r < r0_min) 
   {
-    funpp_ro = 0.0;
-    return funpp_ro;
+    funpp_ro_value = 0.0;
+    return funpp_ro_value;
   }
 
   i = int((r - r0_min)*shag_sp_ro[is][js]);
   i = i + 1;
   if (i <= 0) i = 1;
-  dr = r - R_sp_ro[i-1][is][js];
-  funpp_ro = 2.0*c_sp_ro[i-1][is][js] + dr*(6.0*d_sp_ro[i-1][is][js]);
+  dr = r - R_sp_ro[is][js][i-1];
+  funpp_ro_value = 2.0*c_sp_ro[is][js][i-1] + dr*(6.0*d_sp_ro[is][js][i-1]);
 
-  return funpp_ro;  
+  return funpp_ro_value;  
 }  
 
 
@@ -2772,88 +2855,88 @@ double PairLS::funpp_ro(double r, int is, int js)
 double PairLS::fun_emb(double r, int is)
 {
   int i;
-  double fun_emb, dr, r0_min;
+  double fun_emb_value, dr, r0_min;
 
-  if (r >= R_sp_emb[n_sp_emb[is][is]-1][is]) 
+  if (r >= R_sp_emb[is][n_sp_emb[is][is]-1]) 
   {
-      fun_emb = a_sp_emb[n_sp_emb[is][is]-1][is];
-      return fun_emb;
+      fun_emb_value = a_sp_emb[is][n_sp_emb[is][is]-1];
+      return fun_emb_value;
   }
 
-  r0_min = R_sp_emb[0][is];
+  r0_min = R_sp_emb[is][0];
 
   if (r <= r0_min) 
   {
-      fun_emb = b_sp_emb[0][is]*(r - r0_min);
-      return fun_emb;
+      fun_emb_value = b_sp_emb[is][0]*(r - r0_min);
+      return fun_emb_value;
   }
 
   //c    	
-  i = int((r - R_sp_emb[0][is])*shag_sp_emb[is]);
+  i = int((r - R_sp_emb[is][0])*shag_sp_emb[is]);
   i = i + 1;
-  dr = r - R_sp_emb[i-1][is];
-  fun_emb = a_sp_emb[i-1][is] + dr*(b_sp_emb[i-1][is] + dr*(c_sp_emb[i-1][is] + dr*(d_sp_emb[i-1][is])));
+  dr = r - R_sp_emb[is][i-1];
+  fun_emb_value = a_sp_emb[is][i-1] + dr*(b_sp_emb[is][i-1] + dr*(c_sp_emb[is][i-1] + dr*(d_sp_emb[is][i-1])));
 
-  return fun_emb;  
+  return fun_emb_value;  
 }
 
 // fun_pot_ls.f(248-273):
 double PairLS::funp_emb(double r, int is)
 {
   int i;
-  double funp_emb, dr, r0_min;
+  double funp_emb_value, dr, r0_min;
 
-  if (r >= R_sp_emb[n_sp_emb[is][is]-1][is]) 
+  if (r >= R_sp_emb[is][n_sp_emb[is][is]-1]) 
   {
-      funp_emb = 0.0;
-      return funp_emb;
+      funp_emb_value = 0.0;
+      return funp_emb_value;
   }
 
-  r0_min = R_sp_emb[0][is];
+  r0_min = R_sp_emb[is][0];
 
   if (r <= r0_min) 
   {
-      funp_emb = b_sp_emb[0][is];
-      return funp_emb;
+      funp_emb_value = b_sp_emb[is][0];
+      return funp_emb_value;
   }
 
   //c    	
   i = int((r - r0_min)*shag_sp_emb[is]);
   i = i + 1;
-  dr = r - R_sp_emb[i-1][is];
-  funp_emb = b_sp_emb[i-1][is] + dr*(2.0*c_sp_emb[i-1][is] + dr*(3.0*d_sp_emb[i-1][is]));
+  dr = r - R_sp_emb[is][i-1];
+  funp_emb_value = b_sp_emb[is][i-1] + dr*(2.0*c_sp_emb[is][i-1] + dr*(3.0*d_sp_emb[is][i-1]));
 
-  return funp_emb;  
+  return funp_emb_value;  
 }
 
 // fun_pot_ls.f(285-312):
 double PairLS::funpp_emb(double r, int is)
 {
   int i;
-  double funpp_emb, dr, r0_min;
+  double funpp_emb_value, dr, r0_min;
 
-  if (r >= R_sp_emb[n_sp_emb[is][is]-1][is]) 
+  if (r >= R_sp_emb[is][n_sp_emb[is][is]-1]) 
   {
-      funpp_emb = 0.0;
-      return funpp_emb;
+      funpp_emb_value = 0.0;
+      return funpp_emb_value;
   }
 
-  r0_min = R_sp_emb[0][is];
+  r0_min = R_sp_emb[is][0];
 
   if (r <= r0_min) 
   {
-      funpp_emb = 0.0;
-      return funpp_emb;
+      funpp_emb_value = 0.0;
+      return funpp_emb_value;
   }
 
   //c    	
   i = int((r - r0_min)*shag_sp_emb[is]);
   i = i + 1;
   if(i <= 0) i = 1; // maybe this condition should be added also for fun_emb and funp_emb?
-  dr = r - R_sp_emb[i-1][is];
-  funpp_emb = 2.0*c_sp_emb[i-1][is] + dr*(6.0*d_sp_emb[i-1][is]);
+  dr = r - R_sp_emb[is][i-1];
+  funpp_emb_value = 2.0*c_sp_emb[is][i-1] + dr*(6.0*d_sp_emb[is][i-1]);
 
-  return funpp_emb;    
+  return funpp_emb_value;    
 } 
 
 
@@ -2861,88 +2944,88 @@ double PairLS::funpp_emb(double r, int is)
 double PairLS::fun_f3(double r, int i_f3, int js, int is)
 {
   int i;
-  double fun_f3, dr, r0_min;
+  double fun_f3_value, dr, r0_min;
 
-  if (r >= R_sp_f[n_sp_f[js][is]-1][js][is]) 
+  if (r >= R_sp_f[js][is][n_sp_f[js][is]-1]) 
   {
-      fun_f3 = 0.0;
-      return fun_f3;
+      fun_f3_value = 0.0;
+      return fun_f3_value;
   }
 
-  r0_min = R_sp_f[0][js][is];
+  r0_min = R_sp_f[js][is][0];
 
   if (r <= r0_min) 
   {
-      fun_f3 = a_sp_f3[0][i_f3][js][is];
-      return fun_f3;
+      fun_f3_value = a_sp_f3[js][is][i_f3][0];
+      return fun_f3_value;
   }
 
   i = int((r - r0_min)*shag_sp_f[js][is]);
   i = i + 1;
-  dr = r - R_sp_f[i-1][js][is];
-  // fun_f3 = a_sp_f3[i-1][i_f3-1][js][is] + dr*(b_sp_f3[i-1][i_f3-1][js][is] + dr*(c_sp_f3[i-1][i_f3-1][js][is] + dr*(d_sp_f3[i-1][i_f3-1][js][is])));
-  fun_f3 = a_sp_f3[i-1][i_f3][js][is] + dr*(b_sp_f3[i-1][i_f3][js][is] + dr*(c_sp_f3[i-1][i_f3][js][is] + dr*(d_sp_f3[i-1][i_f3][js][is])));
+  dr = r - R_sp_f[js][is][i-1];
+  // fun_f3_value = a_sp_f3[i-1][i_f3-1][js][is] + dr*(b_sp_f3[i-1][i_f3-1][js][is] + dr*(c_sp_f3[i-1][i_f3-1][js][is] + dr*(d_sp_f3[i-1][i_f3-1][js][is])));
+  fun_f3_value = a_sp_f3[js][is][i_f3][i-1] + dr*(b_sp_f3[js][is][i_f3][i-1] + dr*(c_sp_f3[js][is][i_f3][i-1] + dr*(d_sp_f3[js][is][i_f3][i-1])));
 
-  return fun_f3;
+  return fun_f3_value;
 }
 
 // fun_pot_ls.f(350-377):
 double PairLS::funp_f3(double r, int i_f3, int js, int is)
 {
   int i;
-  double funp_f3, dr, r0_min;
+  double funp_f3_value, dr, r0_min;
 
-  if (r >= R_sp_f[n_sp_f[js][is]-1][js][is]) 
+  if (r >= R_sp_f[js][is][n_sp_f[js][is]-1]) 
   {
-      funp_f3 = 0.0;
-      return funp_f3;
+      funp_f3_value = 0.0;
+      return funp_f3_value;
   }
 
-  r0_min = R_sp_f[0][js][is];
+  r0_min = R_sp_f[js][is][0];
 
   if (r <= r0_min) 
   {
-      funp_f3 = 0.0;
-      return funp_f3;
+      funp_f3_value = 0.0;
+      return funp_f3_value;
   }
 
   i = int((r - r0_min)*shag_sp_f[js][is]);
   i = i + 1;
-  dr = r - R_sp_f[i-1][js][is];
-  // funp_f3 = b_sp_f3[i-1][i_f3-1][js][is] + dr*(2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(3.0*d_sp_f3[i-1][i_f3-1][js][is]));
-  funp_f3 = b_sp_f3[i-1][i_f3][js][is] + dr*(2.0*c_sp_f3[i-1][i_f3][js][is] + dr*(3.0*d_sp_f3[i-1][i_f3][js][is]));
+  dr = r - R_sp_f[js][is][i-1];
+  // funp_f3_value = b_sp_f3[i-1][i_f3-1][js][is] + dr*(2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(3.0*d_sp_f3[i-1][i_f3-1][js][is]));
+  funp_f3_value = b_sp_f3[js][is][i_f3][i-1] + dr*(2.0*c_sp_f3[js][is][i_f3][i-1] + dr*(3.0*d_sp_f3[js][is][i_f3][i-1]));
 
-  return funp_f3;  
+  return funp_f3_value;  
 }
 
 // fun_pot_ls.f(381-406):
 double PairLS::funpp_f3(double r, int i_f3, int js, int is)
 {
   int i;
-  double funpp_f3, dr, r0_min;
+  double funpp_f3_value, dr, r0_min;
 
-  if (r >= R_sp_f[n_sp_f[js][is]-1][js][is]) 
+  if (r >= R_sp_f[js][is][n_sp_f[js][is]-1]) 
   {
-      funpp_f3 = 0.0;
-      return funpp_f3;
+      funpp_f3_value = 0.0;
+      return funpp_f3_value;
   }
 
-  r0_min = R_sp_f[0][js][is];
+  r0_min = R_sp_f[js][is][0];
 
   if (r <= r0_min) 
   {
-      funpp_f3 = 0.0;
-      return funpp_f3;
+      funpp_f3_value = 0.0;
+      return funpp_f3_value;
   }
 
   i = int((r - r0_min)*shag_sp_f[js][is]);
   i = i + 1;
   if (i <= 0) i = 1;
-  dr = r - R_sp_f[i-1][js][is];
-  // funpp_f3 = 2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(6.0*d_sp_f3[i-1][i_f3-1][js][is]);
-  funpp_f3 = 2.0*c_sp_f3[i-1][i_f3][js][is] + dr*(6.0*d_sp_f3[i-1][i_f3][js][is]);
+  dr = r - R_sp_f[js][is][i-1];
+  // funpp_f3_value = 2.0*c_sp_f3[i-1][i_f3-1][js][is] + dr*(6.0*d_sp_f3[i-1][i_f3-1][js][is]);
+  funpp_f3_value = 2.0*c_sp_f3[js][is][i_f3][i-1] + dr*(6.0*d_sp_f3[js][is][i_f3][i-1]);
 
-  return funpp_f3;    
+  return funpp_f3_value;    
 }
 
 
@@ -2950,45 +3033,45 @@ double PairLS::funpp_f3(double r, int i_f3, int js, int is)
 double PairLS::fun_g3(double r, int i1, int i2, int is)
 {
   int i;
-  double fun_g3, dr;
+  double fun_g3_value, dr;
 
   i = int((r - R_sp_g[0])*shag_sp_g);
   i = i + 1;
   if (i >= n_sp_g[is][is]) i = n_sp_g[is][is] - 1;
   dr = r - R_sp_g[i-1];
-  // fun_g3 = a_sp_g3[i-1][i1-1][i2-1][is] + dr*(b_sp_g3[i-1][i1-1][i2-1][is] + dr*(c_sp_g3[i-1][i1-1][i2-1][is] + dr*(d_sp_g3[i-1][i1-1][i2-1][is])));
-  fun_g3 = a_sp_g3[i-1][i1][i2][is] + dr*(b_sp_g3[i-1][i1][i2][is] + dr*(c_sp_g3[i-1][i1][i2][is] + dr*(d_sp_g3[i-1][i1][i2][is])));
-  return fun_g3;
+  // fun_g3_value = a_sp_g3[i-1][i1-1][i2-1][is] + dr*(b_sp_g3[i-1][i1-1][i2-1][is] + dr*(c_sp_g3[i-1][i1-1][i2-1][is] + dr*(d_sp_g3[i-1][i1-1][i2-1][is])));
+  fun_g3_value = a_sp_g3[is][i-1][i1][i2] + dr*(b_sp_g3[is][i-1][i1][i2] + dr*(c_sp_g3[is][i-1][i1][i2] + dr*(d_sp_g3[is][i-1][i1][i2])));
+  return fun_g3_value;
 }
 
 // fun_pot_ls.f(428-442):
 double PairLS::funp_g3(double r, int i1, int i2, int is)
 {
   int i;
-  double funp_g3, dr;
+  double funp_g3_value, dr;
 
   i = int((r - R_sp_g[0])*shag_sp_g);
   i = i + 1;
   if (i >= n_sp_g[is][is]) i = n_sp_g[is][is] - 1;
   dr = r - R_sp_g[i-1];
-  // funp_g3 = b_sp_g3[i-1][i1-1][i2-1][is] + dr*(2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(3.0*d_sp_g3[i-1][i1-1][i2-1][is]));
-  funp_g3 = b_sp_g3[i-1][i1][i2][is] + dr*(2.0*c_sp_g3[i-1][i1][i2][is] + dr*(3.0*d_sp_g3[i-1][i1][i2][is]));
-  return funp_g3;
+  // funp_g3_value = b_sp_g3[i-1][i1-1][i2-1][is] + dr*(2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(3.0*d_sp_g3[i-1][i1-1][i2-1][is]));
+  funp_g3_value = b_sp_g3[is][i-1][i1][i2] + dr*(2.0*c_sp_g3[is][i-1][i1][i2] + dr*(3.0*d_sp_g3[is][i-1][i1][i2]));
+  return funp_g3_value;
 }
 
 // fun_pot_ls.f(446-459):
 double PairLS::funpp_g3(double r, int i1, int i2, int is)
 {
   int i;
-  double funpp_g3, dr;
+  double funpp_g3_value, dr;
 
   i = int((r - R_sp_g[0])*shag_sp_g);
   i = i + 1;
   if (i >= n_sp_g[is][is]) i = n_sp_g[is][is] - 1;
   dr = r - R_sp_g[i-1];
-  // funpp_g3 = 2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(6.0*d_sp_g3[i-1][i1-1][i2-1][is]);
-  funpp_g3 = 2.0*c_sp_g3[i-1][i1][i2][is] + dr*(6.0*d_sp_g3[i-1][i1][i2][is]);
-  return funpp_g3;
+  // funpp_g3_value = 2.0*c_sp_g3[i-1][i1-1][i2-1][is] + dr*(6.0*d_sp_g3[i-1][i1-1][i2-1][is]);
+  funpp_g3_value = 2.0*c_sp_g3[is][i-1][i1][i2] + dr*(6.0*d_sp_g3[is][i-1][i1][i2]);
+  return funpp_g3_value;
 }
 
 
@@ -3091,7 +3174,7 @@ double PairLS::fun_fi_ZBL(double r, int is, int js)
 {
   double fun_fi_ZBL;
 
-  fun_fi_ZBL = c_fi_ZBL[0][is][js] + r*(c_fi_ZBL[1][is][js] + r*(c_fi_ZBL[2][is][js] + r*(c_fi_ZBL[3][is][js] + r*(c_fi_ZBL[4][is][js] + r*(c_fi_ZBL[5][is][js])))));
+  fun_fi_ZBL = c_fi_ZBL[is][js][0] + r*(c_fi_ZBL[1][is][js] + r*(c_fi_ZBL[2][is][js] + r*(c_fi_ZBL[3][is][js] + r*(c_fi_ZBL[4][is][js] + r*(c_fi_ZBL[5][is][js])))));
 
   return fun_fi_ZBL;
 }

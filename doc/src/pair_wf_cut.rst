@@ -68,14 +68,11 @@ The exponents :math:`\nu` and  :math:`\mu` are positive integers, usually set to
 
 **Mixing, shift, table, tail correction, restart, rRESPA info**\ :
 
-For atom type pairs I,J and I != J, the epsilon and sigma coefficients
-can be  mixed.
-The default mix value is *geometric*\ .  See the "pair\_modify" command
-for details.
+This pair style does not support the :doc:`pair_modify <pair_modify>`
+mixing and table options.
 
 The :doc:`pair_modify <pair_modify>` tail option is not relevant
 for this pair style as it goes to zero at the cut-off radius.
-
 
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair\_style and pair\_coeff commands do not need
 to be specified in an input script that reads a restart file.
@@ -89,7 +86,9 @@ keywords of the :doc:`run_style respa <run_style>` command.
 
 Restrictions
 """"""""""""
-none
+This pair style can only be used if LAMMPS was built with the
+USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+page for more info.
 
 Related commands
 """"""""""""""""

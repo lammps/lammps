@@ -1,28 +1,3 @@
-/*
-Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
- Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
- Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1
-
-^1: Ruhr-University Bochum, Bochum, Germany
-^2: University of Cambridge, Cambridge, United Kingdom
-^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
-^4: University of British Columbia, Vancouver, BC, Canada
-
-
-    This FILENAME is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-
 //
 // Created by Christoph Ortner on 20.12.2020
 //
@@ -44,18 +19,20 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include <algorithm>
 #include <map>
 #include <vector>
+
 using namespace std;
 
-typedef list< pair< vector<int>, vector<int> > > TPARTITIONS;
-typedef pair< vector<int>, vector<int> > TPARTITION;
-typedef map<vector<int>, int> TDAGMAP; 
+typedef list <pair<vector<int>, vector<int> >> TPARTITIONS;
+typedef pair<vector<int>, vector<int> > TPARTITION;
+typedef map<vector<int>, int> TDAGMAP;
 
 class ACEDAG {
 
 
-    TPARTITIONS find_2partitions(vector<int> v);    
-    void insert_node(TDAGMAP &dagmap, 
-                     vector<int> node, 
+    TPARTITIONS find_2partitions(vector<int> v);
+
+    void insert_node(TDAGMAP &dagmap,
+                     vector<int> node,
                      vector<DOUBLE_TYPE> c);
 
     // the following fields are used only for *construction*, not evalution
@@ -74,18 +51,18 @@ public:
 
     ACEDAG() = default;
 
-    void init(Array2D<int> Aspec,  Array2D<int> AAspec, 
-              Array1D<int> orders, Array2D<DOUBLE_TYPE> coeffs, 
-              int heuristic );
+    void init(Array2D<int> Aspec, Array2D<int> AAspec,
+              Array1D<int> orders, Array2D<DOUBLE_TYPE> coeffs,
+              int heuristic);
 
-    Array1D<ACEComplex> AAbuf; 
-    Array1D<ACEComplex> w; 
-    
-    Array2D<int> Aspec; 
+    Array1D<ACEComplex> AAbuf;
+    Array1D<ACEComplex> w;
+
+    Array2D<int> Aspec;
 
     // nodes in the graph 
-    Array2D<int> nodes;    
-    Array2D<DOUBLE_TYPE> coeffs; 
+    Array2D<int> nodes;
+    Array2D<DOUBLE_TYPE> coeffs;
 
     // total number of nodes in the dag
     int num_nodes;
@@ -98,8 +75,10 @@ public:
     // number of 1-particle basis functions 
     // (these will be stored in the first num1 entries of AAbuf)
     int get_num1() { return Aspec.get_dim(0); };
+
     // total number of n-correlation basis functions n > 1.
-    int get_num2() { return num_nodes - get_num1(); }; 
+    int get_num2() { return num_nodes - get_num1(); };
+
     int get_num2_int() { return num2_int; };   // with children
     int get_num2_leaf() { return num2_leaf; };     // without children
 
@@ -181,11 +160,12 @@ class ACERecursiveEvaluator : public ACEEvaluator {
     Array2D<int> jl_AAspec;
     Array1D<int> jl_AAspec_flat;
     Array1D<int> jl_orders;
-    Array2D<DOUBLE_TYPE> jl_coeffs; 
+    Array2D<DOUBLE_TYPE> jl_coeffs;
+
     void acejlformat();
 
     /* the main event : the computational graph */
-    ACEDAG dag; 
+    ACEDAG dag;
 
     bool recursive = true;
 
@@ -194,7 +174,7 @@ public:
 
     ACERecursiveEvaluator() = default;
 
-    explicit ACERecursiveEvaluator(ACECTildeBasisSet &bas, 
+    explicit ACERecursiveEvaluator(ACECTildeBasisSet &bas,
                                    bool recursive = true) {
         set_recursive(recursive);
         set_basis(bas);
@@ -225,13 +205,13 @@ public:
     void resize_neighbours_cache(int max_jnum) override;
 
     /******* public functions related to recursive evaluator ********/
-    
+
     // print out the DAG for visual inspection
-    void print_dag() {dag.print();}
-    
+    void print_dag() { dag.print(); }
+
     // print out the jl format for visual inspection
     // should be converted into a proper test 
-    void test_acejlformat(); 
+    void test_acejlformat();
 
     void set_recursive(bool tf) { recursive = tf; }
 

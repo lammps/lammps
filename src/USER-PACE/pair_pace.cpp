@@ -1,5 +1,31 @@
+/*
+Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
+ Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
+ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1
+
+^1: Ruhr-University Bochum, Bochum, Germany
+^2: University of Cambridge, Cambridge, United Kingdom
+^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
+^4: University of British Columbia, Vancouver, BC, Canada
+
+
+    This FILENAME is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 //
-// Created by lysogy36 on 27.02.20.
+// Created by Lysogorskiy Yury on 27.02.20.
 //
 
 #include <cmath>
@@ -299,8 +325,8 @@ void PairPACE::coeff(int narg, char **arg) {
     if (ntypes_coeff != atom->ntypes) {
         char error_message[1024];
         snprintf(error_message, 1024,
-                "Incorrect args for pair coefficients. You provided %d elements in pair_coeff, but structure has %d atom types",
-                ntypes_coeff, atom->ntypes);
+                 "Incorrect args for pair coefficients. You provided %d elements in pair_coeff, but structure has %d atom types",
+                 ntypes_coeff, atom->ntypes);
         error->all(FLERR, error_message);
     }
 
@@ -364,7 +390,7 @@ void PairPACE::coeff(int narg, char **arg) {
         } else {
             char error_msg[1024];
             snprintf(error_msg, 1024, "Element %s is not supported by ACE-potential from file %s", elemname,
-                    potential_file_name);
+                     potential_file_name);
             error->all(FLERR, error_msg);
         }
     }
@@ -425,8 +451,8 @@ double PairPACE::init_one(int i, int j) {
  ---------------------------------------------------------------------- */
 void *PairPACE::extract(const char *str, int &dim)
 {
-  dim = 2;
-  if (strcmp(str,"scale") == 0) return (void *) scale;
-  return NULL;
+    dim = 2;
+    if (strcmp(str,"scale") == 0) return (void *) scale;
+    return NULL;
 }
 

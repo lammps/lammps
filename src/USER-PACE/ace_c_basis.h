@@ -23,6 +23,10 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//
+// Created by Lysogorskiy Yury
+//
+
 #ifndef ACE_C_BASIS_H
 #define ACE_C_BASIS_H
 

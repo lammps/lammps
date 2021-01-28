@@ -48,7 +48,7 @@ and
 
 :math:`r_c` is the cutoff.
 
-Comparison of the untruncated Lennard-Jones 12-6 potential (red curve),
+Comparison of the non-truncated Lennard-Jones 12-6 potential (red curve),
 and the WF potentials with :math:`\mu=1` and :math:`\nu=1` are shown in
 the figure below. The blue curve has :math:`r_c =2.0` and the green
 curve has :math:`r_c =1.2` and can be used to describe colloidal

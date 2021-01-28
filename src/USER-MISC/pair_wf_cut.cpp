@@ -66,7 +66,7 @@ void PairWFCut::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,factor_lj;
-  double r,forcenm,rminv, rm, rn;
+  double forcenm,rminv, rm, rn;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -109,7 +109,6 @@ void PairWFCut::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-        r = sqrt(rsq);
         rminv = MathSpecial::powint(r2inv,mu[itype][jtype]);
         rm = sigma_mu[itype][jtype]*rminv - 1.0;
         rn = rcmu[itype][jtype]*rminv - 1.0;
@@ -323,7 +322,6 @@ void PairWFCut::write_restart_settings(FILE *fp)
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
-//  fwrite(&tail_flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -336,12 +334,10 @@ void PairWFCut::read_restart_settings(FILE *fp)
     fread(&cut_global,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
-//    fread(&tail_flag,sizeof(int),1,fp);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
-//  MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -372,13 +368,9 @@ double PairWFCut::single(int /*i*/, int /*j*/, int itype, int jtype,
                       double rsq, double /*factor_coul*/, double factor_lj,
                       double &fforce)
 {
-  double r2inv,r, rminv, rm, rn, forcenm,phinm;
+  double r2inv,rminv,rm,rn,forcenm,phinm;
 
   r2inv = 1.0/rsq;
-  r = sqrt(rsq);
-   
-  r2inv = 1.0/rsq;
-  r = sqrt(rsq);
   rminv =MathSpecial::powint(r2inv,mu[itype][jtype]);
   rm = sigma_mu[itype][jtype]*rminv - 1.0;
   rn = rcmu[itype][jtype]*rminv - 1.0;

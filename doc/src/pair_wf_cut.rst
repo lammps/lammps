@@ -56,6 +56,7 @@ interactions.
 
 .. image:: JPG/WF_LJ.jpg
    :align: center
+   :scale: 33%
 
 
 The following coefficients must be defined for each pair of atoms

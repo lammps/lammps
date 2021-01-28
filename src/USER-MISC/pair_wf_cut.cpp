@@ -275,8 +275,8 @@ void PairWFCut::write_restart(FILE *fp)
       if (setflag[i][j]) {
         fwrite(&epsilon[i][j],sizeof(double),1,fp);
         fwrite(&sigma[i][j],sizeof(double),1,fp);
-        fwrite(&nu[i][j],sizeof(double),1,fp);
-        fwrite(&mu[i][j],sizeof(double),1,fp);
+        fwrite(&nu[i][j],sizeof(int),1,fp);
+        fwrite(&mu[i][j],sizeof(int),1,fp);
         fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
@@ -301,14 +301,14 @@ void PairWFCut::read_restart(FILE *fp)
         if (me == 0) {
           fread(&epsilon[i][j],sizeof(double),1,fp);
           fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&nu[i][j],sizeof(double),1,fp);
-          fread(&mu[i][j],sizeof(double),1,fp);
+          fread(&nu[i][j],sizeof(int),1,fp);
+          fread(&mu[i][j],sizeof(int),1,fp);
           fread(&cut[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&nu[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&mu[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&nu[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&mu[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -348,7 +348,7 @@ void PairWFCut::read_restart_settings(FILE *fp)
 void PairWFCut::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,epsilon[i][i],sigma[i][i],nu[i][i],mu[i][i]);
+    fprintf(fp,"%d %g %g %d %d\n",i,epsilon[i][i],sigma[i][i],nu[i][i],mu[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -359,7 +359,7 @@ void PairWFCut::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g %g\n",i,j,
+      fprintf(fp,"%d %d %g %g %d %d %g\n",i,j,
               epsilon[i][j],sigma[i][j],nu[i][j],mu[i][j],cut[i][j]);
 }
 

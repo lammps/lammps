@@ -19,7 +19,7 @@ Examples
 .. code-block:: LAMMPS
 
    labelmap atom 3 carbon
-   labelmap bond 1 c1,c2 2 c1,hc
+   labelmap bond 1 [c1][c2] 2 [c1][hc]
 
 Description
 """""""""""
@@ -39,11 +39,12 @@ sections.
 
    If substituting numeric types with type labels is currently
    supported by a given command, this feature will be mentioned on
-   that command's doc page.
+   that command's doc page. Or, for input script commands, type labels
+   can be processed using :doc:`variable <variable>` syntax.
 
 .. note::
 
-   Type labels must begin with a letter.
+   Type labels cannot start with a number.
 
 The label map of only one type of interaction (atom, bond, etc.) may
 be modified by a given *labelmap* command. Any number of
@@ -54,6 +55,17 @@ ambiguity is treated may depend on the feature utilizing type labels.
 There does not need to be a type label associated with every numeric
 type; in this case, those types without a label must be referenced by
 their numeric type.
+
+For certain features, it is necessary to be able to extract the
+atom types that make up a given bond, angle, dihedral or improper. The
+standard way to write multi-atom interaction types is to enclose the
+constituent atom types in brackets. For example, a bond type between
+atom type 'C' and 'H' is written as:
+
+.. code-block:: LAMMPS
+
+   bond_style harmonic
+   bond_coeff [C][H] 80.0 1.2
 
 ----------
 

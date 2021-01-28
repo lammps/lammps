@@ -109,13 +109,13 @@ void PairWFCut::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
         r = sqrt(rsq);
-        rminv = pow(r2inv,mu[itype][jtype]);
+        rminv = MathSpecial::powint(r2inv,mu[itype][jtype]);
         rm = sigma_mu[itype][jtype]*rminv - 1.0;
         rn = rcmu[itype][jtype]*rminv - 1.0;
 
-        forcenm = 2.0*mu[itype][jtype] *sigma_mu[itype][jtype]*pow(rn,2.0*nu[itype][jtype])
-                + 4.0*nm[itype][jtype] *rcmu[itype][jtype]*rm*pow(rn,2.0*nu[itype][jtype]-1.0);
-        fpair = factor_lj*e0nm[itype][jtype]*forcenm*pow(r2inv,mu[itype][jtype]+1.0);
+        forcenm = 2.0*mu[itype][jtype] *sigma_mu[itype][jtype]*MathSpecial::powint(rn,2*nu[itype][jtype])
+                + 4.0*nm[itype][jtype] *rcmu[itype][jtype]*rm*MathSpecial::powint(rn,2*nu[itype][jtype]-1);
+        fpair = factor_lj*e0nm[itype][jtype]*forcenm*MathSpecial::powint(r2inv,mu[itype][jtype]+1);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -128,7 +128,7 @@ void PairWFCut::compute(int eflag, int vflag)
 
         if (eflag) {
           evdwl = e0nm[itype][jtype] *
-            (rm*pow(rn,2.0*nu[itype][jtype])) - offset[itype][jtype];
+            (rm*MathSpecial::powint(rn,2*nu[itype][jtype])) - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -236,11 +236,11 @@ double PairWFCut::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   nm[i][j] = nu[i][j]*mu[i][j];
-  e0nm[i][j] = epsilon[i][j]*2.0*nu[i][j]*pow(cut[i][j]/sigma[i][j],2.0*mu[i][j])
-                       *pow((1+2.0*nu[i][j])/(2.0*nu[i][j])/(pow(cut[i][j]/sigma[i][j],2.0*mu[i][j])-1.0),
-                              2.0*nu[i][j]+1.0);
-  rcmu[i][j] = pow(cut[i][j],2.0*mu[i][j]);
-  sigma_mu[i][j] = pow(sigma[i][j], 2.0*mu[i][j]);
+  e0nm[i][j] = epsilon[i][j]*2.0*nu[i][j]*MathSpecial::powint(cut[i][j]/sigma[i][j],2*mu[i][j])
+                       *MathSpecial::powint((1+2.0*nu[i][j])/(2.0*nu[i][j])/(MathSpecial::powint(cut[i][j]/sigma[i][j],2*mu[i][j])-1.0),
+                              2*nu[i][j]+1);
+  rcmu[i][j] = MathSpecial::powint(cut[i][j],2*mu[i][j]);
+  sigma_mu[i][j] = MathSpecial::powint(sigma[i][j], 2*mu[i][j]);
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     offset[i][j] = 0.0;
@@ -378,14 +378,14 @@ double PairWFCut::single(int /*i*/, int /*j*/, int itype, int jtype,
    
   r2inv = 1.0/rsq;
   r = sqrt(rsq);
-  rminv = pow(r2inv,mu[itype][jtype]);
+  rminv =MathSpecial::powint(r2inv,mu[itype][jtype]);
   rm = sigma_mu[itype][jtype]*rminv - 1.0;
   rn = rcmu[itype][jtype]*rminv - 1.0;
-  forcenm = 2.0*mu[itype][jtype] *sigma_mu[itype][jtype]*pow(rn,2.0*nu[itype][jtype])
-                + 4.0*nm[itype][jtype] *rcmu[itype][jtype]*rm*pow(rn,2.0*nu[itype][jtype]-1.0);
-  fforce = factor_lj*e0nm[itype][jtype]*forcenm*pow(r2inv,mu[itype][jtype]+1.0);
+  forcenm = 2.0*mu[itype][jtype] *sigma_mu[itype][jtype]*MathSpecial::powint(rn,2*nu[itype][jtype])
+                + 4.0*nm[itype][jtype] *rcmu[itype][jtype]*rm*MathSpecial::powint(rn,2*nu[itype][jtype]-1);
+  fforce = factor_lj*e0nm[itype][jtype]*forcenm*MathSpecial::powint(r2inv,mu[itype][jtype]+1);
 
-  phinm = e0nm[itype][jtype] * rm*pow(rn,2.0*nu[itype][jtype]) -
+  phinm = e0nm[itype][jtype] * rm*MathSpecial::powint(rn,2*nu[itype][jtype]) -
     offset[itype][jtype];
   return factor_lj*phinm;
 }

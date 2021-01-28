@@ -1,3 +1,28 @@
+/*
+Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
+ Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
+ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1
+
+^1: Ruhr-University Bochum, Bochum, Germany
+^2: University of Cambridge, Cambridge, United Kingdom
+^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
+^4: University of British Columbia, Vancouver, BC, Canada
+
+
+    This FILENAME is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 //
 // Created by Christoph Ortner on 20.12.2020
 //
@@ -330,7 +355,7 @@ void ACEDAG::print() {
     cout << "A-spec: \n";
     for (int iA = 0; iA < get_num1(); iA++) {
         cout << iA << " : " << Aspec(iA, 0) <<
-             Aspec(iA, 1) << Aspec(iA, 2) << Aspec(iA, 3) << "\n";
+                                            Aspec(iA, 1) << Aspec(iA, 2) << Aspec(iA, 3) << "\n";
     }
 
     cout << "-----------\n";
@@ -338,7 +363,7 @@ void ACEDAG::print() {
 
     for (int iAA = 0; iAA < get_num2(); iAA++) {
         cout << iAA + get_num1() << " : " <<
-             nodes(iAA, 0) << ", " << nodes(iAA, 1) << "\n";
+                                          nodes(iAA, 0) << ", " << nodes(iAA, 1) << "\n";
     }
 }
 
@@ -663,9 +688,9 @@ void ACERecursiveEvaluator::test_acejlformat() {
                 int iA = AAspec(iAA, t);
                 // cout << iA << ",";
                 cout << Aspec(iA, 0) << ";"
-                     << Aspec(iA, 1) << ","
-                     << Aspec(iA, 2) << ","
-                     << Aspec(iA, 3) << "|";
+                        << Aspec(iA, 1) << ","
+                        << Aspec(iA, 2) << ","
+                        << Aspec(iA, 3) << "|";
             }
             cout << "\n";
             iAA += 1;

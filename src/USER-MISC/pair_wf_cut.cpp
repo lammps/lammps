@@ -205,8 +205,8 @@ void PairWFCut::coeff(int narg, char **arg)
 
   double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
   double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
-  int nu_one = utils::numeric(FLERR,arg[4],false,lmp);
-  int mu_one = utils::numeric(FLERR,arg[5],false,lmp);
+  int nu_one = utils::inumeric(FLERR,arg[4],false,lmp);
+  int mu_one = utils::inumeric(FLERR,arg[5],false,lmp);
 
   double cut_one = cut_global;
   if (narg == 7) cut_one = utils::numeric(FLERR,arg[6],false,lmp);

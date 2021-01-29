@@ -63,8 +63,11 @@ enum struct DeviceType {
   HIP,
   OpenMPTarget,
   HPX,
-  Threads
+  Threads,
+  SYCL,
+  Unknown
 };
+
 template <typename ExecutionSpace>
 struct DeviceTypeTraits;
 
@@ -117,9 +120,13 @@ using startProfileSectionFunction =
 using stopProfileSectionFunction = Kokkos_Profiling_stopProfileSectionFunction;
 using destroyProfileSectionFunction =
     Kokkos_Profiling_destroyProfileSectionFunction;
-using profileEventFunction  = Kokkos_Profiling_profileEventFunction;
-using beginDeepCopyFunction = Kokkos_Profiling_beginDeepCopyFunction;
-using endDeepCopyFunction   = Kokkos_Profiling_endDeepCopyFunction;
+using profileEventFunction   = Kokkos_Profiling_profileEventFunction;
+using beginDeepCopyFunction  = Kokkos_Profiling_beginDeepCopyFunction;
+using endDeepCopyFunction    = Kokkos_Profiling_endDeepCopyFunction;
+using beginFenceFunction     = Kokkos_Profiling_beginFenceFunction;
+using endFenceFunction       = Kokkos_Profiling_endFenceFunction;
+using dualViewSyncFunction   = Kokkos_Profiling_dualViewSyncFunction;
+using dualViewModifyFunction = Kokkos_Profiling_dualViewModifyFunction;
 
 }  // namespace Tools
 

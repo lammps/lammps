@@ -45,9 +45,13 @@
 #include <gtest/gtest.h>
 #include <cstdlib>
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core.hpp>
 
 int main(int argc, char *argv[]) {
+  Kokkos::initialize(argc, argv);
   ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+
+  int result = RUN_ALL_TESTS();
+  Kokkos::finalize();
+  return result;
 }

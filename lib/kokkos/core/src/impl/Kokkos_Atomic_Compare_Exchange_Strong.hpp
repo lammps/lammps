@@ -148,9 +148,10 @@ __inline__ __device__ T atomic_compare_exchange(
 //----------------------------------------------------------------------------
 // GCC native CAS supports int, long, unsigned int, unsigned long.
 // Intel native CAS support int and long with the same interface as GCC.
-#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS) || !defined(KOKKOS_ENABLE_HIP_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
-#if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
+#if defined(KOKKOS_ENABLE_WINDOWS_ATOMICS)
+// atomic_compare_exchange are already defined in Kokkos_Atomic_Windows.hpp
+#elif defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
 inline int atomic_compare_exchange(volatile int* const dest, const int compare,
                                    const int val) {
@@ -181,6 +182,12 @@ inline unsigned int atomic_compare_exchange(volatile unsigned int* const dest,
 inline unsigned long atomic_compare_exchange(volatile unsigned long* const dest,
                                              const unsigned long compare,
                                              const unsigned long val) {
+  return __sync_val_compare_and_swap(dest, compare, val);
+}
+
+inline unsigned long long atomic_compare_exchange(
+    volatile unsigned long long* const dest, const unsigned long long compare,
+    const unsigned long long val) {
   return __sync_val_compare_and_swap(dest, compare, val);
 }
 
@@ -316,7 +323,6 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(volatile T* const dest_v,
 
 #endif
 #endif
-#endif  // !defined ROCM_ATOMICS
 
 // dummy for non-CUDA Kokkos headers being processed by NVCC
 #if defined(__CUDA_ARCH__) && !defined(KOKKOS_ENABLE_CUDA)
@@ -382,8 +388,8 @@ template <class T, class MemoryOrderSuccess, class MemoryOrderFailure>
 KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH bool _atomic_compare_exchange_strong(
     T* dest, T compare, T val, MemoryOrderSuccess, MemoryOrderFailure,
     typename std::enable_if<
-        (sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
-         sizeof(T) == 8) &&
+        (sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8 ||
+         sizeof(T) == 16) &&
             std::is_same<
                 typename MemoryOrderSuccess::memory_order,
                 typename std::remove_cv<MemoryOrderSuccess>::type>::value &&
@@ -402,7 +408,7 @@ KOKKOS_INTERNAL_INLINE_DEVICE_IF_CUDA_ARCH bool _atomic_compare_exchange_strong(
     MemoryOrderFailure order_failure,
     typename std::enable_if<
         !(sizeof(T) == 1 || sizeof(T) == 2 || sizeof(T) == 4 ||
-          sizeof(T) == 8) &&
+          sizeof(T) == 8 || sizeof(T) == 16) &&
             std::is_same<
                 typename MemoryOrderSuccess::memory_order,
                 typename std::remove_cv<MemoryOrderSuccess>::type>::value &&

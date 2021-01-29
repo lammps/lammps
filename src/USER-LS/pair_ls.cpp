@@ -246,18 +246,20 @@ void PairLS::compute(int eflag, int vflag)
   double sizez = domain->zprd; // global z box dimension
 
   // local pressure arrays for this pair style, maybe they will not be needed
-  double *px_at, *py_at, *pz_at;
+  // double *px_at, *py_at, *pz_at;
 
-  memory->create(px_at,nlocal,"PairLS:px_at");
-  memory->create(py_at,nlocal,"PairLS:py_at");
-  memory->create(pz_at,nlocal,"PairLS:pz_at");
+  // memory->create(px_at,nlocal,"PairLS:px_at");
+  // memory->create(py_at,nlocal,"PairLS:py_at");
+  // memory->create(pz_at,nlocal,"PairLS:pz_at");
 
   atom->map_init(1);
   atom->map_set();
 
-  e_force_fi_emb(eflag, eatom, f, px_at, py_at, pz_at, x, type, nlocal, sizex, sizey, sizez);
+  // e_force_fi_emb(eflag, eatom, f, px_at, py_at, pz_at, x, type, nlocal, sizex, sizey, sizez);
+  e_force_fi_emb(eflag, eatom, f, x, type, nlocal, sizex, sizey, sizez);
 
-  if (if_g3_pot) e_force_g3(eflag, eatom, f, px_at, py_at, pz_at, x, type, nlocal, sizex, sizey, sizez);
+  // if (if_g3_pot) e_force_g3(eflag, eatom, f, px_at, py_at, pz_at, x, type, nlocal, sizex, sizey, sizez);
+  if (if_g3_pot) e_force_g3(eflag, eatom, f, x, type, nlocal, sizex, sizey, sizez);
 
   // neighbor list info
 
@@ -283,17 +285,18 @@ void PairLS::compute(int eflag, int vflag)
 
   if (vflag_fdotr) virial_fdotr_compute();
 
-  std::cout << "Energies and forces on atoms on step " << update->ntimestep << std::endl;
-  // std::cout << "i_at  e_at       x        y        z       f_x        f_y        f_z" << std::endl;
-  // std::cout << "i_at  e_at       f_x        f_y        f_z" << std::endl;
-  for (int i = 0; i < nlocal; i++)
-  {
-  //   std::cout << i+1 << " " << x[i][0] << " " << x[i][1] << " " << x[i][2] <<"    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
-    std::cout << tag[i] << "    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
-  }
-  memory->destroy(px_at);
-  memory->destroy(py_at);
-  memory->destroy(pz_at);
+  // std::cout << "Energies and forces on atoms on step " << update->ntimestep << std::endl;
+  // // std::cout << "i_at  e_at       x        y        z       f_x        f_y        f_z" << std::endl;
+  // // std::cout << "i_at  e_at       f_x        f_y        f_z" << std::endl;
+  // for (int i = 0; i < nlocal; i++)
+  // {
+  // //   std::cout << i+1 << " " << x[i][0] << " " << x[i][1] << " " << x[i][2] <<"    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
+  //   std::cout << tag[i] << "    " << eatom[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
+  // }
+
+  // memory->destroy(px_at);
+  // memory->destroy(py_at);
+  // memory->destroy(pz_at);
 
 }
 
@@ -807,62 +810,63 @@ void PairLS::r_pot_ls_is(char *name_32, int is, double lcf, double ecf)
       // do i=1,n_sp_f
       // read(23,*) R_sp_f(i,is,is),(a_sp_f3(i,i1,is,is),i1=1,n_f3(is))
       // enddo
-
-      ValueTokenizer values = reader.next_values(2);
-      n_sp_f[is][is] = values.next_int();
-      // !std::cout << " n_sp_f[" << is << "][" << is << "] = " << n_sp_f[is][is] << std::endl;
-      n_f3[is] = values.next_int();
-      // !std::cout << " n_f3[" << is << "] = " << n_f3[is] << std::endl;
-      for (int n = 0; n < n_sp_f[is][is]; n++)
+      if (if_g3_pot) 
       {
-        ValueTokenizer sp_f_values = reader.next_values(n_f3[is]+1);
-        R_sp_f[is][is][n] = lcf*sp_f_values.next_double();
-        // !std::cout << " R_sp_f[" << n << "][" << is << "][" << is << "] = " << R_sp_f[is][is][n] << "   ";
-        for (int n1 = 0; n1 < n_f3[is]; n1++)
+        ValueTokenizer values = reader.next_values(2);
+        n_sp_f[is][is] = values.next_int();
+        // !std::cout << " n_sp_f[" << is << "][" << is << "] = " << n_sp_f[is][is] << std::endl;
+        n_f3[is] = values.next_int();
+        // !std::cout << " n_f3[" << is << "] = " << n_f3[is] << std::endl;
+        for (int n = 0; n < n_sp_f[is][is]; n++)
         {
-          a_sp_f3[is][is][n1][n] = ecf*sp_f_values.next_double();
-          // !std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is << "][" << is << "] = " << a_sp_f3[is][is][n1][n] << "  ";
-        }
-        // !std::cout << std::endl;
-
-      }
-
-      // wr_pot_ls_is.f (102-108):
-      // read(23,*) n_sp_g
-      // read(23,*) (R_sp_g(i),i=1,n_sp_g)
-      // do i1=1,n_f3(is)
-      // do i2=1,i1
-      // read(23,*) (a_sp_g3(i,i1,i2,is),i=1,n_sp_g)
-      // enddo
-      // enddo
-
-      n_sp_g[is][is] = reader.next_int();
-      // !std::cout << " n_sp_g[" << is << "][" << is << "] = " << n_sp_g[is][is] << "   ";
-      values = reader.next_values(n_sp_g[is][is]);
-      for (int n = 0; n < n_sp_g[is][is]; n++)
-      {
-        R_sp_g[n] = lcf*values.next_double();  // R_sp_g actually are the values of cos(ijk) from -1 (180 grad) to 1 (0 grad)
-        // !std::cout << " R_sp_g[" << n << "] = " << R_sp_g[n]<< "   ";
-      }
-      // !std::cout << std::endl;
-      
-      for (int n = 0; n < n_f3[is]; n++)
-      {
-        for (int n1 = 0; n1 <= n; n1++)
-        {
-          ValueTokenizer sp_g_values = reader.next_values(n_sp_g[is][is]);
-          for (int n2 = 0; n2 < n_sp_g[is][is]; n2++)
+          ValueTokenizer sp_f_values = reader.next_values(n_f3[is]+1);
+          R_sp_f[is][is][n] = lcf*sp_f_values.next_double();
+          // !std::cout << " R_sp_f[" << n << "][" << is << "][" << is << "] = " << R_sp_f[is][is][n] << "   ";
+          for (int n1 = 0; n1 < n_f3[is]; n1++)
           {
-            // a_sp_g3[is][n1][n][n2] = ecf*sp_g_values.next_double();
-
-            a_sp_g3[is][n2][n][n1] = ecf*sp_g_values.next_double();
-            // a_sp_g3[is][n][n1][n2] = ecf*sp_g_values.next_double();
-            // !std::cout << " a_sp_f[" << n2 << "][" << n << "]["<< n1 << "][" << is << "] = " << a_sp_g3[is][n1][n][n2] << "  ";
+            a_sp_f3[is][is][n1][n] = ecf*sp_f_values.next_double();
+            // !std::cout << " a_sp_f[" << n << "][" << n1 << "]["<< is << "][" << is << "] = " << a_sp_f3[is][is][n1][n] << "  ";
           }
           // !std::cout << std::endl;
+
+        }
+
+        // wr_pot_ls_is.f (102-108):
+        // read(23,*) n_sp_g
+        // read(23,*) (R_sp_g(i),i=1,n_sp_g)
+        // do i1=1,n_f3(is)
+        // do i2=1,i1
+        // read(23,*) (a_sp_g3(i,i1,i2,is),i=1,n_sp_g)
+        // enddo
+        // enddo
+
+        n_sp_g[is][is] = reader.next_int();
+        // !std::cout << " n_sp_g[" << is << "][" << is << "] = " << n_sp_g[is][is] << "   ";
+        values = reader.next_values(n_sp_g[is][is]);
+        for (int n = 0; n < n_sp_g[is][is]; n++)
+        {
+          R_sp_g[n] = lcf*values.next_double();  // R_sp_g actually are the values of cos(ijk) from -1 (180 grad) to 1 (0 grad)
+          // !std::cout << " R_sp_g[" << n << "] = " << R_sp_g[n]<< "   ";
+        }
+        // !std::cout << std::endl;
+        
+        for (int n = 0; n < n_f3[is]; n++)
+        {
+          for (int n1 = 0; n1 <= n; n1++)
+          {
+            ValueTokenizer sp_g_values = reader.next_values(n_sp_g[is][is]);
+            for (int n2 = 0; n2 < n_sp_g[is][is]; n2++)
+            {
+              // a_sp_g3[is][n1][n][n2] = ecf*sp_g_values.next_double();
+
+              a_sp_g3[is][n2][n][n1] = ecf*sp_g_values.next_double();
+              // a_sp_g3[is][n][n1][n2] = ecf*sp_g_values.next_double();
+              // !std::cout << " a_sp_f[" << n2 << "][" << n << "]["<< n1 << "][" << is << "] = " << a_sp_g3[is][n1][n][n2] << "  ";
+            }
+            // !std::cout << std::endl;
+          }
         }
       }
-
       // wr_pot_ls_is.f (120-126):
       // read(23,*) z_ion(is)
       // do i=1,4
@@ -2083,7 +2087,8 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
 
 // e_force_fi_emb.f
 // void PairLS::e_force_fi_emb(double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double *sizex, double *sizey, double *sizez)
-void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
+// void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
+void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
 {
 
   // Scalar Arguments
@@ -2365,26 +2370,27 @@ void PairLS::e_force_fi_emb(int eflag, double *e_at, double **f_at, double *px_a
   //   pz_at[i] = w*pz_at[i];
   // }
 
-  double r_at_i_tot, f_at_i_tot;
-  std::cout << "e_force_fi_emb on timestep " << update->ntimestep << std::endl;
-  // std::cout << "i_at  e_at       r_at_tot       f_at_tot" << std::endl;
-  // std::cout << "i_at_gl     x        y        z       e_at      f_x        f_y        f_z" << std::endl;
-  std::cout << "i_at  e_at       f_x        f_y        f_z" << std::endl;
-  for (int i = 0; i < nlocal; i++)
-  {
-    // r_at_i_tot = sqrt(r_at[i][0]*r_at[i][0] + r_at[i][1]*r_at[i][1] + r_at[i][2]*r_at[i][2]);
-    // f_at_i_tot = sqrt(f_at[i][0]*f_at[i][0] + f_at[i][1]*f_at[i][1] + f_at[i][2]*f_at[i][2]);
-    // std::cout << i+1  << "    " << e_at[i] << "    " << r_at_i_tot << "    " << f_at_i_tot << std::endl;
-    // std::cout << tag[i] << "   " << r_at[i][0] << " " << r_at[i][1] << " " << r_at[i][2] <<"    " << e_at[i] << " " << f_at[i][0] << " " << f_at[i][1] << " " << f_at[i][2] << std::endl;
-    std::cout << tag[i] << "  " << e_at[i] << " " << f_at[i][0] << " " << f_at[i][1] << " " << f_at[i][2] << std::endl;
-    // std::cout << i+1 << "    " << e_at[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
-  }
+  // double r_at_i_tot, f_at_i_tot;
+  // std::cout << "e_force_fi_emb on timestep " << update->ntimestep << std::endl;
+  // // std::cout << "i_at  e_at       r_at_tot       f_at_tot" << std::endl;
+  // // std::cout << "i_at_gl     x        y        z       e_at      f_x        f_y        f_z" << std::endl;
+  // std::cout << "i_at  e_at       f_x        f_y        f_z" << std::endl;
+  // for (int i = 0; i < nlocal; i++)
+  // {
+  //   // r_at_i_tot = sqrt(r_at[i][0]*r_at[i][0] + r_at[i][1]*r_at[i][1] + r_at[i][2]*r_at[i][2]);
+  //   // f_at_i_tot = sqrt(f_at[i][0]*f_at[i][0] + f_at[i][1]*f_at[i][1] + f_at[i][2]*f_at[i][2]);
+  //   // std::cout << i+1  << "    " << e_at[i] << "    " << r_at_i_tot << "    " << f_at_i_tot << std::endl;
+  //   // std::cout << tag[i] << "   " << r_at[i][0] << " " << r_at[i][1] << " " << r_at[i][2] <<"    " << e_at[i] << " " << f_at[i][0] << " " << f_at[i][1] << " " << f_at[i][2] << std::endl;
+  //   std::cout << tag[i] << "  " << e_at[i] << " " << f_at[i][0] << " " << f_at[i][1] << " " << f_at[i][2] << std::endl;
+  //   // std::cout << i+1 << "    " << e_at[i] << " " << f[i][0] << " " << f[i][1] << " " << f[i][2] << std::endl;
+  // }
 
   memory->destroy(rosum);
   return;
 }
 
-void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
+// void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, double *py_at, double *pz_at,  double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
+void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double **r_at, int *i_sort_at, int n_at, double sizex, double sizey, double sizez)
 {
   // Scalar Arguments
   double e_sum, pressure, sxx, syy, szz;
@@ -2517,7 +2523,7 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
 
     // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle // angle
     // // !std::cout << "n_neighb of atom " << i << " = " << n_neighb << std::endl;
-    std::cout << "There are " << n_neighb << " j neighbours of atom " << tag[i] << " that will be considered for angle interactions"<< std::endl;
+    // std::cout << "There are " << n_neighb << " j neighbours of atom " << tag[i] << " that will be considered for angle interactions"<< std::endl;
 
     e_angle = 0.0;
     if (n_neighb > 1) 
@@ -2529,7 +2535,7 @@ void PairLS::e_force_g3(int eflag, double *e_at, double **f_at, double *px_at, d
         lj = atom->map(tag[j]);  // mapped local index of atom j
         // // !std::cout << "jj = " << jj << std::endl;
         // // !std::cout << "j = " << j << std::endl;
-        std::cout << " nom_j[" << jj+1 << "]= " <<  tag[j] << std::endl;
+        // std::cout << " nom_j[" << jj+1 << "]= " <<  tag[j] << std::endl;
         js = i_sort_at[j];
 
         Dmn = 0.0;

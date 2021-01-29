@@ -170,8 +170,10 @@ class PairLS : public Pair {
   void LA30(int, double *, double *, double *, double *, double *, int *);
 
   // subroutines for calculating energies and forces
-  void e_force_fi_emb(int, double *, double **, double *, double *, double *,  double **, int *, int, double, double, double);
-  void e_force_g3(int, double *, double **, double *, double *, double *,  double **, int *, int, double, double, double);
+  void e_force_fi_emb(int, double *, double **,  double **, int *, int, double, double, double);
+  // void e_force_fi_emb(int, double *, double **, double *, double *, double *,  double **, int *, int, double, double, double);
+  void e_force_g3(int, double *, double **, double **, int *, int, double, double, double);
+  // void e_force_g3(int, double *, double **, double *, double *, double *,  double **, int *, int, double, double, double);
 
   // potential functions and their derivatives
   double fun_fi(double, int, int);

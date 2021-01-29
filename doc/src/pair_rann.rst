@@ -253,7 +253,7 @@ is given by:
     E = \sum_{\alpha} E^{\alpha}\\\\
     E^{\alpha} = {}^{N}\!A^{\alpha}\\\\
     {}^{n+1}\!A_i^{\alpha} = {}^{n}\!F\left({}^{n}\!W_{ij}{\;}^{n}\!A_j^{\alpha}+{}^{n}\!B_i\right)\\\\
-    {}^{0}\!A_i^{\alpha} = \left[\begin{array} S{}^1\!S\!f^\alpha\\ {}^2\!S\!f^\alpha \\...\\\end{array}\right]
+    {}^{0}\!A_i^{\alpha} = \left[\begin{array}{c} {}^1\!S\!f^\alpha\\ {}^2\!S\!f^\alpha \\...\\\end{array}\right]
     
 Here :math:`E^\alpha` is the energy of atom :math:`\alpha`, :math:`{}^n\!F()`, :math:`{}^n\!W_{ij}` and :math:`{}^n\!B_i` are 
 the activation function, weight matrix and bias vector of the n-th layer respectively. The
@@ -283,7 +283,7 @@ is the bond angle:
     \\
     C = \frac{2\left(X^{\alpha\gamma}+X^{\gamma\beta}\right)-\left(X^{\alpha\gamma}-X^{\gamma\beta}\right)^2-1}{1-\left(X^{\alpha\gamma}-X^{\gamma\beta}\right)^2}\\
     \\
-    f_c(x) = \left[\begin{array}  11 \; x \geq 1\\ \left(1-\left(1-x\right)^4\right)^2 \; 0<x<1\\0\;x\leq0\end{array}\right.\\
+    f_c(x) = \left[\begin{array}{l}  1 \; \: x \geq 1\\ \left(1-\left(1-x\right)^4\right)^2 \; \: 0<x<1\\0\; \; x\leq0\end{array}\right.\\
     \\
     S^{\alpha\beta\gamma} = f_c\left(\frac{C-C_{min}}{C_{max}-C_{min}}\right)\\
     \\

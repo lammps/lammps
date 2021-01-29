@@ -10,35 +10,41 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
 /*  ----------------------------------------------------------------------
    Contributing authors: Christopher Barrett (MSU) barrett@me.msstate.edu
-   	   	   	   	   	     Doyl Dickel (MSU) doyl@cavs.msstate.edu
+   	   	   	   	   	     Doyl Dickel (MSU) doyl@me.msstate.edu
     ----------------------------------------------------------------------*/
+/*
+“The research described and the resulting data presented herein, unless
+otherwise noted, was funded under PE 0602784A, Project T53 "Military
+Engineering Applied Research", Task 002 under Contract No. W56HZV-17-C-0095,
+managed by the U.S. Army Combat Capabilities Development Command (CCDC) and
+the Engineer Research and Development Center (ERDC).  The work described in
+this document was conducted at CAVS, MSU.  Permission was granted by ERDC
+to publish this information. Any opinions, findings and conclusions or
+recommendations expressed in this material are those of the author(s) and
+do not necessarily reflect the views of the United States Army.​”
 
-#include <math.h>
-#include <cmath>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <iostream>
-#include "atom.h"
+DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
+ */
+
 #include "style_fingerprint.h"
 #include "style_activation.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "update.h"
+
 #include "pair_rann.h"
 
-
-
 using namespace LAMMPS_NS;
+
+static const char cite_user_rann_package[] =
+  "USER-RANN package:\n\n"
+  "@Article{Nitol2021,\n"
+  " author = {Nitol, Mashroor S and Dickel, Doyl E and Barrett, Christopher D},\n"
+  " title = {Artificial neural network potential for pure zinc},\n"
+  " journal = {Computational Materials Science},\n"
+  " year =    2021,\n"
+  " volume =  188,\n"
+  " pages =   {110207}\n"
+  "}\n\n";
 
 PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
 {
@@ -241,44 +247,43 @@ void PairRANN::read_file(char *filename)
 	FILE *fp;
 	int eof = 0,i,j,k,l;
 	int n,nwords;
-	char line [MAXLINE],line1[MAXLINE];
-
+	int longline = 4096;
+	char line [longline],line1[longline];
 	char *ptr;
 	bool comment;
 	char str[128];
-	fp = force->open_potential(filename);
+	fp = utils::open_potential(filename,lmp,nullptr);
 	if (fp == NULL) {
-	  sprintf(str,"Cannot open NN potential file %s",filename);
+	  sprintf(str,"Cannot open rann potential file %s",filename);
 	  error->one(FLERR,str);
 	}
 	while (eof == 0){
-		  ptr = fgets(line,MAXLINE,fp);
+		  ptr = fgets(line,longline,fp);
 		  if (ptr == NULL) {
 			  if (check_potential()) {//looks to see if everything needed appears to be defined
 				  error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
 			  }
 			  else{
-				    update_stack_size();
 					fclose(fp);
 					eof = 1;
 					break;
 			  }
 		  }
 		  else n = strlen(line) + 1;
-		// strip comment, skip line if blank
-		if ((ptr = strchr(line,'#'))) *ptr = '\0';
-		nwords = count_words(line);
-		char **words = new char* [strlen(line)];
-		if (nwords == 0) continue;
+		if ((ptr = strchr(line,'#'))) *ptr = '\0';//strip comments from end of lines
+		if (count_words(line)==0){continue;}//skip comment line
 		comment = true;
 		while (comment==true){
-			ptr = fgets(line1,MAXLINE,fp);
-			if (ptr==NULL)error->one(FLERR,"Unexpected end of file");
+			ptr = fgets(line1,longline,fp);
+			if (ptr==NULL)errorf("Unexpected end of parameter file (keyword given with no value)");
 			if ((ptr = strchr(line1,'#'))) *ptr = '\0';
 			nwords = count_words(line1);
 			if (nwords == 0) continue;
 			comment = false;
 		}
+		line1[strlen(line1)-1] = '\0';//replace \n with \0
+		nwords = count_words(line);
+		char **words=new char *[nwords+1];
 		nwords = 0;
 		words[nwords++] = strtok(line,": ,\t_\n");
 		while ((words[nwords++] = strtok(NULL,": ,\t_\n"))) continue;
@@ -369,8 +374,6 @@ void PairRANN::read_fingerprints(char **words,int nwords,char * line1){
 		i1 = fingerprintcount[i];
 		delete fingerprints[i][i1];
 		fingerprints[i][i1] = create_fingerprint(words1[k]);
-		sprintf(str,"%d %d\n",nwords-1,fingerprints[i][i1]->n_body_type);
-		std::cout<<str;
 		if (fingerprints[i][i1]->n_body_type!=nwords-1){error->one(FLERR,"invalid fingerprint for element combination");}
 		k++;
 		fingerprints[i][i1]->init(atomtypes,strtol(words1[k++],NULL,10));
@@ -425,15 +428,17 @@ void PairRANN::read_network_layers(char **words,char *line1){
 	for (i=0;i<nelements;i++){
 		if (strcmp(words[1],elements[i])==0){
 			net[i].layers = strtol(line1,NULL,10);
-			if (net[i].layers < 1)error->one(FLERR,"invalid number of network layers");
+			if (net[i].layers < 1)errorf("invalid number of network layers");
 			delete [] net[i].dimensions;
-			net[i].dimensions = new int [net[i].layers];
 			weightdefined[i] = new bool [net[i].layers];
 			biasdefined[i] = new bool [net[i].layers];
+			net[i].dimensions = new int [net[i].layers];
 			net[i].Weights = new double * [net[i].layers-1];
 			net[i].Biases = new double * [net[i].layers-1];
+			net[i].activations = new int [net[i].layers-1];
 			for (j=0;j<net[i].layers;j++){
 				net[i].dimensions[j]=0;
+				if (j<net[i].layers-1)net[i].activations[j]=-1;
 				weightdefined[i][j] = false;
 				biasdefined[i][j] = false;
 			}
@@ -453,29 +458,25 @@ void PairRANN::read_layer_size(char **words,char* line1){
 		if (strcmp(words[1],elements[i])==0){
 			if (net[i].layers==0)error->one(FLERR,"networklayers for each atom type must be defined before the corresponding layer sizes.");
 			int j = strtol(words[2],NULL,10);
-			if (j>=net[i].layers || j<0){errorf("invalid layer in layer size definition");};
+			if (j>=net[i].layers || j<0){error->one(FLERR,"invalid layer in layer size definition");};
 			net[i].dimensions[j]= strtol(line1,NULL,10);
-//			net[i].Weights[j] = new double [1];
-//			net[i].Weights[j][0]=0;
-//			net[i].Biases[j] = new double [1];
-//			net[i].Biases[j][0] = 0;
 			return;
 		}
 	}
-	error->one(FLERR,"layer size element not found in atom types");
+	errorf("layer size element not found in atom types");
 }
 
 void PairRANN::read_weight(char **words,char* line1,FILE* fp){
 	int i,j,k,l,nwords;
 	char *ptr;
+	int longline = 4096;
 	char **words1;
 	for (l=0;l<nelements;l++){
 		if (strcmp(words[1],elements[l])==0){
-			if (net[l].layers==0)error->one(FLERR,"networklayers must be defined before weights.");
+			if (net[l].layers==0)errorf("networklayers must be defined before weights.");
 			i=strtol(words[2],NULL,10);
 			if (i>=net[l].layers || i<0)error->one(FLERR,"invalid weight layer");
-			if (net[l].dimensions[i]==0 || net[l].dimensions[i+1]==0) error->one(FLERR,"network layer sizes must be defined before corresponding weight");
-//			delete [] net[l].Weights[i];
+			if (net[l].dimensions[i]==0 || net[l].dimensions[i+1]==0) errorf("network layer sizes must be defined before corresponding weight");
 			net[l].Weights[i] = new double [net[l].dimensions[i]*net[l].dimensions[i+1]];
 			weightdefined[l][i] = true;
 			int n = count_words(line1)+1;
@@ -489,7 +490,8 @@ void PairRANN::read_weight(char **words,char* line1,FILE* fp){
 				net[l].Weights[i][k] = strtod(words1[k],NULL);
 			}
 			for (j=1;j<net[l].dimensions[i+1];j++){
-				ptr = fgets(line1,MAXLINE,fp);
+				ptr = fgets(line1,longline,fp);
+				if (ptr==NULL)errorf("unexpected end of potential file!");
 				nwords=0;
 				words1[nwords++] = strtok(line1," ,\t:_\n");
 				while ((words1[nwords++] = strtok(NULL," ,\t:_\n"))) continue;
@@ -503,7 +505,7 @@ void PairRANN::read_weight(char **words,char* line1,FILE* fp){
 			return;
 		}
 	}
-	error->one(FLERR,"weight element not found in atom types");
+	errorf("weight element not found in atom types");
 }
 
 void PairRANN::read_bias(char **words,char* line1,FILE* fp){
@@ -552,13 +554,6 @@ void PairRANN::read_activation_functions(char** words,char * line1){
 void PairRANN::read_screening(char** words,int nwords,char *line1){
 	int i,j,k;
 	bool found;
-//	char str[MAXLINE];
-//	sprintf(str,"%d\n",nwords);
-//	for (i=0;i<nwords;i++){
-//		std::cout<<words[i];
-//		std::cout<<"\n";
-//	}
-//	std::cout<<str;
 	if (nelements == -1)errorf("atom types must be defined before fingerprints in potential file.");
 	if (nwords!=5)errorf("invalid screening command");
 	int n_body_type = 3;
@@ -667,16 +662,16 @@ void PairRANN::compute(int eflag, int vflag)
 		  itype = map[sims->type[i]];
 		  f = net[itype].dimensions[0];
 		  jnum = sims->numneigh[i];
-		  double xn[jnum];
-		  double yn[jnum];
-		  double zn[jnum];
-		  int tn[jnum];
-		  int jl[jnum];
+		  double *xn = new double[jnum];
+		  double *yn = new double[jnum];
+		  double *zn = new double[jnum];
+		  int *tn = new int[jnum];
+		  int *jl = new int[jnum];
 		  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
 		  double features [f];
-		  double dfeaturesx[f*jnum];
-		  double dfeaturesy[f*jnum];
-		  double dfeaturesz[f*jnum];
+		  double *dfeaturesx = new double[f*jnum];
+		  double *dfeaturesy = new double[f*jnum];
+		  double *dfeaturesz = new double[f*jnum];
 		  for (j=0;j<f;j++){
 			  features[j]=0;
 		  }
@@ -684,30 +679,28 @@ void PairRANN::compute(int eflag, int vflag)
 			  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
 		  }
 		  //screening is calculated once for all atoms if any fingerprint uses it.
-		  double Sik[jnum];
-		  double dSikx[jnum];
-		  double dSiky[jnum];
-		  double dSikz[jnum];
-		  double dSijkx[jnum*jnum];
-		  double dSijky[jnum*jnum];
-		  double dSijkz[jnum*jnum];
-		  bool Bij[jnum];
-		  double sx[f*jnum];
-		  double sy[f*jnum];
-		  double sz[f*jnum];
+		  double *Sik = new double[jnum];
+		  double *dSikx = new double [jnum];
+		  double *dSiky = new double [jnum];
+		  double *dSikz = new double [jnum];
+		  double *dSijkx = new double [jnum*jnum];
+		  double *dSijky = new double [jnum*jnum];
+		  double *dSijkz = new double [jnum*jnum];
+		  bool *Bij = new bool [jnum];
+		  double *sx = new double [f*jnum];
+		  double *sy = new double [f*jnum];
+		  double *sz = new double [f*jnum];
 		  if (dospin){
 			  for (j=0;j<f*jnum;j++){
 				  sx[j]=sy[j]=sz[j]=0;
 			  }
 		  }
-	      clock_t t1 = clock();
 		  if (doscreen){
 				screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
 		  }
 		  if (allscreen){
 			  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
 		  }
-		  clock_t t2 = clock();
 		  //do fingerprints for atom type
 		  len = fingerprintperelement[itype];
 		  for (j=0;j<len;j++){
@@ -725,7 +718,6 @@ void PairRANN::compute(int eflag, int vflag)
 			  	  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
 			  	  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
 		  }
-		  clock_t t3 = clock();
 		  //run fingerprints through network
 		  if (dospin){
 			  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&energy,force,fm,virial,ii,jnum,jl);
@@ -733,15 +725,26 @@ void PairRANN::compute(int eflag, int vflag)
 		  else {
 			  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&energy,force,virial,ii,jnum,jl);
 		  }
-		  //testdfeatures(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii);
-		  clock_t t4 = clock();
-		  double ts = (double) (t2-t1) / CLOCKS_PER_SEC * 1000.0;
-		  double tf = (double) (t3-t2) / CLOCKS_PER_SEC * 1000.0;
-		  double tp = (double) (t4-t3) / CLOCKS_PER_SEC * 1000.0;
-		  sprintf(str,"screen time: %f, fingerprint time: %f, propagation time: %f\n",ts,tf,tp);
-//		  std::cout<<str;
+		  delete [] xn;
+		  delete [] yn;
+		  delete [] zn;
+		  delete [] tn;
+		  delete [] jl;
+		  delete [] dfeaturesx;
+		  delete [] dfeaturesy;
+		  delete [] dfeaturesz;
+		  delete [] Sik;
+		  delete [] dSikx;
+		  delete [] dSiky;
+		  delete [] dSikz;
+		  delete [] dSijkx;
+		  delete [] dSijky;
+		  delete [] dSijkz;
+		  delete [] Bij;
+		  delete [] sx;
+		  delete [] sy;
+		  delete [] sz;
 	}
-//	testdenergy();
 	if (vflag_fdotr) virial_fdotr_compute();
 }
 
@@ -830,1157 +833,6 @@ void PairRANN::screen_neighbor_list(double *xn,double *yn, double *zn,int *tn, i
 	}
 }
 
-void PairRANN::testdfeatures(double *features,double *dfeaturesx,double *dfeaturesy,double *dfeaturesz, double *dspinx,double *dspiny, double *dspinz,int ii){
-	char str[MAXLINE];
-	char str1[128];
-	double del = 0.00005;
-	int i,j,k,jj,inum,jnum,itype,jtype,ktype,l,kk,m,p,jj1;
-	double xtmp,ytmp,ztmp,delx,dely,delz,rsq,rp,rbp,delx1,dely1,delz1,rsq1;
-	int *ilist,*jlist,*numneigh,**firstneigh,len;
-	int maxindex = nelementsp*nelementsp-1;
-	//
-
-	int nn = 0;
-	int count=0;
-	int *type = atom->type;
-	inum = sims->inum;
-	ilist = sims->ilist;
-	int f = net[itype].dimensions[0];
-	double cutinv2 = 1/cutmax/cutmax;
-	i = sims->ilist[ii];
-	numneigh = sims->numneigh;
-	firstneigh = sims->firstneigh;
-	jlist = firstneigh[i];
-	itype = map[sims->type[i]];
-	f = net[itype].dimensions[0];
-	jnum = sims->numneigh[i];
-	double xn[jnum];
-	double yn[jnum];
-	double zn[jnum];
-	int tn[jnum];
-	int jl[jnum];
-	double features1x [f];
-	double features2x [f];
-	double features1y [f];
-	double features2y [f];
-	double features1z [f];
-	double features2z [f];
-	double features1sx [f];
-	double features2sx [f];
-	double features1sy [f];
-	double features2sy [f];
-	double features1sz [f];
-	double features2sz [f];
-	double dfeaturesx1[f*jnum];
-	double dfeaturesy1[f*jnum];
-	double dfeaturesz1[f*jnum];
-	double dspinx1[f*jnum];
-	double dspiny1[f*jnum];
-	double dspinz1[f*jnum];
-	double dfxtest[f*jnum];
-	double dfytest[f*jnum];
-	double dfztest[f*jnum];
-	double dfstestx[f*jnum];
-	double dfstesty[f*jnum];
-	double dfstestz[f*jnum];
-	for (j=0;j<f*jnum;j++){
-	  dfeaturesx1[j]=dfeaturesy1[j]=dfeaturesz1[j]=0;
-	}
-	//screening is calculated once for all atoms if any fingerprint uses it.
-	double Sik[jnum];
-	double dSikx[jnum];
-	double dSiky[jnum];
-	double dSikz[jnum];
-	double dSijkx[jnum*jnum];
-	double dSijky[jnum*jnum];
-	double dSijkz[jnum*jnum];
-	bool Bij[jnum];
-	double sx[jnum*f];
-	double sy[jnum*f];
-	double sz[jnum*f];
-	itype = map[type[i]];
-	cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-	//do fingerprints for atom type
-	len = fingerprintperelement[itype];
-	if (doscreen){
-		screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-	}
-	if (allscreen){
-	  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-	}
-	for (jj=0;jj<jnum-1;jj++){
-		for (l=0;l<f;l++){
-		  features1x[l]=0;
-		  features2x[l]=0;
-		  features1y[l]=0;
-		  features2y[l]=0;
-		  features1z[l]=0;
-		  features2z[l]=0;
-		  features1sx[l]=0;
-		  features2sx[l]=0;
-		  features1sy[l]=0;
-		  features2sy[l]=0;
-		  features1sz[l]=0;
-		  features2sz[l]=0;
-		}
-		for (l=0;l<f*jnum;l++){
-		  dfeaturesx1[l]=dfeaturesy1[l]=dfeaturesz1[l]=sx[l]=sy[l]=sz[l]=0;
-		}
-		xn[jj] = xn[jj]+del;
-		if (doscreen){
-			screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-		}
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1x,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1x,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1x,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1x,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		xn[jj] = xn[jj]-2*del;
-		if (doscreen){
-			screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-		}
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2x,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2x,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2x,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2x,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		for (k=0;k<f;k++){
-			dfxtest[jj*f+k] = (features1x[k]-features2x[k])/2/del;
-		}
-		xn[jj] = xn[jj]+del;
-		yn[jj] = yn[jj]+del;
-		if (doscreen){
-			screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-		}
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1y,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1y,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1y,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1y,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		yn[jj] = yn[jj]-2*del;
-		if (doscreen){
-			screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-		}
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2y,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2y,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2y,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2y,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		for (k=0;k<f;k++){
-			dfytest[jj*f+k] = (features1y[k]-features2y[k])/2/del;
-		}
-		yn[jj] = yn[jj]+del;
-		zn[jj] = zn[jj]+del;
-		if (doscreen){
-			screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-		}
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1z,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1z,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1z,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1z,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		zn[jj] = zn[jj]-2*del;
-		if (doscreen){
-			screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-		}
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2z,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2z,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2z,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2z,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		for (k=0;k<f;k++){
-			dfztest[jj*f+k] = (features1z[k]-features2z[k])/2/del;
-		}
-		zn[jj] = zn[jj]+del;
-		jj1 = jl[jj];
-		sims->s[jj1][0]+=del;
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1sx,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1sx,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1sx,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1sx,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		sims->s[jj1][0]-=2*del;
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2sx,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2sx,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2sx,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2sx,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		for (k=0;k<f;k++){
-			dfstestx[jj*f+k] = (features1sx[k]-features2sx[k])/2/del;
-		}
-		sims->s[jj1][0]+=del;
-		sims->s[jj1][1]+=del;
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1sy,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1sy,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1sy,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1sy,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		sims->s[jj1][1]-=2*del;
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2sy,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2sy,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2sy,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2sy,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		for (k=0;k<f;k++){
-			dfstesty[jj*f+k] = (features1sy[k]-features2sy[k])/2/del;
-		}
-		sims->s[jj1][1]+=del;
-		sims->s[jj1][2]+=del;
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1sz,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1sz,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features1sz,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features1sz,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		sims->s[jj1][2]-=2*del;
-		for (j=0;j<len;j++){
-				   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2sz,dfeaturesx1,dfeaturesy1,dfeaturesz1,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2sz,dfeaturesx1,dfeaturesy1,dfeaturesz1,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features2sz,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features2sz,dfeaturesx1,dfeaturesy1,dfeaturesz1,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-		}
-		for (k=0;k<f;k++){
-			dfstestz[jj*f+k] = (features1sz[k]-features2sz[k])/2/del;
-		}
-		sims->s[jj1][2]+=del;
-		for (k=0;k<f;k++){
-			sprintf(str,"ii: %d, jj: %d, k: %d, f:%.10f, fx1: %.10f, fx2: %.10f, dfxa: %.10f, dfxn: %.10f, dfya: %.10f, dfyn: %.10f, dfza: %.10f, dfzn: %.10f,dfsxa: %.10f, dfsxn: %.10f, dfsya: %.10f, dfsyn: %.10f, dfsza: %.10f, dfszn: %.10f\n",ii,jj,k,features[k],features1x[k],features2x[k],dfeaturesx[jj*f+k],dfxtest[jj*f+k],dfeaturesy[jj*f+k],dfytest[jj*f+k],dfeaturesz[jj*f+k],dfztest[jj*f+k],dspinx[jj*f+k],dfstestx[jj*f+k],dspiny[jj*f+k],dfstesty[jj*f+k],dspinz[jj*f+k],dfstestz[jj*f+k]);
-			std::cout<<str;
-		}
-		sprintf(str,"got here %d %d %d %d\n",ii,f,jnum,jj);
-		std::cout<<str;
-	}
-	if (ii==inum-1){
-		error->one(FLERR,"terminate");
-	}
-}
-
-void PairRANN::testdenergy(){
-	double **force = atom->f;
-	double **fm = atom->fm;
-	double del = 0.00002;
-	int ii,i,j;
-	int nn = 0;
-	double ex1,ex2,ey1,ey2,ez1,ez2,esx1,esx2,esy1,esy2,esz1,esz2;
-	ex1=ex2=ey1=ey2=ez1=ez2=esx1=esx2=esy1=esy2=esz1=esz2=0.0;
-	double **force1 = new double *[listfull->maxatom];
-	double **fm1 = new double *[listfull->maxatom];
-	double **force1n = new double *[listfull->maxatom];
-	double **fm1n = new double *[listfull->maxatom];
-	for (i=0;i<listfull->maxatom;i++){
-		force1[i]=new double [3];
-		fm1[i] = new double [3];
-		force1n[i]=new double [3];
-		fm1n[i] = new double [3];
-	}
-	for (int n=0;n<sims->inum;n++){
-		int itype,f,jnum,len;
-		double **virial = vatom;
-		char str[MAXLINE];
-		eng_vdwl=0;
-		//loop over atoms
-		sims->x[n][0]+=del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-				  	  	   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-				  	  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-				  	  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-				  	  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&ex1,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&ex1,force1,virial,ii,jnum,jl);
-			  }
-			  ex1=eng_vdwl;
-		}
-		eng_vdwl=0;
-		//loop over atoms
-		sims->x[n][0]-=2*del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&ex2,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&ex2,force1,virial,ii,jnum,jl);
-			  }
-			  ex2=eng_vdwl;
-		}
-		force1n[n][0]=(ex1-ex2)/2/del;
-		eng_vdwl=0;
-		//loop over atoms
-		sims->x[n][0]+=del;
-		sims->x[n][1]+=del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&ey1,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&ey1,force1,virial,ii,jnum,jl);
-			  }
-			  ey1=eng_vdwl;
-		}
-		eng_vdwl=0;
-		//loop over atoms
-		sims->x[n][1]-=2*del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&ey2,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&ey2,force1,virial,ii,jnum,jl);
-			  }
-			  ey2=eng_vdwl;
-		}
-		eng_vdwl=0;
-		force1n[n][1]=(ey1-ey2)/2/del;
-		//loop over atoms
-		sims->x[n][1]+=del;
-		sims->x[n][2]+=del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&ez1,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&ez1,force1,virial,ii,jnum,jl);
-			  }
-			  ez1=eng_vdwl;
-		}
-		eng_vdwl=0;
-		//loop over atoms
-		sims->x[n][2]-=2*del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&ez2,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&ez2,force1,virial,ii,jnum,jl);
-			  }
-			  ez2=eng_vdwl;
-		}
-		eng_vdwl=0;
-		sims->x[n][2]+=del;
-		force1n[n][2]=(ez1-ez2)/2/del;
-
-		//loop over atoms
-		sims->s[n][0]+=del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-				  	  	   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-				  	  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-				  	  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-				  	  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&esx1,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&esx1,force1,virial,ii,jnum,jl);
-			  }
-			  esx1=eng_vdwl;
-		}
-		eng_vdwl=0;
-		//loop over atoms
-		sims->s[n][0]-=2*del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&esx2,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&esx2,force1,virial,ii,jnum,jl);
-			  }
-			  esx2=eng_vdwl;
-		}
-		eng_vdwl=0;
-		fm1n[n][0]=(esx1-esx2)/2/del;
-		//loop over atoms
-		sims->s[n][0]+=del;
-		sims->s[n][1]+=del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&esy1,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&esy1,force1,virial,ii,jnum,jl);
-			  }
-			  esy1=eng_vdwl;
-		}
-		eng_vdwl=0;
-		//loop over atoms
-		sims->s[n][1]-=2*del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&esy2,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&esy2,force1,virial,ii,jnum,jl);
-			  }
-			  esy2=eng_vdwl;
-		}
-		eng_vdwl=0;
-		fm1n[n][1]=(esy1-esy2)/2/del;
-		//loop over atoms
-		sims->x[n][1]+=del;
-		sims->x[n][2]+=del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&esz1,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&esz1,force1,virial,ii,jnum,jl);
-			  }
-			  esz1=eng_vdwl;
-		}
-		eng_vdwl=0;
-		//loop over atoms
-		sims->s[n][2]-=2*del;
-		for (ii=0;ii<sims->inum;ii++){
-			  i = sims->ilist[ii];
-			  itype = map[sims->type[i]];
-			  f = net[itype].dimensions[0];
-			  jnum = sims->numneigh[i];
-			  double xn[jnum];
-			  double yn[jnum];
-			  double zn[jnum];
-			  int tn[jnum];
-			  int jl[jnum];
-			  cull_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0);
-			  double features [f];
-			  double dfeaturesx[f*jnum];
-			  double dfeaturesy[f*jnum];
-			  double dfeaturesz[f*jnum];
-			  for (j=0;j<f;j++){
-				  features[j]=0;
-			  }
-			  for (j=0;j<f*jnum;j++){
-				  dfeaturesx[j]=dfeaturesy[j]=dfeaturesz[j]=0;
-			  }
-			  //screening is calculated once for all atoms if any fingerprint uses it.
-			  double Sik[jnum];
-			  double dSikx[jnum];
-			  double dSiky[jnum];
-			  double dSikz[jnum];
-			  double dSijkx[jnum*jnum];
-			  double dSijky[jnum*jnum];
-			  double dSijkz[jnum*jnum];
-			  bool Bij[jnum];
-			  double sx[f*jnum];
-			  double sy[f*jnum];
-			  double sz[f*jnum];
-			  if (dospin){
-				  for (j=0;j<f*jnum;j++){
-					  sx[j]=sy[j]=sz[j]=0;
-				  }
-			  }
-			  if (doscreen){
-					screen(Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,0,xn,yn,zn,tn,jnum-1);
-			  }
-			  if (allscreen){
-				  screen_neighbor_list(xn,yn,zn,tn,&jnum,jl,i,0,Bij,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz);
-			  }
-			  //do fingerprints for atom type
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  itype = nelements;
-			  //do fingerprints for type "all"
-			  len = fingerprintperelement[itype];
-			  for (j=0;j<len;j++){
-						   if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==false && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==false)fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-					  else if (fingerprints[itype][j]->spin==true  && fingerprints[itype][j]->screen==true) fingerprints[itype][j]->compute_fingerprint(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,Sik,dSikx,dSiky,dSikz,dSijkx,dSijky,dSijkz,Bij,ii,nn,xn,yn,zn,tn,jnum-1,jl);
-			  }
-			  //run fingerprints through network
-			  if (dospin){
-				  propagateforwardspin(features,dfeaturesx,dfeaturesy,dfeaturesz,sx,sy,sz,&esz2,force1,fm1,virial,ii,jnum,jl);
-			  }
-			  else {
-				  propagateforward(features,dfeaturesx,dfeaturesy,dfeaturesz,&esz2,force1,virial,ii,jnum,jl);
-			  }
-			  esz2=eng_vdwl;
-		}
-		eng_vdwl=0;
-		sims->s[n][2]+=del;
-		fm1n[n][2]=(esz1-esz2)/2/del;
-		sprintf(str,"atom: %d fx: %f fxn: %f fy: %f fyn: %f fz: %f fzn: %f fmx: %f fmxn: %f fmy: %f fmyn: %f fmz: %f fmzn: %f\n",n,force[n][0],force1n[n][0],force[n][1],force1n[n][1],force[n][2],force1n[n][2],fm[n][0],fm1n[n][0],fm[n][1],fm1n[n][1],fm[n][2],fm1n[n][2]);
-		std::cout<<str;
-	}
-}
 
 void PairRANN::screen(double *Sik, double *dSikx, double*dSiky, double *dSikz, double *dSijkx, double *dSijky, double *dSijkz, bool *Bij, int ii,int sid,double *xn,double *yn,double *zn,int *tn,int jnum)
 {
@@ -2312,35 +1164,7 @@ void PairRANN::propagateforwardspin(double *features,double *dfeaturesx,double *
 	}
 }
 
-void PairRANN::update_stack_size(){
-	//get very rough guess of memory usage
 
-	//neighborlist memory use:
-	memguess = 0;
-	for (int i=0;i<nelementsp;i++){
-		memguess+=8*net[i].dimensions[0]*20*3;
-	}
-	memguess+=8*20*12;
-	memguess+=8*20*20*3;
-	//generous buffer:
-	memguess *= 16;
-	const rlim_t kStackSize = memguess;
-	struct rlimit rl;
-	int result;
-	result = getrlimit(RLIMIT_STACK, &rl);
-	if (result == 0)
-	{
-		if (rl.rlim_cur < kStackSize)
-		{
-			rl.rlim_cur += kStackSize;
-			result = setrlimit(RLIMIT_STACK, &rl);
-			if (result != 0)
-			{
-				fprintf(stderr, "setrlimit returned result = %d\n", result);
-			}
-		}
-	}
-}
 
 //treats # as starting a comment to be ignored.
 int PairRANN::count_words(char *line){
@@ -2381,7 +1205,7 @@ double PairRANN::init_one(int i, int j)
   return cutmax;
 }
 
-void PairRANN::errorf(char * message){
+void PairRANN::errorf(const char * message){
 	this->error->all(FLERR,message);
 }
 

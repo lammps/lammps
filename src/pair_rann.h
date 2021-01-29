@@ -10,12 +10,23 @@
 
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
-
 /*  ----------------------------------------------------------------------
    Contributing authors: Christopher Barrett (MSU) barrett@me.msstate.edu
-   	   	   	   	   	     Doyl Dickel (MSU) doyl@cavs.msstate.edu
+   	   	   	   	   	     Doyl Dickel (MSU) doyl@me.msstate.edu
     ----------------------------------------------------------------------*/
+/*
+“The research described and the resulting data presented herein, unless
+otherwise noted, was funded under PE 0602784A, Project T53 "Military
+Engineering Applied Research", Task 002 under Contract No. W56HZV-17-C-0095,
+managed by the U.S. Army Combat Capabilities Development Command (CCDC) and
+the Engineer Research and Development Center (ERDC).  The work described in
+this document was conducted at CAVS, MSU.  Permission was granted by ERDC
+to publish this information. Any opinions, findings and conclusions or
+recommendations expressed in this material are those of the author(s) and
+do not necessarily reflect the views of the United States Army.​”
 
+DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
+ */
 
 #ifdef PAIR_CLASS
 
@@ -26,14 +37,26 @@ PairStyle(rann,PairRANN)
 #ifndef LMP_PAIR_RANN
 #define LMP_PAIR_RANN
 
-#define MAXLINE 4096
+#define MAXLINE 1024
 
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include "atom.h"
+#include "force.h"
+#include "comm.h"
+#include "memory.h"
+#include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
+#include "memory.h"
+#include "error.h"
+#include "update.h"
 #include "pair.h"
 #include <map>
-#include <math.h>
 #include <string>
-#include <sys/resource.h>
 
 namespace LAMMPS_NS {
 
@@ -49,7 +72,7 @@ class PairRANN : public Pair {
   void init_style();
   double init_one(int, int);
   void init_list(int , NeighList *);
-  void errorf(char*);
+  void errorf(const char*);
   int count_words(char *);
   //black magic for modular fingerprints and activations
   class Activation ***activation;
@@ -79,8 +102,6 @@ class PairRANN : public Pair {
   bool dospin;
   int res;//Resolution of function tables for cubic interpolation.
   int memguess;
-//  double *Sik,*dSikx,*dSiky,*dSikz,*dSijkx,*dSijky,*dSijkz;
-//  bool *Bij;
 	double *screening_min;
 	double *screening_max;
 	bool **weightdefined;
@@ -137,11 +158,8 @@ class PairRANN : public Pair {
   void propagateforward(double *,double *,double *,double *,double *,double **,double **,int,int,int*);//called by compute to get force and energy
   void propagateforwardspin(double *,double *,double *,double *,double *,double *,double *,double *,double **,double **,double**,int,int,int*);//called by compute to get force and energy
   void screen(double*,double*,double*,double*,double*,double*,double*,bool*,int,int,double*,double*,double*,int *,int);
-  void testdfeatures(double *,double *, double *, double *,double *,double *, double *,int);
-  void testdenergy();
   void cull_neighbor_list(double *,double *,double *,int *,int *,int *,int,int);
   void screen_neighbor_list(double *,double *,double *,int *,int *,int *,int,int,bool*,double*,double*,double*,double*,double*,double*,double*);
-  void update_stack_size();
 };
 
 }

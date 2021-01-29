@@ -207,7 +207,7 @@ struct my_complex {
 namespace Kokkos {
 template <>
 struct reduction_identity<TestTeamVectorRange::my_complex> {
-  typedef reduction_identity<double> t_red_ident;
+  using t_red_ident = reduction_identity<double>;
   KOKKOS_FORCEINLINE_FUNCTION static TestTeamVectorRange::my_complex sum() {
     return TestTeamVectorRange::my_complex(t_red_ident::sum());
   }
@@ -221,8 +221,8 @@ namespace TestTeamVectorRange {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_teamvector_for {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -230,16 +230,16 @@ struct functor_teamvector_for {
       Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar*, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_int;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_int =
+      Kokkos::View<Scalar*, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int /*team_size*/) const {
     return shared_int::shmem_size(131);
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(typename policy_type::member_type team) const {
-    typedef typename shmem_space::size_type size_type;
+    using size_type           = typename shmem_space::size_type;
     const size_type shmemSize = 131;
     shared_int values         = shared_int(team.team_shmem(), shmemSize);
 
@@ -290,8 +290,8 @@ struct functor_teamvector_for {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_teamvector_reduce {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -299,9 +299,9 @@ struct functor_teamvector_reduce {
       Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar*, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_scalar_t;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_scalar_t =
+      Kokkos::View<Scalar*, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_scalar_t::shmem_size(team_size * 13);
   }
@@ -345,9 +345,9 @@ struct functor_teamvector_reduce {
       if (test != value) {
         if (team.league_rank() == 0) {
           printf("FAILED teamvector_parallel_reduce %i %i %lf %lf %lu\n",
-                 team.league_rank(), team.team_rank(),
+                 (int)team.league_rank(), (int)team.team_rank(),
                  static_cast<double>(test), static_cast<double>(value),
-                 sizeof(Scalar));
+                 static_cast<unsigned long>(sizeof(Scalar)));
         }
 
         flag() = 1;
@@ -357,8 +357,10 @@ struct functor_teamvector_reduce {
           printf(
               "FAILED teamvector_parallel_reduce with shared result %i %i %lf "
               "%lf %lu\n",
-              team.league_rank(), team.team_rank(), static_cast<double>(test),
-              static_cast<double>(shared_value(0)), sizeof(Scalar));
+              static_cast<int>(team.league_rank()),
+              static_cast<int>(team.team_rank()), static_cast<double>(test),
+              static_cast<double>(shared_value(0)),
+              static_cast<unsigned long>(sizeof(Scalar)));
         }
 
         flag() = 1;
@@ -369,8 +371,8 @@ struct functor_teamvector_reduce {
 
 template <typename Scalar, class ExecutionSpace>
 struct functor_teamvector_reduce_reducer {
-  typedef Kokkos::TeamPolicy<ExecutionSpace> policy_type;
-  typedef ExecutionSpace execution_space;
+  using policy_type     = Kokkos::TeamPolicy<ExecutionSpace>;
+  using execution_space = ExecutionSpace;
 
   Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag;
 
@@ -378,9 +380,9 @@ struct functor_teamvector_reduce_reducer {
       Kokkos::View<int, Kokkos::LayoutLeft, ExecutionSpace> flag_)
       : flag(flag_) {}
 
-  typedef typename ExecutionSpace::scratch_memory_space shmem_space;
-  typedef Kokkos::View<Scalar*, shmem_space, Kokkos::MemoryUnmanaged>
-      shared_scalar_t;
+  using shmem_space = typename ExecutionSpace::scratch_memory_space;
+  using shared_scalar_t =
+      Kokkos::View<Scalar*, shmem_space, Kokkos::MemoryUnmanaged>;
   unsigned team_shmem_size(int team_size) const {
     return shared_scalar_t::shmem_size(team_size * 13);
   }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "pair_vashishta_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -77,7 +77,7 @@ PairVashishtaGPU::PairVashishtaGPU(LAMMPS *lmp) : PairVashishta(lmp), gpu_mode(G
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -141,7 +141,7 @@ void PairVashishtaGPU::compute(int eflag, int vflag)
 
 void PairVashishtaGPU::allocate()
 {
-  if(!allocated) {
+  if (!allocated) {
     PairVashishta::allocate();
   }
   int n = atom->ntypes;
@@ -169,11 +169,11 @@ void PairVashishtaGPU::init_style()
   double *bigw, *c0, *costheta, *bigb;
   double *big2b, *bigc;
 
-  cutsq = r0 = gamma = eta = NULL;
-  lam1inv = lam4inv = zizj = mbigd = NULL;
-  dvrc = big6w = heta = bigh = NULL;
-  bigw = c0 = costheta = bigb = NULL;
-  big2b = bigc = NULL;
+  cutsq = r0 = gamma = eta = nullptr;
+  lam1inv = lam4inv = zizj = mbigd = nullptr;
+  dvrc = big6w = heta = bigh = nullptr;
+  bigw = c0 = costheta = bigb = nullptr;
+  big2b = bigc = nullptr;
 
   memory->create(cutsq,nparams,"pair:cutsq");
   memory->create(r0,nparams,"pair:r0");
@@ -260,7 +260,7 @@ void PairVashishtaGPU::init_style()
 
 double PairVashishtaGPU::init_one(int i, int j)
 {
-  if(!gpu_allocated) {
+  if (!gpu_allocated) {
     allocate();
   }
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");

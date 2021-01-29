@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+   Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -31,7 +31,9 @@ namespace LAMMPS_NS {
 class FixBondReact : public Fix {
  public:
 
-  enum {MAXLINE=256};
+  enum {MAXLINE=256}; // max length of line read from files
+  enum {MAXCONIDS=4}; // max # of IDs used by any constraint
+  enum {MAXCONPAR=5}; // max # of constraint parameters
 
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact();
@@ -61,12 +63,15 @@ class FixBondReact : public Fix {
   int *max_rxn,*nlocalskips,*nghostlyskips;
   tagint lastcheck;
   int stabilization_flag;
+  int reset_mol_ids_flag;
   int custom_exclude_flag;
   int *stabilize_steps_flag;
-  int *update_edges_flag;
-  int nconstraints;
+  int *custom_charges_fragid;
+  int *molecule_keyword;
+  int maxnconstraints;
+  int *nconstraints;
+  char **constraintstr;
   int narrhenius;
-  double **constraints;
   int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
   int *groupbits;
@@ -93,6 +98,7 @@ class FixBondReact : public Fix {
   class RanMars **random; // random number for 'prob' keyword
   class RanMars **rrhandom; // random number for Arrhenius constraint
   class NeighList *list;
+  class ResetMolIDs *reset_mol_ids; // class for resetting mol IDs
 
   int *reacted_mol,*unreacted_mol;
   int *limit_duration; // indicates how long to relax
@@ -111,7 +117,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ncustom,ndelete,nchiral,nconstr; // # edge, equivalent, custom atoms in mapping file
+  int nedge,nequivalent,ndelete,nchiral; // # edge, equivalent atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;
@@ -125,7 +131,7 @@ class FixBondReact : public Fix {
   int ***equivalences; // relation between pre- and post-reacted templates
   int ***reverse_equiv; // re-ordered equivalences
   int **landlocked_atoms; // all atoms at least three bonds away from edge atoms
-  int **custom_edges; // atoms in molecule templates with incorrect valences
+  int **custom_charges; // atoms whose charge should be updated
   int **delete_atoms; // atoms in pre-reacted templates to delete
   int ***chiral_atoms; // pre-react chiral atoms. 1) flag 2) orientation 3-4) ordered atom types
 
@@ -149,10 +155,10 @@ class FixBondReact : public Fix {
   void read(int);
   void EdgeIDs(char *, int);
   void Equivalences(char *, int);
-  void CustomEdges(char *, int);
   void DeleteAtoms(char *, int);
+  void CustomCharges(int, int);
   void ChiralCenters(char *, int);
-  void Constraints(char *, int);
+  void ReadConstraints(char *, int);
   void readID(char *, int, int, int);
 
   void make_a_guess ();
@@ -191,6 +197,14 @@ class FixBondReact : public Fix {
     int reaction_count_total;
   };
   Set *set;
+
+  struct Constraint {
+    int type;
+    int id[MAXCONIDS];
+    int idtype[MAXCONIDS];
+    double par[MAXCONPAR];
+  };
+  Constraint **constraints;
 
   // DEBUG
 
@@ -240,8 +254,10 @@ E: Bond/react: Invalid template atom ID in map file
 Atom IDs in molecule templates range from 1 to the number of atoms in the template.
 
 E or W: Bond/react: Atom affected by reaction %s too close to template edge
+        Bond/react: Atom type affected by reaction %s too close to template edge
+        Bond/react: Bond type affected by reaction %s too close to template edge
 
-This means an atom which changes type or connectivity during the
+This means an atom (or bond) that changes type or connectivity during the
 reaction is too close to an 'edge' atom defined in the map file. This
 could cause incorrect assignment of bonds, angle, etc. Generally, this
 means you must include more atoms in your templates, such that there

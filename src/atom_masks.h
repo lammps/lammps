@@ -42,6 +42,12 @@
 #define ENERGY_MASK    0x00010000
 #define VIRIAL_MASK    0x00020000
 
+// SPIN
+
+#define SP_MASK         0x00000001
+#define FM_MASK         0x00000002
+#define FML_MASK        0x00000004
+
 // DPD
 
 #define DPDRHO_MASK       0x00040000

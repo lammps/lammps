@@ -73,8 +73,8 @@ void deep_copy(ConstBitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src);
 template <typename Device>
 class Bitset {
  public:
-  typedef Device execution_space;
-  typedef unsigned size_type;
+  using execution_space = Device;
+  using size_type       = unsigned int;
 
   enum { BIT_SCAN_REVERSE = 1u };
   enum { MOVE_HINT_BACKWARD = 2u };
@@ -137,9 +137,9 @@ class Bitset {
 
     if (m_last_block_mask) {
       // clear the unused bits in the last block
-      typedef Kokkos::Impl::DeepCopy<typename execution_space::memory_space,
-                                     Kokkos::HostSpace>
-          raw_deep_copy;
+      using raw_deep_copy =
+          Kokkos::Impl::DeepCopy<typename execution_space::memory_space,
+                                 Kokkos::HostSpace>;
       raw_deep_copy(m_blocks.data() + (m_blocks.extent(0) - 1u),
                     &m_last_block_mask, sizeof(unsigned));
     }
@@ -234,6 +234,10 @@ class Bitset {
     return find_any_helper(block_idx, offset, block, scan_direction);
   }
 
+  KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
+    return m_blocks.is_allocated();
+  }
+
  private:
   KOKKOS_FORCEINLINE_FUNCTION
   Kokkos::pair<bool, unsigned> find_any_helper(unsigned block_idx,
@@ -304,8 +308,8 @@ class Bitset {
 template <typename Device>
 class ConstBitset {
  public:
-  typedef Device execution_space;
-  typedef unsigned size_type;
+  using execution_space = Device;
+  using size_type       = unsigned int;
 
  private:
   enum { block_size = static_cast<unsigned>(sizeof(unsigned) * CHAR_BIT) };
@@ -380,9 +384,9 @@ void deep_copy(Bitset<DstDevice>& dst, Bitset<SrcDevice> const& src) {
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
-  typedef Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
-                                 typename SrcDevice::memory_space>
-      raw_deep_copy;
+  using raw_deep_copy =
+      Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
+                             typename SrcDevice::memory_space>;
   raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(),
                 sizeof(unsigned) * src.m_blocks.extent(0));
 }
@@ -394,9 +398,9 @@ void deep_copy(Bitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src) {
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
-  typedef Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
-                                 typename SrcDevice::memory_space>
-      raw_deep_copy;
+  using raw_deep_copy =
+      Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
+                             typename SrcDevice::memory_space>;
   raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(),
                 sizeof(unsigned) * src.m_blocks.extent(0));
 }
@@ -408,9 +412,9 @@ void deep_copy(ConstBitset<DstDevice>& dst, ConstBitset<SrcDevice> const& src) {
         "Error: Cannot deep_copy bitsets of different sizes!");
   }
 
-  typedef Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
-                                 typename SrcDevice::memory_space>
-      raw_deep_copy;
+  using raw_deep_copy =
+      Kokkos::Impl::DeepCopy<typename DstDevice::memory_space,
+                             typename SrcDevice::memory_space>;
   raw_deep_copy(dst.m_blocks.data(), src.m_blocks.data(),
                 sizeof(unsigned) * src.m_blocks.extent(0));
 }

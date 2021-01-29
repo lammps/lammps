@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,7 +44,7 @@ PairLJCutCoulLongCS::PairLJCutCoulLongCS(LAMMPS *lmp) : PairLJCutCoulLong(lmp)
   respa_enable = 0;  // TODO: r-RESPA handling is inconsistent and thus disabled until fixed
   single_enable = 0; // TODO: single function does not match compute
   writedata = 1;
-  ftable = NULL;
+  ftable = nullptr;
   qdist = 0.0;
 }
 

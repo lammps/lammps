@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,21 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "kspace.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "pair.h"
-#include "memory.h"
 #include "atom_masks.h"
-#include "error.h"
-#include "suffix.h"
+#include "comm.h"
 #include "domain.h"
-#include "fmt/format.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "pair.h"
+#include "suffix.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -88,8 +86,9 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   splittol = 1.0e-6;
 
   maxeatom = maxvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
@@ -190,7 +189,7 @@ void KSpace::compute_dummy(int eflag, int vflag)
 
 void KSpace::pair_check()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"KSpace solver requires a pair style");
 
   if (ewaldflag && !force->pair->ewaldflag)
@@ -216,7 +215,17 @@ void KSpace::pair_check()
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise set to 0:
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
+                       no current support for centroid stress
+     vflag_either != 0 if vflag_global or vflag_atom is set
+     evflag_atom  != 0 if eflag_atom or vflag_atom is set
 ------------------------------------------------------------------------- */
 
 void KSpace::ev_setup(int eflag, int vflag, int alloc)
@@ -226,12 +235,12 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & VIRIAL_ATOM;
 
   if (eflag_atom || vflag_atom) evflag_atom = 1;
   else evflag_atom = 0;
@@ -310,7 +319,7 @@ void KSpace::qsum_qsq(int warning_flag)
 
   if (fabs(qsum) > SMALL) {
     std::string message = fmt::format("System is not charge neutral, net "
-                                      "charge = {}",qsum);
+                                      "charge = {:.8}",qsum);
     if (!warn_nonneutral) error->all(FLERR,message);
     if (warn_nonneutral == 1 && comm->me == 0) error->warning(FLERR,message);
     warn_nonneutral = 2;
@@ -420,10 +429,9 @@ void KSpace::lamda2xvector(double *lamda, double *v)
 /* ----------------------------------------------------------------------
    convert a sphere in box coords to an ellipsoid in lamda (0-1)
    coords and return the tight (axis-aligned) bounding box, does not
-   preserve vector magnitude
-   see http://www.loria.fr/~shornus/ellipsoid-bbox.html and
-   http://yiningkarlli.blogspot.com/2013/02/
-     bounding-boxes-for-ellipsoidsfigure.html
+   preserve vector magnitude see:
+   http://www.loria.fr/~shornus/ellipsoid-bbox.html (no longer online) and
+   https://yiningkarlli.blogspot.com/2013/02/bounding-boxes-for-ellipsoidsfigure.html
 ------------------------------------------------------------------------- */
 
 void KSpace::kspacebbox(double r, double *b)
@@ -453,9 +461,9 @@ void KSpace::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mesh") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      nx_pppm = nx_msm_max = force->inumeric(FLERR,arg[iarg+1]);
-      ny_pppm = ny_msm_max = force->inumeric(FLERR,arg[iarg+2]);
-      nz_pppm = nz_msm_max = force->inumeric(FLERR,arg[iarg+3]);
+      nx_pppm = nx_msm_max = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ny_pppm = ny_msm_max = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      nz_pppm = nz_msm_max = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (nx_pppm == 0 && ny_pppm == 0 && nz_pppm == 0)
         gridflag = 0;
       else if (nx_pppm <= 0 || ny_pppm <= 0 || nz_pppm <= 0)
@@ -465,9 +473,9 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 4;
     } else if (strcmp(arg[iarg],"mesh/disp") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      nx_pppm_6 = force->inumeric(FLERR,arg[iarg+1]);
-      ny_pppm_6 = force->inumeric(FLERR,arg[iarg+2]);
-      nz_pppm_6 = force->inumeric(FLERR,arg[iarg+3]);
+      nx_pppm_6 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ny_pppm_6 = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      nz_pppm_6 = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (nx_pppm_6 == 0 && ny_pppm_6 == 0 && nz_pppm_6 == 0)
         gridflag_6 = 0;
       else if (nx_pppm_6 <= 0 || ny_pppm_6 <= 0 || nz_pppm_6 == 0)
@@ -477,15 +485,15 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      order = force->inumeric(FLERR,arg[iarg+1]);
+      order = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"order/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      order_6 = force->inumeric(FLERR,arg[iarg+1]);
+      order_6 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"minorder") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      minorder = force->inumeric(FLERR,arg[iarg+1]);
+      minorder = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (minorder < 2) error->all(FLERR,"Illegal kspace_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap") == 0) {
@@ -496,17 +504,17 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      accuracy_absolute = force->numeric(FLERR,arg[iarg+1]);
+      accuracy_absolute = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"gewald") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      g_ewald = force->numeric(FLERR,arg[iarg+1]);
+      g_ewald = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (g_ewald == 0.0) gewaldflag = 0;
       else gewaldflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"gewald/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      g_ewald_6 = force->numeric(FLERR,arg[iarg+1]);
+      g_ewald_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (g_ewald_6 == 0.0) gewaldflag_6 = 0;
       else gewaldflag_6 = 1;
       iarg += 2;
@@ -516,7 +524,7 @@ void KSpace::modify_params(int narg, char **arg)
         slabflag = 2;
       } else {
         slabflag = 1;
-        slab_volfactor = force->numeric(FLERR,arg[iarg+1]);
+        slab_volfactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (slab_volfactor <= 1.0)
           error->all(FLERR,"Bad kspace_modify slab parameter");
         if (slab_volfactor < 2.0 && comm->me == 0)
@@ -612,5 +620,5 @@ void KSpace::modify_params(int narg, char **arg)
 void *KSpace::extract(const char *str)
 {
   if (strcmp(str,"scale") == 0) return (void *) &scale;
-  return NULL;
+  return nullptr;
 }

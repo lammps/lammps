@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,70 +11,70 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "mliap_model_quadratic.h"
 #include "pair_mliap.h"
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
+#include "mliap_data.h"
 #include "error.h"
+#include <cmath>
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
-#define MAXWORD 3
 
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+  MLIAPModelSimple(lmp, coefffilename)
 {
+  if (coefffilename) read_coeffs(coefffilename);
+  if (nparams > 0) ndescriptors = sqrt(2*nparams)-1;
   nonlinearflag = 1;
-  ndescriptors = sqrt(2*nparams)-1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelQuadratic::MLIAPModelQuadratic(LAMMPS* lmp, int nelements_in, int nparams_in) : 
-  MLIAPModel(lmp, nelements_in, nparams_in)
+MLIAPModelQuadratic::~MLIAPModelQuadratic() {}
+
+/* ----------------------------------------------------------------------
+   get number of parameters
+   ---------------------------------------------------------------------- */
+
+int MLIAPModelQuadratic::get_nparams()
 {
-  nonlinearflag = 1;
-  ndescriptors = sqrt(2*nparams)-1;
+  if (nparams == 0) {
+    if (ndescriptors == 0) error->all(FLERR,"ndescriptors not defined");
+    else nparams = ndescriptors + 1 + (ndescriptors*(ndescriptors+1))/2;
+  }
+
+  return nparams;
 }
-
-/* ---------------------------------------------------------------------- */
-
-MLIAPModelQuadratic::~MLIAPModelQuadratic(){}
 
 /* ----------------------------------------------------------------------
    Calculate model gradients w.r.t descriptors for each atom dE(B_i)/dB_i
    ---------------------------------------------------------------------- */
 
-void MLIAPModelQuadratic::gradient(PairMLIAP* pairmliap, NeighList* list, double **descriptors, double **beta, int eflag)
+void MLIAPModelQuadratic::compute_gradients(MLIAPData* data)
 {
-  int i;
-  int *type = atom->type;
+  data->energy = 0.0;
 
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = pairmliap->map[itype];
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int ielem = data->ielems[ii];
+
     double* coeffi = coeffelem[ielem];
-
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
-      beta[ii][icoeff] = coeffi[icoeff+1];
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      data->betas[ii][icoeff] = coeffi[icoeff+1];
 
     int k = ndescriptors+1;
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++) {
-      double bveci = descriptors[ii][icoeff];
-      beta[ii][icoeff] += coeffi[k]*bveci;
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+      double bveci = data->descriptors[ii][icoeff];
+      data->betas[ii][icoeff] += coeffi[k]*bveci;
       k++;
-      for (int jcoeff = icoeff+1; jcoeff < ndescriptors; jcoeff++) {
-        double bvecj = descriptors[ii][jcoeff];
-        beta[ii][icoeff] += coeffi[k]*bvecj;
-        beta[ii][jcoeff] += coeffi[k]*bveci;
+      for (int jcoeff = icoeff+1; jcoeff < data->ndescriptors; jcoeff++) {
+        double bvecj = data->descriptors[ii][jcoeff];
+        data->betas[ii][icoeff] += coeffi[k]*bvecj;
+        data->betas[ii][jcoeff] += coeffi[k]*bveci;
         k++;
       }
     }
@@ -82,7 +82,7 @@ void MLIAPModelQuadratic::gradient(PairMLIAP* pairmliap, NeighList* list, double
     // add in contributions to global and per-atom energy
     // this is optional and has no effect on force calculation
 
-    if (eflag) {
+    if (data->eflag) {
 
       // energy of atom I
 
@@ -91,108 +91,99 @@ void MLIAPModelQuadratic::gradient(PairMLIAP* pairmliap, NeighList* list, double
 
       // E_i = beta.B_i + 0.5*B_i^t.alpha.B_i
 
-      for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
-        etmp += coeffi[icoeff+1]*descriptors[ii][icoeff];
+      for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+        etmp += coeffi[icoeff+1]*data->descriptors[ii][icoeff];
 
       // quadratic contributions
 
       int k = ndescriptors+1;
-      for (int icoeff = 0; icoeff < ndescriptors; icoeff++) {
-        double bveci = descriptors[ii][icoeff];
+      for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+        double bveci = data->descriptors[ii][icoeff];
         etmp += 0.5*coeffi[k++]*bveci*bveci;
-        for (int jcoeff = icoeff+1; jcoeff < ndescriptors; jcoeff++) {
-          double bvecj = descriptors[ii][jcoeff];
+        for (int jcoeff = icoeff+1; jcoeff < data->ndescriptors; jcoeff++) {
+          double bvecj = data->descriptors[ii][jcoeff];
           etmp += coeffi[k++]*bveci*bvecj;
         }
       }
-      pairmliap->e_tally(i,etmp);
+      data->energy += etmp;
+      data->eatoms[ii] = etmp;
     }
   }
 }
 
-
 /* ----------------------------------------------------------------------
    Calculate model double gradients w.r.t descriptors and parameters
-   for each atom energy gamma_lk = d2E(B)/dB_k/dsigma_l, 
-   where sigma_l is a parameter, B_k a descriptor, 
+   for each atom energy gamma_lk = d2E(B)/dB_k/dsigma_l,
+   where sigma_l is a parameter, B_k a descriptor,
    and atom subscript i is omitted
 
    gamma is in CSR format:
       nnz = number of non-zero values
-      gamma_row_index[inz] = l indices, 0 <= l < nparams 
+      gamma_row_index[inz] = l indices, 0 <= l < nparams
       gamma_col_indexiinz] = k indices, 0 <= k < ndescriptors
       gamma[i][inz] = non-zero values, 0 <= inz < nnz
 
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelQuadratic::param_gradient(int *map, NeighList* list, 
-                                         double **descriptors, 
-                                         int **gamma_row_index, int **gamma_col_index, 
-                                         double **gamma, double *egradient)
+void MLIAPModelQuadratic::compute_gradgrads(class MLIAPData* data)
 {
-  int i;
-  int *type = atom->type;
-
   // zero out energy gradients
 
-  for (int l = 0; l < nelements*nparams; l++)
-    egradient[l] = 0.0;
-    
-  for (int ii = 0; ii < list->inum; ii++) {
+  for (int l = 0; l < data->nelements*data->nparams; l++)
+    data->egradient[l] = 0.0;
 
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = map[itype];
-    const int elemoffset = nparams*ielem;
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int ielem = data->ielems[ii];
+    const int elemoffset = data->nparams*ielem;
 
     // linear contributions
 
     int l = elemoffset+1;
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++) {
-      gamma[ii][icoeff] = 1.0;
-      gamma_row_index[ii][icoeff] = l++;
-      gamma_col_index[ii][icoeff] = icoeff;
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+      data->gamma[ii][icoeff] = 1.0;
+      data->gamma_row_index[ii][icoeff] = l++;
+      data->gamma_col_index[ii][icoeff] = icoeff;
     }
 
     // quadratic contributions
 
-    int inz = ndescriptors;
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++) {
-      double bveci = descriptors[ii][icoeff];
-      gamma[ii][inz] = bveci;
-      gamma_row_index[ii][inz] = l++;
-      gamma_col_index[ii][inz] = icoeff;
+    int inz = data->ndescriptors;
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+      double bveci = data->descriptors[ii][icoeff];
+      data->gamma[ii][inz] = bveci;
+      data->gamma_row_index[ii][inz] = l++;
+      data->gamma_col_index[ii][inz] = icoeff;
       inz++;
-      for (int jcoeff = icoeff+1; jcoeff < ndescriptors; jcoeff++) {
-        double bvecj = descriptors[ii][jcoeff];
-        gamma[ii][inz] = bvecj; // derivative w.r.t. B[icoeff]
-        gamma_row_index[ii][inz] = l;
-        gamma_col_index[ii][inz] = icoeff;
+      for (int jcoeff = icoeff+1; jcoeff < data->ndescriptors; jcoeff++) {
+        double bvecj = data->descriptors[ii][jcoeff];
+        data->gamma[ii][inz] = bvecj; // derivative w.r.t. B[icoeff]
+        data->gamma_row_index[ii][inz] = l;
+        data->gamma_col_index[ii][inz] = icoeff;
         inz++;
-        gamma[ii][inz] = bveci; // derivative w.r.t. B[jcoeff]
-        gamma_row_index[ii][inz] = l;
-        gamma_col_index[ii][inz] = jcoeff;
+        data->gamma[ii][inz] = bveci; // derivative w.r.t. B[jcoeff]
+        data->gamma_row_index[ii][inz] = l;
+        data->gamma_col_index[ii][inz] = jcoeff;
         inz++;
         l++;
       }
     }
 
     // gradient of energy of atom I w.r.t. parameters
-    
+
     l = elemoffset;
-    egradient[l++] += 1.0;
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
-      egradient[l++] += descriptors[ii][icoeff];
-    
+    data->egradient[l++] += 1.0;
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      data->egradient[l++] += data->descriptors[ii][icoeff];
+
     // quadratic contributions
-    
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++) {
-      double bveci = descriptors[ii][icoeff];
-      egradient[l++] += 0.5*bveci*bveci;
+
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+      double bveci = data->descriptors[ii][icoeff];
+      data->egradient[l++] += 0.5*bveci*bveci;
       for (int jcoeff = icoeff+1; jcoeff < ndescriptors; jcoeff++) {
-        double bvecj = descriptors[ii][jcoeff];
-        egradient[l++] += bveci*bvecj;
+        double bvecj = data->descriptors[ii][jcoeff];
+        data->egradient[l++] += bveci*bvecj;
       }
     }
   }
@@ -203,12 +194,12 @@ void MLIAPModelQuadratic::param_gradient(int *map, NeighList* list,
    count the number of non-zero entries in gamma matrix
    ---------------------------------------------------------------------- */
 
-int MLIAPModelQuadratic::get_gamma_nnz()
+int MLIAPModelQuadratic::get_gamma_nnz(class MLIAPData* data)
 {
   int inz = ndescriptors;
-  for (int icoeff = 0; icoeff < ndescriptors; icoeff++) {
+  for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
     inz++;
-    for (int jcoeff = icoeff+1; jcoeff < ndescriptors; jcoeff++) {
+    for (int jcoeff = icoeff+1; jcoeff < data->ndescriptors; jcoeff++) {
         inz++;
         inz++;
     }
@@ -217,3 +208,74 @@ int MLIAPModelQuadratic::get_gamma_nnz()
   return inz;
 }
 
+void MLIAPModelQuadratic::compute_force_gradients(class MLIAPData* data) {
+  // zero out energy gradients
+
+  for (int l = 0; l < data->nelements*data->nparams; l++)
+    data->egradient[l] = 0.0;
+
+  int ij = 0;
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int i = data->iatoms[ii];
+    const int ielem = data->ielems[ii];
+    const int elemoffset = data->nparams*ielem;
+
+    for (int jj = 0; jj < data->numneighs[ii]; jj++) {
+      const int j = data->jatoms[ij];
+      int l = elemoffset+1;
+      for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+        data->gradforce[i][l]               += data->graddesc[ij][icoeff][0];
+        data->gradforce[i][l+data->yoffset] += data->graddesc[ij][icoeff][1];
+        data->gradforce[i][l+data->zoffset] += data->graddesc[ij][icoeff][2];
+        data->gradforce[j][l]               -= data->graddesc[ij][icoeff][0];
+        data->gradforce[j][l+data->yoffset] -= data->graddesc[ij][icoeff][1];
+        data->gradforce[j][l+data->zoffset] -= data->graddesc[ij][icoeff][2];
+        l++;
+      }
+
+      // quadratic contributions
+
+      for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+        double bveci = data->descriptors[ii][icoeff];
+        data->gradforce[i][l]               += data->graddesc[ij][icoeff][0]*bveci;
+        data->gradforce[i][l+data->yoffset] += data->graddesc[ij][icoeff][1]*bveci;
+        data->gradforce[i][l+data->zoffset] += data->graddesc[ij][icoeff][2]*bveci;
+        data->gradforce[j][l]               -= data->graddesc[ij][icoeff][0]*bveci;
+        data->gradforce[j][l+data->yoffset] -= data->graddesc[ij][icoeff][1]*bveci;
+        data->gradforce[j][l+data->zoffset] -= data->graddesc[ij][icoeff][2]*bveci;
+        l++;
+        for (int jcoeff = icoeff+1; jcoeff < data->ndescriptors; jcoeff++) {
+          double bvecj = data->descriptors[ii][jcoeff];
+          data->gradforce[i][l]               += data->graddesc[ij][icoeff][0]*bvecj + data->graddesc[ij][jcoeff][0]*bveci;
+          data->gradforce[i][l+data->yoffset] += data->graddesc[ij][icoeff][1]*bvecj + data->graddesc[ij][jcoeff][1]*bveci;
+          data->gradforce[i][l+data->zoffset] += data->graddesc[ij][icoeff][2]*bvecj + data->graddesc[ij][jcoeff][2]*bveci;
+          data->gradforce[j][l]               -= data->graddesc[ij][icoeff][0]*bvecj + data->graddesc[ij][jcoeff][0]*bveci;
+          data->gradforce[j][l+data->yoffset] -= data->graddesc[ij][icoeff][1]*bvecj + data->graddesc[ij][jcoeff][1]*bveci;
+          data->gradforce[j][l+data->zoffset] -= data->graddesc[ij][icoeff][2]*bvecj + data->graddesc[ij][jcoeff][2]*bveci;
+          l++;
+        }
+      }
+      ij++;
+    }
+
+    // gradient of energy of atom I w.r.t. parameters
+
+    int l = elemoffset;
+    data->egradient[l++] += 1.0;
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      data->egradient[l++] += data->descriptors[ii][icoeff];
+
+    // quadratic contributions
+
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+      double bveci = data->descriptors[ii][icoeff];
+      data->egradient[l++] += 0.5*bveci*bveci;
+      for (int jcoeff = icoeff+1; jcoeff < data->ndescriptors; jcoeff++) {
+        double bvecj = data->descriptors[ii][jcoeff];
+        data->egradient[l++] += bveci*bvecj;
+      }
+    }
+
+  }
+
+}

@@ -64,7 +64,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style morse <pair_morse>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

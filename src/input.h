@@ -15,8 +15,8 @@
 #define LMP_INPUT_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
 
@@ -38,7 +38,6 @@ class Input : protected Pointers {
   char *one(const std::string&); // process a single command
   void substitute(char *&, char *&, int &, int &, int);
                                  // substitute for variables in a string
-  int expand_args(int, char **, int, char **&);  // expand args due to wildcard
   void write_echo(const std::string &); // send text to active echo file pointers
 
  protected:
@@ -55,6 +54,7 @@ class Input : protected Pointers {
   int label_active;            // 0 = no label, 1 = looking for label
   char *labelstr;              // label string being looked for
   int jump_skip;               // 1 if skipping next jump, 0 otherwise
+  bool utf8_warn;              // true if need to warn about UTF-8 chars
 
   FILE **infiles;              // list of open input files
 

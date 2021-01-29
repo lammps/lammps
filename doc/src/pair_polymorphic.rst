@@ -295,9 +295,10 @@ of the G functions, ntheta values are listed. Finally, F functions are
 listed for all the ntypes*(ntypes+1)/2 pairs in the same sequence as
 described above.  For each of the F functions, nx values are listed.
 
-**Mixing, shift, table tail correction, restart**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This pair styles does not support the :doc:`pair_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write their information to :doc:`binary restart

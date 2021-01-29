@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,11 +33,12 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairCoulCutKokkos<DeviceType>::PairCoulCutKokkos(LAMMPS *lmp) : PairCoulCut(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
+  cutsq = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -55,9 +56,9 @@ template<class DeviceType>
 void PairCoulCutKokkos<DeviceType>::cleanup_copy() {
  // WHY needed: this prevents parent copy from deallocating any arrays
   allocated = 0;
-  cutsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
+  cutsq = nullptr;
+  eatom = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,7 +145,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairCoulCutKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype,
+compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j, const int& itype,
               const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
@@ -160,7 +161,7 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairCoulCutKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype,
+compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j, const int& itype,
               const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT rinv = sqrt(r2inv);
@@ -249,7 +250,7 @@ double PairCoulCutKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cutsq = cutone*cutone;
   k_params.h_view(j,i) = k_params.h_view(i,j);
 
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cutone*cutone;
@@ -270,7 +271,7 @@ double PairCoulCutKokkos<DeviceType>::init_one(int i, int j)
 
 namespace LAMMPS_NS {
 template class PairCoulCutKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairCoulCutKokkos<LMPHostType>;
 #endif
 }

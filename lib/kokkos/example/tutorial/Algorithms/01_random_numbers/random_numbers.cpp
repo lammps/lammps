@@ -48,7 +48,7 @@
 #include <impl/Kokkos_Timer.hpp>
 #include <cstdlib>
 
-typedef Kokkos::HostSpace::execution_space DefaultHostType;
+using DefaultHostType = Kokkos::HostSpace::execution_space;
 
 // Kokkos provides two different random number generators with a 64 bit and a
 // 1024 bit state. These generators are based on Vigna, Sebastiano (2014). "An
@@ -108,8 +108,8 @@ int main(int argc, char* args[]) {
   } else {
     // Initialize Kokkos
     Kokkos::initialize(argc, args);
-    int size    = atoi(args[1]);
-    int samples = atoi(args[2]);
+    int size    = std::stoi(args[1]);
+    int samples = std::stoi(args[2]);
 
     // Create two random number generator pools one for 64bit states and one for
     // 1024 bit states Both take an 64 bit unsigned integer seed to initialize a

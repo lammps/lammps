@@ -401,7 +401,8 @@ restored when the restarted run finally completes.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 If the *atom* keyword is used and the *scale* or *reset* keyword is
 set to *yes*, then this fix writes information to a restart file so

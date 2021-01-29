@@ -121,7 +121,7 @@ A detailed description of this method can be found in
 
 The *sysdim* keyword is optional.  If specified with a value smaller
 than the dimensionality of the LAMMPS simulation, its value is used
-for the dynamical matrix calculation.  For example, using LAMMPS ot
+for the dynamical matrix calculation.  For example, using LAMMPS to
 model a 2D or 3D system, the phonon dispersion of a 1D atomic chain
 can be computed using *sysdim* = 1.
 
@@ -150,7 +150,8 @@ The calculated dynamical matrix elements are written out in
 points in the log file is in the units of the basis vectors of the
 corresponding reciprocal lattice.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 

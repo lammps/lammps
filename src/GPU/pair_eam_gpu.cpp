@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "pair_eam_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "force.h"
@@ -145,7 +145,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
-    eam_gpu_compute_force(NULL, eflag, vflag, eflag_atom, vflag_atom);
+    eam_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
 }

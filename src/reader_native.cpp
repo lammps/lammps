@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "reader_native.h"
-#include <cstring>
-#include <cstdlib>
-#include "atom.h"
-#include "memory.h"
+
 #include "error.h"
-#include "utils.h"
+#include "memory.h"
+#include "tokenizer.h"
+
+#include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -33,8 +34,7 @@ enum{UNSET,NOSCALE_NOWRAP,NOSCALE_WRAP,SCALE_NOWRAP,SCALE_WRAP};
 ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
 {
   line = new char[MAXLINE];
-  words = NULL;
-  fieldindex = NULL;
+  fieldindex = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -42,7 +42,6 @@ ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
 ReaderNative::~ReaderNative()
 {
   delete [] line;
-  delete [] words;
   memory->destroy(fieldindex);
 }
 
@@ -55,7 +54,7 @@ ReaderNative::~ReaderNative()
 int ReaderNative::read_time(bigint &ntimestep)
 {
   char *eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) return 1;
+  if (eof == nullptr) return 1;
 
   // skip over unit and time information, if present.
 
@@ -111,7 +110,7 @@ void ReaderNative::skip()
      match Nfield fields to per-atom column labels
      allocate and set fieldindex = which column each field maps to
      fieldtype = X,VX,IZ etc
-     fieldlabel = user-specified label or NULL if use fieldtype default
+     fieldlabel = user-specified label or nullptr if use fieldtype default
    xyz flags = scaleflag+wrapflag if has fieldlabel name,
      else set by x,xs,xu,xsu
    only called by proc 0
@@ -162,19 +161,16 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
   char *labelline = &line[strlen("ITEM: ATOMS ")];
 
-  nwords = utils::trim_and_count_words(labelline);
-  char **labels = new char*[nwords];
-  labels[0] = strtok(labelline," \t\n\r\f");
-  if (labels[0] == NULL) {
-    delete[] labels;
-    return 1;
+  std::map<std::string, int> labels;
+  Tokenizer tokens(labelline);
+  nwords = 0;
+
+  while (tokens.has_next()) {
+    labels[tokens.next()] = nwords++;
   }
-  for (int m = 1; m < nwords; m++) {
-    labels[m] = strtok(NULL," \t\n\r\f");
-    if (labels[m] == NULL) {
-      delete[] labels;
-      return 1;
-    }
+
+  if (nwords == 0) {
+    return 1;
   }
 
   // match each field with a column of per-atom data
@@ -191,25 +187,25 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
   for (int i = 0; i < nfield; i++) {
     if (fieldlabel[i]) {
-      fieldindex[i] = find_label(fieldlabel[i],nwords,labels);
+      fieldindex[i] = find_label(fieldlabel[i], labels);
       if (fieldtype[i] == X) xflag = 2*scaleflag + wrapflag + 1;
       else if (fieldtype[i] == Y) yflag = 2*scaleflag + wrapflag + 1;
       else if (fieldtype[i] == Z) zflag = 2*scaleflag + wrapflag + 1;
     }
 
     else if (fieldtype[i] == ID)
-      fieldindex[i] = find_label("id",nwords,labels);
+      fieldindex[i] = find_label("id", labels);
     else if (fieldtype[i] == TYPE)
-      fieldindex[i] = find_label("type",nwords,labels);
+      fieldindex[i] = find_label("type", labels);
 
     else if (fieldtype[i] == X) {
-      fieldindex[i] = find_label("x",nwords,labels);
+      fieldindex[i] = find_label("x", labels);
       xflag = NOSCALE_WRAP;
       if (fieldindex[i] < 0) {
         fieldindex[i] = nwords;
-        s_index = find_label("xs",nwords,labels);
-        u_index = find_label("xu",nwords,labels);
-        su_index = find_label("xsu",nwords,labels);
+        s_index = find_label("xs", labels);
+        u_index = find_label("xu", labels);
+        su_index = find_label("xsu", labels);
         if (s_index >= 0 && s_index < fieldindex[i]) {
           fieldindex[i] = s_index;
           xflag = SCALE_WRAP;
@@ -226,13 +222,13 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       if (fieldindex[i] == nwords) fieldindex[i] = -1;
 
     } else if (fieldtype[i] == Y) {
-      fieldindex[i] = find_label("y",nwords,labels);
+      fieldindex[i] = find_label("y", labels);
       yflag = NOSCALE_WRAP;
       if (fieldindex[i] < 0) {
         fieldindex[i] = nwords;
-        s_index = find_label("ys",nwords,labels);
-        u_index = find_label("yu",nwords,labels);
-        su_index = find_label("ysu",nwords,labels);
+        s_index = find_label("ys", labels);
+        u_index = find_label("yu", labels);
+        su_index = find_label("ysu", labels);
         if (s_index >= 0 && s_index < fieldindex[i]) {
           fieldindex[i] = s_index;
           yflag = SCALE_WRAP;
@@ -249,13 +245,13 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       if (fieldindex[i] == nwords) fieldindex[i] = -1;
 
     } else if (fieldtype[i] == Z) {
-      fieldindex[i] = find_label("z",nwords,labels);
+      fieldindex[i] = find_label("z", labels);
       zflag = NOSCALE_WRAP;
       if (fieldindex[i] < 0) {
         fieldindex[i] = nwords;
-        s_index = find_label("zs",nwords,labels);
-        u_index = find_label("zu",nwords,labels);
-        su_index = find_label("zsu",nwords,labels);
+        s_index = find_label("zs", labels);
+        u_index = find_label("zu", labels);
+        su_index = find_label("zsu", labels);
         if (s_index >= 0 && s_index < fieldindex[i]) {
           fieldindex[i] = s_index;
           zflag = SCALE_WRAP;
@@ -272,41 +268,35 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       if (fieldindex[i] == nwords) fieldindex[i] = -1;
 
     } else if (fieldtype[i] == VX)
-      fieldindex[i] = find_label("vx",nwords,labels);
+      fieldindex[i] = find_label("vx", labels);
     else if (fieldtype[i] == VY)
-      fieldindex[i] = find_label("vy",nwords,labels);
+      fieldindex[i] = find_label("vy", labels);
     else if (fieldtype[i] == VZ)
-      fieldindex[i] = find_label("vz",nwords,labels);
+      fieldindex[i] = find_label("vz", labels);
 
     else if (fieldtype[i] == FX)
-      fieldindex[i] = find_label("fx",nwords,labels);
+      fieldindex[i] = find_label("fx", labels);
     else if (fieldtype[i] == FY)
-      fieldindex[i] = find_label("fy",nwords,labels);
+      fieldindex[i] = find_label("fy", labels);
     else if (fieldtype[i] == FZ)
-      fieldindex[i] = find_label("fz",nwords,labels);
+      fieldindex[i] = find_label("fz", labels);
 
     else if (fieldtype[i] == Q)
-      fieldindex[i] = find_label("q",nwords,labels);
+      fieldindex[i] = find_label("q", labels);
 
     else if (fieldtype[i] == IX)
-      fieldindex[i] = find_label("ix",nwords,labels);
+      fieldindex[i] = find_label("ix", labels);
     else if (fieldtype[i] == IY)
-      fieldindex[i] = find_label("iy",nwords,labels);
+      fieldindex[i] = find_label("iy", labels);
     else if (fieldtype[i] == IZ)
-      fieldindex[i] = find_label("iz",nwords,labels);
+      fieldindex[i] = find_label("iz", labels);
   }
-
-  delete [] labels;
 
   // set fieldflag = -1 if any unfound fields
 
   fieldflag = 0;
   for (int i = 0; i < nfield; i++)
     if (fieldindex[i] < 0) fieldflag = -1;
-
-  // create internal vector of word ptrs for future parsing of per-atom lines
-
-  words = new char*[nwords];
 
   return natoms;
 }
@@ -325,18 +315,17 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 
   for (i = 0; i < n; i++) {
     eof = fgets(line,MAXLINE,fp);
-    if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
+    if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
 
     // tokenize the line
+    std::vector<std::string> words = Tokenizer(line).as_vector();
 
-    words[0] = strtok(line," \t\n\r\f");
-    for (m = 1; m < nwords; m++)
-      words[m] = strtok(NULL," \t\n\r\f");
+    if ((int)words.size() < nwords) error->one(FLERR,"Insufficient columns in dump file");
 
     // convert selected fields to floats
 
     for (m = 0; m < nfield; m++)
-      fields[i][m] = atof(words[fieldindex[m]]);
+      fields[i][m] = atof(words[fieldindex[m]].c_str());
   }
 }
 
@@ -345,10 +334,12 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
    return index of match or -1 if no match
 ------------------------------------------------------------------------- */
 
-int ReaderNative::find_label(const char *label, int n, char **labels)
+int ReaderNative::find_label(const std::string &label, const std::map<std::string, int> & labels)
 {
-  for (int i = 0; i < n; i++)
-    if (strcmp(label,labels[i]) == 0) return i;
+  auto it = labels.find(label);
+  if (it != labels.end()) {
+      return it->second;
+  }
   return -1;
 }
 
@@ -360,8 +351,8 @@ int ReaderNative::find_label(const char *label, int n, char **labels)
 
 void ReaderNative::read_lines(int n)
 {
-  char *eof = NULL;
+  char *eof = nullptr;
   if (n <= 0) return;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == NULL) error->one(FLERR,"Unexpected end of dump file");
+  if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
 }

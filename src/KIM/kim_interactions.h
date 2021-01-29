@@ -66,7 +66,6 @@ CommandStyle(kim_interactions,KimInteractions)
 #define LMP_KIM_INTERACTIONS_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 
@@ -77,7 +76,7 @@ class KimInteractions : protected Pointers {
  private:
   void do_setup(int, char **);
   int species_to_atomic_no(const std::string &species) const;
-  void KIM_SET_TYPE_PARAMETERS(char const *const input_line) const;
+  void KIM_SET_TYPE_PARAMETERS(const std::string &input_line) const;
 };
 
 }

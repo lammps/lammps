@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,12 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_deprecated.h"
-#include <string>
+
 #include "pair_hybrid.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -50,6 +50,5 @@ void PairDeprecated::settings(int, char **)
       utils::logmesg(lmp,"\nPair style 'reax' has been removed from LAMMPS "
                      "after the 12 December 2018 version\n\n");
   }
-
-  lmp->error->all(FLERR,"This pair style is no longer available");
+  error->all(FLERR,"This pair style is no longer available");
 }

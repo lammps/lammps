@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_dpd.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "update.h"
 #include "error.h"
@@ -66,8 +66,8 @@ void ComputeDpd::compute_vector()
 
   for (int i = 0; i < size_vector; i++) dpdU[i] = 0.0;
 
-  for (int i = 0; i < nlocal; i++){
-    if (mask[i] & groupbit){
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
       dpdU[0] += uCond[i];
       dpdU[1] += uMech[i];
       dpdU[2] += uChem[i];

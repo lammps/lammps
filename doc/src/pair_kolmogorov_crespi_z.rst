@@ -72,7 +72,10 @@ Related commands
 :doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style lebedeva/z <pair_lebedeva_z>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -1,10 +1,10 @@
 .. index:: pair_style coul/diel
+.. index:: pair_style coul/diel/omp
 
 pair_style coul/diel command
 ============================
 
-pair_style coul/diel/omp command
-================================
+Accelerator Variants: *coul/diel/omp*
 
 Syntax
 """"""
@@ -71,7 +71,8 @@ The global cutoff (:math:`r_c`) specified in the pair_style command is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support parameter mixing. Coefficients must
 be given explicitly for each type of particle pairs.
@@ -94,7 +95,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This style is part of the "USER-MISC" package.  It is only enabled if
+This style is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
@@ -103,7 +104,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`
 :doc:`pair_style gauss/cut <pair_gauss>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

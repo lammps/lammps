@@ -20,7 +20,8 @@ namespace LAMMPS_NS {
 
 class AtomVec : protected Pointers {
  public:
-  int molecular;                       // 0 = atomic, 1 = molecular system
+ enum {PER_ATOM=0,PER_TYPE=1};
+  int molecular;                       // 0 = atomic, 1 = molecular system, 2 = molecular template system
   int bonds_allow,angles_allow;        // 1 if bonds, angles are used
   int dihedrals_allow,impropers_allow; // 1 if dihedrals, impropers used
   int mass_type;                       // 1 if per-type masses
@@ -145,11 +146,14 @@ class AtomVec : protected Pointers {
   virtual int pack_improper(tagint **);
   virtual void write_improper(FILE *, int, tagint **, int);
 
+  virtual int pack_data_bonus(double *, int) {return 0;}
+  virtual void write_data_bonus(FILE *, int, double *, int) {}
+
   virtual int property_atom(char *) {return -1;}
   virtual void pack_property_atom(int, double *, int, int) {}
 
-  virtual bigint memory_usage();
-  virtual bigint memory_usage_bonus() {return 0;}
+  virtual double memory_usage();
+  virtual double memory_usage_bonus() {return 0;}
 
   // old hybrid functions, needed by Kokkos package
 

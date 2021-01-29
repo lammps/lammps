@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_table.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "neighbor.h"
@@ -28,10 +28,10 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 #include "tokenizer.h"
 #include "table_file_reader.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -47,7 +47,7 @@ AngleTable::AngleTable(LAMMPS *lmp) : Angle(lmp)
 {
   writedata = 0;
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -190,7 +190,7 @@ void AngleTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in angle style table");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of angle table entries");
 
   // delete old tables, since cannot just change settings
@@ -205,7 +205,7 @@ void AngleTable::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -218,7 +218,7 @@ void AngleTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -241,7 +241,7 @@ void AngleTable::coeff(int narg, char **arg)
 
   // convert theta from degrees to radians
 
-  for (int i = 0; i < tb->ninput; i++){
+  for (int i = 0; i < tb->ninput; i++) {
     tb->afile[i] *= MY_PI/180.0;
     tb->ffile[i] *= 180.0/MY_PI;
   }
@@ -311,8 +311,8 @@ void AngleTable::write_restart_settings(FILE *fp)
 void AngleTable::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
@@ -351,10 +351,10 @@ double AngleTable::single(int type, int i1, int i2, int i3)
 
 void AngleTable::null_table(Table *tb)
 {
-  tb->afile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->ang = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->afile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->ang = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -411,7 +411,7 @@ void AngleTable::read_table(Table *tb, char *file, char *keyword)
       tb->afile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       ++cerror;
     }
   }
@@ -526,7 +526,7 @@ void AngleTable::param_extract(Table *tb, char *line)
         error->one(FLERR,"Invalid keyword in angle table parameters");
       }
     }
-  } catch(TokenizerException & e) {
+  } catch(TokenizerException &e) {
     error->one(FLERR, e.what());
   }
 

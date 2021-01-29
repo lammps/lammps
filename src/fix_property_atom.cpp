@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,14 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_property_atom.h"
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -30,7 +30,7 @@ enum{MOLECULE,CHARGE,RMASS,INTEGER,DOUBLE};
 
 FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalue(0), style(NULL), index(NULL), astyle(NULL)
+  nvalue(0), style(nullptr), index(nullptr), astyle(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix property/atom command");
 
@@ -136,9 +136,9 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   nmax_old = 0;
   if (!lmp->kokkos)
     grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
-  if (border) atom->add_callback(2);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
+  if (border) atom->add_callback(Atom::BORDER);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,26 +147,26 @@ FixPropertyAtom::~FixPropertyAtom()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
-  if (border) atom->delete_callback(id,2);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
+  if (border) atom->delete_callback(id,Atom::BORDER);
 
   // deallocate per-atom vectors in Atom class
-  // set ptrs to NULL, so they no longer exist for Atom class
+  // set ptrs to a null pointer, so they no longer exist for Atom class
 
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE) {
       atom->molecule_flag = 0;
       memory->destroy(atom->molecule);
-      atom->molecule = NULL;
+      atom->molecule = nullptr;
     } else if (style[m] == CHARGE) {
       atom->q_flag = 0;
       memory->destroy(atom->q);
-      atom->q = NULL;
+      atom->q = nullptr;
     } else if (style[m] == RMASS) {
       atom->rmass_flag = 0;
       memory->destroy(atom->rmass);
-      atom->rmass = NULL;
+      atom->rmass = nullptr;
     } else if (style[m] == INTEGER) {
       atom->remove_custom(0,index[m]);
     } else if (style[m] == DOUBLE) {
@@ -192,7 +192,7 @@ int FixPropertyAtom::setmask()
 void FixPropertyAtom::init()
 {
   // error if atom style has changed since fix was defined
-  // don't allow this b/c user could change to style that defines molecule,q
+  // don't allow this because user could change to style that defines molecule,q
 
   if (strcmp(astyle,atom->atom_style) != 0)
     error->all(FLERR,"Atom style was redefined after using fix property/atom");
@@ -211,7 +211,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
   char *next;
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
@@ -237,13 +237,13 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     next = strchr(buf,'\n');
 
     values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == NULL)
+    if (values[0] == nullptr)
       error->all(FLERR,fmt::format("Too few lines in {} section of data file",keyword));
 
     int format_ok = 1;
     for (j = 1; j < nwords; j++) {
-      values[j] = strtok(NULL," \t\n\r\f");
-      if (values[j] == NULL) format_ok = 0;
+      values[j] = strtok(nullptr," \t\n\r\f");
+      if (values[j] == nullptr) format_ok = 0;
     }
     if (!format_ok)
       error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
@@ -579,6 +579,7 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 
 int FixPropertyAtom::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = nvalue+1;
 
   int m = 1;
@@ -602,6 +603,7 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

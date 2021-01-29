@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,12 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_deprecated.h"
-#include <string>
 #include "angle_hybrid.h"
 #include "comm.h"
 #include "force.h"
 #include "error.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -44,8 +42,7 @@ void AngleDeprecated::settings(int, char **)
       utils::logmesg(lmp,"\nAngle style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-
-  lmp->error->all(FLERR,"This angle style is no longer available");
+  error->all(FLERR,"This angle style is no longer available");
 }
 
 

@@ -380,7 +380,7 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   // load balance, returning the atom count on the device (inum)
@@ -394,7 +394,7 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                           sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
   } else {
     this->atom->cast_x_data(host_x,host_type);
     this->atom->add_x_data(host_x,host_type);
@@ -429,7 +429,7 @@ void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
   time_fp2.stop();
 
   loop2(eflag,vflag);
-  if (ilist == NULL)
+  if (ilist == nullptr)
     this->ans->copy_answers(eflag,vflag,eatom,vatom);
   else
     this->ans->copy_answers(eflag,vflag,eatom,vatom, ilist);

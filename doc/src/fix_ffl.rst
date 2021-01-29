@@ -72,7 +72,8 @@ step and it flips the momenta of the atoms. If no_flip is chosen, no flip
 will be executed and the integration will be the same as a standard
 Langevin thermostat :ref:`(Bussi) <Bussi3>`. The other flipping types are : rescale - hard - soft.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The instantaneous values of the extended variables are written to
 :doc:`binary restart files <restart>`.  Because the state of the random

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,16 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_class2_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "force.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -365,7 +364,7 @@ void BondClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 
 namespace LAMMPS_NS {
 template class BondClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class BondClass2Kokkos<LMPHostType>;
 #endif
 }

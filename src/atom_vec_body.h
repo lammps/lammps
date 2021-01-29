@@ -56,12 +56,15 @@ class AtomVecBody : public AtomVec {
   int pack_restart_bonus(int, double *);
   int unpack_restart_bonus(int, double *);
   void data_body(int, int, int, int *, double *);
-  bigint memory_usage_bonus();
+  double memory_usage_bonus();
 
   void create_atom_post(int);
   void data_atom_post(int);
   void pack_data_pre(int);
   void pack_data_post(int);
+
+  int pack_data_bonus(double *, int);
+  void write_data_bonus(FILE *, int, double *, int);
 
   // methods used by other classes to query/set body info
 

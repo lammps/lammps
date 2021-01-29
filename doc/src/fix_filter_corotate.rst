@@ -56,11 +56,12 @@ is slightly modified only for the computation of long-range forces. A
 good cluster decomposition constitutes in building clusters which
 contain the fastest covalent bonds inside clusters.
 
-If the clusters are chosen suitably, the :doc:`run_style respa <run_style>` is stable for outer time-steps of at least 8fs.
+If the clusters are chosen suitably, the :doc:`run_style respa <run_style>` is stable for outer timesteps of at least 8fs.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about these fixes is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to these fixes.  No global or per-atom quantities are
@@ -79,7 +80,10 @@ Currently, it does not support :doc:`molecule templates <molecule>`.
 Related commands
 """"""""""""""""
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

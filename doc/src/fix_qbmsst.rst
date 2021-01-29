@@ -144,7 +144,8 @@ supported by LAMMPS, but are not implemented for QBMSST.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Because the state of the random number generator is not written to
 :doc:`binary restart files <restart>`, this fix cannot be restarted

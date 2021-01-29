@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +16,16 @@
 ------------------------------------------------------------------------- */
 
 #include "write_dump.h"
-#include <cstring>
-#include <string>
 #include "style_dump.h"
+
+#include "comm.h"
 #include "dump.h"
 #include "dump_image.h"
-#include "comm.h"
-#include "update.h"
 #include "error.h"
-#include "utils.h"
+#include "update.h"
+
+#include <cstring>
+
 
 using namespace LAMMPS_NS;
 
@@ -44,7 +45,7 @@ void WriteDump::command(int narg, char **arg)
   // create the Dump instance
   // create dump command line with extra required args
 
-  Dump *dump = NULL;
+  Dump *dump = nullptr;
 
   char **dumpargs = new char*[modindex+2];
   dumpargs[0] = (char *) "WRITE_DUMP"; // dump id

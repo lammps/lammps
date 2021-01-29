@@ -27,8 +27,8 @@ BaseThreeT::BaseThree() : _compiled(false), _max_bytes(0) {
   #ifdef THREE_CONCURRENT
   ans2=new Answer<numtyp,acctyp>();
   #endif
-  pair_program=NULL;
-  ucl_device=NULL;
+  pair_program=nullptr;
+  ucl_device=nullptr;
 }
 
 template <class numtyp, class acctyp>
@@ -176,7 +176,7 @@ int * BaseThreeT::reset_nbors(const int nall, const int inum, const int nlist,
   resize_atom(inum,nall,success);
   resize_local(nall,mn,success);
   if (!success)
-    return NULL;
+    return nullptr;
 
   _nall = nall;
 
@@ -310,7 +310,7 @@ int ** BaseThreeT::compute(const int ago, const int inum_full,
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   hd_balancer.balance(cpu_time);
@@ -326,7 +326,7 @@ int ** BaseThreeT::compute(const int ago, const int inum_full,
     _max_nbors = build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);

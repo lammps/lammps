@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,9 +28,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_cmap.h"
-#include <mpi.h>
+
 #include <cmath>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "update.h"
@@ -41,8 +41,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -62,11 +60,11 @@ using namespace MathConst;
 
 FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  crosstermlist(NULL), num_crossterm(NULL), crossterm_type(NULL),
-  crossterm_atom1(NULL), crossterm_atom2(NULL), crossterm_atom3(NULL),
-  crossterm_atom4(NULL), crossterm_atom5(NULL),
-  g_axis(NULL), cmapgrid(NULL), d1cmapgrid(NULL), d2cmapgrid(NULL),
-  d12cmapgrid(NULL)
+  crosstermlist(nullptr), num_crossterm(nullptr), crossterm_type(nullptr),
+  crossterm_atom1(nullptr), crossterm_atom2(nullptr), crossterm_atom3(nullptr),
+  crossterm_atom4(nullptr), crossterm_atom5(nullptr),
+  g_axis(nullptr), cmapgrid(nullptr), d1cmapgrid(nullptr), d2cmapgrid(nullptr),
+  d12cmapgrid(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal fix cmap command");
 
@@ -74,6 +72,7 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   peatom_flag = 1;
   virial_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   peratom_freq = 1;
   scalar_flag = 1;
@@ -101,24 +100,24 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  num_crossterm = NULL;
-  crossterm_type = NULL;
-  crossterm_atom1 = NULL;
-  crossterm_atom2 = NULL;
-  crossterm_atom3 = NULL;
-  crossterm_atom4 = NULL;
-  crossterm_atom5 = NULL;
+  num_crossterm = nullptr;
+  crossterm_type = nullptr;
+  crossterm_atom1 = nullptr;
+  crossterm_atom2 = nullptr;
+  crossterm_atom3 = nullptr;
+  crossterm_atom4 = nullptr;
+  crossterm_atom5 = nullptr;
 
   nmax_previous = 0;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // local list of crossterms
 
   ncmap = 0;
   maxcrossterm = 0;
-  crosstermlist = NULL;
+  crosstermlist = nullptr;
 }
 
 /* --------------------------------------------------------------------- */
@@ -127,8 +126,8 @@ FixCMAP::~FixCMAP()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   memory->destroy(g_axis);
   memory->destroy(cmapgrid);
@@ -631,10 +630,10 @@ void FixCMAP::read_grid_map(char *cmapfile)
   char *chunk,*line;
   int i1, i2, i3, i4, i5, i6, j1, j2, j3, j4, j5, j6, counter;
 
-  FILE *fp = NULL;
+  FILE *fp = nullptr;
   if (comm->me == 0) {
-    fp = force->open_potential(cmapfile);
-    if (fp == NULL)
+    fp = utils::open_potential(cmapfile,lmp,nullptr);
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open fix cmap file {}: {}",
                                    cmapfile, utils::getsyserror()));
 
@@ -654,7 +653,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
   while (!done) {
     // only read on rank 0 and broadcast to all other ranks
     if (comm->me == 0)
-      done = (fgets(linebuf,MAXLINE,fp) == NULL);
+      done = (fgets(linebuf,MAXLINE,fp) == nullptr);
 
     MPI_Bcast(&done,1,MPI_INT,0,world);
     if (done) continue;
@@ -681,13 +680,13 @@ void FixCMAP::read_grid_map(char *cmapfile)
     // 6. Glycine before proline map
 
     chunk = strtok(line, " \r\n");
-    while (chunk != NULL) {
+    while (chunk != nullptr) {
 
       // alanine map
 
       if (counter < CMAPDIM*CMAPDIM) {
         cmapgrid[0][i1][j1] = atof(chunk);
-        chunk = strtok(NULL, " \r\n");
+        chunk = strtok(nullptr, " \r\n");
         j1++;
         if (j1 == CMAPDIM) {
           j1 = 0;
@@ -701,7 +700,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= CMAPDIM*CMAPDIM &&
                counter < 2*CMAPDIM*CMAPDIM) {
         cmapgrid[1][i2][j2]= atof(chunk);
-        chunk = strtok(NULL, " \r\n");
+        chunk = strtok(nullptr, " \r\n");
         j2++;
         if (j2 == CMAPDIM) {
           j2 = 0;
@@ -715,7 +714,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= 2*CMAPDIM*CMAPDIM &&
                counter < 3*CMAPDIM*CMAPDIM) {
         cmapgrid[2][i3][j3] = atof(chunk);
-        chunk = strtok(NULL, " \r\n");
+        chunk = strtok(nullptr, " \r\n");
         j3++;
         if (j3 == CMAPDIM) {
           j3 = 0;
@@ -729,7 +728,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= 3*CMAPDIM*CMAPDIM &&
                counter < 4*CMAPDIM*CMAPDIM) {
         cmapgrid[3][i4][j4] = atof(chunk);
-        chunk = strtok(NULL, " \r\n");
+        chunk = strtok(nullptr, " \r\n");
         j4++;
         if (j4 == CMAPDIM) {
           j4 = 0;
@@ -743,7 +742,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= 4*CMAPDIM*CMAPDIM &&
                counter < 5*CMAPDIM*CMAPDIM) {
         cmapgrid[4][i5][j5] = atof(chunk);
-        chunk = strtok(NULL, " \r\n");
+        chunk = strtok(nullptr, " \r\n");
         j5++;
         if (j5 == CMAPDIM) {
           j5 = 0;
@@ -757,7 +756,7 @@ void FixCMAP::read_grid_map(char *cmapfile)
       else if (counter >= 5*CMAPDIM*CMAPDIM &&
                counter < 6*CMAPDIM*CMAPDIM) {
         cmapgrid[5][i6][j6] = atof(chunk);
-        chunk = strtok(NULL, " \r\n");
+        chunk = strtok(nullptr, " \r\n");
         j6++;
         if (j6 == CMAPDIM) {
           j6 = 0;
@@ -1041,7 +1040,7 @@ void FixCMAP::read_data_header(char *line)
     sscanf(line,BIGINT_FORMAT,&ncmap);
   } else error->all(FLERR,"Invalid read data header line for fix cmap");
 
-  // didn't set in constructor b/c this fix could be defined
+  // didn't set in constructor because this fix could be defined
   // before newton command
 
   newton_bond = force->newton_bond;
@@ -1291,6 +1290,7 @@ int FixCMAP::pack_restart(int i, double *buf)
     buf[n++] = ubuf(crossterm_atom4[i][m]).d;
     buf[n++] = ubuf(crossterm_atom5[i][m]).d;
   }
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = n;
 
   return n;
@@ -1305,6 +1305,7 @@ void FixCMAP::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
    int n = 0;
    for (int i = 0; i < nth; i++) n += static_cast<int> (extra[nlocal][n]);
@@ -1375,7 +1376,7 @@ void FixCMAP::copy_arrays(int i, int j, int /*delflag*/)
 {
   num_crossterm[j] = num_crossterm[i];
 
-  for (int k = 0; k < num_crossterm[j]; k++){
+  for (int k = 0; k < num_crossterm[j]; k++) {
     crossterm_type[j][k] = crossterm_type[i][k];
     crossterm_atom1[j][k] = crossterm_atom1[i][k];
     crossterm_atom2[j][k] = crossterm_atom2[i][k];

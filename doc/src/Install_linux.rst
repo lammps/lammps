@@ -1,5 +1,5 @@
 Download an executable for Linux
-================================
+--------------------------------
 
 Binaries are available for different versions of Linux:
 
@@ -16,7 +16,7 @@ Binaries are available for different versions of Linux:
 .. _ubuntu:
 
 Pre-built Ubuntu Linux executables
------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A pre-built LAMMPS executable suitable for running on the latest
 Ubuntu Linux versions, can be downloaded as a Debian package.  This
@@ -79,13 +79,13 @@ To get a copy of the current potentials files:
 which will download the potentials files to
 ``/usr/share/lammps-stable/potentials``.  The ``lmp_stable`` binary is
 hard-coded to look for potential files in this directory (it does not
-use the `LAMMPS_POTENTIALS` environment variable, as described
+use the ``LAMMPS_POTENTIALS`` environment variable, as described
 in :doc:`pair_coeff <pair_coeff>` command).
 
 The ``lmp_stable`` binary is built with the :ref:`KIM package <kim>` which
-results in the above command also installing the `kim-api` binaries when LAMMPS
+results in the above command also installing the ``kim-api`` binaries when LAMMPS
 is installed.  In order to use potentials from `openkim.org <openkim_>`_, you
-can install the `openkim-models` package
+can install the ``openkim-models`` package
 
 .. code-block:: bash
 
@@ -108,7 +108,7 @@ Ubuntu package capability.
 .. _fedora:
 
 Pre-built Fedora Linux executables
------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pre-built LAMMPS packages for stable releases are available
 in the Fedora Linux distribution as of version 28. The packages
@@ -162,7 +162,7 @@ Thanks to Christoph Junghans (LANL) for making LAMMPS available in Fedora.
 .. _epel:
 
 Pre-built EPEL Linux executable
-------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Pre-built LAMMPS (and KIM) packages for stable releases are available
 in the `Extra Packages for Enterprise Linux (EPEL) repository <https://fedoraproject.org/wiki/EPEL>`_
@@ -182,7 +182,7 @@ Thanks to Christoph Junghans (LANL) for making LAMMPS available in EPEL.
 .. _opensuse:
 
 Pre-built OpenSuse Linux executable
---------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A pre-built LAMMPS package for stable releases is available
 in OpenSuse as of Leap 15.0. You can install the package with:
@@ -217,7 +217,7 @@ Thanks to Christoph Junghans (LANL) for making LAMMPS available in OpenSuse.
 .. _gentoo:
 
 Gentoo Linux executable
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS is part of Gentoo's main package tree and can be installed by
 typing:
@@ -245,7 +245,7 @@ this Gentoo capability.
 .. _arch:
 
 Archlinux build-script
----------------------------------
+^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS is available via Arch's unofficial Arch User repository (AUR).
 There are three scripts available, named lammps, lammps-beta and lammps-git.

@@ -1,10 +1,10 @@
 .. index:: fix rx
+.. index:: fix rx/kk
 
 fix rx command
 ==============
 
-fix rx/kk command
-=================
+Accelerator Variants: *rx/kk*
 
 Syntax
 """"""
@@ -90,10 +90,10 @@ accepted, *h* is increased by a proportional amount, and the next ODE step is be
 Otherwise, *h* is shrunk and the ODE step is repeated.
 
 Run-time diagnostics are available for the rkf45 ODE solver. The frequency
-(in time-steps) that diagnostics are reported is controlled by the last (optional)
+(in timesteps) that diagnostics are reported is controlled by the last (optional)
 12th argument. A negative frequency means that diagnostics are reported once at the
 end of each run. A positive value N means that the diagnostics are reported once
-per N time-steps.
+per N timesteps.
 
 The diagnostics report the average # of integrator steps and RHS function evaluations
 and run-time per ODE as well as the average/RMS/min/max per process. If the
@@ -199,23 +199,7 @@ read_data    data.dpd fix foo_SPECIES NULL Species
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -238,4 +222,7 @@ Related commands
 :doc:`fix shardlow <fix_shardlow>`,
 :doc:`pair dpd/fdt/energy <pair_dpd_fdt>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -12,75 +12,70 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * mliap = style name of this compute command
-* two keyword/value pairs must be appended
-* keyword = *model* or *descriptor*
+* two or more keyword/value pairs must be appended
+* keyword = *model* or *descriptor* or *gradgradflag*
 
   .. parsed-literal::
 
-       *model* values = style Nelems Nparams
-         style = *linear* or *quadratic*
-         Nelems = number of elements
-         Nparams = number of parameters per element 
+       *model* values = style
+         style = *linear* or *quadratic* or *mliappy*
        *descriptor* values = style filename
          style = *sna*
          filename = name of file containing descriptor definitions
+       *gradgradflag* value = 0/1
+         toggle gradgrad method for force gradient
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute mliap model linear 2 31 descriptor sna Ta06A.mliap.descriptor
+   compute mliap model linear descriptor sna Ta06A.mliap.descriptor
 
 Description
 """""""""""
 
 Compute style *mliap* provides a general interface to the gradient
-of machine-learning interatomic potentials w.r.t. model parameters. 
+of machine-learning interatomic potentials w.r.t. model parameters.
 It is used primarily for calculating the gradient of energy, force, and
 stress components w.r.t. model parameters, which is useful when training
 :doc:`mliap pair_style <pair_mliap>` models to match target data.
-It provides separate 
+It provides separate
 definitions of the interatomic potential functional form (*model*)
 and the geometric quantities that characterize the atomic positions
-(*descriptor*). By defining *model* and *descriptor* separately, 
+(*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
-or many different descriptors with a given model. Currently, the 
+or many different descriptors with a given model. Currently, the
 compute supports just two models, *linear* and *quadratic*,
-and one descriptor, *sna*, the SNAP descriptor used by 
+and one descriptor, *sna*, the SNAP descriptor used by
 :doc:`pair_style snap <pair_snap>`, including the linear, quadratic,
 and chem variants. Work is currently underway to extend
 the interface to handle neural network energy models,
 and it is also straightforward to add new descriptor styles.
 
 The compute *mliap* command must be followed by two keywords
-*model* and *descriptor* in either order. 
+*model* and *descriptor* in either order.
 
-The *model* keyword is followed by a model style, currently limited to
-either *linear* or *quadratic*. In both cases,
-this is followed by two arguments. *nelems* is the number of elements.
-It must be equal to the number of LAMMPS atom types. *nparams*
-is the number of parameters per element for this model i.e.
-the number of parameter gradients for each element. Note these definitions
-are identical to those of *nelems* and *nparams* in the 
-:doc:`pair_style mliap <pair_mliap>` model file.
- 
+The *model* keyword is followed by the model style (*linear*, *quadratic* or *mliappy*).
+The *mliappy* model is only available
+if lammps is built with MLIAPPY package.
+
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
-Currently the only descriptor style is *sna*, indicating the bispectrum component 
-descriptors used by the Spectral Neighbor Analysis Potential (SNAP) potentials of 
-:doc:`pair_style snap <pair_snap>`.
-The \'p\' in SNAP is dropped, because keywords that match pair_styles are silently stripped 
-out by the LAMMPS command parser. A single additional argument specifies the descriptor filename 
-containing the parameters and setting used by the SNAP descriptor. 
+The compute currently supports just one descriptor style, but it is
+is straightforward to add new descriptor styles.
+The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`,
+including the linear, quadratic, and chem variants.
+A single additional argument specifies the descriptor filename
+containing the parameters and setting used by the SNAP descriptor.
 The descriptor filename usually ends in the *.mliap.descriptor* extension.
-The format of this file is identical to the descriptor file in the 
+The format of this file is identical to the descriptor file in the
 :doc:`pair_style mliap <pair_mliap>`, and is described in detail
-there. 
+there.
 
 .. note::
 
    The number of LAMMPS atom types (and the value of *nelems* in the model)
-   must match the value of *nelems* in the descriptor file. 
+   must match the value of *nelems* in the descriptor file.
 
 Compute *mliap* calculates a global array containing gradient information.
 The number of columns in the array is :math:`nelems \times nparams + 1`.
@@ -89,9 +84,9 @@ each parameter and each element. The last six rows
 of the array contain the corresponding derivatives of the
 virial stress tensor, listed in Voigt notation: *pxx*, *pyy*, *pzz*,
 *pyz*, *pxz*, *pxy*. In between the energy and stress rows are
-the 3\*\ *N* rows containing the derivatives of the force components. 
-See section below on output for a detailed description of how 
-rows and columns are ordered. 
+the 3\*\ *N* rows containing the derivatives of the force components.
+See section below on output for a detailed description of how
+rows and columns are ordered.
 
 The element in the last column of each row contains
 the potential energy, force, or stress, according to the row.
@@ -109,7 +104,18 @@ command:
 See section below on output for a detailed explanation of the data
 layout in the global array.
 
-Atoms not in the group do not contribute to this compute. 
+The optional keyword *gradgradflag* controls how the force
+gradient is calculated. A value of 1 requires that the model provide
+the matrix of double gradients of energy w.r.t. both parameters
+and descriptors. For the linear and quadratic models this matrix is
+sparse and so is easily calculated and stored. For other models, this
+matrix may be prohibitively expensive to calculate and store.
+A value of 0 requires that the descriptor provide the derivative
+of the descriptors w.r.t. the position of every neighbor atom.
+This is not optimal for linear and quadratic models, but may be
+a better choice for more complex models.
+
+Atoms not in the group do not contribute to this compute.
 Neighbor atoms not in the group do not contribute to this compute.
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms
@@ -120,7 +126,7 @@ too frequently.
 
    If the user-specified reference potentials includes bonded and
    non-bonded pairwise interactions, then the settings of
-   :doc:`special_bonds <special_bonds>` command can remove pairwise 
+   :doc:`special_bonds <special_bonds>` command can remove pairwise
    interactions between atoms in the same bond, angle, or dihedral.  This
    is the default setting for the :doc:`special_bonds <special_bonds>`
    command, and means those pairwise interactions do not appear in the
@@ -128,18 +134,19 @@ too frequently.
    those pairs will not be included in the calculation. The :doc:`rerun <rerun>`
    command is not an option here, since the reference potential is required
    for the last column of the global array. A work-around is to prevent
-   pairwise interactions from being removed by explicitly adding a 
+   pairwise interactions from being removed by explicitly adding a
    *tiny* positive value for every pairwise interaction that would otherwise be
    set to zero in the :doc:`special_bonds <special_bonds>` command.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 Compute *mliap* evaluates a global array.
 The columns are arranged into
 *nelems* blocks, listed in order of element *I*\ . Each block
-contains one column for each of the *nparams* model parameters. 
+contains one column for each of the *nparams* model parameters.
 A final column contains the corresponding energy, force component
 on an atom, or virial stress component. The rows of the array appear
 in the following order:
@@ -157,9 +164,10 @@ potentials, see the examples in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 Restrictions
 """"""""""""
 
-This compute is part of the MLIAP package.  It is only enabled if
-LAMMPS was built with that package.  In addition, building LAMMPS with the MLIAP package
+This compute is part of the MLIAP package.  It is only enabled if LAMMPS
+was built with that package. In addition, building LAMMPS with the MLIAP package
 requires building LAMMPS with the SNAP package.
+The *mliappy* model requires building LAMMPS with the PYTHON package.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
@@ -167,4 +175,7 @@ Related commands
 
 :doc:`pair_style mliap <pair_mliap>`
 
-**Default:** none
+Default
+"""""""
+
+The keyword defaults are gradgradflag = 1

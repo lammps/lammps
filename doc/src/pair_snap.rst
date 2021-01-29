@@ -1,10 +1,10 @@
 .. index:: pair_style snap
+.. index:: pair_style snap/kk
 
 pair_style snap command
 =======================
 
-pair_style snap/kk command
-==========================
+Accelerator Variants: *snap/kk*
 
 Syntax
 """"""
@@ -152,7 +152,7 @@ The default values for these keywords are
 * *chemflag* = 0
 * *bnormflag* = 0
 * *wselfallflag* = 0
-* *chunksize* = 2000
+* *chunksize* = 4096
 
 If *quadraticflag* is set to 1, then the SNAP energy expression includes additional quadratic terms
 that have been shown to increase the overall accuracy of the potential without much increase
@@ -189,8 +189,8 @@ pair style *snap* with the KOKKOS package and is ignored otherwise.
 This keyword controls
 the number of atoms in each pass used to compute the bispectrum
 components and is used to avoid running out of memory. For example
-if there are 4000 atoms in the simulation and the *chunksize*
-is set to 2000, the bispectrum calculation will be broken up
+if there are 8192 atoms in the simulation and the *chunksize*
+is set to 4096, the bispectrum calculation will be broken up
 into two passes.
 
 Detailed definitions for all the other keywords
@@ -203,7 +203,8 @@ are given on the :doc:`compute sna/atom <compute_sna_atom>` doc page.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
@@ -223,23 +224,7 @@ This pair style can only be used via the *pair* keyword of the
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -257,7 +242,10 @@ Related commands
 :doc:`compute snav/atom <compute_sna_atom>`,
 :doc:`compute snap <compute_sna_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

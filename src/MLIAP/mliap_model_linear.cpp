@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,64 +11,63 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "mliap_model_linear.h"
 #include "pair_mliap.h"
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
+#include "mliap_data.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-#define MAXWORD 3
-
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+  MLIAPModelSimple(lmp, coefffilename)
 {
-  ndescriptors = nparams - 1;
+  if (nparams > 0) ndescriptors = nparams - 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, int nelements_in, int nparams_in) : 
-  MLIAPModel(lmp, nelements_in, nparams_in)
-{
-  ndescriptors = nparams - 1;
-}
-
-/* ---------------------------------------------------------------------- */
-
-MLIAPModelLinear::~MLIAPModelLinear(){}
+MLIAPModelLinear::~MLIAPModelLinear() {}
 
 /* ----------------------------------------------------------------------
-   Calculate model gradients w.r.t descriptors 
+   get number of parameters
+   ---------------------------------------------------------------------- */
+
+int MLIAPModelLinear::get_nparams()
+{
+  if (nparams == 0) {
+    if (ndescriptors == 0) error->all(FLERR,"ndescriptors not defined");
+    else nparams = ndescriptors + 1;
+  }
+
+  return nparams;
+}
+
+/* ----------------------------------------------------------------------
+   Calculate model gradients w.r.t descriptors
    for each atom beta_i = dE(B_i)/dB_i
    ---------------------------------------------------------------------- */
 
-void MLIAPModelLinear::gradient(PairMLIAP* pairmliap, NeighList* list, double **descriptors, double **beta, int eflag)
+void MLIAPModelLinear::compute_gradients(MLIAPData* data)
 {
-  int i;
-  int *type = atom->type;
+  data->energy = 0.0;
 
-  for (int ii = 0; ii < list->inum; ii++) {
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = pairmliap->map[itype];
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int ielem = data->ielems[ii];
+
     double* coeffi = coeffelem[ielem];
-
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
-      beta[ii][icoeff] = coeffi[icoeff+1];
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      data->betas[ii][icoeff] = coeffi[icoeff+1];
 
     // add in contributions to global and per-atom energy
     // this is optional and has no effect on force calculation
 
-    if (eflag) {
+    if (data->eflag) {
 
       // energy of atom I
 
@@ -77,72 +76,111 @@ void MLIAPModelLinear::gradient(PairMLIAP* pairmliap, NeighList* list, double **
 
       // E_i = beta.B_i
 
-      for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
-        etmp += coeffi[icoeff+1]*descriptors[ii][icoeff];
+      for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+        etmp += coeffi[icoeff+1]*data->descriptors[ii][icoeff];
 
-      pairmliap->e_tally(i,etmp);
+      data->energy += etmp;
+      data->eatoms[ii] = etmp;
     }
   }
 }
 
 /* ----------------------------------------------------------------------
    Calculate model double gradients w.r.t descriptors and parameters
-   for each atom energy gamma_lk = d2E(B)/dB_k/dsigma_l, 
-   where sigma_l is a parameter, B_k a descriptor, 
+   for each atom energy gamma_lk = d2E(B)/dB_k/dsigma_l,
+   where sigma_l is a parameter, B_k a descriptor,
    and atom subscript i is omitted
 
    gamma is in CSR format:
       nnz = number of non-zero values
-      gamma_row_index[inz] = l indices, 0 <= l < nparams 
+      gamma_row_index[inz] = l indices, 0 <= l < nparams
       gamma_col_indexiinz] = k indices, 0 <= k < ndescriptors
       gamma[i][inz] = non-zero values, 0 <= inz < nnz
 
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelLinear::param_gradient(int *map, NeighList* list, 
-                                         double **descriptors, 
-                                         int **gamma_row_index, int **gamma_col_index, 
-                                         double **gamma, double *egradient)
+void MLIAPModelLinear::compute_gradgrads(class MLIAPData* data)
 {
-  int i;
-  int *type = atom->type;
-
   // zero out energy gradients
 
-  for (int l = 0; l < nelements*nparams; l++)
-    egradient[l] = 0.0;
-    
-  for (int ii = 0; ii < list->inum; ii++) {
+  for (int l = 0; l < data->nelements*data->nparams; l++)
+    data->egradient[l] = 0.0;
 
-    i = list->ilist[ii];
-    const int itype = type[i];
-    const int ielem = map[itype];
-    const int elemoffset = nparams*ielem;
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int ielem = data->ielems[ii];
+    const int elemoffset = data->nparams*ielem;
 
     int l = elemoffset+1;
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++) {
-      gamma[ii][icoeff] = 1.0;
-      gamma_row_index[ii][icoeff] = l++;
-      gamma_col_index[ii][icoeff] = icoeff;
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+      data->gamma[ii][icoeff] = 1.0;
+      data->gamma_row_index[ii][icoeff] = l++;
+      data->gamma_col_index[ii][icoeff] = icoeff;
     }
 
     // gradient of energy of atom I w.r.t. parameters
-    
+
     l = elemoffset;
-    egradient[l++] += 1.0;
-    for (int icoeff = 0; icoeff < ndescriptors; icoeff++)
-      egradient[l++] += descriptors[ii][icoeff];
-    
+    data->egradient[l++] += 1.0;
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      data->egradient[l++] += data->descriptors[ii][icoeff];
+
   }
 
 }
+
+/* ----------------------------------------------------------------------
+   calculate gradients of forces w.r.t. parameters
+   egradient is derivative of energy w.r.t. parameters
+   ---------------------------------------------------------------------- */
+
+void MLIAPModelLinear::compute_force_gradients(class MLIAPData* data)
+{
+
+  // zero out energy gradients
+
+  for (int l = 0; l < data->nelements*data->nparams; l++)
+    data->egradient[l] = 0.0;
+
+  int ij = 0;
+  for (int ii = 0; ii < data->natoms; ii++) {
+    const int i = data->iatoms[ii];
+    const int ielem = data->ielems[ii];
+    const int elemoffset = data->nparams*ielem;
+
+    for (int jj = 0; jj < data->numneighs[ii]; jj++) {
+      const int j = data->jatoms[ij];
+      int l = elemoffset+1;
+      for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
+        data->gradforce[i][l]         += data->graddesc[ij][icoeff][0];
+        data->gradforce[i][l+data->yoffset] += data->graddesc[ij][icoeff][1];
+        data->gradforce[i][l+data->zoffset] += data->graddesc[ij][icoeff][2];
+        data->gradforce[j][l]         -= data->graddesc[ij][icoeff][0];
+        data->gradforce[j][l+data->yoffset] -= data->graddesc[ij][icoeff][1];
+        data->gradforce[j][l+data->zoffset] -= data->graddesc[ij][icoeff][2];
+        l++;
+      }
+      ij++;
+    }
+
+    // gradient of energy of atom I w.r.t. parameters
+
+    int l = elemoffset;
+    data->egradient[l++] += 1.0;
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      data->egradient[l++] += data->descriptors[ii][icoeff];
+
+  }
+
+}
+
 /* ----------------------------------------------------------------------
    count the number of non-zero entries in gamma matrix
    ---------------------------------------------------------------------- */
 
-int MLIAPModelLinear::get_gamma_nnz()
+int MLIAPModelLinear::get_gamma_nnz(class MLIAPData* data)
 {
-  int inz = ndescriptors;
+  int inz = data->ndescriptors;
   return inz;
 }
+

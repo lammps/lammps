@@ -66,7 +66,6 @@ CommandStyle(kim_init,KimInit)
 #define LMP_KIM_INIT_H
 
 #include "pointers.h"
-#include <string>
 
 // Forward declaration.
 typedef struct KIM_Model KIM_Model;
@@ -83,9 +82,9 @@ class KimInit : protected Pointers {
   bool unit_conversion_mode;
 
   void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
-  void write_log_cite(const std::string &);
+  void write_log_cite(char *);
   void do_init(char *, char *, char *, KIM_Model *&);
-  void do_variables(char*, char*);
+  void do_variables(const std::string &, const std::string &);
 };
 
 }

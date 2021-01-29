@@ -152,7 +152,8 @@ example:
    compute myRDF all rdf 50
    fix 1 all ave/time 100 1 100 c_myRDF[*] file tmp.rdf mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array with the number of rows =
 *Nbins*\ , and the number of columns = 1 + 2\*Npairs, where Npairs is the

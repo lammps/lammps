@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +12,27 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Richard Berger and Axel Kohlmeyer (Temple U)
+   Contributing authors: Richard Berger and Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "python_impl.h"
-#include <cstdlib>
-#include <cstring>
-#include <Python.h>  // IWYU pragma: keep
-#include "force.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
+
 #include "error.h"
+#include "input.h"
+#include "memory.h"
 #include "python_compat.h"
+#include "variable.h"
+
+#include <cstring>
+#include <Python.h>  // IWYU pragma: export
+
+#ifdef MLIAP_PYTHON
+#include "mliap_model_python.h"
+// The above should somehow really be included in the next file.
+// We could get around this with cython --capi-reexport-cincludes
+// However, that exposes -too many- headers.
+#include "mliap_model_python_couple.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -38,22 +46,36 @@ enum{NONE,INT,DOUBLE,STRING,PTR};
 PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 {
   ninput = noutput = 0;
-  istr = NULL;
-  ostr = NULL;
-  format = NULL;
+  istr = nullptr;
+  ostr = nullptr;
+  format = nullptr;
   length_longstr = 0;
 
   // pfuncs stores interface info for each Python function
 
   nfunc = 0;
-  pfuncs = NULL;
-
+  pfuncs = nullptr;
   // one-time initialization of Python interpreter
   // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();
 
+#ifdef MLIAP_PYTHON
+  // Inform python intialization scheme of the mliappy module.
+  // This -must- happen before python is initialized.
+  int err = PyImport_AppendInittab("mliap_model_python_couple", PyInit_mliap_model_python_couple);
+  if (err) error->all(FLERR,"Could not register MLIAPPY embedded python module.");
+#endif
+
   Py_Initialize();
-  PyEval_InitThreads();
+
+  // only needed for Python 2.x and Python 3 < 3.7
+  // With Python 3.7 this function is now called by Py_Initialize()
+  // Deprecated since version 3.9, will be removed in version 3.11
+#if PY_MAJOR_VERSION < 3 || PY_MINOR_VERSION < 7
+  if (!PyEval_ThreadsInitialized()) {
+    PyEval_InitThreads();
+  }
+#endif
 
   PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -68,7 +90,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 
 PythonImpl::~PythonImpl()
 {
-  if(pyMain) {
+  if (pyMain) {
     // clean up
     PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -104,7 +126,7 @@ void PythonImpl::command(int narg, char **arg)
     int ifunc = find(arg[0]);
     if (ifunc < 0) error->all(FLERR,"Python invoke of undefined function");
 
-    char *str = NULL;
+    char *str = nullptr;
     if (noutput) {
       str = input->variable->pythonstyle(pfuncs[ifunc].ovarname,
                                          pfuncs[ifunc].name);
@@ -122,7 +144,7 @@ void PythonImpl::command(int narg, char **arg)
     int err;
 
     FILE *fp = fopen(arg[2],"r");
-    if (fp == NULL)
+    if (fp == nullptr)
       err = execute_string(arg[2]);
     else
       err = execute_file(arg[2]);
@@ -136,19 +158,19 @@ void PythonImpl::command(int narg, char **arg)
   // parse optional args, invoke is not allowed in this mode
 
   ninput = noutput = 0;
-  istr = NULL;
-  ostr = NULL;
-  format = NULL;
+  istr = nullptr;
+  ostr = nullptr;
+  format = nullptr;
   length_longstr = 0;
-  char *pyfile = NULL;
-  char *herestr = NULL;
+  char *pyfile = nullptr;
+  char *herestr = nullptr;
   int existflag = 0;
 
   int iarg = 1;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"input") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
-      ninput = force->inumeric(FLERR,arg[iarg+1]);
+      ninput = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ninput < 0) error->all(FLERR,"Invalid python command");
       iarg += 2;
       istr = new char*[ninput];
@@ -168,7 +190,7 @@ void PythonImpl::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"length") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
-      length_longstr = force->inumeric(FLERR,arg[iarg+1]);
+      length_longstr = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (length_longstr <= 0) error->all(FLERR,"Invalid python command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
@@ -206,7 +228,7 @@ void PythonImpl::command(int narg, char **arg)
   if (pyfile) {
     FILE *fp = fopen(pyfile,"r");
 
-    if (fp == NULL) {
+    if (fp == nullptr) {
       PyGILState_Release(gstate);
       error->all(FLERR,"Could not open Python file");
     }
@@ -235,12 +257,14 @@ void PythonImpl::command(int narg, char **arg)
 
   if (!pFunc) {
     PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find Python function");
+    error->all(FLERR,fmt::format("Could not find Python function {}",
+                                 pfuncs[ifunc].name));
   }
 
   if (!PyCallable_Check(pFunc)) {
     PyGILState_Release(gstate);
-    error->all(FLERR,"Python function is not callable");
+    error->all(FLERR,fmt::format("Python function {} is not callable",
+                                 pfuncs[ifunc].name));
   }
 
   pfuncs[ifunc].pFunc = (void *) pFunc;
@@ -359,7 +383,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::find(char *name)
+int PythonImpl::find(const char *name)
 {
   for (int i = 0; i < nfunc; i++)
     if (strcmp(name,pfuncs[i].name) == 0) return i;
@@ -368,7 +392,8 @@ int PythonImpl::find(char *name)
 
 /* ------------------------------------------------------------------ */
 
-int PythonImpl::variable_match(char *name, char *varname, int numeric)
+int PythonImpl::variable_match(const char *name, const char *varname,
+                               int numeric)
 {
   int ifunc = find(name);
   if (ifunc < 0) return -1;
@@ -409,7 +434,7 @@ int PythonImpl::create_entry(char *name)
 
   if (!format && ninput+noutput)
     error->all(FLERR,"Invalid python command");
-  else if (format && strlen(format) != ninput+noutput)
+  else if (format && ((int) strlen(format) != ninput+noutput))
     error->all(FLERR,"Invalid python command");
 
   // process inputs as values or variables
@@ -421,7 +446,7 @@ int PythonImpl::create_entry(char *name)
   pfuncs[ifunc].svalue = new char*[ninput];
 
   for (int i = 0; i < ninput; i++) {
-    pfuncs[ifunc].svalue[i] = NULL;
+    pfuncs[ifunc].svalue[i] = nullptr;
     char type = format[i];
     if (type == 'i') {
       pfuncs[ifunc].itype[i] = INT;
@@ -432,7 +457,7 @@ int PythonImpl::create_entry(char *name)
         strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
-        pfuncs[ifunc].ivalue[i] = force->inumeric(FLERR,istr[i]);
+        pfuncs[ifunc].ivalue[i] = utils::inumeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 'f') {
       pfuncs[ifunc].itype[i] = DOUBLE;
@@ -443,7 +468,7 @@ int PythonImpl::create_entry(char *name)
         strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
-        pfuncs[ifunc].dvalue[i] = force->numeric(FLERR,istr[i]);
+        pfuncs[ifunc].dvalue[i] = utils::numeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 's') {
       pfuncs[ifunc].itype[i] = STRING;
@@ -469,8 +494,8 @@ int PythonImpl::create_entry(char *name)
 
   // process output as value or variable
 
-  pfuncs[ifunc].ovarname = NULL;
-  pfuncs[ifunc].longstr = NULL;
+  pfuncs[ifunc].ovarname = nullptr;
+  pfuncs[ifunc].longstr = nullptr;
   if (!noutput) return ifunc;
 
   char type = format[ninput];
@@ -511,7 +536,7 @@ int PythonImpl::execute_string(char *cmd)
 int PythonImpl::execute_file(char *fname)
 {
   FILE *fp = fopen(fname,"r");
-  if (fp == NULL) return -1;
+  if (fp == nullptr) return -1;
 
   PyGILState_STATE gstate = PyGILState_Ensure();
   int err = PyRun_SimpleFile(fp,fname);

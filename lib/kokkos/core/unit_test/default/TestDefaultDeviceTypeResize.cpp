@@ -45,13 +45,16 @@
 #include <gtest/gtest.h>
 #include "TestResize.hpp"
 
+// FIXME_SYCL requires parallel_for
+#ifndef KOKKOS_ENABLE_SYCL
 namespace Test {
 
 TEST(kokkosresize, host_space_access) {
   // Test with the default device type.
   using TestViewResize::testResize;
-  typedef Kokkos::View<int*>::device_type device_type;
+  using device_type = Kokkos::View<int *>::device_type;
   testResize<device_type>();
 }
 
 }  // namespace Test
+#endif

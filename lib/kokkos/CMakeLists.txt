@@ -1,4 +1,9 @@
 
+# Disable in-source builds to prevent source tree corruption.
+if( "${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}" )
+  message( FATAL_ERROR "FATAL: In-source builds are not allowed. You should create a separate directory for build files." )
+endif()
+
 # We want to determine if options are given with the wrong case
 # In order to detect which arguments are given to compare against
 # the list of valid arguments, at the beginning here we need to
@@ -34,6 +39,9 @@ IF(COMMAND TRIBITS_PACKAGE_DECL)
 ELSE()
   SET(KOKKOS_HAS_TRILINOS OFF)
 ENDIF()
+# Is this build a subdirectory of another project
+GET_DIRECTORY_PROPERTY(HAS_PARENT PARENT_DIRECTORY)
+
 
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_functions.cmake)
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_pick_cxx_std.cmake)
@@ -75,16 +83,17 @@ IF(NOT KOKKOS_HAS_TRILINOS)
       SET(CMAKE_CXX_COMPILER ${SPACK_CXX} CACHE STRING "the C++ compiler" FORCE)
       SET(ENV{CXX} ${SPACK_CXX})
     ENDIF()
-  ENDif()
-  IF(NOT DEFINED ${PROJECT_NAME})
-    # WORKAROUND FOR HIPCC
-    IF(Kokkos_ENABLE_HIP)
-      SET(KOKKOS_INTERNAL_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --amdgpu-target=gfx906")
-    ENDIF()
-    PROJECT(Kokkos CXX)
-    IF(Kokkos_ENABLE_HIP)
-      SET(CMAKE_CXX_FLAGS ${KOKKOS_INTERNAL_CMAKE_CXX_FLAGS})
+  ENDIF()
+  # Always call the project command to define Kokkos_ variables
+  # and to make sure that C++ is an enabled language
+  PROJECT(Kokkos CXX)
+  IF(NOT HAS_PARENT)
+    IF (NOT CMAKE_BUILD_TYPE)
+      SET(DEFAULT_BUILD_TYPE "RelWithDebInfo")
+      MESSAGE(STATUS "Setting build type to '${DEFAULT_BUILD_TYPE}' as none was specified.")
+      SET(CMAKE_BUILD_TYPE "${DEFAULT_BUILD_TYPE}" CACHE STRING
+          "Choose the type of build, options are: Debug, Release, RelWithDebInfo and MinSizeRel."
+          FORCE)
     ENDIF()
   ENDIF()
 ENDIF()
@@ -102,7 +111,7 @@ ENDIF()
 
 
 set(Kokkos_VERSION_MAJOR 3)
-set(Kokkos_VERSION_MINOR 1)
+set(Kokkos_VERSION_MINOR 3)
 set(Kokkos_VERSION_PATCH 1)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
@@ -130,13 +139,15 @@ ENDIF()
 # I really wish these were regular variables
 # but scoping issues can make it difficult
 GLOBAL_SET(KOKKOS_COMPILE_OPTIONS)
-GLOBAL_SET(KOKKOS_LINK_OPTIONS)
+GLOBAL_SET(KOKKOS_LINK_OPTIONS -DKOKKOS_DEPENDENCE)
 GLOBAL_SET(KOKKOS_CUDA_OPTIONS)
 GLOBAL_SET(KOKKOS_CUDAFE_OPTIONS)
 GLOBAL_SET(KOKKOS_XCOMPILER_OPTIONS)
 # We need to append text here for making sure TPLs
 # we import are available for an installed Kokkos
 GLOBAL_SET(KOKKOS_TPL_EXPORTS)
+# this could probably be scoped to project
+GLOBAL_SET(KOKKOS_COMPILE_DEFINITIONS KOKKOS_DEPENDENCE)
 
 # Include a set of Kokkos-specific wrapper functions that
 # will either call raw CMake or TriBITS
@@ -147,6 +158,7 @@ INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_tribits.cmake)
 # Check the environment and set certain variables
 # to allow platform-specific checks
 INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_check_env.cmake)
+
 # The build environment setup goes in the following steps
 # 1) Check all the enable options. This includes checking Kokkos_DEVICES
 # 2) Check the compiler ID (type and version)
@@ -169,7 +181,6 @@ SET(KOKKOS_EXT_LIBRARIES Kokkos::kokkos Kokkos::kokkoscore Kokkos::kokkoscontain
 SET(KOKKOS_INT_LIBRARIES kokkos kokkoscore kokkoscontainers kokkosalgorithms)
 SET_PROPERTY(GLOBAL PROPERTY KOKKOS_INT_LIBRARIES ${KOKKOS_INT_LIBRARIES})
 
-GET_DIRECTORY_PROPERTY(HAS_PARENT PARENT_DIRECTORY)
 IF (KOKKOS_HAS_TRILINOS)
   SET(TRILINOS_INCDIR ${CMAKE_INSTALL_PREFIX}/${${PROJECT_NAME}_INSTALL_INCLUDE_DIR})
   SET(KOKKOS_HEADER_DIR ${TRILINOS_INCDIR})
@@ -181,8 +192,6 @@ ELSE()
   SET(KOKKOS_HEADER_DIR "${CMAKE_INSTALL_INCLUDEDIR}")
   SET(KOKKOS_IS_SUBDIRECTORY FALSE)
 ENDIF()
-
-
 
 #------------------------------------------------------------------------------
 #
@@ -198,12 +207,14 @@ IF (KOKKOS_HAS_TRILINOS)
   # we have to match the annoying behavior
   STRING(REPLACE ";" " " KOKKOSCORE_COMPILE_OPTIONS "${KOKKOS_COMPILE_OPTIONS}")
   LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_COMPILE_OPTIONS})
-  LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_CUDA_OPTIONS})
+  IF (KOKKOS_ENABLE_CUDA)
+    LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_CUDA_OPTIONS})
+  ENDIF()
   FOREACH(XCOMP_FLAG ${KOKKOS_XCOMPILER_OPTIONS})
     SET(KOKKOSCORE_XCOMPILER_OPTIONS "${KOKKOSCORE_XCOMPILER_OPTIONS} -Xcompiler ${XCOMP_FLAG}")
     LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS -Xcompiler ${XCOMP_FLAG})
   ENDFOREACH()
-  SET(KOKKOSCORE_CXX_FLAGS "${KOKKOSCORE_COMPILE_OPTIONS} ${CMAKE_CXX${KOKKOS_CXX_STANDARD}_STANDARD_COMPILE_OPTION} ${KOKKOSCORE_XCOMPILER_OPTIONS}")
+  SET(KOKKOSCORE_CXX_FLAGS "${KOKKOSCORE_COMPILE_OPTIONS} ${KOKKOSCORE_XCOMPILER_OPTIONS}")
   IF (KOKKOS_ENABLE_CUDA)
     STRING(REPLACE ";" " " KOKKOSCORE_CUDA_OPTIONS    "${KOKKOS_CUDA_OPTIONS}")
     FOREACH(CUDAFE_FLAG ${KOKKOS_CUDAFE_OPTIONS})
@@ -242,11 +253,9 @@ KOKKOS_PROCESS_SUBPACKAGES()
 KOKKOS_PACKAGE_DEF()
 KOKKOS_EXCLUDE_AUTOTOOLS_FILES()
 KOKKOS_PACKAGE_POSTPROCESS()
+KOKKOS_CONFIGURE_CORE()
 
-#We are ready to configure the header
-CONFIGURE_FILE(cmake/KokkosCore_config.h.in KokkosCore_config.h @ONLY)
-
-IF (NOT KOKKOS_HAS_TRILINOS)
+IF (NOT KOKKOS_HAS_TRILINOS AND NOT Kokkos_INSTALL_TESTING)
   ADD_LIBRARY(kokkos INTERFACE)
   #Make sure in-tree projects can reference this as Kokkos::
   #to match the installed target names
@@ -261,8 +270,9 @@ INCLUDE(${KOKKOS_SRC_PATH}/cmake/kokkos_install.cmake)
 # executables also need nvcc_wrapper.  Thus, we need to install it.
 # If the argument of DESTINATION is a relative path, CMake computes it
 # as relative to ${CMAKE_INSTALL_PATH}.
-INSTALL(PROGRAMS ${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper DESTINATION ${CMAKE_INSTALL_BINDIR})
-INSTALL(FILES "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_config.h" DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+# KOKKOS_INSTALL_ADDITIONAL_FILES will install nvcc wrapper and other generated
+# files
+KOKKOS_INSTALL_ADDITIONAL_FILES()
 
 
 #  Finally - if we are a subproject - make sure the enabled devices are visible

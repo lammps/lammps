@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,16 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_flow_gauss.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
-#include "update.h"
+#include "citeme.h"
 #include "domain.h"
 #include "error.h"
-#include "citeme.h"
+#include "group.h"
 #include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -71,7 +71,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   int tmpFlag;
   for (int ii=0; ii<3; ii++)
   {
-    tmpFlag=force->inumeric(FLERR,arg[3+ii]);
+    tmpFlag=utils::inumeric(FLERR,arg[3+ii],false,lmp);
     if (tmpFlag==1 || tmpFlag==0)
       flow[ii]=tmpFlag;
     else
@@ -84,10 +84,10 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   // process optional keyword
   int iarg = 6;
   while (iarg < narg) {
-    if ( strcmp(arg[iarg],"energy") == 0 ) {
-      if ( iarg+2 > narg ) error->all(FLERR,"Illegal energy keyword");
-      if ( strcmp(arg[iarg+1],"yes") == 0 ) workflag = 1;
-      else if ( strcmp(arg[iarg+1],"no") != 0 )
+    if (strcmp(arg[iarg],"energy") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal energy keyword");
+      if (strcmp(arg[iarg+1],"yes") == 0) workflag = 1;
+      else if (strcmp(arg[iarg+1],"no") != 0)
         error->all(FLERR,"Illegal energy keyword");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix flow/gauss command");
@@ -175,7 +175,7 @@ void FixFlowGauss::post_force(int /*vflag*/)
     f_thisProc[ii]=0.0;
 
   //add all forces on each processor
-  for(ii=0; ii<nlocal; ii++)
+  for (ii=0; ii<nlocal; ii++)
     if (mask[ii] & groupbit)
       for (jj=0; jj<3; jj++)
         if (flow[jj])
@@ -191,7 +191,7 @@ void FixFlowGauss::post_force(int /*vflag*/)
   //apply added acceleration to each atom
   double f_app[3];
   double peAdded=0.0;
-  for( ii = 0; ii<nlocal; ii++)
+  for ( ii = 0; ii<nlocal; ii++)
     if (mask[ii] & groupbit) {
       if (rmass) {
         f_app[0] = a_app[0]*rmass[ii];

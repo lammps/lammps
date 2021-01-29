@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +30,7 @@ enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 /* ---------------------------------------------------------------------- */
 
 FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), pe(NULL), id_pe(NULL)
+  FixNH(lmp, narg, arg), pe(nullptr), id_pe(nullptr)
 {
 
   // Prevent masses from being updated every timestep
@@ -205,12 +205,12 @@ void FixNPHug::setup(int vflag)
 {
   FixNH::setup(vflag);
 
-  if ( v0_set == 0 ) {
+  if (v0_set == 0) {
     v0 = compute_vol();
     v0_set = 1;
   }
 
-  if ( p0_set == 0 ) {
+  if (p0_set == 0) {
     p0_set = 1;
     if (uniaxial == 1)
       p0 = p_current[idir];
@@ -218,7 +218,7 @@ void FixNPHug::setup(int vflag)
       p0 = (p_current[0]+p_current[1]+p_current[2])/3.0;
   }
 
-  if ( e0_set == 0 ) {
+  if (e0_set == 0) {
     e0 = compute_etotal();
     e0_set = 1;
   }
@@ -439,17 +439,17 @@ int FixNPHug::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"e0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    e0 = force->numeric(FLERR,arg[1]);
+    e0 = utils::numeric(FLERR,arg[1],false,lmp);
     e0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"v0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    v0 = force->numeric(FLERR,arg[1]);
+    v0 = utils::numeric(FLERR,arg[1],false,lmp);
     v0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"p0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    p0 = force->numeric(FLERR,arg[1]);
+    p0 = utils::numeric(FLERR,arg[1],false,lmp);
     p0_set = 1;
     return 2;
   }

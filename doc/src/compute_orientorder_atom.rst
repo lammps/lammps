@@ -1,10 +1,10 @@
 .. index:: compute orientorder/atom
+.. index:: compute orientorder/atom/kk
 
 compute orientorder/atom command
 ================================
 
-compute orientorder/atom/kk command
-===================================
+Accelerator Variants: *orientorder/atom/kk*
 
 Syntax
 """"""
@@ -115,8 +115,8 @@ The optional keyword *chunksize* is only applicable when using the
 the KOKKOS package and is ignored otherwise. This keyword controls
 the number of atoms in each pass used to compute the bond-orientational
 order parameters and is used to avoid running out of memory. For example
-if there are 4000 atoms in the simulation and the *chunksize*
-is set to 2000, the parameter calculation will be broken up
+if there are 32768 atoms in the simulation and the *chunksize*
+is set to 16384, the parameter calculation will be broken up
 into two passes.
 
 The value of :math:`Q_l` is set to zero for atoms not in the
@@ -146,28 +146,13 @@ too frequently.
 ----------
 
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with *nlvalues* columns,
 giving the :math:`Q_l` values for each atom, which are real numbers on the
@@ -208,7 +193,7 @@ Default
 
 The option defaults are *cutoff* = pair style cutoff, *nnn* = 12,
 *degrees* = 5 4 6 8 10 12 i.e. :math:`Q_4`, :math:`Q_6`, :math:`Q_8`, :math:`Q_{10}`, and :math:`Q_{12}`,
-*wl* = no, *wl/hat* = no, *components* off, and *chunksize* = 2000
+*wl* = no, *wl/hat* = no, *components* off, and *chunksize* = 16384
 
 ----------
 

@@ -1,4 +1,5 @@
 .. index:: fix nvt/uef
+.. index:: fix npt/uef
 
 fix nvt/uef command
 ===================
@@ -171,7 +172,8 @@ See the :doc:`compute temp/uef <compute_temp_uef>` and :doc:`compute pressure/ue
 that the IDs of the new computes are the fix-ID + underscore + "temp"
 or fix_ID + underscore + "press".
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The fix writes the state of all the thermostat and barostat variables,
 as well as the cumulative strain applied, to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
@@ -220,9 +222,9 @@ Default
 """""""
 
 The default keyword values specific to this fix are exy = xyz, strain
-= 0 0.  The remaining defaults are the same as for *fix
-npt*\ _fix_nh.html except tchain = 1.  The reason for this change is
-given in :doc:`fix nvt/sllod <fix_nvt_sllod>`.
+= 0 0.  The remaining defaults are the same as for :doc:`fix npt <fix_nh>`
+except tchain = 1.  The reason for this change is given in
+:doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
 ----------
 

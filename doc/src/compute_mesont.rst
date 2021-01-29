@@ -1,7 +1,7 @@
 .. index:: compute mesont
 
 compute mesont command
-==========================
+======================
 
 Syntax
 """"""
@@ -31,7 +31,8 @@ These computes define computations for the stretching (estretch), bending
 evaluated value is selected by a parameter passed to the compute: estretch,
 ebend, etube.
 
-**Output info:**
+Output info
+"""""""""""
 
 These computes calculate per-node (per-atom) vectors, which can be accessed by
 any command that uses per-atom values from a compute as input, and global
@@ -52,5 +53,8 @@ Related commands
 
 :doc:`dump custom <dump>`
 
-**Default:** none
+Default
+"""""""
+
+none
 

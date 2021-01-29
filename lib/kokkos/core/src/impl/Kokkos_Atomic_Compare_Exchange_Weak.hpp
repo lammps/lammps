@@ -226,7 +226,6 @@ bool atomic_compare_exchange_weak(
 
 // GCC native CAS supports int, long, unsigned int, unsigned long.
 // Intel native CAS support int and long with the same interface as GCC.
-#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS) || !defined(KOKKOS_ENABLE_HIP_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
@@ -259,6 +258,12 @@ inline unsigned int atomic_compare_exchange(volatile unsigned int* const dest,
 inline unsigned long atomic_compare_exchange(volatile unsigned long* const dest,
                                              const unsigned long compare,
                                              const unsigned long val) {
+  return __sync_val_compare_and_swap(dest, compare, val);
+}
+
+inline unsigned long long atomic_compare_exchange(
+    volatile unsigned long long* const dest, const unsigned long long compare,
+    const unsigned long long val) {
   return __sync_val_compare_and_swap(dest, compare, val);
 }
 
@@ -343,6 +348,7 @@ inline T atomic_compare_exchange(
 
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
   if (return_val == compare) {
     // Don't use the following line of code here:
@@ -359,6 +365,7 @@ inline T atomic_compare_exchange(
 #ifndef KOKKOS_COMPILER_CLANG
     (void)tmp;
 #endif
+    Kokkos::memory_fence();
   }
   Impl::unlock_address_host_space((void*)dest);
   return return_val;
@@ -392,7 +399,6 @@ KOKKOS_INLINE_FUNCTION T atomic_compare_exchange(volatile T* const dest_v,
 
 #endif
 #endif
-#endif  // !defined ROCM_ATOMICS
 
 template <typename T>
 KOKKOS_INLINE_FUNCTION bool atomic_compare_exchange_strong(

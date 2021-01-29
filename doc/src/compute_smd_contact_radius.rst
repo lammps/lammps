@@ -35,7 +35,8 @@ Mach Dynamics in LAMMPS.
 The value of the contact radius will be 0.0 for particles not in the
 specified compute group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
@@ -55,4 +56,7 @@ Related commands
 
 :doc:`dump custom <dump>` smd/hertz smd/tri_surface
 
-**Default:** none
+Default
+"""""""
+
+none

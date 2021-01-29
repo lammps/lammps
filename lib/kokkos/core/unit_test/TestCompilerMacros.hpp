@@ -60,8 +60,8 @@ namespace TestCompilerMacros {
 
 template <class DEVICE_TYPE>
 struct AddFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef typename Kokkos::View<int**, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = typename Kokkos::View<int**, execution_space>;
   type a, b;
   int length;
 
@@ -81,7 +81,7 @@ struct AddFunctor {
 #ifdef KOKKOS_ENABLE_PRAGMA_LOOPCOUNT
 #pragma loop count(128)
 #endif
-#ifndef KOKKOS_DEBUG
+#ifndef KOKKOS_ENABLE_DEBUG
 #ifdef KOKKOS_ENABLE_PRAGMA_SIMD
 #pragma simd
 #endif
@@ -94,7 +94,7 @@ struct AddFunctor {
 
 template <class DeviceType>
 bool Test() {
-  typedef typename Kokkos::View<int**, DeviceType> type;
+  using type = typename Kokkos::View<int**, DeviceType>;
   type a("A", 1024, 128);
   type b("B", 1024, 128);
 

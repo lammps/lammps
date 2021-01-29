@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,10 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cubic_gpu.h"
+
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -35,6 +36,8 @@
 #include "domain.h"
 #include "gpu_extra.h"
 #include "suffix.h"
+
+#include "pair_lj_cubic_const.h"
 
 using namespace LAMMPS_NS;
 using namespace PairLJCubicConstants;

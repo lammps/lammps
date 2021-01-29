@@ -27,8 +27,8 @@ class PythonImpl : protected Pointers, public PythonInterface {
   ~PythonImpl();
   void command(int, char **);
   void invoke_function(int, char *);
-  int find(char *);
-  int variable_match(char *, char *, int);
+  int find(const char *);
+  int variable_match(const char *, const char *, int);
   char *long_string(int);
   int execute_string(char *);
   int execute_file(char *);

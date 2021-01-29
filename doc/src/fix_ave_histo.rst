@@ -1,4 +1,5 @@
 .. index:: fix ave/histo
+.. index:: fix ave/histo/weight
 
 fix ave/histo command
 =====================
@@ -329,7 +330,8 @@ the histogram.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -369,7 +371,10 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`,
 
-**Default:** none
+Default
+"""""""
+
+none
 
 The option defaults are mode = scalar, kind = figured out from input
 arguments, ave = one, start = 0, no file output, beyond = ignore, and

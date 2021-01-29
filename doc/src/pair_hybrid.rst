@@ -1,16 +1,17 @@
 .. index:: pair_style hybrid
+.. index:: pair_style hybrid/kk
+.. index:: pair_style hybrid/overlay
+.. index:: pair_style hybrid/overlay/kk
 
 pair_style hybrid command
 =========================
 
-pair_style hybrid/kk command
-============================
+Accelerator Variants: *hybrid/kk*
 
 pair_style hybrid/overlay command
 =================================
 
-pair_style hybrid/overlay/kk command
-====================================
+Accelerator Variants: *hybrid/overlay/kk*
 
 Syntax
 """"""
@@ -364,7 +365,8 @@ instructions on how to use the accelerated styles effectively.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Any pair potential settings made via the
 :doc:`pair_modify <pair_modify>` command are passed along to all
@@ -412,5 +414,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:**
+Default
+"""""""
+
 none

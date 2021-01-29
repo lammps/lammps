@@ -1,4 +1,5 @@
 .. index:: compute reduce
+.. index:: compute reduce/region
 
 compute reduce command
 ======================
@@ -52,7 +53,7 @@ Examples
    compute 1 all reduce sum c_force
    compute 1 all reduce/region subbox sum c_force
    compute 2 all reduce min c_press[2] f_ave v_myKE
-   compute 2 all reduce min c_press[\*] f_ave v_myKE
+   compute 2 all reduce min c_press[*] f_ave v_myKE
    compute 3 fluid reduce max c_index[1] c_index[2] c_dist replace 1 3 replace 2 3
 
 Description
@@ -196,7 +197,8 @@ values are desired, this compute can be accessed by the :doc:`thermo_style custo
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar if a single input value is
 specified or a global vector of length N where N is the number of
@@ -222,4 +224,7 @@ Related commands
 
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none

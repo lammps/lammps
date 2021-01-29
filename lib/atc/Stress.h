@@ -149,7 +149,7 @@ namespace ATC {
       DENS_VEC elasticity_tensor(const VECTOR &Fv, MATRIX &C, const ElasticityTensorType type=FIRST_ELASTICITY_TENSOR) const;
       DENS_VEC elasticity_tensor(const MATRIX &F, MATRIX &C, const ElasticityTensorType type=FIRST_ELASTICITY_TENSOR) const;
     protected:
-      void linearize(MATRIX *F=NULL);
+      void linearize(MATRIX *F=nullptr);
       CBLattice   *cblattice_;       //*> CbLattice -> makes atom clusters.
       CbPotential *potential_;       //*> CbPotential -> interatomic forces.
       bool makeLinear_;

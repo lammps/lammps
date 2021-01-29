@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pressure_cylinder.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "update.h"
@@ -48,18 +48,18 @@ static const char cite_compute_pressure_cylinder[] =
 
 ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  Pr_temp(NULL), Pr_all(NULL), Pz_temp(NULL), Pz_all(NULL), Pphi_temp(NULL),
-  Pphi_all(NULL), R(NULL), Rinv(NULL), R2(NULL), PrAinv(NULL), PzAinv(NULL),
-  R2kin(NULL), density_temp(NULL), invVbin(NULL), density_all(NULL),
-  tangent(NULL), ephi_x(NULL), ephi_y(NULL), binz(NULL)
+  Pr_temp(nullptr), Pr_all(nullptr), Pz_temp(nullptr), Pz_all(nullptr), Pphi_temp(nullptr),
+  Pphi_all(nullptr), R(nullptr), Rinv(nullptr), R2(nullptr), PrAinv(nullptr), PzAinv(nullptr),
+  R2kin(nullptr), density_temp(nullptr), invVbin(nullptr), density_all(nullptr),
+  tangent(nullptr), ephi_x(nullptr), ephi_y(nullptr), binz(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
   if (narg != 7) error->all(FLERR,"Illegal compute pressure/cylinder command");
 
-  zlo=force->numeric(FLERR,arg[3]);
-  zhi=force->numeric(FLERR,arg[4]);
-  Rmax=force->numeric(FLERR,arg[5]);
-  bin_width=force->numeric(FLERR,arg[6]);
+  zlo=utils::numeric(FLERR,arg[3],false,lmp);
+  zhi=utils::numeric(FLERR,arg[4],false,lmp);
+  Rmax=utils::numeric(FLERR,arg[5],false,lmp);
+  bin_width=utils::numeric(FLERR,arg[6],false,lmp);
 
   if ((bin_width <= 0.0) || (bin_width > Rmax))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
@@ -143,7 +143,7 @@ ComputePressureCyl::~ComputePressureCyl()
 
 void ComputePressureCyl::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"No pair style is defined for compute pressure/cylinder");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute pressure/cylinder");

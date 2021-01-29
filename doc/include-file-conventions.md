@@ -3,7 +3,7 @@
 This purpose of this document is to provide a point of reference
 for LAMMPS developers and contributors as to what include files
 and definitions to put where into LAMMPS source.
-Last change 2019-07-05
+Last change 2020-08-31
 
 ## Table of Contents
 
@@ -91,29 +91,31 @@ statements should follow the "include what you use" principle.
 
 Include files should be included in this order:
 * the header matching the implementation (`some_class.h` for file `some_class.cpp`)
-* mpi.h
-* system and library headers (anything that is using angular brackets; C-library headers first, then C++)
+* mpi.h  (only if needed)
 * LAMMPS local headers (preferably in alphabetical order)
+* system and library headers (anything that is using angular brackets; preferably in alphabetical order)
+* conditional include statements (i.e. anything bracketed with ifdefs)
 
 ### Special Cases and Exceptions
 
 #### pointers.h
 
-The `pointer.h` header file also includes `cstdio` and `lmptype.h`
-(and through it `stdint.h`, `intttypes.h`, cstdlib, and `climits`).
+The `pointer.h` header file also includes (in this order) `lmptype.h`,
+`mpi.h`, `cstddef`, `cstdio`, `string`, `utils.h`, and `fmt/format.h`
+and through `lmptype.h` indirectly also `climits`, `cstdlib`, `cinttypes`.
 This means any header including `pointers.h` can assume that `FILE`,
-`NULL`, `INT_MAX` are defined.
+`NULL`, `INT_MAX` are defined, and the may freely use the std::string
+for arguments. Corresponding implementation files do not need to include
+those headers.
 
 ## Tools
 
 The [Include What You Use tool](https://include-what-you-use.org/)
 can be used to provide supporting information about compliance with
-the rules listed here.  There are some limitations and the IWYU tool
-may give incorrect advice.  The tools is activated by setting the
-CMake variable `CMAKE_CXX_INCLUDE_WHAT_YOU_USE` variable to the
-path of the `include-what-you-use` command.  When activated, the
-tool will be run after each compilation and provide suggestions for
-which include files should be added or removed.
+the rules listed here.  Through setting `-DENABLE_IWYU=on` when running
+CMake, a custom build target is added that will enable recording
+the compilation commands and then run the `iwyu_tool` using the
+recorded compilation commands information when typing `make iwyu`.
 
 ## Legacy Code
 

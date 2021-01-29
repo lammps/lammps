@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,18 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_saed_vtk.h"
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-#include "update.h"
-#include "modify.h"
+
 #include "compute.h"
 #include "compute_saed.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 #include "domain.h"
+#include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cstring>
+#include <cmath>
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -41,23 +40,23 @@ enum{FIRST,MULTI};
 /* ---------------------------------------------------------------------- */
 
 FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ids(NULL), fp(NULL), vector(NULL),
-  vector_total(NULL), vector_list(NULL), compute_saed(NULL), filename(NULL)
+  Fix(lmp, narg, arg), ids(nullptr), fp(nullptr), vector(nullptr),
+  vector_total(nullptr), vector_list(nullptr), compute_saed(nullptr), filename(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix saed/vtk command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
 
   nvalues = 0;
   int iarg = 6;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"c_",2) == 0){
+    if (strncmp(arg[iarg],"c_",2) == 0) {
       nvalues++;
       iarg++;
     } else break;
@@ -67,13 +66,13 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
   options(narg,arg);
 
   which = 0;
-  ids = NULL;
+  ids = nullptr;
 
   nvalues = 0;
 
   iarg = 6;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"c_",2) == 0 ) {
+    if (strncmp(arg[iarg],"c_",2) == 0) {
 
       int n = strlen(arg[iarg]);
       char *suffix = new char[n];
@@ -137,16 +136,14 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory for averaging
 
-  vector = vector_total = NULL;
-  vector_list = NULL;
+  vector = vector_total = nullptr;
+  vector_list = nullptr;
 
   if (ave == WINDOW)
     memory->create(vector_list,nwindow,nvalues,"saed/vtk:vector_list");
 
   memory->create(vector,nrows,"saed/vtk:vector");
   memory->create(vector_total,nrows,"saed/vtk:vector_total");
-
-  extlist = NULL;
 
   vector_flag = 1;
   size_vector = nrows;
@@ -156,7 +153,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     // SAED specific paramaters needed
     int *periodicity = domain->periodicity;
     // Zone flag to capture entire recrocal space volume
-    if (  (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
+    if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
     } else {
         R_Ewald = (1 / lambda);
         double Rnorm = R_Ewald/ sqrt(Zone[0] * Zone[0] +
@@ -170,28 +167,28 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     double ave_inv = 0.0;
     prd = domain->prd;
 
-    if (periodicity[0]){
+    if (periodicity[0]) {
       prd_inv[0] = 1 / prd[0];
       ave_inv += prd_inv[0];
     }
-    if (periodicity[1]){
+    if (periodicity[1]) {
       prd_inv[1] = 1 / prd[1];
       ave_inv += prd_inv[1];
     }
-    if (periodicity[2]){
+    if (periodicity[2]) {
       prd_inv[2] = 1 / prd[2];
       ave_inv += prd_inv[2];
     }
 
     // Using the average inverse dimensions for non-periodic direction
     ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
-    if (!periodicity[0]){
+    if (!periodicity[0]) {
       prd_inv[0] = ave_inv;
     }
-    if (!periodicity[1]){
+    if (!periodicity[1]) {
       prd_inv[1] = ave_inv;
     }
-    if (!periodicity[2]){
+    if (!periodicity[2]) {
       prd_inv[2] = ave_inv;
     }
 
@@ -203,7 +200,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     }
 
     // Find integer dimensions of the reciprocal lattice box bounds
-    if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
+    if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
       for (int i=0; i<3; i++) {
         dK[i] = prd_inv[i]*c[i];
         Knmax[i] = ceil(Kmax / dK[i]);
@@ -236,15 +233,15 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
               r=0.0;
               for (int m=0; m<3; m++) r += pow(K[m] - Zone[m],2.0);
               r = sqrt(r);
-              if  ( (r >  (R_Ewald - dR_Ewald) ) && (r < (R_Ewald + dR_Ewald) ) ){
+              if  ( (r >  (R_Ewald - dR_Ewald) ) && (r < (R_Ewald + dR_Ewald) )) {
 
-                if ( i < Knmin[0] ) Knmin[0] = i;
-                if ( j < Knmin[1] ) Knmin[1] = j;
-                if ( k < Knmin[2] ) Knmin[2] = k;
+                if (i < Knmin[0]) Knmin[0] = i;
+                if (j < Knmin[1]) Knmin[1] = j;
+                if (k < Knmin[2]) Knmin[2] = k;
 
-                if ( i > Knmax[0] ) Knmax[0] = i;
-                if ( j > Knmax[1] ) Knmax[1] = j;
-                if ( k > Knmax[2] ) Knmax[2] = k;
+                if (i > Knmax[0]) Knmax[0] = i;
+                if (j > Knmax[1]) Knmax[1] = j;
+                if (k > Knmax[2]) Knmax[2] = k;
               }
             }
           }
@@ -254,7 +251,7 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
    // Finding dimensions for vtk files
     for (int i=0; i<3; i++) {
-      if ( ( (Knmin[i] > 0) && (Knmax[i] > 0) ) || ( (Knmin[i] < 0) && (Knmax[i] < 0) ) ){
+      if (( (Knmin[i] > 0) && (Knmax[i] > 0) ) || ( (Knmin[i] < 0) && (Knmax[i] < 0) )) {
         Dim[i] = abs( (int) Knmin[i] ) + abs( (int) Knmax[i] );
       } else Dim[i] = abs( (int) Knmin[i] ) + abs( (int) Knmax[i] ) + 1;
     }
@@ -283,7 +280,6 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
 
 FixSAEDVTK::~FixSAEDVTK()
 {
-  delete [] extlist;
   delete [] filename;
   delete [] ids;
   memory->destroy(vector);
@@ -426,7 +422,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
       snprintf(nName,128,"%s.%d.vtk",filename,nOutput);
       fp = fopen(nName,"w");
 
-      if (fp == NULL) {
+      if (fp == nullptr) {
         char str[128];
         snprintf(str,128,"Cannot open fix saed/vtk file %s",nName);
         error->one(FLERR,str);
@@ -456,7 +452,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
       double K[3];
 
       // Zone flag to capture entire recrocal space volume
-      if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
+      if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
         for (int k = Knmin[2]; k <= Knmax[2]; k++) {
           for (int j = Knmin[1]; j <= Knmax[1]; j++) {
             for (int i = Knmin[0]; i <= Knmax[0]; i++) {
@@ -489,7 +485,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
                 r=0.0;
                 for (int m=0; m<3; m++) r += pow(K[m] - Zone[m],2.0);
                 r = sqrt(r);
-                if  ( (r >  (R_Ewald - dR_Ewald) ) && (r < (R_Ewald + dR_Ewald) ) ){
+                if  ( (r >  (R_Ewald - dR_Ewald) ) && (r < (R_Ewald + dR_Ewald) )) {
                  fprintf(fp,"%g\n",vector_total[NROW1]/norm);
                  fflush(fp);
                  NROW2++;
@@ -532,7 +528,7 @@ void FixSAEDVTK::options(int narg, char **arg)
 {
   // option defaults
 
-  fp = NULL;
+  fp = nullptr;
   ave = ONE;
   startstep = 0;
   overwrite = 0;
@@ -553,7 +549,7 @@ void FixSAEDVTK::options(int narg, char **arg)
          snprintf(nName,128,"%s.%d.vtk",filename,nOutput);
          fp = fopen(nName,"w");
 
-        if (fp == NULL) {
+        if (fp == nullptr) {
           char str[128];
           snprintf(str,128,"Cannot open fix saed/vtk file %s",nName);
           error->one(FLERR,str);
@@ -568,14 +564,14 @@ void FixSAEDVTK::options(int narg, char **arg)
       else error->all(FLERR,"Illegal fix saed/vtk command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix saed/vtk command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
       overwrite = 1;

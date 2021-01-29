@@ -102,11 +102,17 @@ class Fix : protected Pointers {
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
 
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
+
   int restart_reset;             // 1 if restart just re-initialized fix
 
   // KOKKOS host/device flag and data masks
 
   int kokkosable;                // 1 if Kokkos fix
+  int forward_comm_device;                // 1 if forward comm on Device
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
 
@@ -215,7 +221,7 @@ class Fix : protected Pointers {
   virtual int image(int *&, double **&) {return 0;}
 
   virtual int modify_param(int, char **) {return 0;}
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
 
   virtual double memory_usage() {return 0.0;}
 
@@ -245,31 +251,32 @@ class Fix : protected Pointers {
 };
 
 namespace FixConst {
-  static const int INITIAL_INTEGRATE =       1<<0;
-  static const int POST_INTEGRATE =          1<<1;
-  static const int PRE_EXCHANGE =            1<<2;
-  static const int PRE_NEIGHBOR =            1<<3;
-  static const int POST_NEIGHBOR =           1<<4;
-  static const int PRE_FORCE =               1<<5;
-  static const int PRE_REVERSE =             1<<6;
-  static const int POST_FORCE =              1<<7;
-  static const int FINAL_INTEGRATE =         1<<8;
-  static const int END_OF_STEP =             1<<9;
-  static const int POST_RUN =                1<<10;
-  static const int THERMO_ENERGY =           1<<11;
-  static const int INITIAL_INTEGRATE_RESPA = 1<<12;
-  static const int POST_INTEGRATE_RESPA =    1<<13;
-  static const int PRE_FORCE_RESPA =         1<<14;
-  static const int POST_FORCE_RESPA =        1<<15;
-  static const int FINAL_INTEGRATE_RESPA =   1<<16;
-  static const int MIN_PRE_EXCHANGE =        1<<17;
-  static const int MIN_PRE_NEIGHBOR =        1<<18;
-  static const int MIN_POST_NEIGHBOR =       1<<19;
-  static const int MIN_PRE_FORCE =           1<<20;
-  static const int MIN_PRE_REVERSE =         1<<21;
-  static const int MIN_POST_FORCE =          1<<22;
-  static const int MIN_ENERGY =              1<<23;
-  static const int FIX_CONST_LAST =          1<<24;
+  enum {
+    INITIAL_INTEGRATE =       1<<0,
+    POST_INTEGRATE =          1<<1,
+    PRE_EXCHANGE =            1<<2,
+    PRE_NEIGHBOR =            1<<3,
+    POST_NEIGHBOR =           1<<4,
+    PRE_FORCE =               1<<5,
+    PRE_REVERSE =             1<<6,
+    POST_FORCE =              1<<7,
+    FINAL_INTEGRATE =         1<<8,
+    END_OF_STEP =             1<<9,
+    POST_RUN =                1<<10,
+    THERMO_ENERGY =           1<<11,
+    INITIAL_INTEGRATE_RESPA = 1<<12,
+    POST_INTEGRATE_RESPA =    1<<13,
+    PRE_FORCE_RESPA =         1<<14,
+    POST_FORCE_RESPA =        1<<15,
+    FINAL_INTEGRATE_RESPA =   1<<16,
+    MIN_PRE_EXCHANGE =        1<<17,
+    MIN_PRE_NEIGHBOR =        1<<18,
+    MIN_POST_NEIGHBOR =       1<<19,
+    MIN_PRE_FORCE =           1<<20,
+    MIN_PRE_REVERSE =         1<<21,
+    MIN_POST_FORCE =          1<<22,
+    MIN_ENERGY =              1<<23
+  };
 }
 
 }

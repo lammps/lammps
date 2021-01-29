@@ -16,7 +16,7 @@ Syntax
   .. parsed-literal::
 
        *model* values = style filename
-         style = *linear* or *quadratic*
+         style = *linear* or *quadratic* or *mliappy*
          filename = name of file containing model definitions
        *descriptor* values = style filename
          style = *sna*
@@ -34,18 +34,21 @@ Examples
 Description
 """""""""""
 
-Pair style *mliap* provides a general interface to families of 
-machine-learning interatomic potentials. It allows separate 
+Pair style *mliap* provides a general interface to families of
+machine-learning interatomic potentials. It allows separate
 definitions of the interatomic potential functional form (*model*)
 and the geometric quantities that characterize the atomic positions
 (*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
-or many different descriptors with a given model. Currently, the pair_style
-supports just two models, *linear* and *quadratic*,
-and one descriptor, *sna*, the SNAP descriptor used by :doc:`pair_style snap <pair_snap>`, including the linear, quadratic,
-and chem variants. Work is currently underway to extend
-the interface to handle neural network energy models,
-and it is also straightforward to add new descriptor styles.
+or many different descriptors with a given model. The
+pair style currently supports just one descriptor style, but it is
+is straightforward to add new descriptor styles.
+The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`,
+including the linear, quadratic, and chem variants.
+The available models are *linear*, *quadratic*, and *mliappy*.
+The *mliappy* style can be used to couple python models,
+e.g. PyTorch neural network energy models, and requires building
+LAMMPS with the PYTHON package (see below).
 In order to train a model, it is useful to know the gradient or derivative
 of energy, force, and stress w.r.t. model parameters. This information
 can be accessed using the related :doc:`compute mliap <compute_mliap>` command.
@@ -59,10 +62,9 @@ that specify the mapping of MLIAP
 element names to LAMMPS atom types,
 where N is the number of LAMMPS atom types.
 
-The *model* keyword is followed by a model style, currently limited to
-either *linear* or *quadratic*. In both cases,
-this is followed by a single argument specifying the model filename containing the 
-parameters for a set of elements. 
+The *model* keyword is followed by the  model style. This is followed
+by a single argument specifying the model filename containing the
+parameters for a set of elements.
 The model filename usually ends in the *.mliap.model* extension.
 It may contain parameters for many elements. The only requirement is that it
 contain at least those element names appearing in the
@@ -82,12 +84,21 @@ for the :doc:`pair_style snap <pair_snap>` coefficient file.
 Specifically, the line containing the element weight and radius is omitted,
 since these are handled by the *descriptor*.
 
+Notes on mliappy models:
+When the *model* keyword is *mliappy*, the filename should end in '.pt',
+'.pth' for pytorch models, or be a pickle file. To load a model from
+memory (i.e. an existing python object), specify the filename as
+"LATER", and then call `lammps.mliap.load_model(model)` from python
+before using the pair style. When using lammps via the library mode, you will need to call
+`lammps.mliappy.activate_mliappy(lmp)` on the active lammps object
+before the pair style is defined. This call locates and loads the mliap-specific
+python module that is built into lammps.
+
 The *descriptor* keyword is followed by a descriptor style, and additional arguments.
 Currently the only descriptor style is *sna*, indicating the bispectrum component
 descriptors used by the Spectral Neighbor Analysis Potential (SNAP) potentials of
 :doc:`pair_style snap <pair_snap>`.
-The \'p\' in SNAP is dropped, because keywords that match pair_styles are silently stripped
-out by the LAMMPS command parser. A single additional argument specifies the descriptor filename
+A single additional argument specifies the descriptor filename
 containing the parameters and setting used by the SNAP descriptor.
 The descriptor filename usually ends in the *.mliap.descriptor* extension.
 
@@ -115,7 +126,8 @@ three keywords.
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
 to specify the path for these *model* and *descriptor* files.
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS with
@@ -138,14 +150,19 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-This style is part of the MLIAP package.  It is only enabled if LAMMPS
+This pair style is part of the MLIAP package.  It is only enabled if LAMMPS
 was built with that package. In addition, building LAMMPS with the MLIAP package
 requires building LAMMPS with the SNAP package.
+The *mliappy* model requires building LAMMPS with the PYTHON package.
 See the :doc:`Build package <Build_package>` doc page for more info.
+
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_style snap  <pair_snap>`, :doc:`compute mliap <compute_mliap>`
 
-**Default:** none
+Default
+"""""""
+
+none

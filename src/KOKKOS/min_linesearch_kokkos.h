@@ -25,7 +25,7 @@ namespace LAMMPS_NS {
       d0 = d1 = 0.0;
     }
     KOKKOS_INLINE_FUNCTION
-    s_double2& operator+=(const s_double2 &rhs){
+    s_double2& operator+=(const s_double2 &rhs) {
       d0 += rhs.d0;
       d1 += rhs.d1;
       return *this;
@@ -55,6 +55,9 @@ class MinLineSearchKokkos : public MinKokkos {
   DAT::t_ffloat_1d x0;   // coords at start of linesearch
   DAT::t_ffloat_1d g;    // old gradient vector
   DAT::t_ffloat_1d h;    // search direction vector
+
+  double *gextra;             // g,h for extra global dof, x0 is stored by fix
+  double *hextra;
 
   typedef int (MinLineSearchKokkos::*FnPtr)(double, double &);
   FnPtr linemin;

@@ -22,6 +22,7 @@ ComputeStyle(mliap,ComputeMLIAP)
 
 #include "compute.h"
 
+
 namespace LAMMPS_NS {
 
 class ComputeMLIAP : public Compute {
@@ -31,33 +32,27 @@ class ComputeMLIAP : public Compute {
   void init();
   void init_list(int, class NeighList *);
   void compute_array();
+  void generate_neigharrays();
+  void grow_neigharrays();
   double memory_usage();
 
  private:
-  int natoms, nmax, size_gradforce, lastcol;
-  int yoffset, zoffset;
-  int ndims_force, ndims_virial;
+  double **mliaparray, **mliaparrayall;
   class NeighList *list;
-  double **mliap, **mliapall;
-  double **gradforce;
   int *map;  // map types to [0,nelements)
+  int ndescriptors;            // number of descriptors
+  int nparams;                 // number of model parameters per element
   int nelements;
-
-  double** descriptors;        // descriptors for all atoms in list
-  int ndescriptors;            // number of descriptors 
-  int gamma_max;               // number of atoms allocated for beta, descriptors
-  int nparams;                 // number of model paramters per element
-  int gamma_nnz;               // number of non-zero entries in gamma
-  double** gamma;              // gamma element
-  int** gamma_row_index;       // row (parameter) index 
-  int** gamma_col_index;       // column (descriptor) index 
-  double* egradient;           // energy gradient w.r.t. parameters
-
-  class MLIAPModel* model;
-  class MLIAPDescriptor* descriptor;
+  int gradgradflag;           // 1 for graddesc, 0 for gamma
+  class MLIAPModel *model;
+  class MLIAPDescriptor *descriptor;
+  class MLIAPData *data;
 
   Compute *c_pe;
   Compute *c_virial;
+  std::string id_virial;
+
+  int lastcol;
 
   void dbdotr_compute();
 };

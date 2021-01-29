@@ -160,8 +160,10 @@ atomic_fetch_add(volatile T* const dest,
     if (!done) {
       bool locked = Impl::lock_address_cuda_space((void*)dest);
       if (locked) {
+        Kokkos::memory_fence();
         return_val = *dest;
         *dest      = return_val + val;
+        Kokkos::memory_fence();
         Impl::unlock_address_cuda_space((void*)dest);
         done = 1;
       }
@@ -178,7 +180,6 @@ atomic_fetch_add(volatile T* const dest,
 #endif
 #endif
 //----------------------------------------------------------------------------
-#if !defined(KOKKOS_ENABLE_ROCM_ATOMICS) || !defined(KOKKOS_ENABLE_HIP_ATOMICS)
 #if !defined(__CUDA_ARCH__) || defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 #if defined(KOKKOS_ENABLE_GNU_ATOMICS) || defined(KOKKOS_ENABLE_INTEL_ATOMICS)
 
@@ -227,6 +228,15 @@ inline unsigned int atomic_fetch_add(volatile unsigned int* const dest,
 
 inline unsigned long int atomic_fetch_add(
     volatile unsigned long int* const dest, const unsigned long int val) {
+#if defined(KOKKOS_ENABLE_RFO_PREFETCH)
+  _mm_prefetch((const char*)dest, _MM_HINT_ET0);
+#endif
+  return __sync_fetch_and_add(dest, val);
+}
+
+inline unsigned long long int atomic_fetch_add(
+    volatile unsigned long long int* const dest,
+    const unsigned long long int val) {
 #if defined(KOKKOS_ENABLE_RFO_PREFETCH)
   _mm_prefetch((const char*)dest, _MM_HINT_ET0);
 #endif
@@ -329,6 +339,7 @@ inline T atomic_fetch_add(
                             const T>::type& val) {
   while (!Impl::lock_address_host_space((void*)dest))
     ;
+  Kokkos::memory_fence();
   T return_val = *dest;
 
   // Don't use the following line of code here:
@@ -343,6 +354,7 @@ inline T atomic_fetch_add(
   *dest       = return_val + val;
   const T tmp = *dest;
   (void)tmp;
+  Kokkos::memory_fence();
   Impl::unlock_address_host_space((void*)dest);
 
   return return_val;
@@ -375,7 +387,6 @@ T atomic_fetch_add(volatile T* const dest_v,
 
 #endif
 #endif
-#endif  // !defined ROCM_ATOMICS
 //----------------------------------------------------------------------------
 
 // dummy for non-CUDA Kokkos headers being processed by NVCC

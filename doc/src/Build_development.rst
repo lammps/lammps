@@ -28,6 +28,40 @@ variable VERBOSE set to 1:
 
 ----------
 
+.. _iwyu_processing:
+
+Report missing and unneeded '#include' statements
+-------------------------------------------------
+
+The conventions for how and when to use and order include statements in
+LAMMPS are `documented in a separate file <https://github.com/lammps/lammps/blob/master/doc/include-file-conventions.md>`_
+(also included in the source code distribution).  To assist with following
+these conventions one can use the `Include What You Use tool <https://include-what-you-use.org/>`_.
+This is still under development and for large and complex projects like LAMMPS
+there are some false positives, so suggested changes need to be verified manually.
+It is recommended to use at least version 0.14, which has much fewer incorrect
+reports than earlier versions.
+
+The necessary steps to generate the report can be enabled via a
+CMake variable:
+
+.. code-block:: bash
+
+   -D ENABLE_IWYU=value    # value = no (default) or yes
+
+This will check if the required binary (include-what-you-use or iwyu)
+and python script script (iwyu-tool or iwyu_tool or iwyu_tool.py) can
+be found in the path.  The analysis can then be started with:
+
+.. code-block:: bash
+
+   make iwyu
+
+This may first run some compilation, as the analysis is dependent
+on recording all commands required to do the compilation.
+
+----------
+
 .. _sanitizer:
 
 Address, Undefined Behavior, and Thread Sanitizer Support
@@ -37,14 +71,14 @@ Compilers such as GCC and Clang support generating instrumented binaries
 which use different sanitizer libraries to detect problems in the code
 during run-time. They can detect issues like:
 
- - `memory leaks <https://clang.llvm.org/docs/AddressSanitizer.html>`_
+ - `memory leaks <https://clang.llvm.org/docs/AddressSanitizer.html#memory-leak-detection>`_
  - `undefined behavior <https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html>`_
  - `data races <https://clang.llvm.org/docs/ThreadSanitizer.html>`_
 
 Please note that this kind of instrumentation usually comes with a
 performance hit (but much less than using tools like `Valgrind
-<https://valgrind.org>`_ with a more low level approach).  The to enable
-these features additional compiler flags need to be added to the
+<https://valgrind.org>`_ with a more low level approach).  To enable
+these features, additional compiler flags need to be added to the
 compilation and linking stages.  This is done through setting the
 ``ENABLE_SANITIZER`` variable during configuration. Examples:
 
@@ -74,11 +108,18 @@ results over a given number of steps and operations within a given
 error margin).  The status of this automated testing can be viewed on
 `https://ci.lammps.org <https://ci.lammps.org>`_.
 
+The scripts and inputs for integration, run, and regression testing
+are maintained in a
+`separate repository <https://github.com/lammps/lammps-testing>`_
+of the LAMMPS project on GitHub.
+
 The unit testing facility is integrated into the CMake build process
 of the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
 It requires the `YAML <http://pyyaml.org/>`_ library and development
-headers to compile and will download and compile a recent version of the
+headers (if those are not found locally a recent version will be
+downloaded and compiled along with LAMMPS and the test program) to
+compile and will download and compile a specific recent version of the
 `Googletest <https://github.com/google/googletest/>`_ C++ test framework
 for implementing the tests.
 
@@ -128,22 +169,21 @@ The ``ctest`` command has many options, the most important ones are:
 In its full implementation, the unit test framework will consist of multiple
 kinds of tests implemented in different programming languages (C++, C, Python,
 Fortran) and testing different aspects of the LAMMPS software and its features.
-At the moment only tests for "force styles" are implemented. More on those
-in the next section.
+The tests will adapt to the compilation settings of LAMMPS, so that tests
+will be skipped if prerequisite features are not available in LAMMPS.
 
 .. note::
 
-   The unit test framework is new and still under development.
-   The coverage is only minimal and will be expanded over time.
-   Tests styles of the same kind of style (e.g. pair styles or
-   bond styles) are performed with the same executable using
-   different input files in YAML format.  So to add a test for
-   another pair style can be done by copying the YAML file and
-   editing the style settings and then running the individual test
-   program with a flag to update the computed reference data.
-   Detailed documentation about how to add new test program and
-   the contents of the YAML files for existing test programs
-   will be provided in time as well.
+   The unit test framework was added in spring 2020 and is under active
+   development.  The coverage is not complete and will be expanded over
+   time.
+
+Tests for styles of the same kind of style (e.g. pair styles or bond
+styles) are performed with the same test executable using different
+input files in YAML format.  So to add a test for another style of the
+same kind it may be sufficient to add a suitable YAML file.
+:doc:`Detailed instructions for adding tests <Developer_unittest>` are
+provided in the Programmer Guide part of the manual.
 
 Unit tests for force styles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -159,8 +199,8 @@ A test run is then a a collection multiple individual test runs each
 with many comparisons to reference results based on template input
 files, individual command settings, relative error margins, and
 reference data stored in a YAML format file with ``.yaml``
-suffix. Currently the programs ``pair_style``, ``bond_style``, and
-``angle_style`` are implemented.  They will compare forces, energies and
+suffix. Currently the programs ``test_pair_style``, ``test_bond_style``, and
+``test_angle_style`` are implemented.  They will compare forces, energies and
 (global) stress for all atoms after a ``run 0`` calculation and after a
 few steps of MD with :doc:`fix nve <fix_nve>`, each in multiple variants
 with different settings and also for multiple accelerated styles. If a
@@ -172,7 +212,7 @@ Below is an example command and output:
 
 .. parsed-literal::
 
-   [tests]$ pair_style mol-pair-lj_cut.yaml
+   [tests]$ test_pair_style mol-pair-lj_cut.yaml
    [==========] Running 6 tests from 1 test suite.
    [----------] Global test environment set-up.
    [----------] 6 tests from PairStyle
@@ -259,6 +299,71 @@ and working.
      of mis-compiled code (or an undesired large loss of precision due
      to significant reordering of operations and thus less error cancellation).
 
+Unit tests for timestepping related fixes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A substantial subset of :doc:`fix styles <fix>` are invoked regularly
+during MD timestepping and manipulate per-atom properties like
+positions, velocities, and forces.  For those fix styles, testing can be
+done in a very similar fashion as for force fields and thus there is a
+test program `test_fix_timestep` that shares a lot of code, properties,
+and command line flags with the force field style testers described in
+the previous section.
+
+This tester will set up a small molecular system run with verlet run
+style for 4 MD steps, then write a binary restart and continue for
+another 4 MD steps. At this point coordinates and velocities are
+recorded and compared to reference data. Then the system is cleared,
+restarted and running the second 4 MD steps again and the data is
+compared to the same reference. That is followed by another restart
+after which per atom type masses are replaced with per-atom masses and
+the second 4 MD steps are repeated again and compared to the same
+reference.  Also global scalar and vector data of the fix is recorded
+and compared.  If the fix is a thermostat and thus the internal property
+``t_target`` can be extracted, then this is compared to the reference
+data.  The tests are repeated with the respa run style.
+
+If the fix has a multi-threaded version in the USER-OMP package, then
+the entire set of tests is repeated for that version as well.
+
+For this to work, some additional conditions have to be met by the
+YAML format test inputs.
+
+- The fix to be tested (and only this fix), should be listed in the
+  ``prerequisites:`` section
+- The fix to be tested must be specified in the ``post_commands:``
+  section with the fix-ID ``test``.  This section may contain other
+  commands and other fixes (e.g. an instance of fix nve for testing
+  a thermostat or force manipulation fix)
+- For fixes that can tally contributions to the global virial, the
+  line ``fix_modify test virial yes`` should be included in the
+  ``post_commands:`` section of the test input.
+- For thermostat fixes the target temperature should be ramped from
+  an arbitrary value (e.g. 50K) to a pre-defined target temperature
+  entered as ``${t_target}``.
+- For fixes that have thermostatting support included, but do not
+  have it enabled in the input (e.g. fix rigid with default settings),
+  the ``post_commands:`` section should contain the line
+  ``variable t_target delete`` to disable the target temperature ramp
+  check to avoid false positives.
+
+Use custom linker for faster link times when ENABLE_TESTING is active
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When compiling LAMMPS with enabled tests, most test executables will
+need to be linked against the LAMMPS library.  Since this can be a very
+large library with many C++ objects when many packages are enabled, link
+times can become very long on machines that use the GNU BFD linker (e.g.
+Linux systems).  Alternatives like the ``lld`` linker of the LLVM project
+or the ``gold`` linker available with GNU binutils can speed up this step
+substantially. CMake will by default test if any of the two can be
+enabled and use it when ``ENABLE_TESTING`` is active.  It can also be
+selected manually through the ``CMAKE_CUSTOM_LINKER`` CMake variable.
+Allowed values are ``lld``, ``gold``, ``bfd``, or ``default``.  The
+``default`` option will use the system default linker otherwise, the
+linker is chosen explicitly.  This option is only available for the
+GNU or Clang C++ compiler.
+
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -313,22 +418,22 @@ The images below illustrate how the data is presented.
 .. list-table::
 
       * - .. figure:: JPG/coverage-overview-top.png
-             :target: JPG/coverage-overview-top.png
+             :scale: 25%
 
           Top of the overview page
 
         - .. figure:: JPG/coverage-overview-manybody.png
-             :target: JPG/coverage-overview-manybody.png
+             :scale: 25%
 
           Styles with good coverage
 
         - .. figure:: JPG/coverage-file-top.png
-             :target: JPG/coverage-file-top.png
+             :scale: 25%
 
           Top of individual source page
 
         - .. figure:: JPG/coverage-file-branches.png
-             :target: JPG/coverage-file-branches.png
+             :scale: 25%
 
           Source page with branches
 

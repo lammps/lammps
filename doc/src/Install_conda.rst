@@ -1,5 +1,5 @@
 Download an executable for Linux or Mac via Conda
-=================================================
+-------------------------------------------------
 
 Binaries are available for MacOS or Linux via `Conda <conda_>`_.
 

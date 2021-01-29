@@ -72,5 +72,15 @@ KOKKOS_INLINE_FUNCTION void atomic_sub(volatile T* const dest, const T val) {
   (void)atomic_fetch_sub(dest, val);
 }
 
+template <typename T>
+KOKKOS_INLINE_FUNCTION void atomic_mul(volatile T* const dest, const T val) {
+  (void)atomic_fetch_mul(dest, val);
+}
+
+template <typename T>
+KOKKOS_INLINE_FUNCTION void atomic_div(volatile T* const dest, const T val) {
+  (void)atomic_fetch_div(dest, val);
+}
+
 }  // namespace Kokkos
 #endif

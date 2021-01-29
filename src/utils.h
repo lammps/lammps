@@ -197,17 +197,61 @@ namespace LAMMPS_NS {
 
     /** Trim leading and trailing whitespace. Like TRIM() in Fortran.
      *
-     * \param line string that should be trimmed
+     * \param line  string that should be trimmed
      * \return new string without whitespace (string) */
 
     std::string trim(const std::string &line);
 
     /** Return string with anything from '#' onward removed
      *
-     * \param line string that should be trimmed
+     * \param line  string that should be trimmed
      * \return new string without comment (string) */
 
     std::string trim_comment(const std::string &line);
+
+    /** Check if a string will likely have UTF-8 encoded characters
+     *
+     * UTF-8 uses the 7-bit standard ASCII table for the first 127 characters and
+     * all other characters are encoded as multiple bytes.  For the multi-byte
+     * characters the first byte has either the highest two, three, or four bits
+     * set followed by a zero bit and followed by one, two, or three more bytes,
+     * respectively, where the highest bit is set and the second highest bit set
+     * to 0.  The remaining bits combined are the character code, which is thus
+     * limited to 21-bits.
+     *
+     * For the sake of efficiency this test only checks if a character in the string
+     * has the highest bit set and thus is very likely an UTF-8 character.  It will
+     * not be able to tell this this is a valid UTF-8 character or whether it is a
+     * 2-byte, 3-byte, or 4-byte character.
+     *
+\verbatim embed:rst
+
+*See also*
+   :cpp:func:`utils::utf8_subst`
+
+\endverbatim
+     * \param line  string that should be checked
+     * \return true if string contains UTF-8 encoded characters (bool) */
+
+    inline bool has_utf8(const std::string &line)
+    {
+      const unsigned char * const in = (const unsigned char *)line.c_str();
+      for (int i=0; i < line.size(); ++i) if (in[i] & 0x80U) return true;
+      return false;
+    }
+
+    /** Replace known UTF-8 characters with ASCII equivalents
+     *
+\verbatim embed:rst
+
+*See also*
+   :cpp:func:`utils::has_utf8`
+
+\endverbatim
+     * \param line  string that should be converted
+     * \return new string with ascii replacements (string) */
+
+    std::string utf8_subst(const std::string &line);
 
     /** Count words in string with custom choice of separating characters
      *

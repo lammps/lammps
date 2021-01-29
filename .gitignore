@@ -28,7 +28,7 @@ vgcore.*
 \#*#
 .#*
 .vscode
-*.code_workspace
+*.code-workspace
 
 .DS_Store
 .DS_Store?

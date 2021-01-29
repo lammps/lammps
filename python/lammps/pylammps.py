@@ -329,7 +329,7 @@ def get_thermo_data(output):
 
         elif line.startswith("Loop time of "):
             in_run = False
-            columns = None
+            columns = []
             thermo_data = variable_set('ThermoData', current_run)
             r = {'thermo' : thermo_data }
             runs.append(namedtuple('Run', list(r.keys()))(*list(r.values())))

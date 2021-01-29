@@ -17,8 +17,8 @@ PairStyle(wf/cut,PairWFCut)
 
 #else
 
-#ifndef LMP_PAIR_WF
-#define LMP_PAIR_WF
+#ifndef LMP_PAIR_WF_CUT_H
+#define LMP_PAIR_WF_CUT_H
 
 #include "pair.h"
 

@@ -21,9 +21,9 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "math_special.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -31,6 +31,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,7 +67,7 @@ void PairWFCut::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,factor_lj;
-  double r,forcenm,rminv, rm, rn;
+  double forcenm,rminv, rm, rn;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -109,14 +110,13 @@ void PairWFCut::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-        r = sqrt(rsq);
-        rminv = MathSpecial::powint(r2inv,mu[itype][jtype]);
+        rminv = powint(r2inv,mu[itype][jtype]);
         rm = sigma_mu[itype][jtype]*rminv - 1.0;
         rn = rcmu[itype][jtype]*rminv - 1.0;
 
-        forcenm = 2.0*mu[itype][jtype] *sigma_mu[itype][jtype]*MathSpecial::powint(rn,2*nu[itype][jtype])
-                + 4.0*nm[itype][jtype] *rcmu[itype][jtype]*rm*MathSpecial::powint(rn,2*nu[itype][jtype]-1);
-        fpair = factor_lj*e0nm[itype][jtype]*forcenm*MathSpecial::powint(r2inv,mu[itype][jtype]+1);
+        forcenm = 2.0*mu[itype][jtype] *sigma_mu[itype][jtype]*powint(rn,2*nu[itype][jtype])
+                + 4.0*nm[itype][jtype] *rcmu[itype][jtype]*rm*powint(rn,2*nu[itype][jtype]-1);
+        fpair = factor_lj*e0nm[itype][jtype]*forcenm*powint(r2inv,mu[itype][jtype]+1);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -129,7 +129,7 @@ void PairWFCut::compute(int eflag, int vflag)
 
         if (eflag) {
           evdwl = e0nm[itype][jtype] *
-            (rm*MathSpecial::powint(rn,2*nu[itype][jtype])) - offset[itype][jtype];
+            (rm*powint(rn,2*nu[itype][jtype])) - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -237,11 +237,11 @@ double PairWFCut::init_one(int i, int j)
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   nm[i][j] = nu[i][j]*mu[i][j];
-  e0nm[i][j] = epsilon[i][j]*2.0*nu[i][j]*MathSpecial::powint(cut[i][j]/sigma[i][j],2*mu[i][j])
-                       *MathSpecial::powint((1+2.0*nu[i][j])/(2.0*nu[i][j])/(MathSpecial::powint(cut[i][j]/sigma[i][j],2*mu[i][j])-1.0),
+  e0nm[i][j] = epsilon[i][j]*2.0*nu[i][j]*powint(cut[i][j]/sigma[i][j],2*mu[i][j])
+                       *powint((1+2.0*nu[i][j])/(2.0*nu[i][j])/(MathSpecial::powint(cut[i][j]/sigma[i][j],2*mu[i][j])-1.0),
                               2*nu[i][j]+1);
-  rcmu[i][j] = MathSpecial::powint(cut[i][j],2*mu[i][j]);
-  sigma_mu[i][j] = MathSpecial::powint(sigma[i][j], 2*mu[i][j]);
+  rcmu[i][j] = powint(cut[i][j],2*mu[i][j]);
+  sigma_mu[i][j] = powint(sigma[i][j], 2*mu[i][j]);
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     offset[i][j] = 0.0;
@@ -275,8 +275,8 @@ void PairWFCut::write_restart(FILE *fp)
       if (setflag[i][j]) {
         fwrite(&epsilon[i][j],sizeof(double),1,fp);
         fwrite(&sigma[i][j],sizeof(double),1,fp);
-        fwrite(&nu[i][j],sizeof(double),1,fp);
-        fwrite(&mu[i][j],sizeof(double),1,fp);
+        fwrite(&nu[i][j],sizeof(int),1,fp);
+        fwrite(&mu[i][j],sizeof(int),1,fp);
         fwrite(&cut[i][j],sizeof(double),1,fp);
       }
     }
@@ -301,14 +301,14 @@ void PairWFCut::read_restart(FILE *fp)
         if (me == 0) {
           fread(&epsilon[i][j],sizeof(double),1,fp);
           fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&nu[i][j],sizeof(double),1,fp);
-          fread(&mu[i][j],sizeof(double),1,fp);
+          fread(&nu[i][j],sizeof(int),1,fp);
+          fread(&mu[i][j],sizeof(int),1,fp);
           fread(&cut[i][j],sizeof(double),1,fp);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&nu[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&mu[i][j],1,MPI_DOUBLE,0,world);
+        MPI_Bcast(&nu[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&mu[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -323,7 +323,6 @@ void PairWFCut::write_restart_settings(FILE *fp)
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
-//  fwrite(&tail_flag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -336,12 +335,10 @@ void PairWFCut::read_restart_settings(FILE *fp)
     fread(&cut_global,sizeof(double),1,fp);
     fread(&offset_flag,sizeof(int),1,fp);
     fread(&mix_flag,sizeof(int),1,fp);
-//    fread(&tail_flag,sizeof(int),1,fp);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
-//  MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -351,7 +348,7 @@ void PairWFCut::read_restart_settings(FILE *fp)
 void PairWFCut::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g %g\n",i,epsilon[i][i],sigma[i][i],nu[i][i],mu[i][i]);
+    fprintf(fp,"%d %g %g %d %d\n",i,epsilon[i][i],sigma[i][i],nu[i][i],mu[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -362,7 +359,7 @@ void PairWFCut::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp,"%d %d %g %g %g %g %g\n",i,j,
+      fprintf(fp,"%d %d %g %g %d %d %g\n",i,j,
               epsilon[i][j],sigma[i][j],nu[i][j],mu[i][j],cut[i][j]);
 }
 
@@ -372,21 +369,17 @@ double PairWFCut::single(int /*i*/, int /*j*/, int itype, int jtype,
                       double rsq, double /*factor_coul*/, double factor_lj,
                       double &fforce)
 {
-  double r2inv,r, rminv, rm, rn, forcenm,phinm;
+  double r2inv,rminv,rm,rn,forcenm,phinm;
 
   r2inv = 1.0/rsq;
-  r = sqrt(rsq);
-   
-  r2inv = 1.0/rsq;
-  r = sqrt(rsq);
-  rminv =MathSpecial::powint(r2inv,mu[itype][jtype]);
+  rminv =powint(r2inv,mu[itype][jtype]);
   rm = sigma_mu[itype][jtype]*rminv - 1.0;
   rn = rcmu[itype][jtype]*rminv - 1.0;
-  forcenm = 2.0*mu[itype][jtype] *sigma_mu[itype][jtype]*MathSpecial::powint(rn,2*nu[itype][jtype])
-                + 4.0*nm[itype][jtype] *rcmu[itype][jtype]*rm*MathSpecial::powint(rn,2*nu[itype][jtype]-1);
-  fforce = factor_lj*e0nm[itype][jtype]*forcenm*MathSpecial::powint(r2inv,mu[itype][jtype]+1);
+  forcenm = 2.0*mu[itype][jtype] *sigma_mu[itype][jtype]*powint(rn,2*nu[itype][jtype])
+                + 4.0*nm[itype][jtype] *rcmu[itype][jtype]*rm*powint(rn,2*nu[itype][jtype]-1);
+  fforce = factor_lj*e0nm[itype][jtype]*forcenm*powint(r2inv,mu[itype][jtype]+1);
 
-  phinm = e0nm[itype][jtype] * rm*MathSpecial::powint(rn,2*nu[itype][jtype]) -
+  phinm = e0nm[itype][jtype] * rm*powint(rn,2*nu[itype][jtype]) -
     offset[itype][jtype];
   return factor_lj*phinm;
 }

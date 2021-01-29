@@ -13,6 +13,7 @@
 
 #include "label_map.h"
 
+#include "atom.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
@@ -118,23 +119,23 @@ void LabelMap::modify_lmap(int narg, char **arg)
 
 void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
 {
-  if (mode == ATOM)
+  if (mode == atom->ATOM)
     for (int i = 0; i < lmap2->natomtypes; i++)
       find_or_create(lmap2->typelabel[i],typelabel,natomtypes);
 
-  if (mode == BOND)
+  if (mode == atom->BOND)
     for (int i = 0; i < lmap2->nbondtypes; i++)
       find_or_create(lmap2->btypelabel[i],btypelabel,nbondtypes);
 
-  if (mode == ANGLE)
+  if (mode == atom->ANGLE)
     for (int i = 0; i < lmap2->nangletypes; i++)
       find_or_create(lmap2->atypelabel[i],atypelabel,nangletypes);
 
-  if (mode == DIHEDRAL)
+  if (mode == atom->DIHEDRAL)
     for (int i = 0; i < lmap2->ndihedraltypes; i++)
       find_or_create(lmap2->dtypelabel[i],dtypelabel,ndihedraltypes);
 
-  if (mode == IMPROPER)
+  if (mode == atom->IMPROPER)
     for (int i = 0; i < lmap2->nimpropertypes; i++)
       find_or_create(lmap2->itypelabel[i],itypelabel,nimpropertypes);
 }
@@ -146,27 +147,27 @@ void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
 
 void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
 {
-  if (mode == ATOM)
+  if (mode == atom->ATOM)
     for (int i = 0; i < natomtypes; i++)
       lmap2lmap.atom[i] = search(typelabel[i],lmap2->typelabel,
                                  lmap2->natomtypes);
 
-  if (mode == BOND)
+  if (mode == atom->BOND)
     for (int i = 0; i < nbondtypes; i++)
       lmap2lmap.bond[i] = search(btypelabel[i],lmap2->btypelabel,
                                  lmap2->nbondtypes);
 
-  if (mode == ANGLE)
+  if (mode == atom->ANGLE)
     for (int i = 0; i < nangletypes; i++)
       lmap2lmap.angle[i] = search(atypelabel[i],lmap2->atypelabel,
                                   lmap2->nangletypes);
 
-  if (mode == DIHEDRAL)
+  if (mode == atom->DIHEDRAL)
     for (int i = 0; i < ndihedraltypes; i++)
       lmap2lmap.dihedral[i] = search(dtypelabel[i],lmap2->dtypelabel,
                                      lmap2->ndihedraltypes);
 
-  if (mode == IMPROPER)
+  if (mode == atom->IMPROPER)
     for (int i = 0; i < nimpropertypes; i++)
       lmap2lmap.improper[i] = search(itypelabel[i],lmap2->itypelabel,
                                      lmap2->nimpropertypes);
@@ -205,19 +206,19 @@ int LabelMap::find_or_create(std::string mylabel, std::vector<std::string> &labe
 
 int LabelMap::find(std::string mylabel, int mode)
 {
-  if (mode == ATOM)
+  if (mode == atom->ATOM)
     return search(mylabel,typelabel,natomtypes);
 
-  if (mode == BOND)
+  if (mode == atom->BOND)
     return search(mylabel,btypelabel,nbondtypes);
 
-  if (mode == ANGLE)
+  if (mode == atom->ANGLE)
     return search(mylabel,atypelabel,nangletypes);
 
-  if (mode == DIHEDRAL)
+  if (mode == atom->DIHEDRAL)
     return search(mylabel,dtypelabel,ndihedraltypes);
 
-  if (mode == IMPROPER)
+  if (mode == atom->IMPROPER)
     return search(mylabel,itypelabel,nimpropertypes);
 
   return -1;

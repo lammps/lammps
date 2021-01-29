@@ -186,7 +186,7 @@ void WriteData::write(const std::string &file)
 
   if (me == 0) {
     header();
-    if (atom->labelmapflag) atom->lmap->write_data(fp);
+    if (atom->labelmapflag) atom->lmaps[0]->write_data(fp);
     type_arrays();
     if (coeffflag) force_fields();
   }

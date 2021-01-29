@@ -729,7 +729,7 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) {
           if (atomflag == 1)
             error->all(FLERR,"Must read Atom Type Labels before Atoms");
-          typelabels(lmap->typelabel,ntypes,lmap->ATOM);
+          typelabels(lmap->typelabel,ntypes,atom->ATOM);
         } else skip_lines(ntypes);
 
       } else if (strcmp(keyword,"Bond Type Labels") == 0) {
@@ -737,7 +737,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (bondflag == 1)
               error->all(FLERR,"Must read Bond Type Labels before Bonds");
-            typelabels(lmap->btypelabel,nbondtypes,lmap->BOND);
+            typelabels(lmap->btypelabel,nbondtypes,atom->BOND);
           } else skip_lines(nbondtypes);
         }
 
@@ -746,7 +746,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (angleflag == 1)
               error->all(FLERR,"Must read Angle Type Labels before Angles");
-            typelabels(lmap->atypelabel,nangletypes,lmap->ANGLE);
+            typelabels(lmap->atypelabel,nangletypes,atom->ANGLE);
           } else skip_lines(nangletypes);
         }
 
@@ -755,7 +755,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (dihedralflag == 1)
               error->all(FLERR,"Must read Dihedral Type Labels before Dihedrals");
-            typelabels(lmap->dtypelabel,ndihedraltypes,lmap->DIHEDRAL);
+            typelabels(lmap->dtypelabel,ndihedraltypes,atom->DIHEDRAL);
           } else skip_lines(ndihedraltypes);
         }
 
@@ -764,7 +764,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (improperflag == 1)
               error->all(FLERR,"Must read Improper Type Labels before Impropers");
-            typelabels(lmap->itypelabel,nimpropertypes,lmap->IMPROPER);
+            typelabels(lmap->itypelabel,nimpropertypes,atom->IMPROPER);
           } else skip_lines(nimpropertypes);
         }
 
@@ -1974,7 +1974,7 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
   char *buf = new char[myntypes*MAXLINE];
 
   labelflag = 1;
-  if (!atom->labelmapflag) atom->add_label_map();
+  if (!atom->labelmapflag) atom->add_label_map("");
 
   int eof = comm->read_lines_from_file(fp,myntypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
@@ -1994,8 +1994,8 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
   // determine mapping to let labels override numeric types
   // valid operations for first or subsequent data files
 
-  atom->lmap->merge_lmap(lmap,mode);
-  lmap->create_lmap2lmap(atom->lmap,mode);
+  atom->lmaps[0]->merge_lmap(lmap,mode);
+  lmap->create_lmap2lmap(atom->lmaps[0],mode);
 }
 
 /* ----------------------------------------------------------------------

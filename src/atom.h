@@ -32,6 +32,7 @@ class Atom : protected Pointers {
   enum{DOUBLE,INT,BIGINT};
   enum{GROW=0,RESTART=1,BORDER=2};
   enum{ATOMIC=0,MOLECULAR=1,TEMPLATE=2};
+  enum{ATOM=0,BOND=1,ANGLE=2,DIHEDRAL=3,IMPROPER=4};
   enum{MAP_NONE=0,MAP_ARRAY=1,MAP_HASH=2,MAP_YES=3};
 
   // atom counts
@@ -229,9 +230,10 @@ class Atom : protected Pointers {
   int nmolecule;
   class Molecule **molecules;
 
-  // type labels
+  // type label maps
 
-  class LabelMap *lmap;
+  int nlmap;
+  class LabelMap **lmaps;
 
   // extra peratom info in restart file destined for fix & diag
 
@@ -327,7 +329,8 @@ class Atom : protected Pointers {
   int find_molecule(char *);
   void add_molecule_atom(class Molecule *, int, int, tagint);
 
-  void add_label_map();
+  void add_label_map(char *);
+  int find_label(std::string, int);
 
   void first_reorder();
   virtual void sort();

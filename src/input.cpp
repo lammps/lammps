@@ -678,7 +678,7 @@ void Input::readtype(char *&str, int mode)
   char typechar[256];
 
   labelstr = str;
-  type = atom->lmap->find(labelstr,mode);
+  type = atom->find_label(labelstr,mode);
   if (type == -1) error->all(FLERR,fmt::format("Invalid type {}",str));
   sprintf(typechar,"%d",type);
 
@@ -1332,7 +1332,7 @@ void Input::angle_coeff()
     error->all(FLERR,"Angle_coeff command before angle_style is defined");
   if (atom->avec->angles_allow == 0)
     error->all(FLERR,"Angle_coeff command when no angles allowed");
-  readtype(arg[0],atom->lmap->ANGLE);
+  readtype(arg[0],atom->ANGLE);
   force->angle->coeff(narg,arg);
 }
 
@@ -1374,7 +1374,7 @@ void Input::bond_coeff()
     error->all(FLERR,"Bond_coeff command before bond_style is defined");
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Bond_coeff command when no bonds allowed");
-  readtype(arg[0],atom->lmap->BOND);
+  readtype(arg[0],atom->BOND);
   force->bond->coeff(narg,arg);
 }
 
@@ -1478,7 +1478,7 @@ void Input::dihedral_coeff()
     error->all(FLERR,"Dihedral_coeff command before dihedral_style is defined");
   if (atom->avec->dihedrals_allow == 0)
     error->all(FLERR,"Dihedral_coeff command when no dihedrals allowed");
-  readtype(arg[0],atom->lmap->DIHEDRAL);
+  readtype(arg[0],atom->DIHEDRAL);
   force->dihedral->coeff(narg,arg);
 }
 
@@ -1556,7 +1556,7 @@ void Input::improper_coeff()
     error->all(FLERR,"Improper_coeff command before improper_style is defined");
   if (atom->avec->impropers_allow == 0)
     error->all(FLERR,"Improper_coeff command when no impropers allowed");
-  readtype(arg[0],atom->lmap->IMPROPER);
+  readtype(arg[0],atom->IMPROPER);
   force->improper->coeff(narg,arg);
 }
 
@@ -1593,8 +1593,8 @@ void Input::labelmap()
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Labelmap command before simulation box is defined");
-  if (!atom->labelmapflag) atom->add_label_map();
-  atom->lmap->modify_lmap(narg,arg);
+  if (!atom->labelmapflag) atom->add_label_map("");
+  atom->lmaps[0]->modify_lmap(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1734,8 +1734,8 @@ void Input::pair_coeff()
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
   if (force->pair == nullptr)
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
-  readtype(arg[0],atom->lmap->ATOM);
-  readtype(arg[1],atom->lmap->ATOM);
+  readtype(arg[0],atom->ATOM);
+  readtype(arg[1],atom->ATOM);
   force->pair->coeff(narg,arg);
 }
 

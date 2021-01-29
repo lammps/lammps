@@ -204,7 +204,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // type labels
 
-  lmap = nullptr;
+  lmaps = nullptr;
 
   // custom atom arrays
 
@@ -312,9 +312,10 @@ Atom::~Atom()
   for (int i = 0; i < nmolecule; i++) delete molecules[i];
   memory->sfree(molecules);
 
-  // delete label map
+  // delete label maps
 
-  delete lmap;
+  for (int i = 0; i < nlmap; i++) delete lmaps[i];
+  memory->sfree(lmaps);
 
   // delete per-type arrays
 
@@ -1989,16 +1990,35 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
    allocate space for type label map
 ------------------------------------------------------------------------- */
 
-void Atom::add_label_map()
+void Atom::add_label_map(char *mapID)
 {
   labelmapflag = 1;
-  lmap = new LabelMap(lmp);
-  lmap->natomtypes = ntypes;
-  lmap->nbondtypes = nbondtypes;
-  lmap->nangletypes = nangletypes;
-  lmap->ndihedraltypes = ndihedraltypes;
-  lmap->nimpropertypes = nimpropertypes;
-  lmap->allocate_type_labels();
+  lmaps = (LabelMap **)
+    memory->srealloc(lmaps,(nlmap+1)*sizeof(LabelMap *),
+                     "atom::lmaps");
+  lmaps[nlmap] = new LabelMap(lmp);
+  lmaps[nlmap]->id = mapID;
+  lmaps[nlmap]->natomtypes = ntypes;
+  lmaps[nlmap]->nbondtypes = nbondtypes;
+  lmaps[nlmap]->nangletypes = nangletypes;
+  lmaps[nlmap]->ndihedraltypes = ndihedraltypes;
+  lmaps[nlmap]->nimpropertypes = nimpropertypes;
+  lmaps[nlmap]->allocate_type_labels();
+  nlmap++;
+}
+
+/* ----------------------------------------------------------------------
+   find label, first parsing prefix for label map-ID
+   return -1 if does not exist
+------------------------------------------------------------------------- */
+
+int Atom::find_label(std::string label, int mode)
+{
+  // find label map ... in progress
+  int ilmap;
+  ilmap = 0;
+
+  return lmaps[ilmap]->find(label,mode);
 }
 
 /* ----------------------------------------------------------------------

@@ -20,9 +20,9 @@ namespace LAMMPS_NS {
 
 class LabelMap : protected Pointers {
  public:
-   enum{ATOM,BOND,ANGLE,DIHEDRAL,IMPROPER};
    int natomtypes,nbondtypes,nangletypes;
    int ndihedraltypes,nimpropertypes;
+   std::string id;
    std::vector<std::string> typelabel,btypelabel,atypelabel;
    std::vector<std::string> dtypelabel,itypelabel;
 

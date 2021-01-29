@@ -692,6 +692,7 @@ dmi
 dnf
 DNi
 Dobson
+Dobnikar
 Dodds
 docenv
 dodgerblue
@@ -1232,6 +1233,7 @@ Hibbs
 Higdon
 Hijazi
 Hilger
+Hinestrosa
 histo
 histogrammed
 histogramming
@@ -3406,6 +3408,7 @@ WeinanE
 Wennberg
 Westmere
 Westview
+wf
 wget
 Whelan
 whitesmoke

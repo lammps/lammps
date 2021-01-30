@@ -204,6 +204,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 
   // type labels
 
+  nlmap = 0;
   lmaps = nullptr;
 
   // custom atom arrays
@@ -1990,7 +1991,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
    allocate space for type label map
 ------------------------------------------------------------------------- */
 
-void Atom::add_label_map(std::string mapID)
+int Atom::add_label_map(std::string mapID)
 {
   labelmapflag = 1;
   lmaps = (LabelMap **)
@@ -2005,6 +2006,7 @@ void Atom::add_label_map(std::string mapID)
   lmaps[nlmap]->nimpropertypes = nimpropertypes;
   lmaps[nlmap]->allocate_type_labels();
   nlmap++;
+  return nlmap - 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -2014,11 +2016,31 @@ void Atom::add_label_map(std::string mapID)
 
 int Atom::find_label(std::string label, int mode)
 {
-  // find label map ... in progress
-  int ilmap;
-  ilmap = 0;
+  int ilmap = 0;
+
+  // check for auxiliary map prefix
+
+  int pos = label.find("::");
+  if (pos != std::string::npos) {
+    ilmap = find_labelmap(label.substr(0,pos));
+    if (ilmap == -1) return -1;
+    label = label.substr(pos+2);
+  }
 
   return lmaps[ilmap]->find(label,mode);
+}
+
+/* ----------------------------------------------------------------------
+   find first label map in set with ID
+   return -1 if does not exist
+------------------------------------------------------------------------- */
+
+int Atom::find_labelmap(std::string id)
+{
+  int ilmap;
+  for (ilmap = 0; ilmap < nlmap; ilmap++)
+    if (id == lmaps[ilmap]->id) return ilmap;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

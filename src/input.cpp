@@ -1592,10 +1592,26 @@ void Input::kspace_style()
 
 void Input::labelmap()
 {
+  if (narg < 2 || (narg % 2 == 0)) error->all(FLERR,"Illegal labelmap command");
   if (domain->box_exist == 0)
     error->all(FLERR,"Labelmap command before simulation box is defined");
+
   if (!atom->labelmapflag) atom->add_label_map();
-  atom->lmaps[0]->modify_lmap(narg,arg);
+
+  int ilmap = 0;
+  std::string mapid;
+  for (int i = 1; i < narg; i++) {
+    if (strcmp(arg[i],"mapID") == 0) {
+      mapid = arg[i+1];
+      ilmap = atom->find_labelmap(mapid);
+      if (ilmap == -1) ilmap = atom->add_label_map(mapid);
+      if (narg > i+2) error->all(FLERR,"Illegal labelmap command");
+      narg = i - 2;
+      break;
+    }
+    i++;
+  }
+  atom->lmaps[ilmap]->modify_lmap(narg,arg);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -175,8 +175,8 @@ These are the allowed section keywords for the body of the file.
 
 For the Types, Bonds, Angles, Dihedrals, and Impropers sections,  each
 atom, bond, etc. type can be listed either as a number (numeric type)
-or as an alphanumeric :doc:`type label <labelmap>`. Type labels must
-begin with letter, and a label map must have previously been defined
+or as an alphanumeric :doc:`type label <labelmap>`. Type labels cannot
+start with a number, and a label map must have previously been defined
 by a :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
 command.
 

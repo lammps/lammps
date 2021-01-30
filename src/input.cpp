@@ -1601,7 +1601,7 @@ void Input::labelmap()
   int ilmap = 0;
   std::string mapid;
   for (int i = 1; i < narg; i++) {
-    if (strcmp(arg[i],"mapID") == 0) {
+    if (strcmp(arg[i],"map/assign") == 0) {
       mapid = arg[i+1];
       ilmap = atom->find_labelmap(mapid);
       if (ilmap == -1) ilmap = atom->add_label_map(mapid);

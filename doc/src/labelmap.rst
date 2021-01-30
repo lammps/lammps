@@ -8,10 +8,16 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   labelmap interaction numeric-type type-label ...
+   labelmap interaction numeric-type type-label ... keyword values
 
 * interaction = *atom* or *bond* or *angle* or *dihedral* or *improper*
 * one or more numeric-type/type-label pairs may be appended
+* keyword = *map/assign*
+
+  .. parsed-literal::
+
+       *map/assign* value = mapID
+         mapID = name of auxiliary label map
 
 Examples
 """"""""
@@ -31,9 +37,9 @@ numeric type used by LAMMPS with a character-based type can be
 helpful in a variety of situations. For example, type labels can make
 various inputs more readable and compatible with other inputs (data
 files, molecule templates, etc.), particularly if your model's force
-field uses alphanumeric atom types. Type label maps can also be
-defined by :doc:`data files <read_data>` using the relevant Type Label
-sections.
+field uses alphanumeric atom types. The default type label map can
+also be defined by :doc:`data files <read_data>` using the relevant
+Type Label sections.
 
 .. note::
 
@@ -66,6 +72,22 @@ atom type 'C' and 'H' is written as:
 
    bond_style harmonic
    bond_coeff [C][H] 80.0 1.2
+
+In some circumstances, it may be helpful to define extra label maps in
+addition to the default one. An auxiliary label map can be created and
+populated using the *map/assign* keyword. Type labels of auxiliary
+label maps can be referenced by prefixing the type label with the
+mapID followed by "::". For example, a type label "C" assigned to a
+label map named "Map2" can be created and referenced as follows:
+
+.. code-block:: LAMMPS
+
+   labelmap bond 1 [C][H] map/assign Map2
+   bond_coeff Map2::[C][H] 80.0 1.2
+
+Auxiliary label maps are not written to restart or data files. Due to
+the syntax for auxiliary maps, type labels cannot contain the
+substring "::". The default label map has no prefix.
 
 ----------
 

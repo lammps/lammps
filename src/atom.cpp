@@ -1990,7 +1990,7 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom,
    allocate space for type label map
 ------------------------------------------------------------------------- */
 
-void Atom::add_label_map(char *mapID)
+void Atom::add_label_map(std::string mapID)
 {
   labelmapflag = 1;
   lmaps = (LabelMap **)

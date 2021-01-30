@@ -668,7 +668,8 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 void Input::readtype(char *&str, int mode)
 {
   int numflag = 1;
-  for (int i = 0; i < strlen(str); i++)
+  int n = strlen(str);
+  for (int i = 0; i < n; i++)
     if (!isdigit(str[i]) && str[i] != '*') numflag = 0;
   if (numflag) return;
   if (!atom->labelmapflag) error->all(FLERR,fmt::format("Invalid type {}",str));
@@ -1593,7 +1594,7 @@ void Input::labelmap()
 {
   if (domain->box_exist == 0)
     error->all(FLERR,"Labelmap command before simulation box is defined");
-  if (!atom->labelmapflag) atom->add_label_map("");
+  if (!atom->labelmapflag) atom->add_label_map();
   atom->lmaps[0]->modify_lmap(narg,arg);
 }
 

@@ -932,7 +932,7 @@ void ReadRestart::type_arrays()
 
     } else if (flag == LABELMAP) {
       read_int();
-      atom->add_label_map("");
+      atom->add_label_map();
       atom->lmaps[0]->read_restart(fp);
 
     } else error->all(FLERR,

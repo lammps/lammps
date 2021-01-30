@@ -1,0 +1,29 @@
+# Charge regulation lammps for a polymer chain
+units		lj
+atom_style	full
+dimension	3
+boundary	p p p
+processors 	* * * 
+neighbor	3.0 bin
+neigh_modify delay 0 every 1 check yes one 10000
+read_data data_polymer.chreg
+dielectric 1.0
+bond_style harmonic
+bond_coeff 1 200 1.122462 # K R0 
+velocity	all create 1.0 8008 loop geom
+pair_style     lj/cut/coul/long 1.122462 50 
+pair_coeff	* *  1.0 1.0 1.122462 # charges
+kspace_style	pppm 1.0e-3
+pair_modify 	shift no
+fix	fnve all nve
+compute dtemp all temp 
+compute_modify dtemp dynamic yes 
+fix fT all langevin 1.0 1.0 1.0 123 
+fix_modify fT temp dtemp
+fix chareg1 all charge_regulation 2 3 acid_type 1 pH 7.0 pKa 6.5 pIp 2.0 pIm 2.0 
+fix chareg2 all charge_regulation 4 5 acid_type 1 pH 7.0 pKa 6.5 pIp 7.0 pIm 7.0 
+fix chareg3 all charge_regulation 4 3 pIp 7.0 pIm 2.0
+thermo		400
+thermo_style	custom step f_chareg1[3] f_chareg1[4] f_chareg1[7] f_chareg1[8] f_chareg2[7] f_chareg2[8]
+timestep	0.01
+run		1000

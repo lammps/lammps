@@ -97,10 +97,11 @@ this.
 
       For a system-wide installation you need to set
       ``CMAKE_INSTALL_PREFIX`` to a system folder like ``/usr`` (or
-      ``/usr/local``).  The installation step (**not** the
-      configuration/compilation) needs to be done with superuser
+      ``/usr/local``); the default is ``${HOME}/.local``.
+      The installation step for a system folder installation
+      (**not** the configuration/compilation) needs to be done with superuser
       privilege, e.g. by using ``sudo cmake --install .``.  The
-      installation folders will then by changed to:
+      installation folders will then be changed to (for ``/usr`` as prefix):
 
       +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
       | File                   | Location                                                | Notes                                                       |

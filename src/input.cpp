@@ -662,16 +662,17 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
 /* ----------------------------------------------------------------------
    substitute type labels with numeric value
    reallocate str to hold expanded version if necessary
-   if type is a valid numerical string (can include *), do not modify
+   return flag if new pointer, caller will need to delete []
+   if type is a valid numerical string (can include '*'), do not modify
 ------------------------------------------------------------------------- */
 
-void Input::readtype(char *&str, int mode)
+int Input::readtype(char *&str, int mode)
 {
   int numflag = 1;
   int n = strlen(str);
   for (int i = 0; i < n; i++)
     if (!isdigit(str[i]) && str[i] != '*') numflag = 0;
-  if (numflag) return;
+  if (numflag) return 0;
   if (!atom->labelmapflag) error->all(FLERR,fmt::format("Invalid type {}",str));
 
   int type,max,max2;
@@ -685,8 +686,13 @@ void Input::readtype(char *&str, int mode)
 
   max = strlen(str) + 1;
   max2 = strlen(typechar) + 1;
-  if (max2 > max) reallocate(str,max,max2);
-  strcpy(str,typechar);
+  if (max2 > max) {
+    str = new char[max2];
+    strcpy(str,typechar);
+    return 1;
+  } else strcpy(str,typechar);
+
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1333,8 +1339,9 @@ void Input::angle_coeff()
     error->all(FLERR,"Angle_coeff command before angle_style is defined");
   if (atom->avec->angles_allow == 0)
     error->all(FLERR,"Angle_coeff command when no angles allowed");
-  readtype(arg[0],atom->ANGLE);
+  int newflag = readtype(arg[0],Atom::ANGLE);
   force->angle->coeff(narg,arg);
+  if (newflag) delete [] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1375,8 +1382,9 @@ void Input::bond_coeff()
     error->all(FLERR,"Bond_coeff command before bond_style is defined");
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Bond_coeff command when no bonds allowed");
-  readtype(arg[0],atom->BOND);
+  int newflag = readtype(arg[0],Atom::BOND);
   force->bond->coeff(narg,arg);
+  if (newflag) delete [] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1479,8 +1487,9 @@ void Input::dihedral_coeff()
     error->all(FLERR,"Dihedral_coeff command before dihedral_style is defined");
   if (atom->avec->dihedrals_allow == 0)
     error->all(FLERR,"Dihedral_coeff command when no dihedrals allowed");
-  readtype(arg[0],atom->DIHEDRAL);
+  int newflag = readtype(arg[0],Atom::DIHEDRAL);
   force->dihedral->coeff(narg,arg);
+  if (newflag) delete [] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1557,8 +1566,9 @@ void Input::improper_coeff()
     error->all(FLERR,"Improper_coeff command before improper_style is defined");
   if (atom->avec->impropers_allow == 0)
     error->all(FLERR,"Improper_coeff command when no impropers allowed");
-  readtype(arg[0],atom->IMPROPER);
+  int newflag = readtype(arg[0],Atom::IMPROPER);
   force->improper->coeff(narg,arg);
+  if (newflag) delete [] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1751,13 +1761,12 @@ void Input::pair_coeff()
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
   if (force->pair == nullptr)
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
-  readtype(arg[0],atom->ATOM);
-  readtype(arg[1],atom->ATOM);
+  int newflag0 = readtype(arg[0],Atom::ATOM);
+  int newflag1 = readtype(arg[1],Atom::ATOM);
 
   // if arg[1] < arg[0], and neither contain a wildcard, reorder
 
-  int itype,jtype;
-  int *ptr;
+  int tmpflag,itype,jtype;
   char *str;
   if (strchr(arg[0],'*') == nullptr && strchr(arg[1],'*') == nullptr) {
     itype = utils::numeric(FLERR,arg[0],false,lmp);
@@ -1766,10 +1775,15 @@ void Input::pair_coeff()
       str = arg[0];
       arg[0] = arg[1];
       arg[1] = str;
+      tmpflag = newflag0;
+      newflag0 = newflag1;
+      newflag1 = tmpflag;
     }
   }
 
   force->pair->coeff(narg,arg);
+  if (newflag0) delete [] arg[0];
+  if (newflag1) delete [] arg[1];
 }
 
 /* ---------------------------------------------------------------------- */

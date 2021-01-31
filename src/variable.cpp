@@ -4540,19 +4540,19 @@ int Variable::labelmap_function(char *word, char *contents, Tree **tree,
   std::string typestr = contents;
 
   if (strcmp(word,"label") == 0) {
-    value = atom->find_label(typestr,atom->ATOM);
+    value = atom->find_label(typestr,Atom::ATOM);
 
   } else if (strcmp(word,"blabel") == 0) {
-    value = atom->find_label(typestr,atom->BOND);
+    value = atom->find_label(typestr,Atom::BOND);
 
   } else if (strcmp(word,"alabel") == 0) {
-    value = atom->find_label(typestr,atom->ANGLE);
+    value = atom->find_label(typestr,Atom::ANGLE);
 
   } else if (strcmp(word,"dlabel") == 0) {
-    value = atom->find_label(typestr,atom->DIHEDRAL);
+    value = atom->find_label(typestr,Atom::DIHEDRAL);
 
   } else if (strcmp(word,"ilabel") == 0) {
-    value = atom->find_label(typestr,atom->IMPROPER);
+    value = atom->find_label(typestr,Atom::IMPROPER);
   }
 
   if (value == -1)

@@ -729,7 +729,7 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) {
           if (atomflag == 1)
             error->all(FLERR,"Must read Atom Type Labels before Atoms");
-          typelabels(lmap->typelabel,ntypes,atom->ATOM);
+          typelabels(lmap->typelabel,ntypes,Atom::ATOM);
         } else skip_lines(ntypes);
 
       } else if (strcmp(keyword,"Bond Type Labels") == 0) {
@@ -737,7 +737,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (bondflag == 1)
               error->all(FLERR,"Must read Bond Type Labels before Bonds");
-            typelabels(lmap->btypelabel,nbondtypes,atom->BOND);
+            typelabels(lmap->btypelabel,nbondtypes,Atom::BOND);
           } else skip_lines(nbondtypes);
         }
 
@@ -746,7 +746,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (angleflag == 1)
               error->all(FLERR,"Must read Angle Type Labels before Angles");
-            typelabels(lmap->atypelabel,nangletypes,atom->ANGLE);
+            typelabels(lmap->atypelabel,nangletypes,Atom::ANGLE);
           } else skip_lines(nangletypes);
         }
 
@@ -755,7 +755,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (dihedralflag == 1)
               error->all(FLERR,"Must read Dihedral Type Labels before Dihedrals");
-            typelabels(lmap->dtypelabel,ndihedraltypes,atom->DIHEDRAL);
+            typelabels(lmap->dtypelabel,ndihedraltypes,Atom::DIHEDRAL);
           } else skip_lines(ndihedraltypes);
         }
 
@@ -764,7 +764,7 @@ void ReadData::command(int narg, char **arg)
           if (firstpass) {
             if (improperflag == 1)
               error->all(FLERR,"Must read Improper Type Labels before Impropers");
-            typelabels(lmap->itypelabel,nimpropertypes,atom->IMPROPER);
+            typelabels(lmap->itypelabel,nimpropertypes,Atom::IMPROPER);
           } else skip_lines(nimpropertypes);
         }
 

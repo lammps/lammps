@@ -1984,7 +1984,7 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
     next = strchr(buf,'\n');
     *next = '\0';
     sscanf(buf,"%*d %s",typelabel);
-    if (!isalpha(typelabel[0])) error->all(FLERR,"Type labels must begin with a letter");
+    if (isdigit(typelabel[0])) error->all(FLERR,"Type labels cannot start with a number");
     mytypelabel[i] = typelabel;
     buf = next + 1;
   }

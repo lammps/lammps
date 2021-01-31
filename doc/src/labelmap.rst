@@ -46,7 +46,8 @@ Type Label sections.
    If substituting numeric types with type labels is currently
    supported by a given command, this feature will be mentioned on
    that command's doc page. Or, for input script commands, type labels
-   can be processed using :doc:`variable <variable>` syntax.
+   can be processed using :doc:`variable <variable>` syntax using
+   labelmap functions.
 
 .. note::
 

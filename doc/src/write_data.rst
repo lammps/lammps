@@ -12,12 +12,13 @@ Syntax
 
 * file = name of data file to write out
 * zero or more keyword/value pairs may be appended
-* keyword = *pair* or *nocoeff*
+* keyword = *pair* or *nocoeff* or *nofix* or *nolabelmap*
 
   .. parsed-literal::
 
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
+       *nolabelmap* = do not write out the default label map
        *pair* value = *ii* or *ij*
          *ii* = write one line of pair coefficient info per atom type
          *ij* = write one line of pair coefficient info per IJ atom type pair
@@ -104,6 +105,10 @@ should be written to the data file (see the *fix* option of the
 :doc:`read_data <read_data>` command for details). For example, this
 option excludes sections for user-created per-atom properties
 from :doc:`fix property/atom <fix_property_atom>`.
+
+The *nolabelmap* keyword requests that the default label map should
+not be written to the data file (see the Type Label sections of
+:doc:`read_data <read_data>` command for details).
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value

@@ -72,6 +72,7 @@ void WriteData::command(int narg, char **arg)
   pairflag = II;
   coeffflag = 1;
   fixflag = 1;
+  lmapflag = 1;
   int noinit = 0;
 
   int iarg = 1;
@@ -90,6 +91,9 @@ void WriteData::command(int narg, char **arg)
       iarg++;
     } else if (strcmp(arg[iarg],"nofix") == 0) {
       fixflag = 0;
+      iarg++;
+    } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
+      lmapflag = 0;
       iarg++;
     } else error->all(FLERR,"Illegal write_data command");
   }
@@ -186,7 +190,7 @@ void WriteData::write(const std::string &file)
 
   if (me == 0) {
     header();
-    if (atom->labelmapflag) atom->lmaps[0]->write_data(fp);
+    if (lmapflag && atom->labelmapflag) atom->lmaps[0]->write_data(fp);
     type_arrays();
     if (coeffflag) force_fields();
   }

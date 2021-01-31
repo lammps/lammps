@@ -1616,7 +1616,7 @@ void Input::labelmap()
       ilmap = atom->find_labelmap(mapid);
       if (ilmap == -1) ilmap = atom->add_label_map(mapid);
       if (narg > i+2) error->all(FLERR,"Illegal labelmap command");
-      narg = i - 2;
+      narg = narg - 2;
       break;
     }
     i++;

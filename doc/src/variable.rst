@@ -911,8 +911,9 @@ Labelmap functions convert type labels into numeric types, using label
 maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
 commands.  Their argument must be a valid type label, and they return
 the corresponding integer numeric type.  The argument for the *label()*\ ,
-*blabel()*\ , *alabel()*\ , *dlabel()*\ , and *ilabel()*\ , must be
-an atom, bond, angle, dihedral, or improper type label, respectively.
+*blabel()*\ , *alabel()*\ , *dlabel()*\ , and *ilabel()* functions,
+must be an atom, bond, angle, dihedral, or improper type label,
+respectively.
 
 ----------
 

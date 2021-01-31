@@ -10,7 +10,7 @@ Syntax
 
    bond_coeff N args
 
-* N = bond type (see asterisk form below)
+* N = numeric bond type (see asterisk form below), or type label
 * args = coefficients for one or more bond types
 
 Examples
@@ -31,11 +31,12 @@ The number and meaning of the coefficients depends on the bond style.
 Bond coefficients can also be set in the data file read by the
 :doc:`read_data <read_data>` command or in a restart file.
 
-N can be specified in one of two ways.  An explicit numeric value can
-be used, as in the first example above.  Or a wild-card asterisk can be
-used to set the coefficients for multiple bond types.  This takes the
-form "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of bond types,
-then an asterisk with no numeric values means all types from 1 to N.  A
+N can be specified in one of several ways.  An explicit numeric value can
+be used, as in the first example above.  Or N can be a :doc:`type label <labelmap>`.
+For numeric values only, a wild-card asterisk can be used to set the
+coefficients for multiple bond types.  This takes the form "\*" or
+"\*n" or "n\*" or "m\*n".  If N = the number of bond types, then an
+asterisk with no numeric values means all types from 1 to N.  A
 leading asterisk means all types from 1 to n (inclusive).  A trailing
 asterisk means all types from n to N (inclusive).  A middle asterisk
 means all types from m to n (inclusive).

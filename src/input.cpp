@@ -1753,6 +1753,22 @@ void Input::pair_coeff()
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
   readtype(arg[0],atom->ATOM);
   readtype(arg[1],atom->ATOM);
+
+  // if arg[1] < arg[0], and neither contain a wildcard, reorder
+
+  int itype,jtype;
+  int *ptr;
+  char *str;
+  if (strchr(arg[0],'*') == nullptr && strchr(arg[1],'*') == nullptr) {
+    itype = utils::numeric(FLERR,arg[0],false,lmp);
+    jtype = utils::numeric(FLERR,arg[1],false,lmp);
+    if (jtype < itype) {
+      str = arg[0];
+      arg[0] = arg[1];
+      arg[1] = str;
+    }
+  }
+
   force->pair->coeff(narg,arg);
 }
 

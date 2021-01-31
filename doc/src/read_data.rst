@@ -540,7 +540,13 @@ input script.
   .. parsed-literal::
 
        ID = angle type (1-N)
-       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
+       label = alphanumeric type label
+
+See the *Atom Type Labels* section for more details about how angle
+types are interpreted when reading one or more data files that contain
+angle type label sections.  See the :doc:`labelmap <labelmap>` command
+for a discussion about how to format angle type labels and use type
+label maps.
 
 ----------
 
@@ -612,8 +618,28 @@ integers (1, not 1.0).
 
   .. parsed-literal::
 
-       ID = atom type (1-N)
-       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
+       ID = numeric atom type (1-N)
+       label = alphanumeric type label
+
+Type labels can be used to make data files more general, by defining
+atom, bond, etc. types in terms of user-provided strings instead of
+numbers.  If a type label section exists for a given interaction, the
+numeric types listed in the *Atoms*, *Bonds*, etc. section are first
+converted into their corresponding type label before being read into
+LAMMPS; type labels cannot be directly substituted for numeric types
+used in data files.  Data files can also be used to populate the
+default label map; if the type label does not already exist, the type
+label is created as a new type and assigned to the default label map.
+The corresponding interaction coefficients listed in the data file are
+associated to this type.  When reading multiple data files, or if the
+default label map already exists, there must be enough space in the
+per-type data arrays to create new types; see the *extra/atom/types*
+keyword for how to reserve extra space for new types.  Note that, in
+this case, the numeric-to-label mapping within a data file does not
+necessary correspond to that of the simulation; the :doc:`write_data <write_data>`
+command can be used to print out the default label map at a given
+point in a simulation.  See the :doc:`labelmap <labelmap>` command for
+more discussion on how to use type label maps.
 
 ----------
 
@@ -950,7 +976,13 @@ script.
   .. parsed-literal::
 
        ID = bond type (1-N)
-       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
+       label = alphanumeric type label
+
+See the *Atom Type Labels* section for more details about how bond
+types are interpreted when reading one or more data files that contain
+bond type label sections.  See the :doc:`labelmap <labelmap>` command
+for a discussion about how to format bond type labels and use type
+label maps.
 
 ----------
 
@@ -1044,7 +1076,13 @@ Coefficients can also be set via the
   .. parsed-literal::
 
        ID = dihedral type (1-N)
-       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
+       label = alphanumeric type label
+
+See the *Atom Type Labels* section for more details about how dihedral
+types are interpreted when reading one or more data files that contain
+dihedral type label sections.  See the :doc:`labelmap <labelmap>`
+command for a discussion about how to format dihedral type labels and
+use type label maps.
 
 ----------
 
@@ -1157,7 +1195,13 @@ Coefficients can also be set via the
   .. parsed-literal::
 
        ID = improper type (1-N)
-       label = alphanumeric type label (see the :doc:`labelmap <labelmap>` command)
+       label = alphanumeric type label
+
+See the *Atom Type Labels* section for more details about how improper
+types are interpreted when reading one or more data files that contain
+improper type label sections.  See the :doc:`labelmap <labelmap>`
+command for a discussion about how to format improper type labels and
+use type label maps.
 
 ----------
 

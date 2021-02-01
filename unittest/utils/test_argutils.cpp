@@ -24,7 +24,7 @@ TEST(ArgInfo, plain)
     ArgInfo arg("text");
     ASSERT_EQ(arg.get_dim(), 0);
     ASSERT_EQ(arg.get_type(), ArgInfo::NONE);
-    ASSERT_EQ(arg.get_index1(), -1);
+    ASSERT_EQ(arg.get_index1(), 0);
     ASSERT_EQ(arg.get_index2(), -1);
     ASSERT_THAT(arg.get_name(), StrEq("text"));
 }
@@ -44,7 +44,7 @@ TEST(ArgInfo, compute0)
     ArgInfo arg("c_text");
     ASSERT_EQ(arg.get_dim(), 0);
     ASSERT_EQ(arg.get_type(), ArgInfo::COMPUTE);
-    ASSERT_EQ(arg.get_index1(), -1);
+    ASSERT_EQ(arg.get_index1(), 0);
     ASSERT_EQ(arg.get_index2(), -1);
     ASSERT_THAT(arg.get_name(), StrEq("text"));
 }
@@ -74,7 +74,7 @@ TEST(ArgInfo, fix0)
     ArgInfo arg("f_2");
     ASSERT_EQ(arg.get_dim(), 0);
     ASSERT_EQ(arg.get_type(), ArgInfo::FIX);
-    ASSERT_EQ(arg.get_index1(), -1);
+    ASSERT_EQ(arg.get_index1(), 0);
     ASSERT_EQ(arg.get_index2(), -1);
     ASSERT_THAT(arg.get_name(), StrEq("2"));
 }
@@ -104,7 +104,7 @@ TEST(ArgInfo, variable0)
     ArgInfo arg("v_text");
     ASSERT_EQ(arg.get_dim(), 0);
     ASSERT_EQ(arg.get_type(), ArgInfo::VARIABLE);
-    ASSERT_EQ(arg.get_index1(), -1);
+    ASSERT_EQ(arg.get_index1(), 0);
     ASSERT_EQ(arg.get_index2(), -1);
     ASSERT_THAT(arg.get_name(), StrEq("text"));
 }

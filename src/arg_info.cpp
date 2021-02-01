@@ -26,6 +26,7 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed)
     else if ((arg[0] == 'f') && (allowed & FIX)) type = FIX;
     else if ((arg[0] == 'v') && (allowed & VARIABLE)) type = VARIABLE;
     else {
+      index1 = 0;
       name = arg;
       return;
     }
@@ -59,8 +60,14 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed)
           type = UNKNOWN;
         }
       }
-    } else name = arg.substr(2);
-  } else name = arg;
+    } else {
+      index1 = 0;
+      name = arg.substr(2);
+    }
+  } else {
+    index1 = 0;
+    name = arg;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

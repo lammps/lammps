@@ -501,50 +501,50 @@ void PairLS::coeff(int narg, char **arg)
     }
 
   // read_pot_ls.f (20-25):
-	// w=R_sp_fi(n_sp_fi,1,1)
-	// do i=1,n_sort
-	// 	if(R_sp_fi(n_sp_fi,i,i) > w) w=R_sp_fi(n_sp_fi,i,i)
-	// enddo
-	// Rc_fi=w
-	// r_pot=Rc_fi
+  // w=R_sp_fi(n_sp_fi,1,1)
+  // do i=1,n_sort
+  //  if(R_sp_fi(n_sp_fi,i,i) > w) w=R_sp_fi(n_sp_fi,i,i)
+  // enddo
+  // Rc_fi=w
+  // r_pot=Rc_fi
 
-	w = R_sp_fi[1][1][n_sp_fi[1][1]-1];
-	for (i = 1; i <= n_sort; i++)
+  w = R_sp_fi[1][1][n_sp_fi[1][1]-1];
+  for (i = 1; i <= n_sort; i++)
     {
       if (R_sp_fi[i][i][n_sp_fi[i][i]-1] > w) w = R_sp_fi[i][i][n_sp_f[i][i]-1];
     }
-	Rc_fi = w;
-	r_pot = Rc_fi;
+  Rc_fi = w;
+  r_pot = Rc_fi;
 
   // read_pot_ls.f (27-32):
-	// w=R_sp_f(n_sp_f,1,1)
-	// do i=1,n_sort
-	// 	if(R_sp_f(n_sp_f,i,i) > w) w=R_sp_f(n_sp_f,i,i)
-	// enddo
-	// Rc_f=w
+  // w=R_sp_f(n_sp_f,1,1)
+  // do i=1,n_sort
+  //  if(R_sp_f(n_sp_f,i,i) > w) w=R_sp_f(n_sp_f,i,i)
+  // enddo
+  // Rc_f=w
 
-	w = R_sp_f[1][1][n_sp_f[1][1]-1];
-	for (i = 1; i <= n_sort; i++)
+  w = R_sp_f[1][1][n_sp_f[1][1]-1];
+  for (i = 1; i <= n_sort; i++)
     {
       if (R_sp_f[i][i][n_sp_f[i][i]-1] > w) w = R_sp_f[i][i][n_sp_f[i][i]-1];
     }
-	Rc_f = w;
+  Rc_f = w;
 
   // End reading monoatomic potentials
 
   // Start reading cross-potentials
 
   // read_pot_ls.f (35-44):
-	// if(n_sort>1) then
-	// 	do i=1,n_sort-1
-	// 		do j=i+1,n_sort
-	// 			name_32=name_pot_is1_is2(i,j)
-	// 			call wr_pot_ls_is1_is2(-1,name_32,i,j,info_pot)
-	// 			call par2pot_is1_is2(i,j)
-	// 			call par2pot_is1_is2(j,i)
-	// 		enddo
-	// 	enddo
-	// endif
+  // if(n_sort>1) then
+  //  do i=1,n_sort-1
+  //    do j=i+1,n_sort
+  //      name_32=name_pot_is1_is2(i,j)
+  //      call wr_pot_ls_is1_is2(-1,name_32,i,j,info_pot)
+  //      call par2pot_is1_is2(i,j)
+  //      call par2pot_is1_is2(j,i)
+  //    enddo
+  //  enddo
+  // endif
 
 
   if (n_sort > 1)
@@ -639,8 +639,8 @@ void PairLS::init_style()
   neighbor->requests[irequest_full]->id = 1;
   neighbor->requests[irequest_full]->half = 0;
   neighbor->requests[irequest_full]->full = 1;
-  int irequest_half = neighbor->request(this,instance_me);
-  neighbor->requests[irequest_half]->id = 2;
+  // int irequest_half = neighbor->request(this,instance_me);
+  // neighbor->requests[irequest_half]->id = 2;
 
 // void PairTersoff::init_style()
 // {
@@ -1254,7 +1254,7 @@ void PairLS::par2pot_is(int is)
   // par2pot_is.f(15-18):
   //   zz_ZBL(is,is)=z_ion(is)*z_ion(is)*(3.795D0**2)
   //   a_ZBL(is,is)=0.8853D0
-  //  :	*0.5291772083D0/(z_ion(is)**0.23D0 + z_ion(is)**0.23D0)
+  //  : *0.5291772083D0/(z_ion(is)**0.23D0 + z_ion(is)**0.23D0)
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " created memory for R_sp, a_sp, etc" << std::endl;
 
   zz_ZBL[is][is] = z_ion[is]*z_ion[is]*pow(3.795,2);
@@ -1263,45 +1263,45 @@ void PairLS::par2pot_is(int is)
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " zz_ZBL[is][is] and a_ZBL[is][is] assigned" << std::endl;
 
   // par2pot_is.f(21-28):
-	// n_sp=n_sp_fi
-	// do i=1,n_sp
-	// R_sp(i)=R_sp_fi(i,is,is)
-	// enddo
-	// do i=1,n_sp-1
-	// a_sp(i)=a_sp_fi(i,is,is)
-	// enddo
-	// a_sp(n_sp)=0.0D0
+  // n_sp=n_sp_fi
+  // do i=1,n_sp
+  // R_sp(i)=R_sp_fi(i,is,is)
+  // enddo
+  // do i=1,n_sp-1
+  // a_sp(i)=a_sp_fi(i,is,is)
+  // enddo
+  // a_sp(n_sp)=0.0D0
 
-	n_sp = n_sp_fi[is][is];
-	for (i = 0; i < n_sp; i++)
+  n_sp = n_sp_fi[is][is];
+  for (i = 0; i < n_sp; i++)
   {
     R_sp[i]=R_sp_fi[is][is][i];
   }
-	for (i = 0; i < n_sp-1; i++)
+  for (i = 0; i < n_sp-1; i++)
   {
     a_sp[i]=a_sp_fi[is][is][i];
   }  
-	a_sp[n_sp-1] = 0.0;
+  a_sp[n_sp-1] = 0.0;
 
   // par2pot_is.f(29-36):
-	// call SPL(n_sp, R_sp, a_sp, 1, fip_Rmin(is,is),0.0D0, b_sp,c_sp,d_sp)
-		// do i=1,n_sp_fi
-		// a_sp_fi(i,is,is)=a_sp(i)
-		// b_sp_fi(i,is,is)=b_sp(i)
-		// c_sp_fi(i,is,is)=c_sp(i)
-		// d_sp_fi(i,is,is)=d_sp(i)
-		// enddo
-	// shag_sp_fi(is,is)=1.0D0/((R_sp_fi(n_sp,is,is)-R_sp_fi(1,is,is))/dfloat(n_sp-1))
+  // call SPL(n_sp, R_sp, a_sp, 1, fip_Rmin(is,is),0.0D0, b_sp,c_sp,d_sp)
+    // do i=1,n_sp_fi
+    // a_sp_fi(i,is,is)=a_sp(i)
+    // b_sp_fi(i,is,is)=b_sp(i)
+    // c_sp_fi(i,is,is)=c_sp(i)
+    // d_sp_fi(i,is,is)=d_sp(i)
+    // enddo
+  // shag_sp_fi(is,is)=1.0D0/((R_sp_fi(n_sp,is,is)-R_sp_fi(1,is,is))/dfloat(n_sp-1))
 
-	// SPL(n_sp, &R_sp, &a_sp, 1, fip_rmin[is][is], 0.0, &b_sp, &c_sp, &d_sp);
+  // SPL(n_sp, &R_sp, &a_sp, 1, fip_rmin[is][is], 0.0, &b_sp, &c_sp, &d_sp);
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " now SPL function will be called" << std::endl;
 
-	SPL(n_sp, R_sp, a_sp, 1, fip_rmin[is][is], 0.0, b_sp, c_sp, d_sp);
+  SPL(n_sp, R_sp, a_sp, 1, fip_rmin[is][is], 0.0, b_sp, c_sp, d_sp);
 
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL function worked well" << std::endl;
 
   // !std::cout << "!!!!!!!!!!!! Fi" << std::endl;
-	for (i = 0; i < n_sp; i++)
+  for (i = 0; i < n_sp; i++)
   {
     a_sp_fi[is][is][i] = a_sp[i];
     b_sp_fi[is][is][i] = b_sp[i];
@@ -1313,32 +1313,32 @@ void PairLS::par2pot_is(int is)
     // !std::cout << " c_sp_fi[" << i << "][" << is << "][" << is << "] = " << c_sp_fi[is][is][i] << "   ";    
     // !std::cout << " d_sp_fi[" << i << "][" << is << "][" << is << "] = " << d_sp_fi[is][is][i] << std::endl;    
   }
-	
-	shag_sp_fi[is][is] = 1.0/((R_sp_fi[is][is][n_sp-1]-R_sp_fi[is][is][0])/(n_sp-1));
+  
+  shag_sp_fi[is][is] = 1.0/((R_sp_fi[is][is][n_sp-1]-R_sp_fi[is][is][0])/(n_sp-1));
 
   // par2pot_is.f(39-49):
   // c fi_ZBL
-	// r1=Rmin_fi_ZBL(is,is)
-	// f1=v_ZBL(r1,is,is)+e0_ZBL(is,is)
-	// fp1=vp_ZBL(r1,is,is)
-	// fpp1=vpp_ZBL(r1,is,is)
-	//     r2=R_sp_fi(1,is,is)
-	//     f2=a_sp_fi(1,is,is)
-	//     fp2=b_sp_fi(1,is,is)
-	//     fpp2=2.0D0*c_sp_fi(1,is,is)	
-	// call smooth_zero_22 (B6,r1,r2,f1,fp1,fpp1,
+  // r1=Rmin_fi_ZBL(is,is)
+  // f1=v_ZBL(r1,is,is)+e0_ZBL(is,is)
+  // fp1=vp_ZBL(r1,is,is)
+  // fpp1=vpp_ZBL(r1,is,is)
+  //     r2=R_sp_fi(1,is,is)
+  //     f2=a_sp_fi(1,is,is)
+  //     fp2=b_sp_fi(1,is,is)
+  //     fpp2=2.0D0*c_sp_fi(1,is,is)  
+  // call smooth_zero_22 (B6,r1,r2,f1,fp1,fpp1,
   //    :                         f2,fp2,fpp2)
-	// c_fi_ZBL(1:6,is,is)=B6(1:6)
+  // c_fi_ZBL(1:6,is,is)=B6(1:6)
 
-	r1 = Rmin_fi_ZBL[is][is];
-	f1 = v_ZBL(r1, is, is) + e0_ZBL[is][is];
-	fp1 = vp_ZBL(r1, is, is);
-	fpp1 = vpp_ZBL(r1, is, is);
+  r1 = Rmin_fi_ZBL[is][is];
+  f1 = v_ZBL(r1, is, is) + e0_ZBL[is][is];
+  fp1 = vp_ZBL(r1, is, is);
+  fpp1 = vpp_ZBL(r1, is, is);
   r2 = R_sp_fi[is][is][0];
   f2 = a_sp_fi[is][is][0];
   fp2 = b_sp_fi[is][is][0];
-  fpp2 = 2.0*c_sp_fi[is][is][0];	
-	
+  fpp2 = 2.0*c_sp_fi[is][is][0];  
+  
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " now smooth_zero_22 function will be called" << std::endl;
 
   smooth_zero_22(B6, r1, r2, f1, fp1, fpp1, f2, fp2, fpp2);
@@ -1365,23 +1365,23 @@ void PairLS::par2pot_is(int is)
 
   // par2pot_is.f(51-68):
   // ! ro
-	// n_sp=n_sp_ro
-	// do i=1,n_sp
-	// R_sp(i)=R_sp_ro(i,is,is)
-	// enddo
-	// do i=1,n_sp
-	// a_sp(i)=a_sp_ro(i,is,is)
-	// enddo
-	// p1=0.0D0
-  // c	p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
-	// call SPL(n_sp, R_sp, a_sp, 1, p1,0.0D0, b_sp,c_sp,d_sp)
-	// do i=1,n_sp
-	// a_sp_ro(i,is,is)=a_sp(i)
-	// b_sp_ro(i,is,is)=b_sp(i)
-	// c_sp_ro(i,is,is)=c_sp(i)
-	// d_sp_ro(i,is,is)=d_sp(i)
-	// enddo
-	// shag_sp_ro(is,is)=1.0D0/((R_sp_ro(n_sp,is,is)-R_sp_ro(1,is,is))/dfloat(n_sp-1))
+  // n_sp=n_sp_ro
+  // do i=1,n_sp
+  // R_sp(i)=R_sp_ro(i,is,is)
+  // enddo
+  // do i=1,n_sp
+  // a_sp(i)=a_sp_ro(i,is,is)
+  // enddo
+  // p1=0.0D0
+  // c  p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
+  // call SPL(n_sp, R_sp, a_sp, 1, p1,0.0D0, b_sp,c_sp,d_sp)
+  // do i=1,n_sp
+  // a_sp_ro(i,is,is)=a_sp(i)
+  // b_sp_ro(i,is,is)=b_sp(i)
+  // c_sp_ro(i,is,is)=c_sp(i)
+  // d_sp_ro(i,is,is)=d_sp(i)
+  // enddo
+  // shag_sp_ro(is,is)=1.0D0/((R_sp_ro(n_sp,is,is)-R_sp_ro(1,is,is))/dfloat(n_sp-1))
 
   n_sp = n_sp_ro[is][is];
   // !std::cout << " n_sp = " << n_sp_ro[is][is] << std::endl;
@@ -1396,12 +1396,12 @@ void PairLS::par2pot_is(int is)
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < n_sp; i++) worked well" << std::endl;
 
 
-	// SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
-	SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
+  // SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
+  SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp) worked well" << std::endl;
 
   // !std::cout << "!!!!!!!!!!!! Rho" << std::endl;
-	for (i = 0; i < n_sp; i++)
+  for (i = 0; i < n_sp; i++)
   {  
     a_sp_ro[is][is][i] = a_sp[i];
     b_sp_ro[is][is][i] = b_sp[i];
@@ -1413,49 +1413,49 @@ void PairLS::par2pot_is(int is)
     // !std::cout << " c_sp_ro[" << i << "][" << is << "][" << is << "] = " << c_sp_ro[is][is][i] << "   ";    
     // !std::cout << " d_sp_ro[" << i << "][" << is << "][" << is << "] = " << d_sp_ro[is][is][i] << std::endl;     
   }
-	shag_sp_ro[is][is] = 1.0/((R_sp_ro[is][is][n_sp-1]-R_sp_ro[is][is][0])/(n_sp-1));
+  shag_sp_ro[is][is] = 1.0/((R_sp_ro[is][is][n_sp-1]-R_sp_ro[is][is][0])/(n_sp-1));
 
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < n_sp; i++) worked well" << std::endl;
 
   // par2pot_is.f(70-91):
   // ! emb
-  // 	n_sp=n_sp_emb
-  // 	n=n_sp_emb
-  // 	do i=1,n_sp
-  // 	R_sp(i)=R_sp_emb(i,is)
-  // 	enddo
-  // 	do i=1,n_sp
-  // 	a_sp(i)=a_sp_emb(i,is)
-  // 	enddo
-  // 	a_sp(1)=0.0D0
-  // 	p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
-  // c	pn=(a_sp(n)-a_sp(n-1))/(R_sp(n)-R_sp(n-1))
-  // 	pn=0.0D0
-  // 	call SPL(n_sp, R_sp, a_sp, 1, p1,pn, b_sp,c_sp,d_sp)
-  // 		do i=1,n_sp
-  // 		a_sp_emb(i,is)=a_sp(i)
-  // 		b_sp_emb(i,is)=b_sp(i)
-  // 		c_sp_emb(i,is)=c_sp(i)
-  // 		d_sp_emb(i,is)=d_sp(i)
-  // 		enddo
-  // 	shag_sp_emb(is)=1.0D0/((R_sp_emb(n_sp,is)-R_sp_emb(1,is))/dfloat(n_sp-1))
+  //  n_sp=n_sp_emb
+  //  n=n_sp_emb
+  //  do i=1,n_sp
+  //  R_sp(i)=R_sp_emb(i,is)
+  //  enddo
+  //  do i=1,n_sp
+  //  a_sp(i)=a_sp_emb(i,is)
+  //  enddo
+  //  a_sp(1)=0.0D0
+  //  p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
+  // c  pn=(a_sp(n)-a_sp(n-1))/(R_sp(n)-R_sp(n-1))
+  //  pn=0.0D0
+  //  call SPL(n_sp, R_sp, a_sp, 1, p1,pn, b_sp,c_sp,d_sp)
+  //    do i=1,n_sp
+  //    a_sp_emb(i,is)=a_sp(i)
+  //    b_sp_emb(i,is)=b_sp(i)
+  //    c_sp_emb(i,is)=c_sp(i)
+  //    d_sp_emb(i,is)=d_sp(i)
+  //    enddo
+  //  shag_sp_emb(is)=1.0D0/((R_sp_emb(n_sp,is)-R_sp_emb(1,is))/dfloat(n_sp-1))
 
-	n_sp = n_sp_emb[is][is];
-	n = n_sp_emb[is][is];
+  n_sp = n_sp_emb[is][is];
+  n = n_sp_emb[is][is];
   for (i = 0; i < n_sp; i++)
   {
     R_sp[i] = R_sp_emb[is][i];
     a_sp[i] = a_sp_emb[is][i];
   }  
-	a_sp[0] = 0.0;
+  a_sp[0] = 0.0;
 
-	p1 = (a_sp[1]-a_sp[0])/(R_sp[1]-R_sp[0]);
-	pn = 0.0;
-	// SPL(n_sp, &R_sp, &a_sp, 1, p1, pn, &b_sp, &c_sp, &d_sp);
-	SPL(n_sp, R_sp, a_sp, 1, p1, pn, b_sp, c_sp, d_sp);
+  p1 = (a_sp[1]-a_sp[0])/(R_sp[1]-R_sp[0]);
+  pn = 0.0;
+  // SPL(n_sp, &R_sp, &a_sp, 1, p1, pn, &b_sp, &c_sp, &d_sp);
+  SPL(n_sp, R_sp, a_sp, 1, p1, pn, b_sp, c_sp, d_sp);
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, pn, b_sp, c_sp, d_sp) worked well" << std::endl;
   // !std::cout << "!!!!!!!!!!!! Emb" << std::endl;
-	for (i = 0; i < n_sp; i++)
+  for (i = 0; i < n_sp; i++)
   {  
     a_sp_emb[is][i] = a_sp[i];
     b_sp_emb[is][i] = b_sp[i];
@@ -1468,143 +1468,146 @@ void PairLS::par2pot_is(int is)
     // !std::cout << " d_sp_emb[" << i << "][" << is << "] = " << d_sp_emb[i][is] << std::endl;     
   }
 
-	shag_sp_emb[is] = 1.0/((R_sp_emb[is][n_sp-1] - R_sp_emb[is][0])/(n_sp - 1)); 
+  shag_sp_emb[is] = 1.0/((R_sp_emb[is][n_sp-1] - R_sp_emb[is][0])/(n_sp - 1)); 
 
   // par2pot_is.f(97-115):
   // ! f3
-  // 	n_sp=n_sp_f
-  // 	do i=1,n_sp
-  // 	R_sp(i)=R_sp_f(i,is,is)
-  // 	enddo
-  // 	do i1=1,n_f3(is)
-  // 	    do i=1,n_sp
-  // 	    a_sp(i)=a_sp_f3(i,i1,is,is)
-  // 	    enddo
-  // 	    p1=0.0D0
-  // c	    p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
-  // 	call SPL(n_sp, R_sp, a_sp, 1, p1,0.0D0, b_sp,c_sp,d_sp)
-  // 		do i=1,n_sp
-  // 		a_sp_f3(i,i1,is,is)=a_sp(i)
-  // 		b_sp_f3(i,i1,is,is)=b_sp(i)
-  // 		c_sp_f3(i,i1,is,is)=c_sp(i)
-  // 		d_sp_f3(i,i1,is,is)=d_sp(i)
-  // 		enddo
-  // 	enddo
-  // 	shag_sp_f(is,is)=1.0D0/((R_sp_f(n_sp,is,is)-R_sp_f(1,is,is))/dfloat(n_sp-1))
+  //  n_sp=n_sp_f
+  //  do i=1,n_sp
+  //  R_sp(i)=R_sp_f(i,is,is)
+  //  enddo
+  //  do i1=1,n_f3(is)
+  //      do i=1,n_sp
+  //      a_sp(i)=a_sp_f3(i,i1,is,is)
+  //      enddo
+  //      p1=0.0D0
+  // c      p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
+  //  call SPL(n_sp, R_sp, a_sp, 1, p1,0.0D0, b_sp,c_sp,d_sp)
+  //    do i=1,n_sp
+  //    a_sp_f3(i,i1,is,is)=a_sp(i)
+  //    b_sp_f3(i,i1,is,is)=b_sp(i)
+  //    c_sp_f3(i,i1,is,is)=c_sp(i)
+  //    d_sp_f3(i,i1,is,is)=d_sp(i)
+  //    enddo
+  //  enddo
+  //  shag_sp_f(is,is)=1.0D0/((R_sp_f(n_sp,is,is)-R_sp_f(1,is,is))/dfloat(n_sp-1))
 
-	n_sp = n_sp_f[is][is];
-  for (i = 0; i < n_sp; i++)
+  if (if_g3_pot)
   {
-    R_sp[i] = R_sp_f[is][is][i];
-  }
-
-  // !std::cout << "!!!!!!!!!!!! f3" << std::endl;
-  for (i1 = 0; i1 < n_f3[is]; i1++)
-  {
+    n_sp = n_sp_f[is][is];
     for (i = 0; i < n_sp; i++)
     {
-      a_sp[i] = a_sp_f3[is][is][i1][i];
+      R_sp[i] = R_sp_f[is][is][i];
     }
-    p1 = 0.0;
-    // SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
-    SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
-    // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp) worked well" << std::endl;
-    for (i = 0; i < n_sp; i++)
-    { 
-      a_sp_f3[is][is][i1][i] = a_sp[i];
-      b_sp_f3[is][is][i1][i] = b_sp[i];
-      c_sp_f3[is][is][i1][i] = c_sp[i];
-      d_sp_f3[is][is][i1][i] = d_sp[i];
-      // !std::cout << " R_sp_f3[" << i << "][" << is << "][" << is << "] = " << R_sp_f[is][is][i] << "   ";
-      // !std::cout << " a_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << a_sp_f3[is][is][i1][i] << "   ";    
-      // !std::cout << " b_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << b_sp_f3[is][is][i1][i] << "   ";    
-      // !std::cout << " c_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << c_sp_f3[is][is][i1][i] << "   ";    
-      // !std::cout << " d_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << d_sp_f3[is][is][i1][i] << std::endl;      
-    }
-  }
-	shag_sp_f[is][is] = 1.0/((R_sp_f[is][is][n_sp-1]-R_sp_f[is][is][0])/(n_sp-1));
 
-  // par2pot_is.f(117-150):
-  // ! g3
-  // 	n_sp=n_sp_g
-  // 	do i=1,n_sp
-  // 	R_sp(i)=R_sp_g(i)
-  // 	enddo
-  // c						    if_diag(is)=.false.
-  // 	do i1=1,n_f3(is)
-  // 	do i2=1,i1
-  // 	    do i=1,n_sp
-  // 	    a_sp(i)=a_sp_g3(i,i1,i2,is)
-  // 	    enddo
-  // c	    if(i2.NE.i1) then
-  // c	    if(abs(a_sp(2))<0.00000001.AND.abs(a_sp(7))<0.00000001) if_diag(is)=.true.
-  // c	    endif
-  // 	p1=0.0D0
-  // 	p2=0.0D0
-  // 	    if(.NOT.if_gp0_pot(is)) then
-  // 	    p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
-  // 	    p2=(a_sp(n_sp)-a_sp(n_sp-1))/(R_sp(n_sp)-R_sp(n_sp-1))
-  // 	    endif
-  // 	call SPL(n_sp, R_sp, a_sp, 1, p1,p2, b_sp,c_sp,d_sp)
-  // 		do i=1,n_sp
-  // 		a_sp_g3(i,i1,i2,is)=a_sp(i)
-  // 		a_sp_g3(i,i2,i1,is)=a_sp(i)
-  // 		b_sp_g3(i,i1,i2,is)=b_sp(i)
-  // 		b_sp_g3(i,i2,i1,is)=b_sp(i)
-  // 		c_sp_g3(i,i1,i2,is)=c_sp(i)
-  // 		c_sp_g3(i,i2,i1,is)=c_sp(i)
-  // 		d_sp_g3(i,i1,i2,is)=d_sp(i)
-  // 		d_sp_g3(i,i2,i1,is)=d_sp(i)
-  // 		enddo
-  // 	enddo
-  // 	enddo
-  // 	shag_sp_g=1.0D0/((R_sp_g(n_sp)-R_sp_g(1))/dfloat(n_sp-1))
-
-  // !std::cout << "!!!!!!!!!!!! g3" << std::endl;
-	n_sp = n_sp_g[is][is];
-  for (i = 0; i < n_sp; i++)
-  {
-    R_sp[i] = R_sp_g[i];
-  }
-  for (i1 = 0; i1 < n_f3[is]; i1++)
-  {
-    for (i2 = 0; i2 <= i1; i2++)
+    // !std::cout << "!!!!!!!!!!!! f3" << std::endl;
+    for (i1 = 0; i1 < n_f3[is]; i1++)
     {
       for (i = 0; i < n_sp; i++)
       {
-        a_sp[i] = a_sp_g3[is][i][i1][i2];
-        // a_sp[i] = a_sp_g3[is][i1][i2][i];
+        a_sp[i] = a_sp_f3[is][is][i1][i];
       }
       p1 = 0.0;
-      p2 = 0.0;
-      // SPL(n_sp, &R_sp, &a_sp, 1, p1, p2, &b_sp, &c_sp, &d_sp);
-      SPL(n_sp, R_sp, a_sp, 1, p1, p2, b_sp, c_sp, d_sp);
-      // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, p2, b_sp, c_sp, d_sp) worked well" << std::endl;
+      // SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
+      SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
+      // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp) worked well" << std::endl;
       for (i = 0; i < n_sp; i++)
       { 
-        a_sp_g3[is][i][i1][i2] = a_sp[i];
-        a_sp_g3[is][i][i2][i1] = a_sp[i];
-        b_sp_g3[is][i][i1][i2] = b_sp[i];
-        b_sp_g3[is][i][i2][i1] = b_sp[i];
-        c_sp_g3[is][i][i1][i2] = c_sp[i];
-        c_sp_g3[is][i][i2][i1] = c_sp[i];
-        d_sp_g3[is][i][i1][i2] = d_sp[i];
-        d_sp_g3[is][i][i2][i1] = d_sp[i];
-        // !std::cout << " R_sp_g3[" << i <<  "] = " << R_sp_g[i] << "   ";
-        // !std::cout << " a_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << a_sp_g3[is][i][i1][i2] << "   ";    
-        // !std::cout << " b_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << b_sp_g3[is][i][i1][i2] << "   ";    
-        // !std::cout << " c_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << c_sp_g3[is][i][i1][i2] << "   ";    
-        // !std::cout << " d_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << d_sp_g3[is][i][i1][i2] << std::endl;   
-        // 
-        // !std::cout << " R_sp_g3[" << i <<  "] = " << R_sp_g[i] << "   ";
-        // !std::cout << " a_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << a_sp_g3[is][i][i2][i1] << "   ";    
-        // !std::cout << " b_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << b_sp_g3[is][i][i2][i1] << "   ";    
-        // !std::cout << " c_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << c_sp_g3[is][i][i2][i1] << "   ";    
-        // !std::cout << " d_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << d_sp_g3[is][i][i2][i1] << std::endl;     
+        a_sp_f3[is][is][i1][i] = a_sp[i];
+        b_sp_f3[is][is][i1][i] = b_sp[i];
+        c_sp_f3[is][is][i1][i] = c_sp[i];
+        d_sp_f3[is][is][i1][i] = d_sp[i];
+        // !std::cout << " R_sp_f3[" << i << "][" << is << "][" << is << "] = " << R_sp_f[is][is][i] << "   ";
+        // !std::cout << " a_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << a_sp_f3[is][is][i1][i] << "   ";    
+        // !std::cout << " b_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << b_sp_f3[is][is][i1][i] << "   ";    
+        // !std::cout << " c_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << c_sp_f3[is][is][i1][i] << "   ";    
+        // !std::cout << " d_sp_f3[" << i << "][" << i1 << "][" << is << "][" << is << "] = " << d_sp_f3[is][is][i1][i] << std::endl;      
       }
-    }  
-  }
-	shag_sp_g = 1.0/((R_sp_g[n_sp-1]-R_sp_g[0])/(n_sp-1));
+    }
+    shag_sp_f[is][is] = 1.0/((R_sp_f[is][is][n_sp-1]-R_sp_f[is][is][0])/(n_sp-1));
+
+    // par2pot_is.f(117-150):
+    // ! g3
+    //  n_sp=n_sp_g
+    //  do i=1,n_sp
+    //  R_sp(i)=R_sp_g(i)
+    //  enddo
+    // c                if_diag(is)=.false.
+    //  do i1=1,n_f3(is)
+    //  do i2=1,i1
+    //      do i=1,n_sp
+    //      a_sp(i)=a_sp_g3(i,i1,i2,is)
+    //      enddo
+    // c      if(i2.NE.i1) then
+    // c      if(abs(a_sp(2))<0.00000001.AND.abs(a_sp(7))<0.00000001) if_diag(is)=.true.
+    // c      endif
+    //  p1=0.0D0
+    //  p2=0.0D0
+    //      if(.NOT.if_gp0_pot(is)) then
+    //      p1=(a_sp(2)-a_sp(1))/(R_sp(2)-R_sp(1))
+    //      p2=(a_sp(n_sp)-a_sp(n_sp-1))/(R_sp(n_sp)-R_sp(n_sp-1))
+    //      endif
+    //  call SPL(n_sp, R_sp, a_sp, 1, p1,p2, b_sp,c_sp,d_sp)
+    //    do i=1,n_sp
+    //    a_sp_g3(i,i1,i2,is)=a_sp(i)
+    //    a_sp_g3(i,i2,i1,is)=a_sp(i)
+    //    b_sp_g3(i,i1,i2,is)=b_sp(i)
+    //    b_sp_g3(i,i2,i1,is)=b_sp(i)
+    //    c_sp_g3(i,i1,i2,is)=c_sp(i)
+    //    c_sp_g3(i,i2,i1,is)=c_sp(i)
+    //    d_sp_g3(i,i1,i2,is)=d_sp(i)
+    //    d_sp_g3(i,i2,i1,is)=d_sp(i)
+    //    enddo
+    //  enddo
+    //  enddo
+    //  shag_sp_g=1.0D0/((R_sp_g(n_sp)-R_sp_g(1))/dfloat(n_sp-1))
+
+    // !std::cout << "!!!!!!!!!!!! g3" << std::endl;
+    n_sp = n_sp_g[is][is];
+    for (i = 0; i < n_sp; i++)
+    {
+      R_sp[i] = R_sp_g[i];
+    }
+    for (i1 = 0; i1 < n_f3[is]; i1++)
+    {
+      for (i2 = 0; i2 <= i1; i2++)
+      {
+        for (i = 0; i < n_sp; i++)
+        {
+          a_sp[i] = a_sp_g3[is][i][i1][i2];
+          // a_sp[i] = a_sp_g3[is][i1][i2][i];
+        }
+        p1 = 0.0;
+        p2 = 0.0;
+        // SPL(n_sp, &R_sp, &a_sp, 1, p1, p2, &b_sp, &c_sp, &d_sp);
+        SPL(n_sp, R_sp, a_sp, 1, p1, p2, b_sp, c_sp, d_sp);
+        // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, p2, b_sp, c_sp, d_sp) worked well" << std::endl;
+        for (i = 0; i < n_sp; i++)
+        { 
+          a_sp_g3[is][i][i1][i2] = a_sp[i];
+          a_sp_g3[is][i][i2][i1] = a_sp[i];
+          b_sp_g3[is][i][i1][i2] = b_sp[i];
+          b_sp_g3[is][i][i2][i1] = b_sp[i];
+          c_sp_g3[is][i][i1][i2] = c_sp[i];
+          c_sp_g3[is][i][i2][i1] = c_sp[i];
+          d_sp_g3[is][i][i1][i2] = d_sp[i];
+          d_sp_g3[is][i][i2][i1] = d_sp[i];
+          // !std::cout << " R_sp_g3[" << i <<  "] = " << R_sp_g[i] << "   ";
+          // !std::cout << " a_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << a_sp_g3[is][i][i1][i2] << "   ";    
+          // !std::cout << " b_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << b_sp_g3[is][i][i1][i2] << "   ";    
+          // !std::cout << " c_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << c_sp_g3[is][i][i1][i2] << "   ";    
+          // !std::cout << " d_sp_g3[" << i << "][" << i1 << "][" << i2 << "][" << is << "] = " << d_sp_g3[is][i][i1][i2] << std::endl;   
+          // 
+          // !std::cout << " R_sp_g3[" << i <<  "] = " << R_sp_g[i] << "   ";
+          // !std::cout << " a_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << a_sp_g3[is][i][i2][i1] << "   ";    
+          // !std::cout << " b_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << b_sp_g3[is][i][i2][i1] << "   ";    
+          // !std::cout << " c_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << c_sp_g3[is][i][i2][i1] << "   ";    
+          // !std::cout << " d_sp_g3[" << i << "][" << i2 << "][" << i1 << "][" << is << "] = " << d_sp_g3[is][i][i2][i1] << std::endl;     
+        }
+      }  
+    }
+    shag_sp_g = 1.0/((R_sp_g[n_sp-1]-R_sp_g[0])/(n_sp-1));
+  } // end if_g3_pot
 
   memory->destroy(R_sp);
   memory->destroy(a_sp);
@@ -1658,23 +1661,23 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
 
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " zz_ZBL[is][is] and a_ZBL[is][is] assigned" << std::endl;
 
-	n_sp = n_sp_fi[is1][is2];
-	for (i = 0; i < n_sp; i++)
+  n_sp = n_sp_fi[is1][is2];
+  for (i = 0; i < n_sp; i++)
   {
     R_sp[i]=R_sp_fi[is1][is2][i];
   }
-	for (i = 0; i < n_sp-1; i++)
+  for (i = 0; i < n_sp-1; i++)
   {
     a_sp[i]=a_sp_fi[is1][is2][i];
   }  
-	a_sp[n_sp-1] = 0.0;
+  a_sp[n_sp-1] = 0.0;
 
-	SPL(n_sp, R_sp, a_sp, 1, fip_rmin[is1][is2], 0.0, b_sp, c_sp, d_sp);
+  SPL(n_sp, R_sp, a_sp, 1, fip_rmin[is1][is2], 0.0, b_sp, c_sp, d_sp);
 
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL function worked well" << std::endl;
 
   // !std::cout << "!!!!!!!!!!!! Fi" << std::endl;
-	for (i = 0; i < n_sp; i++)
+  for (i = 0; i < n_sp; i++)
   {
     a_sp_fi[is1][is2][i] = a_sp[i];
     b_sp_fi[is1][is2][i] = b_sp[i];
@@ -1686,19 +1689,19 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
     // !std::cout << " c_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << c_sp_fi[is1][is2][i] << "   ";    
     // !std::cout << " d_sp_fi[" << i << "][" << is1 << "][" << is2 << "] = " << d_sp_fi[is1][is2][i] << std::endl;    
   }
-	
-	shag_sp_fi[is1][is2] = 1.0/((R_sp_fi[is1][is2][n_sp-1]-R_sp_fi[is1][is2][0])/(n_sp-1));
+  
+  shag_sp_fi[is1][is2] = 1.0/((R_sp_fi[is1][is2][n_sp-1]-R_sp_fi[is1][is2][0])/(n_sp-1));
 
 
-	r1 = Rmin_fi_ZBL[is1][is2];
-	f1 = v_ZBL(r1, is1, is2) + e0_ZBL[is1][is2];
-	fp1 = vp_ZBL(r1, is1, is2);
-	fpp1 = vpp_ZBL(r1, is1, is2);
+  r1 = Rmin_fi_ZBL[is1][is2];
+  f1 = v_ZBL(r1, is1, is2) + e0_ZBL[is1][is2];
+  fp1 = vp_ZBL(r1, is1, is2);
+  fpp1 = vpp_ZBL(r1, is1, is2);
   r2 = R_sp_fi[is1][is2][0];
   f2 = a_sp_fi[is1][is2][0];
   fp2 = b_sp_fi[is1][is2][0];
-  fpp2 = 2.0*c_sp_fi[is1][is2][0];	
-	
+  fpp2 = 2.0*c_sp_fi[is1][is2][0];  
+  
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " now smooth_zero_22 function will be called" << std::endl;
 
   smooth_zero_22(B6, r1, r2, f1, fp1, fpp1, f2, fp2, fpp2);
@@ -1738,12 +1741,12 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " for (i = 0; i < n_sp; i++) worked well" << std::endl;
 
 
-	// SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
-	SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
+  // SPL(n_sp, &R_sp, &a_sp, 1, p1, 0.0, &b_sp, &c_sp, &d_sp);
+  SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp);
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " SPL(n_sp, R_sp, a_sp, 1, p1, 0.0, b_sp, c_sp, d_sp) worked well" << std::endl;
 
   // !std::cout << "!!!!!!!!!!!! Rho" << std::endl;
-	for (i = 0; i < n_sp; i++)
+  for (i = 0; i < n_sp; i++)
   {  
     a_sp_ro[is1][is2][i] = a_sp[i];
     b_sp_ro[is1][is2][i] = b_sp[i];
@@ -1755,12 +1758,12 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
     // !std::cout << " c_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << c_sp_ro[is1][is2][i] << "   ";    
     // !std::cout << " d_sp_ro[" << i << "][" << is1 << "][" << is2 << "] = " << d_sp_ro[is1][is2][i] << std::endl;     
   }
-	shag_sp_ro[is1][is2] = 1.0/((R_sp_ro[is1][is2][n_sp-1]-R_sp_ro[is1][is2][0])/(n_sp-1));
+  shag_sp_ro[is1][is2] = 1.0/((R_sp_ro[is1][is2][n_sp-1]-R_sp_ro[is1][is2][0])/(n_sp-1));
 
 
   // f3
 
-	n_sp = n_sp_f[is1][is2];
+  n_sp = n_sp_f[is1][is2];
   for (i = 0; i < n_sp; i++)
   {
     R_sp[i] = R_sp_f[is1][is2][i];
@@ -1790,7 +1793,7 @@ void PairLS::par2pot_is1_is2(int is1, int is2)
       // !std::cout << " d_sp_f3[" << i << "][" << i1 << "][" << is1 << "][" << is2 << "] = " << d_sp_f3[is1][is2][i1][i] << std::endl;      
     }
   }
-	shag_sp_f[is1][is2] = 1.0/((R_sp_f[is1][is2][n_sp-1]-R_sp_f[is1][is2][0])/(n_sp-1));
+  shag_sp_f[is1][is2] = 1.0/((R_sp_f[is1][is2][n_sp-1]-R_sp_f[is1][is2][0])/(n_sp-1));
 
 }
 
@@ -1883,6 +1886,13 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
   double *A, *S;
   double t1, t2, t3;
   int i, n1, nn, Err;
+  // Err = 0;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " entering SPL" << std::endl;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " n = " << n << std::endl;
+  // for (int k = 0; k < n; k++)
+  // {
+  //   std::cout << " X ["<<k<<"]= " << X[k]  << "  Y ["<<k<<"]= " << Y[k] << std::endl; 
+  // }   
   //begin
   // n = size(X)
   // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " entering SPL" << std::endl;
@@ -1898,13 +1908,14 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
       B[1] = 0.0; C[1] = 0.0; D[1] = 0.0;
       return;
   }
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " first if block passed" << std::endl;
   n1 = n - 1;
   B[0] = X[1] - X[0]; B[n-1] = 0.0;
   C[0] = 0.0; C[1] = B[0];
   D[0] = (Y[1] - Y[0])/B[0]; D[1] = D[0];
   memory->create(A, n, "PairLS:SPL_A_w");
   memory->create(S, n, "PairLS:SPL_S_w");  
-  // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " A and S arrays created" << std::endl;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " A and S arrays created" << std::endl;
 
   // SPL.f90(27-32):
   // do i=2, n1
@@ -1924,7 +1935,7 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
     D[i] = D[i + 1] - D[i];    
   }
 
-  // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " Cycle: for (i = 1; i < n1; i++) done" << std::endl;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " Cycle: for (i = 1; i < n1; i++) done" << std::endl;
 
   switch (ib)
   {
@@ -1975,10 +1986,10 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
       break;
   }    
 
-  // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " now LA30 function will be called" << std::endl;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " now LA30 function will be called" << std::endl;
   LA30(nn, A, B, C, D, S, &Err);
   // LA30(nn, A[0:nn-1], B[0:nn-1], C[0:nn-1], D[0:nn-1], S[0:nn-1], Err);
-  // // !std::cout << "!!!!! PairLS debug mode !!!!! " << " LA30 worked well" << std::endl;
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " LA30 worked well" << std::endl;
 
   B[0] = X[1] - X[0];
   if (ib == 3) 
@@ -1992,6 +2003,7 @@ void PairLS::SPL(int n, double *X, double *Y, int ib, double D1, double DN, doub
     B[i] = (Y[i + 1] - Y[i])/B[i] - B[i]*(S[i + 1] + 2.0*S[i]);
   }
   D[n-1] = D[n1-1]; C[n-1] = 3.0*S[n-1]; B[n-1] = B[n1-1];
+  // std::cout << "!!!!! PairLS debug mode !!!!! " << " last if and for block passed" << std::endl;
 
   memory->destroy(A);
   memory->destroy(S);
@@ -2013,7 +2025,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
   // n = size(A)
   if (n < 3) 
   {
-    *Error = 1; 
+    // *Error = 1; 
     return;
   }
 
@@ -2037,7 +2049,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
       memory->destroy(R);
       memory->destroy(S);
       memory->destroy(T);
-      *Error = 65; 
+      // *Error = 65; 
       return;
     }
     P[ii] = (D[i] - P[i]*C[i])/W;
@@ -2064,7 +2076,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
     memory->destroy(R);
     memory->destroy(S);
     memory->destroy(T);
-    *Error = 65; 
+    // *Error = 65; 
     return;
   }
 
@@ -2079,7 +2091,7 @@ void PairLS::LA30(int n, double *A, double *B, double *C, double *D, double *X, 
   memory->destroy(R);
   memory->destroy(S);
   memory->destroy(T);
-  *Error = 0; 
+  // *Error = 0; 
   return;
 }
 
@@ -2877,7 +2889,7 @@ double PairLS::fun_emb(double r, int is)
       return fun_emb_value;
   }
 
-  //c    	
+  //c     
   i = int((r - R_sp_emb[is][0])*shag_sp_emb[is]);
   i = i + 1;
   dr = r - R_sp_emb[is][i-1];
@@ -2906,7 +2918,7 @@ double PairLS::funp_emb(double r, int is)
       return funp_emb_value;
   }
 
-  //c    	
+  //c     
   i = int((r - r0_min)*shag_sp_emb[is]);
   i = i + 1;
   dr = r - R_sp_emb[is][i-1];
@@ -2935,7 +2947,7 @@ double PairLS::funpp_emb(double r, int is)
       return funpp_emb_value;
   }
 
-  //c    	
+  //c     
   i = int((r - r0_min)*shag_sp_emb[is]);
   i = i + 1;
   if(i <= 0) i = 1; // maybe this condition should be added also for fun_emb and funp_emb?

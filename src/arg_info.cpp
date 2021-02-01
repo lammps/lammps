@@ -18,6 +18,17 @@
 
 using namespace LAMMPS_NS;
 
+/** Class for processing references to fixes, computes and variables
+ *
+ * This class provides an abstraction for the repetitive task of
+ * parsing arguments that may contain references to fixes, computes,
+ * or variables. It will identify the name and the index in the first
+ * and second dimension, if present.
+ *
+ *
+ * \param arg      string with possible reference
+ * \param allowed  integer with bitmap of allowed types of references */
+
 ArgInfo::ArgInfo(const std::string &arg, int allowed)
   : type(NONE), dim(0), index1(-1), index2(-1)
 {
@@ -71,6 +82,16 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed)
 }
 
 /* ---------------------------------------------------------------------- */
+
+/*! make copy of the ID of the reference as C-style string
+ *
+ * The ID is copied into a buffer allocated with "new" and thus
+ * must be later deleted with "delete []" to avoid a memory leak.
+ * Because it is a full copy in a newly allocated buffer, the
+ * lifetime of this string extends beyond the the time the ArgInfo
+ * class is in scope.
+ *
+ * \return copy of string as char * */
 
 char *ArgInfo::copy_name()
 {

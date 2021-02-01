@@ -21,7 +21,8 @@
 namespace LAMMPS_NS {
   class ArgInfo {
   public:
-    enum {
+    /*! constants for argument types */
+    enum ArgTypes {
       ERROR          =-2,
       UNKNOWN        =-1,
       NONE           = 0,
@@ -51,11 +52,52 @@ namespace LAMMPS_NS {
     virtual ~ArgInfo() {}
 
   public:
+    /*! get type of reference
+     *
+     * Return a type constant for the reference. This may be either
+     * COMPUTE, FIX, VARIABLE (if not restricted to a subset of those
+     * by the "allowed" argument of the constructor) or NONE, if it
+     * if not a recognized or allowed reference, or UNKNOWN, in case
+     * some error happened identifying or parsing the values of the indices
+     *
+     * \return  integer with a constant from ArgTypes enumerator */
+
     int  get_type() const { return type; }
+
+    /*! get dimension of reference
+     *
+     * This will return either 0, 1, 2 depending on whether the
+     * reference has no, one or two "[<number>]" postfixes.
+     *
+     * \return  integer with the dimensionality of the reference */
     int  get_dim()  const { return dim; }
+
+    /*! get index of first dimension
+     *
+     * This will return the <number> in the first "[<number>]"
+     * postfix or 0 if there is no postfix.
+     *
+     * \return  integer with index or the postfix or 0 */
     int  get_index1() const { return index1; }
+
+    /*! get index of second dimension
+     *
+     * This will return the <number> in the second "[<number>]"
+     * postfix or -1 if there is no second postfix.
+     *
+     * \return  integer with index of the postfix or -1 */
     int  get_index2() const { return index2; }
+
+    /*! return reference to the ID or name of the reference
+     *
+     * This string is pointing to an internal storage element and
+     * is only valid to use while the ArgInfo class instance is
+     * in scope. If you need a long-lived string make a copy
+     * with copy_name().
+     *
+     * \return  C-style char * string */
     const char *get_name() const { return name.c_str(); }
+    
     char *copy_name();
 
   private:

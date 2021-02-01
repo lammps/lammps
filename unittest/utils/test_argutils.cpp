@@ -31,7 +31,7 @@ TEST(ArgInfo, plain)
 
 TEST(ArgInfo, copy_name)
 {
-    char *name=nullptr;
+    char *name = nullptr;
     ArgInfo arg("text");
     ASSERT_THAT(arg.get_name(), StrEq("text"));
     name = arg.copy_name();
@@ -129,9 +129,41 @@ TEST(ArgInfo, variable2)
     ASSERT_THAT(arg.get_name(), StrEq("x"));
 }
 
-TEST(ArgInfo, unsupported)
+TEST(ArgInfo, dname0)
+{
+    ArgInfo arg("d_text", ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_dim(), 0);
+    ASSERT_EQ(arg.get_type(), ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_index1(), 0);
+    ASSERT_EQ(arg.get_index2(), -1);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, iname0)
+{
+    ArgInfo arg("i_text", ArgInfo::INAME);
+    ASSERT_EQ(arg.get_dim(), 0);
+    ASSERT_EQ(arg.get_type(), ArgInfo::INAME);
+    ASSERT_EQ(arg.get_index1(), 0);
+    ASSERT_EQ(arg.get_index2(), -1);
+    ASSERT_THAT(arg.get_name(), StrEq("text"));
+}
+
+TEST(ArgInfo, unsupported1)
 {
     ArgInfo arg("v_text[02][05]", ArgInfo::COMPUTE | ArgInfo::FIX);
+    ASSERT_EQ(arg.get_type(), ArgInfo::NONE);
+}
+
+TEST(ArgInfo, unsupported2)
+{
+    ArgInfo arg("d_text");
+    ASSERT_EQ(arg.get_type(), ArgInfo::NONE);
+}
+
+TEST(ArgInfo, unsupported3)
+{
+    ArgInfo arg("i_text");
     ASSERT_EQ(arg.get_type(), ArgInfo::NONE);
 }
 

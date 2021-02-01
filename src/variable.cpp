@@ -72,10 +72,6 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
 
 #define BIG 1.0e20
 
@@ -1380,9 +1376,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_scalar != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between "
                               "runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
             compute->compute_scalar();
-            compute->invoked_flag |= INVOKED_SCALAR;
+            compute->invoked_flag |= Compute::INVOKED_SCALAR;
           }
 
           value1 = compute->scalar;
@@ -1407,9 +1403,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_vector != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between runs "
                               "is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
 
           if (compute->size_vector_variable &&
@@ -1439,9 +1435,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_array != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between runs "
                               "is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
-            compute->invoked_flag |= INVOKED_ARRAY;
+            compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
 
           if (compute->size_array_rows_variable &&
@@ -1473,9 +1469,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_vector != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between "
                               "runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
 
           Tree *newtree = new Tree();
@@ -1505,9 +1501,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_array != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between "
                               "runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
-            compute->invoked_flag |= INVOKED_ARRAY;
+            compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
 
           Tree *newtree = new Tree();
@@ -1529,9 +1525,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_peratom != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable "
                               "between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
+            compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
 
           peratom2global(1,nullptr,compute->vector_atom,1,index1,
@@ -1549,9 +1545,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_peratom != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable "
                               "between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
+            compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
 
           if (compute->array_atom)
@@ -1578,9 +1574,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_peratom != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable "
                               "between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
+            compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
 
           Tree *newtree = new Tree();
@@ -1610,9 +1606,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_peratom != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable "
                               "between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
+            compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
 
           Tree *newtree = new Tree();
@@ -4137,9 +4133,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
           if (compute->invoked_vector != update->ntimestep)
             print_var_error(FLERR,"Compute used in variable between runs "
                             "is not current",ivar);
-        } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         nvec = compute->size_vector;
         nstride = 1;
@@ -4151,9 +4147,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
           if (compute->invoked_array != update->ntimestep)
             print_var_error(FLERR,"Compute used in variable between runs "
                             "is not current",ivar);
-        } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+        } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
-          compute->invoked_flag |= INVOKED_ARRAY;
+          compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }
         nvec = compute->size_array_rows;
         nstride = compute->size_array_cols;

@@ -32,7 +32,6 @@ using namespace LAMMPS_NS;
 enum{SUM,MINN,MAXX};
 enum{UNKNOWN=-1,COMPUTE,FIX,VARIABLE};
 
-#define INVOKED_PERATOM 8
 
 #define BIG 1.0e20
 
@@ -374,9 +373,9 @@ void ComputeReduceChunk::compute_one(int m, double *vchunk, int nstride)
   if (which[m] == COMPUTE) {
     Compute *compute = modify->compute[vidx];
 
-    if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+    if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
       compute->compute_peratom();
-      compute->invoked_flag |= INVOKED_PERATOM;
+      compute->invoked_flag |= Compute::INVOKED_PERATOM;
     }
 
     if (argindex[m] == 0) {

@@ -32,7 +32,6 @@ using namespace FixConst;
 
 enum{KEYWORD,COMPUTE,FIX,VARIABLE,DNAME,INAME};
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -495,9 +494,9 @@ void FixStoreState::end_of_step()
 
       if (which[m] == COMPUTE) {
         Compute *compute = modify->compute[n];
-        if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
           compute->compute_peratom();
-          compute->invoked_flag |= INVOKED_PERATOM;
+          compute->invoked_flag |= Compute::INVOKED_PERATOM;
         }
 
         if (j == 0) {

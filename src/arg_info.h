@@ -97,7 +97,7 @@ namespace LAMMPS_NS {
      *
      * \return  C-style char * string */
     const char *get_name() const { return name.c_str(); }
-    
+
     char *copy_name();
 
   private:

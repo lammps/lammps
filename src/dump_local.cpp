@@ -481,7 +481,7 @@ void DumpLocal::parse_fields(int narg, char **arg)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpLocal::add_compute(char *id)
+int DumpLocal::add_compute(const char *id)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
@@ -506,7 +506,7 @@ int DumpLocal::add_compute(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpLocal::add_fix(char *id)
+int DumpLocal::add_fix(const char *id)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)

@@ -35,7 +35,6 @@ enum{COMPUTE};
 enum{ONE,RUNNING,WINDOW};
 enum{FIRST,MULTI};
 
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -357,9 +356,9 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
 
   Compute *compute = modify->compute[icompute];
 
-  if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+  if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
     compute->compute_vector();
-    compute->invoked_flag |= INVOKED_VECTOR;
+    compute->invoked_flag |= Compute::INVOKED_VECTOR;
   }
 
   double *vector = compute->vector;

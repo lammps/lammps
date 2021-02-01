@@ -37,11 +37,6 @@ enum{DEFAULT,GLOBAL,PERATOM,LOCAL};
 enum{IGNORE,END,EXTRA};
 enum{SINGLE,VALUE};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 
@@ -155,38 +150,38 @@ void FixAveHistoWeight::end_of_step()
 
     if (kind == GLOBAL && mode == SCALAR) {
       if (j == 0) {
-        if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
           compute->compute_scalar();
-          compute->invoked_flag |= INVOKED_SCALAR;
+          compute->invoked_flag |= Compute::INVOKED_SCALAR;
         }
         weight = compute->scalar;
       } else {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         weight = compute->vector[j-1];
       }
     } else if (kind == GLOBAL && mode == VECTOR) {
       if (j == 0) {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         weights = compute->vector;
         stride = 1;
       } else {
-        if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
-          compute->invoked_flag |= INVOKED_ARRAY;
+          compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }
         if (compute->array) weights = &compute->array[0][j-1];
         stride = compute->size_array_cols;
       }
     } else if (kind == PERATOM) {
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
       if (j == 0) {
         weights = compute->vector_atom;
@@ -196,9 +191,9 @@ void FixAveHistoWeight::end_of_step()
         stride = compute->size_peratom_cols;
       }
     } else if (kind == LOCAL) {
-      if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
         compute->compute_local();
-        compute->invoked_flag |= INVOKED_LOCAL;
+        compute->invoked_flag |= Compute::INVOKED_LOCAL;
       }
       if (j == 0) {
         weights = compute->vector_local;
@@ -283,30 +278,30 @@ void FixAveHistoWeight::end_of_step()
     Compute *compute = modify->compute[m];
     if (kind == GLOBAL && mode == SCALAR) {
       if (j == 0) {
-        if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
           compute->compute_scalar();
-          compute->invoked_flag |= INVOKED_SCALAR;
+          compute->invoked_flag |= Compute::INVOKED_SCALAR;
         }
         bin_one_weights(compute->scalar,weight);
       } else {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         bin_one_weights(compute->vector[j-1],weight);
       }
     } else if (kind == GLOBAL && mode == VECTOR) {
       if (j == 0) {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         bin_vector_weights(compute->size_vector,compute->vector,1,
                            weights,stride);
       } else {
-        if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
-          compute->invoked_flag |= INVOKED_ARRAY;
+          compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }
         if (compute->array)
           bin_vector_weights(compute->size_array_rows,&compute->array[0][j-1],
@@ -314,9 +309,9 @@ void FixAveHistoWeight::end_of_step()
       }
 
     } else if (kind == PERATOM) {
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
       if (j == 0)
         bin_atoms_weights(compute->vector_atom,1,weights, stride);
@@ -325,9 +320,9 @@ void FixAveHistoWeight::end_of_step()
                           compute->size_peratom_cols,weights,stride);
 
     } else if (kind == LOCAL) {
-      if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
         compute->compute_local();
-        compute->invoked_flag |= INVOKED_LOCAL;
+        compute->invoked_flag |= Compute::INVOKED_LOCAL;
       }
       if (j == 0)
         bin_vector_weights(compute->size_local_rows,

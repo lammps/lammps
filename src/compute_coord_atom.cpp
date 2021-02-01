@@ -32,7 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -198,9 +197,9 @@ void ComputeCoordAtom::compute_peratom()
   }
 
   if (cstyle == ORIENT) {
-    if (!(c_orientorder->invoked_flag & INVOKED_PERATOM)) {
+    if (!(c_orientorder->invoked_flag & Compute::INVOKED_PERATOM)) {
       c_orientorder->compute_peratom();
-      c_orientorder->invoked_flag |= INVOKED_PERATOM;
+      c_orientorder->invoked_flag |= Compute::INVOKED_PERATOM;
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;

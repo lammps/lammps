@@ -39,7 +39,6 @@ enum{SAMPLE,ALL};
 enum{NOSCALE,ATOM};
 enum{ONE,RUNNING,WINDOW};
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -738,9 +737,9 @@ void FixAveChunk::end_of_step()
 
     } else if (which[m] == COMPUTE) {
       Compute *compute = modify->compute[n];
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
       double *vector = compute->vector_atom;
       double **array = compute->array_atom;

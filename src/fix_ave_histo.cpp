@@ -34,11 +34,6 @@ enum{SCALAR,VECTOR,WINDOW};
 enum{DEFAULT,GLOBAL,PERATOM,LOCAL};
 enum{IGNORE,END,EXTRA};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 /* ---------------------------------------------------------------------- */
@@ -638,29 +633,29 @@ void FixAveHisto::end_of_step()
 
       if (kind == GLOBAL && mode == SCALAR) {
         if (j == 0) {
-          if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
             compute->compute_scalar();
-            compute->invoked_flag |= INVOKED_SCALAR;
+            compute->invoked_flag |= Compute::INVOKED_SCALAR;
           }
           bin_one(compute->scalar);
         } else {
-          if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
           bin_one(compute->vector[j-1]);
         }
       } else if (kind == GLOBAL && mode == VECTOR) {
         if (j == 0) {
-          if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
           bin_vector(compute->size_vector,compute->vector,1);
         } else {
-          if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
-            compute->invoked_flag |= INVOKED_ARRAY;
+            compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
           if (compute->array)
             bin_vector(compute->size_array_rows,&compute->array[0][j-1],
@@ -668,9 +663,9 @@ void FixAveHisto::end_of_step()
         }
 
       } else if (kind == PERATOM) {
-        if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
           compute->compute_peratom();
-          compute->invoked_flag |= INVOKED_PERATOM;
+          compute->invoked_flag |= Compute::INVOKED_PERATOM;
         }
         if (j == 0)
           bin_atoms(compute->vector_atom,1);
@@ -678,9 +673,9 @@ void FixAveHisto::end_of_step()
           bin_atoms(&compute->array_atom[0][j-1],compute->size_peratom_cols);
 
       } else if (kind == LOCAL) {
-        if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
           compute->compute_local();
-          compute->invoked_flag |= INVOKED_LOCAL;
+          compute->invoked_flag |= Compute::INVOKED_LOCAL;
         }
         if (j == 0)
           bin_vector(compute->size_local_rows,compute->vector_local,1);

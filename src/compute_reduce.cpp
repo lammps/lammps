@@ -130,10 +130,10 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       ArgInfo argi(arg[iarg]);
 
       which[nvalues] = argi.get_type();
-      argindex[nvalues] = argi.get_dim();
+      argindex[nvalues] = argi.get_index1();
       ids[nvalues] = argi.copy_name();
 
-      if ((which[nvalues] == ArgInfo::UNKNOWN) || (argindex[nvalues] > 1))
+      if ((which[nvalues] == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
         error->all(FLERR,"Illegal compute reduce command");
 
       if (which[nvalues] == ArgInfo::NONE) break;

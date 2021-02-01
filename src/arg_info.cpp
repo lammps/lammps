@@ -22,9 +22,8 @@ using namespace LAMMPS_NS;
  *
  * This class provides an abstraction for the repetitive task of
  * parsing arguments that may contain references to fixes, computes,
- * or variables. It will identify the name and the index in the first
- * and second dimension, if present.
- *
+ * variables, or custom per-atom properties. It will identify the name
+ * and the index value in the first and second dimension, if present.
  *
  * \param arg      string with possible reference
  * \param allowed  integer with bitmap of allowed types of references */
@@ -36,6 +35,8 @@ ArgInfo::ArgInfo(const std::string &arg, int allowed)
     if ((arg[0] == 'c') && (allowed & COMPUTE))  type = COMPUTE;
     else if ((arg[0] == 'f') && (allowed & FIX)) type = FIX;
     else if ((arg[0] == 'v') && (allowed & VARIABLE)) type = VARIABLE;
+    else if ((arg[0] == 'd') && (allowed & DNAME)) type = DNAME;
+    else if ((arg[0] == 'i') && (allowed & INAME)) type = INAME;
     else {
       index1 = 0;
       name = arg;

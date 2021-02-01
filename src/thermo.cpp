@@ -381,6 +381,7 @@ void Thermo::compute(int flag)
 
   if (me == 0) {
     utils::logmesg(lmp,line);
+    if (screen && flushflag) fflush(screen);
     if (logfile && flushflag) fflush(logfile);
   }
 

@@ -108,7 +108,9 @@ from :doc:`fix property/atom <fix_property_atom>`.
 
 The *nolabelmap* keyword requests that the default label map should
 not be written to the data file (see the Type Label sections of
-:doc:`read_data <read_data>` command for details).
+:doc:`read_data <read_data>` command for details). By default, if the
+default label map is fully defined, i.e. every atom, bond, etc. type
+has an associated type label, it is written to the data file.
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value

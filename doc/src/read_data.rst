@@ -623,20 +623,23 @@ integers (1, not 1.0).
 
 Type labels can be used to make data files more general, by defining
 atom, bond, etc. types in terms of user-provided strings instead of
-numbers.  If a type label section exists for a given interaction, the
-numeric types listed in the *Atoms*, *Bonds*, etc. section are first
-converted into their corresponding type label before being read into
-LAMMPS; type labels cannot be directly substituted for numeric types
-used in data files.  Data files can also be used to populate the
-default label map; if the type label does not already exist, the type
-label is created as a new type and assigned to the default label map.
-The corresponding interaction coefficients listed in the data file are
-associated to this type.  When reading multiple data files, or if the
-default label map already exists, there must be enough space in the
-per-type data arrays to create new types; see the *extra/atom/types*
-keyword for how to reserve extra space for new types.  Note that, in
-this case, the numeric-to-label mapping within a data file does not
-necessary correspond to that of the simulation; the :doc:`write_data <write_data>`
+numbers.  If a type label section exists for any one interaction
+(atom, bond, angle, dihedral or improper), then all types must be
+assigned a type label for all interactions.  All type label sections
+must come before any section that includes types.  The numeric types
+listed in the *Atoms*, *Bonds*, etc. section are first converted into
+their corresponding type label before being read into LAMMPS; type
+labels cannot be directly substituted for numeric types used in data
+files.  Data files assign all types to the default label map; if the
+type label does not already exist, the type label is created as a new
+type and assigned to the default label map.  The corresponding
+interaction coefficients listed in the data file are associated to
+this type.  There must be enough space in the per-type data
+arrays to create new types; see the *extra/atom/types* keyword for how
+to reserve extra space for new types, e.g., when reading multiple data
+files.  Note that, in this case, the numeric-to-label mapping within a
+data file does not necessary correspond to that of the simulation;
+once the default label map is fully defined, the :doc:`write_data <write_data>`
 command can be used to print out the default label map at a given
 point in a simulation.  See the :doc:`labelmap <labelmap>` command for
 more discussion on how to use type label maps.

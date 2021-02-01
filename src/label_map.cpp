@@ -238,11 +238,45 @@ int LabelMap::search(std::string mylabel, std::vector<std::string> labels, int n
 }
 
 /* ----------------------------------------------------------------------
+   check if all types have been assigned a type label
+------------------------------------------------------------------------- */
+
+int LabelMap::is_complete()
+{
+  for (int i = 0; i < natomtypes; i++)
+    if (typelabel[i].empty()) return 0;
+
+  if (force->bond)
+    for (int i = 0; i < nbondtypes; i++)
+      if (btypelabel[i].empty()) return 0;
+
+  if (force->angle)
+    for (int i = 0; i < nangletypes; i++)
+      if (atypelabel[i].empty()) return 0;
+
+  if (force->dihedral)
+    for (int i = 0; i < ndihedraltypes; i++)
+      if (dtypelabel[i].empty()) return 0;
+
+  if (force->improper)
+    for (int i = 0; i < nimpropertypes; i++)
+      if (itypelabel[i].empty()) return 0;
+
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
 void LabelMap::write_data(FILE *fp)
 {
+  if (!is_complete()) {
+    error->warning(FLERR,"Default label map is incomplete. "
+                   "Assign all type labels to write to data file.");
+    return;
+  }
+
   fmt::print(fp,"\nAtom Type Labels\n\n");
   for (int i = 0; i < natomtypes; i++)
     fmt::print(fp,"{} {}\n",i+1,typelabel[i]);

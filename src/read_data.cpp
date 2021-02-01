@@ -1279,6 +1279,9 @@ void ReadData::atoms()
     nchunk = MIN(natoms-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
+    if (labelflag && !lmap->is_complete())
+      error->all(FLERR,"Label map is incomplete. "
+                 "All types must be assigned a type label.");
     atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,
                      shiftflag,shift,labelflag,lmap->lmap2lmap.atom);
     nread += nchunk;
@@ -1378,6 +1381,9 @@ void ReadData::bonds(int firstpass)
     nchunk = MIN(nbonds-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
+    if (labelflag && !lmap->is_complete())
+      error->all(FLERR,"Label map is incomplete. "
+                 "All types must be assigned a type label.");
     atom->data_bonds(nchunk,buffer,count,id_offset,boffset,
                      labelflag,lmap->lmap2lmap.bond);
     nread += nchunk;
@@ -1453,6 +1459,9 @@ void ReadData::angles(int firstpass)
     nchunk = MIN(nangles-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
+    if (labelflag && !lmap->is_complete())
+      error->all(FLERR,"Label map is incomplete. "
+                 "All types must be assigned a type label.");
     atom->data_angles(nchunk,buffer,count,id_offset,aoffset,
                       labelflag,lmap->lmap2lmap.angle);
     nread += nchunk;
@@ -1528,6 +1537,9 @@ void ReadData::dihedrals(int firstpass)
     nchunk = MIN(ndihedrals-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
+    if (labelflag && !lmap->is_complete())
+      error->all(FLERR,"Label map is incomplete. "
+                 "All types must be assigned a type label.");
     atom->data_dihedrals(nchunk,buffer,count,id_offset,doffset,
                          labelflag,lmap->lmap2lmap.dihedral);
     nread += nchunk;
@@ -1603,6 +1615,9 @@ void ReadData::impropers(int firstpass)
     nchunk = MIN(nimpropers-nread,CHUNK);
     eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
     if (eof) error->all(FLERR,"Unexpected end of data file");
+    if (labelflag && !lmap->is_complete())
+      error->all(FLERR,"Label map is incomplete. "
+                 "All types must be assigned a type label.");
     atom->data_impropers(nchunk,buffer,count,id_offset,ioffset,
                          labelflag,lmap->lmap2lmap.improper);
     nread += nchunk;
@@ -1798,6 +1813,9 @@ void ReadData::mass()
 
   int eof = comm->read_lines_from_file(fp,ntypes,MAXLINE,buf);
   if (eof) error->all(FLERR,"Unexpected end of data file");
+  if (labelflag && !lmap->is_complete())
+    error->all(FLERR,"Label map is incomplete. "
+               "All types must be assigned a type label.");
 
   char *original = buf;
   for (int i = 0; i < ntypes; i++) {
@@ -1983,7 +2001,8 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
   for (int i = 0; i < myntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%*d %s",typelabel);
+    int rv = sscanf(buf,"%*d %s",typelabel);
+    if (rv != 1) error->all(FLERR,"Invalid data file section: Type Labels");
     if (isdigit(typelabel[0])) error->all(FLERR,"Type labels cannot start with a number");
     mytypelabel[i] = typelabel;
     buf = next + 1;
@@ -2164,6 +2183,10 @@ void ReadData::skip_lines(bigint n)
 void ReadData::parse_coeffs(char *line, const char *addstr, int dupflag,
                             int noffset, int offset, int *ilabel)
 {
+  if (labelflag && !lmap->is_complete())
+    error->all(FLERR,"Label map is incomplete. "
+               "All types must be assigned a type label.");
+
   settypeflag = 1;
   char *ptr;
   if ((ptr = strchr(line,'#'))) *ptr = '\0';

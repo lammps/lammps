@@ -150,11 +150,11 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     ArgInfo argi(arg[3]);
 
     which = argi.get_type();
-    argindex = argi.get_dim();
+    argindex = argi.get_index1();
     cfvid = argi.copy_name();
 
     if ((which == ArgInfo::UNKNOWN) || (which == ArgInfo::NONE)
-        || (argindex > 1))
+        || (argi.get_dim() > 1))
       error->all(FLERR,"Illegal compute chunk/atom command");
   }
 

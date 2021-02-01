@@ -69,11 +69,11 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
     ArgInfo argi(arg[iarg], ArgInfo::COMPUTE|ArgInfo::FIX);
 
     which[nvalues] = argi.get_type();
-    argindex[nvalues] = argi.get_dim();
+    argindex[nvalues] = argi.get_index1();
     ids[nvalues] = argi.copy_name();
 
     if ((which[nvalues] == ArgInfo::UNKNOWN) || (which[nvalues] == ArgInfo::NONE)
-        || (argindex[nvalues] > 1))
+        || (argi.get_dim() > 1))
       error->all(FLERR,"Illegal compute chunk/spread/atom command");
 
     nvalues++;

@@ -99,11 +99,11 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
       ArgInfo argi(arg[i]);
 
       which[i] = argi.get_type();
-      argindex[i] = argi.get_dim();
+      argindex[i] = argi.get_index1();
       ids[i] = argi.copy_name();
 
       if ((which[i] == ArgInfo::UNKNOWN) || (which[i] == ArgInfo::NONE)
-        || (argindex[i] > 1))
+        || (argi.get_dim() > 1))
         error->all(FLERR,"Illegal fix ave/atom command");
     }
   }

@@ -1584,7 +1584,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpCustom::add_compute(char *id)
+int DumpCustom::add_compute(const char *id)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
@@ -1609,7 +1609,7 @@ int DumpCustom::add_compute(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpCustom::add_fix(char *id)
+int DumpCustom::add_fix(const char *id)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
@@ -1634,7 +1634,7 @@ int DumpCustom::add_fix(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpCustom::add_variable(char *id)
+int DumpCustom::add_variable(const char *id)
 {
   int ivariable;
   for (ivariable = 0; ivariable < nvariable; ivariable++)
@@ -1663,7 +1663,7 @@ int DumpCustom::add_variable(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpCustom::add_custom(char *id, int flag)
+int DumpCustom::add_custom(const char *id, int flag)
 {
   int icustom;
   for (icustom = 0; icustom < ncustom; icustom++)

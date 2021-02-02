@@ -40,7 +40,7 @@ class PairAGNI : public Pair {
     double *eta,**xU,*alpha;
     double sigma,lambda,b,gwidth;
     int numeta,numtrain,ielement;
- 
+
   };
 
  protected:

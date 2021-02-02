@@ -185,7 +185,7 @@ double MLIAPModelSimple::memory_usage()
 {
   double bytes = 0;
 
-  bytes += nelements*nparams*sizeof(double);  // coeffelem
+  bytes += (double)nelements*nparams*sizeof(double);  // coeffelem
   return bytes;
 }
 

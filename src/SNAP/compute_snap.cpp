@@ -531,12 +531,12 @@ double ComputeSnap::memory_usage()
 
   double bytes = size_array_rows*size_array_cols *
     sizeof(double);                                     // snap
-  bytes += size_array_rows*size_array_cols *
+  bytes += (double)size_array_rows*size_array_cols *
     sizeof(double);                                     // snapall
-  bytes += nmax*size_peratom * sizeof(double);          // snap_peratom
+  bytes += (double)nmax*size_peratom * sizeof(double);  // snap_peratom
   bytes += snaptr->memory_usage();                      // SNA object
   int n = atom->ntypes+1;
-  bytes += n*sizeof(int);        // map
+  bytes += (double)n*sizeof(int);        // map
 
   return bytes;
 }

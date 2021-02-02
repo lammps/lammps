@@ -339,8 +339,8 @@ void ComputeHexOrderAtom::select2(int k, int n, double *arr, int *iarr)
 double ComputeHexOrderAtom::memory_usage()
 {
   double bytes = ncol*nmax * sizeof(double);
-  bytes += maxneigh * sizeof(double);
-  bytes += maxneigh * sizeof(int);
+  bytes += (double)maxneigh * sizeof(double);
+  bytes += (double)maxneigh * sizeof(int);
 
   return bytes;
 }

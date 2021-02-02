@@ -2453,11 +2453,11 @@ double FixRigid::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
-  bytes += nmax * sizeof(imageint);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);    // vatom
+  bytes += (double)nmax * sizeof(imageint);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);    // vatom
   if (extended) {
-    bytes += nmax * sizeof(int);
+    bytes += (double)nmax * sizeof(int);
     if (orientflag) bytes = nmax*orientflag * sizeof(double);
     if (dorientflag) bytes = nmax*3 * sizeof(double);
   }

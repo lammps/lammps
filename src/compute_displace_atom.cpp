@@ -248,6 +248,6 @@ void ComputeDisplaceAtom::refresh()
 double ComputeDisplaceAtom::memory_usage()
 {
   double bytes = nmax*4 * sizeof(double);
-  bytes += nvmax * sizeof(double);
+  bytes += (double)nvmax * sizeof(double);
   return bytes;
 }

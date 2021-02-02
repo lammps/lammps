@@ -3745,7 +3745,7 @@ double FixBondReact::memory_usage()
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
   bytes = 2*nmax * sizeof(tagint);
-  bytes += nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }
 

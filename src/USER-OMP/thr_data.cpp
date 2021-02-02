@@ -278,8 +278,8 @@ void ThrData::virial_fdotr_compute(double **x, int nlocal, int nghost, int nfirs
 double ThrData::memory_usage()
 {
   double bytes = (7 + 6*6) * sizeof(double);
-  bytes += 2 * sizeof(double*);
-  bytes += 4 * sizeof(int);
+  bytes += (double)2 * sizeof(double*);
+  bytes += (double)4 * sizeof(int);
 
   return bytes;
 }

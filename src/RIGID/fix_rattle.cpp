@@ -629,7 +629,7 @@ double FixRattle::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = FixShake::memory_usage();
-  bytes += nmax*3 * sizeof(double);
+  bytes += (double)nmax*3 * sizeof(double);
   return bytes;
 }
 

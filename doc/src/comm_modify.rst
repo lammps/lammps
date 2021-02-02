@@ -15,12 +15,15 @@ Syntax
 
   .. parsed-literal::
 
-       *mode* value = *single* or *multi* = communicate atoms within a single or multiple distances
+       *mode* value = *single*, *multi*, or *multi/old* = communicate atoms within a single or multiple distances
        *cutoff* value = Rcut (distance units) = communicate atoms from this far away
-       *cutoff/multi* type value
+       *cutoff/multi* collection value
+          collection = atom collection or collection range (supports asterisk notation)
+          value = Rcut (distance units) = communicate atoms for selected types from this far away
+       *reduce/multi* arg = none = reduce number of communicated ghost atoms for multi style
+       *cutoff/multi/old* type value
           type = atom type or type range (supports asterisk notation)
           value = Rcut (distance units) = communicate atoms for selected types from this far away
-       *multi/reduce* arg = none = reduce number of communicated ghost atoms for multi style
        *group* value = group-ID = only communicate atoms in the group
        *vel* value = *yes* or *no* = do or do not communicate velocity info with ghost atoms
 
@@ -29,7 +32,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   comm_modify mode multi
+   comm_modify mode multi reduce/multi
    comm_modify mode multi group solvent
    comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2*4 15.0
    comm_modify vel yes
@@ -63,13 +66,18 @@ sub-domain.  The distance is by default the maximum of the neighbor
 cutoff across all atom type pairs.
 
 For many systems this is an efficient algorithm, but for systems with
-widely varying cutoffs for different type pairs, the *multi* mode can
-be faster.  In this case, each atom type is assigned its own distance
+widely varying cutoffs for different type pairs, the *multi* or *multi/old* mode can
+be faster.  In *multi*, each atom is assigned to a collection which should 
+correspond to a set of atoms with similar interaction cutoffs.
+In this case, each atom collection is assigned its own distance
 cutoff for communication purposes, and fewer atoms will be
-communicated. See the :doc:`neighbor multi <neighbor>` command for a
-neighbor list construction option that may also be beneficial for
-simulations of this kind. The *multi* mode is compatable with both the
-*multi* and *multi/old* neighbor styles.
+communicated. in *multi/old*, a similar technique is used but atoms
+are grouped by atom type. See the :doc:`neighbor multi <neighbor>`  and
+:doc:`neighbor multi/old <neighbor>` commands for
+neighbor list construction options that may also be beneficial for
+simulations of this kind. The *multi* communiction mode is only compatable
+with the *multi* neighbor style. The *multi/old* communication mode is compatble
+with both the *multi* and *multi/old* neighbor styles.
 
 The *cutoff* keyword allows you to extend the ghost cutoff distance
 for communication mode *single*\ , which is the distance from the borders
@@ -89,18 +97,24 @@ warning is printed, if this bond based estimate is larger than the
 communication cutoff used.
 
 The *cutoff/multi* option is equivalent to *cutoff*\ , but applies to
-communication mode *multi* instead. Since in this case the communication
-cutoffs are determined per atom type, a type specifier is needed and
-cutoff for one or multiple types can be extended. Also ranges of types
-using the usual asterisk notation can be given. For granular pair styles,
-the default cutoff is set to the sum of the current maximum atomic radii
-for each type.
+communication mode *multi* instead. Since the communication
+cutoffs are determined per atom collections, a collection specifier is needed and
+cutoff for one or multiple collections can be extended. Also ranges of collections
+using the usual asterisk notation can be given. 
+Note that the arguments for *cutoff/multi* are parsed right before each
+simulation to account for potential changes in the number of collections.
+Custom cutoffs are preserved between runs but if collections are redefined, 
+one may want to respecify communication cutoffs.
+For granular pair styles,the default cutoff is set to the sum of the 
+current maximum atomic radii for each collection. 
+The *cutoff/multi/old* option is similar to *cutoff/multi* except it
+operates on atom types as opposed to collections.
 
-The *multi/reduce* option applies to *multi* and sets communication 
-cutoffs for different sized particles based on the largest interaction distance 
-between two particles in the same multi grouping. This reduces the number of
+The *reduce/multi* option applies to *multi* and sets the communication 
+cutoff for a particle equal to the maximum interaction distance between particles 
+in the same collection. This reduces the number of
 ghost atoms that need to be communicated. This method is only compatible with the 
-*multi* neighbor style and requires only half neighbor lists and Newton on. 
+*multi* neighbor style and requires a half neighbor list and Newton on. 
 See the :doc:`neighbor multi <neighbor>` command for more information.
 
 These are simulation scenarios in which it may be useful or even

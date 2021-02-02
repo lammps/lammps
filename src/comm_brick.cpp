@@ -30,6 +30,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -194,12 +195,9 @@ void CommBrick::setup()
 
   if (mode == Comm::MULTI) {
     // build initial collection array
-    neighbor->build_collection(0);    
-    
-    if(cutusermulti and ncollections != neighbor->ncollections)
-      error->all(FLERR, "Cannot change number of collections after defining comm_modify multi/cutoff");
-    else ncollections = neighbor->ncollections;
-    
+    neighbor->build_collection(0);  
+    ncollections = neighbor->ncollections;
+
     // reallocate memory for multi-style communication at setup if ncollections change
     if(ncollections_prior != ncollections){
       if(multilo) free_multi();
@@ -207,8 +205,24 @@ void CommBrick::setup()
     
       allocate_multi(maxswap);
       memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");  
+      memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
+      for(i = ncollections_prior; i < ncollections; i++)
+        cutusermulti[i] = -1.0;
+    
       ncollections_prior = ncollections;
     }
+  
+    // parse any cutoff/multi commands
+    int nhi, nlo;
+    for(auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
+      utils::bounds(FLERR,it->first,1,ncollections,nlo,nhi,error);
+      if(nhi >= ncollections)
+        error->all(FLERR, "Unused collection id in comm_modify cutoff/multi command");
+      for (j=nlo; j<=nhi; ++j)
+        cutusermulti[j] = it->second;
+    }
+    usermultiargs.clear();
+
     
     double **cutcollectionsq = neighbor->cutcollectionsq;
     // If using multi/reduce, communicate particles a distance equal

@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -182,12 +183,8 @@ void CommTiled::setup()
   if (mode == Comm::MULTI) {
     // build collection from scratch as it is needed for atom exchange
     neighbor->build_collection(0);    
-      
-    if(cutusermulti and ncollections != neighbor->ncollections)
-      error->all(FLERR, "Cannot change number of collections after defining comm_modify multi/cutoff");
-    
     ncollections = neighbor->ncollections;
-      
+
     // allocate memory for multi-style communication at setup as ncollections can change
     if(ncollections_prior != ncollections){
       memory->destroy(cutghostmulti);
@@ -197,8 +194,24 @@ void CommTiled::setup()
       for(i = 0; i < maxswap; i ++)
         grow_swap_send_multi(i,DELTA_PROCS);
     
+      memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
+      for(i = ncollections_prior; i < ncollections; i++)
+        cutusermulti[i] = -1.0;    
+    
       ncollections_prior = ncollections;    
+    }      
+
+    // parse any cutoff/multi commands
+    int nhi, nlo;
+    for(auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
+      utils::bounds(FLERR,it->first,1,ncollections,nlo,nhi,error);
+      if(nhi >= ncollections)
+        error->all(FLERR, "Unused collection id in comm_modify cutoff/multi command");
+
+      for (j=nlo; j<=nhi; ++j)
+        cutusermulti[j] = it->second;
     }
+    usermultiargs.clear();
     
     double **cutcollectionsq = neighbor->cutcollectionsq;
     // If using multi/reduce, communicate particles a distance equal

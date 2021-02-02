@@ -56,13 +56,13 @@ the largest cutoff distance between any pair of atom types and a
 single set of bins is defined to search over for all atom types.  This
 can be inefficient if one pair of types has a very long cutoff, but
 other type pairs have a much shorter cutoff. The *multi* style uses
-different sized bins for groups of different sized particles. Different
+different sized bins for collections of different sized particles. Different
 sets of bins are then used to construct the neighbor lists as as further 
 described by Shire, Hanley, and Stratford :ref:`(Shire) <bytype-Shire>`. 
 This imposes some extra setup overhead, but the searches themselves
-may be much faster. By default, separate groups of particles are defined 
+may be much faster. By default, separate collections of particles are defined 
 for each atom type. For systems with two or more types with similar 
-cutoffs, one can reduce the extra overhead by defining custom groupings 
+cutoffs, one can reduce the extra overhead by defining custom collections 
 using the :doc:`neigh_modify <neigh_modify>` command. See the 
 :doc:`comm_modify mode bytype <comm_modify>` command for compatible 
 communication options that may be beneficial for simulations of this kind.

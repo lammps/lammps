@@ -29,7 +29,7 @@ velocity	all create 1.44 87287 loop geom
 
 neighbor	1 multi #multi/old
 neigh_modify	delay 0
-comm_modify     mode multi vel yes multi/reduce
+comm_modify     mode multi vel yes reduce/multi
 
 # colloid potential
 

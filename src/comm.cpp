@@ -35,7 +35,7 @@
 #include "update.h"
 
 #include <cstring>
-
+#include <vector>
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -59,6 +59,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutghostuser = 0.0;
   cutusermulti = nullptr;
   cutusermultiold = nullptr;
+  ncollections_prior = 0;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -339,24 +340,17 @@ void Comm::modify_params(int narg, char **arg)
         error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
       if (mode == Comm::MULTIOLD)
         error->all(FLERR,"Use cutoff/multi/old keyword to set cutoff in multi/old mode");
-    if (domain->box_exist == 0)
+      if (domain->box_exist == 0)
         error->all(FLERR,
                    "Cannot set cutoff/multi before simulation box is defined");
-      ncollections = neighbor->ncollections;
-      if (iarg+3 > narg)
-        error->all(FLERR,"Illegal comm_modify command");
-      if (cutusermulti == nullptr) {
-        memory->create(cutusermulti,ncollections,"comm:cutusermulti");
-        for (i=0; i < ncollections; ++i)
-          cutusermulti[i] = -1.0;
-      }
-      utils::bounds(FLERR,arg[iarg+1],1,ncollections,nlo,nhi,error);
+
+      // save arguments so they can be parsed in comm->setup()
+      // ncollections can be changed by neigh_modify commands
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
-      for (i=nlo; i<=nhi; ++i)
-        cutusermulti[i] = cut;
+      usermultiargs.emplace_back(arg[iarg+1], cut);   
       iarg += 3;
     }  else if (strcmp(arg[iarg],"cutoff/multi/old") == 0) {
       int i,nlo,nhi;

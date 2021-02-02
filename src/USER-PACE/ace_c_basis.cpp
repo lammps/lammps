@@ -23,11 +23,6 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//
-// Created by Lysogorskiy Yury
-//
-
-
 #include "ace_c_basis.h"
 #include "ships_radial.h"
 

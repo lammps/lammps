@@ -24,7 +24,7 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
  */
 
 //
-// Created by Lysogorskiy Yury on 28.04.2020.
+// Created by yury on 28.04.2020.
 //
 
 #include "ace_flatten_basis.h"

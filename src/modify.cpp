@@ -1345,7 +1345,7 @@ int Modify::find_compute(const std::string &id)
 void Modify::clearstep_compute()
 {
   for (int icompute = 0; icompute < ncompute; icompute++)
-    compute[icompute]->invoked_flag = 0;
+    compute[icompute]->invoked_flag = Compute::INVOKED_NONE;
 }
 
 /* ----------------------------------------------------------------------

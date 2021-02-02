@@ -28,7 +28,6 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_SCALAR 1
 
 /* ---------------------------------------------------------------------- */
 

@@ -46,7 +46,6 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      COMPUTE,FIX,VARIABLE,INAME,DNAME};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 
-#define INVOKED_PERATOM 8
 #define ONEFIELD 32
 #define DELTA 1048576
 
@@ -585,9 +584,9 @@ int DumpCustom::count()
           error->all(FLERR,"Compute used in dump between runs is not current");
     } else {
       for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & INVOKED_PERATOM)) {
+        if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
           compute[i]->compute_peratom();
-          compute[i]->invoked_flag |= INVOKED_PERATOM;
+          compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
         }
       }
     }

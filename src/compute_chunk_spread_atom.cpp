@@ -25,10 +25,6 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-
 /* ---------------------------------------------------------------------- */
 
 ComputeChunkSpreadAtom::
@@ -256,9 +252,9 @@ void ComputeChunkSpreadAtom::compute_peratom()
       Compute *compute = modify->compute[n];
 
       if (argindex[m] == 0) {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         double *cvector = compute->vector;
         for (i = 0; i < nlocal; i++, ptr += nstride) {
@@ -270,9 +266,9 @@ void ComputeChunkSpreadAtom::compute_peratom()
         }
 
       } else {
-        if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
-          compute->invoked_flag |= INVOKED_ARRAY;
+          compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }
         int icol = argindex[m]-1;
         double **carray = compute->array;

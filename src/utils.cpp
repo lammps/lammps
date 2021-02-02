@@ -588,6 +588,9 @@ std::string utils::utf8_subst(const std::string &line)
     // UTF-8 2-byte character
     if ((in[i] & 0xe0U) == 0xc0U) {
       if ((i+1) < len) {
+        // NON-BREAKING SPACE (U+00A0)
+        if ((in[i] == 0xc2U) && (in[i+1] == 0xa0U))
+          out += ' ', ++i;
         // MODIFIER LETTER PLUS SIGN (U+02D6)
         if ((in[i] == 0xcbU) && (in[i+1] == 0x96U))
           out += '+', ++i;
@@ -598,6 +601,48 @@ std::string utils::utf8_subst(const std::string &line)
     // UTF-8 3-byte character
     } else if ((in[i] & 0xf0U) == 0xe0U) {
       if ((i+2) < len) {
+        // EN QUAD (U+2000)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x80U))
+          out += ' ', i += 2;
+        // EM QUAD (U+2001)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x81U))
+          out += ' ', i += 2;
+        // EN SPACE (U+2002)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x82U))
+          out += ' ', i += 2;
+        // EM SPACE (U+2003)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x83U))
+          out += ' ', i += 2;
+        // THREE-PER-EM SPACE (U+2004)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x84U))
+          out += ' ', i += 2;
+        // FOUR-PER-EM SPACE (U+2005)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x85U))
+          out += ' ', i += 2;
+        // SIX-PER-EM SPACE (U+2006)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x86U))
+          out += ' ', i += 2;
+        // FIGURE SPACE (U+2007)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x87U))
+          out += ' ', i += 2;
+        // PUNCTUATION SPACE (U+2008)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x88U))
+          out += ' ', i += 2;
+        // THIN SPACE (U+2009)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x89U))
+          out += ' ', i += 2;
+        // HAIR SPACE (U+200A)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x8aU))
+          out += ' ', i += 2;
+        // ZERO WIDTH SPACE (U+200B)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x8bU))
+          out += ' ', i += 2;
+        // NARROW NO-BREAK SPACE (U+202F)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0xafU))
+          out += ' ', i += 2;
+        // WORD JOINER (U+2060)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x81U) && (in[i+2] == 0xa0U))
+          out += ' ', i += 2;
         // INVISIBLE SEPARATOR (U+2063)
         if ((in[i] == 0xe2U) && (in[i+1] == 0x81U) && (in[i+2] == 0xa3U))
           out += ' ', i += 2;
@@ -607,6 +652,9 @@ std::string utils::utf8_subst(const std::string &line)
         // MINUS SIGN (U+2212)
         if ((in[i] == 0xe2U) && (in[i+1] == 0x88U) && (in[i+2] == 0x92U))
           out += '-', i += 2;
+        // ZERO WIDTH NO-BREAK SPACE (U+FEFF)
+        if ((in[i] == 0xefU) && (in[i+1] == 0xbbU) && (in[i+2] == 0xbfU))
+          out += ' ', i += 2;
       }
     // UTF-8 4-byte character
     } else if ((in[i] & 0xe8U) == 0xf0U) {

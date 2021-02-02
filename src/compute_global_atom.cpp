@@ -27,9 +27,6 @@ using namespace LAMMPS_NS;
 
 enum{VECTOR,ARRAY};
 
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
 
 #define BIG 1.0e20
 
@@ -303,9 +300,9 @@ void ComputeGlobalAtom::compute_peratom()
   if (whichref == ArgInfo::COMPUTE) {
     Compute *compute = modify->compute[ref2index];
 
-    if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+    if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
       compute->compute_peratom();
-      compute->invoked_flag |= INVOKED_PERATOM;
+      compute->invoked_flag |= Compute::INVOKED_PERATOM;
     }
 
     if (indexref == 0) {
@@ -360,9 +357,9 @@ void ComputeGlobalAtom::compute_peratom()
       if (which[m] == ArgInfo::COMPUTE) {
         Compute *compute = modify->compute[value2index[m]];
 
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
 
         source = compute->vector;
@@ -418,9 +415,9 @@ void ComputeGlobalAtom::compute_peratom()
       if (which[m] == ArgInfo::COMPUTE) {
         Compute *compute = modify->compute[value2index[m]];
 
-        if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
-          compute->invoked_flag |= INVOKED_ARRAY;
+          compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }
 
         double **compute_array = compute->array;

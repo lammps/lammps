@@ -28,8 +28,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define INVOKED_PERATOM 8
-
 /* ---------------------------------------------------------------------- */
 
 FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -326,9 +324,9 @@ void FixAveAtom::end_of_step()
 
     } else if (which[m] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[n];
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
 
       if (j == 0) {

@@ -47,7 +47,6 @@ enum{ONCE,NFREQ,EVERY};              // used in several files
 enum{LIMITMAX,LIMITEXACT};
 
 #define IDMAX 1024*1024
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -943,9 +942,9 @@ void ComputeChunkAtom::assign_chunk_ids()
     }
 
   } else if (which == ArgInfo::COMPUTE) {
-    if (!(cchunk->invoked_flag & INVOKED_PERATOM)) {
+    if (!(cchunk->invoked_flag & Compute::INVOKED_PERATOM)) {
       cchunk->compute_peratom();
-      cchunk->invoked_flag |= INVOKED_PERATOM;
+      cchunk->invoked_flag |= Compute::INVOKED_PERATOM;
     }
 
     if (argindex == 0) {

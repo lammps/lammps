@@ -99,6 +99,7 @@ class lammps(object):
     #   so that LD_LIBRARY_PATH does not need to be set for regular install
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
+    # guess shared library extension based on OS, if not inferred from actual file
 
     if any([f.startswith('liblammps') and f.endswith('.dylib')
             for f in os.listdir(modpath)]):
@@ -111,7 +112,13 @@ class lammps(object):
       lib_ext = ".dll"
       modpath = winpath
     else:
-      lib_ext = ".so"
+      import platform
+      if platform.system() == "Darwin":
+        lib_ext = ".dylib"
+      elif platform.system() == "Windows":
+        lib_ext = ".dll"
+      else:
+        lib_ext = ".so"
 
     if not self.lib:
       try:

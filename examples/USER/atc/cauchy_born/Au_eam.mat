@@ -1,5 +1,0 @@
-material Au metal
-  stress  cauchy-born
-    pair_style eam
-  end
-end

@@ -1,3 +1,0 @@
-boundary f f f
-read_data sphere.data
-variable manifold_params string "10.0"

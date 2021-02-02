@@ -28,82 +28,77 @@ FixStyle(charge_regulation,Fix_charge_regulation)
 
 namespace LAMMPS_NS {
 
-    class Fix_charge_regulation : public Fix {
-    public:
-        Fix_charge_regulation(class LAMMPS *, int, char **);
-        ~Fix_charge_regulation();
-        int setmask();
-        void init();
-        void pre_exchange();
-        void forward_acid();
-        void backward_acid();
-        void forward_base();
-        void backward_base();
-        void forward_ions();
-        void forward_ions_multival();
-        void backward_ions();
-        void backward_ions_multival();
-        int get_random_particle(int, double, double, double *);
-        int insert_particle(int, double, double, double *);
-        double energy_full();
-        int particle_number(int, double);
-        int particle_number_xrd(int, double, double, double *);
-        double compute_vector(int n);
-        void assign_tags();
-        void options(int, char **);
-        void setThermoTemperaturePointer();
-        double memory_usage();
+  class Fix_charge_regulation : public Fix {
+  public:
+    Fix_charge_regulation(class LAMMPS *, int, char **);
+    ~Fix_charge_regulation();
+    int setmask();
+    void init();
+    void pre_exchange();
+    void forward_acid();
+    void backward_acid();
+    void forward_base();
+    void backward_base();
+    void forward_ions();
+    void forward_ions_multival();
+    void backward_ions();
+    void backward_ions_multival();
+    int get_random_particle(int, double, double, double *);
+    int insert_particle(int, double, double, double *);
+    double energy_full();
+    int particle_number(int, double);
+    int particle_number_xrd(int, double, double, double *);
+    double compute_vector(int n);
+    void assign_tags();
+    void options(int, char **);
+    void setThermoTemperaturePointer();
+    double memory_usage();
 
-    private:
-        int exclusion_group, exclusion_group_bit;
-        int ngcmc_type, nevery, seed;
-        int nmc;                    // mc moves per cycle
-        double lb, pH, pKa, pKb, pKs, pI_plus, pI_minus;
-        double pmcmoves[3];         // mc move attempt probability, acid, base, salt; and comulative
-        double pmcc;                // mc move cumulative attempt probability
-        int npart_xrd;             // # of particles (ions) within xrd
-        int npart_xrd2;            // # of particles (ions) within xrd
-        double vlocal_xrd;         // # local volume within xrd
-        bool only_salt_flag;      // true if performing only salt insertion/deletion, no acid/base dissociation.
-        bool add_tags_flag;       // true if each inserted atom gets its unique atom tag
+  private:
+    int exclusion_group, exclusion_group_bit;
+    int ngcmc_type, nevery, seed;
+    int nmc;                  // mc moves per cycle
+    double llength_unit_in_nm ; // LAMMPS unit of length in nm, needed since chemical potentials are in units of mol/l
+    double pH, pKa, pKb, pKs, pI_plus, pI_minus; // chemical potentials
+    double pmcmoves[3];       // mc move attempt probability, acid, base, salt; and comulative
+    double pmcc;              // mc move cumulative attempt probability
+    int npart_xrd;            // # of particles (ions) within xrd
+    int npart_xrd2;           // # of particles (ions) within xrd
+    double vlocal_xrd;        // # local volume within xrd
+    bool only_salt_flag;      // true if performing only salt insertion/deletion, no acid/base dissociation.
+    bool add_tags_flag;       // true if each inserted atom gets its unique atom tag
+    int groupbitall;          // group bitmask for inserted atoms
+    int ngroups;              // number of group-ids for inserted atoms
+    char **groupstrings;      // list of group-ids for inserted atoms
+    // counters
+    unsigned long int nacid_attempts, nacid_successes, nbase_attempts, nbase_successes, nsalt_attempts, nsalt_successes;
+    int nacid_neutral, nacid_charged, nbase_neutral, nbase_charged, ncation, nanion; // particle type counts
+    int cr_nmax;              //  max number of local particles
+    double reservoir_temperature;
+    double beta, sigma, volume, volume_rx; // inverse temperature, speed, total volume, reacting volume
+    int salt_charge[2];       // charge of salt ions: [0] - cation, [1] - anion
+    int salt_charge_ratio;
+    double xlo, xhi, ylo, yhi, zlo, zhi; // box size
+    double energy_stored;     // full energy of old/current configuration
+    int triclinic;            // 0 = orthog box, 1 = triclinic
+    double *sublo, *subhi;    // triclinic size
+    int *ptype_ID;            // particle ID array
+    double overlap_cutoffsq;  // square distance cutoff for overlap
+    int overlap_flag;
+    int acid_type, cation_type, base_type, anion_type; // reacting atom types
+    int reaction_distance_flag;
+    double reaction_distance; // max radial distance for atom insertion
 
-        int groupbitall;          // group bitmask for inserted atoms
-        int ngroups;              // number of group-ids for inserted atoms
-        char **groupstrings;      // list of group-ids for inserted atoms
 
-        double nacid_attempts, nacid_successes, nbase_attempts, nbase_successes, nsalt_attempts, nsalt_successes; // counters
-        int nacid_neutral, nacid_charged, nbase_neutral, nbase_charged, ncation, nanion; // reacting particle counts
+    class Pair *pair;
+    class Compute *c_pe;      // energy compute pointer
+    class RanPark *random_equal; // random number generator
+    class RanPark *random_unequal; // random number generator
+    char *idftemp;            // pointer to the temperature fix
 
-        int cr_nmax;              //  max number of local particles
-        double reservoir_temperature;
-        double beta, sigma, volume, volume_rx; // inverse temperature, speed, total volume, reacting volume
-        int salt_charge[2];    // charge of salt ions: [0] - cation, [1] - anion
-        int salt_charge_ratio ;
-        double xlo, xhi, ylo, yhi, zlo, zhi; // box size
-        double energy_stored;  // full energy of old/current configuration
-        int triclinic;                         // 0 = orthog box, 1 = triclinic
-        double *sublo, *subhi; // triclinic size
-        int *ptype_ID;
-        double overlap_cutoffsq; // square distance cutoff for overlap
-        int overlap_flag;
-        int acid_type, cation_type, base_type, anion_type; // reacting atom types
-        int reaction_distance_flag;
-        double reaction_distance; // max radial distance for atom insertion
+    double *target_temperature_tcp;  // current temperature of the thermostat
 
-
-        class Pair *pair;
-
-        class Compute *c_pe;  // energy compute pointer
-
-        class RanPark *random_equal; // random number generator
-
-        class RanPark *random_unequal; // random number generator
-
-        char *idftemp; // pointer to the temperature fix
-
-        double *target_temperature_tcp;  // current temperature of the thermostat
-
-    };
+  };
 }
 
 #endif

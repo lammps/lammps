@@ -1,1 +1,0 @@
-../../potentials/Ni.adp

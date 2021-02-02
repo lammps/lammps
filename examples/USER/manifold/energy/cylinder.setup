@@ -1,3 +1,0 @@
-boundary f f p
-read_data cylinder.data
-variable manifold_params string "6.0"

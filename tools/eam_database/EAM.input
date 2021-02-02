@@ -1,9 +1,0 @@
- &funccard
- atomtype='Ta'
- &end
- &funccard
- atomtype='Cu'
- &end
- &funccard
- &end
-

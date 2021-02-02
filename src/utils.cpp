@@ -13,6 +13,7 @@
 
 #include "utils.h"
 
+#include "atom.h"
 #include "comm.h"
 #include "compute.h"
 #include "error.h"
@@ -501,7 +502,37 @@ int utils::expand_args(const char *file, int line, int narg, char **arg,
                   expandflag = 1;
                 }
               }
-            }
+	      
+	    } else if (arg[iarg][0] == 'i') {
+	      *ptr1 = '\0';
+	      int flag,cols;
+	      int icustom = lmp->atom->find_custom(&arg[iarg][3],flag,cols);
+	      *ptr1 = '[';
+
+	      // check for custom per-atom integer array
+
+	      if (icustom >= 0) {
+		if (mode == 1 && !flag && cols) {
+		  nmax = cols;
+		  expandflag = 1;
+		}
+	      }
+	    
+	    } else if (arg[iarg][0] == 'd') {
+	      *ptr1 = '\0';
+	      int flag,cols;
+	      int icustom = lmp->atom->find_custom(&arg[iarg][3],flag,cols);
+	      *ptr1 = '[';
+	      
+	      // check for custom per-atom floating point array
+	      
+	      if (icustom >= 0) {
+		if (mode == 1 && flag && cols) {
+		  nmax = cols;
+		  expandflag = 1;
+		}
+	      }
+	    }
           }
           *ptr2 = ']';
         }

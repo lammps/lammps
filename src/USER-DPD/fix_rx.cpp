@@ -410,7 +410,7 @@ void FixRX::initSparse()
 
   if (comm->me == 0 and Verbosity > 1) {
     for (int k = 0; k < nspecies; ++k)
-      printf("atom->dname[%d]= %s\n", k, atom->dname[k]);
+      printf("atom->dvname[%d]= %s\n", k, atom->dvname[k]);
 
     printf("stoich[][]\n");
     for (int i = 0; i < nreactions; ++i) {
@@ -470,7 +470,7 @@ void FixRX::initSparse()
 
         char digit[6];
         sprintf(digit, "%4.1f ", stoichReactants[i][k]); rstr += digit;
-        rstr += atom->dname[k];
+        rstr += atom->dvname[k];
       }
       if (stoichProducts[i][k] > 0.0) {
         allAreIntegral &= (std::fmod( stoichProducts[i][k], 1.0 ) == 0.0);
@@ -482,7 +482,7 @@ void FixRX::initSparse()
         char digit[6];
         sprintf(digit, "%4.1f ", stoichProducts[i][k]); pstr += digit;
 
-        pstr += atom->dname[k];
+        pstr += atom->dvname[k];
       }
     }
     if (comm->me == 0 and Verbosity > 1)
@@ -596,7 +596,7 @@ void FixRX::initSparse()
           else
             sprintf(digit,"%4.1f ", sparseKinetics_nu[i][kk]);
           rstr += digit;
-          rstr += atom->dname[k];
+          rstr += atom->dvname[k];
         }
       }
 
@@ -612,7 +612,7 @@ void FixRX::initSparse()
           else
             sprintf(digit,"%4.1f ", sparseKinetics_nu[i][kk]);
           pstr += digit;
-          pstr += atom->dname[k];
+          pstr += atom->dvname[k];
         }
       }
       if (comm->me == 0 and Verbosity > 1)
@@ -950,7 +950,7 @@ void FixRX::read_file(char *file)
       tmpStoich = atof(word);
       word = strtok(nullptr, " \t\n\r\f");
       for (ispecies = 0; ispecies < nspecies; ispecies++) {
-        if (strcmp(word,&atom->dname[ispecies][0]) == 0) {
+        if (strcmp(word,&atom->dvname[ispecies][0]) == 0) {
           stoich[nreactions][ispecies] += sign*tmpStoich;
           if (sign<0.0)
             stoichReactants[nreactions][ispecies] += tmpStoich;
@@ -1327,10 +1327,6 @@ void FixRX::odeDiagnostics(void)
 
      TimerType now = getTimeStamp();
 
-     // Query the fix database and look for rx_weight for the balance fix.
-     int type_flag = -1;
-     int rx_weight_index = atom->find_custom( "rx_weight", /*0:int, 1:float*/ type_flag );
-
      // Compute the average # of neighbors.
      double averageNumNeighbors = 0;
      {
@@ -1347,45 +1343,7 @@ void FixRX::odeDiagnostics(void)
         averageNumNeighbors /= inum;
      }
 
-     printf("me= %d nst= %g nfc= %g time= %g nlocal= %g lmpnst= %g weight_idx= %d 1st= %d aveNeigh= %g\n", comm->me, this->diagnosticCounter[0], this->diagnosticCounter[1], this->diagnosticCounter[2], this->diagnosticCounter[3], this->diagnosticCounter[4], rx_weight_index, firstStep, averageNumNeighbors);
-
-     if (rx_weight_index != -1 && !firstStep && 0)
-     {
-        double *rx_weight = atom->dvector[rx_weight_index];
-
-        const int nlocal = atom->nlocal;
-        const int *mask = atom->mask;
-
-        if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
-        {
-          const double total_time = getElapsedTime( oldTimeStamp, now );
-          const double fixrx_time = this->diagnosticCounter[TimeSum];
-          const double time_ratio = fixrx_time / total_time;
-
-          double tsum = 0.0;
-          double tmin = 100000, tmax = 0;
-          for (int i = 0; i < nlocal; ++i)
-            if (mask[i] & groupbit)
-            {
-              double nfunc_ratio = double( diagnosticCounterPerODE[FuncSum][i] ) / diagnosticCounter[FuncSum];
-              rx_weight[i] = nfunc_ratio * fixrx_time + (total_time - fixrx_time) / nlocal;
-              tmin = fmin( tmin, rx_weight[i] );
-              tmax = fmax( tmax, rx_weight[i] );
-              tsum += rx_weight[i];
-              //rx_weight[i] = (double) diagnosticCounterPerODE[FuncSum][i];
-            }
-
-          printf("me= %d total= %g fixrx= %g ratio= %g tsum= %g %g %g %g\n", comm->me, total_time, fixrx_time, time_ratio, tsum, (total_time - fixrx_time) / nlocal, tmin, tmax);
-        }
-        else
-        {
-          error->warning(FLERR, "Dynamic load balancing enabled but per-atom weights not available.");
-
-          for (int i = 0; i < nlocal; ++i)
-            if (mask[i] & groupbit)
-              rx_weight[i] = 1.0;
-        }
-     }
+     //printf("me= %d nst= %g nfc= %g time= %g nlocal= %g lmpnst= %g weight_idx= %d 1st= %d aveNeigh= %g\n", comm->me, this->diagnosticCounter[0], this->diagnosticCounter[1], this->diagnosticCounter[2], this->diagnosticCounter[3], this->diagnosticCounter[4], rx_weight_index, firstStep, averageNumNeighbors);
 
      firstStep = false;
      oldTimeStamp = now;

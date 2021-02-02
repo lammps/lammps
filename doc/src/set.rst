@@ -13,16 +13,17 @@ Syntax
 * style = *atom* or *type* or *mol* or *group* or *region*
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
-* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol*
-  or *x* or *y* or *z* or *vx* or *vy* or *vz*
-  or *charge* or *dipole* or *dipole/random* or *spin* or *spin/random*
-  or *quat* *quat/random* or *diameter* or *shape* or *length* or *tri*
-  or *theta* or *theta/random* or *angmom* or *omega* or *mass*
-  or *density* or *density/disc* or *volume* or *image*
-  or *bond* or *angle* or *dihedral* or *improper*
-  or *sph/e* or *sph/cv* or *sph/rho* or *smd/contact/radius* or *smd/mass/density*
-  or *dpd/theta* or *edpd/temp* or *edpd/cv* or *cc*
-  or *i_name* or *d_name*
+* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset*
+  or *mol* or *x* or *y* or *z* or *charge* or *dipole* or
+  *dipole/random* or *quat* or *spin* or *spin/random* or
+  *quat* or *quat/random* or *diameter* or *shape* or
+  *length* or *tri* or *theta* or *theta/random* or *angmom* or
+  *omega* or *mass* or *density* or *density/disc* or
+  *volume* or *image* or *bond* or *angle* or *dihedral* or
+  *improper* or *sph/e* or *sph/cv* or *sph/rho* or
+  *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or
+  *edpd/temp* or *edpd/cv* or *cc* or
+  *i_name* or *d_name* or *i2_name* or *d2_name*
 
   .. parsed-literal::
 
@@ -123,8 +124,12 @@ Syntax
        *cc* values = index cc
          index = index of a chemical species (1 to Nspecies)
          cc = chemical concentration of tDPD particles for a species (mole/volume units)
-       *i_name* value = value for custom integer vector with name
-       *d_name* value = value for custom floating-point vector with name
+       *i_name* value = custom integer vector with name
+       *d_name* value = custom floating-point vector with name
+       *i2_name* value = column of a custom integer array with name
+                         column specified as i2_name[N] where N is 1 to Ncol
+       *d2_name* value = column of a custom floating-point array with name
+                         column specified as d2_name[N] where N is 1 to Ncol
 
 Examples
 """"""""
@@ -141,6 +146,8 @@ Examples
    set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
    set atom 1492 type 3
+   set atom * i_myVal 5
+   set atom * d2_Sxyz[1] 6.4
 
 Description
 """""""""""
@@ -482,11 +489,13 @@ attribute. An integer for "index" selects a chemical species (1 to
 Nspecies) where Nspecies is set by the atom_style command. The value
 for the chemical concentration must be >= 0.0.
 
-Keywords *i_name* and *d_name* refer to custom integer and
-floating-point properties that have been added to each atom via the
-:doc:`fix property/atom <fix_property_atom>` command.  When that command
-is used specific names are given to each attribute which are what is
-specified as the "name" portion of *i_name* or *d_name*.
+Keywords *i_name*, *d_name*, *i2_name*, *d2_name* refer to custom
+per-atom integer and floating-point vectors or arrays that have been
+added via the :doc:`fix property/atom <fix_property_atom>` command.
+When that command is used specific names are given to each attribute
+which are the "name" portion of these keywords.  For arrays *i2_name*
+and *d2_name*, the column of the array must also be included following
+the name in brackets: e.g. d2_xyz[2], i2_mySpin[3].
 
 Restrictions
 """"""""""""

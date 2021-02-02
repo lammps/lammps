@@ -104,11 +104,16 @@ class Neighbor : protected Pointers {
 
   // optional type grouping for multi
   
-  int multi_groups;                // 1 if custom groupings are defined for multi
-  int n_multi_groups;              // # of custom groupings
-  int *map_type_multi;             // ntype array mapping types to custom groupings
-  double **cutmultisq;             // cutoffs for each combination of custom groupings
-
+  int custom_collection_flag;      // 1 if custom collections are defined for multi
+  int interval_collection_flag;    // 1 if custom collections use intervals
+  int finite_cut_flag;             // 1 if multi considers finite atom size
+  int ncollections;                // # of custom collections
+  int nmax_collection;             // maximum atoms stored in collection array
+  int *type2collection;            // ntype array mapping types to custom collections
+  double *collection2cut;          // ncollection array with upper bounds on cutoff intervals
+  double **cutcollectionsq;        // cutoffs for each combination of collections
+  int *collection;                 // local per-atom array to store collection id
+  
   // public methods
 
   Neighbor(class LAMMPS *);
@@ -130,6 +135,7 @@ class Neighbor : protected Pointers {
   int exclude_setting();            // return exclude value to accelerator pkg
   class NeighRequest *find_request(void *);  // find a neighbor request
   int any_full();                   // Check if any old requests had full neighbor lists
+  void build_collection(int);       // build peratom collection array starting at the given index
 
   double memory_usage();
 

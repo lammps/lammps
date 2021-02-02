@@ -73,9 +73,8 @@ class NBin : protected Pointers {
   int binsizeflag;
   double binsize_user;
   double *bboxlo,*bboxhi;
-  int n_multi_groups;
-  int *map_type_multi;
-  double **cutmultisq;
+  int ncollections;
+  double **cutcollectionsq;
 
   // data common to all NBin variants
 
@@ -89,7 +88,7 @@ class NBin : protected Pointers {
 
   // data for multi NBin
 
-  int maxgroups;                    // size of multi arrays
+  int maxcollections;               // size of multi arrays
   int * maxbins_multi;              // size of 2nd dimension of binhead_multi array
 
   // methods

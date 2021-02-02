@@ -14,6 +14,7 @@
 #include "omp_compat.h"
 #include "npair_full_multi_omp.h"
 #include "npair_omp.h"
+#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -30,7 +31,7 @@ NPairFullMultiOmp::NPairFullMultiOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction for all neighbors
-   multi stencil is igroup-jgroup dependent   
+   multi stencil is icollection-jcollection dependent   
    every neighbor pair appears in list of both atoms i and j
 ------------------------------------------------------------------------- */
 
@@ -46,7 +47,7 @@ void NPairFullMultiOmp::build(NeighList *list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
-  int i,j,k,n,itype,jtype,igroup,jgroup,ibin,jbin,which,ns,imol,iatom;
+  int i,j,k,n,itype,jtype,icollection,jcollection,ibin,jbin,which,ns,imol,iatom;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
@@ -54,6 +55,7 @@ void NPairFullMultiOmp::build(NeighList *list)
 
   // loop over each atom, storing neighbors
 
+  int *collection = neighbor->collection;
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -80,7 +82,7 @@ void NPairFullMultiOmp::build(NeighList *list)
     neighptr = ipage.vget();
 
     itype = type[i];
-    igroup = map_type_multi[itype];    
+    icollection = collection[i];    
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -92,22 +94,22 @@ void NPairFullMultiOmp::build(NeighList *list)
 
     ibin = atom2bin[i];
     
-    // loop through stencils for all groups
-    for (jgroup = 0; jgroup < n_multi_groups; jgroup++) {
+    // loop through stencils for all collections
+    for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
-      // if same group use own bin
-      if(igroup == jgroup) jbin = ibin;
-	  else jbin = coord2bin(x[i], jgroup);
+      // if same collection use own bin
+      if(icollection == jcollection) jbin = ibin;
+	  else jbin = coord2bin(x[i], jcollection);
 
       // loop over all atoms in surrounding bins in stencil including self
       // skip i = j
-      // use full stencil for all group combinations
+      // use full stencil for all collection combinations
 
-      s = stencil_multi[igroup][jgroup];
-      ns = nstencil_multi[igroup][jgroup];
+      s = stencil_multi[icollection][jcollection];
+      ns = nstencil_multi[icollection][jcollection];
       
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jgroup][jbin + s[k]];
+	    js = binhead_multi[jcollection][jbin + s[k]];
 	    for (j = js; j >= 0; j = bins[j]) {
 	      if (i == j) continue;
 	  

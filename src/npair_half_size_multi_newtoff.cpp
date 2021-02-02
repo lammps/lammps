@@ -13,6 +13,7 @@ es   certain rights in this software.  This software is distributed under
 
 #include <string.h>
 #include "npair_half_size_multi_newtoff.h"
+#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -28,7 +29,7 @@ NPairHalfSizeMultiNewtoff::NPairHalfSizeMultiNewtoff(LAMMPS *lmp) : NPair(lmp) {
 /* ----------------------------------------------------------------------
    size particles
    binned neighbor list construction with partial Newton's 3rd law
-   multi stencil is igroup-jgroup dependent      
+   multi stencil is icollection-jcollection dependent      
    each owned atom i checks own bin and other bins in stencil
    pair stored once if i,j are both owned and i < j
    pair stored by me if j is ghost (also stored by proc owning j)
@@ -36,12 +37,13 @@ NPairHalfSizeMultiNewtoff::NPairHalfSizeMultiNewtoff(LAMMPS *lmp) : NPair(lmp) {
 
 void NPairHalfSizeMultiNewtoff::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,igroup,jgroup,ibin,jbin,ns;
+  int i,j,k,n,itype,jtype,icollection,jcollection,ibin,jbin,ns;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   double radi,radsum,cutdistsq;
   int *neighptr,*s;
   int js;
 
+  int *collection = neighbor->collection;
   double **x = atom->x;
   double *radius = atom->radius;
   int *type = atom->type;
@@ -65,7 +67,7 @@ void NPairHalfSizeMultiNewtoff::build(NeighList *list)
     n = 0;
     neighptr = ipage->vget();
     itype = type[i];
-    igroup = map_type_multi[itype];
+    icollection = collection[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -73,24 +75,24 @@ void NPairHalfSizeMultiNewtoff::build(NeighList *list)
 
     ibin = atom2bin[i];
     
-    // loop through stencils for all groups    
-    for (jgroup = 0; jgroup < n_multi_groups; jgroup++) {
+    // loop through stencils for all collections    
+    for (jcollection = 0; jcollection < ncollections; jcollection++) {
         
-      // if same group use own bin
-      if(igroup == jgroup) jbin = ibin;
-	  else jbin = coord2bin(x[i], jgroup);
+      // if same collection use own bin
+      if(icollection == jcollection) jbin = ibin;
+	  else jbin = coord2bin(x[i], jcollection);
       
       // loop over all atoms in other bins in stencil including self
       // only store pair if i < j
       // stores own/own pairs only once
       // stores own/ghost pairs on both procs      
-      // use full stencil for all group combinations
+      // use full stencil for all collection combinations
 
-      s = stencil_multi[igroup][jgroup];
-      ns = nstencil_multi[igroup][jgroup];
+      s = stencil_multi[icollection][jcollection];
+      ns = nstencil_multi[icollection][jcollection];
       
       for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jgroup][jbin + s[k]];
+	    js = binhead_multi[jcollection][jbin + s[k]];
 	    for (j = js; j >=0; j = bins[j]) {
 	      if (j <= i) continue;
            

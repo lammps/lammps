@@ -43,8 +43,8 @@ class NStencil : protected Pointers {
   
   // Arrays to store options for multi itype-jtype stencils
   bool **flag_half_multi;          // flag creation of a half stencil for igroup-jgroup
-  bool **flag_skip_multi;          // skip creation of igroup-jgroup stencils (for newton on)  
-  int **bin_group_multi;           // what group to use for bin information
+  bool **flag_skip_multi;          // skip creation of icollection-jcollection stencils (for newton on)  
+  int **bin_collection_multi;      // what collection to use for bin information
 
   NStencil(class LAMMPS *);
   virtual ~NStencil();
@@ -66,9 +66,9 @@ class NStencil : protected Pointers {
   double cutneighmaxsq;
   double *cuttypesq;
   double **cutneighsq;
-  double **cutmultisq;
-  int n_multi_groups;
-  int *map_type_multi;
+  double **cutcollectionsq;
+  int ncollections;
+  int *collection;
   
   // data from NBin class
 
@@ -112,7 +112,7 @@ class NStencil : protected Pointers {
 
   // methods for multi NStencil
 
-  double bin_distance_multi(int, int, int, int);   // distance between bin corners for different types 
+  double bin_distance_multi(int, int, int, int);   // distance between bin corners for different collections 
   void copy_bin_info_multi();                      // copy multi info from NBin class
   virtual void set_stencil_properties(){}          // determine which stencils to build and how 
 };

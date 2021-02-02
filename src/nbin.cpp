@@ -41,11 +41,8 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
   bininvx_multi = nullptr; bininvy_multi = nullptr; bininvz_multi = nullptr;
   binhead_multi = nullptr;
   maxbins_multi = nullptr;
-  
-  map_type_multi = nullptr;
-  cutmultisq = nullptr;
 
-  maxgroups = 0;
+  maxcollections = 0;
 
   neighbor->last_setup_bins = -1;
 
@@ -85,7 +82,7 @@ NBin::~NBin()
   memory->destroy(bininvy_multi);
   memory->destroy(bininvz_multi);
 
-  for (int n = 0; n < maxgroups; n++) {
+  for (int n = 0; n < maxcollections; n++) {
     memory->destroy(binhead_multi[n]);
   }
   delete [] binhead_multi;
@@ -115,9 +112,8 @@ void NBin::copy_neighbor_info()
   bboxlo = neighbor->bboxlo;
   bboxhi = neighbor->bboxhi;
   
-  n_multi_groups = neighbor->n_multi_groups;
-  map_type_multi = neighbor->map_type_multi;
-  cutmultisq = neighbor->cutmultisq;
+  ncollections = neighbor->ncollections;
+  cutcollectionsq = neighbor->cutcollectionsq;
 
   // overwrite Neighbor cutoff with custom value set by requestor
   // only works for style = BIN (checked by Neighbor class)
@@ -175,10 +171,10 @@ int NBin::coord2bin(double *x)
 
 
 /* ----------------------------------------------------------------------
-   convert atom coords into local bin # for a particular grouping
+   convert atom coords into local bin # for a particular collection
 ------------------------------------------------------------------------- */
 
-int NBin::coord2bin_multi(double *x, int ig)
+int NBin::coord2bin_multi(double *x, int ic)
 {
   int ix,iy,iz;
   int ibin;
@@ -187,33 +183,33 @@ int NBin::coord2bin_multi(double *x, int ig)
     error->one(FLERR,"Non-numeric positions - simulation unstable");
 
   if (x[0] >= bboxhi[0])
-    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi[ig]) + nbinx_multi[ig];
+    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi[ic]) + nbinx_multi[ic];
   else if (x[0] >= bboxlo[0]) {
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[ig]);
-    ix = MIN(ix,nbinx_multi[ig]-1);
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[ic]);
+    ix = MIN(ix,nbinx_multi[ic]-1);
   } else
-    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[ig]) - 1;
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[ic]) - 1;
 
   if (x[1] >= bboxhi[1])
-    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy_multi[ig]) + nbiny_multi[ig];
+    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy_multi[ic]) + nbiny_multi[ic];
   else if (x[1] >= bboxlo[1]) {
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[ig]);
-    iy = MIN(iy,nbiny_multi[ig]-1);
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[ic]);
+    iy = MIN(iy,nbiny_multi[ic]-1);
   } else
-    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[ig]) - 1;
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[ic]) - 1;
 
   if (x[2] >= bboxhi[2])
-    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz_multi[ig]) + nbinz_multi[ig];
+    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz_multi[ic]) + nbinz_multi[ic];
   else if (x[2] >= bboxlo[2]) {
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ig]);
-    iz = MIN(iz,nbinz_multi[ig]-1);
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ic]);
+    iz = MIN(iz,nbinz_multi[ic]-1);
   } else
-    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ig]) - 1;
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ic]) - 1;
 
   
-  ibin = (iz-mbinzlo_multi[ig])*mbiny_multi[ig]*mbinx_multi[ig]
-       + (iy-mbinylo_multi[ig])*mbinx_multi[ig]
-       + (ix-mbinxlo_multi[ig]);
+  ibin = (iz-mbinzlo_multi[ic])*mbiny_multi[ic]*mbinx_multi[ic]
+       + (iy-mbinylo_multi[ic])*mbinx_multi[ic]
+       + (ix-mbinxlo_multi[ic]);
   return ibin;
 }
 

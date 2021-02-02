@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_multi_newton_tri.h"
+#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -28,19 +29,20 @@ NPairHalfMultiNewtonTri::NPairHalfMultiNewtonTri(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    binned neighbor list construction with Newton's 3rd law for triclinic
-   multi stencil is igroup-jgroup dependent   
+   multi stencil is icollection-jcollection dependent   
    each owned atom i checks its own bin and other bins in triclinic stencil
    every pair stored exactly once by some processor
 ------------------------------------------------------------------------- */
 
 void NPairHalfMultiNewtonTri::build(NeighList *list)
 {
-  int i,j,k,n,itype,jtype,igroup,jgroup,ibin,jbin,which,ns,imol,iatom,moltemplate;
+  int i,j,k,n,itype,jtype,icollection,jcollection,ibin,jbin,which,ns,imol,iatom,moltemplate;
   tagint tagprev;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *neighptr,*s;
   int js;
-
+  
+  int *collection = neighbor->collection;
   double **x = atom->x;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -69,7 +71,7 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
     n = 0;
     neighptr = ipage->vget();
     itype = type[i];
-    igroup = map_type_multi[itype];
+    icollection = collection[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -81,12 +83,12 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
 
     ibin = atom2bin[i];
     
-    // loop through stencils for all groups
-    for (jgroup = 0; jgroup < n_multi_groups; jgroup++) {
+    // loop through stencils for all collections
+    for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
-      // if same group use own bin
-      if(igroup == jgroup) jbin = ibin;
-	  else jbin = coord2bin(x[i], jgroup);
+      // if same collection use own bin
+      if(icollection == jcollection) jbin = ibin;
+	  else jbin = coord2bin(x[i], jcollection);
       
       // loop over all atoms in bins in stencil
       // stencil is empty if i larger than j
@@ -97,15 +99,15 @@ void NPairHalfMultiNewtonTri::build(NeighList *list)
       //         (equal zyx and j <= i)
       // latter excludes self-self interaction but allows superposed atoms
 
-	  s = stencil_multi[igroup][jgroup];
-	  ns = nstencil_multi[igroup][jgroup];
+	  s = stencil_multi[icollection][jcollection];
+	  ns = nstencil_multi[icollection][jcollection];
       
 	  for (k = 0; k < ns; k++) {
-	    js = binhead_multi[jgroup][jbin + s[k]];
+	    js = binhead_multi[jcollection][jbin + s[k]];
 	    for (j = js; j >= 0; j = bins[j]) {
                   
-          // if same size (same group), use half stencil            
-          if(cutmultisq[igroup][igroup] == cutmultisq[jgroup][jgroup]){
+          // if same size (same collection), use half stencil            
+          if(cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
               if (x[j][1] < ytmp) continue;

@@ -29,7 +29,7 @@ NStencilFullMulti2d::NStencilFullMulti2d(LAMMPS *lmp) : NStencil(lmp) {}
 
 void NStencilFullMulti2d::set_stencil_properties()
 {
-  int n = n_multi_groups;
+  int n = ncollections;
   int i, j;
   
   // Always look up neighbor using full stencil and neighbor's bin
@@ -38,7 +38,7 @@ void NStencilFullMulti2d::set_stencil_properties()
     for (j = 0; j < n; j++) {
       flag_half_multi[i][j] = 0;
       flag_skip_multi[i][j] = 0;
-      bin_group_multi[i][j] = j;
+      bin_collection_multi[i][j] = j;
     }
   }
 }
@@ -49,33 +49,33 @@ void NStencilFullMulti2d::set_stencil_properties()
 
 void NStencilFullMulti2d::create()
 {
-  int igroup, jgroup, bin_group, i, j, k, ns;
-  int n = n_multi_groups;
+  int icollection, jcollection, bin_collection, i, j, k, ns;
+  int n = ncollections;
   double cutsq;
   
   
-  for (igroup = 0; igroup < n; igroup++) {
-    for (jgroup = 0; jgroup < n; jgroup++) {
-      if (flag_skip_multi[igroup][jgroup]) continue;
+  for (icollection = 0; icollection < n; icollection++) {
+    for (jcollection = 0; jcollection < n; jcollection++) {
+      if (flag_skip_multi[icollection][jcollection]) continue;
       
       ns = 0;
       
-      sx = stencil_sx_multi[igroup][jgroup];
-      sy = stencil_sy_multi[igroup][jgroup];
+      sx = stencil_sx_multi[icollection][jcollection];
+      sy = stencil_sy_multi[icollection][jcollection];
       
-      mbinx = stencil_mbinx_multi[igroup][jgroup];
-      mbiny = stencil_mbiny_multi[igroup][jgroup];
+      mbinx = stencil_mbinx_multi[icollection][jcollection];
+      mbiny = stencil_mbiny_multi[icollection][jcollection];
       
-      bin_group = bin_group_multi[igroup][jgroup];
+      bin_collection = bin_collection_multi[icollection][jcollection];
       
-      cutsq = cutmultisq[igroup][jgroup];
+      cutsq = cutcollectionsq[icollection][jcollection];
       
       for (j = -sy; j <= sy; j++)
         for (i = -sx; i <= sx; i++)
-          if (bin_distance_multi(i,j,0,bin_group) < cutsq)
-	        stencil_multi[igroup][jgroup][ns++] = j*mbinx + i;
+          if (bin_distance_multi(i,j,0,bin_collection) < cutsq)
+	        stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
       
-      nstencil_multi[igroup][jgroup] = ns;
+      nstencil_multi[icollection][jcollection] = ns;
     }
   }
 }

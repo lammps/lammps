@@ -58,6 +58,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   bordergroup = 0;
   cutghostuser = 0.0;
   cutusermulti = nullptr;
+  cutusermultiold = nullptr;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -118,6 +119,7 @@ Comm::~Comm()
   memory->destroy(ysplit);
   memory->destroy(zsplit);
   memory->destroy(cutusermulti);
+  memory->destroy(cutusermultiold);
   delete [] customfile;
   delete [] outfile;
 }
@@ -146,8 +148,13 @@ void Comm::copy_arrays(Comm *oldcomm)
   }
 
   if (oldcomm->cutusermulti) {
-    memory->create(cutusermulti,atom->ntypes+1,"comm:cutusermulti");
-    memcpy(cutusermulti,oldcomm->cutusermulti,atom->ntypes+1);
+    memory->create(cutusermulti,ncollections,"comm:cutusermulti");
+    memcpy(cutusermulti,oldcomm->cutusermulti,ncollections);
+  }
+
+  if (oldcomm->cutusermultiold) {
+    memory->create(cutusermultiold,atom->ntypes+1,"comm:cutusermultiold");
+    memcpy(cutusermultiold,oldcomm->cutusermultiold,atom->ntypes+1);
   }
 
   if (customfile) {
@@ -242,13 +249,16 @@ void Comm::init()
   for (int i = 0; i < nfix; i++)
     if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
+  if(mode == Comm::MULTI and neighbor->style != Neighbor::MULTI)
+    error->all(FLERR,"Cannot use comm mode multi without multi-style neighbor lists");
+
   if(multi_reduce){
     if (force->newton == 0)
       error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
     if (neighbor->any_full())
       error->all(FLERR,"Cannot use multi/reduce communication with a full neighbor list");
-    if (neighbor->style != Neighbor::MULTI)
-      error->all(FLERR,"Cannot use multi/reduce communication without multi-style neighbor lists");
+    if(mode != Comm::MULTI)
+      error->all(FLERR,"Cannot use multi/reduce communication without mode multi");
   }
 }
 
@@ -285,13 +295,20 @@ void Comm::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg+1],"single") == 0) {
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
+        if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
         memory->destroy(cutusermulti);
         cutusermulti = nullptr;
         mode = Comm::SINGLE;
       } else if (strcmp(arg[iarg+1],"multi") == 0) {
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
+        if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
         mode = Comm::MULTI;
+      } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
+        // need to reset cutghostuser when switching comm mode
+        if (mode == Comm::SINGLE) cutghostuser = 0.0;
+        if (mode == Comm::MULTI) cutghostuser = 0.0;
+        mode = Comm::MULTIOLD;
       } else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"group") == 0) {
@@ -308,6 +325,9 @@ void Comm::modify_params(int narg, char **arg)
       if (mode == Comm::MULTI)
         error->all(FLERR,
                    "Use cutoff/multi keyword to set cutoff in multi mode");
+      if (mode == Comm::MULTIOLD)
+        error->all(FLERR,
+                   "Use cutoff/multi/old keyword to set cutoff in multi mode");
       cutghostuser = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutghostuser < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
@@ -317,18 +337,20 @@ void Comm::modify_params(int narg, char **arg)
       double cut;
       if (mode == Comm::SINGLE)
         error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
-      if (domain->box_exist == 0)
+      if (mode == Comm::MULTIOLD)
+        error->all(FLERR,"Use cutoff/multi/old keyword to set cutoff in multi/old mode");
+    if (domain->box_exist == 0)
         error->all(FLERR,
                    "Cannot set cutoff/multi before simulation box is defined");
-      const int ntypes = atom->ntypes;
+      ncollections = neighbor->ncollections;
       if (iarg+3 > narg)
         error->all(FLERR,"Illegal comm_modify command");
       if (cutusermulti == nullptr) {
-        memory->create(cutusermulti,ntypes+1,"comm:cutusermulti");
-        for (i=0; i < ntypes+1; ++i)
+        memory->create(cutusermulti,ncollections,"comm:cutusermulti");
+        for (i=0; i < ncollections; ++i)
           cutusermulti[i] = -1.0;
       }
-      utils::bounds(FLERR,arg[iarg+1],1,ntypes,nlo,nhi,error);
+      utils::bounds(FLERR,arg[iarg+1],1,ncollections,nlo,nhi,error);
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
       if (cut < 0.0)
@@ -336,9 +358,35 @@ void Comm::modify_params(int narg, char **arg)
       for (i=nlo; i<=nhi; ++i)
         cutusermulti[i] = cut;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"multi/reduce") == 0) {
+    }  else if (strcmp(arg[iarg],"cutoff/multi/old") == 0) {
+      int i,nlo,nhi;
+      double cut;
       if (mode == Comm::SINGLE)
-        error->all(FLERR,"Use multi/reduce in mode multi only");
+        error->all(FLERR,"Use cutoff keyword to set cutoff in single mode");
+      if (mode == Comm::MULTI)
+        error->all(FLERR,"Use cutoff/multi keyword to set cutoff in multi mode");
+      if (domain->box_exist == 0)
+        error->all(FLERR,
+                   "Cannot set cutoff/multi before simulation box is defined");
+      const int ntypes = atom->ntypes;
+      if (iarg+3 > narg)
+        error->all(FLERR,"Illegal comm_modify command");
+      if (cutusermultiold == nullptr) {
+        memory->create(cutusermultiold,ntypes+1,"comm:cutusermultiold");
+        for (i=0; i < ntypes+1; ++i)
+          cutusermultiold[i] = -1.0;
+      }
+      utils::bounds(FLERR,arg[iarg+1],1,ntypes,nlo,nhi,error);
+      cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      cutghostuser = MAX(cutghostuser,cut);
+      if (cut < 0.0)
+        error->all(FLERR,"Invalid cutoff in comm_modify command");
+      for (i=nlo; i<=nhi; ++i)
+        cutusermultiold[i] = cut;
+      iarg += 3;
+    } else if (strcmp(arg[iarg],"reduce/multi") == 0) {
+      if (mode == Comm::SINGLE)
+        error->all(FLERR,"Use reduce/multi in mode multi only");
       multi_reduce = 1;
       iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {

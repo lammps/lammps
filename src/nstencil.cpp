@@ -52,14 +52,14 @@ using namespace LAMMPS_NS;
      cutoff is not cutneighmaxsq, but max cutoff for that atom type
      no versions that allow ghost on (any need for it?)
    for multi:
-     create one stencil for each igroup-jgroup pairing
-     the full/half stencil label refers to the same-group stencil
-     a half list with newton on has a half same-group stencil
-     a full list or half list with newton off has a full same-group stencil
-     cross group stencils are always full to allow small-to-large lookups
+     create one stencil for each icollection-jcollection pairing
+     the full/half stencil label refers to the same-collection stencil
+     a half list with newton on has a half same-collection stencil
+     a full list or half list with newton off has a full same-collection stencil
+     cross collection stencils are always full to allow small-to-large lookups
      for orthogonal boxes, a half stencil includes bins to the "upper right" of central bin 
      for triclinic, a half stencil includes bins in the z (3D) or y (2D) plane of self and above
-     cutoff is not cutneighmaxsq, but max cutoff for that atom group
+     cutoff is not cutneighmaxsq, but max cutoff for that atom collection
      no versions that allow ghost on (any need for it?)
 ------------------------------------------------------------------------- */
 
@@ -81,7 +81,7 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
  
   flag_half_multi = nullptr;
   flag_skip_multi = nullptr;
-  bin_group_multi = nullptr;
+  bin_collection_multi = nullptr;
 
   dimension = domain->dimension;
 }
@@ -107,7 +107,7 @@ NStencil::~NStencil()
   
   if (stencil_multi) {
       
-    int n = n_multi_groups;      
+    int n = ncollections;      
     memory->destroy(nstencil_multi);
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
@@ -120,7 +120,7 @@ NStencil::~NStencil()
     memory->destroy(maxstencil_multi);
     memory->destroy(flag_half_multi);
     memory->destroy(flag_skip_multi);
-    memory->destroy(bin_group_multi);
+    memory->destroy(bin_collection_multi);
     
     memory->destroy(stencil_sx_multi);
     memory->destroy(stencil_sy_multi);
@@ -156,9 +156,9 @@ void NStencil::copy_neighbor_info()
   cuttypesq = neighbor->cuttypesq;
   cutneighsq = neighbor->cutneighsq;
   
-  n_multi_groups = neighbor->n_multi_groups;
-  map_type_multi = neighbor->map_type_multi;
-  cutmultisq = neighbor->cutmultisq;
+  ncollections = neighbor->ncollections;
+  collection = neighbor->collection;
+  cutcollectionsq = neighbor->cutcollectionsq;
 
   // overwrite Neighbor cutoff with custom value set by requestor
   // only works for style = BIN (checked by Neighbor class)
@@ -269,9 +269,9 @@ void NStencil::create_setup()
       }
     }
   } else {
-    int i, j, bin_group, smax;
+    int i, j, bin_collection, smax;
     double stencil_range;
-    int n = n_multi_groups;
+    int n = ncollections;
     
     if(nb) copy_bin_info_multi();
 
@@ -280,8 +280,8 @@ void NStencil::create_setup()
                    "neighstencil:flag_half_multi");
     memory->create(flag_skip_multi, n, n, 
                    "neighstencil:flag_skip_multi");
-    memory->create(bin_group_multi, n, n, 
-                   "neighstencil:bin_group_multi");
+    memory->create(bin_collection_multi, n, n, 
+                   "neighstencil:bin_collection_multi");
 
     memory->create(stencil_sx_multi, n, n, 
                    "neighstencil:stencil_sx_multi");               
@@ -335,25 +335,25 @@ void NStencil::create_setup()
         // Skip creation of unused stencils 
         if (flag_skip_multi[i][j]) continue;
            
-        // Copy bin info for this pair of atom types
-        bin_group = bin_group_multi[i][j];
+        // Copy bin info for this pair of atom collections
+        bin_collection = bin_collection_multi[i][j];
         
-        stencil_binsizex_multi[i][j] = binsizex_multi[bin_group];
-        stencil_binsizey_multi[i][j] = binsizey_multi[bin_group];
-        stencil_binsizez_multi[i][j] = binsizez_multi[bin_group];
+        stencil_binsizex_multi[i][j] = binsizex_multi[bin_collection];
+        stencil_binsizey_multi[i][j] = binsizey_multi[bin_collection];
+        stencil_binsizez_multi[i][j] = binsizez_multi[bin_collection];
         
-        stencil_mbinx_multi[i][j] = mbinx_multi[bin_group];
-        stencil_mbiny_multi[i][j] = mbiny_multi[bin_group];
-        stencil_mbinz_multi[i][j] = mbinz_multi[bin_group];
+        stencil_mbinx_multi[i][j] = mbinx_multi[bin_collection];
+        stencil_mbiny_multi[i][j] = mbiny_multi[bin_collection];
+        stencil_mbinz_multi[i][j] = mbinz_multi[bin_collection];
         
-        stencil_range = sqrt(cutmultisq[i][j]);
+        stencil_range = sqrt(cutcollectionsq[i][j]);
         
-        sx = static_cast<int> (stencil_range*bininvx_multi[bin_group]);
-        if (sx*binsizex_multi[bin_group] < stencil_range) sx++;
-        sy = static_cast<int> (stencil_range*bininvy_multi[bin_group]);
-        if (sy*binsizey_multi[bin_group] < stencil_range) sy++;
-        sz = static_cast<int> (stencil_range*bininvz_multi[bin_group]);
-        if (sz*binsizez_multi[bin_group] < stencil_range) sz++;
+        sx = static_cast<int> (stencil_range*bininvx_multi[bin_collection]);
+        if (sx*binsizex_multi[bin_collection] < stencil_range) sx++;
+        sy = static_cast<int> (stencil_range*bininvy_multi[bin_collection]);
+        if (sy*binsizey_multi[bin_collection] < stencil_range) sy++;
+        sz = static_cast<int> (stencil_range*bininvz_multi[bin_collection]);
+        if (sz*binsizez_multi[bin_collection] < stencil_range) sz++;
         
         stencil_sx_multi[i][j] = sx;
         stencil_sy_multi[i][j] = sy;
@@ -397,24 +397,24 @@ double NStencil::bin_distance(int i, int j, int k)
 
 
 /* ----------------------------------------------------------------------
-   compute closest distance for a given atom grouping
+   compute closest distance for a given atom collection
 ------------------------------------------------------------------------- */
 
-double NStencil::bin_distance_multi(int i, int j, int k, int ig)
+double NStencil::bin_distance_multi(int i, int j, int k, int ic)
 {
   double delx,dely,delz;
 
-  if (i > 0) delx = (i-1)*binsizex_multi[ig];
+  if (i > 0) delx = (i-1)*binsizex_multi[ic];
   else if (i == 0) delx = 0.0;
-  else delx = (i+1)*binsizex_multi[ig];
+  else delx = (i+1)*binsizex_multi[ic];
 
-  if (j > 0) dely = (j-1)*binsizey_multi[ig];
+  if (j > 0) dely = (j-1)*binsizey_multi[ic];
   else if (j == 0) dely = 0.0;
-  else dely = (j+1)*binsizey_multi[ig];
+  else dely = (j+1)*binsizey_multi[ic];
 
-  if (k > 0) delz = (k-1)*binsizez_multi[ig];
+  if (k > 0) delz = (k-1)*binsizez_multi[ic];
   else if (k == 0) delz = 0.0;
-  else delz = (k+1)*binsizez_multi[ig];
+  else delz = (k+1)*binsizez_multi[ic];
 
   return (delx*delx + dely*dely + delz*delz);
 }
@@ -431,7 +431,7 @@ double NStencil::memory_usage()
     bytes += atom->ntypes*maxstencil_multi_old * sizeof(int);
     bytes += atom->ntypes*maxstencil_multi_old * sizeof(double);
   } else if (neighstyle == Neighbor::MULTI) {
-    int n = n_multi_groups;
+    int n = ncollections;
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
         bytes += maxstencil_multi[i][j] * sizeof(int);

@@ -13,23 +13,23 @@
 
 #ifdef NSTENCIL_CLASS
 
-NStencilStyle(half/bin/2d/newton/ssa,
-              NStencilHalfBin2dNewtonSSA,
-              NS_HALF | NS_BIN | NS_2D | NS_NEWTON | NS_SSA | NS_ORTHO | NS_GHOST)
+NStencilStyle(half/bin/3d/ssa,
+              NStencilHalfBin3dSSA,
+              NS_HALF | NS_BIN | NS_3D | NS_SSA | NS_ORTHO | NS_GHOST)
 
 #else
 
-#ifndef LMP_NSTENCIL_HALF_BIN_2D_NEWTON_SSA_H
-#define LMP_NSTENCIL_HALF_BIN_2D_NEWTON_SSA_H
+#ifndef LMP_NSTENCIL_HALF_BIN_3D_SSA_H
+#define LMP_NSTENCIL_HALF_BIN_3D_SSA_H
 
 #include "nstencil_ssa.h"
 
 namespace LAMMPS_NS {
 
-class NStencilHalfBin2dNewtonSSA : public NStencilSSA {
+class NStencilHalfBin3dSSA : public NStencilSSA {
  public:
-  NStencilHalfBin2dNewtonSSA(class LAMMPS *);
-  ~NStencilHalfBin2dNewtonSSA() {}
+  NStencilHalfBin3dSSA(class LAMMPS *);
+  ~NStencilHalfBin3dSSA() {}
   void create();
 };
 

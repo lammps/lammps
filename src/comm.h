@@ -25,14 +25,15 @@ class Comm : protected Pointers {
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
   enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};
-  int mode;      // 0 = single cutoff, 1 = multi-type cutoff
-  enum{SINGLE,MULTI};
+  int mode;      // 0 = single cutoff, 1 = multi-collection cutoff, 2 = multiold-type cutoff
+  enum{SINGLE,MULTI,MULTIOLD};
 
   int me,nprocs;                    // proc info
   int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff (mode == 0)
-  double *cutusermulti;            // per type user ghost cutoff (mode == 1)
+  double *cutusermulti;             // per collection user ghost cutoff (mode == 1)
+  double *cutusermultiold;          // per type user ghost cutoff (mode == 2)
   int recv_from_partition;          // recv proc layout from this partition
   int send_to_partition;            // send my proc layout to this partition
                                     // -1 if no recv or send
@@ -152,7 +153,9 @@ class Comm : protected Pointers {
   int ncores;                       // # of cores per node
   int coregrid[3];                  // 3d grid of cores within a node
   int user_coregrid[3];             // user request for cores in each dim
-  int multi_reduce;                 // 1 if multi cutoff is intra-type cutoff
+  int multi_reduce;                 // 1 if multi cutoff is intra-collection cutoff
+  int ncollections;                 // number of collection cutoffs defined for multi
+  int ncollections_prior;           // value of ncollections at last setup
 
   void init_exchange();
   int rendezvous_irregular(int, char *, int, int, int *,

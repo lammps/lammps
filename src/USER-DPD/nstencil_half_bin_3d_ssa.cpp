@@ -16,13 +16,13 @@
    James Larentzos and Timothy I. Mattox (Engility Corporation)
 ------------------------------------------------------------------------- */
 
-#include "nstencil_half_bin_3d_newton_ssa.h"
+#include "nstencil_half_bin_3d_ssa.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NStencilHalfBin3dNewtonSSA::NStencilHalfBin3dNewtonSSA(LAMMPS *lmp) :
+NStencilHalfBin3dSSA::NStencilHalfBin3dSSA(LAMMPS *lmp) :
   NStencilSSA(lmp) {}
 
 /* ----------------------------------------------------------------------
@@ -37,7 +37,7 @@ NStencilHalfBin3dNewtonSSA::NStencilHalfBin3dNewtonSSA(LAMMPS *lmp) :
      to locate all the Active Interaction Region (AIR) ghosts for SSA
 ------------------------------------------------------------------------- */
 
-void NStencilHalfBin3dNewtonSSA::create()
+void NStencilHalfBin3dSSA::create()
 {
   int i,j,k,pos = 0;
   nstencil_ssa[0] = 0; // redundant info, but saves a conditional

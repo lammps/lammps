@@ -53,6 +53,7 @@ CommTiled::CommTiled(LAMMPS *lmp) : Comm(lmp)
   overlap = nullptr;
   rcbinfo = nullptr;
   cutghostmulti = nullptr;
+  cutghostmultiold = nullptr;
   init_buffers();
 }
 
@@ -81,6 +82,7 @@ CommTiled::~CommTiled()
   deallocate_swap(maxswap);
   memory->sfree(rcbinfo);
   memory->destroy(cutghostmulti);
+  memory->destroy(cutghostmultiold);
 }
 
 /* ----------------------------------------------------------------------
@@ -98,7 +100,9 @@ void CommTiled::init_buffers()
   overlap = nullptr;
   rcbinfo = nullptr;
   cutghostmulti = nullptr;
+  cutghostmultiold = nullptr;
   sendbox_multi = nullptr;
+  sendbox_multiold = nullptr;
 
   maxswap = 6;
   allocate_swap(maxswap);
@@ -115,9 +119,10 @@ void CommTiled::init()
 
   nswap = 2*domain->dimension;
 
-  memory->destroy(cutghostmulti);
-  if (mode == Comm::MULTI)
-    memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
+  memory->destroy(cutghostmultiold);
+  if (mode == Comm::MULTIOLD)
+    memory->create(cutghostmultiold,atom->ntypes+1,3,"comm:cutghostmultiold");
+
 
   int bufextra_old = bufextra;
   init_exchange();
@@ -173,47 +178,60 @@ void CommTiled::setup()
 
   // set cutoff for comm forward and comm reverse
   // check that cutoff < any periodic box length
-
+  
   if (mode == Comm::MULTI) {
-    if (multi_reduce) {
-      // If using multi/reduce, communicate itype particles a distance equal
-      // to the max of itype-jtype group interaction 
-      // only consider smaller jtype groups 
-      int igroup, jgroup;
-      double **cutmultisq = neighbor->cutmultisq;
-      int *map_type_multi = neighbor->map_type_multi;
-      for (i = 1; i <= ntypes; i++) {
-
-        if (cutusermulti) {
-          cutghostmulti[i][0] = cutusermulti[i];
-          cutghostmulti[i][1] = cutusermulti[i];
-          cutghostmulti[i][2] = cutusermulti[i];
-        } else {
-          cutghostmulti[i][0] = 0.0;
-          cutghostmulti[i][1] = 0.0;
-          cutghostmulti[i][2] = 0.0;
-        }
+    // build collection from scratch as it is needed for atom exchange
+    neighbor->build_collection(0);    
+      
+    if(cutusermulti and ncollections != neighbor->ncollections)
+      error->all(FLERR, "Cannot change number of collections after defining comm_modify multi/cutoff");
+    
+    ncollections = neighbor->ncollections;
+      
+    // allocate memory for multi-style communication at setup as ncollections can change
+    if(ncollections_prior != ncollections){
+      memory->destroy(cutghostmulti);
+      if (mode == Comm::MULTI)
+        memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
         
-        igroup = map_type_multi[i];
-        for (j = 1; j <= ntypes; j++){
-          jgroup = map_type_multi[j];
-          
-          if(cutmultisq[jgroup][jgroup] > cutmultisq[igroup][igroup]) continue;
-          cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutmultisq[igroup][jgroup]));
-          cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutmultisq[igroup][jgroup]));
-          cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutmultisq[igroup][jgroup]));
-        }
+      for(i = 0; i < maxswap; i ++)
+        grow_swap_send_multi(i,DELTA_PROCS);
+    
+      ncollections_prior = ncollections;    
+    }
+    
+    double **cutcollectionsq = neighbor->cutcollectionsq;
+    // If using multi/reduce, communicate particles a distance equal
+    // to the max cutoff with equally sized or smaller collections
+    // If not, communicate the maximum cutoff of the entire collection
+    for (i = 0; i < ncollections; i++) {
+      if (cutusermulti) {
+        cutghostmulti[i][0] = cutusermulti[i];
+        cutghostmulti[i][1] = cutusermulti[i];
+        cutghostmulti[i][2] = cutusermulti[i];
+      } else {
+        cutghostmulti[i][0] = 0.0;
+        cutghostmulti[i][1] = 0.0;
+        cutghostmulti[i][2] = 0.0;
       }
-    } else {
-      // otherwise, communicate a distance equal to the maximum interaction distance for each type
-      double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++) {
-        double tmp = 0.0;
-        if (cutusermulti) tmp = cutusermulti[i];
-        cutghostmulti[i][0] = MAX(tmp,cuttype[i]);
-        cutghostmulti[i][1] = MAX(tmp,cuttype[i]);
-        cutghostmulti[i][2] = MAX(tmp,cuttype[i]);
+      
+      for (j = 0; j < ncollections; j++){
+        if(multi_reduce and cutcollectionsq[j][j] > cutcollectionsq[i][i]) continue;
+        cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutcollectionsq[i][j]));
+        cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutcollectionsq[i][j]));
+        cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutcollectionsq[i][j]));
       }
+    }
+  }
+  
+  if (mode == Comm::MULTIOLD) {
+    double *cuttype = neighbor->cuttype;
+    for (i = 1; i <= ntypes; i++) {
+      double tmp = 0.0;
+      if (cutusermultiold) tmp = cutusermultiold[i];
+      cutghostmultiold[i][0] = MAX(tmp,cuttype[i]);
+      cutghostmultiold[i][1] = MAX(tmp,cuttype[i]);
+      cutghostmultiold[i][2] = MAX(tmp,cuttype[i]);
     }
   }
 
@@ -233,10 +251,18 @@ void CommTiled::setup()
     length2 = h_inv[2];
     cutghost[2] = cut * length2;
     if (mode == Comm::MULTI) {
-      for (i = 1; i <= ntypes; i++) {
+      for (i = 0; i < ncollections; i++) {
         cutghostmulti[i][0] *= length0;
         cutghostmulti[i][1] *= length1;
         cutghostmulti[i][2] *= length2;
+      }
+    }
+    
+    if (mode == Comm::MULTIOLD) {
+      for (i = 1; i <= ntypes; i++) {
+        cutghostmultiold[i][0] *= length0;
+        cutghostmultiold[i][1] *= length1;
+        cutghostmultiold[i][2] *= length2;
       }
     }
   }
@@ -376,7 +402,7 @@ void CommTiled::setup()
       //   extend sbox in those lower dims to include ghost atoms
       // single mode and multi mode
 
-      double oboxlo[3],oboxhi[3],sbox[6],sbox_multi[6];
+      double oboxlo[3],oboxhi[3],sbox[6],sbox_multi[6],sbox_multiold[6];
 
       if (mode == Comm::SINGLE) {
         for (i = 0; i < noverlap; i++) {
@@ -465,7 +491,7 @@ void CommTiled::setup()
             sbox[5] = MIN(oboxhi[2],hi2[2]);
           }
 
-          for (int itype = 1; itype <= atom->ntypes; itype++) {
+          for (int icollection = 0; icollection < ncollections; icollection++) {
             sbox_multi[0] = sbox[0];
             sbox_multi[1] = sbox[1];
             sbox_multi[2] = sbox[2];
@@ -476,36 +502,112 @@ void CommTiled::setup()
               sbox_multi[idim] = sublo[idim];
               if (i < noverlap1)
                 sbox_multi[3+idim] =
-                  MIN(sbox_multi[3+idim]+cutghostmulti[itype][idim],subhi[idim]);
+                  MIN(sbox_multi[3+idim]+cutghostmulti[icollection][idim],subhi[idim]);
               else
                 sbox_multi[3+idim] =
-                  MIN(sbox_multi[3+idim]-prd[idim]+cutghostmulti[itype][idim],
+                  MIN(sbox_multi[3+idim]-prd[idim]+cutghostmulti[icollection][idim],
                       subhi[idim]);
             } else {
               if (i < noverlap1)
                 sbox_multi[idim] =
-                  MAX(sbox_multi[idim]-cutghostmulti[itype][idim],sublo[idim]);
+                  MAX(sbox_multi[idim]-cutghostmulti[icollection][idim],sublo[idim]);
               else
                 sbox_multi[idim] =
-                  MAX(sbox_multi[idim]+prd[idim]-cutghostmulti[itype][idim],
+                  MAX(sbox_multi[idim]+prd[idim]-cutghostmulti[icollection][idim],
                       sublo[idim]);
               sbox_multi[3+idim] = subhi[idim];
             }
 
             if (idim >= 1) {
               if (sbox_multi[0] == oboxlo[0])
-                sbox_multi[0] -= cutghostmulti[itype][idim];
+                sbox_multi[0] -= cutghostmulti[icollection][idim];
               if (sbox_multi[3] == oboxhi[0])
-                sbox_multi[3] += cutghostmulti[itype][idim];
+                sbox_multi[3] += cutghostmulti[icollection][idim];
             }
             if (idim == 2) {
               if (sbox_multi[1] == oboxlo[1])
-                sbox_multi[1] -= cutghostmulti[itype][idim];
+                sbox_multi[1] -= cutghostmulti[icollection][idim];
               if (sbox_multi[4] == oboxhi[1])
-                sbox_multi[4] += cutghostmulti[itype][idim];
+                sbox_multi[4] += cutghostmulti[icollection][idim];
             }
 
-            memcpy(sendbox_multi[iswap][i][itype],sbox_multi,6*sizeof(double));
+            memcpy(sendbox_multi[iswap][i][icollection],sbox_multi,6*sizeof(double));
+          }
+        }
+      }
+
+      if (mode == Comm::MULTIOLD) {
+        for (i = 0; i < noverlap; i++) {
+          pbc_flag[iswap][i] = 0;
+          pbc[iswap][i][0] = pbc[iswap][i][1] = pbc[iswap][i][2] =
+            pbc[iswap][i][3] = pbc[iswap][i][4] = pbc[iswap][i][5] = 0;
+
+          (this->*box_other)(idim,idir,overlap[i],oboxlo,oboxhi);
+
+          if (i < noverlap1) {
+            sbox[0] = MAX(oboxlo[0],lo1[0]);
+            sbox[1] = MAX(oboxlo[1],lo1[1]);
+            sbox[2] = MAX(oboxlo[2],lo1[2]);
+            sbox[3] = MIN(oboxhi[0],hi1[0]);
+            sbox[4] = MIN(oboxhi[1],hi1[1]);
+            sbox[5] = MIN(oboxhi[2],hi1[2]);
+          } else {
+            pbc_flag[iswap][i] = 1;
+            if (idir == 0) pbc[iswap][i][idim] = 1;
+            else pbc[iswap][i][idim] = -1;
+            if (triclinic) {
+              if (idim == 1) pbc[iswap][i][5] = pbc[iswap][i][idim];
+              if (idim == 2) pbc[iswap][i][4] = pbc[iswap][i][3] = pbc[iswap][i][idim];
+            }
+            sbox[0] = MAX(oboxlo[0],lo2[0]);
+            sbox[1] = MAX(oboxlo[1],lo2[1]);
+            sbox[2] = MAX(oboxlo[2],lo2[2]);
+            sbox[3] = MIN(oboxhi[0],hi2[0]);
+            sbox[4] = MIN(oboxhi[1],hi2[1]);
+            sbox[5] = MIN(oboxhi[2],hi2[2]);
+          }
+
+          for (int itype = 1; itype <= atom->ntypes; itype++) {
+            sbox_multiold[0] = sbox[0];
+            sbox_multiold[1] = sbox[1];
+            sbox_multiold[2] = sbox[2];
+            sbox_multiold[3] = sbox[3];
+            sbox_multiold[4] = sbox[4];
+            sbox_multiold[5] = sbox[5];
+            if (idir == 0) {
+              sbox_multiold[idim] = sublo[idim];
+              if (i < noverlap1)
+                sbox_multiold[3+idim] =
+                  MIN(sbox_multiold[3+idim]+cutghostmultiold[itype][idim],subhi[idim]);
+              else
+                sbox_multiold[3+idim] =
+                  MIN(sbox_multiold[3+idim]-prd[idim]+cutghostmultiold[itype][idim],
+                      subhi[idim]);
+            } else {
+              if (i < noverlap1)
+                sbox_multiold[idim] =
+                  MAX(sbox_multiold[idim]-cutghostmultiold[itype][idim],sublo[idim]);
+              else
+                sbox_multiold[idim] =
+                  MAX(sbox_multiold[idim]+prd[idim]-cutghostmultiold[itype][idim],
+                      sublo[idim]);
+              sbox_multiold[3+idim] = subhi[idim];
+            }
+
+            if (idim >= 1) {
+              if (sbox_multiold[0] == oboxlo[0])
+                sbox_multiold[0] -= cutghostmultiold[itype][idim];
+              if (sbox_multiold[3] == oboxhi[0])
+                sbox_multiold[3] += cutghostmultiold[itype][idim];
+            }
+            if (idim == 2) {
+              if (sbox_multiold[1] == oboxlo[1])
+                sbox_multiold[1] -= cutghostmultiold[itype][idim];
+              if (sbox_multiold[4] == oboxhi[1])
+                sbox_multiold[4] += cutghostmultiold[itype][idim];
+            }
+
+            memcpy(sendbox_multiold[iswap][i][itype],sbox_multiold,6*sizeof(double));
           }
         }
       }
@@ -937,11 +1039,14 @@ void CommTiled::exchange()
 
 void CommTiled::borders()
 {
-  int i,m,n,nlast,nsend,nrecv,ngroup,ncount,ncountall;
+  int i,m,n,nlast,nsend,nrecv,ngroup,nprior,ncount,ncountall;
   double xlo,xhi,ylo,yhi,zlo,zhi;
   double *bbox;
   double **x;
   AtomVec *avec = atom->avec;
+  
+  // After exchanging, need to reconstruct collection array for border communication
+  if(mode == Comm::MULTI) neighbor->build_collection(0);  
 
   // send/recv max one = max # of atoms in single send/recv for any swap
   // send/recv max all = max # of atoms in all sends/recvs within any swap
@@ -1008,6 +1113,56 @@ void CommTiled::borders()
         smaxone = MAX(smaxone,ncount);
         ncountall += ncount;
 
+      } else if (mode == Comm::MULTI) {
+
+        int* collection=neighbor->collection;
+        int icollection;
+        ncount = 0;
+
+        if (!bordergroup) {
+          for (i = 0; i < nlast; i++) {
+            icollection=collection[i];
+            bbox = sendbox_multi[iswap][m][icollection];
+            xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
+            xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
+            if (x[i][0] >= xlo && x[i][0] < xhi &&
+                x[i][1] >= ylo && x[i][1] < yhi &&
+                x[i][2] >= zlo && x[i][2] < zhi) {
+              if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
+              sendlist[iswap][m][ncount++] = i;
+            }
+          }
+        } else {
+          ngroup = atom->nfirst;
+          for (i = 0; i < ngroup; i++) {
+            icollection=collection[i];
+            bbox = sendbox_multi[iswap][m][icollection];
+            xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
+            xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
+            if (x[i][0] >= xlo && x[i][0] < xhi &&
+                x[i][1] >= ylo && x[i][1] < yhi &&
+                x[i][2] >= zlo && x[i][2] < zhi) {
+              if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
+              sendlist[iswap][m][ncount++] = i;
+            }
+          }
+          for (i = atom->nlocal; i < nlast; i++) {
+            icollection=collection[i];
+            bbox = sendbox_multi[iswap][m][icollection];
+            xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
+            xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
+            if (x[i][0] >= xlo && x[i][0] < xhi &&
+                x[i][1] >= ylo && x[i][1] < yhi &&
+                x[i][2] >= zlo && x[i][2] < zhi) {
+              if (ncount == maxsendlist[iswap][m]) grow_list(iswap,m,ncount);
+              sendlist[iswap][m][ncount++] = i;
+            }
+          }
+        }
+
+        sendnum[iswap][m] = ncount;
+        smaxone = MAX(smaxone,ncount);
+        ncountall += ncount;
       } else {
 
         int* type=atom->type;
@@ -1017,7 +1172,7 @@ void CommTiled::borders()
         if (!bordergroup) {
           for (i = 0; i < nlast; i++) {
             itype=type[i];
-            bbox = sendbox_multi[iswap][m][itype];
+            bbox = sendbox_multiold[iswap][m][itype];
             xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
             xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
             if (x[i][0] >= xlo && x[i][0] < xhi &&
@@ -1031,7 +1186,7 @@ void CommTiled::borders()
           ngroup = atom->nfirst;
           for (i = 0; i < ngroup; i++) {
             itype=type[i];
-            bbox = sendbox_multi[iswap][m][itype];
+            bbox = sendbox_multiold[iswap][m][itype];
             xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
             xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
             if (x[i][0] >= xlo && x[i][0] < xhi &&
@@ -1043,7 +1198,7 @@ void CommTiled::borders()
           }
           for (i = atom->nlocal; i < nlast; i++) {
             itype=type[i];
-            bbox = sendbox_multi[iswap][m][itype];
+            bbox = sendbox_multiold[iswap][m][itype];
             xlo = bbox[0]; ylo = bbox[1]; zlo = bbox[2];
             xhi = bbox[3]; yhi = bbox[4]; zhi = bbox[5];
             if (x[i][0] >= xlo && x[i][0] < xhi &&
@@ -1179,8 +1334,11 @@ void CommTiled::borders()
     // increment ghost atoms
 
     n = nrecvproc[iswap];
-    if (n)
+    if (n) {
+      nprior = atom->nghost + atom->nlocal;
       atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
+      if(neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
+    }
   }
 
   // For molecular systems we lose some bits for local atom indices due
@@ -2120,6 +2278,7 @@ void CommTiled::allocate_swap(int n)
   pbc = new int**[n];
   sendbox = new double**[n];
   sendbox_multi = new double***[n];
+  sendbox_multiold = new double***[n];
   maxsendlist = new int*[n];
   sendlist = new int**[n];
 
@@ -2134,6 +2293,7 @@ void CommTiled::allocate_swap(int n)
     pbc[i] = nullptr;
     sendbox[i] = nullptr;
     sendbox_multi[i] = nullptr;
+    sendbox_multiold[i] = nullptr;
     maxsendlist[i] = nullptr;
     sendlist[i] = nullptr;
   }
@@ -2182,8 +2342,9 @@ void CommTiled::grow_swap_send(int i, int n, int nold)
   memory->create(pbc[i],n,6,"comm:pbc_flag");
   memory->destroy(sendbox[i]);
   memory->create(sendbox[i],n,6,"comm:sendbox");
-  memory->destroy(sendbox_multi[i]);
-  memory->create(sendbox_multi[i],n,atom->ntypes+1,6,"comm:sendbox_multi");
+  grow_swap_send_multi(i,n);
+  memory->destroy(sendbox_multiold[i]);
+  memory->create(sendbox_multiold[i],n,atom->ntypes+1,6,"comm:sendbox_multiold");
 
   delete [] maxsendlist[i];
   maxsendlist[i] = new int[n];
@@ -2215,6 +2376,19 @@ void CommTiled::grow_swap_recv(int i, int n)
   size_reverse_send[i] = new int[n];
 }
 
+
+/* ----------------------------------------------------------------------
+   grow info for swap I for multi as ncollections can change
+------------------------------------------------------------------------- */
+
+void CommTiled::grow_swap_send_multi(int i, int n)
+{
+  memory->destroy(sendbox_multi[i]);
+  
+  if(ncollections > 0)
+    memory->create(sendbox_multi[i],n,ncollections,6,"comm:sendbox_multi");
+}
+
 /* ----------------------------------------------------------------------
    deallocate swap info
 ------------------------------------------------------------------------- */
@@ -2243,6 +2417,7 @@ void CommTiled::deallocate_swap(int n)
     memory->destroy(pbc[i]);
     memory->destroy(sendbox[i]);
     memory->destroy(sendbox_multi[i]);
+    memory->destroy(sendbox_multiold[i]);
 
     delete [] maxsendlist[i];
 
@@ -2265,6 +2440,7 @@ void CommTiled::deallocate_swap(int n)
   delete [] pbc;
   delete [] sendbox;
   delete [] sendbox_multi;
+  delete [] sendbox_multiold;
   delete [] maxsendlist;
   delete [] sendlist;
 

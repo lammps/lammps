@@ -48,9 +48,8 @@ class NPair : protected Pointers {
   double cut_middle_sq;
   double cut_middle_inside_sq;
   double *bboxlo,*bboxhi;
-  int n_multi_groups;
-  int *map_type_multi;
-  double **cutmultisq;
+  int ncollections;
+  double **cutcollectionsq;
   
   // exclusion data from Neighbor class
 

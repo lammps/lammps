@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,17 +15,20 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "improper_fourier_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "timer.h"
-#include "force.h"
-#include "update.h"
 #include "error.h"
-
+#include "force.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include "update.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 #define TOLERANCE 0.05
@@ -50,7 +53,7 @@ void ImproperFourierOMP::compute(int eflag, int vflag)
   const int inum = neighbor->nimproperlist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -117,7 +120,7 @@ void ImproperFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
                                        vb1x,vb1y,vb1z,
                                        vb2x,vb2y,vb2z,
                                        vb3x,vb3y,vb3z,thr);
-    if ( all[type] ) {
+    if (all[type]) {
       add1_thr<EVFLAG,EFLAG,NEWTON_BOND>(i1,i4,i2,i3,type,
                                          vb3x,vb3y,vb3z,
                                          vb1x,vb1y,vb1z,

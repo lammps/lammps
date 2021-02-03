@@ -6,7 +6,6 @@ compute smd/tlsph/num/neighs command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID smd/tlsph/num/neighs
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/tlsph/num/neighs
 
@@ -32,7 +30,8 @@ Total-Lagrangian SPH pair style.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
@@ -43,7 +42,6 @@ The per-particle values are dimensionless. See :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -56,4 +54,7 @@ Related commands
 
 :doc:`smd/ulsph/num/neighs <compute_smd_ulsph_num_neighs>`
 
-**Default:** none
+Default
+"""""""
+
+none

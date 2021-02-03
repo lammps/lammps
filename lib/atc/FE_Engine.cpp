@@ -32,7 +32,7 @@ namespace ATC{
   //-----------------------------------------------------------------
   FE_Engine::FE_Engine(MPI_Comm comm)
     : communicator_(comm),
-      feMesh_(NULL),
+      feMesh_(nullptr),
       initialized_(false),
       outputManager_()
   {
@@ -349,7 +349,7 @@ namespace ATC{
         else throw ATC_Error("not enough element partitions");
       }
     }
-    // each segment of the piecewise funcion is length-normalized separately
+    // each segment of the piecewise function is length-normalized separately
     else if (strcmp(arg[argIdx],"position-number-density")==0) { 
       argIdx++;
       double *y = new double[nx];

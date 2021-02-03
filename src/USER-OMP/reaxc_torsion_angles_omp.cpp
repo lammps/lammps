@@ -23,11 +23,11 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_torsion_angles_omp.h"
-#include <mpi.h>
+
 #include "fix_omp.h"
 #include "pair_reaxc_omp.h"
 
@@ -35,6 +35,8 @@
 #include "reaxc_types.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#include <cmath>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -200,7 +202,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
               //tan_ijk_i = 1. / tan( theta_ijk );
               if (sin_ijk >= 0 && sin_ijk <= MIN_SINE)
                 tan_ijk_i = cos_ijk / MIN_SINE;
-              else if( sin_ijk <= 0 && sin_ijk >= -MIN_SINE )
+              else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE)
                 tan_ijk_i = cos_ijk / -MIN_SINE;
               else tan_ijk_i = cos_ijk / sin_ijk;
 
@@ -239,7 +241,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   //tan_jkl_i = 1. / tan( theta_jkl );
                   if (sin_jkl >= 0 && sin_jkl <= MIN_SINE)
                     tan_jkl_i = cos_jkl / MIN_SINE;
-                  else if( sin_jkl <= 0 && sin_jkl >= -MIN_SINE )
+                  else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE)
                     tan_jkl_i = cos_jkl / -MIN_SINE;
                   else tan_jkl_i = cos_jkl /sin_jkl;
 

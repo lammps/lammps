@@ -28,7 +28,7 @@
 #include "ocl_device.h"
 
 #ifdef CL_VERSION_1_2
-#define UCL_OCL_MARKER(cq,event) clEnqueueMarkerWithWaitList(cq,0,NULL,event)
+#define UCL_OCL_MARKER(cq,event) clEnqueueMarkerWithWaitList(cq,0,nullptr,event)
 #else
 #define UCL_OCL_MARKER clEnqueueMarker
 #endif
@@ -117,10 +117,10 @@ class UCL_Timer {
     CL_SAFE_CALL(clWaitForEvents(1,&stop_event));
     CL_SAFE_CALL(clGetEventProfilingInfo(stop_event,
                                          CL_PROFILING_COMMAND_START,
-                                         sizeof(cl_ulong), &tend, NULL));
+                                         sizeof(cl_ulong), &tend, nullptr));
     CL_SAFE_CALL(clGetEventProfilingInfo(start_event,
                                          CL_PROFILING_COMMAND_END,
-                                         sizeof(cl_ulong), &tstart, NULL));
+                                         sizeof(cl_ulong), &tstart, nullptr));
     clReleaseEvent(start_event);
     clReleaseEvent(stop_event);
     has_measured_time = false;

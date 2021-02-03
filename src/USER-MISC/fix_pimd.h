@@ -61,7 +61,7 @@ class FixPIMD : public Fix {
 
   void spring_force();
 
-  /* fictious mass */
+  /* fictitious mass */
 
   double fmass, *mass;
 

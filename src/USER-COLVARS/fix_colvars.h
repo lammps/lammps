@@ -34,7 +34,6 @@ FixStyle(colvars,FixColvars)
 #define LMP_FIX_COLVARS_H
 
 #include "fix.h"
-#include <mpi.h>
 
 class colvarproxy_lammps;
 

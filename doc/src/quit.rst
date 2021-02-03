@@ -6,7 +6,6 @@ quit command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    quit status
@@ -16,8 +15,7 @@ status = numerical exit status (optional)
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    quit
    if "$n > 10000" then "quit 1"
@@ -50,4 +48,7 @@ Related commands
 
 :doc:`if <if>`
 
-**Default:** none
+Default
+"""""""
+
+none

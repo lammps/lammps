@@ -1,14 +1,13 @@
 .. index:: compute temp
+.. index:: compute temp/kk
 
 compute temp command
 ====================
 
-compute temp/kk command
-=======================
+Accelerator Variants: *temp/kk*
 
 Syntax
 """"""
-
 
 .. parsed-literal::
 
@@ -20,8 +19,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp
    compute myTemp mobile temp
@@ -56,47 +54,27 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 *extra* option of the :doc:`compute_modify <compute_modify>` command.
 
-A compute of this style with the ID of "thermo\_temp" is created when
+A compute of this style with the ID of "thermo_temp" is created when
 LAMMPS starts up, as if this command were in the input script:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute thermo_temp all temp
 
-See the "thermo\_style" command for more details.
+See the "thermo_style" command for more details.
 
 See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 
-
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
-
-
-----------
-
-
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -119,4 +97,7 @@ Related commands
 
 :doc:`compute temp/partial <compute_temp_partial>`, :doc:`compute temp/region <compute_temp_region>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none

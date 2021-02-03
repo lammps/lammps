@@ -21,7 +21,7 @@
 /// system. They may be enabled or disabled depending on dependencies.
 /// 2. User features may be enabled based on user input (they may trigger a failure upon dependency resolution, though)
 /// 3. Static features are static properties of the object, determined
-///   programatically at initialization time.
+///   programmatically at initialization time.
 ///
 /// The following diagram summarizes the dependency tree at the bias, colvar, and colvarcomp levels.
 /// Isolated and atom group features are not shown to save space.
@@ -227,8 +227,12 @@ public:
     f_cvb_active,
     /// \brief Bias is awake (active on its own accord) this timestep
     f_cvb_awake,
+    /// Accumulates data starting from step 0 of a simulation run
+    f_cvb_step_zero_data,
     /// \brief will apply forces
     f_cvb_apply_force,
+    /// \brief force this bias to act on actual value for extended-Lagrangian coordinates
+    f_cvb_bypass_ext_lagrangian,
     /// \brief requires total forces
     f_cvb_get_total_force,
     /// \brief whether this bias should record the accumulated work
@@ -300,6 +304,10 @@ public:
     f_cv_hard_lower_boundary,
     /// \brief The upper boundary is not defined from user's choice
     f_cv_hard_upper_boundary,
+    /// \brief Reflecting lower boundary condition
+    f_cv_reflecting_lower_boundary,
+    /// \brief Reflecting upper boundary condition
+    f_cv_reflecting_upper_boundary,
     /// \brief Provide a discretization of the values of the colvar to
     /// be used by the biases or in analysis (needs lower and upper
     /// boundary)

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,20 +22,19 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_correlate_long.h"
-#include <mpi.h>
+
+#include "citeme.h"
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include <unistd.h>
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -43,9 +42,6 @@ using namespace FixConst;
 enum{COMPUTE,FIX,VARIABLE};
 enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
 
 static const char cite_fix_ave_correlate_long[] =
 "fix ave/correlate/long command:\n\n"
@@ -70,8 +66,8 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nfreq = force->inumeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[4],false,lmp);
 
   restart_global = 1;
   global_freq = nfreq;
@@ -119,13 +115,13 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   type = AUTO;
   startstep = 0;
-  fp = NULL;
+  fp = nullptr;
   overwrite = 0;
   numcorrelators=20;
   p = 16;
   m = 2;
-  char *title1 = NULL;
-  char *title2 = NULL;
+  char *title1 = nullptr;
+  char *title2 = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"type") == 0) {
@@ -142,29 +138,29 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ncorr") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
-      numcorrelators = force->inumeric(FLERR,arg[iarg+1]);
+      numcorrelators = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nlen") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
-      p = force->inumeric(FLERR,arg[iarg+1]);
+      p = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ncount") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
-      m = force->inumeric(FLERR,arg[iarg+1]);
+      m = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
+        if (fp == nullptr) {
           char str[128];
           snprintf(str,128,"Cannot open fix ave/correlate/long file %s",arg[iarg+1]);
           error->one(FLERR,str);
@@ -449,15 +445,15 @@ void FixAveCorrelateLong::end_of_step()
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
-        if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
           compute->compute_scalar();
-          compute->invoked_flag |= INVOKED_SCALAR;
+          compute->invoked_flag |= Compute::INVOKED_SCALAR;
         }
         scalar = compute->scalar;
       } else {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         scalar = compute->vector[argindex[i]-1];
       }
@@ -492,10 +488,10 @@ void FixAveCorrelateLong::end_of_step()
   evaluate();
 
   if (fp && me == 0) {
-    if(overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
-      fprintf(fp, "%lg ", t[i]*update->dt);
+      fprintf(fp, "%lg ", t[i]*update->dt*nevery);
       for (int j=0;j<npair;++j) {
         fprintf(fp, "%lg ", f[j][i]);
       }
@@ -591,7 +587,7 @@ void FixAveCorrelateLong::accumulate()
 /* ----------------------------------------------------------------------
    Add a scalar value to the autocorrelator k of pair i
 ------------------------------------------------------------------------- */
-void FixAveCorrelateLong::add(const int i, const double w, const int k){
+void FixAveCorrelateLong::add(const int i, const double w, const int k) {
   // If we exceed the correlator side, the value is discarded
   if (k == numcorrelators) return;
   if (k > kmax) kmax=k;

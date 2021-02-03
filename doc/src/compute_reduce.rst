@@ -1,4 +1,5 @@
 .. index:: compute reduce
+.. index:: compute reduce/region
 
 compute reduce command
 ======================
@@ -9,26 +10,25 @@ compute reduce/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID style arg mode input1 input2 ... keyword args ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * style = *reduce* or *reduce/region*
-  
+
   .. parsed-literal::
-  
+
        *reduce* arg = none
        *reduce/region* arg = region-ID
          region-ID = ID of region to use for choosing atoms
 
 * mode = *sum* or *min* or *max* or *ave* or *sumsq* or *avesq*
 * one or more inputs can be listed
-* input = x, y, z, vx, vy, vz, fx, fy, fz, c\_ID, c\_ID[N], f\_ID, f\_ID[N], v\_name
-  
+* input = x, y, z, vx, vy, vz, fx, fy, fz, c_ID, c_ID[N], f_ID, f_ID[N], v_name
+
   .. parsed-literal::
-  
+
        x,y,z,vx,vy,vz,fx,fy,fz = atom attribute (position, velocity, force component)
        c_ID = per-atom or local vector calculated by a compute with ID
        c_ID[I] = Ith column of per-atom or local array calculated by a compute with ID, I can include wildcard (see below)
@@ -38,25 +38,22 @@ Syntax
 
 * zero or more keyword/args pairs may be appended
 * keyword = *replace*
-  
+
   .. parsed-literal::
-  
+
        *replace* args = vec1 vec2
          vec1 = reduced value from this input vector will be replaced
          vec2 = replace it with vec1[N] where N is index of max/min value from vec2
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all reduce sum c_force
    compute 1 all reduce/region subbox sum c_force
    compute 2 all reduce min c_press[2] f_ave v_myKE
-   compute 2 all reduce min c_press[\*] f_ave v_myKE
+   compute 2 all reduce min c_press[*] f_ave v_myKE
    compute 3 fluid reduce max c_index[1] c_index[2] c_dist replace 1 3 replace 2 3
 
 Description
@@ -112,17 +109,14 @@ had been listed one by one.  E.g. these 2 compute reduce commands are
 equivalent, since the :doc:`compute stress/atom <compute_stress_atom>`
 command creates a per-atom array with 6 columns:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myPress all stress/atom NULL
-   compute 2 all reduce min c_myPress[\*]
+   compute 2 all reduce min c_myPress[*]
    compute 2 all reduce min c_myPress[1] c_myPress[2] c_myPress[3] &
                             c_myPress[4] c_myPress[5] c_myPress[6]
 
-
 ----------
-
 
 The atom attribute values (x,y,z,vx,vy,vz,fx,fy,fz) are
 self-explanatory.  Note that other atom attributes can be used as
@@ -160,9 +154,7 @@ invoke other computes, fixes, or variables when they are evaluated, so
 this is a very general means of generating per-atom quantities to
 reduce.
 
-
 ----------
-
 
 If the *replace* keyword is used, two indices *vec1* and *vec2* are
 specified, where each index ranges from 1 to the # of input values.
@@ -175,8 +167,7 @@ stored index is used to select the Nth element of the *vec1* vector.
 Thus, for example, if you wish to use this compute to find the bond
 with maximum stretch, you can do it as follows:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local batom1 batom2
    compute 2 all bond/local dist
@@ -191,9 +182,7 @@ information in this context, the *replace* keywords will extract the
 atom IDs for the two atoms in the bond of maximum stretch.  These atom
 IDs and the bond stretch will be printed with thermodynamic output.
 
-
 ----------
-
 
 If a single input is specified this compute produces a global scalar
 value.  If multiple inputs are specified, this compute produces a
@@ -206,11 +195,10 @@ scales linearly with the number of atoms involved.  If normalized
 values are desired, this compute can be accessed by the :doc:`thermo_style custom <thermo_style>` command with :doc:`thermo_modify norm yes <thermo_modify>` set as an option.  Or it can be accessed by a
 :doc:`variable <variable>` that divides by the appropriate atom count.
 
-
 ----------
 
-
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar if a single input value is
 specified or a global vector of length N where N is the number of
@@ -236,4 +224,7 @@ Related commands
 
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,7 +18,7 @@
 #include "pair_dpd_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 
 int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                  double **host_gamma, double **host_sigma, double **host_cut,
-                 double *special_lj, bool tstat_only, const int inum,
+                 double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
 void dpd_gpu_clear();
@@ -237,9 +237,20 @@ void PairDPDGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = dpd_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                   atom->type, domain->sublo, domain->subhi,
+                                   atom->type, sublo, subhi,
                                    atom->tag, atom->nspecial, atom->special,
                                    eflag, vflag, eflag_atom, vflag_atom,
                                    host_start, &ilist, &numneigh, cpu_time,
@@ -298,7 +309,7 @@ void PairDPDGPU::init_style()
   if (atom->molecular)
     maxspecial=atom->maxspecial;
   int success = dpd_gpu_init(atom->ntypes+1, cutsq, a0, gamma, sigma,
-                             cut, force->special_lj, false, atom->nlocal,
+                             cut, force->special_lj, atom->nlocal,
                              atom->nlocal+atom->nghost, 300, maxspecial,
                              cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);

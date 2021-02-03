@@ -6,7 +6,6 @@ compute pair command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID pair pstyle [nstyle] [evalue]
@@ -17,12 +16,10 @@ Syntax
 * nsub = *n*\ -instance of a sub-style, if a pair style is used multiple times in a hybrid style
 * *evalue* = *epair* or *evdwl* or *ecoul* or blank (optional)
 
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all pair gauss
    compute 1 all pair lj/cut/coul/cut ecoul
@@ -71,7 +68,8 @@ potential energy into 14 components is tallied by the :doc:`pair_style reax/c <p
 are stored as a global vector by this compute.  See the doc page for
 :doc:`individual pair styles <pair_style>` for info on these values.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar which is *epair* or *evdwl* or
 *ecoul*\ .  If the pair style supports it, it also calculates a global

@@ -1,5 +1,5 @@
 LAMMPS open-source license
-==========================
+--------------------------
 
 LAMMPS is a freely-available open-source code, distributed under the
 terms of the `GNU Public License <gnu_>`_, which means you can use or
@@ -15,15 +15,9 @@ distribution.
 
 .. _gnu: http://www.gnu.org/copyleft/gpl.html
 
-
-
 .. _gnuorg: http://www.gnu.org
 
-
-
 .. _opensource: http://www.opensource.org
-
-
 
 Here is a summary of what the GPL means for LAMMPS users:
 

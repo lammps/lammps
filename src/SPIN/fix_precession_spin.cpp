@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,7 +22,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_precession_spin.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cstring>
 #include "atom.h"
@@ -30,6 +30,7 @@
 #include "force.h"
 #include "input.h"
 #include "math_const.h"
+#include "memory.h"
 #include "modify.h"
 #include "respa.h"
 #include "update.h"
@@ -43,7 +44,7 @@ enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
 
@@ -58,7 +59,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  magstr = NULL;
+  magstr = nullptr;
   magfieldstyle = CONSTANT;
 
   H_field = 0.0;
@@ -79,33 +80,33 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
     if (strcmp(arg[iarg],"zeeman") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix precession/spin command");
       zeeman_flag = 1;
-      H_field = force->numeric(FLERR,arg[iarg+1]);
-      nhx = force->numeric(FLERR,arg[iarg+2]);
-      nhy = force->numeric(FLERR,arg[iarg+3]);
-      nhz = force->numeric(FLERR,arg[iarg+4]);
+      H_field = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      nhx = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      nhy = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      nhz = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       iarg += 5;
     } else if (strcmp(arg[iarg],"anisotropy") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix precession/spin command");
       aniso_flag = 1;
-      Ka = force->numeric(FLERR,arg[iarg+1]);
-      nax = force->numeric(FLERR,arg[iarg+2]);
-      nay = force->numeric(FLERR,arg[iarg+3]);
-      naz = force->numeric(FLERR,arg[iarg+4]);
+      Ka = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      nax = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      nay = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      naz = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       iarg += 5;
     } else if (strcmp(arg[iarg],"cubic") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix precession/spin command");
       cubic_flag = 1;
-      k1c = force->numeric(FLERR,arg[iarg+1]);
-      k2c = force->numeric(FLERR,arg[iarg+2]);
-      nc1x = force->numeric(FLERR,arg[iarg+3]);
-      nc1y = force->numeric(FLERR,arg[iarg+4]);
-      nc1z = force->numeric(FLERR,arg[iarg+5]);
-      nc2x = force->numeric(FLERR,arg[iarg+6]);
-      nc2y = force->numeric(FLERR,arg[iarg+7]);
-      nc2z = force->numeric(FLERR,arg[iarg+8]);
-      nc3x = force->numeric(FLERR,arg[iarg+9]);
-      nc3y = force->numeric(FLERR,arg[iarg+10]);
-      nc3z = force->numeric(FLERR,arg[iarg+11]);
+      k1c = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      k2c = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      nc1x = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      nc1y = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      nc1z = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+      nc2x = utils::numeric(FLERR,arg[iarg+6],false,lmp);
+      nc2y = utils::numeric(FLERR,arg[iarg+7],false,lmp);
+      nc2z = utils::numeric(FLERR,arg[iarg+8],false,lmp);
+      nc3x = utils::numeric(FLERR,arg[iarg+9],false,lmp);
+      nc3y = utils::numeric(FLERR,arg[iarg+10],false,lmp);
+      nc3z = utils::numeric(FLERR,arg[iarg+11],false,lmp);
       iarg += 12;
     } else error->all(FLERR,"Illegal precession/spin command");
   }
@@ -154,6 +155,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
 FixPrecessionSpin::~FixPrecessionSpin()
 {
   delete [] magstr;
+  memory->destroy(emag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,6 +199,15 @@ void FixPrecessionSpin::init()
         error->all(FLERR,"Illegal precession/spin command");
   }
 
+  // check that fix precession/spin is only declared once
+
+  int iprec = 0;
+  for (int iforce = 0; iforce < modify->nfix; iforce++)
+    if (strstr(modify->fix[iforce]->style,"precession/spin")) iprec++;
+  if (iprec > 1)
+    error->all(FLERR,"precession/spin command can only be declared once");
+
+
   varflag = CONSTANT;
   if (magfieldstyle != CONSTANT) varflag = EQUAL;
 
@@ -204,6 +215,10 @@ void FixPrecessionSpin::init()
 
   if (varflag == CONSTANT) set_magneticprecession();
 
+  // init. size of energy stacking lists
+
+  nlocal_max = atom->nlocal;
+  memory->grow(emag,nlocal_max,"pair/spin:emag");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -243,21 +258,30 @@ void FixPrecessionSpin::post_force(int /* vflag */)
   double **fm = atom->fm;
   double **sp = atom->sp;
   const int nlocal = atom->nlocal;
-  double spi[3], fmi[3], epreci;
+  double spi[4], fmi[3], epreci;
+
+  // checking size of emag
+
+  if (nlocal_max < nlocal) {                    // grow emag lists if necessary
+    nlocal_max = nlocal;
+    memory->grow(emag,nlocal_max,"pair/spin:emag");
+  }
 
   eflag = 0;
   eprec = 0.0;
   for (int i = 0; i < nlocal; i++) {
+    emag[i] = 0.0;
     if (mask[i] & groupbit) {
       epreci = 0.0;
       spi[0] = sp[i][0];
       spi[1] = sp[i][1];
       spi[2] = sp[i][2];
+      spi[3] = sp[i][3];
       fmi[0] = fmi[1] = fmi[2] = 0.0;
 
       if (zeeman_flag) {          // compute Zeeman interaction
         compute_zeeman(i,fmi);
-        epreci -= hbar*(spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+        epreci -= compute_zeeman_energy(spi);
       }
 
       if (aniso_flag) {           // compute magnetic anisotropy
@@ -270,6 +294,7 @@ void FixPrecessionSpin::post_force(int /* vflag */)
         epreci -= compute_cubic_energy(spi);
       }
 
+      emag[i] += epreci;
       eprec += epreci;
       fm[i][0] += fmi[0];
       fm[i][1] += fmi[1];
@@ -298,6 +323,16 @@ void FixPrecessionSpin::compute_zeeman(int i, double fmi[3])
   fmi[0] += sp[i][3]*hx;
   fmi[1] += sp[i][3]*hy;
   fmi[2] += sp[i][3]*hz;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPrecessionSpin::compute_zeeman_energy(double spi[4])
+{
+  double energy = 0.0;
+  double scalar = nhx*spi[0]+nhy*spi[1]+nhz*spi[2];
+  energy = hbar*H_field*spi[3]*scalar;
+  return energy;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -12,6 +12,11 @@
 
 #include <iostream>
 
+#if (__cplusplus >= 201103L)
+#include <map>
+#include <functional>
+#endif
+
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarparse.h"
@@ -114,6 +119,7 @@ public:
 
   /// List of biases that depend on this colvar
   std::vector<colvarbias *> biases;
+
 protected:
 
 
@@ -229,17 +235,9 @@ public:
 
   /// \brief Location of the lower boundary
   colvarvalue lower_boundary;
-  /// \brief Location of the lower wall
-  colvarvalue lower_wall;
-  /// \brief Force constant for the lower boundary potential (|x-xb|^2)
-  cvm::real   lower_wall_k;
 
   /// \brief Location of the upper boundary
   colvarvalue upper_boundary;
-  /// \brief Location of the upper wall
-  colvarvalue upper_wall;
-  /// \brief Force constant for the upper boundary potential (|x-xb|^2)
-  cvm::real   upper_wall_k;
 
   /// \brief Is the interval defined by the two boundaries periodic?
   bool periodic_boundaries() const;
@@ -453,9 +451,9 @@ public:
   std::ostream & write_traj_label(std::ostream &os);
 
   /// Read the collective variable from a restart file
-  std::istream & read_restart(std::istream &is);
+  std::istream & read_state(std::istream &is);
   /// Write the collective variable to a restart file
-  std::ostream & write_restart(std::ostream &os);
+  std::ostream & write_state(std::ostream &os);
 
   /// Write output files (if defined, e.g. in analysis mode)
   int write_output_files();
@@ -610,6 +608,17 @@ public:
   class cartesian;
   class orientation;
 
+  // components that do not handle any atoms directly
+  class map_total;
+
+  /// getter of the global cvc map
+#if (__cplusplus >= 201103L)
+  /// A global mapping of cvc names to the cvc constructors
+  static const std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>>& get_global_cvc_map() {
+      return global_cvc_map;
+  }
+#endif
+
 protected:
 
   /// \brief Array of \link colvar::cvc \endlink objects
@@ -642,6 +651,11 @@ protected:
 
   /// Unused value that is written to when a variable simplifies out of a Lepton expression
   double dev_null;
+#endif
+
+#if (__cplusplus >= 201103L)
+  /// A global mapping of cvc names to the cvc constructors
+  static std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> global_cvc_map;
 #endif
 
 public:

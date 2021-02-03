@@ -1,7 +1,6 @@
 Commands
 ########
 
-
 .. toctree::
    :maxdepth: 1
 
@@ -89,7 +88,8 @@ Commands
    region
    replicate
    rerun
-   reset_ids
+   reset_atom_ids
+   reset_mol_ids
    reset_timestep
    restart
    run

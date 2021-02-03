@@ -16,7 +16,6 @@ simulation with all the settings.  Rather, the input script is read
 one line at a time and each command takes effect when it is read.
 Thus this sequence of commands:
 
-
 .. code-block:: LAMMPS
 
    timestep 0.5
@@ -25,7 +24,6 @@ Thus this sequence of commands:
 
 does something different than this sequence:
 
-
 .. code-block:: LAMMPS
 
    run      100
@@ -33,9 +31,9 @@ does something different than this sequence:
    run      100
 
 In the first case, the specified timestep (0.5 fs) is used for two
-simulations of 100 timesteps each.  In the 2nd case, the default
-timestep (1.0 fs) is used for the 1st 100 step simulation and a 0.5 fs
-timestep is used for the 2nd one.
+simulations of 100 timesteps each.  In the second case, the default
+timestep (1.0 fs) is used for the first 100 step simulation and a 0.5 fs
+timestep is used for the second one.
 
 (2) Some commands are only valid when they follow other commands.  For
 example you cannot set the temperature of a group of atoms until atoms
@@ -48,7 +46,7 @@ is to have the desired effect.  For example, the
 :doc:`read_data <read_data>` command initializes the system by setting
 up the simulation box and assigning atoms to processors.  If default
 values are not desired, the :doc:`processors <processors>` and
-:doc:`boundary <boundary>` commands need to be used before read\_data to
+:doc:`boundary <boundary>` commands need to be used before read_data to
 tell LAMMPS how to map processors to the simulation box.
 
 Many input script errors are detected by LAMMPS and an ERROR or

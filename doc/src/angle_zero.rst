@@ -6,14 +6,12 @@ angle_style zero command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    angle_style zero *nocoeff*
 
 Examples
 """"""""
-
 
 .. code-block:: LAMMPS
 
@@ -53,4 +51,7 @@ Related commands
 
 :doc:`angle_style none <angle_none>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_disp_tip4p_omp.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "suffix.h"
+
+#include <cstring>
+#include <cmath>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-#include "suffix.h"
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -56,7 +60,7 @@ PPPMDispTIP4POMP::~PPPMDispTIP4POMP()
 {
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -84,7 +88,7 @@ void PPPMDispTIP4POMP::allocate()
   PPPMDispTIP4P::allocate();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -111,7 +115,7 @@ void PPPMDispTIP4POMP::allocate()
 void PPPMDispTIP4POMP::compute_gf()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 
@@ -198,7 +202,7 @@ void PPPMDispTIP4POMP::compute_gf()
 void PPPMDispTIP4POMP::compute_gf_6()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double *prd;
@@ -302,7 +306,7 @@ void PPPMDispTIP4POMP::compute(int eflag, int vflag)
   PPPMDispTIP4P::compute(eflag,vflag);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)
@@ -358,7 +362,7 @@ void PPPMDispTIP4POMP::particle_map_c(double dxinv, double dyinv,
 
   int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:flag) schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     dbl3_t xM;
@@ -434,7 +438,7 @@ void PPPMDispTIP4POMP::particle_map(double dxinv, double dyinv,
 
   int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:flag) schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
 
@@ -487,7 +491,7 @@ void PPPMDispTIP4POMP::make_rho_c()
   const int iy = nyhi_out - nylo_out + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const double * _noalias const q = atom->q;
@@ -582,7 +586,7 @@ void PPPMDispTIP4POMP::make_rho_g()
   const int iy = nyhi_out_6 - nylo_out_6 + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -684,7 +688,7 @@ void PPPMDispTIP4POMP::make_rho_a()
   const int iy = nyhi_out_6 - nylo_out_6 + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -795,7 +799,7 @@ void PPPMDispTIP4POMP::fieldforce_c_ik()
   const double boxloz = boxlo[2];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     dbl3_t xM;
@@ -903,7 +907,7 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
   const double boxloz = boxlo[2];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double s1,s2,s3,sf;
@@ -951,7 +955,7 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
       eky *= hy_inv;
       ekz *= hz_inv;
 
-      // convert E-field to force and substract self forces
+      // convert E-field to force and subtract self forces
 
       const double qi = q[i];
       const double qfactor = qqrd2e * scale * qi;
@@ -1018,7 +1022,7 @@ void PPPMDispTIP4POMP::fieldforce_g_ik()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1119,7 +1123,7 @@ void PPPMDispTIP4POMP::fieldforce_g_ad()
   const double hz_inv = nz_pppm_6/zprd_slab;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1226,7 +1230,7 @@ void PPPMDispTIP4POMP::fieldforce_g_peratom()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1325,7 +1329,7 @@ void PPPMDispTIP4POMP::fieldforce_a_ik()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1458,7 +1462,7 @@ void PPPMDispTIP4POMP::fieldforce_a_ad()
   const double hz_inv = nz_pppm_6/zprd_slab;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1632,7 +1636,7 @@ void PPPMDispTIP4POMP::fieldforce_a_peratom()
   const double * const * const x = atom->x;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)

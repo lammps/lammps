@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,21 +17,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_disp_omp.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
-#include "timer.h"
+#include "suffix.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
-#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -59,7 +61,7 @@ PPPMDispOMP::PPPMDispOMP(LAMMPS *lmp) : PPPMDisp(lmp), ThrOMP(lmp, THR_KSPACE)
 PPPMDispOMP::~PPPMDispOMP()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -87,7 +89,7 @@ void PPPMDispOMP::allocate()
   PPPMDisp::allocate();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -114,7 +116,7 @@ void PPPMDispOMP::allocate()
 void PPPMDispOMP::compute_gf()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 
@@ -204,7 +206,7 @@ void PPPMDispOMP::compute_gf()
 void PPPMDispOMP::compute_gf_6()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double *prd;
@@ -311,7 +313,7 @@ void PPPMDispOMP::compute(int eflag, int vflag)
 
   PPPMDisp::compute(eflag,vflag);
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)
@@ -366,7 +368,7 @@ void PPPMDispOMP::particle_map(double dxinv, double dyinv,
 
   int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:flag) schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
 
@@ -419,7 +421,7 @@ void PPPMDispOMP::make_rho_c()
   const int iy = nyhi_out - nylo_out + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const double * _noalias const q = atom->q;
@@ -509,7 +511,7 @@ void PPPMDispOMP::make_rho_g()
   const int iy = nyhi_out_6 - nylo_out_6 + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -613,7 +615,7 @@ void PPPMDispOMP::make_rho_a()
   const int iy = nyhi_out_6 - nylo_out_6 + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
@@ -723,7 +725,7 @@ void PPPMDispOMP::fieldforce_c_ik()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -828,7 +830,7 @@ void PPPMDispOMP::fieldforce_c_ad()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -935,7 +937,7 @@ void PPPMDispOMP::fieldforce_c_peratom()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1034,7 +1036,7 @@ void PPPMDispOMP::fieldforce_g_ik()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1138,7 +1140,7 @@ void PPPMDispOMP::fieldforce_g_ad()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1248,7 +1250,7 @@ void PPPMDispOMP::fieldforce_g_peratom()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1350,7 +1352,7 @@ void PPPMDispOMP::fieldforce_a_ik()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1486,7 +1488,7 @@ void PPPMDispOMP::fieldforce_a_ad()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -1663,7 +1665,7 @@ void PPPMDispOMP::fieldforce_a_peratom()
 
 #if defined(_OPENMP)
   const int nthreads = comm->nthreads;
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)

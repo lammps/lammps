@@ -438,7 +438,7 @@ class UCL_D_Vec : public UCL_BaseMat {
     (*_tex_ptr).addressMode[1] = cudaAddressModeClamp;
     (*_tex_ptr).filterMode = cudaFilterModePoint;
     (*_tex_ptr).normalized = false;
-    CUDA_SAFE_CALL(cudaBindTexture(NULL,_tex_ptr,_array,&_channel));
+    CUDA_SAFE_CALL(cudaBindTexture(nullptr,_tex_ptr,_array,&_channel));
   }
   /// For CUDA-RT, unbind texture
   inline void unbind() { CUDA_SAFE_CALL(cudaUnbindTexture(_tex_ptr)); }

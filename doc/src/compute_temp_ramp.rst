@@ -6,7 +6,6 @@ compute temp/ramp command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/ramp vdim vlo vhi dim clo chi keyword value ...
@@ -20,7 +19,6 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *units*
 
-
 .. parsed-literal::
 
      *units* value = *lattice* or *box*
@@ -28,8 +26,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 2nd middle temp/ramp vx 0 8 y 2 12 units lattice
 
@@ -91,7 +88,8 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.

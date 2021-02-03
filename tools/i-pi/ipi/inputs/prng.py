@@ -38,7 +38,7 @@ class InputRandom(Input):
    instance of the object.
 
    Attributes:
-      seed: An optional integer giving a seed to initialise the random number
+      seed: An optional integer giving a seed to initialize the random number
          generator from. Defaults to 123456.
       state: An optional array giving the state of the random number generator.
          Defaults to an empty array.
@@ -74,7 +74,7 @@ class InputRandom(Input):
       representation of it.
 
       Args:
-         prng: A random number object from which to initialise from.
+         prng: A random number object from which to initialize from.
       """
 
       super(InputRandom,self).store(prng)

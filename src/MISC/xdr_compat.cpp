@@ -60,7 +60,7 @@ static xdr_uint32_t xdr_swapbytes(xdr_uint32_t x)
   char *px=(char *)&x;
   char *py=(char *)&y;
 
-  for(i=0;i<4;i++)
+  for (i=0;i<4;i++)
     py[i]=px[3-i];
 
   return y;
@@ -352,7 +352,7 @@ xdr_opaque (XDR *xdrs, char *cp, unsigned int cnt)
 /*
  * XDR null terminated ASCII strings
  * xdr_string deals with "C strings" - arrays of bytes that are
- * terminated by a NULL character.  The parameter cpp references a
+ * terminated by a nullptr character.  The parameter cpp references a
  * pointer to storage; If the pointer is null, then the necessary
  * storage is allocated.  The last parameter is the max allowed length
  * of the string as specified by a protocol.
@@ -370,13 +370,13 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
   switch (xdrs->x_op)
     {
     case XDR_FREE:
-      if (sp == NULL)
+      if (sp == nullptr)
         {
           return TRUE;                /* already free */
         }
       /* fall through... */
     case XDR_ENCODE:
-      if (sp == NULL)
+      if (sp == nullptr)
             return FALSE;
       size = strlen (sp);
       break;
@@ -404,9 +404,9 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
         {
           return TRUE;
         }
-      if (sp == NULL)
+      if (sp == nullptr)
         *cpp = sp = (char *) malloc (nodesize);
-      if (sp == NULL)
+      if (sp == nullptr)
         {
           (void) fputs ("xdr_string: out of memory\n", stderr);
           return FALSE;
@@ -419,7 +419,7 @@ xdr_string (XDR *xdrs, char **cpp, unsigned int maxsize)
 
     case XDR_FREE:
       free (sp);
-      *cpp = NULL;
+      *cpp = nullptr;
       return TRUE;
     }
   return FALSE;
@@ -469,7 +469,7 @@ xdr_double(XDR *xdrs, double *dp)
   int *ip;
   xdr_int32_t tmp[2];
 
-  if(LSW<0) {
+  if (LSW<0) {
     double x=0.987654321; /* Just a number */
 
     /* Possible representations in IEEE double precision:
@@ -484,9 +484,9 @@ xdr_double(XDR *xdrs, double *dp)
 
     unsigned char ix = *((char *)&x);
 
-    if(ix==0xdd || ix==0x3f)
+    if (ix==0xdd || ix==0x3f)
       LSW=1;  /* Big endian word order */
-    else if(ix==0xb8 || ix==0x3c)
+    else if (ix==0xb8 || ix==0x3c)
       LSW=0;  /* Small endian word order */
     else { /* Catch strange errors */
       printf("Error when detecting floating-point word order.\n"
@@ -660,7 +660,7 @@ xdrstdio_inline (XDR * /*xdrs*/, int /*len*/)
    * most of the gains to be had here and require storage
    * management on this buffer, so we don't do this.
    */
-  return NULL;
+  return nullptr;
 }
 
 static bool_t

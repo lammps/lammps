@@ -6,7 +6,6 @@ compute temp/deform/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/deform/eff
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute myTemp all temp/deform/eff
 
@@ -45,7 +43,8 @@ translational degrees of freedom for each nuclei or electron are
 affected by the streaming velocity adjustment.  The radial velocity
 component of the electrons is not affected.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -62,7 +61,6 @@ vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -72,4 +70,7 @@ Related commands
 :doc:`compute temp/ramp <compute_temp_ramp>`, :doc:`fix deform <fix_deform>`,
 :doc:`fix nvt/sllod/eff <fix_nvt_sllod_eff>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,21 +16,18 @@
                          Erik Bitzek, FAU Erlangen-Nuernberg
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "min_fire.h"
-#include "universe.h"
+
 #include "atom.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "update.h"
 #include "output.h"
 #include "timer.h"
-#include "error.h"
-#include "variable.h"
-#include "modify.h"
-#include "compute.h"
-#include "domain.h"
-#include "neighbor.h"
-#include "comm.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -87,6 +84,7 @@ void MinFire::setup_style()
 
   for (int i = 0; i < nlocal; i++)
     v[i][0] = v[i][1] = v[i][2] = 0.0;
+  flagv0 = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -259,14 +257,40 @@ int MinFire::iterate(int maxiter)
 
       if (halfstepback_flag) {
         for (int i = 0; i < nlocal; i++) {
-          x[i][0] -= 0.5 * dtv * v[i][0];
-          x[i][1] -= 0.5 * dtv * v[i][1];
-          x[i][2] -= 0.5 * dtv * v[i][2];
+          x[i][0] -= 0.5 * dt * v[i][0];
+          x[i][1] -= 0.5 * dt * v[i][1];
+          x[i][2] -= 0.5 * dt * v[i][2];
         }
       }
 
       for (int i = 0; i < nlocal; i++)
         v[i][0] = v[i][1] = v[i][2] = 0.0;
+      flagv0 = 1;
+    }
+
+    // evaluates velocties to estimate wether dtv has to be limited
+    // required when v have been reset
+
+    if (flagv0) {
+      dtf = dt * force->ftm2v;
+      energy_force(0);
+      neval++;
+
+      if (rmass) {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / rmass[i];
+          v[i][0] = dtfm * f[i][0];
+          v[i][1] = dtfm * f[i][1];
+          v[i][2] = dtfm * f[i][2];
+        }
+      } else {
+        for (int i = 0; i < nlocal; i++) {
+          dtfm = dtf / mass[type[i]];
+          v[i][0] = dtfm * f[i][0];
+          v[i][1] = dtfm * f[i][1];
+          v[i][2] = dtfm * f[i][2];
+        }
+      }
     }
 
     // limit timestep so no particle moves further than dmax
@@ -280,6 +304,13 @@ int MinFire::iterate(int maxiter)
     }
 
     MPI_Allreduce(&dtvone,&dtv,1,MPI_DOUBLE,MPI_MIN,world);
+
+    // reset velocities when necessary
+
+    if (flagv0) {
+      for (int i = 0; i < nlocal; i++)
+        v[i][0] = v[i][1] = v[i][2] = 0.0;
+    }
 
     // min dtv over replicas, if necessary
     // this communicator would be invalid for multiprocess replicas
@@ -437,6 +468,10 @@ int MinFire::iterate(int maxiter)
       ecurrent = energy_force(0);
       neval++;
     }
+
+    // velocities have been evaluated
+
+    flagv0 = 0;
 
     // energy tolerance criterion
     // only check after delaystep elapsed since velocties reset to 0

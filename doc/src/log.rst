@@ -6,7 +6,6 @@ log command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    log file keyword
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    log log.equil
    log log.equil append
@@ -43,7 +41,11 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

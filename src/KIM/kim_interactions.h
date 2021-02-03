@@ -15,6 +15,7 @@
    Contributing authors: Axel Kohlmeyer (Temple U),
                          Ryan S. Elliott (UMN)
                          Ellad B. Tadmor (UMN)
+                         Ronald Miller   (Carleton U)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -65,7 +66,6 @@ CommandStyle(kim_interactions,KimInteractions)
 #define LMP_KIM_INTERACTIONS_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 
@@ -75,8 +75,8 @@ class KimInteractions : protected Pointers {
   void command(int, char **);
  private:
   void do_setup(int, char **);
-  int species_to_atomic_no(std::string const species) const;
-  void kim_interactions_log_delimiter(std::string const begin_end) const;
+  int species_to_atomic_no(const std::string &species) const;
+  void KIM_SET_TYPE_PARAMETERS(const std::string &input_line) const;
 };
 
 }

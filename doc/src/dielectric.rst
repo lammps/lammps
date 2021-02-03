@@ -6,7 +6,6 @@ dielectric command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    dielectric value
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dielectric 2.0
 
@@ -44,7 +42,6 @@ Related commands
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    dielectric 1.0

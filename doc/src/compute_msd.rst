@@ -6,7 +6,6 @@ compute msd command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID msd keyword values ...
@@ -15,19 +14,16 @@ Syntax
 * msd = style name of this compute command
 * zero or more keyword/value pairs may be appended
 * keyword = *com* or *average*
-  
+
   .. parsed-literal::
-  
+
        *com* value = *yes* or *no*
        *average* value = *yes* or *no*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all msd
    compute 1 upper msd com yes average yes
@@ -42,7 +38,7 @@ parameter of mean-squared displacement, see the :doc:`compute msd/nongauss <comp
 
 A vector of four quantities is calculated by this compute.  The first 3
 elements of the vector are the squared dx,dy,dz displacements, summed
-and averaged over atoms in the group.  The 4th element is the total
+and averaged over atoms in the group.  The fourth element is the total
 squared displacement, i.e. (dx\*dx + dy\*dy + dz\*dz), summed and
 averaged over atoms in the group.
 
@@ -99,7 +95,8 @@ solids undergoing thermal motion.
    with subsequent positions as if they were from a single sample,
    instead of many, which will change the values of msd somewhat.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 4, which can be
 accessed by indices 1-4 by any command that uses global vector values
@@ -116,7 +113,7 @@ Restrictions
 Related commands
 """"""""""""""""
 
-:doc:`compute msd/nongauss <compute_msd_nongauss>`, :doc:`compute displace\_atom <compute_displace_atom>`, :doc:`fix store/state <fix_store_state>`, :doc:`compute msd/chunk <compute_msd_chunk>`
+:doc:`compute msd/nongauss <compute_msd_nongauss>`, :doc:`compute displace_atom <compute_displace_atom>`, :doc:`fix store/state <fix_store_state>`, :doc:`compute msd/chunk <compute_msd_chunk>`
 
 Default
 """""""

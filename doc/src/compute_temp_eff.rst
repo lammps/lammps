@@ -6,7 +6,6 @@ compute temp/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/eff
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp/eff
    compute myTemp mobile temp/eff
@@ -53,8 +51,7 @@ densities two to five times the density of liquid H2 ranges from
    :doc:`thermo_modify <thermo_modify>` command, as shown in the following
    example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute         effTemp all temp/eff
    thermo_style    custom step etotal pe ke temp press
@@ -81,7 +78,8 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-**Output info:**
+Output info
+"""""""""""
 
 The scalar value calculated by this compute is "intensive", meaning it
 is independent of the number of atoms in the simulation.  The vector
@@ -91,7 +89,6 @@ the simulation.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -100,4 +97,7 @@ Related commands
 
 :doc:`compute temp/partial <compute_temp_partial>`, :doc:`compute temp/region <compute_temp_region>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none

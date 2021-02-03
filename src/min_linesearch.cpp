@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,18 +18,19 @@
                         added forcezero ls
    Sources: Numerical Recipes frprmn routine
             "Conjugate Gradient Method Without the Agonizing Pain" by
-            JR Shewchuk, http://www-2.cs.cmu.edu/~jrs/jrspapers.html#cg
+            JR Shewchuk, https://www.cs.cmu.edu/~quake-papers/painless-conjugate-gradient.pdf
 ------------------------------------------------------------------------- */
 
 #include "min_linesearch.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "atom.h"
-#include "modify.h"
 #include "fix_minimize.h"
-#include "pair.h"
+#include "modify.h"
 #include "output.h"
+#include "pair.h"
 #include "thermo.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -53,8 +54,8 @@ using namespace LAMMPS_NS;
 MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp)
 {
   searchflag = 1;
-  gextra = hextra = NULL;
-  x0extra_atom = gextra_atom = hextra_atom = NULL;
+  gextra = hextra = nullptr;
+  x0extra_atom = gextra_atom = hextra_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,12 +81,12 @@ void MinLineSearch::init()
 
   delete [] gextra;
   delete [] hextra;
-  gextra = hextra = NULL;
+  gextra = hextra = nullptr;
 
   delete [] x0extra_atom;
   delete [] gextra_atom;
   delete [] hextra_atom;
-  x0extra_atom = gextra_atom = hextra_atom = NULL;
+  x0extra_atom = gextra_atom = hextra_atom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -544,7 +545,7 @@ pseudo code:
               bactrack = true
 
            // GRAD_TOL = 0.1
-           if ( (not backtrack) && (fabs(fhCurr/fh0) <= GRAD_TOL) ):
+           if ((not backtrack) && (fabs(fhCurr/fh0) <= GRAD_TOL)):
               // forces sufficiently reduced without energy increase
               EXIT with success
 

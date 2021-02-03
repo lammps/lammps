@@ -6,7 +6,6 @@ compute ke/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID ke/atom
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all ke/atom
 
@@ -34,7 +32,8 @@ the velocity of each atom.
 The value of the kinetic energy will be 0.0 for atoms not in the
 specified compute group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -52,4 +51,7 @@ Related commands
 
 :doc:`dump custom <dump>`
 
-**Default:** none
+Default
+"""""""
+
+none

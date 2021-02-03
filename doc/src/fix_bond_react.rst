@@ -6,7 +6,6 @@ fix bond/react command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID bond/react common_keyword values ...
@@ -15,31 +14,34 @@ Syntax
      react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
      ...
 
-* ID, group-ID are documented in :doc:`fix <fix>` command. Group-ID is ignored.
+* ID, group-ID are documented in :doc:`fix <fix>` command.
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
 * this applies to all reaction specifications (below)
-* common\_keyword = *stabilization*
+* common_keyword = *stabilization* or *reset_mol_ids*
 
   .. parsed-literal::
 
        *stabilization* values = *no* or *yes* *group-ID* *xmax*
-         *no* = no reaction site stabilization
+         *no* = no reaction site stabilization (default)
          *yes* = perform reaction site stabilization
            *group-ID* = user-assigned prefix for the dynamic group of atoms not currently involved in a reaction
            *xmax* = xmax value that is used by an internally-created :doc:`nve/limit <fix_nve_limit>` integrator
+       *reset_mol_ids* values = *yes* or *no*
+         *yes* = update molecule IDs based on new global topology (default)
+         *no* = do not update molecule IDs
 
 * react = mandatory argument indicating new reaction specification
 * react-ID = user-assigned name for the reaction
 * react-group-ID = only atoms in this group are considered for the reaction
 * Nevery = attempt reaction every this many steps
-* Rmin = bonding pair atoms must be separated by more than Rmin to initiate reaction (distance units)
-* Rmax = bonding pair atoms must be separated by less than Rmax to initiate reaction (distance units)
+* Rmin = initiator atoms must be separated by more than Rmin to initiate reaction (distance units)
+* Rmax = initiator atoms must be separated by less than Rmax to initiate reaction (distance units)
 * template-ID(pre-reacted) = ID of a molecule template containing pre-reaction topology
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
-* map\_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
+* map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual\_keyword = *prob* or *max\_rxn* or *stabilize\_steps* or *update\_edges*
+* individual_keyword = *prob* or *max_rxn* or *stabilize_steps* or *custom_charges*
 
   .. parsed-literal::
 
@@ -50,20 +52,20 @@ Syntax
            N = maximum number of reactions allowed to occur
          *stabilize_steps* value = timesteps
            timesteps = number of timesteps to apply the internally-created :doc:`nve/limit <fix_nve_limit>` fix to reacting atoms
-         *update_edges* value = *none* or *charges* or *custom*
-           none = do not update topology near the edges of reaction templates
-           charges = update atomic charges of all atoms in reaction templates
-           custom = force the update of user-specified atomic charges
-
-
+         *custom_charges* value = *no* or *fragmentID*
+           no = update all atomic charges (default)
+           fragmentID = ID of molecule fragment whose charges are updated
+         *molecule* value = *off* or *inter* or *intra*
+           off = allow both inter- and intramolecular reactions (default)
+           inter = search for reactions between molecules with different IDs
+           intra = search for reactions within the same molecule
 
 Examples
 """"""""
 
-For unabridged example scripts and files, see examples/USER/misc/bond\_react.
+For unabridged example scripts and files, see examples/USER/reaction.
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    molecule mol1 pre_reacted_topology.txt
    molecule mol2 post_reacted_topology.txt
@@ -114,7 +116,7 @@ The *stabilization* keyword enables reaction site stabilization.
 Reaction site stabilization is performed by including reacting atoms
 in an internally-created fix :doc:`nve/limit <fix_nve_limit>` time
 integrator for a set number of timesteps given by the
-*stabilize\_steps* keyword. While reacting atoms are being time
+*stabilize_steps* keyword. While reacting atoms are being time
 integrated by the internal nve/limit, they are prevented from being
 involved in any new reactions. The *xmax* value keyword should
 typically be set to the maximum distance that non-reacting atoms move
@@ -127,7 +129,7 @@ automatically thermostatted by an internally-created
 :doc:`nve/limit <fix_nve_limit>` integrator. The second group contains
 all atoms currently not involved in a reaction. This group should be
 used by a thermostat in order to time integrate the system. The name
-of this group of non-reacting atoms is created by appending '\_REACT'
+of this group of non-reacting atoms is created by appending '_REACT'
 to the group-ID argument of the *stabilization* keyword, as shown in
 the second example above.
 
@@ -143,80 +145,108 @@ command creates a :doc:`dynamic group <group>` that is initialized to
 include all atoms. If the group-ID is that of an existing static
 group, the group is used as the parent group of new,
 internally-created dynamic group. In both cases, this new dynamic
-group is named by appending '\_REACT' to the group-ID, e.g.
-nvt\_grp\_REACT. By specifying an existing group, you may thermostat
+group is named by appending '_REACT' to the group-ID, e.g.
+nvt_grp_REACT. By specifying an existing group, you may thermostat
 constant-topology parts of your system separately. The dynamic group
 contains only atoms not involved in a reaction at a given timestep,
 and therefore should be used by a subsequent system-wide time
 integrator such as nvt, npt, or nve, as shown in the second example
-above (full examples can be found at examples/USER/misc/bond\_react).
-The time integration command should be placed after the fix bond/react
-command due to the internal dynamic grouping performed by fix
-bond/react.
+above (full examples can be found at examples/USER/reaction). The time
+integration command should be placed after the fix bond/react command
+due to the internal dynamic grouping performed by fix bond/react.
 
 .. note::
 
    If the group-ID is an existing static group, react-group-IDs
    should also be specified as this static group, or a subset.
 
+The *reset_mol_ids* keyword invokes the :doc:`reset_mol_ids <reset_mol_ids>`
+command after a reaction occurs, to ensure that molecule IDs are
+consistent with the new bond topology. The group-ID used for
+:doc:`reset_mol_ids <reset_mol_ids>` is the group-ID for this fix.
+Resetting molecule IDs is necessarily a global operation, and so can
+be slow for very large systems.
+
 The following comments pertain to each *react* argument (in other
 words, can be customized for each reaction, or reaction step):
 
 A check for possible new reaction sites is performed every *Nevery*
-timesteps.
+timesteps. *Nevery* can be specified with an equal-style
+:doc:`variable <variable>`, whose value is rounded up to the nearest
+integer.
 
 Three physical conditions must be met for a reaction to occur. First,
-a bonding atom pair must be identified within the reaction distance
-cutoffs. Second, the topology surrounding the bonding atom pair must
-match the topology of the pre-reaction template. Finally, any reaction
-constraints listed in the map file (see below) must be satisfied. If
-all of these conditions are met, the reaction site is eligible to be
-modified to match the post-reaction template.
+an initiator atom pair must be identified within the reaction distance
+cutoffs. Second, the topology surrounding the initiator atom pair must
+match the topology of the pre-reaction template. Only atom types and
+bond connectivity are used to identify a valid reaction site (not bond
+types, etc.). Finally, any reaction constraints listed in the map file
+(see below) must be satisfied. If all of these conditions are met, the
+reaction site is eligible to be modified to match the post-reaction
+template.
 
-A bonding atom pair will be identified if several conditions are met.
-First, a pair of atoms I,J within the specified react-group-ID of type
-itype and jtype must be separated by a distance between *Rmin* and
-*Rmax*\ . It is possible that multiple bonding atom pairs are
-identified: if the bonding atoms in the pre-reacted template are  1-2
-neighbors, i.e. directly bonded, the farthest bonding atom partner is
-set as its bonding partner; otherwise, the closest potential partner
-is chosen. Then, if both an atom I and atom J have each other as their
-bonding partners, these two atoms are identified as the bonding atom
-pair of the reaction site. Once this unique bonding atom pair is
-identified for each reaction, there could two or more reactions that
-involve a given atom on the same timestep. If this is the case, only
-one such reaction is permitted to occur. This reaction is chosen
-randomly from all potential reactions. This capability allows e.g. for
+An initiator atom pair will be identified if several conditions are
+met. First, a pair of atoms I,J within the specified react-group-ID of
+type itype and jtype must be separated by a distance between *Rmin*
+and *Rmax*\ . *Rmin* and *Rmax* can be specified with equal-style
+:doc:`variables <variable>`. For example, these reaction cutoffs can
+be a function of the reaction conversion using the following commands:
+
+.. code-block:: LAMMPS
+
+   variable rmax equal 0 # initialize variable before bond/react
+   fix myrxn all bond/react react myrxn1 all 1 0 v_rmax mol1 mol2 map_file.txt
+   variable rmax equal 3+f_myrxn[1]/100 # arbitrary function of reaction count
+
+The following criteria are used if multiple candidate initiator atom
+pairs are identified within the cutoff distance: 1) If the initiator
+atoms in the pre-reaction template are not 1-2 neighbors (i.e. not
+directly bonded) the closest potential partner is chosen. 2)
+Otherwise, if the initiator atoms in the pre-reaction template are 1-2
+neighbors (i.e. directly bonded) the farthest potential partner is
+chosen. 3) Then, if both an atom I and atom J have each other as their
+initiator partners, these two atoms are identified as the initiator
+atom pair of the reaction site. Note that it can be helpful to select
+unique atom types for the initiator atoms: if an initiator atom pair
+is identified, as described in the previous steps, but does not
+correspond to the same pair specified in the pre-reaction template, an
+otherwise eligible reaction could be prevented from occurring. Once
+this unique initiator atom pair is identified for each reaction, there
+could be two or more reactions that involve the same atom on the same
+timestep. If this is the case, only one such reaction is permitted to
+occur. This reaction is chosen randomly from all potential reactions
+involving the overlapping atom. This capability allows e.g. for
 different reaction pathways to proceed from identical reaction sites
 with user-specified probabilities.
 
 The pre-reacted molecule template is specified by a molecule command.
 This molecule template file contains a sample reaction site and its
-surrounding topology. As described below, the bonding atom pairs of
+surrounding topology. As described below, the initiator atom pairs of
 the pre-reacted template are specified by atom ID in the map file. The
 pre-reacted molecule template should contain as few atoms as possible
 while still completely describing the topology of all atoms affected
-by the reaction. For example, if the force field contains dihedrals,
-the pre-reacted template should contain any atom within three bonds of
-reacting atoms.
+by the reaction (which includes all atoms that change atom type or
+connectivity, and all bonds that change bond type). For example, if
+the force field contains dihedrals, the pre-reacted template should
+contain any atom within three bonds of reacting atoms.
 
 Some atoms in the pre-reacted template that are not reacting may have
 missing topology with respect to the simulation. For example, the
 pre-reacted template may contain an atom that, in the simulation, is
 currently connected to the rest of a long polymer chain. These are
 referred to as edge atoms, and are also specified in the map file. All
-pre-reaction template atoms should be linked to a bonding atom, via at
-least one path that does not involve edge atoms. When the pre-reaction
-template contains edge atoms, not all atoms, bonds, charges, etc.
-specified in the reaction templates will be updated. Specifically,
-topology that involves only atoms that are 'too near' to template
-edges will not be updated. The definition of 'too near the edge'
-depends on which interactions are defined in the simulation. If the
-simulation has defined dihedrals, atoms within two bonds of edge atoms
-are considered 'too near the edge.' If the simulation defines angles,
-but not dihedrals, atoms within one bond of edge atoms are considered
-'too near the edge.' If just bonds are defined, only edge atoms are
-considered 'too near the edge.'
+pre-reaction template atoms should be linked to an initiator atom, via
+at least one path that does not involve edge atoms. When the
+pre-reaction template contains edge atoms, not all atoms, bonds,
+charges, etc. specified in the reaction templates will be updated.
+Specifically, topology that involves only atoms that are 'too near' to
+template edges will not be updated. The definition of 'too near the
+edge' depends on which interactions are defined in the simulation. If
+the simulation has defined dihedrals, atoms within two bonds of edge
+atoms are considered 'too near the edge.' If the simulation defines
+angles, but not dihedrals, atoms within one bond of edge atoms are
+considered 'too near the edge.' If just bonds are defined, only edge
+atoms are considered 'too near the edge.'
 
 .. note::
 
@@ -253,56 +283,46 @@ A discussion of correctly handling this is also provided on the
 The map file is a text document with the following format:
 
 A map file has a header and a body. The header of map file the
-contains one mandatory keyword and five optional keywords. The
+contains one mandatory keyword and four optional keywords. The
 mandatory keyword is 'equivalences':
-
 
 .. parsed-literal::
 
    N *equivalences* = # of atoms N in the reaction molecule templates
 
-The optional keywords are 'edgeIDs', 'deleteIDs', 'customIDs' and
+The optional keywords are 'edgeIDs', 'deleteIDs', 'chiralIDs' and
 'constraints':
-
 
 .. parsed-literal::
 
    N *edgeIDs* = # of edge atoms N in the pre-reacted molecule template
    N *deleteIDs* = # of atoms N that are specified for deletion
    N *chiralIDs* = # of specified chiral centers N
-   N *customIDs* = # of atoms N that are specified for a custom update
    N *constraints* = # of specified reaction constraints N
 
-The body of the map file contains two mandatory sections and five
+The body of the map file contains two mandatory sections and four
 optional sections. The first mandatory section begins with the keyword
-'BondingIDs' and lists the atom IDs of the bonding atom pair in the
-pre-reacted molecule template. The second mandatory section begins
-with the keyword 'Equivalences' and lists a one-to-one correspondence
-between atom IDs of the pre- and post-reacted templates. The first
-column is an atom ID of the pre-reacted molecule template, and the
-second column is the corresponding atom ID of the post-reacted
-molecule template. The first optional section begins with the keyword
-'EdgeIDs' and lists the atom IDs of edge atoms in the pre-reacted
-molecule template. The second optional section begins with the keyword
-'DeleteIDs' and lists the atom IDs of pre-reaction template atoms to
-delete. The third optional section begins with the keyword 'ChiralIDs'
-lists the atom IDs of chiral atoms whose handedness should be
-enforced. The fourth optional section begins with the keyword 'Custom
-Edges' and allows for forcing the update of a specific atom's atomic
-charge. The first column is the ID of an atom near the edge of the
-pre-reacted molecule template, and the value of the second column is
-either 'none' or 'charges.' Further details are provided in the
-discussion of the 'update\_edges' keyword. The fifth optional section
-begins with the keyword 'Constraints' and lists additional criteria
-that must be satisfied in order for the reaction to occur. Currently,
-there are three types of constraints available, as discussed below.
+'InitiatorIDs' and lists the two atom IDs of the initiator atom pair
+in the pre-reacted molecule template. The second mandatory section
+begins with the keyword 'Equivalences' and lists a one-to-one
+correspondence between atom IDs of the pre- and post-reacted
+templates. The first column is an atom ID of the pre-reacted molecule
+template, and the second column is the corresponding atom ID of the
+post-reacted molecule template. The first optional section begins with
+the keyword 'EdgeIDs' and lists the atom IDs of edge atoms in the
+pre-reacted molecule template. The second optional section begins with
+the keyword 'DeleteIDs' and lists the atom IDs of pre-reaction
+template atoms to delete. The third optional section begins with the
+keyword 'ChiralIDs' lists the atom IDs of chiral atoms whose
+handedness should be enforced. The fourth optional section begins with
+the keyword 'Constraints' and lists additional criteria that must be
+satisfied in order for the reaction to occur. Currently, there are
+five types of constraints available, as discussed below: 'distance',
+'angle', 'dihedral', 'arrhenius', and 'rmsd'.
 
 A sample map file is given below:
 
-
 ----------
-
-
 
 .. parsed-literal::
 
@@ -311,7 +331,7 @@ A sample map file is given below:
    7 equivalences
    2 edgeIDs
 
-   BondingIDs
+   InitiatorIDs
 
    3
    5
@@ -331,9 +351,7 @@ A sample map file is given below:
    6   6
    7   7
 
-
 ----------
-
 
 The handedness of atoms that are chiral centers can be enforced by
 listing their IDs in the ChiralIDs section. A chiral atom must be
@@ -348,45 +366,69 @@ Any number of additional constraints may be specified in the
 Constraints section of the map file. The constraint of type 'distance'
 has syntax as follows:
 
-
 .. parsed-literal::
 
    distance *ID1* *ID2* *rmin* *rmax*
 
 where 'distance' is the required keyword, *ID1* and *ID2* are
-pre-reaction atom IDs, and these two atoms must be separated by a
-distance between *rmin* and *rmax* for the reaction to occur.
+pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+two atoms must be separated by a distance between *rmin* and *rmax*
+for the reaction to occur.
 
 The constraint of type 'angle' has the following syntax:
-
 
 .. parsed-literal::
 
    angle *ID1* *ID2* *ID3* *amin* *amax*
 
 where 'angle' is the required keyword, *ID1*\ , *ID2* and *ID3* are
-pre-reaction atom IDs, and these three atoms must form an angle
-between *amin* and *amax* for the reaction to occur (where *ID2* is
-the central atom). Angles must be specified in degrees. This
-constraint can be used to enforce a certain orientation between
-reacting molecules.
+pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+three atoms must form an angle between *amin* and *amax* for the
+reaction to occur (where *ID2* is the central atom). Angles must be
+specified in degrees. This constraint can be used to enforce a certain
+orientation between reacting molecules.
+
+The constraint of type 'dihedral' has the following syntax:
+
+.. parsed-literal::
+
+   dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
+
+where 'dihedral' is the required keyword, and *ID1*\ , *ID2*\ , *ID3*
+and *ID4* are pre-reaction atom IDs (or molecule-fragment IDs, see
+below). Dihedral angles are calculated in the interval (-180,180].
+Refer to the :doc:`dihedral style <dihedral_style>` documentation for
+further details on convention. If *amin* is less than *amax*, these
+four atoms must form a dihedral angle greater than *amin* **and** less
+than *amax* for the reaction to occur. If *amin* is greater than
+*amax*, these four atoms must form a dihedral angle greater than
+*amin* **or** less than *amax* for the reaction to occur. Angles must
+be specified in degrees. Optionally, a second range of permissible
+angles *amin2*-*amax2* can be specified.
+
+For the 'distance', 'angle', and 'dihedral' constraints (explained
+above), atom IDs can be replaced by pre-reaction molecule-fragment
+IDs. The molecule-fragment ID must begin with a letter. The location
+of the ID is the geometric center of all atom positions in the
+fragment. The molecule fragment must have been defined in the
+:doc:`molecule <molecule>` command for the pre-reaction template.
 
 The constraint of type 'arrhenius' imposes an additional reaction
 probability according to the temperature-dependent Arrhenius equation:
 
-.. image:: Eqs/fix_bond_react.jpg
-   :align: center
+.. math::
+
+   k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}
 
 The Arrhenius constraint has the following syntax:
-
 
 .. parsed-literal::
 
    arrhenius *A* *n* *E_a* *seed*
 
 where 'arrhenius' is the required keyword, *A* is the pre-exponential
-factor, *n* is the exponent of the temperature dependence, *E\_a* is
-the activation energy (:doc:`units <units>` of energy), and *seed* is a
+factor, *n* is the exponent of the temperature dependence, :math:`E_a`
+is the activation energy (:doc:`units <units>` of energy), and *seed* is a
 random number seed. The temperature is defined as the instantaneous
 temperature averaged over all atoms in the reaction site, and is
 calculated in the same manner as for example
@@ -395,6 +437,42 @@ options for additional temperature averaging or velocity-biased
 temperature calculations. A uniform random number between 0 and 1 is
 generated using *seed*\ ; if this number is less than the result of the
 Arrhenius equation above, the reaction is permitted to occur.
+
+The constraint of type 'rmsd' has the following syntax:
+
+.. parsed-literal::
+
+   rmsd *RMSDmax* *molfragment*
+
+where 'rmsd' is the required keyword, and *RMSDmax* is the maximum
+root-mean-square deviation between atom positions of the pre-reaction
+template and the local reaction site (distance units), after optimal
+translation and rotation of the pre-reaction template. Optionally, the
+name of a molecule fragment (of the pre-reaction template) can be
+specified by *molfragment*\ . If a molecule fragment is specified,
+only atoms that are part of this molecule fragment are used to
+determine the RMSD. A molecule fragment must have been defined in the
+:doc:`molecule <molecule>` command for the pre-reaction template. For
+example, the molecule fragment could consist of only the backbone
+atoms of a polymer chain. This constraint can be used to enforce a
+specific relative position and orientation between reacting molecules.
+
+By default, all constraints must be satisfied for the reaction to
+occur. In other words, constraints are evaluated as a series of
+logical values using the logical AND operator "&&". More complex logic
+can be achieved by explicitly adding the logical AND operator "&&" or
+the logical OR operator "||" after a given constraint command. If a
+logical operator is specified after a constraint, it must be placed
+after all constraint parameters, on the same line as the constraint
+(one per line). Similarly, parentheses can be used to group
+constraints. The expression that results from concatenating all
+constraints should be a valid logical expression that can be read by
+the :doc:`variable <variable>` command after converting each
+constraint to a logical value. Because exactly one constraint is
+allowed per line, having a valid logical expression implies that left
+parentheses "(" should only appear before a constraint, and right
+parentheses ")" should only appear after a constraint and before any
+logical operator.
 
 Once a reaction site has been successfully identified, data structures
 within LAMMPS that store bond topology are updated to reflect the
@@ -405,7 +483,7 @@ A few capabilities to note: 1) You may specify as many *react*
 arguments as desired. For example, you could break down a complicated
 reaction mechanism into several reaction steps, each defined by its
 own *react* argument. 2) While typically a bond is formed or removed
-between the bonding atom pairs specified in the pre-reacted molecule
+between the initiator atoms specified in the pre-reacted molecule
 template, this is not required. 3) By reversing the order of the pre-
 and post- reacted molecule templates in another *react* argument, you
 can allow for the possibility of one or more reverse reactions.
@@ -416,12 +494,13 @@ it occurs:
 
 The *prob* keyword can affect whether or not an eligible reaction
 actually occurs. The fraction setting must be a value between 0.0 and
-1.0. A uniform random number between 0.0 and 1.0 is generated and the
+1.0, and can be specified with an equal-style :doc:`variable <variable>`.
+A uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
 fraction. Up to N reactions are permitted to occur, as optionally
-specified by the *max\_rxn* keyword.
+specified by the *max_rxn* keyword.
 
-The *stabilize\_steps* keyword allows for the specification of how many
+The *stabilize_steps* keyword allows for the specification of how many
 timesteps a reaction site is stabilized before being returned to the
 overall system thermostat. In order to produce the most physical
 behavior, this 'reaction site equilibration time' should be tuned to
@@ -432,17 +511,20 @@ individually tuned for each fix reaction step. Note that in some
 situations, decreasing rather than increasing this parameter will
 result in an increase in stability.
 
-The *update\_edges* keyword can increase the number of atoms whose
-atomic charges are updated, when the pre-reaction template contains
-edge atoms. When the value is set to 'charges,' all atoms' atomic
-charges are updated to those specified by the post-reaction template,
-including atoms near the edge of reaction templates. When the value is
-set to 'custom,' an additional section must be included in the map
-file that specifies whether or not to update charges, on a per-atom
-basis. The format of this section is detailed above. Listing a
-pre-reaction atom ID with a value of 'charges' will force the update
-of the atom's charge, even if it is near a template edge. Atoms not
-near a template edge are unaffected by this setting.
+The *custom_charges* keyword can be used to specify which atoms'
+atomic charges are updated. When the value is set to 'no', all atomic
+charges are updated to those specified by the post-reaction template
+(default). Otherwise, the value should be the name of a molecule
+fragment defined in the pre-reaction molecule template. In this case,
+only the atomic charges of atoms in the molecule fragment are updated.
+
+The *molecule* keyword can be used to force the reaction to be
+intermolecular, intramolecular or either. When the value is set to
+'off', molecule IDs are not considered when searching for reactions
+(default). When the value is set to 'inter', the initiator atoms must
+have different molecule IDs in order to be considered for the
+reaction. When the value is set to 'intra', only initiator atoms with
+the same molecule ID are considered for the reaction.
 
 A few other considerations:
 
@@ -458,13 +540,12 @@ such as small rings, that may be otherwise indistinguishable.
 Optionally, you can enforce additional behaviors on reacting atoms.
 For example, it may be beneficial to force reacting atoms to remain at
 a certain temperature. For this, you can use the internally-created
-dynamic group named "bond\_react\_MASTER\_group", which consists of all
+dynamic group named "bond_react_MASTER_group", which consists of all
 atoms currently involved in a reaction. For example, adding the
 following command would add an additional thermostat to the group of
 all currently-reacting atoms:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 bond_react_MASTER_group temp/rescale 1 300 300 10 1
 
@@ -483,16 +564,16 @@ you should be cautious about invoking this fix too frequently.
 You can dump out snapshots of the current bond topology via the dump
 local command.
 
-
 ----------
 
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
-
-Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`. These values are associated with the
-reaction name (react-ID). Additionally, internally-created per-atom
-properties are stored to allow for smooth restarts. None of the
-:doc:`fix_modify <fix_modify>` options are relevant to this fix.
+Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`.
+These values are associated with the reaction name (react-ID).
+Additionally, internally-created per-atom properties are stored to
+allow for smooth restarts. None of the :doc:`fix_modify <fix_modify>`
+options are relevant to this fix.
 
 This fix computes one statistic for each *react* argument that it
 stores in a global vector, of length 'number of react arguments', that
@@ -506,15 +587,14 @@ These is 1 quantity for each react argument:
 No parameter of this fix can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
 
-When fix bond/react is 'unfixed,' all internally-created groups are
+When fix bond/react is 'unfixed', all internally-created groups are
 deleted. Therefore, fix bond/react can only be unfixed after unfixing
 all other fixes that use any group created by fix bond/react.
 
 Restrictions
 """"""""""""
 
-
-This fix is part of the USER-MISC package.  It is only enabled if
+This fix is part of the USER-REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` doc page for more info.
 
@@ -529,15 +609,15 @@ Related commands
 Default
 """""""
 
-The option defaults are stabilization = no, prob = 1.0, stabilize\_steps = 60,
-update\_edges = none
-
+The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
+reset_mol_ids = yes, custom_charges = no, molecule = off
 
 ----------
 
-
 .. _Gissinger:
 
+**(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211-217 (2017).
 
+.. _Gissinger2020:
 
-**(Gissinger)** Gissinger, Jensen and Wise, Polymer, 128, 211 (2017).
+**(Gissinger)** Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953-9961 (2020).

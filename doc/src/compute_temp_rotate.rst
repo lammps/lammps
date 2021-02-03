@@ -6,7 +6,6 @@ compute temp/rotate command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/rotate
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute Tbead bead temp/rotate
 
@@ -68,7 +66,8 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -85,7 +84,6 @@ vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -94,4 +92,7 @@ Related commands
 
 :doc:`compute temp <compute_temp>`
 
-**Default:** none
+Default
+"""""""
+
+none

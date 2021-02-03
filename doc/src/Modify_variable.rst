@@ -9,7 +9,6 @@ via the :doc:`print <print>`, :doc:`fix print <fix_print>`, or
 "equal" can compute complex equations that involve the following types
 of arguments:
 
-
 .. parsed-literal::
 
    thermo keywords = ke, vol, atoms, ...

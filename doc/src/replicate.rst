@@ -6,26 +6,22 @@ replicate command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    replicate nx ny nz *keyword*
 
-nx,ny,nz = replication factors in each dimension 
+nx,ny,nz = replication factors in each dimension
 
 * optional *keyword* = *bbox*
-  
+
   .. parsed-literal::
-  
+
        *bbox* = only check atoms in replicas that overlap with a processor's sub-domain
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    replicate 2 3 2
 
@@ -66,7 +62,6 @@ replicated.
 Restrictions
 """"""""""""
 
-
 A 2d simulation cannot be replicated in the z dimension.
 
 If a simulation is non-periodic in a dimension, care should be used
@@ -106,6 +101,13 @@ To work around this restriction, restart files may be converted into
 data files and fixes may be undefined via the :doc:`unfix <unfix>`
 command before and redefined after the replicate command.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

@@ -6,7 +6,6 @@ echo command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    echo style
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    echo both
    echo log
@@ -37,12 +35,15 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    echo log

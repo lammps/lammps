@@ -55,7 +55,7 @@ rotation of **A**\ , **B**\ , and **C** and can be computed as follows:
   c_z = & |\mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})}|\quad = \quad \sqrt{C^2 - {c_x}^2 - {c_y}^2}
 
 where A = \| **A** \| indicates the scalar length of **A**\ . The hat symbol (\^)
-indicates the corresponding unit vector. *beta* and *gamma* are angles
+indicates the corresponding unit vector. :math:`\beta` and :math:`\gamma` are angles
 between the vectors described below. Note that by construction,
 **a**\ , **b**\ , and **c** have strictly positive x, y, and z components, respectively.
 If it should happen that
@@ -78,14 +78,14 @@ The transformation is given by the following equation:
     \begin{pmatrix}
       \mathbf{B \times C}  \\
       \mathbf{C \times A}  \\
-      \mathbf{A \times B} 
+      \mathbf{A \times B}
     \end{pmatrix} \cdot \mathbf{X}
 
 where *V* is the volume of the box, **X** is the original vector quantity and
 **x** is the vector in the LAMMPS basis.
 
 There is no requirement that a triclinic box be periodic in any
-dimension, though it typically should be in at least the 2nd dimension
+dimension, though it typically should be in at least the second dimension
 of the tilt (y in xy) if you want to enforce a shift in periodic
 boundary conditions across that boundary.  Some commands that work
 with triclinic boxes, e.g. the :doc:`fix deform <fix_deform>` and :doc:`fix npt <fix_nh>` commands, require periodicity or non-shrink-wrap
@@ -120,7 +120,7 @@ The 9 parameters, as well as lx,ly,lz, can be output via the
 To avoid extremely tilted boxes (which would be computationally
 inefficient), LAMMPS normally requires that no tilt factor can skew
 the box more than half the distance of the parallel box length, which
-is the 1st dimension in the tilt factor (x for xz).  This is required
+is the first dimension in the tilt factor (x for xz).  This is required
 both when the simulation box is created, e.g. via the
 :doc:`create_box <create_box>` or :doc:`read_data <read_data>` commands,
 as well as when the box shape changes dynamically during a simulation,
@@ -137,7 +137,7 @@ limit during a dynamics run (e.g. via the :doc:`fix deform <fix_deform>`
 command), then the box is "flipped" to an equivalent shape with a tilt
 factor within the bounds, so the run can continue.  See the :doc:`fix deform <fix_deform>` doc page for further details.
 
-One exception to this rule is if the 1st dimension in the tilt
+One exception to this rule is if the first dimension in the tilt
 factor (x for xy) is non-periodic.  In that case, the limits on the
 tilt factor are not enforced, since flipping the box in that dimension
 does not change the atom positions due to non-periodicity.  In this
@@ -200,7 +200,6 @@ an orthogonal bounding box which encloses the triclinic simulation box
 is output, along with the 3 tilt factors (xy, xz, yz) of the triclinic
 box, formatted as follows:
 
-
 .. parsed-literal::
 
    ITEM: BOX BOUNDS xy xz yz
@@ -212,7 +211,6 @@ This bounding box is convenient for many visualization programs and is
 calculated from the 9 triclinic box parameters
 (xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz) as follows:
 
-
 .. parsed-literal::
 
    xlo_bound = xlo + MIN(0.0,xy,xz,xy+xz)
@@ -223,7 +221,7 @@ calculated from the 9 triclinic box parameters
    zhi_bound = zhi
 
 These formulas can be inverted if you need to convert the bounding box
-back into the triclinic box parameters, e.g. xlo = xlo\_bound -
+back into the triclinic box parameters, e.g. xlo = xlo_bound -
 MIN(0.0,xy,xz,xy+xz).
 
 One use of triclinic simulation boxes is to model solid-state crystals

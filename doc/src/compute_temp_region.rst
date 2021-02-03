@@ -6,7 +6,6 @@ compute temp/region command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/region region-ID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute mine flow temp/region boundary
 
@@ -83,7 +81,8 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -106,4 +105,7 @@ Related commands
 
 :doc:`compute temp <compute_temp>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none

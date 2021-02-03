@@ -1,24 +1,22 @@
-.. index:: improper\_style ring
+.. index:: improper_style ring
+.. index:: improper_style ring/omp
 
-improper\_style ring command
-============================
+improper_style ring command
+===========================
 
-improper\_style ring/omp command
-================================
+Accelerator Variants: *ring/omp*
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style ring
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style ring
    improper_coeff 1 8000 70.5
@@ -35,16 +33,15 @@ The *ring* improper style uses the potential
    \Delta_{ijk} = & \cos{\theta_{ijk} - \cos{\theta_0}} \\
    \Delta_{kjl} = & \cos{\theta_{kjl} - \cos{\theta_0}}
 
-
 where :math:`K` is a prefactor, :math:`\theta` is the angle formed by
 the atoms specified by (i,j,k,l) indices and :math:`\theta_0` its
 equilibrium value.
 
 If the 4 atoms in an improper quadruplet (listed in the data file read
 by the :doc:`read_data <read_data>` command) are ordered i,j,k,l then
-theta\_\ *ijl* is the angle between atoms i,j and l, theta\_\ *ijk* is the
-angle between atoms i,j and k, theta\_\ *kjl* is the angle between atoms
-j,k, and l.
+:math:`\theta_{ijl}` is the angle between atoms i,j and l,
+:math:`\theta_{ijk}` is the angle between atoms i,j and k,
+:math:`\theta_{kjl}` is the angle between atoms j,k, and l.
 
 The "ring" improper style implements the improper potential introduced
 by Destree et al., in Equation (9) of :ref:`(Destree) <Destree>`.  This
@@ -65,35 +62,14 @@ commands:
 * :math:`K` (energy)
 * :math:`\theta_0` (degrees)
 
-
 ----------
 
-
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
-
+.. include:: accel_styles.rst
 
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
@@ -105,8 +81,6 @@ Related commands
 :doc:`improper_coeff <improper_coeff>`
 
 .. _Destree:
-
-
 
 **(Destree)** M. Destree, F. Laupretre, A. Lyulin, and J.-P.  Ryckaert,
 J Chem Phys, 112, 9632 (2000).

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_reduce.h"
-#include <mpi.h>
+
 #include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "update.h"
 #include "domain.h"
@@ -26,16 +26,13 @@
 #include "memory.h"
 #include "error.h"
 
+
 using namespace LAMMPS_NS;
 
 enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ComputeReduceRegion
 enum{UNKNOWN=-1,X,V,F,COMPUTE,FIX,VARIABLE};
 enum{PERATOM,LOCAL};
 
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 
@@ -43,14 +40,14 @@ enum{PERATOM,LOCAL};
 
 ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), flavor(NULL),
-  value2index(NULL), ids(NULL), onevec(NULL), replace(NULL), indices(NULL),
-  owner(NULL), idregion(NULL), varatom(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), flavor(nullptr),
+  value2index(nullptr), ids(nullptr), onevec(nullptr), replace(nullptr), indices(nullptr),
+  owner(nullptr), idregion(nullptr), varatom(nullptr)
 {
   int iarg = 0;
   if (strcmp(style,"reduce") == 0) {
     if (narg < 5) error->all(FLERR,"Illegal compute reduce command");
-    idregion = NULL;
+    idregion = nullptr;
     iarg = 3;
   } else if (strcmp(style,"reduce/region") == 0) {
     if (narg < 6) error->all(FLERR,"Illegal compute reduce/region command");
@@ -78,7 +75,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+  int nargnew = utils::expand_args(FLERR,narg-iarg,&arg[iarg],1,earg,lmp);
 
   if (earg != &arg[iarg]) expand = 1;
   arg = earg;
@@ -92,13 +89,13 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   value2index = new int[nargnew];
   for (int i=0; i < nargnew; ++i) {
     which[i] = argindex[i] = flavor[i] = value2index[i] = UNKNOWN;
-    ids[i] = NULL;
+    ids[i] = nullptr;
   }
   nvalues = 0;
 
   iarg = 0;
   while (iarg < nargnew) {
-    ids[nvalues] = NULL;
+    ids[nvalues] = nullptr;
 
     if (strcmp(arg[iarg],"x") == 0) {
       which[nvalues] = X;
@@ -189,7 +186,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     if (replace[i] >= 0) flag = 1;
   if (!flag) {
     delete [] replace;
-    replace = NULL;
+    replace = nullptr;
   }
 
   // if wildcard expansion occurred, free earg memory from expand_args()
@@ -284,8 +281,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     scalar_flag = 1;
     if (mode == SUM || mode == SUMSQ) extscalar = 1;
     else extscalar = 0;
-    vector = onevec = NULL;
-    indices = owner = NULL;
+    vector = onevec = nullptr;
+    indices = owner = nullptr;
   } else {
     vector_flag = 1;
     size_vector = nvalues;
@@ -298,7 +295,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   }
 
   maxatom = 0;
-  varatom = NULL;
+  varatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -512,9 +509,9 @@ double ComputeReduce::compute_one(int m, int flag)
     Compute *compute = modify->compute[vidx];
 
     if (flavor[m] == PERATOM) {
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
 
       if (aidx == 0) {
@@ -535,9 +532,9 @@ double ComputeReduce::compute_one(int m, int flag)
       }
 
     } else if (flavor[m] == LOCAL) {
-      if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
         compute->compute_local();
-        compute->invoked_flag |= INVOKED_LOCAL;
+        compute->invoked_flag |= Compute::INVOKED_LOCAL;
       }
 
       if (aidx == 0) {

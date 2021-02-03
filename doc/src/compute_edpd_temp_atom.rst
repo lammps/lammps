@@ -6,7 +6,6 @@ compute edpd/temp/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID edpd/temp/atom
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all edpd/temp/atom
 
@@ -33,7 +31,8 @@ of each eDPD particle based on the local equilibrium hypothesis.
 For more details please see :ref:`(Espanol1997) <Espanol1997>` and
 :ref:`(Li2014) <Li2014a>`.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input. See the
@@ -45,31 +44,27 @@ The per-atom vector values will be in temperature :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
-This compute is part of the USER-MESO package.  It is only enabled if
+This compute is part of the USER-MESODPD package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`pair_style edpd <pair_meso>`
+:doc:`pair_style edpd <pair_mesodpd>`
 
-**Default:** none
+Default
+"""""""
 
+none
 
 ----------
 
-
 .. _Espanol1997:
-
-
 
 **(Espanol1997)** Espanol, Europhys Lett, 40(6): 631-636 (1997).  DOI:
 10.1209/epl/i1997-00515-8
 
 .. _Li2014a:
-
-
 
 **(Li2014)** Li, Tang, Lei, Caswell, Karniadakis, J Comput Phys, 265:
 113-127 (2014).  DOI: 10.1016/j.jcp.2014.02.003.

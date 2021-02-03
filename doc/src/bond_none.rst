@@ -6,7 +6,6 @@ bond_style none command
 Syntax
 """"""
 
-
 .. code-block:: LAMMPS
 
    bond_style none
@@ -14,8 +13,7 @@ Syntax
 Examples
 """"""""
 
-
-.. code-blocK:: LAMMPS
+.. code-block:: LAMMPS
 
    bond_style none
 
@@ -33,8 +31,15 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 :doc:`bond_style zero <bond_zero>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -78,12 +78,12 @@ void FixQEqShielded::init()
 void FixQEqShielded::extract_reax()
 {
   Pair *pair = force->pair_match("^reax/c",0);
-  if (pair == NULL) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
+  if (pair == nullptr) error->all(FLERR,"No pair reax/c for fix qeq/shielded");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);
   eta = (double *) pair->extract("eta",tmp);
   gamma = (double *) pair->extract("gamma",tmp);
-  if (chi == NULL || eta == NULL || gamma == NULL)
+  if (chi == nullptr || eta == nullptr || gamma == nullptr)
     error->all(FLERR,
         "Fix qeq/slater could not extract params from pair reax/c");
 }
@@ -97,8 +97,8 @@ void FixQEqShielded::init_shielding()
   double d7, swa2, swa3, swb2, swb3;
 
   int ntypes = atom->ntypes;
-  for( i = 1; i <= ntypes; ++i )
-    for( j = 1; j <= ntypes; ++j )
+  for (i = 1; i <= ntypes; ++i)
+    for (j = 1; j <= ntypes; ++j)
       shld[i][j] = pow( gamma[i] * gamma[j], -1.5 );
 
   if (fabs(swa) > 0.01 && comm->me == 0)
@@ -158,7 +158,7 @@ void FixQEqShielded::init_matvec()
   inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -196,14 +196,14 @@ void FixQEqShielded::compute_H()
   // fill in the H matrix
   m_fill = 0;
   r_sqr = 0;
-  for( ii = 0; ii < inum; ii++ ) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (mask[i] & groupbit) {
       jlist = firstneigh[i];
       jnum = numneigh[i];
       H.firstnbr[i] = m_fill;
 
-      for( jj = 0; jj < jnum; jj++ ) {
+      for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
 

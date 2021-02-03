@@ -105,7 +105,7 @@ namespace ATC
     const WeakEquation * weak_equation(FieldName field) const
     { 
       std::map<FieldName,WeakEquation *>::const_iterator itr = weakEqns_.find(field);
-      if (itr == weakEqns_.end()) return NULL;
+      if (itr == weakEqns_.end()) return nullptr;
       return (weakEqns_.find(field))->second;
     }
 

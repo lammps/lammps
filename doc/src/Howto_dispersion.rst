@@ -29,7 +29,7 @@ that provide fast and accurate simulations, there are two approaches,
 which both have their up- and downsides.
 
 The first approach is to set desired real-space an kspace accuracies
-via the *kspace\_modify force/disp/real* and *kspace\_modify
+via the *kspace_modify force/disp/real* and *kspace_modify
 force/disp/kspace* commands. Note that the accuracies have to be
 specified in force units and are thus dependent on the chosen unit
 settings. For real units, 0.0001 and 0.002 seem to provide reasonable
@@ -37,14 +37,14 @@ accurate and efficient computations for the real-space and kspace
 accuracies.  0.002 and 0.05 work well for most systems using lj
 units. PPPM parameters will be generated based on the desired
 accuracies. The upside of this approach is that it usually provides a
-good set of parameters and will work for both the *kspace\_modify diff
-ad* and *kspace\_modify diff ik* options.  The downside of the method
+good set of parameters and will work for both the *kspace_modify diff
+ad* and *kspace_modify diff ik* options.  The downside of the method
 is that setting the PPPM parameters will take some time during the
 initialization of the simulation.
 
 The second approach is to set the parameters for the pppm/disp
-explicitly using the *kspace\_modify mesh/disp*, *kspace\_modify
-order/disp*, and *kspace\_modify gewald/disp* commands. This approach
+explicitly using the *kspace_modify mesh/disp*, *kspace_modify
+order/disp*, and *kspace_modify gewald/disp* commands. This approach
 requires a more experienced user who understands well the impact of
 the choice of parameters on the simulation accuracy and
 performance. This approach provides a fast initialization of the
@@ -60,12 +60,12 @@ To avoid inaccurate or inefficient simulations, the pppm/disp stops
 simulations with an error message if no action is taken to control the
 PPPM parameters. If the automatic parameter generation is desired and
 real-space and kspace accuracies are desired to be equal, this error
-message can be suppressed using the *kspace\_modify disp/auto yes*
+message can be suppressed using the *kspace_modify disp/auto yes*
 command.
 
 A reasonable approach that combines the upsides of both methods is to
-make the first run using the *kspace\_modify force/disp/real* and
-*kspace\_modify force/disp/kspace* commands, write down the PPPM
+make the first run using the *kspace_modify force/disp/real* and
+*kspace_modify force/disp/kspace* commands, write down the PPPM
 parameters from the output, and specify these parameters using the
 second approach in subsequent runs (which have the same composition,
 force field, and approximately the same volume).
@@ -82,8 +82,8 @@ The second is that the mixing rule of the pair style has an impact on
 the computation time when using the pppm/disp. Fastest computations
 are achieved when using the geometric mixing rule. Using the
 arithmetic mixing rule substantially increases the computational cost.
-The computational overhead can be reduced using the *kspace\_modify
-mix/disp geom* and *kspace\_modify splittol* commands. The first
+The computational overhead can be reduced using the *kspace_modify
+mix/disp geom* and *kspace_modify splittol* commands. The first
 command simply enforces geometric mixing of the dispersion
 coefficients in kspace computations.  This introduces some error in
 the computations but will also significantly speed-up the
@@ -94,7 +94,7 @@ command, but will usually also not provide an equally good increase of
 efficiency.
 
 Finally, pppm/disp can also be used when no mixing rules apply.
-This can be achieved using the *kspace\_modify mix/disp none* command.
+This can be achieved using the *kspace_modify mix/disp none* command.
 Note that the code does not check automatically whether any mixing
 rule is fulfilled. If mixing rules do not apply, the user will have
 to specify this command explicitly.

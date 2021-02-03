@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,6 +15,7 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_nh_sphere_omp.h"
 #include "atom.h"
 #include "compute.h"
@@ -85,7 +86,7 @@ void FixNHSphereOMP::nve_v()
   // 4 cases depending on radius vs shape and rmass vs mass
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -115,7 +116,7 @@ void FixNHSphereOMP::nh_v_temp()
 
   if (which == NOBIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -129,7 +130,7 @@ void FixNHSphereOMP::nh_v_temp()
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       double buf[3];

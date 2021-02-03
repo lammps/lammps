@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_tip4p_omp.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -26,12 +24,16 @@
 #include "force.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "timer.h"
+#include "suffix.h"
+
+#include <cstring>
+#include <cmath>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
 
-#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
@@ -61,7 +63,7 @@ PPPMTIP4POMP::PPPMTIP4POMP(LAMMPS *lmp) :
 PPPMTIP4POMP::~PPPMTIP4POMP()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -83,7 +85,7 @@ void PPPMTIP4POMP::allocate()
   PPPMTIP4P::allocate();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -124,7 +126,7 @@ void PPPMTIP4POMP::compute_gf_ik()
   const int twoorder = 2*order;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double snx,sny,snz;
@@ -218,7 +220,7 @@ void PPPMTIP4POMP::compute_gf_ad()
   double sf0=0.0,sf1=0.0,sf2=0.0,sf3=0.0,sf4=0.0,sf5=0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) reduction(+:sf0,sf1,sf2,sf3,sf4,sf5)
+#pragma omp parallel LMP_DEFAULT_NONE reduction(+:sf0,sf1,sf2,sf3,sf4,sf5)
 #endif
   {
     double snx,sny,snz,sqk;
@@ -283,7 +285,7 @@ void PPPMTIP4POMP::compute_gf_ad()
       }
     }
     thr->timer(Timer::KSPACE);
-  } // end of paralle region
+  } // end of parallel region
 
   // compute the coefficients for the self-force correction
 
@@ -316,7 +318,7 @@ void PPPMTIP4POMP::compute(int eflag, int vflag)
   PPPMTIP4P::compute(eflag,vflag);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)
@@ -350,12 +352,12 @@ void PPPMTIP4POMP::particle_map()
   const double boxloz = boxlo[2];
   const int nlocal = atom->nlocal;
 
-  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
+  if (!std::isfinite(boxlox) || !std::isfinite(boxloy) || !std::isfinite(boxloz))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable");
 
   int flag = 0;
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) reduction(+:flag) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:flag) schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     dbl3_t xM;
@@ -416,7 +418,7 @@ void PPPMTIP4POMP::make_rho()
   const int iy = nyhi_out - nylo_out + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const double * _noalias const q = atom->q;
@@ -521,7 +523,7 @@ void PPPMTIP4POMP::fieldforce_ik()
   const double boxloz = boxlo[2];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     dbl3_t xM;
@@ -632,7 +634,7 @@ void PPPMTIP4POMP::fieldforce_ad()
   const double boxloz = boxlo[2];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double s1,s2,s3,sf;
@@ -681,24 +683,24 @@ void PPPMTIP4POMP::fieldforce_ad()
       eky *= hy_inv;
       ekz *= hz_inv;
 
-      // convert E-field to force and substract self forces
+      // convert E-field to force and subtract self forces
 
       const double qi = q[i];
       const double qfactor = qqrd2e * scale * qi;
 
-      s1 = x[i].x*hx_inv;
+      s1 = xM.x*hx_inv;
       sf = sf_coeff[0]*sin(MY_2PI*s1);
       sf += sf_coeff[1]*sin(MY_4PI*s1);
       sf *= 2.0*qi;
       const double fx = qfactor*(ekx - sf);
 
-      s2 = x[i].y*hy_inv;
+      s2 = xM.y*hy_inv;
       sf = sf_coeff[2]*sin(MY_2PI*s2);
       sf += sf_coeff[3]*sin(MY_4PI*s2);
       sf *= 2.0*qi;
       const double fy = qfactor*(eky - sf);
 
-      s3 = x[i].z*hz_inv;
+      s3 = xM.z*hz_inv;
       sf = sf_coeff[4]*sin(MY_2PI*s3);
       sf += sf_coeff[5]*sin(MY_4PI*s3);
       sf *= 2.0*qi;

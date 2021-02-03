@@ -840,9 +840,20 @@ bool colvarparse::key_lookup(std::string const &conf,
 }
 
 
+colvarparse::read_block::read_block(std::string const &key_in,
+                                    std::string *data_in)
+  : key(key_in), data(data_in)
+{
+}
+
+
+colvarparse::read_block::~read_block()
+{}
+
+
 std::istream & operator>> (std::istream &is, colvarparse::read_block const &rb)
 {
-  size_t start_pos = is.tellg();
+  std::streampos start_pos = is.tellg();
   std::string read_key, next;
 
   if ( !(is >> read_key) || !(read_key == rb.key) ||
@@ -856,7 +867,9 @@ std::istream & operator>> (std::istream &is, colvarparse::read_block const &rb)
   }
 
   if (next != "{") {
-    (*rb.data) = next;
+    if (rb.data) {
+      *(rb.data) = next;
+    }
     return is;
   }
 
@@ -870,9 +883,15 @@ std::istream & operator>> (std::istream &is, colvarparse::read_block const &rb)
       br_old = br;
       br++;
     }
-    if (brace_count) (*rb.data).append(line + "\n");
+    if (brace_count) {
+      if (rb.data) {
+        (rb.data)->append(line + "\n");
+      }
+    }
     else {
-      (*rb.data).append(line, 0, br_old);
+      if (rb.data) {
+        (rb.data)->append(line, 0, br_old);
+      }
       break;
     }
   }

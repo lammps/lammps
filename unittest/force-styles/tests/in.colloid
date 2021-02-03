@@ -1,0 +1,19 @@
+variable  atom_style      index  atomic
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+variable  units           index  lj
+variable  input_dir       index  .
+variable  dump_file       index  ${input_dir}/dump.colloid
+variable  pair_style      index  'zero 8.0'
+
+atom_style       ${atom_style}
+atom_modify      map array
+neigh_modify     delay 2 every 2 check no
+units            ${units}
+timestep         0.01
+newton           ${newton_pair} ${newton_bond}
+
+region box block 0 1 0 1 0 1
+create_box 2 box
+pair_style       ${pair_style}
+read_dump        ${dump_file} 0 x y z vx vy vz box yes replace yes add yes

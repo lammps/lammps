@@ -466,7 +466,7 @@ namespace ATC {
     /** reference to shape function matrix */
     SPAR_MAN * shapeFunction_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -510,7 +510,7 @@ namespace ATC {
     /** reference to shape function matrix */
     SPAR_MAN * shapeFunction_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -542,7 +542,7 @@ namespace ATC {
     AtfProjection(ATC_Method * atc,
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
-                  DIAG_MAN * weights = NULL);
+                  DIAG_MAN * weights = nullptr);
     
     // destructor
     virtual ~AtfProjection();
@@ -560,7 +560,7 @@ namespace ATC {
     DIAG_MAN * weights_;
     DENS_MAT * reference_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;
@@ -587,7 +587,7 @@ namespace ATC {
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
                   const double scale,
-                  DIAG_MAN * weights = NULL);
+                  DIAG_MAN * weights = nullptr);
     
     // destructor
     virtual ~AtfProjectionScaled();
@@ -620,7 +620,7 @@ namespace ATC {
                   PerAtomQuantity<double> * source,
                   SPAR_MAN * accumulant,
                   DENS_MAN * reference,
-                  DIAG_MAN * weights = NULL);
+                  DIAG_MAN * weights = nullptr);
     
     // destructor
     virtual ~AtfProjectionReferenced();
@@ -887,7 +887,7 @@ namespace ATC {
     /** pointer to the mesh being used */
     const FE_Mesh * feMesh_;
 
-    /** persistant workspace */
+    /** persistent workspace */
     
     
     mutable DENS_MAT _workspace_;

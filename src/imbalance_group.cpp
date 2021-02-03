@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "imbalance_group.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
 #include "error.h"
+#include "group.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,7 +38,7 @@ int ImbalanceGroup::options(int narg, char **arg)
 {
   if (narg < 3) error->all(FLERR,"Illegal balance weight command");
 
-  num = force->inumeric(FLERR,arg[0]);
+  num = utils::inumeric(FLERR,arg[0],false,lmp);
   if (num < 1) error->all(FLERR,"Illegal balance weight command");
   if (2*num+1 > narg) error->all(FLERR,"Illegal balance weight command");
 
@@ -48,7 +48,7 @@ int ImbalanceGroup::options(int narg, char **arg)
     id[i] = group->find(arg[2*i+1]);
     if (id[i] < 0)
       error->all(FLERR,"Unknown group in balance weight command");
-    factor[i] = force->numeric(FLERR,arg[2*i+2]);
+    factor[i] = utils::numeric(FLERR,arg[2*i+2],false,lmp);
     if (factor[i] <= 0.0) error->all(FLERR,"Illegal balance weight command");
   }
   return 2*num+1;
@@ -75,14 +75,17 @@ void ImbalanceGroup::compute(double *weight)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceGroup::info(FILE *fp)
+std::string ImbalanceGroup::info()
 {
+  std::string mesg = "";
+
   if (num > 0) {
     const char * const * const names = group->names;
 
-    fprintf(fp,"  group weights:");
+    mesg += "  group weights:";
     for (int i = 0; i < num; ++i)
-      fprintf(fp," %s=%g",names[id[i]],factor[i]);
-    fputs("\n",fp);
+      mesg += fmt::format(" {}={}",names[id[i]],factor[i]);
+    mesg += "\n";
   }
+  return mesg;
 }

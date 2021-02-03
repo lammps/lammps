@@ -6,7 +6,6 @@ compute com command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID com
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all com
 
@@ -42,7 +40,8 @@ are the x,y,z coordinates of the center of mass.
    how they are set for each atom.  You can reset the image flags
    (e.g. to 0) before invoking this compute by using the :doc:`set image <set>` command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 3, which can be
 accessed by indices 1-3 by any command that uses global vector values
@@ -61,4 +60,7 @@ Related commands
 
 :doc:`compute com/chunk <compute_com_chunk>`
 
-**Default:** none
+Default
+"""""""
+
+none

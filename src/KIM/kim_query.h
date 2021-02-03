@@ -13,7 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
+                         Ryan S. Elliott (UMN),
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -64,7 +65,6 @@ CommandStyle(kim_query,KimQuery)
 #define LMP_KIM_QUERY_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 
@@ -72,10 +72,6 @@ class KimQuery : protected Pointers {
  public:
   KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
- private:
-  void kim_query_log_delimiter(std::string const begin_end) const;
-  void echo_var_assign(std::string const & name, std::string const & value)
-  const;
 };
 
 }

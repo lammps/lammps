@@ -29,7 +29,7 @@ molecular systems (:ref:`Lamoureux and Roux <howto-Lamoureux>`):
   to the total charge of the core atom).
 
 A detailed tutorial covering the usage of Drude induced dipoles in
-LAMMPS is on the :doc:`Howto drude2e <Howto_drude2>` doc page.
+LAMMPS is on the :doc:`here <Howto_drude2>`.
 
 As with the core-shell model, the cores and Drude particles should
 appear in the data file as standard atoms. The same holds for the
@@ -42,13 +42,14 @@ screening. It may be necessary to use the *extra/special/per/atom*
 keyword of the :doc:`read_data <read_data>` command. If using :doc:`fix shake <fix_shake>`, make sure no Drude particle is in this fix
 group.
 
-There are two ways to thermostat the Drude particles at a low
+There are three ways to thermostat the Drude particles at a low
 temperature: use either :doc:`fix langevin/drude <fix_langevin_drude>`
 for a Langevin thermostat, or :doc:`fix drude/transform/\* <fix_drude_transform>` for a Nose-Hoover
-thermostat. The former requires use of the command :doc:`comm_modify vel yes <comm_modify>`. The latter requires two separate integration
+thermostat, or :doc:`fix tgnvt/drude <fix_tgnh_drude>` for a temperature-grouped Nose-Hoover thermostat.
+The first and third require use of the command :doc:`comm_modify vel yes <comm_modify>`. The second requires two separate integration
 fixes like *nvt* or *npt*\ . The correct temperatures of the reduced
 degrees of freedom can be calculated using the :doc:`compute temp/drude <compute_temp_drude>`. This requires also to use the
-command *comm\_modify vel yes*.
+command *comm_modify vel yes*.
 
 Short-range damping of the induced dipole interactions can be achieved
 using Thole functions through the :doc:`pair style thole <pair_thole>` in :doc:`pair_style hybrid/overlay <pair_hybrid>`
@@ -56,12 +57,8 @@ with a Coulomb pair style. It may be useful to use *coul/long/cs* or
 similar from the CORESHELL package if the core and Drude particle come
 too close, which can cause numerical issues.
 
-
 ----------
 
-
 .. _howto-Lamoureux:
-
-
 
 **(Lamoureux and Roux)** G. Lamoureux, B. Roux, J. Chem. Phys 119, 3025 (2003)

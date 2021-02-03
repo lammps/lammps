@@ -6,7 +6,6 @@ compute inertia/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID inertia/chunk chunkID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 fluid inertia/chunk molchunk
 
@@ -63,14 +61,14 @@ The simplest way to output the results of the compute inertia/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all inertia/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array where the number of rows = the
 number of chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The number of columns =
@@ -91,4 +89,7 @@ Related commands
 
 :doc:`variable inertia() function <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none

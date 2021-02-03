@@ -64,7 +64,7 @@ class KSpace : protected Pointers {
   double accuracy;                  // accuracy of KSpace solver (force units)
   double accuracy_absolute;         // user-specified accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
-                                    // accurary = acc_rel * two_charge_force
+                                    // accuracy = acc_rel * two_charge_force
   double accuracy_real_6;           // real space accuracy for
                                     // dispersion solver (force units)
   double accuracy_kspace_6;         // reciprocal space accuracy for
@@ -79,6 +79,11 @@ class KSpace : protected Pointers {
   int nx_msm_max,ny_msm_max,nz_msm_max;
 
   int group_group_enable;         // 1 if style supports group/group calculation
+
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
 
   // KOKKOS host/device flag and data masks
 
@@ -121,10 +126,10 @@ class KSpace : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int) {};
 
-  virtual void pack_forward(int, FFT_SCALAR *, int, int *) {};
-  virtual void unpack_forward(int, FFT_SCALAR *, int, int *) {};
-  virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
-  virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
+  virtual void pack_forward_grid(int, void *, int, int *) {};
+  virtual void unpack_forward_grid(int, void *, int, int *) {};
+  virtual void pack_reverse_grid(int, void *, int, int *) {};
+  virtual void unpack_reverse_grid(int, void *, int, int *) {};
 
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
@@ -198,7 +203,7 @@ class KSpace : protected Pointers {
   void pair_check();
   void ev_init(int eflag, int vflag, int alloc = 1) {
     if (eflag||vflag) ev_setup(eflag, vflag, alloc);
-    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+    else evflag = evflag_atom = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
   }
   void ev_setup(int, int, int alloc = 1);
   double estimate_table_accuracy(double, double);

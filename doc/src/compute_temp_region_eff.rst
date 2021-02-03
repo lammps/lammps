@@ -6,7 +6,6 @@ compute temp/region/eff command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/region/eff region-ID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute mine flow temp/region/eff boundary
 
@@ -37,7 +35,8 @@ The operation of this compute is exactly like that described by the
 the formula for the temperature itself includes the radial electron
 velocity contributions, as discussed by the :doc:`compute temp/eff <compute_temp_eff>` command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -54,7 +53,6 @@ vector values will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-EFF package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -63,4 +61,7 @@ Related commands
 
 :doc:`compute temp/region <compute_temp_region>`, :doc:`compute temp/eff <compute_temp_eff>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none

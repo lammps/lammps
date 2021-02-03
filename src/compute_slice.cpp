@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,38 +12,35 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_slice.h"
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
-#include "update.h"
-#include "modify.h"
+
+#include "error.h"
 #include "fix.h"
 #include "input.h"
-#include "variable.h"
 #include "memory.h"
-#include "error.h"
-#include "force.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 enum{COMPUTE,FIX,VARIABLE};
 
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
 
 /* ---------------------------------------------------------------------- */
 
 ComputeSlice::ComputeSlice(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute slice command");
 
   MPI_Comm_rank(world,&me);
 
-  nstart = force->inumeric(FLERR,arg[3]);
-  nstop = force->inumeric(FLERR,arg[4]);
-  nskip = force->inumeric(FLERR,arg[5]);
+  nstart = utils::inumeric(FLERR,arg[3],false,lmp);
+  nstop = utils::inumeric(FLERR,arg[4],false,lmp);
+  nskip = utils::inumeric(FLERR,arg[5],false,lmp);
 
   if (nstart < 1 || nstop < nstart || nskip < 1)
     error->all(FLERR,"Illegal compute slice command");
@@ -225,6 +222,7 @@ ComputeSlice::~ComputeSlice()
   for (int m = 0; m < nvalues; m++) delete [] ids[m];
   delete [] ids;
   delete [] value2index;
+  delete [] extlist;
 
   memory->destroy(vector);
   memory->destroy(array);
@@ -290,9 +288,9 @@ void ComputeSlice::extract_one(int m, double *vec, int stride)
     Compute *compute = modify->compute[value2index[m]];
 
     if (argindex[m] == 0) {
-      if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
         compute->compute_vector();
-        compute->invoked_flag |= INVOKED_VECTOR;
+        compute->invoked_flag |= Compute::INVOKED_VECTOR;
       }
       double *cvector = compute->vector;
       j = 0;
@@ -302,9 +300,9 @@ void ComputeSlice::extract_one(int m, double *vec, int stride)
       }
 
     } else {
-      if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
         compute->compute_array();
-        compute->invoked_flag |= INVOKED_ARRAY;
+        compute->invoked_flag |= Compute::INVOKED_ARRAY;
       }
       double **carray = compute->array;
       int icol = argindex[m]-1;

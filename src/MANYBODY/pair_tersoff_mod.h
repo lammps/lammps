@@ -30,6 +30,8 @@ class PairTersoffMOD : public PairTersoff {
   PairTersoffMOD(class LAMMPS *);
   ~PairTersoffMOD() {}
 
+  static constexpr int NPARAMS_PER_LINE = 20;
+
  protected:
   virtual void read_file(char *);
   virtual void setup_params();
@@ -39,7 +41,8 @@ class PairTersoffMOD : public PairTersoff {
   double ters_fc_d(double, Param *);
   double ters_bij(double, Param *);
   double ters_bij_d(double, Param *);
-  void ters_zetaterm_d(double, double *, double, double *, double,
+  void ters_zetaterm_d(double, double *, double, double,
+                               double *, double, double,
                                double *, double *, double *, Param *);
 
   // inlined functions for efficiency

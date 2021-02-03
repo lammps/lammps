@@ -6,7 +6,6 @@ compute erotate/asphere command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID erotate/asphere
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all erotate/asphere
 
@@ -42,7 +40,8 @@ from its angular momentum if needed.
    treated as ellipsoids, not ellipses, meaning their moments of inertia
    will be the same as in 3d.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the KE).  This value can be
 used by any command that uses a global scalar value from a compute as
@@ -54,7 +53,6 @@ scalar value will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute requires that ellipsoidal particles atoms store a shape
 and quaternion orientation and angular momentum as defined by the
@@ -70,8 +68,15 @@ the :doc:`atom_style tri <atom_style>` command.
 All particles in the group must be finite-size.  They cannot be point
 particles.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
-**Default:** none
+Default
+"""""""
+
+none

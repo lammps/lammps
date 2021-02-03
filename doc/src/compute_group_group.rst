@@ -6,7 +6,6 @@ compute group/group command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID group/group group2-ID keyword value ...
@@ -16,21 +15,18 @@ Syntax
 * group2-ID = group ID of second (or same) group
 * zero or more keyword/value pairs may be appended
 * keyword = *pair* or *kspace* or *boundary* or *molecule*
-  
+
   .. parsed-literal::
-  
+
        *pair* value = *yes* or *no*
        *kspace* value = *yes* or *no*
        *boundary* value = *yes* or *no*
        *molecule* value = *off* or *inter* or *intra*
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 lower group/group upper
    compute 1 lower group/group upper kspace yes
@@ -68,7 +64,7 @@ If the *kspace* keyword is set to *yes*\ , which is not the default, and
 if a :doc:`kspace_style <kspace_style>` is defined, then the interaction
 energy will include a Kspace component which is the long-range
 Coulombic energy between all the atoms in the first group and all the
-atoms in the 2nd group.  Likewise, the interaction force calculated by
+atoms in the second group.  Likewise, the interaction force calculated by
 this compute will include the force on the compute group atoms due to
 long-range Coulombic interactions with atoms in the specified group2.
 
@@ -93,9 +89,7 @@ that included in the regular Ewald and PPPM routines.
 This compute does not calculate any bond or angle or dihedral or
 improper interactions between atoms in the two groups.
 
-
 ----------
-
 
 The pairwise contributions to the group-group interactions are
 calculated by looping over a neighbor list.  The Kspace contribution
@@ -115,7 +109,7 @@ frequently.
    means those pairs will not be included in the group/group interaction.
    This does not apply when using long-range coulomb interactions
    (\ *coul/long*\ , *coul/msm*\ , *coul/wolf* or similar.  One way to get
-   around this would be to set special\_bond scaling factors to very tiny
+   around this would be to set special_bond scaling factors to very tiny
    numbers that are not exactly zero (e.g. 1.0e-50). Another workaround
    is to write a dump file, and use the :doc:`rerun <rerun>` command to
    compute the group/group interactions for snapshots in the dump file.
@@ -132,11 +126,10 @@ The individual contributions can be summed in a
 This `document <PDF/kspace.pdf>`_ describes how the long-range
 group-group calculations are performed.
 
-
 ----------
 
-
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the energy) and a global
 vector of length 3 (force), which can be accessed by indices 1-3.
@@ -151,7 +144,6 @@ The vector values will be in force :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-
 Not all pair styles can be evaluated in a pairwise mode as required by
 this compute.  For example, 3-body and other many-body potentials,
 such as :doc:`Tersoff <pair_tersoff>` and
@@ -163,7 +155,11 @@ system and not valid if particles have been moved since.
 Not all :doc:`Kspace styles <kspace_style>` support the calculation of
 group/group interactions. The regular *ewald* and *pppm* styles do.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""
@@ -171,12 +167,8 @@ Default
 The option defaults are pair = yes, kspace = no, boundary = yes,
 molecule = off.
 
-
 ----------
 
-
 .. _Bogusz:
-
-
 
 Bogusz et al, J Chem Phys, 108, 7070 (1998)

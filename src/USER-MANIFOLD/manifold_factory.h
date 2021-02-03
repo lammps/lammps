@@ -21,7 +21,7 @@
    This file is part of the user-manifold package written by
    Stefan Paquay at the Eindhoven University of Technology.
    This module makes it possible to do MD with particles constrained
-   to pretty arbitrary manifolds characterised by some constraint function
+   to pretty arbitrary manifolds characterized by some constraint function
    g(x,y,z) = 0 and its normal grad(g). The number of manifolds available
    right now is limited but can be extended straightforwardly by making
    a new class that inherits from manifold and implements all pure virtual
@@ -68,7 +68,7 @@ struct LAMMPS { };
 
 struct Pointers
 {
-  Pointers(LAMMPS *) : error( &e ){}
+  Pointers(LAMMPS *) : error( &e ) {}
   Error e;
   Error *error;
 };
@@ -93,8 +93,8 @@ class manifold;
   void make_manifold_if( manifold **man_ptr, const char *name,
                          LAMMPS *lmp, int narg, char **arg )
   {
-    if( strcmp( m_type::type(), name ) == 0 ){
-      if( *man_ptr == NULL ){
+    if ( strcmp( m_type::type(), name ) == 0 ) {
+      if ( *man_ptr == nullptr ) {
         *man_ptr = new m_type(lmp, narg, arg);
       }
     }

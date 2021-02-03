@@ -6,7 +6,6 @@ include command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    include file
@@ -16,8 +15,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    include newfile
    include in.run2
@@ -44,4 +42,7 @@ Related commands
 
 :doc:`variable <variable>`, :doc:`jump <jump>`
 
-**Default:** none
+Default
+"""""""
+
+none

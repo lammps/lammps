@@ -30,9 +30,14 @@ class Fix : protected Pointers {
   int restart_file;              // 1 if Fix writes own restart file, 0 if not
   int force_reneighbor;          // 1 if Fix forces reneighboring, 0 if not
 
-  int box_change_size;           // 1 if Fix changes box size, 0 if not
-  int box_change_shape;          // 1 if Fix changes box shape, 0 if not
-  int box_change_domain;         // 1 if Fix changes proc sub-domains, 0 if not
+  int box_change;                // >0 if Fix changes box size, shape, or sub-domains, 0 if not
+  enum {
+    NO_BOX_CHANGE = 0,    BOX_CHANGE_ANY = 1<<0, BOX_CHANGE_DOMAIN = 1<<1,
+    BOX_CHANGE_X  = 1<<2, BOX_CHANGE_Y   = 1<<3, BOX_CHANGE_Z      = 1<<4,
+    BOX_CHANGE_YZ = 1<<5, BOX_CHANGE_XZ  = 1<<6, BOX_CHANGE_XY     = 1<<7,
+    BOX_CHANGE_SIZE  = BOX_CHANGE_X  | BOX_CHANGE_Y  | BOX_CHANGE_Z,
+    BOX_CHANGE_SHAPE = BOX_CHANGE_YZ | BOX_CHANGE_XZ | BOX_CHANGE_XY
+  };
 
   bigint next_reneighbor;        // next timestep to force a reneighboring
   int thermo_energy;             // 1 if fix_modify enabled ThEng, 0 if not
@@ -58,6 +63,8 @@ class Fix : protected Pointers {
   int respa_level;               // which respa level to apply fix (1-Nrespa)
   int maxexchange;               // max # of per-atom values for Comm::exchange()
   int maxexchange_dynamic;       // 1 if fix sets maxexchange dynamically
+  int pre_exchange_migrate;      // 1 if fix migrates atoms in pre_exchange()
+  int stores_ids;                 // 1 if fix stores atom IDs
 
   int scalar_flag;               // 0/1 if compute_scalar() function exists
   int vector_flag;               // 0/1 if compute_vector() function exists
@@ -95,11 +102,17 @@ class Fix : protected Pointers {
   double virial[6];              // accumulated virial
   double *eatom,**vatom;         // accumulated per-atom energy/virial
 
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
+
   int restart_reset;             // 1 if restart just re-initialized fix
 
   // KOKKOS host/device flag and data masks
 
   int kokkosable;                // 1 if Kokkos fix
+  int forward_comm_device;                // 1 if forward comm on Device
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
 
@@ -131,7 +144,7 @@ class Fix : protected Pointers {
   virtual void end_of_step() {}
   virtual void post_run() {}
   virtual void write_restart(FILE *) {}
-  virtual void write_restart_file(char *) {}
+  virtual void write_restart_file(const char *) {}
   virtual void restart(char *) {}
 
   virtual void grow_arrays(int) {}
@@ -208,7 +221,7 @@ class Fix : protected Pointers {
   virtual int image(int *&, double **&) {return 0;}
 
   virtual int modify_param(int, char **) {return 0;}
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
 
   virtual double memory_usage() {return 0.0;}
 
@@ -235,45 +248,35 @@ class Fix : protected Pointers {
   void v_tally(int, int *, double, double *);
   void v_tally(int, double *);
   void v_tally(int, int, double);
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 };
 
 namespace FixConst {
-  static const int INITIAL_INTEGRATE =       1<<0;
-  static const int POST_INTEGRATE =          1<<1;
-  static const int PRE_EXCHANGE =            1<<2;
-  static const int PRE_NEIGHBOR =            1<<3;
-  static const int POST_NEIGHBOR =           1<<4;
-  static const int PRE_FORCE =               1<<5;
-  static const int PRE_REVERSE =             1<<6;
-  static const int POST_FORCE =              1<<7;
-  static const int FINAL_INTEGRATE =         1<<8;
-  static const int END_OF_STEP =             1<<9;
-  static const int POST_RUN =                1<<10;
-  static const int THERMO_ENERGY =           1<<11;
-  static const int INITIAL_INTEGRATE_RESPA = 1<<12;
-  static const int POST_INTEGRATE_RESPA =    1<<13;
-  static const int PRE_FORCE_RESPA =         1<<14;
-  static const int POST_FORCE_RESPA =        1<<15;
-  static const int FINAL_INTEGRATE_RESPA =   1<<16;
-  static const int MIN_PRE_EXCHANGE =        1<<17;
-  static const int MIN_PRE_NEIGHBOR =        1<<18;
-  static const int MIN_POST_NEIGHBOR =       1<<19;
-  static const int MIN_PRE_FORCE =           1<<20;
-  static const int MIN_PRE_REVERSE =         1<<21;
-  static const int MIN_POST_FORCE =          1<<22;
-  static const int MIN_ENERGY =              1<<23;
-  static const int FIX_CONST_LAST =          1<<24;
+  enum {
+    INITIAL_INTEGRATE =       1<<0,
+    POST_INTEGRATE =          1<<1,
+    PRE_EXCHANGE =            1<<2,
+    PRE_NEIGHBOR =            1<<3,
+    POST_NEIGHBOR =           1<<4,
+    PRE_FORCE =               1<<5,
+    PRE_REVERSE =             1<<6,
+    POST_FORCE =              1<<7,
+    FINAL_INTEGRATE =         1<<8,
+    END_OF_STEP =             1<<9,
+    POST_RUN =                1<<10,
+    THERMO_ENERGY =           1<<11,
+    INITIAL_INTEGRATE_RESPA = 1<<12,
+    POST_INTEGRATE_RESPA =    1<<13,
+    PRE_FORCE_RESPA =         1<<14,
+    POST_FORCE_RESPA =        1<<15,
+    FINAL_INTEGRATE_RESPA =   1<<16,
+    MIN_PRE_EXCHANGE =        1<<17,
+    MIN_PRE_NEIGHBOR =        1<<18,
+    MIN_POST_NEIGHBOR =       1<<19,
+    MIN_PRE_FORCE =           1<<20,
+    MIN_PRE_REVERSE =         1<<21,
+    MIN_POST_FORCE =          1<<22,
+    MIN_ENERGY =              1<<23
+  };
 }
 
 }

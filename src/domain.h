@@ -14,12 +14,13 @@
 #ifndef LMP_DOMAIN_H
 #define LMP_DOMAIN_H
 
-#include <cmath>
-#include <map>
-#include <string>
 #include "pointers.h"
 
+#include <cmath>
+#include <map>
+
 namespace LAMMPS_NS {
+  class Region;
 
 class Domain : protected Pointers {
  public:
@@ -90,7 +91,7 @@ class Domain : protected Pointers {
 
   int nregion;                             // # of defined Regions
   int maxregion;                           // max # list can hold
-  class Region **regions;                  // list of defined Regions
+  Region **regions;                        // list of defined Regions
 
   int copymode;
   enum{NO_REMAP,X_REMAP,V_REMAP};
@@ -131,7 +132,7 @@ class Domain : protected Pointers {
   int find_region(char *);
   void set_boundary(int, char **, int);
   void set_box(int, char **);
-  void print_box(const char *);
+  void print_box(const std::string &);
   void boundary_string(char *);
 
   virtual void lamda2x(int);
@@ -281,6 +282,10 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+E: Must not have multiple fixes change box parameter ...
+
+Self-explanatory.
 
 U: Box bounds are invalid
 

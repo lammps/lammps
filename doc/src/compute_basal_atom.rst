@@ -6,7 +6,6 @@ compute basal/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID basal/atom
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all basal/atom
 
@@ -46,7 +44,8 @@ which computes this quantity.
 An example input script that uses this compute is provided
 in examples/USER/misc/basal.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with 3 columns, which can be
 accessed by indices 1-3 by any command that uses per-atom values from
@@ -58,7 +57,6 @@ components of a unit vector.
 
 Restrictions
 """"""""""""
-
 
 This compute is part of the USER-MISC package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
@@ -72,14 +70,13 @@ Related commands
 
 :doc:`compute centro/atom <compute_centro_atom>`, :doc:`compute ackland/atom <compute_ackland_atom>`
 
-**Default:** none
+Default
+"""""""
 
+none
 
 ----------
 
-
 .. _Barrett:
-
-
 
 **(Barrett)** Barrett, Tschopp, El Kadiri, Scripta Mat. 66, p.666 (2012).

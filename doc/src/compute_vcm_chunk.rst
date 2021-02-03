@@ -6,7 +6,6 @@ compute vcm/chunk command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID vcm/chunk chunkID
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 fluid vcm/chunk molchunk
 
@@ -53,14 +51,14 @@ The simplest way to output the results of the compute vcm/chunk
 calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>`
 command, for example:
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute cc1 all chunk/atom molecule
    compute myChunk all vcm/chunk cc1
-   fix 1 all ave/time 100 1 100 c_myChunk[\*] file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array where the number of rows = the
 number of chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The number of columns =
@@ -76,6 +74,13 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

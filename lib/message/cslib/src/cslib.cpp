@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of
@@ -57,7 +57,7 @@ CSlib::CSlib(int csflag, const char *mode, const void *ptr, const void *pcomm)
   else if (csflag == 1) server = 1;
   else error_all("constructor(): Invalid client/server arg");
 
-  if (pcomm == NULL) {
+  if (pcomm == nullptr) {
     me = 0;
     nprocs = 1;
 
@@ -82,19 +82,19 @@ CSlib::CSlib(int csflag, const char *mode, const void *ptr, const void *pcomm)
   }
 
   maxfield = 0;
-  fieldID = fieldtype = fieldlen = fieldoffset = NULL;
+  fieldID = fieldtype = fieldlen = fieldoffset = nullptr;
   maxheader = 0;
-  header = NULL;
+  header = nullptr;
   maxbuf = 0;
-  buf = NULL;
+  buf = nullptr;
 
-  recvcounts = displs = NULL;
+  recvcounts = displs = nullptr;
   maxglobal = 0;
-  allids = NULL;
+  allids = nullptr;
   maxfieldbytes = 0;
-  fielddata = NULL;
+  fielddata = nullptr;
   
-  pad = "\0\0\0\0\0\0\0";    // just length 7 since will have trailing NULL
+  pad = "\0\0\0\0\0\0\0";    // just length 7 since will have trailing nullptr
   
   nsend = nrecv = 0;
 }
@@ -218,7 +218,7 @@ void CSlib::pack_parallel(int id, int ftype,
   // nlocal datums, each of nper length, from all procs
   // final data in buf = datums for all natoms, ordered by ids
 
-  if (recvcounts == NULL) {
+  if (recvcounts == nullptr) {
     recvcounts = (int *) smalloc(nprocs*sizeof(int));
     displs = (int *) smalloc(nprocs*sizeof(int));
   }
@@ -706,9 +706,9 @@ void CSlib::deallocate_fields()
 
 void *CSlib::smalloc(int nbytes)
 {
-  if (nbytes == 0) return NULL;
+  if (nbytes == 0) return nullptr;
   void *ptr = malloc(nbytes);
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     char str[128];
     sprintf(str,"malloc(): Failed to allocate %d bytes",nbytes);
     error_one(str);
@@ -722,11 +722,11 @@ void *CSlib::srealloc(void *ptr, int nbytes)
 {
   if (nbytes == 0) {
     sfree(ptr);
-    return NULL;
+    return nullptr;
   }
   
   ptr = realloc(ptr,nbytes);
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     char str[128];
     sprintf(str,"realloc(): Failed to reallocate %d bytes",nbytes);
     error_one(str);
@@ -738,7 +738,7 @@ void *CSlib::srealloc(void *ptr, int nbytes)
 
 void CSlib::sfree(void *ptr)
 {
-  if (ptr == NULL) return;
+  if (ptr == nullptr) return;
   free(ptr);
 }
 

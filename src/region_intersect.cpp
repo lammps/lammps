@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,22 +12,23 @@
 ------------------------------------------------------------------------- */
 
 #include "region_intersect.h"
-#include <cstring>
+
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg), idsub(NULL)
+  Region(lmp, narg, arg), idsub(nullptr)
 {
   nregion = 0;
 
   if (narg < 5) error->all(FLERR,"Illegal region command");
-  int n = force->inumeric(FLERR,arg[2]);
+  int n = utils::inumeric(FLERR,arg[2],false,lmp);
   if (n < 2) error->all(FLERR,"Illegal region command");
   options(narg-(n+3),&arg[n+3]);
 
@@ -312,7 +313,7 @@ void RegIntersect::write_restart(FILE *fp)
   fwrite(style, 1, sizestyle, fp);
   fwrite(&nregion,sizeof(int),1,fp);
 
-  for (int ilist = 0; ilist < nregion; ilist++){
+  for (int ilist = 0; ilist < nregion; ilist++) {
     domain->regions[list[ilist]]->write_restart(fp);
   }
 }

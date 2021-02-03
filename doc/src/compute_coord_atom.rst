@@ -1,11 +1,13 @@
 .. index:: compute coord/atom
+.. index:: compute coord/atom/kk
 
 compute coord/atom command
 ==========================
 
+Accelerator Variants: *coord/atom/kk*
+
 Syntax
 """"""
-
 
 .. parsed-literal::
 
@@ -14,9 +16,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * coord/atom = style name of this compute command
 * cstyle = *cutoff* or *orientorder*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* args = cutoff [group group2-ID] typeN
          cutoff = distance within which to count coordination neighbors (distance units)
          group *group2-ID* = select group-ID to restrict which atoms to consider for coordination number (optional)
@@ -25,17 +27,14 @@ Syntax
          orientorderID = ID of an orientorder/atom compute
          threshold = minimum value of the product of two "connected" atoms
 
-
-
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all coord/atom cutoff 2.0
    compute 1 all coord/atom cutoff 6.0 1 2
-   compute 1 all coord/atom cutoff 6.0 2\*4 5\*8 \*
+   compute 1 all coord/atom cutoff 6.0 2*4 5*8 *
    compute 1 solute coord/atom cutoff 2.0 group solvent
    compute 1 all coord/atom orientorder 2 0.5
 
@@ -64,7 +63,7 @@ keywords are listed, a single coordination number is calculated, which
 includes atoms of all types (same as the "\*" format, see below).
 
 The *typeN* keywords can be specified in one of two ways.  An explicit
-numeric value can be used, as in the 2nd example above.  Or a
+numeric value can be used, as in the second example above.  Or a
 wild-card asterisk can be used to specify a range of atom types.  This
 takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of
 atom types, then an asterisk with no numeric values means all types
@@ -82,10 +81,10 @@ identify crystal-like atoms in a system, as discussed in :ref:`ten Wolde <tenWol
 
 The ID of the previously specified :doc:`compute orientorder/atom <compute_orientorder_atom>` command is specified as
 *orientorderID*\ .  The compute must invoke its *components* option to
-calculate components of the *Ybar\_lm* vector for each atoms, as
+calculate components of the *Ybar_lm* vector for each atoms, as
 described in its documentation.  Note that orientorder/atom compute
 defines its own criteria for identifying neighboring atoms.  If the
-scalar product (*Ybar\_lm(i)*,*Ybar\_lm(j)*), calculated by the
+scalar product (*Ybar_lm(i)*,*Ybar_lm(j)*), calculated by the
 orientorder/atom compute is larger than the specified *threshold*\ ,
 then I and J are connected, and the coordination value of I is
 incremented by one.
@@ -113,7 +112,16 @@ too frequently.
    :doc:`special_bonds <special_bonds>` command that includes all pairs in
    the neighbor list.
 
-**Output info:**
+----------
+
+
+.. include:: accel_styles.rst
+
+
+----------
+
+Output info
+"""""""""""
 
 For *cstyle* cutoff, this compute can calculate a per-atom vector or
 array.  If single *type1* keyword is specified (or if none are
@@ -145,13 +153,9 @@ Default
 
 group = all
 
-
 ----------
 
-
 .. _tenWolde1:
-
-
 
 **(tenWolde)** P. R. ten Wolde, M. J. Ruiz-Montero, D. Frenkel,
 J. Chem. Phys. 104, 9932 (1996).

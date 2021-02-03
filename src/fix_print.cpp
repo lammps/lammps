@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_print.h"
-#include <mpi.h>
-#include <cstring>
-#include "update.h"
-#include "input.h"
-#include "modify.h"
-#include "variable.h"
-#include "memory.h"
+
 #include "error.h"
-#include "force.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -29,7 +29,7 @@ using namespace FixConst;
 
 FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  fp(NULL), string(NULL), copy(NULL), work(NULL), var_print(NULL)
+  fp(nullptr), string(nullptr), copy(nullptr), work(nullptr), var_print(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix print command");
   if (strstr(arg[3],"v_") == arg[3]) {
@@ -38,7 +38,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
     strcpy(var_print,&arg[3][2]);
     nevery = 1;
   } else {
-    nevery = force->inumeric(FLERR,arg[3]);
+    nevery = utils::inumeric(FLERR,arg[3],false,lmp);
     if (nevery <= 0) error->all(FLERR,"Illegal fix print command");
   }
 
@@ -54,9 +54,9 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  fp = NULL;
+  fp = nullptr;
   screenflag = 1;
-  char *title = NULL;
+  char *title = nullptr;
 
   int iarg = 5;
   while (iarg < narg) {
@@ -65,11 +65,9 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
       if (me == 0) {
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix print file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == nullptr)
+          error->one(FLERR,fmt::format("Cannot open fix print file {}: {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
@@ -182,10 +180,9 @@ void FixPrint::end_of_step()
   modify->addstep_compute(next_print);
 
   if (me == 0) {
-    if (screenflag && screen) fprintf(screen,"%s\n",copy);
-    if (screenflag && logfile) fprintf(logfile,"%s\n",copy);
+    if (screenflag) utils::logmesg(lmp,std::string(copy) + "\n");
     if (fp) {
-      fprintf(fp,"%s\n",copy);
+      fmt::print(fp,"{}\n",copy);
       fflush(fp);
     }
   }

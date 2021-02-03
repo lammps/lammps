@@ -20,7 +20,7 @@ standard or user packages:
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`USER-INTEL Package <Speed_intel>` | for Intel CPUs and Intel Xeon Phi                     |
 +-----------------------------------------+-------------------------------------------------------+
-| :doc:`KOKKOS Package <Speed_kokkos>`    | for Nvidia GPUs, Intel Xeon Phi, and OpenMP threading |
+| :doc:`KOKKOS Package <Speed_kokkos>`    | for NVIDIA GPUs, Intel Xeon Phi, and OpenMP threading |
 +-----------------------------------------+-------------------------------------------------------+
 | :doc:`USER-OMP Package <Speed_omp>`     | for OpenMP threading and generic CPU optimizations    |
 +-----------------------------------------+-------------------------------------------------------+
@@ -37,18 +37,16 @@ standard or user packages:
    Speed_omp
    Speed_opt
 
-.. _lc: Commands_all.html
-
 Inverting this list, LAMMPS currently has acceleration support for
 three kinds of hardware, via the listed packages:
 
-+----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Many-core CPUs | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`USER-OMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
-+----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| NVIDIA GPUs    | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
-+----------------+-----------------------------------------------------------------------------------------------------------------------------+
-| Intel Phi      | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                      |
-+----------------+-----------------------------------------------------------------------------------------------------------------------------+
++-----------------+-----------------------------------------------------------------------------------------------------------------------------+
+| Many-core CPUs  | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>`, :doc:`USER-OMP <Speed_omp>`, :doc:`OPT <Speed_opt>` packages |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------+
+| NVIDIA/AMD GPUs | :doc:`GPU <Speed_gpu>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                               |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------+
+| Intel Phi/AVX   | :doc:`USER-INTEL <Speed_intel>`, :doc:`KOKKOS <Speed_kokkos>` packages                                                      |
++-----------------+-----------------------------------------------------------------------------------------------------------------------------+
 
 Which package is fastest for your hardware may depend on the size
 problem you are running and what commands (accelerated and
@@ -72,7 +70,7 @@ Lennard-Jones :doc:`pair_style lj/cut <pair_lj>`:
 * :doc:`pair_style lj/cut/opt <pair_lj>`
 
 To see what accelerate styles are currently available for a particular
-style, find the style name in the `Commands\_all <lc_>`_
+style, find the style name in the :doc:`Commands <Commands_all>`
 style pages (fix,compute,pair,etc) and see what suffixes are listed
 (g,i,k,o,t) with it.  The doc pages for individual commands
 (e.g. :doc:`pair lj/cut <pair_lj>` or :doc:`fix nve <fix_nve>`) also list
@@ -92,13 +90,13 @@ listed above:
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | re-build LAMMPS                                                                                                                | make machine                                                         |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| prepare and test a regular LAMMPS simulation                                                                                   | lmp\_machine -in in.script; mpirun -np 32 lmp\_machine -in in.script |
+| prepare and test a regular LAMMPS simulation                                                                                   | lmp_machine -in in.script; mpirun -np 32 lmp_machine -in in.script   |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | enable specific accelerator support via '-k on' :doc:`command-line switch <Run_options>`,                                      | only needed for KOKKOS package                                       |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 | set any needed options for the package via "-pk" :doc:`command-line switch <Run_options>` or :doc:`package <package>` command, | only if defaults need to be changed                                  |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
-| use accelerated styles in your input via "-sf" :doc:`command-line switch <Run_options>` or :doc:`suffix <suffix>` command      | lmp\_machine -in in.script -sf gpu                                   |
+| use accelerated styles in your input via "-sf" :doc:`command-line switch <Run_options>` or :doc:`suffix <suffix>` command      | lmp_machine -in in.script -sf gpu                                    |
 +--------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------+
 
 Note that the first 4 steps can be done as a single command with
@@ -134,8 +132,7 @@ packages.  As an example, here is a command that builds with all the
 GPU related packages installed (GPU, KOKKOS with Cuda), including
 settings to build the needed auxiliary GPU libraries for Kepler GPUs:
 
-
-.. parsed-literal::
+.. code-block:: bash
 
    Make.py -j 16 -p omp gpu kokkos -cc nvcc wrap=mpi   -gpu mode=double arch=35 -kokkos cuda arch=35 lib-all file mpi
 
@@ -146,9 +143,9 @@ details.
 Likewise, the bench directory has FERMI and KEPLER and PHI
 sub-directories with Make.py commands and input scripts for using all
 the accelerator packages on various machines.  See the README files in
-those dirs.
+those directories.
 
-As mentioned above, the `Benchmark page <http://lammps.sandia.gov/bench.html>`_ of the LAMMPS web site gives
+As mentioned above, the `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the LAMMPS web site gives
 performance results for the various accelerator packages for several
 of the standard LAMMPS benchmark problems, as a function of problem
 size and number of compute nodes, on different hardware platforms.
@@ -156,8 +153,8 @@ size and number of compute nodes, on different hardware platforms.
 Here is a brief summary of what the various packages provide.  Details
 are in the individual accelerator sections.
 
-* Styles with a "gpu" suffix are part of the GPU package, and can be run
-  on NVIDIA GPUs.  The speed-up on a GPU depends on a variety of
+* Styles with a "gpu" suffix are part of the GPU package and can be run
+  on NVIDIA or AMD GPUs.  The speed-up on a GPU depends on a variety of
   factors, discussed in the accelerator sections.
 * Styles with an "intel" suffix are part of the USER-INTEL
   package. These styles support vectorized single and mixed precision
@@ -167,8 +164,8 @@ are in the individual accelerator sections.
   co-processors.  This can result in additional speedup over 2x depending
   on the hardware configuration.
 * Styles with a "kk" suffix are part of the KOKKOS package, and can be
-  run using OpenMP on multicore CPUs, on an NVIDIA GPU, or on an Intel
-  Xeon Phi in "native" mode.  The speed-up depends on a variety of
+  run using OpenMP on multicore CPUs, on an NVIDIA or AMD GPU, or on an
+  Intel Xeon Phi in "native" mode.  The speed-up depends on a variety of
   factors, as discussed on the KOKKOS accelerator page.
 * Styles with an "omp" suffix are part of the USER-OMP package and allow
   a pair-style to be run in multi-threaded mode using OpenMP.  This can
@@ -179,7 +176,6 @@ are in the individual accelerator sections.
 * Styles with an "opt" suffix are part of the OPT package and typically
   speed-up the pairwise calculations of your simulation by 5-25% on a
   CPU.
-
 
 The individual accelerator package doc pages explain:
 

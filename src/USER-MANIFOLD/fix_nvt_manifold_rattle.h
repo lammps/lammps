@@ -21,7 +21,7 @@
    This file is part of the user-manifold package written by
    Stefan Paquay at the Eindhoven University of Technology.
    This module makes it possible to do MD with particles constrained
-   to pretty arbitrary manifolds characterised by some constraint function
+   to pretty arbitrary manifolds characterized by some constraint function
    g(x,y,z) = 0 and its normal grad(g). The number of manifolds available
    right now is limited but can be extended straightforwardly by making
    a new class that inherits from manifold and implements all pure virtual
@@ -112,7 +112,7 @@ E: There is no manifold named ...
 Self-explanatory.  You requested a manifold whose name was not
 registered at the factory.
 
-E: Manifold pointer was NULL for some reason!
+E: Manifold pointer was nullptr for some reason!
 
 This indicates a bug.  The factory was unable to properly create
 the requested manifold even though it was registered. Send the
@@ -123,7 +123,7 @@ E: Manifold ... needs at least ... argument(s)!
 Self-explanatory.  Provide enough arguments for the proper
 creating of the requested manifold.
 
-E: Parameter pointer was NULL!
+E: Parameter pointer was nullptr!
 
 This indicates a bug.  The array that contains the parameters
 could not be allocated. Send the maintainer an e-mail.

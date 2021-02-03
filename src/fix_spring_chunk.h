@@ -35,6 +35,8 @@ class FixSpringChunk : public Fix {
   void post_force(int);
   void post_force_respa(int, int, int);
   void min_post_force(int);
+  void write_restart(FILE *);
+  void restart(char *);
   double compute_scalar();
 
  private:

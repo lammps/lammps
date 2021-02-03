@@ -6,7 +6,6 @@ compute erotate/sphere command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID erotate/sphere
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all erotate/sphere
 
@@ -37,7 +35,8 @@ of inertia for a sphere and w is the particle's angular velocity.
    spheres, not disks, meaning their moment of inertia will be the same
    as in 3d.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the KE).  This value can be
 used by any command that uses a global scalar value from a compute as
@@ -49,7 +48,6 @@ scalar value will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
-
 
 This compute requires that atoms store a radius and angular velocity
 (omega) as defined by the :doc:`atom_style sphere <atom_style>` command.
@@ -63,4 +61,7 @@ Related commands
 
 :doc:`compute erotate/asphere <compute_erotate_asphere>`
 
-**Default:** none
+Default
+"""""""
+
+none

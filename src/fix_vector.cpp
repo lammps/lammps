@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_vector.h"
-#include <cstdlib>
-#include <cstring>
-#include "update.h"
-#include "force.h"
-#include "modify.h"
+
 #include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -30,19 +30,16 @@ enum{COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING,WINDOW};
 enum{SCALAR,VECTOR};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
 
 /* ---------------------------------------------------------------------- */
 
 FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), vector(NULL), array(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr), vector(nullptr), array(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix vector command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix vector command");
 
   nvalues = narg-4;
@@ -154,8 +151,8 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   // ncount = current size of vector or array
 
-  vector = NULL;
-  array = NULL;
+  vector = nullptr;
+  array = nullptr;
   ncount = ncountmax = 0;
   if (nvalues == 1) size_vector = 0;
   else size_array_rows = 0;
@@ -272,15 +269,15 @@ void FixVector::end_of_step()
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
-        if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
           compute->compute_scalar();
-          compute->invoked_flag |= INVOKED_SCALAR;
+          compute->invoked_flag |= Compute::INVOKED_SCALAR;
         }
         result[i] = compute->scalar;
       } else {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         result[i] = compute->vector[argindex[i]-1];
       }

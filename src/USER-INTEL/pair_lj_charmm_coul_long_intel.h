@@ -72,7 +72,7 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
     typename IntelBuffers<flt_t,flt_t>::vec2_t **lj;
 
     ForceConst() : _ntypes(0), _ntable(0) {}
-    ~ForceConst() { set_ntypes(0,0,NULL,_cop); }
+    ~ForceConst() { set_ntypes(0,0,nullptr,_cop); }
 
     void set_ntypes(const int ntypes, const int ntable, Memory *memory,
                     const int cop);
@@ -96,7 +96,7 @@ E: The 'package intel' command is required for /intel styles
 
 Self-explanatory.
 
-E: Intel varient of lj/charmm/coul/long expects lj cutoff<=coulombic
+E: Intel variant of lj/charmm/coul/long expects lj cutoff<=coulombic
 
 The intel accelerated version of the CHARMM style requires that the
 Lennard-Jones cutoff is not greater than the coulombic cutoff.

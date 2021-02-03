@@ -6,7 +6,6 @@ compute temp/com command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID temp/com
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all temp/com
    compute myTemp mobile temp/com
@@ -69,7 +67,8 @@ See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
@@ -92,4 +91,7 @@ Related commands
 
 :doc:`compute temp <compute_temp>`
 
-**Default:** none
+Default
+"""""""
+
+none

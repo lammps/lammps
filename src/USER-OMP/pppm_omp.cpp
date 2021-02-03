@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_omp.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "timer.h"
 
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -61,7 +62,7 @@ void PPPMOMP::allocate()
   PPPM::allocate();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -81,7 +82,7 @@ void PPPMOMP::allocate()
 PPPMOMP::~PPPMOMP()
 {
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
 #if defined(_OPENMP)
@@ -122,7 +123,7 @@ void PPPMOMP::compute_gf_ik()
   const int twoorder = 2*order;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double snx,sny,snz;
@@ -216,7 +217,7 @@ void PPPMOMP::compute_gf_ad()
   double sf0=0.0,sf1=0.0,sf2=0.0,sf3=0.0,sf4=0.0,sf5=0.0;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) reduction(+:sf0,sf1,sf2,sf3,sf4,sf5)
+#pragma omp parallel LMP_DEFAULT_NONE reduction(+:sf0,sf1,sf2,sf3,sf4,sf5)
 #endif
   {
     double snx,sny,snz,sqk;
@@ -281,7 +282,7 @@ void PPPMOMP::compute_gf_ad()
       }
     }
     thr->timer(Timer::KSPACE);
-  } // end of paralle region
+  } // end of parallel region
 
   // compute the coefficients for the self-force correction
 
@@ -314,7 +315,7 @@ void PPPMOMP::compute(int eflag, int vflag)
   PPPM::compute(eflag,vflag);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)
@@ -352,7 +353,7 @@ void PPPMOMP::make_rho()
   const int iy = nyhi_out - nylo_out + 1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     const double * _noalias const q = atom->q;
@@ -449,7 +450,7 @@ void PPPMOMP::fieldforce_ik()
   const double boxloz = boxlo[2];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     FFT_SCALAR x0,y0,z0,ekx,eky,ekz;
@@ -534,7 +535,7 @@ void PPPMOMP::fieldforce_ad()
   const double boxloz = boxlo[2];
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     double s1,s2,s3,sf;
@@ -578,7 +579,7 @@ void PPPMOMP::fieldforce_ad()
       eky *= hy_inv;
       ekz *= hz_inv;
 
-      // convert E-field to force and substract self forces
+      // convert E-field to force and subtract self forces
 
       const double qi = q[i];
       const double qfactor = qqrd2e * scale * qi;
@@ -627,7 +628,7 @@ void PPPMOMP::fieldforce_peratom()
   const double * _noalias const q = atom->q;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     FFT_SCALAR dx,dy,dz,x0,y0,z0;

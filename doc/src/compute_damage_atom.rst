@@ -6,7 +6,6 @@ compute damage/atom command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID damage/atom
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all damage/atom
 
@@ -42,7 +40,8 @@ This command can be used with all the Peridynamic pair styles.
 The damage value will be 0.0 for atoms not in the specified compute
 group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
@@ -54,7 +53,6 @@ The per-atom vector values are unitless numbers (damage) >= 0.0.
 Restrictions
 """"""""""""
 
-
 This compute is part of the PERI package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
@@ -64,4 +62,7 @@ Related commands
 :doc:`compute dilatation/atom <compute_dilatation_atom>`,
 :doc:`compute plasticity/atom <compute_plasticity_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

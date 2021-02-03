@@ -20,19 +20,19 @@ set to 0.0, it corresponds to the original 1983 TIP3P model
 | H mass = 1.008
 | O charge = -0.834
 | H charge = 0.417
-| LJ epsilon of OO = 0.1521
-| LJ sigma of OO = 3.1507
-| LJ epsilon of HH = 0.0460
-| LJ sigma of HH = 0.4000
-| LJ epsilon of OH = 0.0836
-| LJ sigma of OH = 1.7753
+| LJ :math:`\epsilon` of OO = 0.1521
+| LJ :math:`\sigma` of OO = 3.1507
+| LJ :math:`\epsilon` of HH = 0.0460
+| LJ :math:`\sigma` of HH = 0.4000
+| LJ :math:`\epsilon` of OH = 0.0836
+| LJ :math:`\sigma` of OH = 1.7753
 | K of OH bond = 450
-| r0 of OH bond = 0.9572
+| :math:`r_0` of OH bond = 0.9572
 | K of HOH angle = 55
-| theta of HOH angle = 104.52
-| 
+| :math:`\theta` of HOH angle = 104.52\ :math:`^{\circ}`
+|
 
-These are the parameters to use for TIP3P with a long-range Coulombic
+These are the parameters to use for TIP3P with a long-range Coulomb
 solver (e.g. Ewald or PPPM in LAMMPS), see :ref:`(Price) <Price1>` for
 details:
 
@@ -40,37 +40,29 @@ details:
 | H mass = 1.008
 | O charge = -0.830
 | H charge = 0.415
-| LJ epsilon of OO = 0.102
-| LJ sigma of OO = 3.188
-| LJ epsilon, sigma of OH, HH = 0.0
+| LJ :math:`\epsilon` of OO = 0.102
+| LJ :math:`\sigma` of OO = 3.188
+| LJ :math:`\epsilon`, :math:`\sigma` of OH, HH = 0.0
 | K of OH bond = 450
-| r0 of OH bond = 0.9572
+| :math:`r_0` of OH bond = 0.9572
 | K of HOH angle = 55
-| theta of HOH angle = 104.52
-| 
+| :math:`\theta` of HOH angle = 104.52\ :math:`^{\circ}`
+|
 
 Wikipedia also has a nice article on `water models <http://en.wikipedia.org/wiki/Water_model>`_.
 
-
 ----------
 
-
 .. _howto-tip3p:
-
-
 
 **(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
 Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).
 
 .. _Jorgensen1:
 
-
-
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
 
 .. _Price1:
-
-
 
 **(Price)** Price and Brooks, J Chem Phys, 121, 10096 (2004).

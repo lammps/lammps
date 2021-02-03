@@ -6,8 +6,7 @@ compute smd/ulsph/strain command
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute ID group-ID smd/ulsph/strain
 
@@ -17,8 +16,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all smd/ulsph/strain
 
@@ -31,7 +29,8 @@ particles interacting via the updated Lagrangian SPH pair style.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle tensor, which can be accessed
 by any command that uses per-particle values from a compute as input.
@@ -47,7 +46,6 @@ The per-particle tensor values will be given dimensionless, see
 Restrictions
 """"""""""""
 
-
 This compute is part of the USER-SMD package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info. This compute can
 only be used for particles which interact with the updated Lagrangian
@@ -58,4 +56,7 @@ Related commands
 
 :doc:`compute smd/tlsph/strain <compute_smd_tlsph_strain>`
 
-**Default:** none
+Default
+"""""""
+
+none

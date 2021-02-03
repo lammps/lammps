@@ -56,8 +56,8 @@ protected:
   double rmin,dr,ds;            // table parameter
   int kmax;
   bigint Qstep;                 // Frequency of charge resolution
-  double precision;             // acuracy of convergence
-  int loopmax;                  // max of interation
+  double precision;             // accuracy of convergence
+  int loopmax;                  // max of iteration
 
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
@@ -155,10 +155,6 @@ protected:
    void forward_int (int*); void reverse_int (int*);
 
    int Tokenize( char* , char***  );
-
-   inline double vec3_dot(const double x[3], const double y[3]) const {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-   }
 
    template <class T> const T& min ( const T& a, const T& b ) {
    return !(b<a)?a:b;     // or: return !comp(b,a)?a:b; for the comp version

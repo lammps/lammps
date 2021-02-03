@@ -35,6 +35,7 @@ OPT.
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (o) <bond_fene_expand>`
+   * :doc:`gaussian <bond_gaussian>`
    * :doc:`gromos (o) <bond_gromos>`
    * :doc:`harmonic (iko) <bond_harmonic>`
    * :doc:`harmonic/shift (o) <bond_harmonic_shift>`
@@ -46,6 +47,7 @@ OPT.
    * :doc:`oxdna2/fene <bond_oxdna>`
    * :doc:`oxrna2/fene <bond_oxdna>`
    * :doc:`quartic (o) <bond_quartic>`
+   * :doc:`special <bond_special>`
    * :doc:`table (o) <bond_table>`
 
 .. _angle:
@@ -83,6 +85,7 @@ OPT.
    * :doc:`dipole (o) <angle_dipole>`
    * :doc:`fourier (o) <angle_fourier>`
    * :doc:`fourier/simple (o) <angle_fourier_simple>`
+   * :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
    * :doc:`harmonic (iko) <angle_harmonic>`
    * :doc:`mm3 <angle_mm3>`
    * :doc:`quartic (o) <angle_quartic>`
@@ -98,7 +101,6 @@ All LAMMPS :doc:`dihedral_style <dihedral_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
 parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
 OPT.
-
 
 .. table_from_list::
    :columns: 4

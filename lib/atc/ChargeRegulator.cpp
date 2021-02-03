@@ -164,7 +164,7 @@ namespace ATC {
         chargeRegulator_(chargeRegulator),
         lammpsInterface_(LammpsInterface::instance()),
         rC_(0), rCsq_(0),
-        targetValue_(NULL), 
+        targetValue_(nullptr), 
         targetPhi_(p.value), 
         surface_(p.faceset),
         atomGroupBit_(p.groupBit), 
@@ -214,7 +214,7 @@ namespace ATC {
     qV2e_ = lammpsInterface_->qv2e();
     qqrd2e_ = lammpsInterface_->qqrd2e();
 
-    // note derived method set intialized to true
+    // note derived method set initialized to true
   }
 
   
@@ -327,7 +327,7 @@ namespace ATC {
 
 
 //
-    if (nInfluenceNodes_ < nControlNodes_) throw ATC_Error(" least square not implmented ");
+    if (nInfluenceNodes_ < nControlNodes_) throw ATC_Error(" least square not implemented ");
     if (nInfluenceNodes_ > nControlNodes_) throw ATC_Error(" solve not possible ");
     DENS_MAT G(nInfluenceNodes_,nControlNodes_); 
     DENS_VEC G_I;

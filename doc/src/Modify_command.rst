@@ -2,8 +2,8 @@ Input script command style
 ==========================
 
 New commands can be added to LAMMPS input scripts by adding new
-classes that have a "command" method.  For example, the create\_atoms,
-read\_data, velocity, and run commands are all implemented in this
+classes that have a "command" method.  For example, the create_atoms,
+read_data, velocity, and run commands are all implemented in this
 fashion.  When such a command is encountered in the LAMMPS input
 script, LAMMPS simply creates a class with the corresponding name,
 invokes the "command" method of the class, and passes it the arguments

@@ -1,0 +1,92 @@
+LAMMPS (24 Dec 2020)
+  using 1 OpenMP thread(s) per MPI task
+
+processors * * 1
+units metal
+boundary p p f
+read_data adatom.data
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (17.121441 14.827603 39.319732)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  181 atoms
+  read_data CPU = 0.001 seconds
+
+pair_style agni
+pair_coeff * * Al_jpc.agni Al
+Reading agni potential file Al_jpc.agni with DATE: 2017-02-24
+WARNING: Ignoring unknown tag 'Rs' in AGNI potential file. (src/USER-MISC/pair_agni.cpp:440)
+WARNING: Ignoring unknown tag 'neighbors' in AGNI potential file. (src/USER-MISC/pair_agni.cpp:440)
+WARNING: Ignoring unknown tag 'lambda' in AGNI potential file. (src/USER-MISC/pair_agni.cpp:440)
+
+neighbor 0.3 bin
+neigh_modify delay 2 check yes
+
+timestep 0.0005
+velocity all create 500 12345
+fix 1 all nvt temp 250 250 0.2
+fix 5 all momentum 1 linear 1 1 1
+
+thermo 100
+thermo_style custom step ke temp
+
+# dump MyDump all custom 250 dump.atoms id type x y z vx vy vz fx fy fz
+
+run 1000
+Neighbor list info ...
+  update every 1 steps, delay 2 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.3
+  ghost atom cutoff = 8.3
+  binsize = 4.15, bins = 5 4 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair agni, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.063 | 3.063 | 3.063 Mbytes
+Step KinEng Temp 
+       0    11.633413          500 
+     100    4.6059939      197.964 
+     200    7.3700154    316.76067 
+     300    6.0443914    259.78582 
+     400    6.1631193     264.8887 
+     500    6.2647281    269.25581 
+     600     5.273254     226.6426 
+     700    5.6514484    242.89726 
+     800    6.5572409    281.82791 
+     900    6.0576737    260.35668 
+    1000    6.5622233    282.04205 
+Loop time of 4.67437 on 4 procs for 1000 steps with 181 atoms
+
+Performance: 9.242 ns/day, 2.597 hours/ns, 213.933 timesteps/s
+98.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.0668     | 4.2058     | 4.4078     |   7.1 | 89.98
+Neigh   | 0.0033048  | 0.0033794  | 0.0034381  |   0.1 |  0.07
+Comm    | 0.2547     | 0.45656    | 0.59576    |  21.5 |  9.77
+Output  | 9.8817e-05 | 0.00035464 | 0.001121   |   0.0 |  0.01
+Modify  | 0.0059429  | 0.0060754  | 0.0061966  |   0.2 |  0.13
+Other   |            | 0.002172   |            |       |  0.05
+
+Nlocal:        45.2500 ave          52 max          40 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+Nghost:        376.500 ave         382 max         366 min
+Histogram: 1 0 0 0 0 0 0 0 2 1
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:      4871.00 ave        5578 max        4374 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 19484
+Ave neighs/atom = 107.64641
+Neighbor list builds = 33
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:04

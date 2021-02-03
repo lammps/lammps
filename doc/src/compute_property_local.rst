@@ -6,7 +6,6 @@ compute property/local command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    compute ID group-ID property/local attribute1 attribute2 ... keyword args ...
@@ -14,9 +13,9 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * property/local = style name of this compute command
 * one or more attributes may be appended
-  
+
   .. parsed-literal::
-  
+
        possible attributes = natom1 natom2 ntype1 ntype2
                              patom1 patom2 ptype1 ptype2
                              batom1 batom2 btype
@@ -24,9 +23,8 @@ Syntax
                              datom1 datom2 datom3 datom4 dtype
                              iatom1 iatom2 iatom3 iatom4 itype
 
-  
   .. parsed-literal::
-  
+
           natom1, natom2 = IDs of 2 atoms in each pair (within neighbor cutoff)
           ntype1, ntype2 = type of 2 atoms in each pair (within neighbor cutoff)
           patom1, patom2 = IDs of 2 atoms in each pair (within force cutoff)
@@ -42,18 +40,15 @@ Syntax
 
 * zero or more keyword/arg pairs may be appended
 * keyword = *cutoff*
-  
+
   .. parsed-literal::
-  
+
        *cutoff* arg = *type* or *radius*
-
-
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    compute 1 all property/local btype batom1 batom2
    compute 1 all property/local atype aatom2
@@ -145,7 +140,8 @@ The attributes that start with "a", "d", "i", refer to similar values
 for :doc:`angles <angle_style>`, :doc:`dihedrals <dihedral_style>`, and
 :doc:`impropers <improper_style>`.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a local vector or local array depending on the
 number of input values.  The length of the vector or number of rows in

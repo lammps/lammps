@@ -6,7 +6,6 @@ fix nve/limit command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    fix ID group-ID nve/limit xmax
@@ -18,8 +17,7 @@ Syntax
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    fix 1 all nve/limit 0.1
 
@@ -62,7 +60,8 @@ very large for overlapped configurations.
    that need this fix, then turn fix shake on when doing normal dynamics
    with a fixed-size timestep.
 
-**Restart, fix\_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -90,4 +89,7 @@ Related commands
 :doc:`fix nve <fix_nve>`, :doc:`fix nve/noforce <fix_nve_noforce>`,
 :doc:`pair_style soft <pair_soft>`
 
-**Default:** none
+Default
+"""""""
+
+none

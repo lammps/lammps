@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_histo.h"
-#include <mpi.h>
-#include <cstdlib>
+
+#include "atom.h"
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cstring>
 #include <unistd.h>
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -35,29 +34,24 @@ enum{SCALAR,VECTOR,WINDOW};
 enum{DEFAULT,GLOBAL,PERATOM,LOCAL};
 enum{IGNORE,END,EXTRA};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
-  ids(NULL), fp(NULL), stats_list(NULL),
-  bin(NULL), bin_total(NULL), bin_all(NULL), bin_list(NULL),
-  coord(NULL), vector(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr),
+  ids(nullptr), fp(nullptr), stats_list(nullptr),
+  bin(nullptr), bin_total(nullptr), bin_all(nullptr), bin_list(nullptr),
+  coord(nullptr), vector(nullptr)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix ave/histo command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
   vector_flag = 1;
@@ -68,9 +62,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   extarray = 0;
   dynamic_group_allow = 1;
 
-  lo = force->numeric(FLERR,arg[6]);
-  hi = force->numeric(FLERR,arg[7]);
-  nbins = force->inumeric(FLERR,arg[8]);
+  lo = utils::numeric(FLERR,arg[6],false,lmp);
+  hi = utils::numeric(FLERR,arg[7],false,lmp);
+  nbins = utils::inumeric(FLERR,arg[8],false,lmp);
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values
@@ -105,7 +99,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[9],mode,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[9],mode,earg,lmp);
 
   if (earg != &arg[9]) expand = 1;
   arg = earg;
@@ -121,41 +115,41 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[i],"x") == 0) {
       which[i] = X;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"y") == 0) {
       which[i] = X;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"z") == 0) {
       which[i] = X;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
     } else if (strcmp(arg[i],"vx") == 0) {
       which[i] = V;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"vy") == 0) {
       which[i] = V;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"vz") == 0) {
       which[i] = V;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
     } else if (strcmp(arg[i],"fx") == 0) {
       which[i] = F;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"fy") == 0) {
       which[i] = F;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"fz") == 0) {
       which[i] = F;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
     } else if ((strncmp(arg[i],"c_",2) == 0) ||
         (strncmp(arg[i],"f_",2) == 0) ||
@@ -468,9 +462,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   bin_all = new double[nbins];
   coord = new double[nbins];
 
-  stats_list = NULL;
-  bin_list = NULL;
-  vector = NULL;
+  stats_list = nullptr;
+  bin_list = nullptr;
+  vector = nullptr;
   maxatom = 0;
 
   if (ave == WINDOW) {
@@ -639,29 +633,29 @@ void FixAveHisto::end_of_step()
 
       if (kind == GLOBAL && mode == SCALAR) {
         if (j == 0) {
-          if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
             compute->compute_scalar();
-            compute->invoked_flag |= INVOKED_SCALAR;
+            compute->invoked_flag |= Compute::INVOKED_SCALAR;
           }
           bin_one(compute->scalar);
         } else {
-          if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
           bin_one(compute->vector[j-1]);
         }
       } else if (kind == GLOBAL && mode == VECTOR) {
         if (j == 0) {
-          if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
           bin_vector(compute->size_vector,compute->vector,1);
         } else {
-          if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
-            compute->invoked_flag |= INVOKED_ARRAY;
+            compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
           if (compute->array)
             bin_vector(compute->size_array_rows,&compute->array[0][j-1],
@@ -669,9 +663,9 @@ void FixAveHisto::end_of_step()
         }
 
       } else if (kind == PERATOM) {
-        if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
           compute->compute_peratom();
-          compute->invoked_flag |= INVOKED_PERATOM;
+          compute->invoked_flag |= Compute::INVOKED_PERATOM;
         }
         if (j == 0)
           bin_atoms(compute->vector_atom,1);
@@ -679,9 +673,9 @@ void FixAveHisto::end_of_step()
           bin_atoms(&compute->array_atom[0][j-1],compute->size_peratom_cols);
 
       } else if (kind == LOCAL) {
-        if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
           compute->compute_local();
-          compute->invoked_flag |= INVOKED_LOCAL;
+          compute->invoked_flag |= Compute::INVOKED_LOCAL;
         }
         if (j == 0)
           bin_vector(compute->size_local_rows,compute->vector_local,1);
@@ -761,7 +755,7 @@ void FixAveHisto::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep + nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // merge histogram stats across procs if necessary
@@ -945,16 +939,16 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
 {
   // option defaults
 
-  fp = NULL;
+  fp = nullptr;
   kind = DEFAULT;
   ave = ONE;
   startstep = 0;
   mode = SCALAR;
   beyond = IGNORE;
   overwrite = 0;
-  title1 = NULL;
-  title2 = NULL;
-  title3 = NULL;
+  title1 = nullptr;
+  title2 = nullptr;
+  title3 = nullptr;
 
   // optional args
 
@@ -963,11 +957,9 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix ave/histo file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == nullptr)
+          error->one(FLERR,fmt::format("Cannot open fix ave/histo file {}: {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"kind") == 0) {
@@ -985,14 +977,14 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       else error->all(FLERR,"Illegal fix ave/histo command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/histo command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
@@ -1049,7 +1041,7 @@ bigint FixAveHisto::nextvalid()
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= static_cast<bigint>(nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
 }

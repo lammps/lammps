@@ -1,27 +1,23 @@
-.. index:: improper\_style cvff
+.. index:: improper_style cvff
+.. index:: improper_style cvff/intel
+.. index:: improper_style cvff/omp
 
-improper\_style cvff command
-============================
+improper_style cvff command
+===========================
 
-improper\_style cvff/intel command
-==================================
-
-improper\_style cvff/omp command
-================================
+Accelerator Variants: *cvff/intel*, *cvff/omp*
 
 Syntax
 """"""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style cvff
 
 Examples
 """"""""
 
-
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    improper_style cvff
    improper_coeff 1 80.0 -1 4
@@ -33,8 +29,7 @@ The *cvff* improper style uses the potential
 
 .. math::
 
-   E = K [1 + d  \cos (n \phi) ] 
-
+   E = K [1 + d  \cos (n \phi) ]
 
 where phi is the improper dihedral angle.
 
@@ -60,35 +55,14 @@ commands:
 * :math:`d` (+1 or -1)
 * :math:`n` (0,1,2,3,4,6)
 
-
 ----------
 
-
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
-
+.. include:: accel_styles.rst
 
 ----------
-
 
 Restrictions
 """"""""""""
-
 
 This improper style can only be used if LAMMPS was built with the
 MOLECULE package.  See the :doc:`Build package <Build_package>` doc page
@@ -99,4 +73,7 @@ Related commands
 
 :doc:`improper_coeff <improper_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

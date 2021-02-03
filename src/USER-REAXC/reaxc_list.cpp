@@ -21,7 +21,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_list.h"
@@ -48,44 +48,44 @@ int Make_List(int n, int num_intrs, int type, reax_list *l )
   switch(l->type) {
   case TYP_VOID:
     if (l->select.v) sfree(l->error_ptr, l->select.v, "list:v");
-    l->select.v = (void*) smalloc(l->error_ptr, l->num_intrs * sizeof(void*), "list:v");
+    l->select.v = (void*) smalloc(l->error_ptr, (rc_bigint) num_intrs * sizeof(void*), "list:v");
     break;
 
   case TYP_THREE_BODY:
     if (l->select.three_body_list) sfree(l->error_ptr, l->select.three_body_list,"list:three_bodies");
     l->select.three_body_list = (three_body_interaction_data*)
-      smalloc(l->error_ptr,  l->num_intrs * sizeof(three_body_interaction_data),
+      smalloc(l->error_ptr,  (rc_bigint) num_intrs * sizeof(three_body_interaction_data),
                "list:three_bodies");
     break;
 
   case TYP_BOND:
     if (l->select.bond_list) sfree(l->error_ptr, l->select.bond_list,"list:bonds");
     l->select.bond_list = (bond_data*)
-      smalloc(l->error_ptr,  l->num_intrs * sizeof(bond_data), "list:bonds");
+      smalloc(l->error_ptr,  (rc_bigint) num_intrs * sizeof(bond_data), "list:bonds");
     break;
 
   case TYP_DBO:
     if (l->select.dbo_list) sfree(l->error_ptr, l->select.dbo_list,"list:dbonds");
     l->select.dbo_list = (dbond_data*)
-      smalloc(l->error_ptr,  l->num_intrs * sizeof(dbond_data), "list:dbonds");
+      smalloc(l->error_ptr,  (rc_bigint) num_intrs * sizeof(dbond_data), "list:dbonds");
     break;
 
   case TYP_DDELTA:
     if (l->select.dDelta_list) sfree(l->error_ptr, l->select.dDelta_list,"list:dDeltas");
     l->select.dDelta_list = (dDelta_data*)
-      smalloc(l->error_ptr,  l->num_intrs * sizeof(dDelta_data), "list:dDeltas");
+      smalloc(l->error_ptr,  (rc_bigint) num_intrs * sizeof(dDelta_data), "list:dDeltas");
     break;
 
   case TYP_FAR_NEIGHBOR:
     if (l->select.far_nbr_list) sfree(l->error_ptr, l->select.far_nbr_list,"list:far_nbrs");
     l->select.far_nbr_list = (far_neighbor_data*)
-      smalloc(l->error_ptr, l->num_intrs * sizeof(far_neighbor_data), "list:far_nbrs");
+      smalloc(l->error_ptr, (rc_bigint) num_intrs * sizeof(far_neighbor_data), "list:far_nbrs");
     break;
 
   case TYP_HBOND:
     if (l->select.hbond_list) sfree(l->error_ptr, l->select.hbond_list,"list:hbonds");
     l->select.hbond_list = (hbond_data*)
-      smalloc(l->error_ptr,  l->num_intrs * sizeof(hbond_data), "list:hbonds");
+      smalloc(l->error_ptr,  (rc_bigint) num_intrs * sizeof(hbond_data), "list:hbonds");
     break;
 
   default:
@@ -106,37 +106,37 @@ void Delete_List( reax_list *l )
 
   sfree(l->error_ptr,  l->index, "list:index" );
   sfree(l->error_ptr,  l->end_index, "list:end_index" );
-  l->index = NULL;
-  l->end_index = NULL;
+  l->index = nullptr;
+  l->end_index = nullptr;
 
   switch(l->type) {
   case TYP_VOID:
     sfree(l->error_ptr,  l->select.v, "list:v" );
-    l->select.v = NULL;
+    l->select.v = nullptr;
     break;
   case TYP_HBOND:
     sfree(l->error_ptr,  l->select.hbond_list, "list:hbonds" );
-    l->select.hbond_list = NULL;
+    l->select.hbond_list = nullptr;
     break;
   case TYP_FAR_NEIGHBOR:
     sfree(l->error_ptr,  l->select.far_nbr_list, "list:far_nbrs" );
-    l->select.far_nbr_list = NULL;
+    l->select.far_nbr_list = nullptr;
     break;
   case TYP_BOND:
     sfree(l->error_ptr,  l->select.bond_list, "list:bonds" );
-    l->select.bond_list = NULL;
+    l->select.bond_list = nullptr;
     break;
   case TYP_DBO:
     sfree(l->error_ptr,  l->select.dbo_list, "list:dbos" );
-    l->select.dbo_list = NULL;
+    l->select.dbo_list = nullptr;
     break;
   case TYP_DDELTA:
     sfree(l->error_ptr,  l->select.dDelta_list, "list:dDeltas" );
-    l->select.dDelta_list = NULL;
+    l->select.dDelta_list = nullptr;
     break;
   case TYP_THREE_BODY:
     sfree(l->error_ptr,  l->select.three_body_list, "list:three_bodies" );
-    l->select.three_body_list = NULL;
+    l->select.three_body_list = nullptr;
     break;
 
   default:

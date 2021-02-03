@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,7 +26,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
-  typenames(NULL)
+  typenames(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump xyz command");
   if (binary || multiproc) error->all(FLERR,"Invalid dump xyz filename");
@@ -46,7 +46,7 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   strcpy(format_default,str);
 
   ntypes = atom->ntypes;
-  typenames = NULL;
+  typenames = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,13 +54,13 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
 DumpXYZ::~DumpXYZ()
 {
   delete[] format_default;
-  format_default = NULL;
+  format_default = nullptr;
 
   if (typenames) {
     for (int i = 1; i <= ntypes; i++)
       delete [] typenames[i];
     delete [] typenames;
-    typenames = NULL;
+    typenames = nullptr;
   }
 }
 
@@ -83,7 +83,7 @@ void DumpXYZ::init_style()
   // initialize typenames array to be backward compatible by default
   // a 32-bit int can be maximally 10 digits plus sign
 
-  if (typenames == NULL) {
+  if (typenames == nullptr) {
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
       typenames[itype] = new char[12];
@@ -114,7 +114,7 @@ int DumpXYZ::modify_param(int narg, char **arg)
         delete [] typenames[i];
 
       delete [] typenames;
-      typenames = NULL;
+      typenames = nullptr;
     }
 
     typenames = new char*[ntypes+1];

@@ -42,7 +42,7 @@ class PairEAM : public Pair {
 
   // potentials in spline form used for force computation
 
-  double dr,rdr,drho,rdrho,rhomax;
+  double dr,rdr,drho,rdrho,rhomax,rhomin;
   double ***rhor_spline,***frho_spline,***z2r_spline;
 
   PairEAM(class LAMMPS *);
@@ -107,7 +107,6 @@ class PairEAM : public Pair {
   virtual void allocate();
   virtual void array2spline();
   void interpolate(int, double, double *, double **);
-  void grab(FILE *, int, double *);
 
   virtual void read_file(char *);
   virtual void file2array();

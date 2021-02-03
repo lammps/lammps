@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +15,15 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
-#include "math_extra.h"
 #include "fix_nh_asphere_omp.h"
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "compute.h"
-#include "group.h"
-#include "memory.h"
 #include "error.h"
+#include "math_extra.h"
 
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -82,7 +79,7 @@ void FixNHAsphereOMP::nve_v()
   // merged with FixNHOMP instead of calling it for the COM update.
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -122,7 +119,7 @@ void FixNHAsphereOMP::nve_x()
   // principal moments of inertia
 
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -163,7 +160,7 @@ void FixNHAsphereOMP::nh_v_temp()
 
   if (which == NOBIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
@@ -177,7 +174,7 @@ void FixNHAsphereOMP::nh_v_temp()
     }
   } else if (which == BIAS) {
 #if defined(_OPENMP)
-#pragma omp parallel for default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
     for (int i = 0; i < nlocal; i++) {
       double buf[3];

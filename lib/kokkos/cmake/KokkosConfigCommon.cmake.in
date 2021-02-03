@@ -1,0 +1,161 @@
+SET(Kokkos_DEVICES @KOKKOS_ENABLED_DEVICES@)
+SET(Kokkos_OPTIONS @KOKKOS_ENABLED_OPTIONS@)
+SET(Kokkos_TPLS @KOKKOS_ENABLED_TPLS@)
+SET(Kokkos_ARCH @KOKKOS_ENABLED_ARCH_LIST@)
+SET(Kokkos_CXX_COMPILER "@CMAKE_CXX_COMPILER@")
+
+# These are needed by KokkosKernels
+FOREACH(DEV ${Kokkos_DEVICES})
+  SET(Kokkos_ENABLE_${DEV} ON)
+ENDFOREACH()
+
+IF(NOT Kokkos_FIND_QUIETLY)
+  MESSAGE(STATUS "Enabled Kokkos devices: ${Kokkos_DEVICES}")
+ENDIF()
+
+IF (Kokkos_ENABLE_CUDA AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.14.0")
+  #If we are building CUDA, we have tricked CMake because we declare a CXX project
+  #If the default C++ standard for a given compiler matches the requested
+  #standard, then CMake just omits the -std flag in later versions of CMake
+  #This breaks CUDA compilation (CUDA compiler can have a different default
+  #-std then the underlying host compiler by itself). Setting this variable
+  #forces CMake to always add the -std flag even if it thinks it doesn't need it
+  SET(CMAKE_CXX_STANDARD_DEFAULT 98 CACHE INTERNAL "" FORCE)
+ENDIF()
+
+SET(KOKKOS_USE_CXX_EXTENSIONS @KOKKOS_USE_CXX_EXTENSIONS@)
+IF (NOT DEFINED CMAKE_CXX_EXTENSIONS OR CMAKE_CXX_EXTENSIONS)
+  IF (NOT KOKKOS_USE_CXX_EXTENSIONS)
+    MESSAGE(WARNING "The installed Kokkos configuration does not support CXX extensions. Forcing -DCMAKE_CXX_EXTENSIONS=Off")
+    SET(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "" FORCE)
+  ENDIF()
+ENDIF()
+
+include(FindPackageHandleStandardArgs)
+
+#   This function makes sure that Kokkos was built with the requested backends
+#   and target architectures and generates a fatal error if it was not.
+#
+#   kokkos_check(
+#     [DEVICES <devices>...]   # Set of backends (e.g. "OpenMP" and/or "Cuda")
+#     [ARCH <archs>...]        # Target architectures (e.g. "Power9" and/or "Volta70")
+#     [OPTIONS <options>...]   # Optional settings (e.g. "TUNING")
+#     [TPLS <tpls>...]         # Third party libraries
+#     [RETURN_VALUE <result>]  # Set a variable that indicates the result of the
+#                              # check instead of a fatal error
+#   )
+function(kokkos_check)
+  set(ALLOWED_ARGS DEVICES ARCH OPTIONS TPLS)
+  cmake_parse_arguments(KOKKOS_CHECK "" "RETURN_VALUE" "${ALLOWED_ARGS}" ${ARGN})
+  foreach(_arg ${KOKKOS_CHECK_UNPARSED_ARGUMENTS})
+    message(SEND_ERROR "Argument '${_arg}' passed to kokkos_check() was not recognized")
+  endforeach()
+  # Get the list of keywords that were actually passed to the function.
+  set(REQUESTED_ARGS)
+  foreach(arg ${ALLOWED_ARGS})
+    if(KOKKOS_CHECK_${arg})
+      list(APPEND REQUESTED_ARGS ${arg})
+    endif()
+  endforeach()
+  set(KOKKOS_CHECK_SUCCESS TRUE)
+  foreach(arg ${REQUESTED_ARGS})
+    # Define variables named after the required arguments that are provided by
+    # the Kokkos install.
+    foreach(requested ${KOKKOS_CHECK_${arg}})
+      foreach(provided ${Kokkos_${arg}})
+        STRING(TOUPPER ${requested} REQUESTED_UC)
+        STRING(TOUPPER ${provided}  PROVIDED_UC)
+        if(PROVIDED_UC STREQUAL REQUESTED_UC)
+          string(REPLACE ";" " " ${requested} "${KOKKOS_CHECK_${arg}}")
+        endif()
+      endforeach()
+    endforeach()
+    # Somewhat divert the CMake function below from its original purpose and
+    # use it to check that there are variables defined for all required
+    # arguments. Success or failure messages will be displayed but we are
+    # responsible for signaling failure and skip the build system generation.
+    if (KOKKOS_CHECK_RETURN_VALUE)
+      set(Kokkos_${arg}_FIND_QUIETLY ON)
+    endif()
+    find_package_handle_standard_args("Kokkos_${arg}" DEFAULT_MSG
+            ${KOKKOS_CHECK_${arg}})
+    if(NOT Kokkos_${arg}_FOUND)
+      set(KOKKOS_CHECK_SUCCESS FALSE)
+    endif()
+  endforeach()
+  if(NOT KOKKOS_CHECK_SUCCESS AND NOT KOKKOS_CHECK_RETURN_VALUE)
+    message(FATAL_ERROR "Kokkos does NOT provide all backends and/or architectures requested")
+  else()
+    set(${KOKKOS_CHECK_RETURN_VALUE} ${KOKKOS_CHECK_SUCCESS} PARENT_SCOPE)
+  endif()
+endfunction()
+
+# this function is provided to easily select which files use nvcc_wrapper:
+#
+#       GLOBAL      --> all files
+#       TARGET      --> all files in a target
+#       SOURCE      --> specific source files
+#       DIRECTORY   --> all files in directory
+#       PROJECT     --> all files/targets in a project/subproject
+#
+FUNCTION(kokkos_compilation)
+    CMAKE_PARSE_ARGUMENTS(COMP "GLOBAL;PROJECT" "" "DIRECTORY;TARGET;SOURCE" ${ARGN})
+
+    # search relative first and then absolute
+    SET(_HINTS "${CMAKE_CURRENT_LIST_DIR}/../.." "@CMAKE_INSTALL_PREFIX@")
+
+    # find kokkos_launch_compiler
+    FIND_PROGRAM(Kokkos_COMPILE_LAUNCHER
+        NAMES           kokkos_launch_compiler
+        HINTS           ${_HINTS}
+        PATHS           ${_HINTS}
+        PATH_SUFFIXES   bin)
+
+    IF(NOT Kokkos_COMPILE_LAUNCHER)
+        MESSAGE(FATAL_ERROR "Kokkos could not find 'kokkos_launch_compiler'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/launcher'")
+    ENDIF()
+
+    IF(COMP_GLOBAL)
+        # if global, don't bother setting others
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+    ELSE()
+        FOREACH(_TYPE PROJECT DIRECTORY TARGET SOURCE)
+            # make project/subproject scoping easy, e.g. KokkosCompilation(PROJECT) after project(...)
+            IF("${_TYPE}" STREQUAL "PROJECT" AND COMP_${_TYPE})
+                LIST(APPEND COMP_DIRECTORY ${PROJECT_SOURCE_DIR})
+                UNSET(COMP_${_TYPE})
+            ENDIF()
+            # set the properties if defined
+            IF(COMP_${_TYPE})
+                # MESSAGE(STATUS "Using nvcc_wrapper :: ${_TYPE} :: ${COMP_${_TYPE}}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${CMAKE_CXX_COMPILER}")
+            ENDIF()
+        ENDFOREACH()
+    ENDIF()
+ENDFUNCTION()
+
+# A test to check whether a downstream project set the C++ compiler to NVCC or not
+# this is called only when Kokkos was installed with Kokkos_ENABLE_CUDA=ON
+FUNCTION(kokkos_compiler_is_nvcc VAR COMPILER)
+    # Check if the compiler is nvcc (which really means nvcc_wrapper).
+    EXECUTE_PROCESS(COMMAND ${COMPILER} ${ARGN} --version
+                    OUTPUT_VARIABLE INTERNAL_COMPILER_VERSION
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    RESULT_VARIABLE RET)
+    # something went wrong
+    IF(RET GREATER 0)
+        SET(${VAR} false PARENT_SCOPE)
+    ELSE()
+        STRING(REPLACE "\n" " - " INTERNAL_COMPILER_VERSION_ONE_LINE ${INTERNAL_COMPILER_VERSION} )
+        STRING(FIND ${INTERNAL_COMPILER_VERSION_ONE_LINE} "nvcc" INTERNAL_COMPILER_VERSION_CONTAINS_NVCC)
+        STRING(REGEX REPLACE "^ +" "" INTERNAL_HAVE_COMPILER_NVCC "${INTERNAL_HAVE_COMPILER_NVCC}")
+        IF(${INTERNAL_COMPILER_VERSION_CONTAINS_NVCC} GREATER -1)
+            SET(${VAR} true PARENT_SCOPE)
+        ELSE()
+            SET(${VAR} false PARENT_SCOPE)
+        ENDIF()
+    ENDIF()
+ENDFUNCTION()
+

@@ -14,7 +14,7 @@
 #ifndef LMP_NEIGH_LIST_H
 #define LMP_NEIGH_LIST_H
 
-#include "pointers.h"
+#include "pointers.h"           // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -42,6 +42,7 @@ class NeighList : protected Pointers {
   int respamiddle;                 // 1 if there is also a rRespa middle list
   int respainner;                  // 1 if there is also a rRespa inner list
   int copy;                        // 1 if this list is copied from another list
+  int kk2cpu;                      // 1 if this list is copied from Kokkos to CPU
   int copymode;                    // 1 if this is a Kokkos on-device copy
 
   // data structs to store neighbor pairs I,J and associated values
@@ -106,7 +107,7 @@ class NeighList : protected Pointers {
   void grow(int,int);                   // grow all data structs
   void print_attributes();              // debug routine
   int get_maxlocal() {return maxatom;}
-  bigint memory_usage();
+  double memory_usage();
 };
 
 }

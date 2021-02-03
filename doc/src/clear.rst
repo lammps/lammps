@@ -6,14 +6,12 @@ clear command
 Syntax
 """"""
 
-
 .. parsed-literal::
 
    clear
 
 Examples
 """"""""
-
 
 .. parsed-literal::
 
@@ -39,6 +37,13 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

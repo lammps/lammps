@@ -382,9 +382,9 @@ void ComputeOmegaChunk::allocate()
 double ComputeOmegaChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*6 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 3 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2*6 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 3 * sizeof(double);
   return bytes;
 }

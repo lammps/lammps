@@ -484,8 +484,8 @@ void ComputeGlobalAtom::compute_peratom()
 double ComputeGlobalAtom::memory_usage()
 {
   double bytes = nmax*nvalues * sizeof(double);
-  bytes += nmax * sizeof(int);                    // indices
-  if (varatom) bytes += nmax * sizeof(double);    // varatom
-  bytes += maxvector * sizeof(double);            // vecglobal
+  bytes += (double)nmax * sizeof(int);                    // indices
+  if (varatom) bytes += (double)nmax * sizeof(double);    // varatom
+  bytes += (double)maxvector * sizeof(double);            // vecglobal
   return bytes;
 }

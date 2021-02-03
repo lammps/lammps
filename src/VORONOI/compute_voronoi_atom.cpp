@@ -616,7 +616,7 @@ double ComputeVoronoi::memory_usage()
 {
   double bytes = size_peratom_cols * nmax * sizeof(double);
   // estimate based on average coordination of 12
-  if (faces_flag) bytes += 12 * size_local_cols * nmax * sizeof(double);
+  if (faces_flag) bytes += (double)12 * size_local_cols * nmax * sizeof(double);
   return bytes;
 }
 

@@ -389,6 +389,6 @@ void Improper::ev_tally(int i1, int i2, int i3, int i4,
 double Improper::memory_usage()
 {
   double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }

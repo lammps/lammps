@@ -499,7 +499,7 @@ void ComputeReduceChunk::unlock(Fix *fixptr)
 double ComputeReduceChunk::memory_usage()
 {
   double bytes = (bigint) maxatom * sizeof(double);
-  if (nvalues == 1) bytes += (bigint) maxchunk * 2 * sizeof(double);
-  else bytes += (bigint) maxchunk * nvalues * 2 * sizeof(double);
+  if (nvalues == 1) bytes += (double) maxchunk * 2 * sizeof(double);
+  else bytes += (double) maxchunk * nvalues * 2 * sizeof(double);
   return bytes;
 }

@@ -1991,8 +1991,8 @@ void ComputeChunkAtom::set_arrays(int i)
 double ComputeChunkAtom::memory_usage()
 {
   double bytes = 2*MAX(nmaxint,0) * sizeof(int);   // ichunk,exclude
-  bytes += nmax * sizeof(double);                  // chunk
-  bytes += ncoord*nchunk * sizeof(double);         // coord
-  if (compress) bytes += nchunk * sizeof(int);     // chunkID
+  bytes += (double)nmax * sizeof(double);                  // chunk
+  bytes += (double)ncoord*nchunk * sizeof(double);         // coord
+  if (compress) bytes += (double)nchunk * sizeof(int);     // chunkID
   return bytes;
 }

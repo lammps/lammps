@@ -790,7 +790,7 @@ template<class DeviceType>
 double FixShardlowKokkos<DeviceType>::memory_usage()
 {
   double bytes = 0.0;
-  bytes += sizeof(double)*3*ghostmax; // v_t0[]
+  bytes += (double)sizeof(double)*3*ghostmax; // v_t0[]
   return bytes;
 }
 

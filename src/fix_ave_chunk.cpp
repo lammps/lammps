@@ -1132,9 +1132,9 @@ bigint FixAveChunk::nextvalid()
 double FixAveChunk::memory_usage()
 {
   double bytes = maxvar * sizeof(double);         // varatom
-  bytes += 4*maxchunk * sizeof(double);           // count one,many,sum,total
-  bytes += nvalues*maxchunk * sizeof(double);     // values one,many,sum,total
-  bytes += nwindow*maxchunk * sizeof(double);          // count_list
-  bytes += nwindow*maxchunk*nvalues * sizeof(double);  // values_list
+  bytes += (double)4*maxchunk * sizeof(double);           // count one,many,sum,total
+  bytes += (double)nvalues*maxchunk * sizeof(double);     // values one,many,sum,total
+  bytes += (double)nwindow*maxchunk * sizeof(double);          // count_list
+  bytes += (double)nwindow*maxchunk*nvalues * sizeof(double);  // values_list
   return bytes;
 }

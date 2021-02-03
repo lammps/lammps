@@ -355,7 +355,7 @@ double FixLatte::compute_scalar()
 double FixLatte::memory_usage()
 {
   double bytes = 0.0;
-  if (coulomb) bytes += nmax * sizeof(double);
-  if (coulomb) bytes += nmax*3 * sizeof(double);
+  if (coulomb) bytes += (double)nmax * sizeof(double);
+  if (coulomb) bytes += (double)nmax*3 * sizeof(double);
   return bytes;
 }

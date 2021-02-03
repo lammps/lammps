@@ -558,8 +558,8 @@ void FixTTM::end_of_step()
 double FixTTM::memory_usage()
 {
   double bytes = 0.0;
-  bytes += 5*total_nnodes * sizeof(int);
-  bytes += 14*total_nnodes * sizeof(double);
+  bytes += (double)5*total_nnodes * sizeof(int);
+  bytes += (double)14*total_nnodes * sizeof(double);
   return bytes;
 }
 

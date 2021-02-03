@@ -554,14 +554,14 @@ void AtomVecBody::data_body(int m, int ninteger, int ndouble,
 double AtomVecBody::memory_usage_bonus()
 {
   double bytes = 0;
-  bytes += nmax_bonus*sizeof(Bonus);
+  bytes += (double)nmax_bonus*sizeof(Bonus);
   bytes += icp->size() + dcp->size();
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
     if (body[i] >= 0) {
-      bytes += bonus[body[i]].ninteger * sizeof(int);
-      bytes += bonus[body[i]].ndouble * sizeof(double);
+      bytes += (double)bonus[body[i]].ninteger * sizeof(int);
+      bytes += (double)bonus[body[i]].ndouble * sizeof(double);
     }
   }
 

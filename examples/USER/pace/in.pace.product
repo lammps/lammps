@@ -1,0 +1,38 @@
+# simple test of fcc Cu with ACE product  
+
+units		metal
+atom_style	atomic
+
+neighbor	0.3 bin
+neigh_modify	 every 2 delay 10 check yes
+
+variable	a equal 3.597
+lattice		fcc $a 
+region		box block 0 4 0 4 0 4
+create_box	1 box
+create_atoms	1 box
+
+mass		1 26.98
+
+group		Al type 1
+
+pair_style 	pace product
+pair_coeff  * * Cu-PBE-core-rep.ace Cu
+
+velocity        all create 300 8728 loop geom
+timestep        0.0005
+fix		1 all nve
+
+compute  	eatom all pe/atom
+compute  	energy all reduce sum c_eatom
+variable 	delenergy equal c_energy-pe
+
+compute  	satom all stress/atom NULL
+compute  	str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable 	delpress equal -(c_str[1]+c_str[2]+c_str[3])/(3*vol)-press
+
+thermo 		10
+thermo_style    custom step temp epair etotal press v_delenergy v_delpress
+
+run		100
+

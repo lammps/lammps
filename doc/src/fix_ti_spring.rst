@@ -120,22 +120,28 @@ increase in computational resources cost.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the original coordinates of tethered atoms to :doc:`binary restart files <restart>`, so that the spring effect will be the
-same in a restarted simulation. See the :doc:`read restart <read_restart>` command for info on how to re-specify a fix
-in an input script that reads a restart file, so that the operation of
-the fix continues in an uninterrupted fashion.
+This fix writes the original coordinates of tethered atoms to
+:doc:`binary restart files <restart>`, so that the spring effect will
+be the same in a restarted simulation. See the :doc:`read restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
 
-The :doc:`fix modify <fix_modify>` *energy* option is supported by this
-fix to add the energy stored in the per-atom springs to the system's
-potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix modify <fix_modify>` *energy* option is supported by
+this fix to add the energy stored in the per-atom springs to the
+system's potential energy as part of :doc:`thermodynamic output
+<thermo_style>`.
 
 This fix computes a global scalar and a global vector quantities which
 can be accessed by various :doc:`output commands <Howto_output>`. The
 scalar is an energy which is the sum of the spring energy for each
-atom, where the per-atom energy is 0.5 \* k \* r\^2. The vector has 2
-positions, the first one is the coupling parameter lambda and the
-second one is the time derivative of lambda. The scalar and vector
-values calculated by this fix are "extensive".
+atom, where the per-atom energy is 0.5 \* k \* r\^2. The vector stores
+2 values.  The first value is the coupling parameter lambda.  The
+second value is the derivative of lambda with respect to the integer
+timestep *s*, i.e. d lambda / ds.  In order to obtain d lambda / dt,
+where t is simulation time, this 2nd value needs to be divided by the
+timestep size (e.g. 0.5 fs).  The scalar and vector values calculated
+by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.

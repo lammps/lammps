@@ -1,27 +1,19 @@
 /*
-Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
- Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
- Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1
-
-^1: Ruhr-University Bochum, Bochum, Germany
-^2: University of Cambridge, Cambridge, United Kingdom
-^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
-^4: University of British Columbia, Vancouver, BC, Canada
-
-
-    This FILENAME is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Performant implementation of atomic cluster expansion and interface to LAMMPS
+ *
+ * Copyright 2021  (c) Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
+ * Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
+ * Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1
+ *
+ * ^1: Ruhr-University Bochum, Bochum, Germany
+ * ^2: University of Cambridge, Cambridge, United Kingdom
+ * ^3: Sandia National Laboratories, Albuquerque, New Mexico, USA
+ * ^4: University of British Columbia, Vancouver, BC, Canada
+ *
+ *
+ * See the LICENSE file.
  */
+
 
 //automatically generate source code
 
@@ -106,8 +98,13 @@ public:
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy_) delete[] data;
-                data = new T[size];
+                T *old_data = data; //preserve the pointer to the old data
+                data = new T[size]; // allocate new data
+                if (old_data != nullptr) { //
+                    size_t min_size = old_size < size ? old_size : size;
+                    memcpy(data, old_data, min_size * sizeof(T));
+                    if (!is_proxy_) delete[] old_data;
+                }
                 //memset(data, 0, size * sizeof(T));
             } else {
                 //memset(data, 0, size * sizeof(T));
@@ -146,6 +143,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -153,13 +151,14 @@ public:
     */
     void check_indices(size_t i0) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -353,8 +352,13 @@ public:
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy_) delete[] data;
-                data = new T[size];
+                T *old_data = data; //preserve the pointer to the old data
+                data = new T[size]; // allocate new data
+                if (old_data != nullptr) { //
+                    size_t min_size = old_size < size ? old_size : size;
+                    memcpy(data, old_data, min_size * sizeof(T));
+                    if (!is_proxy_) delete[] old_data;
+                }
                 //memset(data, 0, size * sizeof(T));
             } else {
                 //memset(data, 0, size * sizeof(T));
@@ -393,6 +397,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -400,19 +405,20 @@ public:
     */
     void check_indices(size_t i0, size_t i1) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -634,8 +640,13 @@ public:
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy_) delete[] data;
-                data = new T[size];
+                T *old_data = data; //preserve the pointer to the old data
+                data = new T[size]; // allocate new data
+                if (old_data != nullptr) { //
+                    size_t min_size = old_size < size ? old_size : size;
+                    memcpy(data, old_data, min_size * sizeof(T));
+                    if (!is_proxy_) delete[] old_data;
+                }
                 //memset(data, 0, size * sizeof(T));
             } else {
                 //memset(data, 0, size * sizeof(T));
@@ -674,6 +685,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -681,25 +693,26 @@ public:
     */
     void check_indices(size_t i0, size_t i1, size_t i2) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i2<0)|(i2>=dim[2])){
+        if ((i2 < 0) | (i2 >= dim[2])) {
             char buf[1024];
-            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            sprintf(buf, "%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -937,8 +950,13 @@ public:
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy_) delete[] data;
-                data = new T[size];
+                T *old_data = data; //preserve the pointer to the old data
+                data = new T[size]; // allocate new data
+                if (old_data != nullptr) { //
+                    size_t min_size = old_size < size ? old_size : size;
+                    memcpy(data, old_data, min_size * sizeof(T));
+                    if (!is_proxy_) delete[] old_data;
+                }
                 //memset(data, 0, size * sizeof(T));
             } else {
                 //memset(data, 0, size * sizeof(T));
@@ -977,6 +995,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -984,31 +1003,32 @@ public:
     */
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i2<0)|(i2>=dim[2])){
+        if ((i2 < 0) | (i2 >= dim[2])) {
             char buf[1024];
-            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            sprintf(buf, "%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i3<0)|(i3>=dim[3])){
+        if ((i3 < 0) | (i3 >= dim[3])) {
             char buf[1024];
-            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            sprintf(buf, "%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -1264,8 +1284,13 @@ public:
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy_) delete[] data;
-                data = new T[size];
+                T *old_data = data; //preserve the pointer to the old data
+                data = new T[size]; // allocate new data
+                if (old_data != nullptr) { //
+                    size_t min_size = old_size < size ? old_size : size;
+                    memcpy(data, old_data, min_size * sizeof(T));
+                    if (!is_proxy_) delete[] old_data;
+                }
                 //memset(data, 0, size * sizeof(T));
             } else {
                 //memset(data, 0, size * sizeof(T));
@@ -1304,6 +1329,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -1311,37 +1337,38 @@ public:
     */
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3, size_t i4) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i2<0)|(i2>=dim[2])){
+        if ((i2 < 0) | (i2 >= dim[2])) {
             char buf[1024];
-            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            sprintf(buf, "%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i3<0)|(i3>=dim[3])){
+        if ((i3 < 0) | (i3 >= dim[3])) {
             char buf[1024];
-            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            sprintf(buf, "%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i4<0)|(i4>=dim[4])){
+        if ((i4 < 0) | (i4 >= dim[4])) {
             char buf[1024];
-            sprintf(buf,"%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4]-1);
+            sprintf(buf, "%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**
@@ -1613,8 +1640,13 @@ public:
             data = new_data;
         } else {
             if (size != old_size) {
-                if (!is_proxy_) delete[] data;
-                data = new T[size];
+                T *old_data = data; //preserve the pointer to the old data
+                data = new T[size]; // allocate new data
+                if (old_data != nullptr) { //
+                    size_t min_size = old_size < size ? old_size : size;
+                    memcpy(data, old_data, min_size * sizeof(T));
+                    if (!is_proxy_) delete[] old_data;
+                }
                 //memset(data, 0, size * sizeof(T));
             } else {
                 //memset(data, 0, size * sizeof(T));
@@ -1653,6 +1685,7 @@ public:
     }
 
 #ifdef MULTIARRAY_INDICES_CHECK
+
     /**
     * Check indices validity. If preprocessor macro MULTIARRAY_INDICES_CHECK is defined, then the check of index will
     * be performed before accessing memory. By default this is turned off.
@@ -1660,43 +1693,44 @@ public:
     */
     void check_indices(size_t i0, size_t i1, size_t i2, size_t i3, size_t i4, size_t i5) const {
 
-        if((i0<0)|(i0>=dim[0])){
+        if ((i0 < 0) | (i0 >= dim[0])) {
             char buf[1024];
-            sprintf(buf,"%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0]-1);
+            sprintf(buf, "%s: index i0=%ld out of range (0, %ld)\n", array_name.c_str(), i0, dim[0] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i1<0)|(i1>=dim[1])){
+        if ((i1 < 0) | (i1 >= dim[1])) {
             char buf[1024];
-            sprintf(buf,"%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1]-1);
+            sprintf(buf, "%s: index i1=%ld out of range (0, %ld)\n", array_name.c_str(), i1, dim[1] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i2<0)|(i2>=dim[2])){
+        if ((i2 < 0) | (i2 >= dim[2])) {
             char buf[1024];
-            sprintf(buf,"%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2]-1);
+            sprintf(buf, "%s: index i2=%ld out of range (0, %ld)\n", array_name.c_str(), i2, dim[2] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i3<0)|(i3>=dim[3])){
+        if ((i3 < 0) | (i3 >= dim[3])) {
             char buf[1024];
-            sprintf(buf,"%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3]-1);
+            sprintf(buf, "%s: index i3=%ld out of range (0, %ld)\n", array_name.c_str(), i3, dim[3] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i4<0)|(i4>=dim[4])){
+        if ((i4 < 0) | (i4 >= dim[4])) {
             char buf[1024];
-            sprintf(buf,"%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4]-1);
+            sprintf(buf, "%s: index i4=%ld out of range (0, %ld)\n", array_name.c_str(), i4, dim[4] - 1);
             throw std::out_of_range(buf);
         }
 
-        if((i5<0)|(i5>=dim[5])){
+        if ((i5 < 0) | (i5 >= dim[5])) {
             char buf[1024];
-            sprintf(buf,"%s: index i5=%ld out of range (0, %ld)\n", array_name.c_str(), i5, dim[5]-1);
+            sprintf(buf, "%s: index i5=%ld out of range (0, %ld)\n", array_name.c_str(), i5, dim[5] - 1);
             throw std::out_of_range(buf);
         }
 
     }
+
 #endif
 
     /**

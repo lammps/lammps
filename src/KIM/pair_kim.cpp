@@ -540,6 +540,19 @@ void PairKIM::coeff(int narg, char **arg)
     kimerror = KIM_Model_ClearThenRefresh(pkim);
     if (kimerror)
       error->all(FLERR,"KIM KIM_Model_ClearThenRefresh returned error");
+
+    // Update cached quantities that may have changed due to Refresh
+    KIM_Model_GetInfluenceDistance(pkim, &kim_global_influence_distance);
+    KIM_Model_GetNeighborListPointers(
+        pkim,
+        &kim_number_of_neighbor_lists,
+        &kim_cutoff_values,
+        &modelWillNotRequestNeighborsOfNoncontributingParticles);
+    if (neighborLists) {
+      delete [] neighborLists;
+      neighborLists = 0;
+    }
+    neighborLists = new NeighList*[kim_number_of_neighbor_lists];
   }
 }
 
@@ -809,6 +822,8 @@ void PairKIM::kim_free()
       error->all(FLERR,"Unable to destroy Compute Arguments Object");
 
     KIM_Model_Destroy(&pkim);
+
+    lmps_maxalloc = 0;
   }
   kim_init_ok = false;
 }

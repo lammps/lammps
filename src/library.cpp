@@ -2693,7 +2693,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2726,7 +2726,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2756,9 +2756,10 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 
 
     }
+
     // property / atom
-    if ( (vptr == nullptr) && ((strstr(name,"d_") == name)
-                               || (strstr(name,"i_") == name))) {
+
+    if ((vptr == nullptr) && (utils::strmatch(name,"^[di]_"))) {
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
         if (lmp->comm->me == 0)
@@ -2912,7 +2913,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2946,7 +2947,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2977,7 +2978,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3154,7 +3155,7 @@ void lammps_gather_subset(void *handle, char *name,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3187,7 +3188,7 @@ void lammps_gather_subset(void *handle, char *name,
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3218,7 +3219,7 @@ void lammps_gather_subset(void *handle, char *name,
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3392,7 +3393,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3418,7 +3419,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3449,7 +3450,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3590,7 +3591,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3616,7 +3617,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3645,7 +3646,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {

@@ -406,17 +406,17 @@ void EwaldDisp::reallocate()
   if (nkvec>nkvec_max) {
     deallocate();                                        // free memory
     hvec = new hvector[nkvec];                                // hvec
-    bytes += (nkvec-nkvec_max)*sizeof(hvector);
+    bytes += (double)(nkvec-nkvec_max)*sizeof(hvector);
     kvec = new kvector[nkvec];                                // kvec
-    bytes += (nkvec-nkvec_max)*sizeof(kvector);
+    bytes += (double)(nkvec-nkvec_max)*sizeof(kvector);
     kenergy = new double[nkvec*nfunctions];                // kenergy
-    bytes += (nkvec-nkvec_max)*nfunctions*sizeof(double);
+    bytes += (double)(nkvec-nkvec_max)*nfunctions*sizeof(double);
     kvirial = new double[6*nkvec*nfunctions];                // kvirial
-    bytes += 6*(nkvec-nkvec_max)*nfunctions*sizeof(double);
+    bytes += (double)6*(nkvec-nkvec_max)*nfunctions*sizeof(double);
     cek_local = new complex[nkvec*nsums];                // cek_local
-    bytes += (nkvec-nkvec_max)*nsums*sizeof(complex);
+    bytes += (double)(nkvec-nkvec_max)*nsums*sizeof(complex);
     cek_global = new complex[nkvec*nsums];                // cek_global
-    bytes += (nkvec-nkvec_max)*nsums*sizeof(complex);
+    bytes += (double)(nkvec-nkvec_max)*nsums*sizeof(complex);
     nkvec_max = nkvec;
   }
 
@@ -449,7 +449,7 @@ void EwaldDisp::reallocate_atoms()
   if ((nevec = atom->nmax*(2*nbox+1))<=nevec_max) return;
   delete [] ekr_local;
   ekr_local = new cvector[nevec];
-  bytes += (nevec-nevec_max)*sizeof(cvector);
+  bytes += (double)(nevec-nevec_max)*sizeof(cvector);
   nevec_max = nevec;
 }
 
@@ -549,7 +549,7 @@ void EwaldDisp::init_coeffs()
     delete [] B;
     B = new double[n+1];
     B[0] = 0.0;
-    bytes += (n+1)*sizeof(double);
+    bytes += (double)(n+1)*sizeof(double);
     for (int i=1; i<=n; ++i) B[i] = sqrt(fabs(b[i][i]));
   }
   if (function[2]) {                                        // arithmetic 1/r^6

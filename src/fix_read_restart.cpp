@@ -77,7 +77,7 @@ int FixReadRestart::setmask()
 double FixReadRestart::memory_usage()
 {
   double bytes = atom->nmax*nextra * sizeof(double);
-  bytes += atom->nmax * sizeof(int);
+  bytes += (double)atom->nmax * sizeof(int);
   return bytes;
 }
 

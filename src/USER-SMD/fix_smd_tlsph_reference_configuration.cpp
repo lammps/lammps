@@ -355,11 +355,11 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int /*vflag*/) {
 double FixSMD_TLSPH_ReferenceConfiguration::memory_usage() {
         int nmax = atom->nmax;
         int bytes = nmax * sizeof(int);
-        bytes += nmax * maxpartner * sizeof(tagint); // partner array
-        bytes += nmax * maxpartner * sizeof(float); // wf_list
-        bytes += nmax * maxpartner * sizeof(float); // wfd_list
-        bytes += nmax * maxpartner * sizeof(float); // damage_per_interaction array
-        bytes += nmax * sizeof(int); // npartner array
+        bytes += (double)nmax * maxpartner * sizeof(tagint); // partner array
+        bytes += (double)nmax * maxpartner * sizeof(float); // wf_list
+        bytes += (double)nmax * maxpartner * sizeof(float); // wfd_list
+        bytes += (double)nmax * maxpartner * sizeof(float); // damage_per_interaction array
+        bytes += (double)nmax * sizeof(int); // npartner array
         return bytes;
 
 }

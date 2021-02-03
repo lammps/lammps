@@ -387,7 +387,7 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 double PairADPOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairADP::memory_usage();
-  bytes += (comm->nthreads-1) * nmax * (10*sizeof(double) + 3*sizeof(double *));
+  bytes += (double)PairADP::memory_usage();
+  bytes += (double)(comm->nthreads-1) * nmax * (10*sizeof(double) + 3*sizeof(double *));
   return bytes;
 }

@@ -1054,11 +1054,11 @@ void Irregular::grow_recv(int n)
 double Irregular::memory_usage()
 {
   double bytes = 0;
-  bytes += maxsend*sizeof(double);   // buf_send
-  bytes += maxrecv*sizeof(double);   // buf_recv
-  bytes += maxdbuf*sizeof(double);   // dbuf
-  bytes += maxbuf;                   // buf
-  bytes += 2*maxlocal*sizeof(int);   // mproclist,msizes
-  bytes += 2*nprocs*sizeof(int);     // work1,work2
+  bytes += (double)maxsend*sizeof(double);   // buf_send
+  bytes += (double)maxrecv*sizeof(double);   // buf_recv
+  bytes += (double)maxdbuf*sizeof(double);   // dbuf
+  bytes += (double)maxbuf;                   // buf
+  bytes += (double)2*maxlocal*sizeof(int);   // mproclist,msizes
+  bytes += (double)2*nprocs*sizeof(int);     // work1,work2
   return bytes;
 }

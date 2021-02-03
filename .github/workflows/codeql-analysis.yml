@@ -4,8 +4,6 @@ name: "CodeQL Code Analysis"
 on:
   push:
     branches: [master]
-  pull_request:
-    branches: [master]
 
 jobs:
   analyze:

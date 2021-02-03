@@ -1697,8 +1697,8 @@ double Modify::memory_usage()
 {
   double bytes = 0;
   for (int i = 0; i < nfix; i++)
-    bytes += static_cast<bigint> (fix[i]->memory_usage());
+    bytes += fix[i]->memory_usage();
   for (int i = 0; i < ncompute; i++)
-    bytes += static_cast<bigint> (compute[i]->memory_usage());
+    bytes += compute[i]->memory_usage();
   return bytes;
 }

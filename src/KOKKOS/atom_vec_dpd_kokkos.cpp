@@ -1101,7 +1101,7 @@ struct AtomVecDPDKokkos_UnpackBorder {
       _uCond(uCond),
       _uMech(uMech),
       _uChem(uChem),
-      _uCG(uCGnew),
+      _uCG(uCG),
       _uCGnew(uCGnew),
       _first(first) {};
 

@@ -1492,10 +1492,10 @@ double FixQEqReaxKokkos<DeviceType>::memory_usage()
   double bytes;
 
   bytes = atom->nmax*nprev*2 * sizeof(F_FLOAT); // s_hist & t_hist
-  bytes += atom->nmax*8 * sizeof(F_FLOAT); // storage
-  bytes += n_cap*2 * sizeof(int); // matrix...
-  bytes += m_cap * sizeof(int);
-  bytes += m_cap * sizeof(F_FLOAT);
+  bytes += (double)atom->nmax*8 * sizeof(F_FLOAT); // storage
+  bytes += (double)n_cap*2 * sizeof(int); // matrix...
+  bytes += (double)m_cap * sizeof(int);
+  bytes += (double)m_cap * sizeof(F_FLOAT);
 
   return bytes;
 }

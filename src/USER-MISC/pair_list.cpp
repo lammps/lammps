@@ -410,9 +410,9 @@ double PairList::init_one(int, int)
 double PairList::memory_usage()
 {
   double bytes = npairs * sizeof(int);
-  bytes += npairs * sizeof(list_parm_t);
+  bytes += (double)npairs * sizeof(list_parm_t);
   const int n = atom->ntypes+1;
-  bytes += n*(n*sizeof(int) + sizeof(int *));
-  bytes += n*(n*sizeof(double) + sizeof(double *));
+  bytes += (double)n*(n*sizeof(int) + sizeof(int *));
+  bytes += (double)n*(n*sizeof(double) + sizeof(double *));
   return bytes;
 }

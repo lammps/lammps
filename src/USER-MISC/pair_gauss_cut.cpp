@@ -392,8 +392,8 @@ double PairGaussCut::memory_usage()
 
   double bytes = Pair::memory_usage();
 
-  bytes += 7*((n+1)*(n+1) * sizeof(double) + (n+1)*sizeof(double *));
-  bytes += 1*((n+1)*(n+1) * sizeof(int) + (n+1)*sizeof(int *));
+  bytes += (double)7*((n+1)*(n+1) * sizeof(double) + (n+1)*sizeof(double *));
+  bytes += (double)1*((n+1)*(n+1) * sizeof(int) + (n+1)*sizeof(int *));
 
   return bytes;
 }

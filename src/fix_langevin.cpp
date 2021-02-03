@@ -1114,9 +1114,9 @@ void *FixLangevin::extract(const char *str, int &dim)
 double FixLangevin::memory_usage()
 {
   double bytes = 0.0;
-  if (gjfflag) bytes += atom->nmax*6 * sizeof(double);
-  if (tallyflag || osflag) bytes += atom->nmax*3 * sizeof(double);
-  if (tforce) bytes += atom->nmax * sizeof(double);
+  if (gjfflag) bytes += (double)atom->nmax*6 * sizeof(double);
+  if (tallyflag || osflag) bytes += (double)atom->nmax*3 * sizeof(double);
+  if (tforce) bytes += (double)atom->nmax * sizeof(double);
   return bytes;
 }
 

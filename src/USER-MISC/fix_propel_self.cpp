@@ -131,7 +131,7 @@ double FixPropelSelf::memory_usage()
 {
   // magnitude + thermostat_orient + mode + n_types_filter + apply_to_type
   double bytes = sizeof(double) + 3*sizeof(int) + sizeof(int*);
-  bytes += sizeof(int)*atom->ntypes*n_types_filter;
+  bytes += (double)sizeof(int)*atom->ntypes*n_types_filter;
 
   return bytes;
 }

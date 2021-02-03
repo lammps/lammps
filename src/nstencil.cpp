@@ -354,6 +354,7 @@ void NStencil::create_setup()
         if (sy*binsizey_multi[bin_collection] < stencil_range) sy++;
         sz = static_cast<int> (stencil_range*bininvz_multi[bin_collection]);
         if (sz*binsizez_multi[bin_collection] < stencil_range) sz++;
+        if (dimension == 2) sz = 0;
         
         stencil_sx_multi[i][j] = sx;
         stencil_sy_multi[i][j] = sy;

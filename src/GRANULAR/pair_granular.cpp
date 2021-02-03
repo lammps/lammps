@@ -1831,9 +1831,9 @@ double PairGranular::atom2cut(int i)
   
   cut = atom->radius[i]*2;
   if(beyond_contact) {
-    int itype = atom->type[i]
+    int itype = atom->type[i];
     if(normal_model[itype][itype] == JKR) {
-      cut += pulloffdistance(cut, cut, itype, itype);
+      cut += pulloff_distance(cut, cut, itype, itype);
     }
   }
   
@@ -1856,7 +1856,7 @@ double PairGranular::radii2cut(double r1, double r2)
     for(int i = 0; i < n; i++){
       for(int j = 0; j < n; j++){
         if(normal_model[i][j] == JKR) {
-          temp = pulloffdistance(r1, r2, i, j);
+          temp = pulloff_distance(r1, r2, i, j);
           if(temp > cut) cut = temp;
         }
       }          

@@ -735,6 +735,13 @@ double Comm::get_comm_cutoff()
                                        maxcommcutoff));
   }
 
+  // Check maximum interval size for neighbor multi
+  if(neighbor->interval_collection_flag){
+    for(int i = 0; i < neighbor->ncollections; i++){
+      maxcommcutoff = MAX(maxcommcutoff, neighbor->collection2cut[i]);
+    }        
+  }
+
   return maxcommcutoff;
 }
 

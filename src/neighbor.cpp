@@ -2655,7 +2655,7 @@ void Neighbor::build_collection(int istart)
       collection[i] = -1;
       
       for(icollection = 0; icollection < ncollections; icollection++){
-        if(collection2cut[icollection] > cut) {
+        if(collection2cut[icollection] >= cut) {
           collection[i] = icollection;
           break;
         }

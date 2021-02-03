@@ -456,7 +456,7 @@ void ACERecursiveEvaluator::acejlformat() {
     int A_idx = 0;  // linear index of A basis function (1-particle)
     for (func_ind = 0; func_ind < total_basis_size; ++func_ind) {
         ACECTildeBasisFunction *func = &basis[func_ind];
-        func->print();
+//        func->print();
         order = func->rank; mus = func->mus; ns = func->ns; ls = func->ls;
         for (ms_ind = 0; ms_ind < func->num_ms_combs; ++ms_ind, ++func_ms_ind) {
             ms = &func->ms_combs[ms_ind * order]; 

@@ -1748,14 +1748,13 @@ int DumpCustom::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"refresh") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strncmp(arg[1],"c_",2) != 0)
+    ArgInfo argi(arg[1],ArgInfo::COMPUTE);
+    if ((argi.get_type() != ArgInfo::COMPUTE) || (argi.get_dim() != 0))
       error->all(FLERR,"Illegal dump_modify command");
     if (refreshflag) error->all(FLERR,"Dump modify can only have one refresh");
 
     refreshflag = 1;
-    int n = strlen(arg[1]);
-    refresh = new char[n];
-    strcpy(refresh,&arg[1][2]);
+    refresh = argi.copy_name();
     return 2;
   }
 

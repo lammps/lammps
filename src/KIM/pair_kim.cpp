@@ -550,7 +550,7 @@ void PairKIM::coeff(int narg, char **arg)
         &modelWillNotRequestNeighborsOfNoncontributingParticles);
     if (neighborLists) {
       delete [] neighborLists;
-      neighborLists = 0;
+      neighborLists = nullptr;
     }
     neighborLists = new NeighList*[kim_number_of_neighbor_lists];
   }
@@ -604,6 +604,9 @@ void PairKIM::init_style()
     neighbor->requests[irequest]->cutoff
       = kim_cutoff_values[i] + neighbor->skin;
   }
+  // increment instance_me in case of need to change the neighbor list
+  // request settings
+  instance_me += 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -823,7 +826,7 @@ void PairKIM::kim_free()
 
     KIM_Model_Destroy(&pkim);
 
-    lmps_maxalloc = 0;
+    lmps_maxalloc = 0;  // reinitialize member variable
   }
   kim_init_ok = false;
 }
@@ -874,7 +877,7 @@ void PairKIM::kim_init()
     &modelWillNotRequestNeighborsOfNoncontributingParticles);
   if (neighborLists) {
     delete [] neighborLists;
-    neighborLists = 0;
+    neighborLists = nulptr;
   }
   neighborLists = new NeighList*[kim_number_of_neighbor_lists];
 

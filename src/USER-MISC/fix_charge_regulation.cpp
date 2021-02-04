@@ -1174,8 +1174,8 @@ void Fix_charge_regulation::options(int narg, char **arg) {
   // defaults
 
   pH = 7.0;
-  pI_plus = 100;
-  pI_minus = 100;
+  pI_plus = 5.0;
+  pI_minus = 5.0;
   acid_type = -1;
   base_type = -1;
   pKa = 100;

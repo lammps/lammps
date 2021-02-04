@@ -62,13 +62,12 @@ The implemented method is largely analogous to the grand-reaction ensemble metho
 The implementation is parallelized, straightforward to use, compatible with existing LAMMPS functionalities, and applicable to any system utilizing discreet, ionizable groups or surface sites.
 The fix requires a LAMMPS atom style with a “charge” attribute, for example *charge* or *full*. 
 
-Specifically, the following three types of general reactions are implemented, including :math:`\mathrm{A} \rightleftharpoons \mathrm{A}^-+\mathrm{X}^+`, :math:`\mathrm{B} \rightleftharpoons \mathrm{B}^++\mathrm{X}^-`,
+Specifically, the following three types of general reactions are implemented: :math:`\mathrm{A} \rightleftharpoons \mathrm{A}^-+\mathrm{X}^+`, :math:`\mathrm{B} \rightleftharpoons \mathrm{B}^++\mathrm{X}^-`,
 and :math:`\emptyset \rightleftharpoons Z^-\mathrm{X}^{Z^+}+Z^+\mathrm{X}^{-Z^-}`
 where the particles include acid groups (neutral acid molecule :math:`\mathrm{A}` and negatively charged ionization state :math:`\mathrm{A}^-`), base groups (neutral base molecule :math:`\mathrm{B}` and positively charged ionization state :math:`\mathrm{B}^+`), free cations (:math:`\mathrm{X}^{Z^+}` with valency :math:`{Z^+}`), and free anions (:math:`\mathrm{X}^{-Z^-}` with valency :math:`-{Z^-}`).
+
 In the former two types of reactions, Monte Carlo moves alter the charge value of specific atoms and simultaneously insert a counterion into the system to preserve charge neutrality, which models the dissociation/association process.
 The last type of reaction allows the grand canonical MC exchange of ion pairs with a reservoir, which can be used to control the ionic strength of the solution.
-The scheme is limited to integer charges only, 
-and any atoms with non-integer charges will not be considered. 
 In our implementation "acid" refers to particles that can attain charge :math:`q=[0,-1]` and "base" to particles with :math:`q=[0,1]`,
 whereas the MC exchange of salt ions allows any integer charge values of :math:`{Z^+}` and :math:`{Z^-}`.
 Multiple reactions can be added to the same simulation system.
@@ -79,17 +78,17 @@ An acid ionization reaction (:math:`\mathrm{A} \rightleftharpoons \mathrm{A}^-+\
 .. code-block:: LAMMPS
 
     fix acid_reaction all charge_regulation 2 3 acid_type 1 pH 7.0 pKa 5.0 pIp 7.0 pIm 7.0
-where the fix attempts to charge :math:`\mathrm{A}` (discharge :math:`\mathrm{A}^-`) to :math:`\mathrm{A}^-` (:math:`\mathrm{A}`) and insert (delete) a proton of atom type 2. 
-Besides, the fix implements self-ionization reaction of water :math:`\emptyset \rightleftharpoons \mathrm{H}^++\mathrm{OH}^-`.
+
+where the fix attempts to charge :math:`\mathrm{A}` (discharge :math:`\mathrm{A}^-`) to :math:`\mathrm{A}^-` (:math:`\mathrm{A}`) and insert (delete) a proton of atom type 2. Besides, the fix implements self-ionization reaction of water :math:`\emptyset \rightleftharpoons \mathrm{H}^++\mathrm{OH}^-`.
 However, this approach is highly inefficient at :math:`\mathrm{pH} \approx 7` when the concentration of both protons and hydroxyl ions is low, resulting in a relatively low acceptance rate of MC moves.
 A far more efficient and correct solution to this issue is to allow salt ions to 
 participate in ionization reactions, which can be easily achieved via 
 
 .. code-block:: LAMMPS
 
-    fix acid_reaction all charge_regulation 2 3 acid_type 1 pH 7.0 pKa 5.0 pIp 2.0 pIm 2.0
-where particles of atom type 2 contain both protons and free salt cations. See :ref:`(Curk1) <Curk1>` 
-and :ref:`(Landsgesell) <Landsgesell>` for more details.
+    fix acid_reaction all charge_regulation 4 5 acid_type 1 pH 7.0 pKa 5.0 pIp 2.0 pIm 2.0
+
+where particles of atom type 4 and 5 are the salt cations and anions, both at chemical potential pI=2.0, see :ref:`(Curk1) <Curk1>` and :ref:`(Landsgesell) <Landsgesell>` for more details.
 
 Similarly, a base ionization reaction (:math:`\mathrm{B} \rightleftharpoons \mathrm{B}^++\mathrm{OH}^-`) 
 can be defined via 
@@ -97,14 +96,17 @@ can be defined via
 .. code-block:: LAMMPS
 
     fix base_reaction all charge_regulation 2 3 base_type 4 pH 7.0 pKb 6.0 pIp 7.0 pIm 7.0
+    
 where the fix will attempt to charge :math:`\mathrm{B}` (discharge :math:`\mathrm{B}^+`) to :math:`\mathrm{B}^+` (:math:`\mathrm{B}`) and insert (delete) a hydroxyl ion  :math:`\mathrm{OH}^-` of atom type 3.
-If in the command line neither the acid_type nor the base_type is specified, for example 
+If neither the acid or the base type is specified, for example 
 
 .. code-block:: LAMMPS
 
-    fix salt_reaction all charge_regulation 2 3 pH 7.0 pIp 2.0 pIm 2.0
-the fix simply inserts or deletes an ion pair of a free cation (atom type 2) and a free anion (atom type 3)
+    fix salt_reaction all charge_regulation 4 5 pIp 2.0 pIm 2.0
+    
+the fix simply inserts or deletes an ion pair of a free cation (atom type 4) and a free anion (atom type 5)
 as is done in a conventional grand-canonical MC simulation.
+
 
 The fix is compatible with LAMMPS sub-packages such as *molecule* or *rigid*. That said, the acid and base particles can be part of larger molecules or rigid bodies. Free ions that are inserted to or deleted from the system must be deﬁned as single particles (no bonded interactions allowed) and cannot be part of larger molecules or rigid bodies. If *molecule* package is used, all inserted ions have a molecule ID equal to zero.
 
@@ -154,7 +156,7 @@ Restrictions
 This fix is part of the USER-MISC package. It is only enabled if LAMMPS was built with that package.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
-The *atom_style* used must contain the *charge* property, for example, the style could be *charge* or *full* style. Only usable for 3D simulations. Atoms specified as free ions cannot be part of rigid bodies or molecules and cannot have bonding interactions.
+The *atom_style* used must contain the *charge* property, for example, the style could be *charge* or *full* style. Only usable for 3D simulations. Atoms specified as free ions cannot be part of rigid bodies or molecules and cannot have bonding interactions. The scheme is limited to integer charges, any atoms with non-integer charges will not be considered by the fix.
 
 Note: Regions restrictions are not yet implemented.
 
@@ -166,7 +168,7 @@ Related commands
 
 Default
 """""""
-pH = 7.0; pKa = 100.0; pKb = 100.0; pIp = 100; pIm = 100; pKs=14.0; acid_type = -1; base_type = -1; lunit_nm = 0.72; temp = 1.0; nevery = 100; nmc = 100; xrd = 0; seed = 2345; tag = no; onlysalt = no, pmcmoves = 0.33 0.33 0.33, group-ID = all
+pH = 7.0; pKa = 100.0; pKb = 100.0; pIp = 5.0; pIm = 5.0; pKs=14.0; acid_type = -1; base_type = -1; lunit_nm = 0.72; temp = 1.0; nevery = 100; nmc = 100; xrd = 0; seed = 2345; tag = no; onlysalt = no, pmcmoves = 0.33 0.33 0.33, group-ID = all
 
 ----------
 

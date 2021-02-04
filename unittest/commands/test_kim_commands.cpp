@@ -219,6 +219,20 @@ TEST_F(KimCommandsTest, kim_interactions)
 
     int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
     ASSERT_GE(ifix, 0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim_init LennardJones_Ar real");
+    lmp->input->one("lattice fcc 4.4300");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    lmp->input->one("kim_interactions Ar");
+    lmp->input->one("mass 1 39.95");
+    lmp->input->one("run 1");
+    lmp->input->one("kim_interactions Ar");
+    lmp->input->one("run 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 }
 
 TEST_F(KimCommandsTest, kim_param)

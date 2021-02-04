@@ -63,7 +63,7 @@ Syntax
            *fit* value = *all* or *fragmentID*
              all = use all eligible atoms for create-atoms fit (default)
              fragmentID = ID of molecule fragment used for create-atoms fit
-           *near* value = R
+           *overlap* value = R
              R = only insert atom/molecule if further than R from existing particles (distance units)
 
 Examples
@@ -380,7 +380,7 @@ optimal translation and rotation of the post-reaction template to the
 reaction site (using a fit with atoms that are neither created nor
 deleted). The *modify_create* keyword can be used to modify the
 default behavior when creating atoms. The *modify_create* keyword has
-two sub-keywords, *fit* and *near*. One or more of the sub-keywords
+two sub-keywords, *fit* and *overlap*. One or more of the sub-keywords
 may be used after the *modify_create* keyword. The *fit* sub-keyword
 can be used to specify which post-reaction atoms are used for the
 optimal translation and rotation of the post-reaction template. The
@@ -389,11 +389,11 @@ molecule fragment defined in the post-reaction :doc:`molecule
 <molecule>` template, and only atoms in this fragment are used for the
 fit. Atoms are created only if no current atom in the simulation is
 within a distance R of any created atom, including the effect of
-periodic boundary conditions if applicable. R is defined by the *near*
-sub-keyword. Note that the default value for R is 0.0, which will
-allow atoms to strongly overlap if you are inserting where other atoms
-are present. The velocity of each created atom is initialized in a
-random direction with a magnitude calculated from the instantaneous
+periodic boundary conditions if applicable. R is defined by the
+*overlap* sub-keyword. Note that the default value for R is 0.0, which
+will allow atoms to strongly overlap if you are inserting where other
+atoms are present. The velocity of each created atom is initialized in
+a random direction with a magnitude calculated from the instantaneous
 temperature of the reaction site.
 
 The handedness of atoms that are chiral centers can be enforced by

@@ -69,7 +69,7 @@ class FixBondReact : public Fix {
   int *custom_charges_fragid;
   int *create_atoms_flag;
   int *modify_create_fragid;
-  double *nearsq;
+  double *overlapsq;
   int *molecule_keyword;
   int maxnconstraints;
   int *nconstraints;

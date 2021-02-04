@@ -213,7 +213,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(custom_charges_fragid,nreacts,"bond/react:custom_charges_fragid");
   memory->create(create_atoms_flag,nreacts,"bond/react:create_atoms_flag");
   memory->create(modify_create_fragid,nreacts,"bond/react:modify_create_fragid");
-  memory->create(nearsq,nreacts,"bond/react:nearsq");
+  memory->create(overlapsq,nreacts,"bond/react:overlapsq");
   memory->create(molecule_keyword,nreacts,"bond/react:molecule_keyword");
   memory->create(nconstraints,nreacts,"bond/react:nconstraints");
   memory->create(constraintstr,nreacts,MAXLINE,"bond/react:constraintstr");
@@ -239,7 +239,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     custom_charges_fragid[i] = -1;
     create_atoms_flag[i] = 0;
     modify_create_fragid[i] = -1;
-    nearsq[i] = 0;
+    overlapsq[i] = 0;
     molecule_keyword[i] = OFF;
     nconstraints[i] = 0;
     // set default limit duration to 60 timesteps
@@ -419,11 +419,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                                              "'modify_create' keyword does not exist");
             }
             iarg += 2;
-          } else if (strcmp(arg[iarg],"near") == 0) {
+          } else if (strcmp(arg[iarg],"overlap") == 0) {
             if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                           "'modify_create' has too few arguments");
-            nearsq[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-            nearsq[rxn] *= nearsq[rxn];
+            overlapsq[rxn] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+            overlapsq[rxn] *= overlapsq[rxn];
             iarg += 2;
           } else break;
         }
@@ -616,7 +616,7 @@ FixBondReact::~FixBondReact()
   // need to delete rxn_name and constraintstr
   memory->destroy(create_atoms_flag);
   memory->destroy(modify_create_fragid);
-  memory->destroy(nearsq);
+  memory->destroy(overlapsq);
 
   memory->destroy(iatomtype);
   memory->destroy(jatomtype);
@@ -3379,7 +3379,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
 
   // check distance between any existing atom and inserted atom
   // if less than near, abort
-  if (nearsq[rxnID] > 0) {
+  if (overlapsq[rxnID] > 0) {
     int abortflag = 0;
     for (int m = 0; m < twomol->natoms; m++) {
       if (create_atoms[m][rxnID] == 1) {
@@ -3389,7 +3389,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
           delz = coords[m][2] - x[i][2];
           domain->minimum_image(delx,dely,delz);
           rsq = delx*delx + dely*dely + delz*delz;
-          if (rsq < nearsq[rxnID]) {
+          if (rsq < overlapsq[rxnID]) {
             abortflag = 1;
             break;
           }

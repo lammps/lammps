@@ -17,8 +17,6 @@
 
 #if defined(LMP_HAS_PNETCDF)
 
-#include <unistd.h>
-
 #include <cstring>
 #include <pnetcdf.h>
 #include "dump_netcdf_mpiio.h"
@@ -282,9 +280,12 @@ void DumpNetCDFMPIIO::openfile()
     vector_dim[i] = -1;
   }
 
-  if (append_flag && !multifile && access(filecurrent, F_OK) != -1) {
+  if (append_flag && !multifile) {
     // Fixme! Perform checks if dimensions and variables conform with
     // data structure standard.
+    if (not utils::file_is_readable(filecurrent))
+      error->all(FLERR, fmt::format("cannot append to non-existent file {}",
+                                    filecurrent));
 
     MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
     double d[1];
@@ -292,7 +293,7 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_open(MPI_COMM_WORLD, filecurrent, NC_WRITE, MPI_INFO_NULL,
+    NCERRX( ncmpi_open(world, filecurrent, NC_WRITE, MPI_INFO_NULL,
                        &ncid), filecurrent );
 
     // dimensions
@@ -372,7 +373,7 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_create(MPI_COMM_WORLD, filecurrent, NC_64BIT_DATA,
+    NCERRX( ncmpi_create(world, filecurrent, NC_64BIT_DATA,
                          MPI_INFO_NULL, &ncid), filecurrent );
 
     // dimensions
@@ -748,7 +749,7 @@ void DumpNetCDFMPIIO::write()
 
   nme = count();
   int *block_sizes = new int[comm->nprocs];
-  MPI_Allgather(&nme, 1, MPI_INT, block_sizes, 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Allgather(&nme, 1, MPI_INT, block_sizes, 1, MPI_INT, world);
   blocki = 0;
   for (int i = 0; i < comm->me; i++)  blocki += block_sizes[i];
   delete [] block_sizes;

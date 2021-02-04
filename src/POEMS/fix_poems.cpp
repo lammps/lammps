@@ -74,6 +74,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   virial_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   dof_flag = 1;
 
@@ -1525,8 +1526,8 @@ double FixPOEMS::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);
-  bytes += nmax*MAXBODY * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
+  bytes += (double)nmax*MAXBODY * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(double);
   return bytes;
 }
 

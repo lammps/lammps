@@ -39,6 +39,7 @@ PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   setfl = nullptr;
@@ -475,7 +476,7 @@ void PairEIM::read_file(char *filename)
   setfl->tp = new int[npair];
 
   // read potential file
-  if( comm->me == 0) {
+  if ( comm->me == 0) {
     EIMPotentialFileReader reader(lmp, filename, unit_convert_flag);
 
     reader.get_global(setfl);
@@ -1044,8 +1045,8 @@ void PairEIM::unpack_reverse_comm(int n, int *list, double *buf)
 double PairEIM::memory_usage()
 {
   double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }
 
@@ -1107,7 +1108,7 @@ char * EIMPotentialFileReader::next_line(FILE * fp) {
     n = strlen(line);
   }
 
-  while(n == 0 || concat) {
+  while (n == 0 || concat) {
     char *ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
@@ -1142,7 +1143,7 @@ void EIMPotentialFileReader::parse(FILE * fp)
   char * line = nullptr;
   bool found_global = false;
 
-  while((line = next_line(fp))) {
+  while ((line = next_line(fp))) {
     ValueTokenizer values(line);
     std::string type = values.next_string();
 

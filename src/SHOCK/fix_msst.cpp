@@ -324,33 +324,33 @@ void FixMSST::setup(int /*vflag*/)
   couple();
   velocity_sum = compute_vsum();
 
-  if ( v0_set == 0 ) {
+  if (v0_set == 0) {
     v0 = compute_vol();
     v0_set = 1;
     if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix MSST v0 = {:.8g}\n", v0));
   }
 
-  if ( p0_set == 0 ) {
+  if (p0_set == 0) {
     p0 = p_current[direction];
     p0_set = 1;
 
-    if ( comm->me == 0 )
+    if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix MSST p0 = {:.8g}\n", p0));
   }
 
-  if ( e0_set == 0 ) {
+  if (e0_set == 0) {
     e0 = compute_etotal();
     e0_set = 1;
 
-    if ( comm->me == 0 )
+    if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix MSST e0 = {:.8g}\n", e0));
   }
 
   temperature->compute_vector();
   double *ke_tensor = temperature->vector;
   double ke_temp = ke_tensor[0]+ke_tensor[1]+ke_tensor[2];
-  if (ke_temp > 0.0 && tscale > 0.0 ) {
+  if (ke_temp > 0.0 && tscale > 0.0) {
 
     // transfer energy from atom velocities to cell volume motion
     // to bias initial compression
@@ -371,7 +371,7 @@ void FixMSST::setup(int /*vflag*/)
                                      fac2,tscale));
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
-        for (int k = 0; k < 3; k++ ) {
+        for (int k = 0; k < 3; k++) {
           v[i][k]*=sqrt_initial_temperature_scaling;
         }
       }
@@ -453,7 +453,7 @@ void FixMSST::initial_integrate(int /*vflag*/)
 
   // use Taylor expansion to avoid singularity at B = 0
 
-  if ( B * dthalf > 1.0e-06 ) {
+  if (B * dthalf > 1.0e-06) {
     omega[sd] = ( omega[sd] + A * ( exp(B * dthalf) - 1.0 ) / B )
       * exp(-B * dthalf);
   } else {
@@ -469,7 +469,7 @@ void FixMSST::initial_integrate(int /*vflag*/)
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( k = 0; k < 3; k++ ) {
+        for (k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
           const double escale_term = force->ftm2v*beta*(e0-e_scale) /
@@ -478,8 +478,8 @@ void FixMSST::initial_integrate(int /*vflag*/)
             (velocity_sum * mass[type[i]] * vol );
           D += escale_term - TS_term;
           old_velocity[i][k] = v[i][k];
-          if ( k == direction ) D -= 2.0 * omega[sd] / vol;
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (k == direction) D -= 2.0 * omega[sd] / vol;
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -492,15 +492,15 @@ void FixMSST::initial_integrate(int /*vflag*/)
   } else {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( k = 0; k < 3; k++ ) {
+        for (k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           old_velocity[i][k] = v[i][k];
-          if ( k == direction ) {
+          if (k == direction) {
             D -= 2.0 * omega[sd] / vol;
           }
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -529,7 +529,7 @@ void FixMSST::initial_integrate(int /*vflag*/)
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( k = 0; k < 3; k++ ) {
+        for (k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
           const double escale_term = force->ftm2v*beta*(e0-e_scale) /
@@ -537,8 +537,8 @@ void FixMSST::initial_integrate(int /*vflag*/)
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           D += escale_term - TS_term;
-          if ( k == direction ) D -= 2.0 * omega[sd] / vol;
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (k == direction) D -= 2.0 * omega[sd] / vol;
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -551,14 +551,14 @@ void FixMSST::initial_integrate(int /*vflag*/)
   } else {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( k = 0; k < 3; k++ ) {
+        for (k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
-          if ( k == direction ) {
+          if (k == direction) {
             D -= 2.0 * omega[sd] / vol;
           }
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -647,7 +647,7 @@ void FixMSST::final_integrate()
   if (dftb) {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( int k = 0; k < 3; k++ ) {
+        for (int k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           const double TS_term = TS_dot/(mass[type[i]]*velocity_sum);
           const double escale_term = force->ftm2v*beta*(e0-e_scale) /
@@ -655,8 +655,8 @@ void FixMSST::final_integrate()
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
           D += escale_term - TS_term;
-          if ( k == direction ) D -= 2.0 * omega[sd] / vol;
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (k == direction) D -= 2.0 * omega[sd] / vol;
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -669,14 +669,14 @@ void FixMSST::final_integrate()
   } else {
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        for ( int k = 0; k < 3; k++ ) {
+        for (int k = 0; k < 3; k++) {
           const double C = f[i][k] * force->ftm2v / mass[type[i]];
           double D = mu * omega[sd] * omega[sd] /
             (velocity_sum * mass[type[i]] * vol );
-          if ( k == direction ) {
+          if (k == direction) {
             D -= 2.0 * omega[sd] / vol;
           }
-          if ( fabs(dthalf * D) > 1.0e-06 ) {
+          if (fabs(dthalf * D) > 1.0e-06) {
             const double expd = exp(D * dthalf);
             v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
           } else {
@@ -707,11 +707,11 @@ void FixMSST::final_integrate()
 
   // prevent blow-up of the volume
 
-  if ( vol > v0 && A > 0.0 ) A = -A;
+  if (vol > v0 && A > 0.0) A = -A;
 
   // use taylor expansion to avoid singularity at B == 0.
 
-  if ( B * dthalf > 1.0e-06 ) {
+  if (B * dthalf > 1.0e-06) {
     omega[sd] = ( omega[sd] + A *
                   ( exp(B * dthalf) - 1.0 ) / B ) * exp(-B * dthalf);
   } else {
@@ -766,7 +766,7 @@ void FixMSST::remap(int flag)
   // reset global and local box to new size/shape
 
   for (i = 0; i < 3; i++) {
-    if ( direction == i ) {
+    if (direction == i) {
       oldlo = domain->boxlo[i];
       oldhi = domain->boxhi[i];
       ctr = 0.5 * (oldlo + oldhi);

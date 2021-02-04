@@ -62,15 +62,18 @@ used.
 
 **-in file**
 
-Specify a file to use as an input script.  This is an optional switch
-when running LAMMPS in one-partition mode.  If it is not specified,
-LAMMPS reads its script from standard input, typically from a script
-via I/O redirection; e.g. lmp_linux < in.run.  I/O redirection should
-also work in parallel, but if it does not (in the unlikely case that
-an MPI implementation does not support it), then use the -in flag.
+Specify a file to use as an input script.  This is an optional but
+recommended switch when running LAMMPS in one-partition mode.  If it
+is not specified, LAMMPS reads its script from standard input, typically
+from a script via I/O redirection; e.g. lmp_linux < in.run.
+With many MPI implementations I/O redirection also works in parallel,
+but using the -in flag will always work.
+
 Note that this is a required switch when running LAMMPS in
 multi-partition mode, since multiple processors cannot all read from
-stdin.
+stdin concurrently.  The file name may be "none" for starting
+multi-partition calculations without reading an initial input file
+from the library interface.
 
 ----------
 
@@ -296,7 +299,7 @@ command-line option.
 **-pscreen file**
 
 Specify the base name for the partition screen file, so partition N
-writes screen information to file.N. If file is none, then no
+writes screen information to file.N. If file is "none", then no
 partition screen files are created.  This overrides the filename
 specified in the -screen command-line option.  This option is useful
 when working with large numbers of partitions, allowing the partition

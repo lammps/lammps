@@ -179,7 +179,10 @@ class TestAtomicViewAPI {
   using host_atomic = typename aView0::host_mirror_space;
 
   TestAtomicViewAPI() {
+    // FIXME_OPENMPTARGET
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     TestViewOperator_LeftAndRight<int[2], device>::testit();
+#endif
     run_test_rank0();
     run_test_rank4();
     run_test_const();

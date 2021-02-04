@@ -42,9 +42,6 @@ using namespace FixConst;
 enum{COMPUTE,FIX,VARIABLE};
 enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
 
 static const char cite_fix_ave_correlate_long[] =
 "fix ave/correlate/long command:\n\n"
@@ -448,15 +445,15 @@ void FixAveCorrelateLong::end_of_step()
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
-        if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
           compute->compute_scalar();
-          compute->invoked_flag |= INVOKED_SCALAR;
+          compute->invoked_flag |= Compute::INVOKED_SCALAR;
         }
         scalar = compute->scalar;
       } else {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         scalar = compute->vector[argindex[i]-1];
       }
@@ -491,7 +488,7 @@ void FixAveCorrelateLong::end_of_step()
   evaluate();
 
   if (fp && me == 0) {
-    if(overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
       fprintf(fp, "%lg ", t[i]*update->dt*nevery);
@@ -590,7 +587,7 @@ void FixAveCorrelateLong::accumulate()
 /* ----------------------------------------------------------------------
    Add a scalar value to the autocorrelator k of pair i
 ------------------------------------------------------------------------- */
-void FixAveCorrelateLong::add(const int i, const double w, const int k){
+void FixAveCorrelateLong::add(const int i, const double w, const int k) {
   // If we exceed the correlator side, the value is discarded
   if (k == numcorrelators) return;
   if (k > kmax) kmax=k;

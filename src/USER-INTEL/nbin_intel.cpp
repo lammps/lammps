@@ -181,7 +181,7 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
   if (comm->nthreads > INTEL_HTHREADS) nthreads = comm->nthreads;
   else nthreads = 1;
   #if defined(_OPENMP)
-  #pragma omp parallel if(nthreads > INTEL_HTHREADS)
+  #pragma omp parallel if (nthreads > INTEL_HTHREADS)
   #endif
   {
     int ifrom, ito, tid;

@@ -146,7 +146,7 @@ static void rebuild_table_tagint(taginthash_t *tptr) {
   taginthash_init(tptr, old_size<<1);
   for (i=0; i<old_size; i++) {
     old_hash=old_bucket[i];
-    while(old_hash) {
+    while (old_hash) {
       tmp=old_hash;
       old_hash=old_hash->next;
       h=taginthash(tptr, tmp->key);
@@ -349,7 +349,7 @@ static void id_sort(tagint *idmap, tagint left, tagint right)
 
 #include <climits>
 
-#if ( INT_MAX == 2147483647 )
+#if (INT_MAX == 2147483647)
 typedef int     int32;
 #else
 typedef short   int32;

@@ -42,6 +42,7 @@ PairCoulDebyeKokkos<DeviceType>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -294,7 +295,7 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cutsq = cutone*cutone;
   k_params.h_view(j,i) = k_params.h_view(i,j);
 
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cutone*cutone;

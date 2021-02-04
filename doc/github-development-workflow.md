@@ -95,7 +95,7 @@ on the pull request discussion page on GitHub, so that other developers
 can later review the entire discussion after the fact and understand the
 rationale behind choices made.  Exceptions to this policy are technical
 discussions, that are centered on tools or policies themselves
-(git, github, c++) rather than on the content of the pull request.
+(git, GitHub, c++) rather than on the content of the pull request.
 
 ### Checklist for Pull Requests
 

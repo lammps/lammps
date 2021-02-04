@@ -7,7 +7,7 @@ vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/openmp
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/hpx
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/serial
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/threads
-vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/rocm
+vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/hip
 vpath %.cpp ${KOKKOS_PATH}/containers/unit_tests/cuda
 vpath %.cpp ${CURDIR}
 default: build_all

@@ -24,7 +24,6 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
-using namespace PairZBLConstants;
 
 /* ---------------------------------------------------------------------- */
 

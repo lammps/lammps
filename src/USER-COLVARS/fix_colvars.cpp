@@ -132,7 +132,7 @@ static void rebuild_table_int(inthash_t *tptr) {
   inthash_init(tptr, old_size<<1);
   for (i=0; i<old_size; i++) {
     old_hash=old_bucket[i];
-    while(old_hash) {
+    while (old_hash) {
       tmp=old_hash;
       old_hash=old_hash->next;
       h=inthash(tptr, tmp->key);
@@ -1000,6 +1000,6 @@ double FixColvars::compute_scalar()
 double FixColvars::memory_usage(void)
 {
   double bytes = (double) (num_coords * (2*sizeof(int)+3*sizeof(double)));
-  bytes += (double) (nmax*size_one) + sizeof(this);
+  bytes += (double)(double) (nmax*size_one) + sizeof(this);
   return bytes;
 }

@@ -108,7 +108,7 @@ static void rebuild_table_tagint(taginthash_t *tptr) {
   taginthash_init(tptr, old_size<<1);
   for (i=0; i<old_size; i++) {
     old_hash=old_bucket[i];
-    while(old_hash) {
+    while (old_hash) {
       tmp=old_hash;
       old_hash=old_hash->next;
       h=taginthash(tptr, tmp->key);
@@ -826,8 +826,8 @@ double FixQMMM::memory_usage(void)
   double bytes;
 
   bytes = sizeof(FixQMMM);
-  bytes += maxbuf;
-  bytes += 6*num_qm*sizeof(double);
+  bytes += (double)maxbuf;
+  bytes += (double)6*num_qm*sizeof(double);
 
   return bytes;
 }

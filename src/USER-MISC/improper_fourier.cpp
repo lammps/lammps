@@ -92,7 +92,7 @@ void ImproperFourier::compute(int eflag, int vflag)
            vb1x, vb1y, vb1z,
            vb2x, vb2y, vb2z,
            vb3x, vb3y, vb3z);
-    if ( all[type] ) {
+    if (all[type]) {
       addone(i1,i4,i2,i3, type,evflag,eflag,
              vb3x, vb3y, vb3z,
              vb1x, vb1y, vb1z,
@@ -274,7 +274,7 @@ void ImproperFourier::allocate()
 void ImproperFourier::coeff(int narg, char **arg)
 {
 
-  if ( narg != 5 && narg != 6 ) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 5 && narg != 6) error->all(FLERR,"Incorrect args for improper coefficients");
 
   if (!allocated) allocate();
 
@@ -286,7 +286,7 @@ void ImproperFourier::coeff(int narg, char **arg)
   double C1_one = utils::numeric(FLERR,arg[3],false,lmp);
   double C2_one = utils::numeric(FLERR,arg[4],false,lmp);
   int all_one = 1;
-  if ( narg == 6 ) all_one = utils::inumeric(FLERR,arg[5],false,lmp);
+  if (narg == 6) all_one = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // convert w0 from degrees to radians
 

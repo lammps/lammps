@@ -63,7 +63,7 @@ void Atom_Energy( reax_system *system, control_params *control,
   p_ovun7 = system->reax_param.gp.l[8];
   p_ovun8 = system->reax_param.gp.l[9];
 
-  for( i = 0; i < system->n; ++i ) {
+  for (i = 0; i < system->n; ++i) {
     /* set the parameter pointer */
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
@@ -76,7 +76,7 @@ void Atom_Energy( reax_system *system, control_params *control,
 
     numbonds = 0;
     e_lp = 0.0;
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
       numbonds ++;
 
     /* calculate the energy */
@@ -97,7 +97,7 @@ void Atom_Energy( reax_system *system, control_params *control,
 
     /* correction for C2 */
     if (p_lp3 > 0.001 && !strcmp(system->reax_param.sbp[type_i].name, "C"))
-      for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+      for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
         j = bonds->select.bond_list[pj].nbr;
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
@@ -127,7 +127,7 @@ void Atom_Energy( reax_system *system, control_params *control,
   }
 
 
-  for( i = 0; i < system->n; ++i ) {
+  for (i = 0; i < system->n; ++i) {
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
     sbp_i = &(system->reax_param.sbp[ type_i ]);
@@ -139,7 +139,7 @@ void Atom_Energy( reax_system *system, control_params *control,
 
     p_ovun2 = sbp_i->p_ovun2;
     sum_ovun1 = sum_ovun2 = 0;
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
         j = bonds->select.bond_list[pj].nbr;
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
@@ -186,7 +186,7 @@ void Atom_Energy( reax_system *system, control_params *control,
 
     numbonds = 0;
     e_un = 0.0;
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
       numbonds ++;
 
     if (numbonds > 0 || control->enobondsflag)
@@ -214,7 +214,7 @@ void Atom_Energy( reax_system *system, control_params *control,
     if (numbonds > 0 || control->enobondsflag)
       workspace->CdDelta[i] += CEunder3;  // UnCoor - 1st term
 
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
       pbond = &(bonds->select.bond_list[pj]);
       j = pbond->nbr;
       bo_ij = &(pbond->bo_data);

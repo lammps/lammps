@@ -334,6 +334,6 @@ void ComputePTMAtom::compute_peratom() {
 
 double ComputePTMAtom::memory_usage() {
   double bytes = nmax * NUM_COLUMNS * sizeof(double);
-  bytes += nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }

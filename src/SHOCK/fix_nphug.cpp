@@ -205,12 +205,12 @@ void FixNPHug::setup(int vflag)
 {
   FixNH::setup(vflag);
 
-  if ( v0_set == 0 ) {
+  if (v0_set == 0) {
     v0 = compute_vol();
     v0_set = 1;
   }
 
-  if ( p0_set == 0 ) {
+  if (p0_set == 0) {
     p0_set = 1;
     if (uniaxial == 1)
       p0 = p_current[idir];
@@ -218,7 +218,7 @@ void FixNPHug::setup(int vflag)
       p0 = (p_current[0]+p_current[1]+p_current[2])/3.0;
   }
 
-  if ( e0_set == 0 ) {
+  if (e0_set == 0) {
     e0 = compute_etotal();
     e0_set = 1;
   }

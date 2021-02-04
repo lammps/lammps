@@ -186,7 +186,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
 
-      if ( strcmp(arg[iarg], "analytic") == 0  ) {
+      if (strcmp(arg[iarg], "analytic") == 0) {
         if (iarg + 4 > narg) {
           error->all(FLERR,"Illegal fix bocs command. Basis type analytic"
                     " must be followed by: avg_vol n_mol n_pmatch_coeff");
@@ -202,13 +202,13 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
         for (int pmatchi = 0; pmatchi < N_p_match; pmatchi++)
           p_match_coeffs[pmatchi] = utils::numeric(FLERR,arg[iarg+pmatchi],false,lmp);
         iarg += (N_p_match);
-      } else if (strcmp(arg[iarg], "linear_spline") == 0  ) {
+      } else if (strcmp(arg[iarg], "linear_spline") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                               "Supply a file name after linear_spline.");
         p_basis_type = BASIS_LINEAR_SPLINE;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
-      } else if (strcmp(arg[iarg], "cubic_spline") == 0 ) {
+      } else if (strcmp(arg[iarg], "cubic_spline") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                                "Supply a file name after cubic_spline.");
         p_basis_type = BASIS_CUBIC_SPLINE;
@@ -551,7 +551,7 @@ void FixBocs::init()
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                N_p_match, p_match_coeffs, N_mol, vavg);
         }
-        else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
+        else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
         {
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                                splines, spline_length);
@@ -688,7 +688,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     int numBadVolumeIntervals = 0; // count these for message
     float f1, f2;
     int test_sscanf;
-    for (int i = 0; i < inputLines.size(); ++i) {
+    for (int i = 0; i < (int)inputLines.size(); ++i) {
       lineNum++;  // count each line processed now so lineNum messages can be 1-based
       test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
@@ -804,7 +804,7 @@ int FixBocs::build_cubic_splines(double **data)
   double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
   // 2020-07-17 ag:
   // valgrind says that we read/write a[n] down in the
-  // for(int j=n-1; j>=0; j--) loop below
+  // for (int j=n-1; j>=0; j--) loop below
   // and I agree.
   // So the size of a must be n+1, not n as was found
   // in the original code.
@@ -858,7 +858,7 @@ int FixBocs::build_cubic_splines(double **data)
   c[n] = 0.0;
   d[n] = 0.0;
 
-  for(int j=n-1; j>=0; j--)
+  for (int j=n-1; j>=0; j--)
   {
     c[j] = z[j] - mu[j]*c[j+1];
 
@@ -1592,12 +1592,12 @@ int FixBocs::modify_param(int narg, char **arg)
 
     if (p_match_flag) // NJD MRD
     {
-      if ( p_basis_type == BASIS_ANALYTIC )
+      if (p_basis_type == BASIS_ANALYTIC)
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match,
                                                    p_match_coeffs, N_mol, vavg);
       }
-      else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE  )
+      else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines, spline_length );
       }

@@ -108,7 +108,7 @@ struct test_dualview_combinations {
     if (with_init) {
       a = ViewType("A", n, m);
     } else {
-      a = ViewType(Kokkos::ViewAllocateWithoutInitializing("A"), n, m);
+      a = ViewType(Kokkos::view_alloc(Kokkos::WithoutInitializing, "A"), n, m);
     }
     Kokkos::deep_copy(a.d_view, 1);
 
@@ -404,14 +404,19 @@ void test_dualview_resize() {
   Impl::test_dualview_resize<Scalar, Device>();
 }
 
+// FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
 TEST(TEST_CATEGORY, dualview_combination) {
   test_dualview_combinations<int, TEST_EXECSPACE>(10, true);
 }
+#endif
 
 TEST(TEST_CATEGORY, dualview_alloc) {
   test_dualview_alloc<int, TEST_EXECSPACE>(10);
 }
 
+// FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
 TEST(TEST_CATEGORY, dualview_combinations_without_init) {
   test_dualview_combinations<int, TEST_EXECSPACE>(10, false);
 }
@@ -428,6 +433,7 @@ TEST(TEST_CATEGORY, dualview_realloc) {
 TEST(TEST_CATEGORY, dualview_resize) {
   test_dualview_resize<int, TEST_EXECSPACE>();
 }
+#endif
 
 }  // namespace Test
 

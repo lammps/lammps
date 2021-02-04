@@ -34,7 +34,7 @@ namespace LAMMPS_NS {
       t0 = t1 = t2 = t3 = t4 = t5 = 0.0;
     }
     KOKKOS_INLINE_FUNCTION
-    s_CTEMP& operator+=(const s_CTEMP &rhs){
+    s_CTEMP& operator+=(const s_CTEMP &rhs) {
       t0 += rhs.t0;
       t1 += rhs.t1;
       t2 += rhs.t2;

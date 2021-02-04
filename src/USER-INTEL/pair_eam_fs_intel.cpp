@@ -116,7 +116,7 @@ void PairEAMFSIntel::read_file(char *filename)
   Fs *file = fs;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "eam/fs", unit_convert_flag);
 
     // transparently convert units for supported conversions

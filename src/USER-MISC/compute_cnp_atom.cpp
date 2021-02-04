@@ -324,7 +324,7 @@ void ComputeCNPAtom::compute_peratom()
 double ComputeCNPAtom::memory_usage()
 {
   double bytes = nmax * sizeof(int);
-  bytes += nmax * MAXNEAR * sizeof(int);
-  bytes += nmax * sizeof(double);
+  bytes += (double)nmax * MAXNEAR * sizeof(int);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }

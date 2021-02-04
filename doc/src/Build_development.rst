@@ -108,11 +108,18 @@ results over a given number of steps and operations within a given
 error margin).  The status of this automated testing can be viewed on
 `https://ci.lammps.org <https://ci.lammps.org>`_.
 
+The scripts and inputs for integration, run, and regression testing
+are maintained in a
+`separate repository <https://github.com/lammps/lammps-testing>`_
+of the LAMMPS project on GitHub.
+
 The unit testing facility is integrated into the CMake build process
 of the LAMMPS source code distribution itself.  It can be enabled by
 setting ``-D ENABLE_TESTING=on`` during the CMake configuration step.
-It requires the `PyYAML <http://pyyaml.org/>`_ library and development
-headers to compile and will download and compile a recent version of the
+It requires the `YAML <http://pyyaml.org/>`_ library and development
+headers (if those are not found locally a recent version will be
+downloaded and compiled along with LAMMPS and the test program) to
+compile and will download and compile a specific recent version of the
 `Googletest <https://github.com/google/googletest/>`_ C++ test framework
 for implementing the tests.
 
@@ -162,22 +169,21 @@ The ``ctest`` command has many options, the most important ones are:
 In its full implementation, the unit test framework will consist of multiple
 kinds of tests implemented in different programming languages (C++, C, Python,
 Fortran) and testing different aspects of the LAMMPS software and its features.
-At the moment only tests for "force styles" are implemented. More on those
-in the next section.
+The tests will adapt to the compilation settings of LAMMPS, so that tests
+will be skipped if prerequisite features are not available in LAMMPS.
 
 .. note::
 
-   The unit test framework is new and still under development.
-   The coverage is only minimal and will be expanded over time.
-   Tests styles of the same kind of style (e.g. pair styles or
-   bond styles) are performed with the same executable using
-   different input files in YAML format.  So to add a test for
-   another pair style can be done by copying the YAML file and
-   editing the style settings and then running the individual test
-   program with a flag to update the computed reference data.
-   Detailed documentation about how to add new test program and
-   the contents of the YAML files for existing test programs
-   will be provided in time as well.
+   The unit test framework was added in spring 2020 and is under active
+   development.  The coverage is not complete and will be expanded over
+   time.
+
+Tests for styles of the same kind of style (e.g. pair styles or bond
+styles) are performed with the same test executable using different
+input files in YAML format.  So to add a test for another style of the
+same kind it may be sufficient to add a suitable YAML file.
+:doc:`Detailed instructions for adding tests <Developer_unittest>` are
+provided in the Programmer Guide part of the manual.
 
 Unit tests for force styles
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

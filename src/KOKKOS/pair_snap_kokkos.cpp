@@ -15,9 +15,11 @@
 #include "pair_snap_kokkos_impl.h"
 
 namespace LAMMPS_NS {
-template class PairSNAPKokkos<LMPDeviceType>;
+
+template class PairSNAPKokkosDevice<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class PairSNAPKokkos<LMPHostType>;
+template class PairSNAPKokkosHost<LMPHostType>;
 #endif
+
 }
 

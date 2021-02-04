@@ -17,20 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_meso_move.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
-#include "domain.h"
-#include "lattice.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "input.h"
-#include "variable.h"
+#include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -128,39 +130,27 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
     mstyle = VARIABLE;
     if (strcmp(arg[4],"NULL") == 0) xvarstr = nullptr;
     else if (utils::strmatch(arg[4],"^v_")) {
-      int n = strlen(&arg[4][2]) + 1;
-      xvarstr = new char[n];
-      strcpy(xvarstr,&arg[4][2]);
+      xvarstr = utils::strdup(arg[4]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[5],"NULL") == 0) yvarstr = nullptr;
     else if (utils::strmatch(arg[5],"^v_")) {
-      int n = strlen(&arg[5][2]) + 1;
-      yvarstr = new char[n];
-      strcpy(yvarstr,&arg[5][2]);
+      yvarstr = utils::strdup(arg[5]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[6],"NULL") == 0) zvarstr = nullptr;
     else if (utils::strmatch(arg[6],"^v_")) {
-      int n = strlen(&arg[6][2]) + 1;
-      zvarstr = new char[n];
-      strcpy(zvarstr,&arg[6][2]);
+      zvarstr = utils::strdup(arg[6]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[7],"NULL") == 0) vxvarstr = nullptr;
     else if (utils::strmatch(arg[7],"^v_")) {
-      int n = strlen(&arg[7][2]) + 1;
-      vxvarstr = new char[n];
-      strcpy(vxvarstr,&arg[7][2]);
+      vxvarstr = utils::strdup(arg[7]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[8],"NULL") == 0) vyvarstr = nullptr;
     else if (utils::strmatch(arg[8],"^v_")) {
-      int n = strlen(&arg[8][2]) + 1;
-      vyvarstr = new char[n];
-      strcpy(vyvarstr,&arg[8][2]);
+      vyvarstr = utils::strdup(arg[8]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
     if (strcmp(arg[9],"NULL") == 0) vzvarstr = nullptr;
     else if (utils::strmatch(arg[9],"^v_")) {
-      int n = strlen(&arg[9][2]) + 1;
-      vzvarstr = new char[n];
-      strcpy(vzvarstr,&arg[9][2]);
+      vzvarstr = utils::strdup(arg[9]+2);
     } else error->all(FLERR,"Illegal fix meso/move command");
 
   } else error->all(FLERR,"Illegal fix meso/move command");

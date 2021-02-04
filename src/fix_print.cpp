@@ -33,9 +33,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 5) error->all(FLERR,"Illegal fix print command");
   if (utils::strmatch(arg[3],"^v_")) {
-    int n = strlen(&arg[3][2]) + 1;
-    var_print = new char[n];
-    strcpy(var_print,&arg[3][2]);
+    var_print = utils::strdup(arg[3]+2);
     nevery = 1;
   } else {
     nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -79,9 +77,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"title") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix print command");
       delete [] title;
-      int n = strlen(arg[iarg+1]) + 1;
-      title = new char[n];
-      strcpy(title,arg[iarg+1]);
+      title = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix print command");
   }

@@ -502,9 +502,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,
@@ -531,9 +529,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       delete [] inpfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      inpfile = new char[n];
-      strcpy(inpfile,arg[iarg+1]);
+      inpfile = utils::strdup(arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
       iarg += 2;
@@ -548,9 +544,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"gravity") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       delete [] id_gravity;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_gravity = new char[n];
-      strcpy(id_gravity,arg[iarg+1]);
+      id_gravity = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid command");

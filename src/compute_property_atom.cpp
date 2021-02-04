@@ -12,20 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_property_atom.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

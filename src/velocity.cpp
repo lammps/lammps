@@ -420,23 +420,17 @@ void Velocity::set(int /*narg*/, char **arg)
   xstr = ystr = zstr = nullptr;
 
   if (utils::strmatch(arg[0],"^v_")) {
-    int n = strlen(&arg[0][2]) + 1;
-    xstr = new char[n];
-    strcpy(xstr,&arg[0][2]);
+    xstr = utils::strdup(arg[0]+2);
   } else if (strcmp(arg[0],"NULL") == 0) xstyle = NONE;
   else vx = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (utils::strmatch(arg[1],"^v_")) {
-    int n = strlen(&arg[1][2]) + 1;
-    ystr = new char[n];
-    strcpy(ystr,&arg[1][2]);
+    ystr = utils::strdup(arg[1]+2);
   } else if (strcmp(arg[1],"NULL") == 0) ystyle = NONE;
   else vy = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (utils::strmatch(arg[2],"^v_")) {
-    int n = strlen(&arg[2][2]) + 1;
-    zstr = new char[n];
-    strcpy(zstr,&arg[2][2]);
+    zstr = utils::strdup(arg[2]+2);
   } else if (strcmp(arg[2],"NULL") == 0) zstyle = NONE;
   else vz = utils::numeric(FLERR,arg[2],false,lmp);
 

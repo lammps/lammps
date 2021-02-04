@@ -328,8 +328,7 @@ void Variable::set(int narg, char **arg)
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
-    data[nvar][1] = new char[VALUELENGTH];
-    strcpy(data[nvar][1],"(undefined)");
+    data[nvar][1] = utils::strdup("(undefined)");
 
   // SCALARFILE for strings or numbers
   // which = 1st value
@@ -521,12 +520,9 @@ void Variable::set(int narg, char **arg)
 
   if (replaceflag) return;
 
-  int n = strlen(arg[0]) + 1;
-  names[nvar] = new char[n];
-  strcpy(names[nvar],arg[0]);
-
-  for (int i = 0; i < n-1; i++)
-    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_')
+  names[nvar] = utils::strdup(arg[0]);
+  for (auto c : std::string(arg[0]))
+         if (!isalnum(c) && (c != '_'))
       error->all(FLERR,fmt::format("Variable name '{}' must have only "
                                    "alphanumeric characters or underscores",
                                    names[nvar]));
@@ -577,8 +573,7 @@ int Variable::set_string(const char *name, const char *str)
   if (ivar < 0) return -1;
   if (style[ivar] != STRING) return -1;
   delete [] data[ivar][0];
-  data[ivar][0] = new char[strlen(str)+1];
-  strcpy(data[ivar][0],str);
+  data[ivar][0] = utils::strdup(str);
   return 0;
 }
 
@@ -898,11 +893,8 @@ char *Variable::retrieve(const char *name)
       sprintf(padstr,"%%0%dd",pad[ivar]);
       sprintf(result,padstr,which[ivar]+1);
     }
-    int n = strlen(result) + 1;
     delete [] data[ivar][0];
-    data[ivar][0] = new char[n];
-    strcpy(data[ivar][0],result);
-    str = data[ivar][0];
+    str = data[ivar][0] = utils::strdup(result);
   } else if (style[ivar] == EQUAL) {
     double answer = evaluate(data[ivar][0],nullptr,ivar);
     sprintf(data[ivar][1],"%.15g",answer);
@@ -917,13 +909,8 @@ char *Variable::retrieve(const char *name)
   } else if (style[ivar] == GETENV) {
     const char *result = getenv(data[ivar][0]);
     if (result == nullptr) result = (const char *) "";
-    int n = strlen(result) + 1;
-    if (n > VALUELENGTH) {
-      delete [] data[ivar][1];
-      data[ivar][1] = new char[n];
-    }
-    strcpy(data[ivar][1],result);
-    str = data[ivar][1];
+    delete [] data[ivar][1];
+    str = data[ivar][1] = utils::strdup(result);
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
     if (ifunc < 0)
@@ -1185,12 +1172,8 @@ void Variable::grow()
 
 void Variable::copy(int narg, char **from, char **to)
 {
-  int n;
-  for (int i = 0; i < narg; i++) {
-    n = strlen(from[i]) + 1;
-    to[i] = new char[n];
-    strcpy(to[i],from[i]);
-  }
+  for (int i = 0; i < narg; i++)
+    to[i] = utils::strdup(from[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -4728,18 +4711,14 @@ double Variable::constant(char *word)
 
 int Variable::parse_args(char *str, char **args)
 {
-  int n;
   char *ptrnext;
-
-  int narg = 0;
+  int   narg = 0;
   char *ptr = str;
 
   while (ptr && narg < MAXFUNCARG) {
     ptrnext = find_next_comma(ptr);
     if (ptrnext) *ptrnext = '\0';
-    n = strlen(ptr) + 1;
-    args[narg] = new char[n];
-    strcpy(args[narg],ptr);
+    args[narg] = utils::strdup(ptr);
     narg++;
     ptr = ptrnext;
     if (ptr) ptr++;
@@ -5089,8 +5068,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
                  "variable unless an atom map exists");
 
     std::string cmd = name + std::string("_VARIABLE_STORE");
-    id_fix = new char[cmd.size()+1];
-    strcpy(id_fix,cmd.c_str());
+    id_fix = utils::strdup(cmd);
 
     cmd += " all STORE peratom 0 1";
     modify->add_fix(cmd);

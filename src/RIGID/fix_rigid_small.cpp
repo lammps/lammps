@@ -13,37 +13,34 @@
 
 #include "fix_rigid_small.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <utility>
-#include "math_extra.h"
-#include "math_eigen.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "molecule.h"
-#include "domain.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
-#include "group.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "input.h"
-#include "variable.h"
-#include "random_mars.h"
-#include "math_const.h"
-#include "hashlittle.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "hashlittle.h"
+#include "input.h"
+#include "math_const.h"
+#include "math_eigen.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "respa.h"
 #include "rigid_const.h"
+#include "update.h"
+#include "variable.h"
 
-
-
+#include <cmath>
+#include <cstring>
 #include <map>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -223,9 +220,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       delete [] inpfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      inpfile = new char[n];
-      strcpy(inpfile,arg[iarg+1]);
+      inpfile = utils::strdup(arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
       iarg += 2;
@@ -336,9 +331,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,"Fix rigid/small nvt/npt/nph dilate group ID "
@@ -365,9 +358,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"gravity") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       delete [] id_gravity;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_gravity = new char[n];
-      strcpy(id_gravity,arg[iarg+1]);
+      id_gravity = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid/small command");

@@ -13,29 +13,29 @@
 
 #include "dump_image.h"
 
+#include "atom.h"
+#include "atom_vec.h"
+#include "atom_vec_body.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
+#include "body.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "image.h"
+#include "input.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cctype>
 #include <cstring>
-#include "image.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "atom_vec_line.h"
-#include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "body.h"
-#include "molecule.h"
-#include "domain.h"
-#include "force.h"
-#include "comm.h"
-#include "modify.h"
-#include "fix.h"
-#include "input.h"
-#include "variable.h"
-#include "math_const.h"
-#include "math_extra.h"
-#include "error.h"
-#include "memory.h"
-
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -226,9 +226,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"view") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
       if (utils::strmatch(arg[iarg+1],"^v_")) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        thetastr = new char[n];
-        strcpy(thetastr,&arg[iarg+1][2]);
+        thetastr = utils::strdup(arg[iarg+1]+2);
       } else {
         double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (theta < 0.0 || theta > 180.0)
@@ -237,9 +235,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         image->theta = theta;
       }
       if (utils::strmatch(arg[iarg+2],"^v_")) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        phistr = new char[n];
-        strcpy(phistr,&arg[iarg+2][2]);
+        phistr = utils::strdup(arg[iarg+2]+2);
       } else {
         double phi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         phi *= MY_PI/180.0;
@@ -253,21 +249,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"d") == 0) cflag = DYNAMIC;
       else error->all(FLERR,"Illegal dump image command");
       if (utils::strmatch(arg[iarg+2],"^v_")) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        cxstr = new char[n];
-        strcpy(cxstr,&arg[iarg+2][2]);
+        cxstr = utils::strdup(arg[iarg+2]+2);
         cflag = DYNAMIC;
       } else cx = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (utils::strmatch(arg[iarg+3],"^v_")) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        cystr = new char[n];
-        strcpy(cystr,&arg[iarg+3][2]);
+        cystr = utils::strdup(arg[iarg+3]+2);
         cflag = DYNAMIC;
       } else cy = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (utils::strmatch(arg[iarg+4],"^v_")) {
-        int n = strlen(&arg[iarg+4][2]) + 1;
-        czstr = new char[n];
-        strcpy(czstr,&arg[iarg+4][2]);
+        czstr = utils::strdup(arg[iarg+4]+2);
         cflag = DYNAMIC;
       } else cz = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       iarg += 5;
@@ -275,28 +265,20 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"up") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
       if (utils::strmatch(arg[iarg+1],"^v_")) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        upxstr = new char[n];
-        strcpy(upxstr,&arg[iarg+1][2]);
+        upxstr = utils::strdup(arg[iarg+1]+2);
       } else image->up[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (utils::strmatch(arg[iarg+2],"^v_")) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        upystr = new char[n];
-        strcpy(upystr,&arg[iarg+2][2]);
+        upystr = utils::strdup(arg[iarg+2]+2);
       } else image->up[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (utils::strmatch(arg[iarg+3],"^v_")) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        upzstr = new char[n];
-        strcpy(upzstr,&arg[iarg+3][2]);
+        upzstr = utils::strdup(arg[iarg+3]+2);
       } else image->up[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"zoom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
       if (utils::strmatch(arg[iarg+1],"^v_")) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        zoomstr = new char[n];
-        strcpy(zoomstr,&arg[iarg+1][2]);
+        zoomstr = utils::strdup(arg[iarg+1]+2);
       } else {
         double zoom = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (zoom <= 0.0) error->all(FLERR,"Illegal dump image command");

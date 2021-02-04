@@ -53,9 +53,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   mstyle = vstyle = pstyle = tstyle = xstyle = ystyle = zstyle = CONSTANT;
 
   if (utils::strmatch(arg[3],"^v_")) {
-    int n = strlen(&arg[3][2]) + 1;
-    mstr = new char[n];
-    strcpy(mstr,&arg[3][2]);
+    mstr = utils::strdup(arg[3]+2);
     mstyle = EQUAL;
   } else {
     magnitude = utils::numeric(FLERR,arg[3],false,lmp);
@@ -68,9 +66,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     if (narg < 6) error->all(FLERR,"Illegal fix gravity command");
     style = CHUTE;
     if (utils::strmatch(arg[5],"^v_")) {
-      int n = strlen(&arg[5][2]) + 1;
-      vstr = new char[n];
-      strcpy(vstr,&arg[5][2]);
+      vstr = utils::strdup(arg[5]+2);
       vstyle = EQUAL;
     } else {
       vert = utils::numeric(FLERR,arg[5],false,lmp);
@@ -82,18 +78,14 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     if (narg < 7) error->all(FLERR,"Illegal fix gravity command");
     style = SPHERICAL;
     if (utils::strmatch(arg[5],"^v_")) {
-      int n = strlen(&arg[5][2]) + 1;
-      pstr = new char[n];
-      strcpy(pstr,&arg[5][2]);
+      pstr = utils::strdup(arg[5]+2);
       pstyle = EQUAL;
     } else {
       phi = utils::numeric(FLERR,arg[5],false,lmp);
       pstyle = CONSTANT;
     }
     if (utils::strmatch(arg[6],"^v_")) {
-      int n = strlen(&arg[6][2]) + 1;
-      tstr = new char[n];
-      strcpy(tstr,&arg[6][2]);
+      tstr = utils::strdup(arg[6]+2);
       tstyle = EQUAL;
     } else {
       theta = utils::numeric(FLERR,arg[6],false,lmp);
@@ -105,27 +97,21 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
     if (narg < 8) error->all(FLERR,"Illegal fix gravity command");
     style = VECTOR;
     if (utils::strmatch(arg[5],"^v_")) {
-      int n = strlen(&arg[5][2]) + 1;
-      xstr = new char[n];
-      strcpy(xstr,&arg[5][2]);
+      xstr = utils::strdup(arg[5]+2);
       xstyle = EQUAL;
     } else {
       xdir = utils::numeric(FLERR,arg[5],false,lmp);
       xstyle = CONSTANT;
     }
     if (utils::strmatch(arg[6],"^v_")) {
-      int n = strlen(&arg[6][2]) + 1;
-      ystr = new char[n];
-      strcpy(ystr,&arg[6][2]);
+      ystr = utils::strdup(arg[6]+2);
       ystyle = EQUAL;
     } else {
       ydir = utils::numeric(FLERR,arg[6],false,lmp);
       ystyle = CONSTANT;
     }
     if (utils::strmatch(arg[7],"^v_")) {
-      int n = strlen(&arg[7][2]) + 1;
-      zstr = new char[n];
-      strcpy(zstr,&arg[7][2]);
+      zstr = utils::strdup(arg[7]+2);
       zstyle = EQUAL;
     } else {
       zdir = utils::numeric(FLERR,arg[7],false,lmp);

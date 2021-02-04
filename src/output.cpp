@@ -665,9 +665,7 @@ void Output::set_thermo(int narg, char **arg)
   var_thermo = nullptr;
 
   if (utils::strmatch(arg[0],"^v_")) {
-    int n = strlen(&arg[0][2]) + 1;
-    var_thermo = new char[n];
-    strcpy(var_thermo,&arg[0][2]);
+    var_thermo = utils::strdup(arg[0]+2);
   } else {
     thermo_every = utils::inumeric(FLERR,arg[0],false,lmp);
     if (thermo_every < 0) error->all(FLERR,"Illegal thermo command");
@@ -745,9 +743,7 @@ void Output::create_restart(int narg, char **arg)
 
     if (varflag) {
       delete [] var_restart_single;
-      int n = strlen(&arg[0][2]) + 1;
-      var_restart_single = new char[n];
-      strcpy(var_restart_single,&arg[0][2]);
+      var_restart_single = utils::strdup(arg[0]+2);
       restart_every_single = 0;
     } else restart_every_single = every;
 
@@ -763,9 +759,7 @@ void Output::create_restart(int narg, char **arg)
 
     if (varflag) {
       delete [] var_restart_double;
-      int n = strlen(&arg[0][2]) + 1;
-      var_restart_double = new char[n];
-      strcpy(var_restart_double,&arg[0][2]);
+      var_restart_double = utils::strdup(arg[0]+2);
       restart_every_double = 0;
     } else restart_every_double = every;
 

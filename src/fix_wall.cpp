@@ -81,18 +81,14 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         else coord0[nwall] = domain->boxhi[dim];
       } else if (utils::strmatch(arg[iarg+1],"^v_")) {
         xstyle[nwall] = VARIABLE;
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        xstr[nwall] = new char[n];
-        strcpy(xstr[nwall],&arg[iarg+1][2]);
+        xstr[nwall] = utils::strdup(arg[iarg+1]+2);
       } else {
         xstyle[nwall] = CONSTANT;
         coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
       if (utils::strmatch(arg[iarg+2],"^v_")) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        estr[nwall] = new char[n];
-        strcpy(estr[nwall],&arg[iarg+2][2]);
+        estr[nwall] = utils::strdup(arg[iarg+2]+2);
         estyle[nwall] = VARIABLE;
       } else {
         epsilon[nwall] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -101,9 +97,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
 
       if (utils::strmatch(style,"^wall/morse")) {
         if (utils::strmatch(arg[iarg+3],"^v_")) {
-          int n = strlen(&arg[iarg+3][2]) + 1;
-          astr[nwall] = new char[n];
-          strcpy(astr[nwall],&arg[iarg+3][2]);
+          astr[nwall] = utils::strdup(arg[iarg+3]+2);
           astyle[nwall] = VARIABLE;
         } else {
           alpha[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -113,9 +107,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       }
 
       if (utils::strmatch(arg[iarg+3],"^v_")) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        sstr[nwall] = new char[n];
-        strcpy(sstr[nwall],&arg[iarg+3][2]);
+        sstr[nwall] = utils::strdup(arg[iarg+3]+2);
         sstyle[nwall] = VARIABLE;
       } else {
         sigma[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);

@@ -75,9 +75,7 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
         else coord0[nwall] = domain->boxhi[dim];
       } else if (utils::strmatch(arg[iarg+1],"^v_")) {
         wallstyle[nwall] = VARIABLE;
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        varstr[nwall] = new char[n];
-        strcpy(varstr[nwall],&arg[iarg+1][2]);
+        varstr[nwall] = utils::strdup(arg[iarg+1]+2);
       } else {
         wallstyle[nwall] = CONSTANT;
         coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);

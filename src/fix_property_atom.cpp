@@ -13,13 +13,12 @@
 
 #include "fix_property_atom.h"
 
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
 
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -126,9 +125,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // store current atom style
 
-  int n = strlen(atom->atom_style) + 1;
-  astyle = new char[n];
-  strcpy(astyle,atom->atom_style);
+  astyle = utils::strdup(atom->atom_style);
 
   // perform initial allocation of atom-based array
   // register with Atom class

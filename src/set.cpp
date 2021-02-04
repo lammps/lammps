@@ -71,9 +71,7 @@ void Set::command(int narg, char **arg)
   else if (strcmp(arg[0],"region") == 0) style = REGION_SELECT;
   else error->all(FLERR,"Illegal set command");
 
-  int n = strlen(arg[1]) + 1;
-  id = new char[n];
-  strcpy(id,arg[1]);
+  id = utils::strdup(arg[1]);
   select = nullptr;
   selection(atom->nlocal);
 

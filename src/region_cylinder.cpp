@@ -45,9 +45,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
 
   if (axis == 'x') {
     if (utils::strmatch(arg[3],"^v_")) {
-      int n = strlen(arg[3]+2) + 1;
-      c1str = new char[n];
-      strcpy(c1str,arg[3]+2);
+      c1str = utils::strdup(arg[3]+2);
       c1 = 0.0;
       c1style = VARIABLE;
       varshape = 1;
@@ -56,9 +54,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1style = CONSTANT;
     }
     if (utils::strmatch(arg[4],"^v_")) {
-      int n = strlen(arg[4]+2) + 1;
-      c2str = new char[n];
-      strcpy(c2str,arg[4]+2);
+      c2str = utils::strdup(arg[4]+2);
       c2 = 0.0;
       c2style = VARIABLE;
       varshape = 1;
@@ -68,9 +64,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     }
   } else if (axis == 'y') {
     if (utils::strmatch(arg[3],"^v_")) {
-      int n = strlen(arg[3]+2) + 1;
-      c1str = new char[n];
-      strcpy(c1str,arg[3]+2);
+      c1str = utils::strdup(arg[3]+2);
       c1 = 0.0;
       c1style = VARIABLE;
       varshape = 1;
@@ -79,9 +73,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1style = CONSTANT;
     }
     if (utils::strmatch(arg[4],"^v_")) {
-      int n = strlen(arg[4]+2) + 1;
-      c2str = new char[n];
-      strcpy(c2str,arg[4]+2);
+      c2str = utils::strdup(arg[4]+2);
       c2 = 0.0;
       c2style = VARIABLE;
       varshape = 1;
@@ -91,9 +83,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     }
   } else if (axis == 'z') {
     if (utils::strmatch(arg[3],"^v_")) {
-      int n = strlen(arg[3]+2) + 1;
-      c1str = new char[n];
-      strcpy(c1str,arg[3]+2);
+      c1str = utils::strdup(arg[3]+2);
       c1 = 0.0;
       c1style = VARIABLE;
       varshape = 1;
@@ -102,9 +92,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1style = CONSTANT;
     }
     if (utils::strmatch(arg[4],"^v_")) {
-      int n = strlen(arg[4]+2) + 1;
-      c2str = new char[n];
-      strcpy(c2str,arg[4]+2);
+      c2str = utils::strdup(arg[4]+2);
       c2 = 0.0;
       c2style = VARIABLE;
       varshape = 1;
@@ -115,9 +103,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (utils::strmatch(arg[5],"^v_")) {
-    int n = strlen(&arg[5][2]) + 1;
-    rstr = new char[n];
-    strcpy(rstr,&arg[5][2]);
+    rstr = utils::strdup(arg[5]+2);
     radius = 0.0;
     rstyle = VARIABLE;
     varshape = 1;

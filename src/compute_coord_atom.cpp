@@ -53,9 +53,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
     int iarg = 5;
     if ((narg > 6) && (strcmp(arg[5],"group") == 0)) {
-      int len = strlen(arg[6])+1;
-      group2 = new char[len];
-      strcpy(group2,arg[6]);
+      group2 = utils::strdup(arg[6]);
       iarg += 2;
       jgroup = group->find(group2);
       if (jgroup == -1)

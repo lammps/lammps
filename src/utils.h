@@ -236,7 +236,7 @@ namespace LAMMPS_NS {
     inline bool has_utf8(const std::string &line)
     {
       const unsigned char * const in = (const unsigned char *)line.c_str();
-      for (int i=0; i < line.size(); ++i) if (in[i] & 0x80U) return true;
+      for (auto c : line) if (c & 0x80U) return true;
       return false;
     }
 

@@ -195,6 +195,17 @@ namespace LAMMPS_NS {
     int expand_args(const char *file, int line, int narg, char **arg,
                     int mode, char **&earg, LAMMPS *lmp);
 
+    /** Make C-style copy of string in new storage
+     *
+     * This allocates a storage buffer and copies the C-style or
+     * C++ style string into it.  The buffer is allocated with "new"
+     * and thus needs to be deallocated with "delete[]".
+     *
+     * \param text  string that should be copied
+     * \return new buffer with copy of string */
+
+    char *strdup(const std::string &text);
+
     /** Trim leading and trailing whitespace. Like TRIM() in Fortran.
      *
      * \param line  string that should be trimmed

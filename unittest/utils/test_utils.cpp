@@ -30,6 +30,21 @@ using ::testing::StrEq;
 #define FLERR __FILE__, __LINE__
 #endif
 
+TEST(Utils, strdup)
+{
+    std::string original("some_text");
+    const char *copy = utils::strdup(original);
+    ASSERT_THAT(original, StrEq(copy));
+    ASSERT_NE(copy,original.c_str());
+
+    const char *copy2 = utils::strdup(copy);
+    ASSERT_THAT(original, StrEq(copy2));
+    ASSERT_NE(copy,copy2);
+
+    delete[] copy;
+    delete[] copy2;
+}
+
 TEST(Utils, trim)
 {
     auto trimmed = utils::trim("\t some text");

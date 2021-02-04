@@ -547,6 +547,18 @@ int utils::expand_args(const char *file, int line, int narg, char **arg,
 }
 
 /* ----------------------------------------------------------------------
+   Make copy of string in new storage. Works like the (non-portable)
+   C-style strdup() but also accepts a C++ string as argument.
+------------------------------------------------------------------------- */
+
+char *utils::strdup(const std::string &text)
+{
+  char *tmp = new char[text.size()+1];
+  strcpy(tmp,text.c_str());
+  return tmp;
+}
+
+/* ----------------------------------------------------------------------
    Return string without leading or trailing whitespace
 ------------------------------------------------------------------------- */
 

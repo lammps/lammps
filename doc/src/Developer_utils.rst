@@ -71,6 +71,9 @@ and parsing files or arguments.
 
 ----------
 
+.. doxygenfunction:: strdup
+   :project: progguide
+
 .. doxygenfunction:: trim
    :project: progguide
 

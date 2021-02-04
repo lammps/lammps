@@ -23,8 +23,8 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style pace model
-   pair_style pace model product
+   pair_style pace
+   pair_style pace product
    pair_coeff * * Cu-PBE-core-rep.ace Cu
 
 Description
@@ -33,13 +33,14 @@ Description
 Pair style *pace* computes interactions using the Atomic Cluster 
 Expansion (ACE), which is a general expansion of the atomic energy in 
 multi-body basis functions. :ref:`(Drautz) <Drautz20191>`. 
-The {pace} pair style 
+The *pace* pair style 
 provides an efficient implementation that 
-is described in this paper by :ref:`(Lysogorskiy) <Lysogorskiy20211>`.
+is described in this paper :ref:`(Lysogorskiy) <Lysogorskiy20211>`.
 
 In ACE, the total energy is decomposed into a sum over
-atomic energies. The energy of atom {i} is expressed as a 
-function of one or more density functions. By projecting the
+atomic energies. The energy of atom *i* is expressed as a 
+linear or non-linear function of one or more density functions. 
+By projecting the
 density onto a local atomic base, the lowest order contributions
 to the energy can be expressed as a set of scalar polynomials in
 basis function contributions summed over neighbor atoms.
@@ -52,17 +53,19 @@ where N is the number of LAMMPS atom types:
 * ACE coefficient file
 * N element names = mapping of ACE elements to atom types
 
-Only a single pair_coeff command is used with the {pace} style which
+Only a single pair_coeff command is used with the *pace* style which
 specifies an ACE file that fully defines the potential.
 Note that unlike for other potentials, cutoffs are
 not set in the pair_style or pair_coeff command; they are specified in
 the ACE file.
 
 The pair_style *mliap* may be followed by an optional keyword
-*product* or *recursive*. 
+*product* or *recursive*, which determines which of two algorithms
+ is used for the calculation of basis functions and derivatives.
+The default is *recursive*.
 
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
-to specify the path for these ACE coefficient files.
+to specify the path for the ACE coefficient file.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -90,6 +93,7 @@ Restrictions
 
 This pair style is part of the USER-PACE package.  It is only enabled if LAMMPS
 was built with that package. 
+See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

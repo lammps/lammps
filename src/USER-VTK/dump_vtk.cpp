@@ -24,6 +24,7 @@
 
 #include "dump_vtk.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
@@ -1908,7 +1909,7 @@ void DumpVTK::identify_vectors()
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_compute(char *id)
+int DumpVTK::add_compute(const char *id)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
@@ -1933,7 +1934,7 @@ int DumpVTK::add_compute(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_fix(char *id)
+int DumpVTK::add_fix(const char *id)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
@@ -1958,7 +1959,7 @@ int DumpVTK::add_fix(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_variable(char *id)
+int DumpVTK::add_variable(const char *id)
 {
   int ivariable;
   for (ivariable = 0; ivariable < nvariable; ivariable++)
@@ -1987,7 +1988,7 @@ int DumpVTK::add_variable(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_custom(char *id, int flag)
+int DumpVTK::add_custom(const char *id, int flag)
 {
   int icustom;
   for (icustom = 0; icustom < ncustom; icustom++)

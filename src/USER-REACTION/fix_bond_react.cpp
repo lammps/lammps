@@ -1956,7 +1956,7 @@ int FixBondReact::check_constraints()
       }
       if (ANDgate != 1) satisfied[i] = 0;
     } else if (constraints[i][rxnID].type == ARRHENIUS) {
-      t = get_temperature();
+      t = get_temperature(glove,0,1);
       prrhob = constraints[i][rxnID].par[1]*pow(t,constraints[i][rxnID].par[2])*
         exp(-constraints[i][rxnID].par[3]/(force->boltz*t));
       if (prrhob < rrhandom[(int) constraints[i][rxnID].par[0]]->uniform()) satisfied[i] = 0;

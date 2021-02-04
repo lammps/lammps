@@ -1463,10 +1463,10 @@ int DumpCustom::parse_fields(int narg, char **arg)
         if (argi.get_dim() == 0 && modify->compute[n]->size_peratom_cols > 0)
           error->all(FLERR,
                      "Dump custom compute does not calculate per-atom vector");
-        if (argi.get_index1() > 0 && modify->compute[n]->size_peratom_cols == 0)
+        if (argi.get_dim() > 0 && modify->compute[n]->size_peratom_cols == 0)
           error->all(FLERR,
                      "Dump custom compute does not calculate per-atom array");
-        if (argi.get_index1() > 0 &&
+        if (argi.get_dim() > 0 &&
             argi.get_index1() > modify->compute[n]->size_peratom_cols)
           error->all(FLERR,"Dump custom compute vector is accessed out-of-range");
 
@@ -1486,9 +1486,9 @@ int DumpCustom::parse_fields(int narg, char **arg)
           error->all(FLERR,"Dump custom fix does not compute per-atom info");
         if (argi.get_dim() == 0 && modify->fix[n]->size_peratom_cols > 0)
           error->all(FLERR,"Dump custom fix does not compute per-atom vector");
-        if (argi.get_index1() > 0 && modify->fix[n]->size_peratom_cols == 0)
+        if (argi.get_dim() > 0 && modify->fix[n]->size_peratom_cols == 0)
           error->all(FLERR,"Dump custom fix does not compute per-atom array");
-        if (argi.get_index1() > 0 &&
+        if (argi.get_dim() > 0 &&
             argi.get_index1() > modify->fix[n]->size_peratom_cols)
           error->all(FLERR,"Dump custom fix vector is accessed out-of-range");
 

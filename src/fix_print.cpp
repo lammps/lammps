@@ -29,7 +29,7 @@ using namespace FixConst;
 
 FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  fp(nullptr), string(nullptr), copy(nullptr), work(nullptr), var_print(nullptr)
+  fp(nullptr), text(nullptr), copy(nullptr), work(nullptr), var_print(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix print command");
   if (utils::strmatch(arg[3],"^v_")) {
@@ -42,10 +42,8 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
   MPI_Comm_rank(world,&me);
 
-  int n = strlen(arg[4]) + 1;
-  string = new char[n];
-  strcpy(string,arg[4]);
-
+  text = utils::strdup(arg[4]);
+  int n = strlen(text)+1;
   copy = (char *) memory->smalloc(n*sizeof(char),"fix/print:copy");
   work = (char *) memory->smalloc(n*sizeof(char),"fix/print:work");
   maxcopy = maxwork = n;
@@ -96,7 +94,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
 FixPrint::~FixPrint()
 {
-  delete [] string;
+  delete [] text;
   delete [] var_print;
   memory->sfree(copy);
   memory->sfree(work);
@@ -154,14 +152,14 @@ void FixPrint::end_of_step()
 {
   if (update->ntimestep != next_print) return;
 
-  // make a copy of string to work on
+  // make a copy of text to work on
   // substitute for $ variables (no printing)
   // append a newline and print final copy
   // variable evaluation may invoke computes so wrap with clear/add
 
   modify->clearstep_compute();
 
-  strcpy(copy,string);
+  strcpy(copy,text);
   input->substitute(copy,work,maxcopy,maxwork,0);
 
   if (var_print) {

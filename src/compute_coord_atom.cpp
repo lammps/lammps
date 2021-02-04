@@ -355,6 +355,6 @@ void ComputeCoordAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeCoordAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
+  double bytes = (double)ncol*nmax * sizeof(double);
   return bytes;
 }

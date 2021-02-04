@@ -1525,7 +1525,7 @@ void FixPOEMS::copy_arrays(int i, int j, int /* delflag */)
 double FixPOEMS::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   bytes += (double)nmax*MAXBODY * sizeof(int);
   bytes += (double)nmax*3 * sizeof(double);
   return bytes;

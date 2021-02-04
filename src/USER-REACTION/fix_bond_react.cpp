@@ -3743,7 +3743,7 @@ memory usage of local atom-based arrays
 double FixBondReact::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   bytes = 2*nmax * sizeof(tagint);
   bytes += (double)nmax * sizeof(double);
   return bytes;

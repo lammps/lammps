@@ -537,7 +537,7 @@ void FixStoreState::end_of_step()
 
 double FixStoreState::memory_usage()
 {
-  double bytes = atom->nmax*nvalues * sizeof(double);
+  double bytes = (double)atom->nmax*nvalues * sizeof(double);
   return bytes;
 }
 

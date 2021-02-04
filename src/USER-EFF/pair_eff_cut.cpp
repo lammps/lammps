@@ -1078,7 +1078,7 @@ void PairEffCut::min_x_set(int /*ignore*/)
 
 double PairEffCut::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)2 * nmax * sizeof(double);
   return bytes;

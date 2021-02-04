@@ -350,7 +350,7 @@ void Angle::ev_tally(int i, int j, int k, int nlocal, int newton_bond,
 
 double Angle::memory_usage()
 {
-  double bytes = comm->nthreads*maxeatom * sizeof(double);
+  double bytes = (double)comm->nthreads*maxeatom * sizeof(double);
   bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
   bytes += (double)comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;

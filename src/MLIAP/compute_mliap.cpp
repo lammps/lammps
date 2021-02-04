@@ -357,7 +357,7 @@ void ComputeMLIAP::compute_array()
 double ComputeMLIAP::memory_usage()
 {
 
-  double bytes = size_array_rows*size_array_cols *
+  double bytes = (double)size_array_rows*size_array_cols *
     sizeof(double);                                   // mliaparray
   bytes += (double)size_array_rows*size_array_cols *
     sizeof(double);                                   // mliaparrayall

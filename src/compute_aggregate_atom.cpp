@@ -312,6 +312,6 @@ void ComputeAggregateAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeAggregateAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

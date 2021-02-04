@@ -662,6 +662,6 @@ void ComputeReduce::combine(double &one, double two, int i)
 
 double ComputeReduce::memory_usage()
 {
-  double bytes = maxatom * sizeof(double);
+  double bytes = (double)maxatom * sizeof(double);
   return bytes;
 }

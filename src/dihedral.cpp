@@ -390,7 +390,7 @@ void Dihedral::ev_tally(int i1, int i2, int i3, int i4,
 
 double Dihedral::memory_usage()
 {
-  double bytes = comm->nthreads*maxeatom * sizeof(double);
+  double bytes = (double)comm->nthreads*maxeatom * sizeof(double);
   bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
   bytes += (double)comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;

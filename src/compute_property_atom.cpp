@@ -453,7 +453,7 @@ void ComputePropertyAtom::compute_peratom()
 
 double ComputePropertyAtom::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }
 

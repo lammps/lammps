@@ -529,7 +529,7 @@ void ComputeSnap::dbdotr_compute()
 double ComputeSnap::memory_usage()
 {
 
-  double bytes = size_array_rows*size_array_cols *
+  double bytes = (double)size_array_rows*size_array_cols *
     sizeof(double);                                     // snap
   bytes += (double)size_array_rows*size_array_cols *
     sizeof(double);                                     // snapall

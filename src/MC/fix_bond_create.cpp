@@ -1427,7 +1427,7 @@ double FixBondCreate::compute_vector(int n)
 double FixBondCreate::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   bytes = 2*nmax * sizeof(tagint);
   bytes += (double)nmax * sizeof(double);
   return bytes;

@@ -8298,7 +8298,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
 
 double PPPMDisp::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
 
   int mixing = 1;
   int diff = 3;     //depends on differentiation

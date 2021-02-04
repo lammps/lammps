@@ -588,7 +588,7 @@ void *PairLJCutTIP4PLongSoft::extract(const char *str, int &dim)
 
 double PairLJCutTIP4PLongSoft::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)2 * nmax * sizeof(double);
   return bytes;

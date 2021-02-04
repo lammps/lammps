@@ -391,7 +391,7 @@ double AngleHybrid::single(int type, int i1, int i2, int i3)
 
 double AngleHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += (double)maxangle[m]*4 * sizeof(int);

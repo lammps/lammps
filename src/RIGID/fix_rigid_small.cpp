@@ -3567,7 +3567,7 @@ double FixRigidSmall::compute_scalar()
 double FixRigidSmall::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax*2 * sizeof(int);
+  double bytes = (double)nmax*2 * sizeof(int);
   bytes += (double)nmax * sizeof(imageint);
   bytes += (double)nmax*3 * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);     // vatom

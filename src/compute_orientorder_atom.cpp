@@ -331,7 +331,7 @@ void ComputeOrientOrderAtom::compute_peratom()
 
 double ComputeOrientOrderAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
+  double bytes = (double)ncol*nmax * sizeof(double);
   bytes += (double)(qmax*(2*qmax+1)+maxneigh*4) * sizeof(double);
   bytes += (double)(nqlist+maxneigh) * sizeof(int);
   return bytes;

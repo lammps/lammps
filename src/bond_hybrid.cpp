@@ -386,7 +386,7 @@ double BondHybrid::single(int type, double rsq, int i, int j,
 
 double BondHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += (double)maxbond[m]*3 * sizeof(int);
   for (int m = 0; m < nstyles; m++)

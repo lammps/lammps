@@ -287,9 +287,9 @@ namespace LAMMPS_NS {
      *
      * This can handle strings with single and double quotes, escaped quotes,
      * and escaped codes within quotes, but due to using an STL container and
-     * STL strings is rather slow because of making copies. Designed for parsing
-     * command lines and similar text and not for time critical processing.
-     * Use a tokenizer class for that.
+     * STL strings is rather slow because of making copies. Designed for
+     * parsing command lines and similar text and not for time critical
+     * processing.  Use a tokenizer class if performance matters.
      *
 \verbatim embed:rst
 

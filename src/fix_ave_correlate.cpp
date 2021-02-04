@@ -19,6 +19,7 @@
 
 #include "fix_ave_correlate.h"
 
+#include "arg_info.h"
 #include "compute.h"
 #include "error.h"
 #include "input.h"
@@ -33,10 +34,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING};
 enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -74,33 +73,18 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
   int iarg = 0;
   while (iarg < nargnew) {
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0 ||
-        strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+    ArgInfo argi(arg[iarg]);
+    
+    if (argi.get_type() == ArgInfo::NONE) break;
+    if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+      error->all(FLERR,"Invalid fix ave/correlate command");
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+    which[nvalues] = argi.get_type();
+    argindex[nvalues] = argi.get_index1();
+    ids[nvalues] = argi.copy_name();
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix ave/correlate command");
-        argindex[nvalues] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
-
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      delete [] suffix;
-
-      nvalues++;
-      iarg++;
-    } else break;
+    nvalues++;
+    iarg++;
   }
 
   // optional args
@@ -189,7 +173,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
     error->all(FLERR,"Illegal fix ave/correlate command");
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/correlate does not exist");
@@ -203,7 +187,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Fix ave/correlate compute vector "
                    "is accessed out-of-range");
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/correlate does not exist");
@@ -218,7 +202,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Fix for fix ave/correlate "
                    "not computed at compatible time");
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/correlate does not exist");
@@ -364,19 +348,19 @@ void FixAveCorrelate::init()
   // set current indices for all computes,fixes,variables
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/correlate does not exist");
       value2index[i] = icompute;
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/correlate does not exist");
       value2index[i] = ifix;
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/correlate does not exist");
@@ -435,7 +419,7 @@ void FixAveCorrelate::end_of_step()
 
     // invoke compute if not previously invoked
 
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
@@ -454,7 +438,7 @@ void FixAveCorrelate::end_of_step()
 
     // access fix fields, guaranteed to be ready
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       if (argindex[i] == 0)
         scalar = modify->fix[m]->compute_scalar();
       else
@@ -462,7 +446,7 @@ void FixAveCorrelate::end_of_step()
 
     // evaluate equal-style or vector-style variable
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       if (argindex[i] == 0)
         scalar = input->variable->compute_equal(m);
       else {

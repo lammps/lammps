@@ -18,6 +18,7 @@
 #include "thermo.h"
 
 #include "angle.h"
+#include "arg_info.h"
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
@@ -877,35 +878,25 @@ void Thermo::parse_fields(char *str)
     } else if (word == "cellgamma") {
       addfield("CellGamma",&Thermo::compute_cellgamma,FLOAT);
 
-    // compute value = c_ID, fix value = f_ID, variable value = v_ID
-    // count trailing [] and store int arguments
+      // compute value = c_ID, fix value = f_ID, variable value = v_ID
+      // count trailing [] and store int arguments
 
-    } else if ((word.substr(0, 2) == "c_") || (word.substr(0, 2) == "f_") ||
-               (word.substr(0, 2) == "v_")) {
+    } else {
+      ArgInfo argi(word);
 
-      int n =  word.length() - 1;
-      char *id = new char[n];
-      strcpy(id, &word.c_str()[2]);
+      if ((argi.get_type() == ArgInfo::UNKNOWN)
+          || (argi.get_type() == ArgInfo::NONE)
+          || (argi.get_dim() > 2))
+        error->all(FLERR,"Unknown keyword in thermo_style custom command");
 
-      // parse zero or one or two trailing brackets from ID
+      // process zero or one or two trailing brackets
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
 
-      char *ptr = strchr(id,'[');
-      if (ptr == nullptr) argindex1[nfield] = argindex2[nfield] = 0;
-      else {
-        *ptr = '\0';
-        argindex1[nfield] =
-          (int) input->variable->int_between_brackets(ptr,0);
-        ptr++;
-        if (*ptr == '[') {
-          argindex2[nfield] =
-            (int) input->variable->int_between_brackets(ptr,0);
-          ptr++;
-        } else argindex2[nfield] = 0;
-      }
+      argindex1[nfield] = argi.get_index1();
+      argindex2[nfield] = (argi.get_dim() > 1) ? argi.get_index2() : 0;
 
-      if (word[0] == 'c') {
-        n = modify->find_compute(id);
+      if (argi.get_type() == ArgInfo::COMPUTE) {
+        int n = modify->find_compute(argi.get_name());
         if (n < 0) error->all(FLERR,"Could not find thermo custom compute ID");
         if (argindex1[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
           error->all(FLERR,"Thermo compute does not compute scalar");
@@ -927,15 +918,15 @@ void Thermo::parse_fields(char *str)
         }
 
         if (argindex1[nfield] == 0)
-          field2index[nfield] = add_compute(id, SCALAR);
+          field2index[nfield] = add_compute(argi.get_name(), SCALAR);
         else if (argindex2[nfield] == 0)
-          field2index[nfield] = add_compute(id, VECTOR);
+          field2index[nfield] = add_compute(argi.get_name(), VECTOR);
         else
-          field2index[nfield] = add_compute(id, ARRAY);
+          field2index[nfield] = add_compute(argi.get_name(), ARRAY);
         addfield(word.c_str(), &Thermo::compute_compute, FLOAT);
 
-      } else if (word[0] == 'f') {
-        n = modify->find_fix(id);
+      } else if (argi.get_type() == ArgInfo::FIX) {
+        int n = modify->find_fix(argi.get_name());
         if (n < 0) error->all(FLERR,"Could not find thermo custom fix ID");
         if (argindex1[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
           error->all(FLERR,"Thermo fix does not compute scalar");
@@ -956,11 +947,11 @@ void Thermo::parse_fields(char *str)
             error->all(FLERR,"Thermo fix array is accessed out-of-range");
         }
 
-        field2index[nfield] = add_fix(id);
+        field2index[nfield] = add_fix(argi.get_name());
         addfield(word.c_str(), &Thermo::compute_fix, FLOAT);
 
-      } else if (word[0] == 'v') {
-        n = input->variable->find(id);
+      } else if (argi.get_type() == ArgInfo::VARIABLE) {
+        int n = input->variable->find(argi.get_name());
         if (n < 0)
           error->all(FLERR,"Could not find thermo custom variable name");
         if (argindex1[nfield] == 0 && input->variable->equalstyle(n) == 0)
@@ -972,14 +963,10 @@ void Thermo::parse_fields(char *str)
         if (argindex2[nfield])
           error->all(FLERR,"Thermo custom variable cannot have two indices");
 
-        field2index[nfield] = add_variable(id);
+        field2index[nfield] = add_variable(argi.get_name());
         addfield(word.c_str(), &Thermo::compute_variable, FLOAT);
       }
-
-      delete [] id;
-
-    } else error->all(FLERR,"Unknown keyword in thermo_style custom command");
-
+    }
   }
 }
 

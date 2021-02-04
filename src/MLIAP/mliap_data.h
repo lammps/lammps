@@ -34,8 +34,10 @@ class MLIAPData : protected Pointers {
   int yoffset, zoffset;
   int ndims_force, ndims_virial;
   double **gradforce;
-  double** betas;               // betas for all atoms in list
+  double** betas;              // betas for all atoms in list
   double** descriptors;        // descriptors for all atoms in list
+  double* eatoms;              // energies for all atoms in list
+  double energy;               // energy
   int ndescriptors;            // number of descriptors
   int nparams;                 // number of model parameters per element
   int nelements;               // number of elements

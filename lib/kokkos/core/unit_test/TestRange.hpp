@@ -72,8 +72,9 @@ struct TestRange {
   int offset;
 #endif
   TestRange(const size_t N_)
-      : m_flags(Kokkos::ViewAllocateWithoutInitializing("flags"), N_),
-        result_view(Kokkos::ViewAllocateWithoutInitializing("results"), N_),
+      : m_flags(Kokkos::view_alloc(Kokkos::WithoutInitializing, "flags"), N_),
+        result_view(Kokkos::view_alloc(Kokkos::WithoutInitializing, "results"),
+                    N_),
         N(N_) {
 #ifdef KOKKOS_WORKAROUND_OPENMPTARGET_GCC
     offset = 13;
@@ -161,7 +162,9 @@ struct TestRange {
   KOKKOS_INLINE_FUNCTION
   void operator()(const VerifyInitTag &, const int i) const {
     if (i != m_flags(i)) {
-      printf("TestRange::test_for error at %d != %d\n", i, m_flags(i));
+#ifndef __SYCL_DEVICE_ONLY__
+      printf("TestRange::test_for_error at %d != %d\n", i, m_flags(i));
+#endif
     }
   }
 
@@ -173,7 +176,9 @@ struct TestRange {
   KOKKOS_INLINE_FUNCTION
   void operator()(const VerifyResetTag &, const int i) const {
     if (2 * i != m_flags(i)) {
-      printf("TestRange::test_for error at %d != %d\n", i, m_flags(i));
+#ifndef __SYCL_DEVICE_ONLY__
+      printf("TestRange::test_for_error at %d != %d\n", i, m_flags(i));
+#endif
     }
   }
 
@@ -185,7 +190,9 @@ struct TestRange {
   KOKKOS_INLINE_FUNCTION
   void operator()(const VerifyOffsetTag &, const int i) const {
     if (i + offset != m_flags(i)) {
-      printf("TestRange::test_for error at %d != %d\n", i + offset, m_flags(i));
+#ifndef __SYCL_DEVICE_ONLY__
+      printf("TestRange::test_for_error at %d != %d\n", i + offset, m_flags(i));
+#endif
     }
   }
 
@@ -200,6 +207,12 @@ struct TestRange {
     Kokkos::parallel_reduce("TestKernelReduce",
                             Kokkos::RangePolicy<ExecSpace, ScheduleType>(0, N),
                             *this, total);
+    // sum( 0 .. N-1 )
+    ASSERT_EQ(size_t((N - 1) * (N) / 2), size_t(total));
+
+    Kokkos::parallel_reduce(
+        "TestKernelReduce_long",
+        Kokkos::RangePolicy<ExecSpace, ScheduleType, long>(0, N), *this, total);
     // sum( 0 .. N-1 )
     ASSERT_EQ(size_t((N - 1) * (N) / 2), size_t(total));
 
@@ -262,8 +275,10 @@ struct TestRange {
 
     if (final) {
       if (update != (i * (i + 1)) / 2) {
+#ifndef __SYCL_DEVICE_ONLY__
         printf("TestRange::test_scan error (%d,%d) : %d != %d\n", i, m_flags(i),
                (i * (i + 1)) / 2, update);
+#endif
       }
       result_view(i) = update;
     }
@@ -431,7 +446,8 @@ TEST(TEST_CATEGORY, range_scan) {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(0);
     f.test_scan();
   }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP)
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
   {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(0);
     f.test_dynamic_policy();
@@ -446,7 +462,8 @@ TEST(TEST_CATEGORY, range_scan) {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(3);
     f.test_scan();
   }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP)
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
   {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(3);
     f.test_dynamic_policy();
@@ -461,7 +478,8 @@ TEST(TEST_CATEGORY, range_scan) {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(1001);
     f.test_scan();
   }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP)
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
   {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(1001);
     f.test_dynamic_policy();

@@ -21,7 +21,7 @@ namespace user_manifold {
 
     thyla_part( int type, double *args, double xlo, double ylo, double zlo,
                 double xhi, double yhi, double zhi );
-    thyla_part() : type(-1), x0(-1337), y0(-1337), z0(-1337){}
+    thyla_part() : type(-1), x0(-1337), y0(-1337), z0(-1337) {}
     ~thyla_part();
 
     double g( const double *x );
@@ -43,7 +43,7 @@ namespace user_manifold {
 
 
   struct thyla_part_geom {
-    thyla_part_geom() : pt(3), lo(3), hi(3){}
+    thyla_part_geom() : pt(3), lo(3), hi(3) {}
     std::vector<double> pt, lo, hi;
 
     // Function for mirroring thyla_geoms:

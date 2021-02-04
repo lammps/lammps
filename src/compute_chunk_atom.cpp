@@ -48,7 +48,6 @@ enum{ONCE,NFREQ,EVERY};              // used in several files
 enum{LIMITMAX,LIMITEXACT};
 
 #define IDMAX 1024*1024
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -958,9 +957,9 @@ void ComputeChunkAtom::assign_chunk_ids()
     }
 
   } else if (which == COMPUTE) {
-    if (!(cchunk->invoked_flag & INVOKED_PERATOM)) {
+    if (!(cchunk->invoked_flag & Compute::INVOKED_PERATOM)) {
       cchunk->compute_peratom();
-      cchunk->invoked_flag |= INVOKED_PERATOM;
+      cchunk->invoked_flag |= Compute::INVOKED_PERATOM;
     }
 
     if (argindex == 0) {
@@ -2006,8 +2005,8 @@ void ComputeChunkAtom::set_arrays(int i)
 double ComputeChunkAtom::memory_usage()
 {
   double bytes = 2*MAX(nmaxint,0) * sizeof(int);   // ichunk,exclude
-  bytes += nmax * sizeof(double);                  // chunk
-  bytes += ncoord*nchunk * sizeof(double);         // coord
-  if (compress) bytes += nchunk * sizeof(int);     // chunkID
+  bytes += (double)nmax * sizeof(double);                  // chunk
+  bytes += (double)ncoord*nchunk * sizeof(double);         // coord
+  if (compress) bytes += (double)nchunk * sizeof(int);     // chunkID
   return bytes;
 }

@@ -77,6 +77,12 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_comment
    :project: progguide
 
+.. doxygenfunction:: has_utf8
+   :project: progguide
+
+.. doxygenfunction:: utf8_subst
+   :project: progguide
+
 .. doxygenfunction:: count_words(const char *text)
    :project: progguide
 

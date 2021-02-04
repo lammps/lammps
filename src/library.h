@@ -42,7 +42,7 @@
 
 /** Data type constants for extracting data from atoms, computes and fixes
  *
- * Must be kept in sync with the equivalent constants in lammps.py */
+ * Must be kept in sync with the equivalent constants in lammps/constants.py */
 
 enum _LMP_DATATYPE_CONST {
   LAMMPS_INT    = 0,       /*!< 32-bit integer (array) */
@@ -56,7 +56,7 @@ enum _LMP_DATATYPE_CONST {
 
 /** Style constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in lammps.py */
+ * Must be kept in sync with the equivalent constants in lammps/constants.py */
 
 enum _LMP_STYLE_CONST {
   LMP_STYLE_GLOBAL=0,           /*!< return global data */
@@ -66,7 +66,7 @@ enum _LMP_STYLE_CONST {
 
 /** Type and size constants for extracting data from computes and fixes.
  *
- * Must be kept in sync with the equivalent constants in lammps.py */
+ * Must be kept in sync with the equivalent constants in lammps/constants.py */
 
 enum _LMP_TYPE_CONST {
   LMP_TYPE_SCALAR=0,            /*!< return scalar */
@@ -140,7 +140,7 @@ void  *lammps_extract_atom(void *handle, const char *name);
 
 void *lammps_extract_compute(void *handle, char *id, int, int);
 void *lammps_extract_fix(void *handle, char *, int, int, int, int);
-void *lammps_extract_variable(void *handle, char *, char *);
+void *lammps_extract_variable(void *handle, const char *, const char *);
 int   lammps_set_variable(void *, char *, char *);
 
 /* ----------------------------------------------------------------------
@@ -194,6 +194,8 @@ int lammps_config_has_exceptions();
 int lammps_config_has_package(const char *);
 int lammps_config_package_count();
 int lammps_config_package_name(int, char *, int);
+
+int lammps_config_accelerator(const char *, const char *, const char *);
 
 int lammps_has_style(void *, const char *, const char *);
 int lammps_style_count(void *, const char *);

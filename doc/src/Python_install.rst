@@ -8,9 +8,9 @@ module.  Because of the dynamic loading, it is required that LAMMPS is
 compiled in :ref:`"shared" mode <exe>`.  It is also recommended to
 compile LAMMPS with :ref:`C++ exceptions <exceptions>` enabled.
 
-Two files are necessary for Python to be able to invoke LAMMPS code:
+Two components are necessary for Python to be able to invoke LAMMPS code:
 
-* The LAMMPS Python Module (``lammps.py``) from the ``python`` folder
+* The LAMMPS Python Package (``lammps``) from the ``python`` folder
 * The LAMMPS Shared Library (``liblammps.so``, ``liblammps.dylib`` or
   ``liblammps.dll``) from the folder where you compiled LAMMPS.
 
@@ -25,10 +25,10 @@ Installing the LAMMPS Python Module and Shared Library
 ======================================================
 
 Making LAMMPS usable within Python and vice versa requires putting the
-LAMMPS Python module file (``lammps.py``) into a location where the
+LAMMPS Python package (``lammps``) into a location where the
 Python interpreter can find it and installing the LAMMPS shared library
-into a folder that the dynamic loader searches or into the same folder
-where the ``lammps.py`` file is.  There are multiple ways to achieve
+into a folder that the dynamic loader searches or inside of the installed
+``lammps`` package folder.  There are multiple ways to achieve
 this.
 
 #. Do a full LAMMPS installation of libraries, executables, selected
@@ -36,13 +36,13 @@ this.
    available via CMake), which can also be either system-wide or into
    user specific folders.
 
-#. Install both files into a Python ``site-packages`` folder, either
+#. Install both components into a Python ``site-packages`` folder, either
    system-wide or in the corresponding user-specific folder. This way no
    additional environment variables need to be set, but the shared
    library is otherwise not accessible.
 
-#. Do an installation into a virtual environment. This can either be
-   an installation of the python module only or a full installation.
+#. Do an installation into a virtual environment. This can either be an
+   installation of the Python package only or a full installation of LAMMPS.
 
 #. Leave the files where they are in the source/development tree and
    adjust some environment variables.
@@ -69,7 +69,7 @@ this.
          cd build
 
          # configure LAMMPS compilation
-         cmake -C cmake/presets/minimal.cmake -D BUILD_SHARED_LIBS=on \
+         cmake -C ../cmake/presets/minimal.cmake -D BUILD_SHARED_LIBS=on \
                -D LAMMPS_EXCEPTIONS=on -D PKG_PYTHON=on ../cmake
 
          # compile LAMMPS
@@ -81,40 +81,42 @@ this.
 
       This leads to an installation to the following locations:
 
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | File                   | Location                                                  | Notes                                                       |
-      +========================+===========================================================+=============================================================+
-      | LAMMPS Python Module   | * ``$HOME/.local/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``$HOME/.local/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS shared library  | * ``$HOME/.local/lib/`` (32bit)                           |                                                             |
-      |                        | * ``$HOME/.local/lib64/`` (64bit)                         |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS executable      | * ``$HOME/.local/bin/``                                   |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS potential files | * ``$HOME/.local/share/lammps/potentials/``               | Set ``LAMMPS_POTENTIALS`` environment variable to this path |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | File                   | Location                                                        | Notes                                                       |
+      +========================+=================================================================+=============================================================+
+      | LAMMPS Python package  | * ``$HOME/.local/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``$HOME/.local/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS shared library  | * ``$HOME/.local/lib/`` (32bit)                                 | Set shared loader environment variable to this path         |
+      |                        | * ``$HOME/.local/lib64/`` (64bit)                               | (see below for more info on this)                           |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS executable      | * ``$HOME/.local/bin/``                                         |                                                             |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS potential files | * ``$HOME/.local/share/lammps/potentials/``                     | Set ``LAMMPS_POTENTIALS`` environment variable to this path |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
 
       For a system-wide installation you need to set
       ``CMAKE_INSTALL_PREFIX`` to a system folder like ``/usr`` (or
-      ``/usr/local``).  The installation step (**not** the
+      ``/usr/local``); the default is ``${HOME}/.local``.  The
+      installation step for a system folder installation (**not** the
       configuration/compilation) needs to be done with superuser
       privilege, e.g. by using ``sudo cmake --install .``.  The
-      installation folders will then by changed to:
+      installation folders will then be changed to (assuming ``/usr`` as
+      prefix):
 
-      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
-      | File                   | Location                                          | Notes                                                       |
-      +========================+===================================================+=============================================================+
-      | LAMMPS Python Module   | * ``/usr/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``/usr/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS shared library  | * ``/usr/lib/`` (32bit)                           |                                                             |
-      |                        | * ``/usr/lib64/`` (64bit)                         |                                                             |
-      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS executable      | * ``/usr/bin/``                                   |                                                             |
-      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS potential files | * ``/usr/share/lammps/potentials/``               |                                                             |
-      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
+      +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
+      | File                   | Location                                                | Notes                                                       |
+      +========================+=========================================================+=============================================================+
+      | LAMMPS Python package  | * ``/usr/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``/usr/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS shared library  | * ``/usr/lib/`` (32bit)                                 |                                                             |
+      |                        | * ``/usr/lib64/`` (64bit)                               |                                                             |
+      +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS executable      | * ``/usr/bin/``                                         |                                                             |
+      +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS potential files | * ``/usr/share/lammps/potentials/``                     |                                                             |
+      +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
 
       To be able to use the "user" installation you have to ensure that
       the folder containing the LAMMPS shared library is either included
@@ -146,7 +148,7 @@ this.
       necessary due to files installed in system folders that are loaded
       automatically when a login shell is started.
 
-   .. tab:: Python module only
+   .. tab:: Python package only
 
       Compile LAMMPS with either :doc:`CMake <Build_cmake>` or the
       :doc:`traditional make <Build_make>` procedure in :ref:`shared
@@ -157,37 +159,37 @@ this.
 
          make install-python
 
-      This will try to install (only) the shared library and the python
-      module into a system folder and if that fails (due to missing
+      This will try to install (only) the shared library and the Python
+      package into a system folder and if that fails (due to missing
       write permissions) will instead do the installation to a user
       folder under ``$HOME/.local``.  For a system-wide installation you
       would have to gain superuser privilege, e.g. though ``sudo``
 
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | File                   | Location                                                  | Notes                                                       |
-      +========================+===========================================================+=============================================================+
-      | LAMMPS Python Module   | * ``$HOME/.local/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``$HOME/.local/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS shared library  | * ``$HOME/.local/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``$HOME/.local/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | File                   | Location                                                        | Notes                                                       |
+      +========================+=================================================================+=============================================================+
+      | LAMMPS Python package  | * ``$HOME/.local/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``$HOME/.local/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS shared library  | * ``$HOME/.local/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``$HOME/.local/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
 
       For a system-wide installation those folders would then become.
 
-      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
-      | File                   | Location                                          | Notes                                                       |
-      +========================+===================================================+=============================================================+
-      | LAMMPS Python Module   | * ``/usr/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``/usr/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS shared library  | * ``/usr/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``/usr/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+---------------------------------------------------+-------------------------------------------------------------+
+      +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
+      | File                   | Location                                                | Notes                                                       |
+      +========================+=========================================================+=============================================================+
+      | LAMMPS Python package  | * ``/usr/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``/usr/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS shared library  | * ``/usr/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``/usr/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+---------------------------------------------------------+-------------------------------------------------------------+
 
       No environment variables need to be set for those, as those
       folders are searched by default by Python or the LAMMPS Python
-      module.
+      package.
 
       For the traditional make process you can override the python
       version to version x.y when calling ``make`` with
@@ -199,9 +201,9 @@ this.
 
       .. code-block:: bash
 
-         $ python install.py -m <python module> -l <shared library> -v <version.h file> [-d <pydir>]
+         $ python install.py -p <python package> -l <shared library> -v <version.h file> [-d <pydir>]
 
-      * The ``-m`` flag points to the ``lammps.py`` python module file to be installed,
+      * The ``-p`` flag points to the ``lammps`` Python package folder to be installed,
       * the ``-l`` flag points to the LAMMPS shared library file to be installed,
       * the ``-v`` flag points to the ``version.h`` file in the LAMMPS source
       * and the optional ``-d`` flag to a custom (legacy) installation folder
@@ -249,38 +251,38 @@ this.
       When using CMake to build LAMMPS, you need to set
       ``CMAKE_INSTALL_PREFIX`` to the value of the ``$VIRTUAL_ENV``
       environment variable during the configuration step. For the
-      traditional make procedure, not additional steps are needed.
-      After compiling LAMMPS you can do a "Python module only"
+      traditional make procedure, no additional steps are needed.
+      After compiling LAMMPS you can do a "Python package only"
       installation with ``make install-python`` and the LAMMPS Python
-      module and the shared library file are installed into the
+      package and the shared library file are installed into the
       following locations:
 
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | File                   | Location                                                  | Notes                                                       |
-      +========================+===========================================================+=============================================================+
-      | LAMMPS Python Module   | * ``$VIRTUAL_ENV/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``$VIRTUAL_ENV/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS shared library  | * ``$VIRTUAL_ENV/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``$VIRTUAL_ENV/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | File                   | Location                                                        | Notes                                                       |
+      +========================+=================================================================+=============================================================+
+      | LAMMPS Python Module   | * ``$VIRTUAL_ENV/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``$VIRTUAL_ENV/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS shared library  | * ``$VIRTUAL_ENV/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``$VIRTUAL_ENV/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
 
       If you do a full installation (CMake only) with "install", this
       leads to the following installation locations:
 
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | File                   | Location                                                  | Notes                                                       |
-      +========================+===========================================================+=============================================================+
-      | LAMMPS Python Module   | * ``$VIRTUAL_ENV/lib/pythonX.Y/site-packages/`` (32bit)   | ``X.Y`` depends on the installed Python version             |
-      |                        | * ``$VIRTUAL_ENV/lib64/pythonX.Y/site-packages/`` (64bit) |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS shared library  | * ``$VIRTUAL_ENV/lib/`` (32bit)                           |                                                             |
-      |                        | * ``$VIRTUAL_ENV/lib64/`` (64bit)                         |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS executable      | * ``$VIRTUAL_ENV/bin/``                                   |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
-      | LAMMPS potential files | * ``$VIRTUAL_ENV/share/lammps/potentials/``               |                                                             |
-      +------------------------+-----------------------------------------------------------+-------------------------------------------------------------+
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | File                   | Location                                                        | Notes                                                       |
+      +========================+=================================================================+=============================================================+
+      | LAMMPS Python Module   | * ``$VIRTUAL_ENV/lib/pythonX.Y/site-packages/lammps`` (32bit)   | ``X.Y`` depends on the installed Python version             |
+      |                        | * ``$VIRTUAL_ENV/lib64/pythonX.Y/site-packages/lammps`` (64bit) |                                                             |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS shared library  | * ``$VIRTUAL_ENV/lib/`` (32bit)                                 | Set shared loader environment variable to this path         |
+      |                        | * ``$VIRTUAL_ENV/lib64/`` (64bit)                               | (see below for more info on this)                           |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS executable      | * ``$VIRTUAL_ENV/bin/``                                         |                                                             |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
+      | LAMMPS potential files | * ``$VIRTUAL_ENV/share/lammps/potentials/``                     | Set ``LAMMPS_POTENTIALS`` environment variable to this path |
+      +------------------------+-----------------------------------------------------------------+-------------------------------------------------------------+
 
       In that case you need to modify the ``$HOME/myenv/bin/activate``
       script in a similar fashion you need to update your
@@ -296,15 +298,15 @@ this.
          echo 'export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH' >> $HOME/myenv/bin/activate
 
          # MacOS
-         echo 'export DYLD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH' >> $HOME/myenv/bin/activate
+         echo 'export DYLD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$DYLD_LIBRARY_PATH' >> $HOME/myenv/bin/activate
 
    .. tab:: In place usage
 
       You can also :doc:`compile LAMMPS <Build>` as usual in
       :ref:`"shared" mode <exe>` leave the shared library and Python
-      module files inside the source/compilation folders. Instead of
+      package inside the source/compilation folders. Instead of
       copying the files where they can be found, you need to set the environment
-      variables ``PYTHONPATH`` (for the Python module) and
+      variables ``PYTHONPATH`` (for the Python package) and
       ``LD_LIBRARY_PATH`` (or ``DYLD_LIBRARY_PATH`` on MacOS
 
       For Bourne shells (bash, ksh and similar) the commands are:
@@ -324,6 +326,10 @@ this.
       On MacOS you may also need to set ``DYLD_LIBRARY_PATH`` accordingly.
       You can make those changes permanent by editing your ``$HOME/.bashrc``
       or ``$HOME/.login`` files, respectively.
+
+      .. note::
+
+         The ``PYTHONPATH`` needs to point to the parent folder that contains the ``lammps`` package!
 
 
 To verify if LAMMPS can be successfully started from Python, start the
@@ -346,7 +352,7 @@ output similar to the following:
 .. note::
 
    Unless you opted for "In place use", you will have to rerun the installation
-   any time you recompile LAMMPS to ensure the latest Python module and shared
+   any time you recompile LAMMPS to ensure the latest Python package and shared
    library are installed and used.
 
 .. note::

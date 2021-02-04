@@ -73,9 +73,6 @@ enum{ONELINE,MULTILINE};
 enum{INT,FLOAT,BIGINT};
 enum{SCALAR,VECTOR,ARRAY};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
 
 #define DELTA 8
 
@@ -339,19 +336,19 @@ void Thermo::compute(int flag)
 
   for (i = 0; i < ncompute; i++)
     if (compute_which[i] == SCALAR) {
-      if (!(computes[i]->invoked_flag & INVOKED_SCALAR)) {
+      if (!(computes[i]->invoked_flag & Compute::INVOKED_SCALAR)) {
         computes[i]->compute_scalar();
-        computes[i]->invoked_flag |= INVOKED_SCALAR;
+        computes[i]->invoked_flag |= Compute::INVOKED_SCALAR;
       }
     } else if (compute_which[i] == VECTOR) {
-      if (!(computes[i]->invoked_flag & INVOKED_VECTOR)) {
+      if (!(computes[i]->invoked_flag & Compute::INVOKED_VECTOR)) {
         computes[i]->compute_vector();
-        computes[i]->invoked_flag |= INVOKED_VECTOR;
+        computes[i]->invoked_flag |= Compute::INVOKED_VECTOR;
       }
     } else if (compute_which[i] == ARRAY) {
-      if (!(computes[i]->invoked_flag & INVOKED_ARRAY)) {
+      if (!(computes[i]->invoked_flag & Compute::INVOKED_ARRAY)) {
         computes[i]->compute_array();
-        computes[i]->invoked_flag |= INVOKED_ARRAY;
+        computes[i]->invoked_flag |= Compute::INVOKED_ARRAY;
       }
     }
 
@@ -381,6 +378,7 @@ void Thermo::compute(int flag)
 
   if (me == 0) {
     utils::logmesg(lmp,line);
+    if (screen && flushflag) fflush(screen);
     if (logfile && flushflag) fflush(logfile);
   }
 
@@ -1161,9 +1159,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (temperature->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
       temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_temp();
 
@@ -1175,9 +1173,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
       pressure->compute_scalar();
-      pressure->invoked_flag |= INVOKED_SCALAR;
+      pressure->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_press();
 
@@ -1191,7 +1189,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
                    "is not current");
     } else {
       pe->compute_scalar();
-      pe->invoked_flag |= INVOKED_SCALAR;
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_pe();
 
@@ -1203,9 +1201,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (temperature->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
       temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_ke();
 
@@ -1219,7 +1217,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
                    "is not current");
     } else {
       pe->compute_scalar();
-      pe->invoked_flag |= INVOKED_SCALAR;
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
@@ -1228,9 +1226,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (temperature->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
       temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_etotal();
 
@@ -1244,7 +1242,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
                    "is not current");
     } else {
       pe->compute_scalar();
-      pe->invoked_flag |= INVOKED_SCALAR;
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
@@ -1253,9 +1251,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (temperature->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
       temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
@@ -1264,9 +1262,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
       pressure->compute_scalar();
-      pressure->invoked_flag |= INVOKED_SCALAR;
+      pressure->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_enthalpy();
 
@@ -1276,7 +1274,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_evdwl();
 
   } else if (strcmp(word,"ecoul") == 0) {
@@ -1285,7 +1283,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_ecoul();
 
   } else if (strcmp(word,"epair") == 0) {
@@ -1294,7 +1292,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_epair();
 
   } else if (strcmp(word,"ebond") == 0) {
@@ -1303,7 +1301,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_ebond();
 
   } else if (strcmp(word,"eangle") == 0) {
@@ -1312,7 +1310,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_eangle();
 
   } else if (strcmp(word,"edihed") == 0) {
@@ -1321,7 +1319,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_edihed();
 
   } else if (strcmp(word,"eimp") == 0) {
@@ -1330,7 +1328,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_eimp();
 
   } else if (strcmp(word,"emol") == 0) {
@@ -1339,7 +1337,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_emol();
 
   } else if (strcmp(word,"elong") == 0) {
@@ -1348,7 +1346,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
     compute_elong();
 
   } else if (strcmp(word,"etail") == 0) {
@@ -1385,9 +1383,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pxx();
 
@@ -1399,9 +1397,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pyy();
 
@@ -1413,9 +1411,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pzz();
 
@@ -1427,9 +1425,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pxy();
 
@@ -1441,9 +1439,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pxz();
 
@@ -1455,9 +1453,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pyz();
   }

@@ -158,7 +158,7 @@ void PairLebedevaZ::compute(int eflag, int vflag)
           evdwl = Ulm - offset[itype][jtype];
         }
 
-        if (evflag){
+        if (evflag) {
           ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,
                        -fxy,-fxy,-fz,delx,dely,delz);
         }
@@ -421,7 +421,7 @@ void PairLebedevaZ::read_file(char *filename)
     params[nparams].z06 = pow(params[nparams].z0,6);
 
     nparams++;
-    if(nparams >= pow(atom->ntypes,3)) break;
+    if (nparams >= pow(atom->ntypes,3)) break;
   }
   memory->destroy(elem2param);
   memory->create(elem2param,nelements,nelements,"pair:elem2param");

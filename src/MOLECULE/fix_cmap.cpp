@@ -42,8 +42,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -74,6 +72,7 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   peatom_flag = 1;
   virial_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   peratom_freq = 1;
   scalar_flag = 1;
@@ -1377,7 +1376,7 @@ void FixCMAP::copy_arrays(int i, int j, int /*delflag*/)
 {
   num_crossterm[j] = num_crossterm[i];
 
-  for (int k = 0; k < num_crossterm[j]; k++){
+  for (int k = 0; k < num_crossterm[j]; k++) {
     crossterm_type[j][k] = crossterm_type[i][k];
     crossterm_atom1[j][k] = crossterm_atom1[i][k];
     crossterm_atom2[j][k] = crossterm_atom2[i][k];
@@ -1442,8 +1441,8 @@ double FixCMAP::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = nmax * sizeof(int);        // num_crossterm
-  bytes += nmax*CMAPMAX * sizeof(int);      // crossterm_type
-  bytes += 5*nmax*CMAPMAX * sizeof(int);    // crossterm_atom 12345
-  bytes += maxcrossterm*6 * sizeof(int);    // crosstermlist
+  bytes += (double)nmax*CMAPMAX * sizeof(int);      // crossterm_type
+  bytes += (double)5*nmax*CMAPMAX * sizeof(int);    // crossterm_atom 12345
+  bytes += (double)maxcrossterm*6 * sizeof(int);    // crosstermlist
   return bytes;
 }

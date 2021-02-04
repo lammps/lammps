@@ -61,9 +61,9 @@ int Init_Output_Files( reax_system *system, control_params *control,
     }
 
     /* init pressure file */
-    if( control->ensemble == NPT  ||
+    if ( control->ensemble == NPT  ||
         control->ensemble == iNPT ||
-        control->ensemble == sNPT ) {
+        control->ensemble == sNPT) {
       sprintf( temp, "%s.prs", control->sim_name );
       if ((out_control->prs = fopen( temp, "w" )) != nullptr) {
         fprintf(out_control->prs,"%8s%13s%13s%13s%13s%13s%13s%13s\n",
@@ -109,17 +109,17 @@ void Output_Results( reax_system *system, control_params *control,
                      output_controls *out_control, mpi_datatypes *mpi_data )
 {
 
-  if((out_control->energy_update_freq > 0 &&
+  if ((out_control->energy_update_freq > 0 &&
       data->step%out_control->energy_update_freq == 0) ||
      (out_control->write_steps > 0 &&
-      data->step%out_control->write_steps == 0)){
+      data->step%out_control->write_steps == 0)) {
     /* update system-wide energies */
     Compute_System_Energy( system, data, mpi_data->world );
 
     /* output energies */
-    if( system->my_rank == MASTER_NODE &&
+    if ( system->my_rank == MASTER_NODE &&
         out_control->energy_update_freq > 0 &&
-        data->step % out_control->energy_update_freq == 0 ) {
+        data->step % out_control->energy_update_freq == 0) {
 
       if (control->virial && out_control->prs) {
         fprintf( out_control->prs,
@@ -141,8 +141,8 @@ void Output_Results( reax_system *system, control_params *control,
     }
 
     /* write current frame */
-    if( out_control->write_steps > 0 &&
-        (data->step-data->prev_steps) % out_control->write_steps == 0 ) {
+    if ( out_control->write_steps > 0 &&
+        (data->step-data->prev_steps) % out_control->write_steps == 0) {
       Append_Frame( system, control, data, lists, out_control, mpi_data );
     }
   }

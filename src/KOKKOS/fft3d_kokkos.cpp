@@ -127,7 +127,7 @@ void FFT3dKokkos<DeviceType>::timing1d(typename FFT_AT::t_FFT_SCALAR_1d d_in, in
    in           starting address of input data on this proc
    out          starting address of where output data for this proc
                   will be placed (can be same as in)
-   flag         1 for forward FFT, -1 for inverse FFT
+   flag         1 for forward FFT, -1 for backward FFT
    plan         plan returned by previous call to fft_3d_create_plan
 ------------------------------------------------------------------------- */
 
@@ -215,30 +215,28 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
   length = plan->length1;
 
   #if defined(FFT_MKL)
-    if (flag == -1)
+    if (flag == 1)
       DftiComputeForward(plan->handle_fast,d_data.data());
     else
       DftiComputeBackward(plan->handle_fast,d_data.data());
   #elif defined(FFT_FFTW3)
-    if (flag == -1)
+    if (flag == 1)
       FFTW_API(execute_dft)(plan->plan_fast_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
     else
       FFTW_API(execute_dft)(plan->plan_fast_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
   #elif defined(FFT_CUFFT)
-    cufftExec(plan->plan_fast,d_data.data(),d_data.data(),flag);
+    cufftExec(plan->plan_fast,d_data.data(),d_data.data(),-flag);
   #else
     typename FFT_AT::t_FFT_DATA_1d d_tmp =
-     typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.extent(0));
+     typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_data.extent(0));
     kiss_fft_functor<DeviceType> f;
-    if (flag == -1)
+    if (flag == 1)
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_forward,length);
     else
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_backward,length);
     Kokkos::parallel_for(total/length,f);
     d_data = d_tmp;
-    d_tmp = typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.extent(0));
   #endif
-
 
   // 1st mid-remap to prepare for 2nd FFTs
   // copy = loc for remap result
@@ -261,25 +259,25 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
   length = plan->length2;
 
   #if defined(FFT_MKL)
-    if (flag == -1)
+    if (flag == 1)
       DftiComputeForward(plan->handle_mid,d_data.data());
     else
       DftiComputeBackward(plan->handle_mid,d_data.data());
   #elif defined(FFT_FFTW3)
-    if (flag == -1)
+    if (flag == 1)
       FFTW_API(execute_dft)(plan->plan_mid_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
     else
       FFTW_API(execute_dft)(plan->plan_mid_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
   #elif defined(FFT_CUFFT)
-    cufftExec(plan->plan_mid,d_data.data(),d_data.data(),flag);
+    cufftExec(plan->plan_mid,d_data.data(),d_data.data(),-flag);
   #else
-    if (flag == -1)
+    d_tmp = typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_data.extent(0));
+    if (flag == 1)
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_forward,length);
     else
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_mid_backward,length);
     Kokkos::parallel_for(total/length,f);
     d_data = d_tmp;
-    d_tmp = typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_in.extent(0));
   #endif
 
   // 2nd mid-remap to prepare for 3rd FFTs
@@ -303,26 +301,26 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
   length = plan->length3;
 
   #if defined(FFT_MKL)
-    if (flag == -1)
+    if (flag == 1)
       DftiComputeForward(plan->handle_slow,d_data.data());
     else
       DftiComputeBackward(plan->handle_slow,d_data.data());
   #elif defined(FFT_FFTW3)
-    if (flag == -1)
+    if (flag == 1)
       FFTW_API(execute_dft)(plan->plan_slow_forward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
     else
       FFTW_API(execute_dft)(plan->plan_slow_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
   #elif defined(FFT_CUFFT)
-    cufftExec(plan->plan_slow,d_data.data(),d_data.data(),flag);
+    cufftExec(plan->plan_slow,d_data.data(),d_data.data(),-flag);
   #else
-    if (flag == -1)
+    d_tmp = typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_data.extent(0));
+    if (flag == 1)
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_forward,length);
     else
       f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_slow_backward,length);
     Kokkos::parallel_for(total/length,f);
     d_data = d_tmp;
   #endif
-
 
   // post-remap to put data in output format if needed
   // destination is always out
@@ -338,7 +336,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_kokkos(typename FFT_AT::t_FFT_DATA_1d d_in,
 
   // scaling if required
 
-  if (flag == 1 && plan->scaled) {
+  if (flag == -1 && plan->scaled) {
     FFT_SCALAR norm = plan->norm;
     int num = plan->normnum;
 
@@ -807,7 +805,7 @@ void FFT3dKokkos<DeviceType>::bifactor(int n, int *factor1, int *factor2)
    Arguments:
    in           starting address of input data on this proc, all set to 0.0
    nsize        size of in
-   flag         1 for forward FFT, -1 for inverse FFT
+   flag         1 for forward FFT, -1 for backward FFT
    plan         plan returned by previous call to fft_3d_create_plan
 ------------------------------------------------------------------------- */
 
@@ -861,12 +859,13 @@ void FFT3dKokkos<DeviceType>::fft_3d_1d_only_kokkos(typename FFT_AT::t_FFT_DATA_
     FFTW_API(execute_dft)(plan->plan_slow_backward,(FFT_DATA*)d_data.data(),(FFT_DATA*)d_data.data());
   }
 #elif defined(FFT_CUFFT)
-  cufftExec(plan->plan_fast,d_data.data(),d_data.data(),flag);
-  cufftExec(plan->plan_mid,d_data.data(),d_data.data(),flag);
-  cufftExec(plan->plan_slow,d_data.data(),d_data.data(),flag);
+  cufftExec(plan->plan_fast,d_data.data(),d_data.data(),-flag);
+  cufftExec(plan->plan_mid,d_data.data(),d_data.data(),-flag);
+  cufftExec(plan->plan_slow,d_data.data(),d_data.data(),-flag);
 #else
   kiss_fft_functor<DeviceType> f;
-  typename FFT_AT::t_FFT_DATA_1d d_tmp = typename FFT_AT::t_FFT_DATA_1d("fft_3d:tmp",d_data.extent(0));
+    typename FFT_AT::t_FFT_DATA_1d d_tmp =
+     typename FFT_AT::t_FFT_DATA_1d(Kokkos::view_alloc("fft_3d:tmp",Kokkos::WithoutInitializing),d_data.extent(0));
   if (flag == -1) {
     f = kiss_fft_functor<DeviceType>(d_data,d_tmp,plan->cfg_fast_forward,length1);
     Kokkos::parallel_for(total1/length1,f);

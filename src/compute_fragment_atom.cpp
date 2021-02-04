@@ -286,6 +286,6 @@ void ComputeFragmentAtom::unpack_forward_comm(int n, int first, double *buf)
 double ComputeFragmentAtom::memory_usage()
 {
   double bytes = nmax * sizeof(double);
-  bytes += 3*nmax * sizeof(int);
+  bytes += (double)3*nmax * sizeof(int);
   return bytes;
 }

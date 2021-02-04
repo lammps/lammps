@@ -46,7 +46,7 @@
 #define KOKKOS_CUDA_REDUCESCAN_HPP
 
 #include <Kokkos_Macros.hpp>
-#if defined(__CUDACC__) && defined(KOKKOS_ENABLE_CUDA)
+#if defined(KOKKOS_ENABLE_CUDA)
 
 #include <utility>
 
@@ -983,5 +983,5 @@ inline unsigned cuda_single_inter_block_reduce_scan_shmem(
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* #if defined( __CUDACC__ ) */
+#endif /* #if defined(KOKKOS_ENABLE_CUDA) */
 #endif /* KOKKOS_CUDA_REDUCESCAN_HPP */

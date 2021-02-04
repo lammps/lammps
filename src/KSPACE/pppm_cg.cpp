@@ -735,6 +735,6 @@ void PPPMCG::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 double PPPMCG::memory_usage()
 {
   double bytes = PPPM::memory_usage();
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }

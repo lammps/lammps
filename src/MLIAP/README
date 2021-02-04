@@ -8,12 +8,15 @@ definitions of the interatomic potential functional form (*model*)
 and the geometric quantities that characterize the atomic positions
 (*descriptor*). By defining *model* and *descriptor* separately,
 it is possible to use many different models with a given descriptor,
-or many different descriptors with a given model. Currently, the pair_style
-supports just two models, *linear* and *quadratic*,
-and one descriptor, *sna*, the SNAP descriptor, including the
-linear, quadratic, and chem variants. Work is currently underway to extend
-the interface to handle neural network energy models,
-and it is also straightforward to add new descriptor styles.
+or many different descriptors with a given model. The pair_style
+supports the following models: *linear*, *quadratic*, and
+*mliappy* (general Python interface to things like PyTorch, see below
+for build instructions).
+It currently supports only one class of descriptors,
+*sna*, the SNAP descriptors, including the
+linear, quadratic, and chem variants.
+It is straightforward to add new descriptor and model
+styles.
 
 The mliap compute style provides gradients of the energy, force,
 and stress tensor w.r.t. model parameters.
@@ -27,4 +30,28 @@ reference potential.
 
 To see how this command
 can be used within a Python workflow to train machine-learning interatomic
-potentials, see the examples in FitSNAP https://github.com/FitSNAP/FitSNAP>.
+potentials, see the examples in FitSNAP https://github.com/FitSNAP/FitSNAP.
+
+*Additional instructions for building MLIAP with Python support enabled*
+
+The *mliappy* energy model requires that the MLIAP package
+be compiled with Python support enabled.
+This extension, written by Nick Lubbers (LANL),
+provides a coupling to PyTorch and other Python modules.
+This should be automatically
+enabled by default if the prerequisite software is installed.  It can be
+enforced during CMake configuration by setting the variable
+MLIAP_ENABLE_PYTHON=yes or for conventional build by adding -DMLIAP_PYTHON
+to the LMP_INC variable in your makefile and running the cythonize script
+on the .pyx file(s) copied to the src folder.
+
+This requires to also install the PYTHON package and have the cython
+(https://cython.org) software installed.  During configuration/compilation
+the cythonize script will be used to convert the provided .pyx file(s)
+to C++ code.  Please do not run the cythonize script in the src/MLIAP folder.
+If you have done so by accident, you need to delete the generated .cpp and .h
+file(s) in the src/MLIAP folder or there may be problems during compilation.
+
+More information on building LAMMPS with this package is here:
+
+https://lammps.sandia.gov/doc/Build_extras.html#mliap

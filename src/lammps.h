@@ -51,7 +51,7 @@ class LAMMPS {
 
   double initclock;              // wall clock at instantiation
 
-  char *suffix,*suffix2;         // suffixes to add to input script style names
+  char *suffix,*suffix2,*suffixp;// suffixes to add to input script style names
   int suffix_enable;             // 1 if suffixes are enabled, 0 if disabled
   char *exename;                 // pointer to argv[0]
   char ***packargs;              // arguments for cmdline package commands

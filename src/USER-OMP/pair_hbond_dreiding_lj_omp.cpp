@@ -309,7 +309,7 @@ void PairHbondDreidingLJOMP::eval(int iifrom, int iito, ThrData * const thr)
 double PairHbondDreidingLJOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += comm->nthreads * 2 * sizeof(double);
+  bytes += (double)comm->nthreads * 2 * sizeof(double);
   bytes += PairHbondDreidingLJ::memory_usage();
 
   return bytes;

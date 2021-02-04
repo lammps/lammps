@@ -75,7 +75,7 @@ int FixRespa::setmask()
 double FixRespa::memory_usage()
 {
   double bytes = atom->nmax*nlevels*3 * sizeof(double);
-  if (store_torque) bytes += atom->nmax*nlevels*3 * sizeof(double);
+  if (store_torque) bytes += (double)atom->nmax*nlevels*3 * sizeof(double);
   return bytes;
 }
 

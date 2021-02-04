@@ -31,10 +31,6 @@ enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ComputeReduce
 enum{UNKNOWN=-1,X,V,F,COMPUTE,FIX,VARIABLE};
 enum{PERATOM,LOCAL};
 
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 
@@ -110,9 +106,9 @@ double ComputeReduceRegion::compute_one(int m, int flag)
     Compute *compute = modify->compute[n];
 
     if (flavor[m] == PERATOM) {
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
 
       if (j == 0) {
@@ -135,9 +131,9 @@ double ComputeReduceRegion::compute_one(int m, int flag)
       }
 
     } else if (flavor[m] == LOCAL) {
-      if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
         compute->compute_local();
-        compute->invoked_flag |= INVOKED_LOCAL;
+        compute->invoked_flag |= Compute::INVOKED_LOCAL;
       }
 
       if (j == 0) {

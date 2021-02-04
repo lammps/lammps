@@ -58,7 +58,7 @@ PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
 
   try {
     reader = open_potential(filename);
-    if(!reader) {
+    if (!reader) {
       error->one(FLERR, fmt::format("cannot open {} potential file {}", potential_name, filename));
     }
   } catch (FileReaderException &e) {

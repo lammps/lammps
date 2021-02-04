@@ -27,8 +27,6 @@ using namespace FixConst;
 
 enum{COMPUTE,FIX,VARIABLE};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -200,15 +198,15 @@ void FixController::end_of_step()
 
   if (pvwhich == COMPUTE) {
     if (pvindex == 0) {
-      if (!(pcompute->invoked_flag & INVOKED_SCALAR)) {
+      if (!(pcompute->invoked_flag & Compute::INVOKED_SCALAR)) {
         pcompute->compute_scalar();
-        pcompute->invoked_flag |= INVOKED_SCALAR;
+        pcompute->invoked_flag |= Compute::INVOKED_SCALAR;
       }
       current = pcompute->scalar;
     } else {
-      if (!(pcompute->invoked_flag & INVOKED_VECTOR)) {
+      if (!(pcompute->invoked_flag & Compute::INVOKED_VECTOR)) {
         pcompute->compute_vector();
-        pcompute->invoked_flag |= INVOKED_VECTOR;
+        pcompute->invoked_flag |= Compute::INVOKED_VECTOR;
       }
       current = pcompute->vector[pvindex-1];
     }

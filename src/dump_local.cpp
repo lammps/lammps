@@ -27,7 +27,6 @@ using namespace LAMMPS_NS;
 
 enum{INT,DOUBLE};
 
-#define INVOKED_LOCAL 16
 #define ONEFIELD 32
 #define DELTA 1048576
 
@@ -297,9 +296,9 @@ int DumpLocal::count()
           error->all(FLERR,"Compute used in dump between runs is not current");
     } else {
       for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & INVOKED_LOCAL)) {
+        if (!(compute[i]->invoked_flag & Compute::INVOKED_LOCAL)) {
           compute[i]->compute_local();
-          compute[i]->invoked_flag |= INVOKED_LOCAL;
+          compute[i]->invoked_flag |= Compute::INVOKED_LOCAL;
         }
       }
     }

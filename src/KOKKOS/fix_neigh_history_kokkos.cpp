@@ -43,11 +43,7 @@ FixNeighHistoryKokkos<DeviceType>::FixNeighHistoryKokkos(LAMMPS *lmp, int narg, 
   grow_arrays(atom->nmax);
 
   d_resize = typename ArrayTypes<DeviceType>::t_int_scalar("FixNeighHistoryKokkos::resize");
-#ifndef KOKKOS_USE_CUDA_UVM
   h_resize = Kokkos::create_mirror_view(d_resize);
-#else
-  h_resize = d_resize;
-#endif
   h_resize() = 1;
 }
 
@@ -248,10 +244,10 @@ template<class DeviceType>
 double FixNeighHistoryKokkos<DeviceType>::memory_usage()
 {
   double bytes = d_firstflag.extent(0)*d_firstflag.extent(1)*sizeof(int);
-  bytes += d_firstvalue.extent(0)*d_firstvalue.extent(1)*sizeof(double);
-  bytes += 2*k_npartner.extent(0)*sizeof(int);
-  bytes += 2*k_partner.extent(0)*k_partner.extent(1)*sizeof(int);
-  bytes += 2*k_valuepartner.extent(0)*k_valuepartner.extent(1)*sizeof(double);
+  bytes += (double)d_firstvalue.extent(0)*d_firstvalue.extent(1)*sizeof(double);
+  bytes += (double)2*k_npartner.extent(0)*sizeof(int);
+  bytes += (double)2*k_partner.extent(0)*k_partner.extent(1)*sizeof(int);
+  bytes += (double)2*k_valuepartner.extent(0)*k_valuepartner.extent(1)*sizeof(double);
   return bytes;
 }
 

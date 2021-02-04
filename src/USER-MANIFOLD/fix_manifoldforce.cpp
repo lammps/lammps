@@ -86,7 +86,7 @@ FixManifoldForce::FixManifoldForce(LAMMPS *lmp, int narg, char **arg) :
   // equal style vars (so that they are not overwritten each time step).
 
   double *params = ptr_m->params;
-  for( int i = 0; i < nvars; ++i ){
+  for (int i = 0; i < nvars; ++i) {
     if (was_var( arg[i+4] ))
       error->all(FLERR,"Equal-style variables not allowed with fix manifoldforce");
 
@@ -157,7 +157,7 @@ void FixManifoldForce::post_force(int /*vflag*/)
   double n[3];
   double invn2;
   double dot;
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       // Determine normal of particle:
       ptr_m->n(x[i],n);

@@ -13,6 +13,7 @@
 
 #include "fix_vector.h"
 
+#include "arg_info.h"
 #include "compute.h"
 #include "error.h"
 #include "input.h"
@@ -26,7 +27,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING,WINDOW};
 enum{SCALAR,VECTOR};
 
@@ -50,27 +50,16 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   nvalues = 0;
   for (int iarg = 4; iarg < narg; iarg++) {
-    if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-    else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-    else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
-    else error->all(FLERR,"Illegal fix vector command");
+    ArgInfo argi(arg[iarg]);
 
-    int n = strlen(arg[iarg]);
-    char *suffix = new char[n];
-    strcpy(suffix,&arg[iarg][2]);
+    which[nvalues] = argi.get_type();
+    argindex[nvalues] = argi.get_index1();
+    ids[nvalues] = argi.copy_name();
 
-    char *ptr = strchr(suffix,'[');
-    if (ptr) {
-      if (suffix[strlen(suffix)-1] != ']')
-        error->all(FLERR,"Illegal fix vector command");
-      argindex[nvalues] = atoi(ptr+1);
-      *ptr = '\0';
-    } else argindex[nvalues] = 0;
-
-    n = strlen(suffix) + 1;
-    ids[nvalues] = new char[n];
-    strcpy(ids[nvalues],suffix);
-    delete [] suffix;
+    if ((argi.get_type() == ArgInfo::UNKNOWN)
+        || (argi.get_type() == ArgInfo::NONE)
+        || (argi.get_dim() > 1))
+      error->all(FLERR,"Illegal fix vector command");
 
     nvalues++;
   }
@@ -79,7 +68,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   // for fix inputs, check that fix frequency is acceptable
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix vector does not exist");
@@ -91,7 +80,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix vector compute vector is accessed out-of-range");
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix vector does not exist");
@@ -105,7 +94,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix vector not computed at compatible time");
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix vector does not exist");
@@ -121,16 +110,16 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   int value,finalvalue;
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[modify->find_compute(ids[i])];
       if (argindex[0] == 0) value = compute->extscalar;
       else if (compute->extvector >= 0) value = compute->extvector;
       else value = compute->extlist[argindex[0]-1];
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       Fix *fix = modify->fix[modify->find_fix(ids[i])];
       if (argindex[i] == 0) value = fix->extvector;
       else value = fix->extarray;
-    } else if (which[i] == VARIABLE) value = 0;
+    } else if (which[i] == ArgInfo::VARIABLE) value = 0;
     if (i == 0) finalvalue = value;
     else if (value != finalvalue)
       error->all(FLERR,"Fix vector cannot set output array "
@@ -201,19 +190,19 @@ void FixVector::init()
   // set current indices for all computes,fixes,variables
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix vector does not exist");
       value2index[i] = icompute;
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix vector does not exist");
       value2index[i] = ifix;
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix vector does not exist");
@@ -265,7 +254,7 @@ void FixVector::end_of_step()
 
     // invoke compute if not previously invoked
 
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
@@ -284,7 +273,7 @@ void FixVector::end_of_step()
 
     // access fix fields, guaranteed to be ready
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       if (argindex[i] == 0)
         result[i] = modify->fix[m]->compute_scalar();
       else
@@ -292,7 +281,7 @@ void FixVector::end_of_step()
 
     // evaluate equal-style or vector-style variable
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       if (argindex[i] == 0)
         result[i] = input->variable->compute_equal(m);
       else {

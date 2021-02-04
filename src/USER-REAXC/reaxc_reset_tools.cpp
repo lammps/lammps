@@ -25,7 +25,6 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxc_reset_tools.h"
-#include <cstring>
 #include "reaxc_defs.h"
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
@@ -33,6 +32,8 @@
 
 #include "error.h"
 
+#include <mpi.h>
+#include <cstring>
 
 void Reset_Atoms( reax_system* system, control_params *control )
 {
@@ -102,7 +103,7 @@ void Reset_Simulation_Data( simulation_data* data, int /*virial*/ )
 
 void Reset_Timing( reax_timing *rt )
 {
-  rt->total = Get_Time();
+  rt->total = MPI_Wtime();
   rt->comm = 0;
   rt->nbrs = 0;
   rt->init_forces = 0;

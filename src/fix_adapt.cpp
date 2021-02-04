@@ -102,7 +102,7 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
       utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
                     adapt[nadapt].jlo,adapt[nadapt].jhi,error);
-      if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
+      if (utils::strmatch(arg[iarg+5],"^v_")) {
         n = strlen(&arg[iarg+5][2]) + 1;
         adapt[nadapt].var = new char[n];
         strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
@@ -122,7 +122,7 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
       strcpy(adapt[nadapt].bparam,arg[iarg+2]);
       utils::bounds(FLERR,arg[iarg+3],1,atom->nbondtypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
-      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
         n = strlen(&arg[iarg+4][2]) + 1;
         adapt[nadapt].var = new char[n];
         strcpy(adapt[nadapt].var,&arg[iarg+4][2]);
@@ -133,7 +133,7 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = KSPACE;
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
         int n = strlen(&arg[iarg+1][2]) + 1;
         adapt[nadapt].var = new char[n];
         strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
@@ -154,7 +154,7 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt command");
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
         int n = strlen(&arg[iarg+2][2]) + 1;
         adapt[nadapt].var = new char[n];
         strcpy(adapt[nadapt].var,&arg[iarg+2][2]);

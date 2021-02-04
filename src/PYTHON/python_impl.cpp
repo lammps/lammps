@@ -450,7 +450,7 @@ int PythonImpl::create_entry(char *name)
     char type = format[i];
     if (type == 'i') {
       pfuncs[ifunc].itype[i] = INT;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
         int n = strlen(&istr[i][2]) + 1;
         pfuncs[ifunc].svalue[i] = new char[n];
@@ -461,7 +461,7 @@ int PythonImpl::create_entry(char *name)
       }
     } else if (type == 'f') {
       pfuncs[ifunc].itype[i] = DOUBLE;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
         int n = strlen(&istr[i][2]) + 1;
         pfuncs[ifunc].svalue[i] = new char[n];
@@ -472,7 +472,7 @@ int PythonImpl::create_entry(char *name)
       }
     } else if (type == 's') {
       pfuncs[ifunc].itype[i] = STRING;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
         int n = strlen(&istr[i][2]) + 1;
         pfuncs[ifunc].svalue[i] = new char[n];

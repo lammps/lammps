@@ -52,7 +52,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   mstr = vstr = pstr = tstr = xstr = ystr = zstr = nullptr;
   mstyle = vstyle = pstyle = tstyle = xstyle = ystyle = zstyle = CONSTANT;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
+  if (utils::strmatch(arg[3],"^v_")) {
     int n = strlen(&arg[3][2]) + 1;
     mstr = new char[n];
     strcpy(mstr,&arg[3][2]);
@@ -67,7 +67,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[4],"chute") == 0) {
     if (narg < 6) error->all(FLERR,"Illegal fix gravity command");
     style = CHUTE;
-    if (strstr(arg[5],"v_") == arg[5]) {
+    if (utils::strmatch(arg[5],"^v_")) {
       int n = strlen(&arg[5][2]) + 1;
       vstr = new char[n];
       strcpy(vstr,&arg[5][2]);
@@ -81,7 +81,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"spherical") == 0) {
     if (narg < 7) error->all(FLERR,"Illegal fix gravity command");
     style = SPHERICAL;
-    if (strstr(arg[5],"v_") == arg[5]) {
+    if (utils::strmatch(arg[5],"^v_")) {
       int n = strlen(&arg[5][2]) + 1;
       pstr = new char[n];
       strcpy(pstr,&arg[5][2]);
@@ -90,7 +90,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       phi = utils::numeric(FLERR,arg[5],false,lmp);
       pstyle = CONSTANT;
     }
-    if (strstr(arg[6],"v_") == arg[6]) {
+    if (utils::strmatch(arg[6],"^v_")) {
       int n = strlen(&arg[6][2]) + 1;
       tstr = new char[n];
       strcpy(tstr,&arg[6][2]);
@@ -104,7 +104,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"vector") == 0) {
     if (narg < 8) error->all(FLERR,"Illegal fix gravity command");
     style = VECTOR;
-    if (strstr(arg[5],"v_") == arg[5]) {
+    if (utils::strmatch(arg[5],"^v_")) {
       int n = strlen(&arg[5][2]) + 1;
       xstr = new char[n];
       strcpy(xstr,&arg[5][2]);
@@ -113,7 +113,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       xdir = utils::numeric(FLERR,arg[5],false,lmp);
       xstyle = CONSTANT;
     }
-    if (strstr(arg[6],"v_") == arg[6]) {
+    if (utils::strmatch(arg[6],"^v_")) {
       int n = strlen(&arg[6][2]) + 1;
       ystr = new char[n];
       strcpy(ystr,&arg[6][2]);
@@ -122,7 +122,7 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
       ydir = utils::numeric(FLERR,arg[6],false,lmp);
       ystyle = CONSTANT;
     }
-    if (strstr(arg[7],"v_") == arg[7]) {
+    if (utils::strmatch(arg[7],"^v_")) {
       int n = strlen(&arg[7][2]) + 1;
       zstr = new char[n];
       strcpy(zstr,&arg[7][2]);

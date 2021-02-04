@@ -52,7 +52,7 @@ idregion(nullptr), hstr(nullptr), vheat(nullptr), vscale(nullptr)
 
   hstr = nullptr;
 
-  if (strstr(arg[4],"v_") == arg[4]) {
+  if (utils::strmatch(arg[4],"^v_")) {
     int n = strlen(&arg[4][2]) + 1;
     hstr = new char[n];
     strcpy(hstr,&arg[4][2]);

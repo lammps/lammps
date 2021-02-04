@@ -51,7 +51,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   dynamic_group_allow = 1;
 
   tstr = nullptr;
-  if (strstr(arg[4],"v_") == arg[4]) {
+  if (utils::strmatch(arg[4],"^v_")) {
     int n = strlen(&arg[4][2]) + 1;
     tstr = new char[n];
     strcpy(tstr,&arg[4][2]);

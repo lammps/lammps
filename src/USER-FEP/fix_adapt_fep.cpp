@@ -98,7 +98,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
       utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
                     adapt[nadapt].jlo,adapt[nadapt].jhi,error);
-      if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
+      if (utils::strmatch(arg[iarg+5],"^v_")) {
         n = strlen(&arg[iarg+5][2]) + 1;
         adapt[nadapt].var = new char[n];
         strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
@@ -108,7 +108,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
       adapt[nadapt].which = KSPACE;
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
         int n = strlen(&arg[iarg+1][2]) + 1;
         adapt[nadapt].var = new char[n];
         strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
@@ -127,7 +127,7 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       } else error->all(FLERR,"Illegal fix adapt/fep command");
       utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
         int n = strlen(&arg[iarg+3][2]) + 1;
         adapt[nadapt].var = new char[n];
         strcpy(adapt[nadapt].var,&arg[iarg+3][2]);

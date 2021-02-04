@@ -419,21 +419,21 @@ void Velocity::set(int /*narg*/, char **arg)
   xstyle = ystyle = zstyle = CONSTANT;
   xstr = ystr = zstr = nullptr;
 
-  if (strstr(arg[0],"v_") == arg[0]) {
+  if (utils::strmatch(arg[0],"^v_")) {
     int n = strlen(&arg[0][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[0][2]);
   } else if (strcmp(arg[0],"NULL") == 0) xstyle = NONE;
   else vx = utils::numeric(FLERR,arg[0],false,lmp);
 
-  if (strstr(arg[1],"v_") == arg[1]) {
+  if (utils::strmatch(arg[1],"^v_")) {
     int n = strlen(&arg[1][2]) + 1;
     ystr = new char[n];
     strcpy(ystr,&arg[1][2]);
   } else if (strcmp(arg[1],"NULL") == 0) ystyle = NONE;
   else vy = utils::numeric(FLERR,arg[1],false,lmp);
 
-  if (strstr(arg[2],"v_") == arg[2]) {
+  if (utils::strmatch(arg[2],"^v_")) {
     int n = strlen(&arg[2][2]) + 1;
     zstr = new char[n];
     strcpy(zstr,&arg[2][2]);

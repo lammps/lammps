@@ -59,7 +59,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   qe2f = force->qe2f;
   xstr = ystr = zstr = nullptr;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
+  if (utils::strmatch(arg[3],"^v_")) {
     int n = strlen(&arg[3][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
@@ -68,7 +68,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     xstyle = CONSTANT;
   }
 
-  if (strstr(arg[4],"v_") == arg[4]) {
+  if (utils::strmatch(arg[4],"^v_")) {
     int n = strlen(&arg[4][2]) + 1;
     ystr = new char[n];
     strcpy(ystr,&arg[4][2]);
@@ -77,7 +77,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
     ystyle = CONSTANT;
   }
 
-  if (strstr(arg[5],"v_") == arg[5]) {
+  if (utils::strmatch(arg[5],"^v_")) {
     int n = strlen(&arg[5][2]) + 1;
     zstr = new char[n];
     strcpy(zstr,&arg[5][2]);
@@ -105,7 +105,7 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix efield command");
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
         int n = strlen(&arg[iarg+1][2]) + 1;
         estr = new char[n];
         strcpy(estr,&arg[iarg+1][2]);

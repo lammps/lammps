@@ -64,7 +64,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   nevery = 1;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
+  if (utils::strmatch(arg[3],"^v_")) {
     int n = strlen(&arg[3][2]) + 1;
     tstr = new char[n];
     strcpy(tstr,&arg[3][2]);

@@ -44,7 +44,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   axis = arg[2][0];
 
   if (axis == 'x') {
-    if (strstr(arg[3],"v_") == arg[3]) {
+    if (utils::strmatch(arg[3],"^v_")) {
       int n = strlen(arg[3]+2) + 1;
       c1str = new char[n];
       strcpy(c1str,arg[3]+2);
@@ -55,7 +55,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1 = yscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
-    if (strstr(arg[4],"v_") == arg[4]) {
+    if (utils::strmatch(arg[4],"^v_")) {
       int n = strlen(arg[4]+2) + 1;
       c2str = new char[n];
       strcpy(c2str,arg[4]+2);
@@ -67,7 +67,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c2style = CONSTANT;
     }
   } else if (axis == 'y') {
-    if (strstr(arg[3],"v_") == arg[3]) {
+    if (utils::strmatch(arg[3],"^v_")) {
       int n = strlen(arg[3]+2) + 1;
       c1str = new char[n];
       strcpy(c1str,arg[3]+2);
@@ -78,7 +78,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1 = xscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
-    if (strstr(arg[4],"v_") == arg[4]) {
+    if (utils::strmatch(arg[4],"^v_")) {
       int n = strlen(arg[4]+2) + 1;
       c2str = new char[n];
       strcpy(c2str,arg[4]+2);
@@ -90,7 +90,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c2style = CONSTANT;
     }
   } else if (axis == 'z') {
-    if (strstr(arg[3],"v_") == arg[3]) {
+    if (utils::strmatch(arg[3],"^v_")) {
       int n = strlen(arg[3]+2) + 1;
       c1str = new char[n];
       strcpy(c1str,arg[3]+2);
@@ -101,7 +101,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1 = xscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
-    if (strstr(arg[4],"v_") == arg[4]) {
+    if (utils::strmatch(arg[4],"^v_")) {
       int n = strlen(arg[4]+2) + 1;
       c2str = new char[n];
       strcpy(c2str,arg[4]+2);
@@ -114,7 +114,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (strstr(arg[5],"v_") == arg[5]) {
+  if (utils::strmatch(arg[5],"^v_")) {
     int n = strlen(&arg[5][2]) + 1;
     rstr = new char[n];
     strcpy(rstr,&arg[5][2]);

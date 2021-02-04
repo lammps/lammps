@@ -128,37 +128,37 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
     iarg = 10;
     mstyle = VARIABLE;
     if (strcmp(arg[4],"NULL") == 0) xvarstr = nullptr;
-    else if (strstr(arg[4],"v_") == arg[4]) {
+    else if (utils::strmatch(arg[4],"^v_")) {
       int n = strlen(&arg[4][2]) + 1;
       xvarstr = new char[n];
       strcpy(xvarstr,&arg[4][2]);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[5],"NULL") == 0) yvarstr = nullptr;
-    else if (strstr(arg[5],"v_") == arg[5]) {
+    else if (utils::strmatch(arg[5],"^v_")) {
       int n = strlen(&arg[5][2]) + 1;
       yvarstr = new char[n];
       strcpy(yvarstr,&arg[5][2]);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[6],"NULL") == 0) zvarstr = nullptr;
-    else if (strstr(arg[6],"v_") == arg[6]) {
+    else if (utils::strmatch(arg[6],"^v_")) {
       int n = strlen(&arg[6][2]) + 1;
       zvarstr = new char[n];
       strcpy(zvarstr,&arg[6][2]);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[7],"NULL") == 0) vxvarstr = nullptr;
-    else if (strstr(arg[7],"v_") == arg[7]) {
+    else if (utils::strmatch(arg[7],"^v_")) {
       int n = strlen(&arg[7][2]) + 1;
       vxvarstr = new char[n];
       strcpy(vxvarstr,&arg[7][2]);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[8],"NULL") == 0) vyvarstr = nullptr;
-    else if (strstr(arg[8],"v_") == arg[8]) {
+    else if (utils::strmatch(arg[8],"^v_")) {
       int n = strlen(&arg[8][2]) + 1;
       vyvarstr = new char[n];
       strcpy(vyvarstr,&arg[8][2]);
     } else error->all(FLERR,"Illegal fix move command");
     if (strcmp(arg[9],"NULL") == 0) vzvarstr = nullptr;
-    else if (strstr(arg[9],"v_") == arg[9]) {
+    else if (utils::strmatch(arg[9],"^v_")) {
       int n = strlen(&arg[9][2]) + 1;
       vzvarstr = new char[n];
       strcpy(vzvarstr,&arg[9][2]);

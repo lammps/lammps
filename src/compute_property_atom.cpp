@@ -361,14 +361,14 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                    "atom property that isn't allocated");
       pack_choice[i] = &ComputePropertyAtom::pack_nbonds;
 
-    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^i_")) {
       int flag;
       index[i] = atom->find_custom(&arg[iarg][2],flag);
       if (index[i] < 0 || flag != 0)
         error->all(FLERR,"Compute property/atom integer "
                    "vector does not exist");
       pack_choice[i] = &ComputePropertyAtom::pack_iname;
-    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^d_")) {
       int flag;
       index[i] = atom->find_custom(&arg[iarg][2],flag);
       if (index[i] < 0 || flag != 1)

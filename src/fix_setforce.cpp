@@ -48,7 +48,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   ilevel_respa = nlevels_respa = 0;
   xstr = ystr = zstr = nullptr;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
+  if (utils::strmatch(arg[3],"^v_")) {
     int n = strlen(&arg[3][2]) + 1;
     xstr = new char[n];
     strcpy(xstr,&arg[3][2]);
@@ -58,7 +58,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
     xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
-  if (strstr(arg[4],"v_") == arg[4]) {
+  if (utils::strmatch(arg[4],"^v_")) {
     int n = strlen(&arg[4][2]) + 1;
     ystr = new char[n];
     strcpy(ystr,&arg[4][2]);
@@ -68,7 +68,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
     yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
-  if (strstr(arg[5],"v_") == arg[5]) {
+  if (utils::strmatch(arg[5],"^v_")) {
     int n = strlen(&arg[5][2]) + 1;
     zstr = new char[n];
     strcpy(zstr,&arg[5][2]);

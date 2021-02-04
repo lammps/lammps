@@ -79,7 +79,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         int side = wallwhich[nwall] % 2;
         if (side == 0) coord0[nwall] = domain->boxlo[dim];
         else coord0[nwall] = domain->boxhi[dim];
-      } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      } else if (utils::strmatch(arg[iarg+1],"^v_")) {
         xstyle[nwall] = VARIABLE;
         int n = strlen(&arg[iarg+1][2]) + 1;
         xstr[nwall] = new char[n];
@@ -89,7 +89,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
         int n = strlen(&arg[iarg+2][2]) + 1;
         estr[nwall] = new char[n];
         strcpy(estr[nwall],&arg[iarg+2][2]);
@@ -100,7 +100,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       }
 
       if (utils::strmatch(style,"^wall/morse")) {
-        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
           int n = strlen(&arg[iarg+3][2]) + 1;
           astr[nwall] = new char[n];
           strcpy(astr[nwall],&arg[iarg+3][2]);
@@ -112,7 +112,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         ++iarg;
       }
 
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
         int n = strlen(&arg[iarg+3][2]) + 1;
         sstr[nwall] = new char[n];
         strcpy(sstr[nwall],&arg[iarg+3][2]);

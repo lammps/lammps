@@ -32,7 +32,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg-6,&arg[6]);
 
-  if (strstr(arg[2],"v_") == arg[2]) {
+  if (utils::strmatch(arg[2],"^v_")) {
     int n = strlen(arg[2]+2) + 1;
     xstr = new char[n];
     strcpy(xstr,arg[2]+2);
@@ -44,7 +44,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     xstyle = CONSTANT;
   }
 
-  if (strstr(arg[3],"v_") == arg[3]) {
+  if (utils::strmatch(arg[3],"^v_")) {
     int n = strlen(arg[3]+2) + 1;
     ystr = new char[n];
     strcpy(ystr,arg[3]+2);
@@ -56,7 +56,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     ystyle = CONSTANT;
   }
 
-  if (strstr(arg[4],"v_") == arg[4]) {
+  if (utils::strmatch(arg[4],"^v_")) {
     int n = strlen(arg[4]+2) + 1;
     zstr = new char[n];
     strcpy(zstr,arg[4]+2);
@@ -68,7 +68,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     zstyle = CONSTANT;
   }
 
-  if (strstr(arg[5],"v_") == arg[5]) {
+  if (utils::strmatch(arg[5],"^v_")) {
     int n = strlen(&arg[5][2]) + 1;
     rstr = new char[n];
     strcpy(rstr,&arg[5][2]);

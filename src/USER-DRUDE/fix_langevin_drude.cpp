@@ -49,7 +49,7 @@ FixLangevinDrude::FixLangevinDrude(LAMMPS *lmp, int narg, char **arg) :
 
   // core temperature
   tstr_core = nullptr;
-  if (strstr(arg[3],"v_") == arg[3]) {
+  if (utils::strmatch(arg[3],"^v_")) {
     int n = strlen(&arg[3][2]) + 1;
     tstr_core = new char[n];
     strcpy(tstr_core,&arg[3][2]);

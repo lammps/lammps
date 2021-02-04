@@ -3309,7 +3309,7 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
 
   char *start = ++ptr;
 
-  if (varallow && strstr(ptr,"v_") == ptr) {
+  if (varallow && utils::strmatch(ptr,"^v_")) {
     varflag = 1;
     while (*ptr && *ptr != ']') {
       if (!isalnum(*ptr) && *ptr != '_')
@@ -4112,7 +4112,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     // argument is compute
 
-    if (strstr(args[0],"c_") == args[0]) {
+    if (utils::strmatch(args[0],"^c_")) {
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
@@ -4157,7 +4157,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     // argument is fix
 
-    } else if (strstr(args[0],"f_") == args[0]) {
+    } else if (utils::strmatch(args[0],"^f_")) {
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
@@ -4195,7 +4195,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     // argument is vector-style variable
 
-    } else if (strstr(args[0],"v_") == args[0]) {
+    } else if (utils::strmatch(args[0],"^v_")) {
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;

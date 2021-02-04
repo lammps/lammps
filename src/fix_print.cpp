@@ -32,7 +32,7 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
   fp(nullptr), string(nullptr), copy(nullptr), work(nullptr), var_print(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix print command");
-  if (strstr(arg[3],"v_") == arg[3]) {
+  if (utils::strmatch(arg[3],"^v_")) {
     int n = strlen(&arg[3][2]) + 1;
     var_print = new char[n];
     strcpy(var_print,&arg[3][2]);

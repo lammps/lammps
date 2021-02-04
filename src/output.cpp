@@ -664,7 +664,7 @@ void Output::set_thermo(int narg, char **arg)
   delete [] var_thermo;
   var_thermo = nullptr;
 
-  if (strstr(arg[0],"v_") == arg[0]) {
+  if (utils::strmatch(arg[0],"^v_")) {
     int n = strlen(&arg[0][2]) + 1;
     var_thermo = new char[n];
     strcpy(var_thermo,&arg[0][2]);
@@ -712,7 +712,7 @@ void Output::create_restart(int narg, char **arg)
   int every = 0;
   int varflag = 0;
 
-  if (strstr(arg[0],"v_") == arg[0]) varflag = 1;
+  if (utils::strmatch(arg[0],"^v_")) varflag = 1;
   else every = utils::inumeric(FLERR,arg[0],false,lmp);
 
   if (!varflag && every == 0) {

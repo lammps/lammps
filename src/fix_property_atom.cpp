@@ -75,7 +75,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       style[nvalue] = RMASS;
       atom->rmass_flag = rmass_flag = 1;
       nvalue++;
-    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^i_")) {
       style[nvalue] = INTEGER;
       int tmp;
       index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
@@ -83,7 +83,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],0);
       nvalue++;
-    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^d_")) {
       style[nvalue] = DOUBLE;
       int tmp;
       index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);

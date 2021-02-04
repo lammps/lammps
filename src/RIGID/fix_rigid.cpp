@@ -129,7 +129,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
       // determine whether atom-style variable or atom property is used
 
-      if (strstr(arg[4],"i_") == arg[4]) {
+      if (utils::strmatch(arg[4],"^i_")) {
         int is_double=0;
         int custom_index = atom->find_custom(arg[4]+2,is_double);
         if (custom_index == -1)
@@ -151,7 +151,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
           else
             molecule[i] = 0;
 
-      } else if (strstr(arg[4],"v_") == arg[4]) {
+      } else if (utils::strmatch(arg[4],"^v_")) {
         int ivariable = input->variable->find(arg[4]+2);
         if (ivariable < 0)
           error->all(FLERR,"Variable name for fix rigid custom does not exist");

@@ -877,7 +877,7 @@ void PairKIM::kim_init()
     &modelWillNotRequestNeighborsOfNoncontributingParticles);
   if (neighborLists) {
     delete [] neighborLists;
-    neighborLists = nulptr;
+    neighborLists = nullptr;
   }
   neighborLists = new NeighList*[kim_number_of_neighbor_lists];
 

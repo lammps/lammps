@@ -232,8 +232,9 @@ void NBinMulti::setup_bins(int /*style*/)
     bininvz_multi[n] = 1.0 / binsizez_multi[n];
 
     if (binsize_optimal*bininvx_multi[n] > CUT2BIN_RATIO ||
-	    binsize_optimal*bininvy_multi[n] > CUT2BIN_RATIO ||
-	    binsize_optimal*bininvz_multi[n] > CUT2BIN_RATIO)
+	    binsize_optimal*bininvy_multi[n] > CUT2BIN_RATIO)
+      error->all(FLERR,"Cannot use neighbor bins - box size << cutoff");
+    if(dimension == 3 and binsize_optimal*bininvz_multi[n] > CUT2BIN_RATIO)
       error->all(FLERR,"Cannot use neighbor bins - box size << cutoff");
 
     // mbinlo/hi = lowest and highest global bins my ghost atoms could be in

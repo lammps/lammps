@@ -1,4 +1,4 @@
-# Bidisperse set of grains
+# Big colloid particles and small LJ particles
 
 units		lj
 atom_style	sphere
@@ -28,10 +28,10 @@ velocity	all create 1.44 87287 loop geom
 # multi neighbor and comm for efficiency
 
 neighbor	1 multi #multi/old
-neigh_modify	delay 0
-comm_modify     mode multi vel yes reduce/multi
+neigh_modify	delay 0 collection/interval 2 1 20
+comm_modify     mode multi vel yes reduce/multi #multi/old
 
-# colloid potential
+# granular potential
 
 pair_style      granular
 pair_coeff      * * hooke 1.0 0.5 tangential linear_history 1.0 0.5 0.1 damping mass_velocity
@@ -41,14 +41,6 @@ fix		2 all enforce2d
 fix             3 all deform 1 xy erate 1e-3
 
 #dump		1 all custom 1000 dump.granular id x y z radius
-
-#dump		2 all image 1000 image.*.jpg type type &
-#		zoom 1.5 center d 0.5 0.5 0.5
-#dump_modify	2 pad 5 adiam 1 5.0 adiam 2 1.5
-
-#dump		3 all movie 1000 movie.mpg type type &
-#		zoom 1.5 center d 0.5 0.5 0.5
-#dump_modify	3 pad 5 adiam 1 5.0 adiam 2 1.5
 
 thermo_style	custom step temp epair etotal press vol
 thermo		1000

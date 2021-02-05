@@ -1,5 +1,5 @@
-LAMMPS (30 Nov 2020)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:95)
+LAMMPS (24 Dec 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:97)
   using 1 OpenMP thread(s) per MPI task
 # Big colloid particles and small LJ particles
 
@@ -15,7 +15,7 @@ Created orthogonal box = (0.0000000 0.0000000 -0.70710678) to (84.852814 84.8528
   2 by 2 by 1 MPI processor grid
 create_atoms	1 box
 Created 3600 atoms
-  create_atoms CPU = 0.001 seconds
+  create_atoms CPU = 0.063 seconds
 change_box      all triclinic
 Changing box ...
   triclinic box = (0.0000000 0.0000000 -0.70710678) to (84.852814 84.852814 0.70710678) with tilt (0.0000000 0.0000000 0.0000000)
@@ -51,9 +51,9 @@ velocity	all create 1.44 87287 loop geom
 
 # multi neighbor and comm for efficiency
 
-neighbor	1 multi/old
-neigh_modify	delay 0
-comm_modify     mode multi vel yes #multi/reduce
+neighbor	1 multi/old #multi
+neigh_modify	delay 0 #collection/interval 2 1 20
+comm_modify     mode multi/old vel yes #reduce/multi
 
 # colloid potential
 
@@ -64,7 +64,7 @@ fix		1 all nph/sphere iso 0.0 1.0 10.0 drag 1.0
 fix		2 all enforce2d
 fix             3 all deform 1 xy erate 1e-3
 
-dump		1 all custom 1000 dump.granular id x y z radius
+#dump		1 all custom 1000 dump.granular id x y z radius
 
 #dump		2 all image 1000 image.*.jpg type type #		zoom 1.5 center d 0.5 0.5 0.5
 #dump_modify	2 pad 5 adiam 1 5.0 adiam 2 1.5
@@ -90,7 +90,7 @@ Neighbor list info ...
       pair build: half/size/multi/old/newton/tri
       stencil: half/multi/old/2d/tri
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 11.48 | 11.48 | 11.49 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 10.20 | 10.20 | 10.20 Mbytes
 Step Temp E_pair TotEng Press Volume 
        0         1.44            0    1.4395623   0.66837658         7200 
     1000   0.32273428            0   0.32263619   0.17174972    7859.8897 
@@ -143,20 +143,20 @@ Step Temp E_pair TotEng Press Volume
    48000 0.00017437702            0 0.00017432402   0.93565475    1794.1258 
    49000 0.00018645903            0 0.00018640235   0.95733183    1779.4032 
    50000 0.00018469122            0 0.00018463508   0.96446925    1765.1534 
-Loop time of 30.9351 on 4 procs for 50000 steps with 3290 atoms
+Loop time of 30.1448 on 4 procs for 50000 steps with 3290 atoms
 
-Performance: 698235.574 tau/day, 1616.286 timesteps/s
-89.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 716540.413 tau/day, 1658.658 timesteps/s
+90.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 9.3702     | 12.796     | 16.045     |  84.3 | 41.36
-Neigh   | 0.43499    | 0.55158    | 0.64861    |  12.8 |  1.78
-Comm    | 10.183     | 13.476     | 16.961     |  83.7 | 43.56
-Output  | 0.088474   | 0.088715   | 0.089272   |   0.1 |  0.29
-Modify  | 3.0446     | 3.1809     | 3.3227     |   7.4 | 10.28
-Other   |            | 0.8418     |            |       |  2.72
+Pair    | 8.7565     | 12.704     | 16.036     |  89.8 | 42.14
+Neigh   | 0.4494     | 0.56436    | 0.66263    |  11.8 |  1.87
+Comm    | 9.5962     | 12.989     | 17.006     |  90.8 | 43.09
+Output  | 0.00088467 | 0.0011022  | 0.0015811  |   0.9 |  0.00
+Modify  | 2.9732     | 3.0944     | 3.2463     |   7.0 | 10.27
+Other   |            | 0.7918     |            |       |  2.63
 
 Nlocal:        822.500 ave         859 max         785 min
 Histogram: 1 0 1 0 0 0 0 0 1 1

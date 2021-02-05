@@ -1,5 +1,5 @@
-LAMMPS (30 Nov 2020)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:95)
+LAMMPS (24 Dec 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:97)
   using 1 OpenMP thread(s) per MPI task
 # Big colloid particles and small LJ particles
 
@@ -53,9 +53,9 @@ velocity	all create 1.44 87287 loop geom
 
 # multi neighbor and comm for efficiency
 
-neighbor	1 multi #/old
-neigh_modify	delay 0 multi/custom 2 1*4 5
-comm_modify     mode multi multi/reduce
+neighbor	1 multi #multi/old
+neigh_modify	delay 0 collection/type 2 1*4 5
+comm_modify     mode multi reduce/multi #multi/old
 
 # colloid potential
 
@@ -72,7 +72,7 @@ pair_coeff	5 5 39.5  1.0 20.0 20.0 30.0
 fix		1 all npt temp 2.0 2.0 1.0 iso 0.0 1.0 10.0 drag 1.0 	        mtk no pchain 0 tchain 1
 fix		2 all enforce2d
 
-dump		1 all atom 1000 dump.colloid
+#dump		1 all atom 1000 dump.colloid
 
 #dump		2 all image 1000 image.*.jpg type type #		zoom 1.5 center d 0.5 0.5 0.5
 #dump_modify	2 pad 5 adiam 1 5.0 adiam 2 1.5
@@ -98,7 +98,7 @@ Neighbor list info ...
       pair build: half/multi/newton
       stencil: half/multi/2d
       bin: multi
-Per MPI rank memory allocation (min/avg/max) = 5.379 | 5.382 | 5.384 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.327 | 4.329 | 4.330 Mbytes
 Step Temp E_pair TotEng Press Volume 
        0         1.44            0    1.4395241        0.121        36000 
     1000    1.8856066  -0.15771717    1.7272663   0.13840578    42574.399 
@@ -151,20 +151,20 @@ Step Temp E_pair TotEng Press Volume
    48000    2.0108204  -0.76655178    1.2436041   0.95379465    9633.6453 
    49000    1.9868193  -0.76613798    1.2200247   0.88790224    9504.2918 
    50000    2.0141467  -0.80029827    1.2131829    1.0064263    9346.3268 
-Loop time of 7.28248 on 4 procs for 50000 steps with 3026 atoms
+Loop time of 6.98615 on 4 procs for 50000 steps with 3026 atoms
 
-Performance: 2966022.789 tau/day, 6865.793 timesteps/s
+Performance: 3091831.080 tau/day, 7157.016 timesteps/s
 99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.1624     | 2.5918     | 2.9227     |  17.4 | 35.59
-Neigh   | 0.62508    | 0.7436     | 0.83321    |   9.2 | 10.21
-Comm    | 1.1035     | 1.5265     | 2.0746     |  29.3 | 20.96
-Output  | 0.050094   | 0.050233   | 0.05062    |   0.1 |  0.69
-Modify  | 1.8164     | 1.8966     | 1.9583     |   4.2 | 26.04
-Other   |            | 0.4737     |            |       |  6.50
+Pair    | 2.2795     | 2.5856     | 2.9414     |  17.4 | 37.01
+Neigh   | 0.62273    | 0.70156    | 0.76736    |   7.4 | 10.04
+Comm    | 1.0765     | 1.4945     | 1.8884     |  28.6 | 21.39
+Output  | 0.00076496 | 0.0008953  | 0.0012832  |   0.0 |  0.01
+Modify  | 1.718      | 1.7755     | 1.827      |   3.7 | 25.41
+Other   |            | 0.4281     |            |       |  6.13
 
 Nlocal:        756.500 ave         839 max         673 min
 Histogram: 1 0 1 0 0 0 0 1 0 1

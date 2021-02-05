@@ -1,5 +1,5 @@
-LAMMPS (30 Nov 2020)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:95)
+LAMMPS (24 Dec 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:97)
   using 1 OpenMP thread(s) per MPI task
 # Big colloid particles and small LJ particles
 
@@ -51,9 +51,9 @@ velocity	all create 1.44 87287 loop geom
 
 # multi neighbor and comm for efficiency
 
-neighbor	1 multi/old
-neigh_modify	delay 0
-comm_modify     mode multi vel yes
+neighbor	1 multi/old #multi
+neigh_modify	delay 0 #collection/interval 2 1 20
+comm_modify     mode multi/old vel yes #reduce/multi
 
 # colloid potential
 
@@ -64,7 +64,7 @@ fix		1 all nph/sphere iso 0.0 1.0 10.0 drag 1.0
 fix		2 all enforce2d
 fix             3 all deform 1 xy erate 1e-3
 
-dump		1 all custom 1000 dump.granular id x y z radius
+#dump		1 all custom 1000 dump.granular id x y z radius
 
 #dump		2 all image 1000 image.*.jpg type type #		zoom 1.5 center d 0.5 0.5 0.5
 #dump_modify	2 pad 5 adiam 1 5.0 adiam 2 1.5
@@ -90,7 +90,7 @@ Neighbor list info ...
       pair build: half/size/multi/old/newton/tri
       stencil: half/multi/old/2d/tri
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 11.75 | 11.75 | 11.75 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 10.38 | 10.38 | 10.38 Mbytes
 Step Temp E_pair TotEng Press Volume 
        0         1.44            0    1.4395623   0.66837658         7200 
     1000   0.32273428            0   0.32263619   0.17174972    7859.8897 
@@ -143,20 +143,20 @@ Step Temp E_pair TotEng Press Volume
    48000 0.00017794764            0 0.00017789356   0.93582953    1794.7043 
    49000 0.00018879338            0  0.000188736   0.95775166    1780.0323 
    50000 0.00017781117            0 0.00017775712   0.97893641    1765.9442 
-Loop time of 80.8597 on 1 procs for 50000 steps with 3290 atoms
+Loop time of 74.6636 on 1 procs for 50000 steps with 3290 atoms
 
-Performance: 267129.375 tau/day, 618.355 timesteps/s
+Performance: 289297.713 tau/day, 669.671 timesteps/s
 100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 61.524     | 61.524     | 61.524     |   0.0 | 76.09
-Neigh   | 2.2021     | 2.2021     | 2.2021     |   0.0 |  2.72
-Comm    | 6.748      | 6.748      | 6.748      |   0.0 |  8.35
-Output  | 0.25904    | 0.25904    | 0.25904    |   0.0 |  0.32
-Modify  | 8.9408     | 8.9408     | 8.9408     |   0.0 | 11.06
-Other   |            | 1.186      |            |       |  1.47
+Pair    | 56.696     | 56.696     | 56.696     |   0.0 | 75.93
+Neigh   | 2.2232     | 2.2232     | 2.2232     |   0.0 |  2.98
+Comm    | 6.1867     | 6.1867     | 6.1867     |   0.0 |  8.29
+Output  | 0.0012016  | 0.0012016  | 0.0012016  |   0.0 |  0.00
+Modify  | 8.432      | 8.432      | 8.432      |   0.0 | 11.29
+Other   |            | 1.125      |            |       |  1.51
 
 Nlocal:        3290.00 ave        3290 max        3290 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -172,4 +172,4 @@ Dangerous builds = 0
 
 Please see the log.cite file for references relevant to this simulation
 
-Total wall time: 0:01:20
+Total wall time: 0:01:14

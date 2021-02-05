@@ -152,17 +152,15 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       ids[i] = nullptr;
 
     } else {
-      ArgInfo argi(arg[iarg]);
+      ArgInfo argi(arg[i]);
 
       if (argi.get_type() == ArgInfo::NONE) break;
       if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
         error->all(FLERR,"Invalid fix ave/histo command");
 
-      which[nvalues] = argi.get_type();
-      argindex[nvalues] = argi.get_index1();
-      ids[nvalues] = argi.copy_name();
-
-      nvalues++;
+      which[i] = argi.get_type();
+      argindex[i] = argi.get_index1();
+      ids[i] = argi.copy_name();
     }
   }
 

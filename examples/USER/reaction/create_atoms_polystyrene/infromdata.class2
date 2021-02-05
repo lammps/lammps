@@ -1,4 +1,4 @@
-# Jake practice run
+# use bond/react 'create atoms' feature to add 50 new styrene monomers to chain
 
 units real
 
@@ -20,30 +20,24 @@ improper_style class2
 
 variable T equal 530
 
-read_data trimer.data &
-  extra/bond/per/atom 5 &
-  extra/angle/per/atom 15 &
-  extra/dihedral/per/atom 15 &
-  extra/improper/per/atom 25 &
-  extra/special/per/atom 25
+read_data trimer.data
 
-molecule mol3 chain_plus_styrene_unreacted_create_atoms.data_template
-molecule mol4 chain_plus_styrene_reacted.data_template
+molecule mol1 grow_styrene_pre.data_template
+molecule mol2 grow_styrene_post.data_template
 
-fix rxn1 all bond/react stabilization yes statted_grp .03 &
-    react rxn2 all 1 0 3.0 mol3 mol4 chain_plus_styrene_map_create_atoms &
-        modify_create fit create_fit near 2.0 stabilize_steps 100 max_rxn 50
+fix myrxns all bond/react stabilization yes statted_grp .03 &
+    react rxn1 all 1 0 3.0 mol1 mol2 grow_styrene.map &
+        modify_create fit create_fit overlap 2.0 &
+        stabilize_steps 100 max_rxn 50
 
-fix 1 statted_grp_REACT nvt temp $T $T 100 #iso 1 1 1000
+fix 1 statted_grp_REACT nvt temp $T $T 100
 
 fix 4 bond_react_MASTER_group temp/rescale 1 $T $T 1 1
 
-thermo_style custom step temp press density f_rxn1[1]
+thermo_style custom step temp press density f_myrxns[1]
 
-#restart 1 restart1 restart2
-
-thermo 2
+thermo 100
 
 run 8000
 
-write_data restart_longrun.data nofix
+# write_data final.data nofix

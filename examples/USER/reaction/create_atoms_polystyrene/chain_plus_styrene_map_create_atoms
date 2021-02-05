@@ -1,17 +1,17 @@
-this is a map file
+map file: styrene growth
 
 1 edgeIDs
 30 equivalences
 16 createIDs
 
-EdgeIDs
-
-30
-
-BondingIDs
+InitiatorIDs
 
 4
 13
+
+EdgeIDs
+
+30
 
 CreateIDs
 

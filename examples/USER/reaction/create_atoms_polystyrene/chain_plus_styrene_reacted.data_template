@@ -1,4 +1,4 @@
-LAMMPS data file. msi2lmp v3.9.8 / 06 Oct 2016 / CGCMM for chain_plus_styrene_reacted
+molecule template: end of chain plus polymerized styrene
 
 46 atoms
 48 bonds
@@ -9,7 +9,7 @@ LAMMPS data file. msi2lmp v3.9.8 / 06 Oct 2016 / CGCMM for chain_plus_styrene_re
 
 Fragments
 
-create_fit 34 44 
+create_fit 34 44
 
 Types
 

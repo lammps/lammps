@@ -29,8 +29,8 @@ LIB_DIR = ./
 AR = ar
 BSH = /bin/sh
 
-CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
-CUDA_MPS  =
+CUDPP_OPT =
+CUDA_MPS  = -DCUDA_PROXY
 
 # device code compiler and settings
 

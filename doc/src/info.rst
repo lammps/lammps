@@ -10,7 +10,7 @@ Syntax
 
    info args
 
-* args = one or more of the following keywords: *out*\ , *all*\ , *system*\ , *memory*\ , *communication*\ , *computes*\ , *dumps*\ , *fixes*\ , *groups*\ , *regions*\ , *variables*\ , *coeffs*\ , *styles*\ , *time*\ , or *configuration*
+* args = one or more of the following keywords: *out*\ , *all*\ , *system*\ , *memory*\ , *communication*\ , *computes*\ , *dumps*\ , *fixes*\ , *groups*\ , *regions*\ , *variables*\ , *coeffs*\ , *styles*\ , *time*\ , *accelerator*\ , or *configuration*
 * *out* values = *screen*\ , *log*\ , *append* filename, *overwrite* filename
 * *styles* values = *all*\ , *angle*\ , *atom*\ , *bond*\ , *compute*\ , *command*\ , *dump*\ , *dihedral*\ , *fix*\ , *improper*\ , *integrate*\ , *kspace*\ , *minimize*\ , *pair*\ , *region*
 
@@ -87,6 +87,10 @@ The *coeffs* category prints a list for each defined force style
 (pair, bond, angle, dihedral, improper) indicating which of the
 corresponding coefficients have been set. This can be very helpful
 to debug error messages like "All pair coeffs are not set".
+
+The *accelerator* category prints out information about compile time
+settings of included accelerator support for the GPU, KOKKOS, USER-INTEL,
+and USER-OMP packages.
 
 The *styles* category prints the list of styles available in the
 current LAMMPS binary. It supports one of the following options

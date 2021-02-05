@@ -1177,7 +1177,7 @@ double FixWidom::compute_vector(int n)
 
 double FixWidom::memory_usage()
 {
-  double bytes = widom_nmax * sizeof(int);
+  double bytes = (double)widom_nmax * sizeof(int);
   return bytes;
 }
 

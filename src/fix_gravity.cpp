@@ -52,10 +52,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   mstr = vstr = pstr = tstr = xstr = ystr = zstr = nullptr;
   mstyle = vstyle = pstyle = tstyle = xstyle = ystyle = zstyle = CONSTANT;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    mstr = new char[n];
-    strcpy(mstr,&arg[3][2]);
+  if (utils::strmatch(arg[3],"^v_")) {
+    mstr = utils::strdup(arg[3]+2);
     mstyle = EQUAL;
   } else {
     magnitude = utils::numeric(FLERR,arg[3],false,lmp);
@@ -67,10 +65,8 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[4],"chute") == 0) {
     if (narg < 6) error->all(FLERR,"Illegal fix gravity command");
     style = CHUTE;
-    if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      vstr = new char[n];
-      strcpy(vstr,&arg[5][2]);
+    if (utils::strmatch(arg[5],"^v_")) {
+      vstr = utils::strdup(arg[5]+2);
       vstyle = EQUAL;
     } else {
       vert = utils::numeric(FLERR,arg[5],false,lmp);
@@ -81,19 +77,15 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"spherical") == 0) {
     if (narg < 7) error->all(FLERR,"Illegal fix gravity command");
     style = SPHERICAL;
-    if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      pstr = new char[n];
-      strcpy(pstr,&arg[5][2]);
+    if (utils::strmatch(arg[5],"^v_")) {
+      pstr = utils::strdup(arg[5]+2);
       pstyle = EQUAL;
     } else {
       phi = utils::numeric(FLERR,arg[5],false,lmp);
       pstyle = CONSTANT;
     }
-    if (strstr(arg[6],"v_") == arg[6]) {
-      int n = strlen(&arg[6][2]) + 1;
-      tstr = new char[n];
-      strcpy(tstr,&arg[6][2]);
+    if (utils::strmatch(arg[6],"^v_")) {
+      tstr = utils::strdup(arg[6]+2);
       tstyle = EQUAL;
     } else {
       theta = utils::numeric(FLERR,arg[6],false,lmp);
@@ -104,28 +96,22 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"vector") == 0) {
     if (narg < 8) error->all(FLERR,"Illegal fix gravity command");
     style = VECTOR;
-    if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      xstr = new char[n];
-      strcpy(xstr,&arg[5][2]);
+    if (utils::strmatch(arg[5],"^v_")) {
+      xstr = utils::strdup(arg[5]+2);
       xstyle = EQUAL;
     } else {
       xdir = utils::numeric(FLERR,arg[5],false,lmp);
       xstyle = CONSTANT;
     }
-    if (strstr(arg[6],"v_") == arg[6]) {
-      int n = strlen(&arg[6][2]) + 1;
-      ystr = new char[n];
-      strcpy(ystr,&arg[6][2]);
+    if (utils::strmatch(arg[6],"^v_")) {
+      ystr = utils::strdup(arg[6]+2);
       ystyle = EQUAL;
     } else {
       ydir = utils::numeric(FLERR,arg[6],false,lmp);
       ystyle = CONSTANT;
     }
-    if (strstr(arg[7],"v_") == arg[7]) {
-      int n = strlen(&arg[7][2]) + 1;
-      zstr = new char[n];
-      strcpy(zstr,&arg[7][2]);
+    if (utils::strmatch(arg[7],"^v_")) {
+      zstr = utils::strdup(arg[7]+2);
       zstyle = EQUAL;
     } else {
       zdir = utils::numeric(FLERR,arg[7],false,lmp);

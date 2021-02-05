@@ -627,7 +627,7 @@ void FixATC::min_pre_exchange()
 
 double FixATC::memory_usage()
 {
-  double bytes = (double) atc_->memory_usage() * sizeof(double);
+  double bytes =  atc_->memory_usage() * sizeof(double);
   return bytes;
 }
 

@@ -200,6 +200,7 @@ barostatted
 barostatting
 Barostatting
 Barrat
+Bartelt
 Bartels
 barycenter
 barye
@@ -329,6 +330,7 @@ Buyl
 Bybee
 bz
 cadetblue
+Cagin
 calc
 calibre
 caltech
@@ -690,6 +692,7 @@ dmi
 dnf
 DNi
 Dobson
+Dobnikar
 Dodds
 docenv
 dodgerblue
@@ -1218,6 +1221,7 @@ Herrmann
 Hertizian
 hertzian
 Hertzsch
+heterostructures
 hexahedrons
 hexatic
 hexorder
@@ -1229,6 +1233,7 @@ Hibbs
 Higdon
 Hijazi
 Hilger
+Hinestrosa
 histo
 histogrammed
 histogramming
@@ -2473,6 +2478,9 @@ Poresag
 pos
 Poschel
 posix
+postfix
+postfixed
+postfixes
 Postma
 Potapkin
 potin
@@ -2678,6 +2686,8 @@ rhodo
 Rhodo
 rhodopsin
 rhok
+rhomax
+rhomin
 rhorho
 rhosum
 ri
@@ -2726,6 +2736,7 @@ rNEMD
 ro
 Rochus
 Rockett
+rocksalt
 Rodrigues
 Rohart
 Ronchetti
@@ -3400,6 +3411,7 @@ WeinanE
 Wennberg
 Westmere
 Westview
+wf
 wget
 Whelan
 whitesmoke
@@ -3545,6 +3557,7 @@ zz
 Zm
 PowerShell
 filesystems
+zincblende
 Zstandard
 Zstd
 zstd

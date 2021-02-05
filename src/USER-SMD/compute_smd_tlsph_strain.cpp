@@ -139,6 +139,6 @@ void ComputeSMDTLSPHstrain::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTLSPHstrain::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

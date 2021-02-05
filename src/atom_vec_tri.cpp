@@ -605,7 +605,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
 double AtomVecTri::memory_usage_bonus()
 {
   double bytes = 0;
-  bytes += nmax_bonus*sizeof(Bonus);
+  bytes += (double)nmax_bonus*sizeof(Bonus);
   return bytes;
 }
 

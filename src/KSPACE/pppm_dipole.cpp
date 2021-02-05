@@ -2507,22 +2507,22 @@ int PPPMDipole::timing_3d(int n, double &time3d)
 
 double PPPMDipole::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
 
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
-  bytes += 6 * nfft_both * sizeof(double);   // vg
-  bytes += nfft_both * sizeof(double);       // greensfn
-  bytes += nfft_both*5 * sizeof(FFT_SCALAR); // work*2*2
-  bytes += 9 * nbrick * sizeof(FFT_SCALAR);  // ubrick*3 + vdbrick*6
-  bytes += nfft_both*7 * sizeof(FFT_SCALAR); // density_ffx*3 + work*2*2
+  bytes += (double)6 * nfft_both * sizeof(double);   // vg
+  bytes += (double)nfft_both * sizeof(double);       // greensfn
+  bytes += (double)nfft_both*5 * sizeof(FFT_SCALAR); // work*2*2
+  bytes += (double)9 * nbrick * sizeof(FFT_SCALAR);  // ubrick*3 + vdbrick*6
+  bytes += (double)nfft_both*7 * sizeof(FFT_SCALAR); // density_ffx*3 + work*2*2
 
   if (peratom_allocate_flag)
-    bytes += 21 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)21 * nbrick * sizeof(FFT_SCALAR);
 
   // two GridComm bufs
 
-  bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 
   return bytes;
 }

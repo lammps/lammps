@@ -21,6 +21,7 @@
 #cmakedefine KOKKOS_ENABLE_HPX
 #cmakedefine KOKKOS_ENABLE_MEMKIND
 #cmakedefine KOKKOS_ENABLE_LIBRT
+#cmakedefine KOKKOS_ENABLE_SYCL
 
 #ifndef __CUDA_ARCH__
 #cmakedefine KOKKOS_ENABLE_TM
@@ -31,7 +32,6 @@
 #endif
 
 /* General Settings */
-#cmakedefine KOKKOS_ENABLE_CXX11
 #cmakedefine KOKKOS_ENABLE_CXX14
 #cmakedefine KOKKOS_ENABLE_CXX17
 #cmakedefine KOKKOS_ENABLE_CXX20
@@ -58,7 +58,7 @@
 /* TPL Settings */
 #cmakedefine KOKKOS_ENABLE_HWLOC
 #cmakedefine KOKKOS_USE_LIBRT
-#cmakedefine KOKKOS_ENABLE_HWBSPACE
+#cmakedefine KOKKOS_ENABLE_HBWSPACE
 #cmakedefine KOKKOS_ENABLE_LIBDL
 #cmakedefine KOKKOS_IMPL_CUDA_CLANG_WORKAROUND
 

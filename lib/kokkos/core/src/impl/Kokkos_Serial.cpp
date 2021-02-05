@@ -42,7 +42,7 @@
 //@HEADER
 */
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core.hpp>
 #if defined(KOKKOS_ENABLE_SERIAL)
 
 #include <cstdlib>
@@ -52,6 +52,7 @@
 #include <impl/Kokkos_Error.hpp>
 
 #include <impl/Kokkos_SharedAlloc.hpp>
+#include <sstream>
 
 /*--------------------------------------------------------------------------*/
 
@@ -177,6 +178,46 @@ void Serial::impl_finalize() {
 
 const char* Serial::name() { return "Serial"; }
 
+namespace Impl {
+
+int g_serial_space_factory_initialized =
+    initialize_space_factory<SerialSpaceInitializer>("100_Serial");
+
+void SerialSpaceInitializer::initialize(const InitArguments& args) {
+  // Prevent "unused variable" warning for 'args' input struct.  If
+  // Serial::initialize() ever needs to take arguments from the input
+  // struct, you may remove this line of code.
+  (void)args;
+
+  // Always initialize Serial if it is configure time enabled
+  Kokkos::Serial::impl_initialize();
+}
+
+void SerialSpaceInitializer::finalize(const bool) {
+  if (Kokkos::Serial::impl_is_initialized()) Kokkos::Serial::impl_finalize();
+}
+
+void SerialSpaceInitializer::fence() { Kokkos::Serial::impl_static_fence(); }
+
+void SerialSpaceInitializer::print_configuration(std::ostream& msg,
+                                                 const bool detail) {
+  msg << "Host Serial Execution Space:" << std::endl;
+  msg << "  KOKKOS_ENABLE_SERIAL: ";
+  msg << "yes" << std::endl;
+
+  msg << "Serial Atomics:" << std::endl;
+  msg << "  KOKKOS_ENABLE_SERIAL_ATOMICS: ";
+#ifdef KOKKOS_ENABLE_SERIAL_ATOMICS
+  msg << "yes" << std::endl;
+#else
+  msg << "no" << std::endl;
+#endif
+
+  msg << "\nSerial Runtime Configuration:" << std::endl;
+  Serial::print_configuration(msg, detail);
+}
+
+}  // namespace Impl
 }  // namespace Kokkos
 
 #else

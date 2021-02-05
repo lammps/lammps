@@ -55,8 +55,6 @@ void memory_fence() {
   __threadfence();
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
 #pragma omp flush
-#elif defined(KOKKOS_ENABLE_ROCM_ATOMICS)
-  amp_barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
 #elif defined(__HIP_DEVICE_COMPILE__)
   __threadfence();
 #elif defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64)

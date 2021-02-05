@@ -42,8 +42,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 #define MAXLINE 512
 
 enum{FORWARD=-1,BACKWARD=1};
@@ -338,7 +336,7 @@ void FixPhonon::end_of_step()
   double xcur[3];
 
   // to get the current temperature
-  if (!(temperature->invoked_flag & INVOKED_VECTOR)) temperature->compute_vector();
+  if (!(temperature->invoked_flag & Compute::INVOKED_VECTOR)) temperature->compute_vector();
   for (idim = 0; idim < sysdim; ++idim) TempSum[idim] += temperature->vector[idim];
 
   // evaluate R(r) on local proc
@@ -426,7 +424,7 @@ void FixPhonon::end_of_step()
 
 double FixPhonon::memory_usage()
 {
-  double bytes = sizeof(double)*2*mynq
+  double bytes = (double)sizeof(double)*2*mynq
                + sizeof(std::map<int,int>)*2*ngroup
                + sizeof(double)*(ngroup*(3*sysdim+2)+mynpt*fft_dim*2)
                + sizeof(std::complex<double>)*MAX(1,mynq)*fft_dim *(1+2*fft_dim)

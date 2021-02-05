@@ -16,22 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_temp_csld.h"
-#include <cstring>
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "update.h"
+#include "variable.h"
 
 #include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "memory.h"
-#include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "group.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "random_mars.h"
-#include "error.h"
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -57,10 +57,8 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
 
   tstr = nullptr;
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    tstr = new char[n];
-    strcpy(tstr,&arg[3][2]);
+  if (utils::strmatch(arg[3],"^v_")) {
+    tstr = utils::strdup(arg[3]+2);
     tstyle = EQUAL;
   } else {
     t_start = utils::numeric(FLERR,arg[3],false,lmp);
@@ -83,9 +81,7 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + temp, compute group = fix group
 
   std::string cmd = id + std::string("_temp");
-  id_temp = new char[cmd.size()+1];
-  strcpy(id_temp,cmd.c_str());
-
+  id_temp = utils::strdup(cmd);
   cmd += fmt::format(" {} temp",group->names[igroup]);
   modify->add_compute(cmd);
   tflag = 1;

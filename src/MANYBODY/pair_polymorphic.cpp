@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -33,6 +34,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -837,10 +839,10 @@ void PairPolymorphic::attractive(PairParameters *p, PairParameters *q,
   double rijinv,rikinv;
 
   rijinv = 1.0/rij;
-  vec3_scale(rijinv,delrij,rij_hat);
+  scale3(rijinv,delrij,rij_hat);
 
   rikinv = 1.0/rik;
-  vec3_scale(rikinv,delrik,rik_hat);
+  scale3(rikinv,delrik,rik_hat);
 
   ters_zetaterm_d(prefactor,rij_hat,rij,rik_hat,rik,fi,fj,fk,p,q,trip);
 }
@@ -857,7 +859,7 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
   double gijk,gijk_d,ex_delr,ex_delr_d,fc,dfc,cos_theta;
   double dcosdri[3],dcosdrj[3],dcosdrk[3];
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
 
   (q->W)->value(rik,fc,1,dfc,1);
   (trip->P)->value(rij-(p->xi)*rik,ex_delr,1,ex_delr_d,1);
@@ -867,24 +869,24 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
 
   // compute the derivative wrt Ri
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d*(p->xi),rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
-  vec3_scale(prefactor,dri,dri);
+  scale3(-dfc*gijk*ex_delr,rik_hat,dri);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdri,dri,dri);
+  scaleadd3(fc*gijk*ex_delr_d*(p->xi),rik_hat,dri,dri);
+  scaleadd3(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  scale3(prefactor,dri);
 
   // compute the derivative wrt Rj
 
-  vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
-  vec3_scale(prefactor,drj,drj);
+  scale3(fc*gijk_d*ex_delr,dcosdrj,drj);
+  scaleadd3(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  scale3(prefactor,drj);
 
   // compute the derivative wrt Rk
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d*(p->xi),rik_hat,drk,drk);
-  vec3_scale(prefactor,drk,drk);
+  scale3(dfc*gijk*ex_delr,rik_hat,drk);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
+  scaleadd3(-fc*gijk*ex_delr_d*(p->xi),rik_hat,drk,drk);
+  scale3(prefactor,drk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -895,14 +897,14 @@ void PairPolymorphic::costheta_d(double *rij_hat, double rij,
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 
-  double cos_theta = vec3_dot(rij_hat,rik_hat);
+  double cos_theta = dot3(rij_hat,rik_hat);
 
-  vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
-  vec3_scale(1.0/rij,drj,drj);
-  vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
-  vec3_scale(1.0/rik,drk,drk);
-  vec3_add(drj,drk,dri);
-  vec3_scale(-1.0,dri,dri);
+  scaleadd3(-cos_theta,rij_hat,rik_hat,drj);
+  scale3(1.0/rij,drj);
+  scaleadd3(-cos_theta,rik_hat,rij_hat,drk);
+  scale3(1.0/rik,drk);
+  add3(drj,drk,dri);
+  scale3(-1.0,dri);
 }
 
 /* ---------------------------------------------------------------------- */

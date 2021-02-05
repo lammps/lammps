@@ -129,7 +129,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
       // determine whether atom-style variable or atom property is used
 
-      if (strstr(arg[4],"i_") == arg[4]) {
+      if (utils::strmatch(arg[4],"^i_")) {
         int is_double=0;
         int custom_index = atom->find_custom(arg[4]+2,is_double);
         if (custom_index == -1)
@@ -151,7 +151,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
           else
             molecule[i] = 0;
 
-      } else if (strstr(arg[4],"v_") == arg[4]) {
+      } else if (utils::strmatch(arg[4],"^v_")) {
         int ivariable = input->variable->find(arg[4]+2);
         if (ivariable < 0)
           error->all(FLERR,"Variable name for fix rigid custom does not exist");
@@ -502,9 +502,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,
@@ -531,9 +529,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       delete [] inpfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      inpfile = new char[n];
-      strcpy(inpfile,arg[iarg+1]);
+      inpfile = utils::strdup(arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
       iarg += 2;
@@ -548,9 +544,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"gravity") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       delete [] id_gravity;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_gravity = new char[n];
-      strcpy(id_gravity,arg[iarg+1]);
+      id_gravity = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid command");
@@ -2452,12 +2446,12 @@ void FixRigid::write_restart_file(const char *file)
 double FixRigid::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax * sizeof(imageint);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);    // vatom
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(imageint);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);    // vatom
   if (extended) {
-    bytes += nmax * sizeof(int);
+    bytes += (double)nmax * sizeof(int);
     if (orientflag) bytes = nmax*orientflag * sizeof(double);
     if (dorientflag) bytes = nmax*3 * sizeof(double);
   }

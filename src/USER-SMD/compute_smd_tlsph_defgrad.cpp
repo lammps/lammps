@@ -130,6 +130,6 @@ void ComputeSMDTLSPHDefgrad::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTLSPHDefgrad::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

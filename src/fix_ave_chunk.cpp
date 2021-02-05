@@ -13,33 +13,30 @@
 
 #include "fix_ave_chunk.h"
 
+#include "arg_info.h"
+#include "atom.h"
+#include "compute.h"
+#include "compute_chunk_atom.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
 #include <cstring>
 #include <unistd.h>
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "domain.h"
-#include "modify.h"
-#include "compute.h"
-#include "compute_chunk_atom.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{V,F,DENSITY_NUMBER,DENSITY_MASS,MASS,TEMPERATURE,COMPUTE,FIX,VARIABLE};
 enum{SCALAR,VECTOR};
 enum{SAMPLE,ALL};
 enum{NOSCALE,ATOM};
 enum{ONE,RUNNING,WINDOW};
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,67 +88,53 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     ids[nvalues] = nullptr;
 
     if (strcmp(arg[iarg],"vx") == 0) {
-      which[nvalues] = V;
+      which[nvalues] = ArgInfo::V;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"vy") == 0) {
-      which[nvalues] = V;
+      which[nvalues] = ArgInfo::V;
       argindex[nvalues++] = 1;
     } else if (strcmp(arg[iarg],"vz") == 0) {
-      which[nvalues] = V;
+      which[nvalues] = ArgInfo::V;
       argindex[nvalues++] = 2;
 
     } else if (strcmp(arg[iarg],"fx") == 0) {
-      which[nvalues] = F;
+      which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"fy") == 0) {
-      which[nvalues] = F;
+      which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 1;
     } else if (strcmp(arg[iarg],"fz") == 0) {
-      which[nvalues] = F;
+      which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 2;
 
     } else if (strcmp(arg[iarg],"density/number") == 0) {
       densityflag = 1;
-      which[nvalues] = DENSITY_NUMBER;
+      which[nvalues] = ArgInfo::DENSITY_NUMBER;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"density/mass") == 0) {
       densityflag = 1;
-      which[nvalues] = DENSITY_MASS;
+      which[nvalues] = ArgInfo::DENSITY_MASS;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"mass") == 0) {
-      which[nvalues] = MASS;
+      which[nvalues] = ArgInfo::MASS;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"temp") == 0) {
-      which[nvalues] = TEMPERATURE;
+      which[nvalues] = ArgInfo::TEMPERATURE;
       argindex[nvalues++] = 0;
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
-               strncmp(arg[iarg],"f_",2) == 0 ||
-               strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+    } else {
+      ArgInfo argi(arg[iarg]);
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+      if (argi.get_type() == ArgInfo::NONE) break;
+      if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+        error->all(FLERR,"Invalid fix ave/chunk command");
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix ave/chunk command");
-        argindex[nvalues] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
+      which[nvalues] = argi.get_type();
+      argindex[nvalues] = argi.get_index1();
+      ids[nvalues] = argi.copy_name();
 
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
       nvalues++;
-      delete [] suffix;
-
-    } else break;
-
+    }
     iarg++;
   }
 
@@ -286,7 +269,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   }
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/chunk does not exist");
@@ -305,7 +288,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix ave/chunk compute vector is accessed out-of-range");
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/chunk does not exist");
@@ -320,7 +303,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
                    "Fix ave/chunk fix does not calculate a per-atom array");
       if (argindex[i] && argindex[i] > modify->fix[ifix]->size_peratom_cols)
         error->all(FLERR,"Fix ave/chunk fix vector is accessed out-of-range");
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/chunk does not exist");
@@ -515,13 +498,13 @@ void FixAveChunk::init()
   }
 
   for (int m = 0; m < nvalues; m++) {
-    if (which[m] == COMPUTE) {
+    if (which[m] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/chunk does not exist");
       value2index[m] = icompute;
 
-    } else if (which[m] == FIX) {
+    } else if (which[m] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/chunk does not exist");
@@ -531,7 +514,7 @@ void FixAveChunk::init()
         error->all(FLERR,
                    "Fix for fix ave/chunk not computed at compatible time");
 
-    } else if (which[m] == VARIABLE) {
+    } else if (which[m] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/chunk does not exist");
@@ -657,9 +640,9 @@ void FixAveChunk::end_of_step()
 
     // V,F adds velocities,forces to values
 
-    if (which[m] == V || which[m] == F) {
+    if (which[m] == ArgInfo::V || which[m] == ArgInfo::F) {
       double **attribute;
-      if (which[m] == V) attribute = atom->v;
+      if (which[m] == ArgInfo::V) attribute = atom->v;
       else attribute = atom->f;
 
       for (i = 0; i < nlocal; i++)
@@ -670,7 +653,7 @@ void FixAveChunk::end_of_step()
 
     // DENSITY_NUMBER adds 1 to values
 
-    } else if (which[m] == DENSITY_NUMBER) {
+    } else if (which[m] == ArgInfo::DENSITY_NUMBER) {
 
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit && ichunk[i] > 0) {
@@ -680,7 +663,8 @@ void FixAveChunk::end_of_step()
 
     // DENSITY_MASS or MASS adds mass to values
 
-    } else if (which[m] == DENSITY_MASS || which[m] == MASS) {
+    } else if ((which[m] == ArgInfo::DENSITY_MASS)
+               || (which[m] == ArgInfo::MASS)) {
       int *type = atom->type;
       double *mass = atom->mass;
       double *rmass = atom->rmass;
@@ -702,7 +686,7 @@ void FixAveChunk::end_of_step()
     // TEMPERATURE adds KE to values
     // subtract and restore velocity bias if requested
 
-    } else if (which[m] == TEMPERATURE) {
+    } else if (which[m] == ArgInfo::TEMPERATURE) {
 
       if (biasflag) {
         if (tbias->invoked_scalar != ntimestep) tbias->compute_scalar();
@@ -736,11 +720,11 @@ void FixAveChunk::end_of_step()
     // COMPUTE adds its scalar or vector component to values
     // invoke compute if not previously invoked
 
-    } else if (which[m] == COMPUTE) {
+    } else if (which[m] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[n];
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
       double *vector = compute->vector_atom;
       double **array = compute->array_atom;
@@ -756,7 +740,7 @@ void FixAveChunk::end_of_step()
     // FIX adds its scalar or vector component to values
     // access fix fields, guaranteed to be ready
 
-    } else if (which[m] == FIX) {
+    } else if (which[m] == ArgInfo::FIX) {
       double *vector = modify->fix[n]->vector_atom;
       double **array = modify->fix[n]->array_atom;
       int jm1 = j - 1;
@@ -771,7 +755,7 @@ void FixAveChunk::end_of_step()
     // VARIABLE adds its per-atom quantities to values
     // evaluate atom-style variable
 
-    } else if (which[m] == VARIABLE) {
+    } else if (which[m] == ArgInfo::VARIABLE) {
       if (atom->nmax > maxvar) {
         maxvar = atom->nmax;
         memory->destroy(varatom);
@@ -825,14 +809,14 @@ void FixAveChunk::end_of_step()
     for (m = 0; m < nchunk; m++) {
       if (count_many[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
-          if (which[j] == TEMPERATURE) {
+          if (which[j] == ArgInfo::TEMPERATURE) {
             values_many[m][j] += mvv2e*values_one[m][j] /
               ((cdof + adof*count_many[m]) * boltz);
-          } else if (which[j] == DENSITY_NUMBER) {
+          } else if (which[j] == ArgInfo::DENSITY_NUMBER) {
             if (volflag == SCALAR) values_one[m][j] /= chunk_volume_scalar;
             else values_one[m][j] /= chunk_volume_vec[m];
             values_many[m][j] += values_one[m][j];
-          } else if (which[j] == DENSITY_MASS) {
+          } else if (which[j] == ArgInfo::DENSITY_MASS) {
             if (volflag == SCALAR) values_one[m][j] /= chunk_volume_scalar;
             else values_one[m][j] /= chunk_volume_vec[m];
             values_many[m][j] += mv2d*values_one[m][j];
@@ -895,13 +879,13 @@ void FixAveChunk::end_of_step()
     for (m = 0; m < nchunk; m++) {
       if (count_sum[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
-          if (which[j] == TEMPERATURE) {
+          if (which[j] == ArgInfo::TEMPERATURE) {
             values_sum[m][j] *= mvv2e / ((cdof + adof*count_sum[m]) * boltz);
-          } else if (which[j] == DENSITY_NUMBER) {
+          } else if (which[j] == ArgInfo::DENSITY_NUMBER) {
             if (volflag == SCALAR) values_sum[m][j] /= chunk_volume_scalar;
             else values_sum[m][j] /= chunk_volume_vec[m];
             values_sum[m][j] /= repeat;
-          } else if (which[j] == DENSITY_MASS) {
+          } else if (which[j] == ArgInfo::DENSITY_MASS) {
             if (volflag == SCALAR) values_sum[m][j] /= chunk_volume_scalar;
             else values_sum[m][j] /= chunk_volume_vec[m];
             values_sum[m][j] *= mv2d/repeat;
@@ -1147,10 +1131,10 @@ bigint FixAveChunk::nextvalid()
 
 double FixAveChunk::memory_usage()
 {
-  double bytes = maxvar * sizeof(double);         // varatom
-  bytes += 4*maxchunk * sizeof(double);           // count one,many,sum,total
-  bytes += nvalues*maxchunk * sizeof(double);     // values one,many,sum,total
-  bytes += nwindow*maxchunk * sizeof(double);          // count_list
-  bytes += nwindow*maxchunk*nvalues * sizeof(double);  // values_list
+  double bytes = (double)maxvar * sizeof(double);         // varatom
+  bytes += (double)4*maxchunk * sizeof(double);           // count one,many,sum,total
+  bytes += (double)nvalues*maxchunk * sizeof(double);     // values one,many,sum,total
+  bytes += (double)nwindow*maxchunk * sizeof(double);          // count_list
+  bytes += (double)nwindow*maxchunk*nvalues * sizeof(double);  // values_list
   return bytes;
 }

@@ -3433,11 +3433,11 @@ double MSM::memory_usage()
 
   // all GridComm bufs
 
-  bytes += (ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
+  bytes += (double)(ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
 
   for (int n=0; n<levels; n++)
     if (active_flag[n])
-      bytes += (ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
+      bytes += (double)(ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
 
   return bytes;
 }

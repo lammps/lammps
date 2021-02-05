@@ -1731,17 +1731,17 @@ double FixHyperLocal::query(int i)
 
 double FixHyperLocal::memory_usage()
 {
-  double bytes = maxbond * sizeof(OneBond);       // blist
+  double bytes = (double)maxbond * sizeof(OneBond);       // blist
   bytes = maxbond * sizeof(double);               // per-bond bias coeffs
-  bytes += 3*maxlocal * sizeof(int);              // numbond,maxhalf,eligible
-  bytes += maxlocal * sizeof(double);             // maxhalfstrain
-  bytes += maxall * sizeof(int);                  // old2now
-  bytes += maxall * sizeof(tagint);               // tagold
-  bytes += 3*maxall * sizeof(double);             // xold
-  bytes += 2*maxall * sizeof(double);             // maxstrain,maxstrain_domain
-  if (checkbias) bytes += maxall * sizeof(tagint);  // biasflag
-  bytes += maxcoeff * sizeof(int);                // numcoeff
-  bytes += maxcoeff * sizeof(HyperOneCoeff *);         // clist
-  bytes += maxlocal*maxbondperatom * sizeof(HyperOneCoeff);  // cpage estimate
+  bytes += (double)3*maxlocal * sizeof(int);              // numbond,maxhalf,eligible
+  bytes += (double)maxlocal * sizeof(double);             // maxhalfstrain
+  bytes += (double)maxall * sizeof(int);                  // old2now
+  bytes += (double)maxall * sizeof(tagint);               // tagold
+  bytes += (double)3*maxall * sizeof(double);             // xold
+  bytes += (double)2*maxall * sizeof(double);             // maxstrain,maxstrain_domain
+  if (checkbias) bytes += (double)maxall * sizeof(tagint);  // biasflag
+  bytes += (double)maxcoeff * sizeof(int);                // numcoeff
+  bytes += (double)maxcoeff * sizeof(HyperOneCoeff *);         // clist
+  bytes += (double)maxlocal*maxbondperatom * sizeof(HyperOneCoeff);  // cpage estimate
   return bytes;
 }

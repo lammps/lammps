@@ -354,9 +354,9 @@ double FixReaxCBonds::memory_usage()
   double bytes;
 
   bytes = 3.0*nmax*sizeof(double);
-  bytes += nmax*sizeof(int);
-  bytes += 1.0*nmax*MAXREAXBOND*sizeof(double);
-  bytes += 1.0*nmax*MAXREAXBOND*sizeof(int);
+  bytes += (double)nmax*sizeof(int);
+  bytes += (double)1.0*nmax*MAXREAXBOND*sizeof(double);
+  bytes += (double)1.0*nmax*MAXREAXBOND*sizeof(int);
 
   return bytes;
 }

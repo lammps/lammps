@@ -1430,9 +1430,9 @@ int FixLbRigidPCSphere::dof(int igroup)
 double FixLbRigidPCSphere::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
 
   return bytes;
 }

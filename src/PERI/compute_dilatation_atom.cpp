@@ -117,6 +117,6 @@ void ComputeDilatationAtom::compute_peratom()
 
 double ComputeDilatationAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

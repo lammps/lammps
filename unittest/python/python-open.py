@@ -4,6 +4,7 @@ from lammps import lammps
 
 has_mpi=False
 has_mpi4py=False
+has_exceptions=False
 try:
     from mpi4py import __version__ as mpi4py_version
     # tested to work with mpi4py versions 2 and 3

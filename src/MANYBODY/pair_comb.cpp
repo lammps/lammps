@@ -20,26 +20,27 @@
 
 #include "pair_comb.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "group.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "my_page.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "group.h"
-#include "my_page.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-
-#include "tokenizer.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 
 #define DELTA 4
 #define PGDELTA 1
@@ -287,7 +288,7 @@ void PairComb::compute(int eflag, int vflag)
           delr1[0] = x[j][0] - xtmp;
           delr1[1] = x[j][1] - ytmp;
           delr1[2] = x[j][2] - ztmp;
-          rsq1 = vec3_dot(delr1,delr1);
+          rsq1 = dot3(delr1,delr1);
 
           if (rsq1 > params[iparam_ij].cutsq) continue;
           NCo[i] += 1;
@@ -311,7 +312,7 @@ void PairComb::compute(int eflag, int vflag)
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
-      rsq1 = vec3_dot(delr1,delr1);
+      rsq1 = dot3(delr1,delr1);
 
       if (rsq1 > params[iparam_ij].cutsq) continue;
       nj ++;
@@ -330,7 +331,7 @@ void PairComb::compute(int eflag, int vflag)
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
-        rsq2 = vec3_dot(delr2,delr2);
+        rsq2 = dot3(delr2,delr2);
 
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
@@ -374,7 +375,7 @@ void PairComb::compute(int eflag, int vflag)
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
-        rsq2 = vec3_dot(delr2,delr2);
+        rsq2 = dot3(delr2,delr2);
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
         for (rsc = 0; rsc < 3; rsc++)
@@ -881,7 +882,7 @@ double PairComb::zeta(Param *param, double rsqij, double rsqik,
   rij = sqrt(rsqij);
   if (rij > param->bigr+param->bigd) return 0.0;
   rik = sqrt(rsqik);
-  costheta = vec3_dot(delrij,delrik) / (rij*rik);
+  costheta = dot3(delrij,delrik) / (rij*rik);
 
   if (param->powermint == 3) arg = pow(param->rlm2 * (rij-rik),3.0);
   else arg = param->rlm2 * (rij-rik);
@@ -912,7 +913,7 @@ double PairComb::elp(Param *param, double rsqij, double rsqik,
 
     rij = sqrt(rsqij);
     rik = sqrt(rsqik);
-    costheta = vec3_dot(delrij,delrik) / (rij*rik);
+    costheta = dot3(delrij,delrik) / (rij*rik);
     fcj = comb_fc(rij,param);
     fck = comb_fc(rik,param);
     rmu = costheta;
@@ -965,7 +966,7 @@ void PairComb::flp(Param *param, double rsqij, double rsqik,
     // fck_d = derivative of cutoff function
 
     rij = sqrt(rsqij); rik = sqrt(rsqik);
-    costheta = vec3_dot(delrij,delrik) / (rij*rik);
+    costheta = dot3(delrij,delrik) / (rij*rik);
     fcj = comb_fc(rij,param);
     fck = comb_fc(rik,param);
     fck_d = comb_fc_d(rik,param);
@@ -1013,18 +1014,18 @@ void PairComb::flp(Param *param, double rsqij, double rsqik,
 
   // j-atom
 
-  vec3_scale(ffj1,delrik,drjlp);             // (k,x[],y[]), y[]=k*x[]
-  vec3_scaleadd(ffj2,delrij,drjlp,drjlp);   // (k,x[],y[],z[]), z[]=k*x[]+y[]
+  scale3(ffj1,delrik,drjlp);             // (k,x[],y[]), y[]=k*x[]
+  scaleadd3(ffj2,delrij,drjlp,drjlp);   // (k,x[],y[],z[]), z[]=k*x[]+y[]
 
   // k-atom
 
-  vec3_scale(ffk1,delrij,drklp);
-  vec3_scaleadd(ffk2,delrik,drklp,drklp);
+  scale3(ffk1,delrij,drklp);
+  scaleadd3(ffk2,delrik,drklp,drklp);
 
   // i-atom
 
-  vec3_add(drjlp,drklp,drilp);                    // (x[],y[],z[]), z[]=x[]+y[]
-  vec3_scale(-1.0,drilp,drilp);
+  add3(drjlp,drklp,drilp);                    // (x[],y[],z[]), z[]=x[]+y[]
+  scale3(-1.0,drilp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1233,11 +1234,11 @@ void PairComb::attractive(Param *param, double prefactor,
 
   rij = sqrt(rsqij);
   rijinv = 1.0/rij;
-  vec3_scale(rijinv,delrij,rij_hat);
+  scale3(rijinv,delrij,rij_hat);
 
   rik = sqrt(rsqik);
   rikinv = 1.0/rik;
-  vec3_scale(rikinv,delrik,rik_hat);
+  scale3(rikinv,delrik,rik_hat);
 
   comb_zetaterm_d(prefactor,rij_hat,rij,rik_hat,rik,fi,fj,fk,param);
 }
@@ -1264,7 +1265,7 @@ void PairComb::comb_zetaterm_d(double prefactor, double *rij_hat, double rij,
     ex_delr_d = 3.0*pow(param->rlm2,3.0) * pow(rij-rik,2.0)*ex_delr; // com3
   else ex_delr_d = param->rlm2 * ex_delr; // com3
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
   gijk = comb_gijk(cos_theta,param);
   gijk_d = comb_gijk_d(cos_theta,param);
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
@@ -1276,29 +1277,29 @@ void PairComb::comb_zetaterm_d(double prefactor, double *rij_hat, double rij,
   // (k,x[],y[]), y[]=k*x[]
   // (k,x[],y[],z[]), z[]=k*x[]+y[]
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
-  vec3_scale(prefactor,dri,dri);
+  scale3(-dfc*gijk*ex_delr,rik_hat,dri);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdri,dri,dri);
+  scaleadd3(fc*gijk*ex_delr_d,rik_hat,dri,dri);
+  scaleadd3(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  scale3(prefactor,dri);
 
   // compute the derivative wrt Rj
   // drj = fc*gijk_d*ex_delr*dcosdrj;
   // drj += fc*gijk*ex_delr_d*rij_hat;
 
-  vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
-  vec3_scale(prefactor,drj,drj);
+  scale3(fc*gijk_d*ex_delr,dcosdrj,drj);
+  scaleadd3(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  scale3(prefactor,drj);
 
   // compute the derivative wrt Rk
   // drk = dfc*gijk*ex_delr*rik_hat;
   // drk += fc*gijk_d*ex_delr*dcosdrk;
   // drk += -fc*gijk*ex_delr_d*rik_hat;
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
-  vec3_scale(prefactor,drk,drk);
+  scale3(dfc*gijk*ex_delr,rik_hat,drk);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
+  scaleadd3(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
+  scale3(prefactor,drk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1309,14 +1310,14 @@ void PairComb::costheta_d(double *rij_hat, double rij,
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 
-  double cos_theta = vec3_dot(rij_hat,rik_hat);
+  double cos_theta = dot3(rij_hat,rik_hat);
 
-  vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
-  vec3_scale(1.0/rij,drj,drj);
-  vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
-  vec3_scale(1.0/rik,drk,drk);
-  vec3_add(drj,drk,dri);
-  vec3_scale(-1.0,dri,dri);
+  scaleadd3(-cos_theta,rij_hat,rik_hat,drj);
+  scale3(1.0/rij,drj);
+  scaleadd3(-cos_theta,rik_hat,rij_hat,drk);
+  scale3(1.0/rik,drk);
+  add3(drj,drk,dri);
+  scale3(-1.0,dri);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1703,7 +1704,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
         delr1[0] = x[j][0] - xtmp;
         delr1[1] = x[j][1] - ytmp;
         delr1[2] = x[j][2] - ztmp;
-        rsq1 = vec3_dot(delr1,delr1);
+        rsq1 = dot3(delr1,delr1);
 
         iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -1740,7 +1741,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
         delr1[0] = x[j][0] - xtmp;
         delr1[1] = x[j][1] - ytmp;
         delr1[2] = x[j][2] - ztmp;
-        rsq1 = vec3_dot(delr1,delr1);
+        rsq1 = dot3(delr1,delr1);
 
         iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -2077,7 +2078,7 @@ void PairComb::Short_neigh()
       delrj[0] = xtmp - x[j][0];
       delrj[1] = ytmp - x[j][1];
       delrj[2] = ztmp - x[j][2];
-      rsq = vec3_dot(delrj,delrj);
+      rsq = dot3(delrj,delrj);
 
       if (rsq > cutmin) continue;
       neighptrj[nj++] = j;
@@ -2097,15 +2098,15 @@ void PairComb::Short_neigh()
 
 double PairComb::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += nmax * sizeof(int *);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int *);
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH*nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)MAXNEIGH*nmax * sizeof(double);
   return bytes;
 }

@@ -12,7 +12,7 @@ See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_react.h"
@@ -118,6 +118,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
   rxnID = 0;
+  maxnconstraints = 0;
   narrhenius = 0;
   status = PROCEED;
 
@@ -443,7 +444,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed (Arrhenius prob)
 
-  rrhandom = new class RanMars*[narrhenius];
+  rrhandom = new RanMars*[narrhenius];
   int tmp = 0;
   for (int i = 0; i < nreacts; i++) {
     for (int j = 0; j < nconstraints[i]; j++) {
@@ -481,7 +482,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed ('prob' keyword)
 
-  random = new class RanMars*[nreacts];
+  random = new RanMars*[nreacts];
   for (int i = 0; i < nreacts; i++) {
     random[i] = new RanMars(lmp,seed[i] + me);
   }
@@ -3242,7 +3243,8 @@ void FixBondReact::read(int myrxn)
     else if (strstr(line,"chiralIDs")) sscanf(line,"%d",&nchiral);
     else if (strstr(line,"constraints")) {
       sscanf(line,"%d",&nconstraints[myrxn]);
-      memory->grow(constraints,nconstraints[myrxn],nreacts,"bond/react:constraints");
+      if (maxnconstraints < nconstraints[myrxn]) maxnconstraints = nconstraints[myrxn];
+      memory->grow(constraints,maxnconstraints,nreacts,"bond/react:constraints");
     } else break;
   }
 
@@ -3741,9 +3743,9 @@ memory usage of local atom-based arrays
 double FixBondReact::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   bytes = 2*nmax * sizeof(tagint);
-  bytes += nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }
 

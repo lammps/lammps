@@ -559,6 +559,6 @@ double FixHyperGlobal::query(int i)
 
 double FixHyperGlobal::memory_usage()
 {
-  double bytes = maxbond * sizeof(OneBond);    // blist
+  double bytes = (double)maxbond * sizeof(OneBond);    // blist
   return bytes;
 }

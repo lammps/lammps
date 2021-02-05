@@ -12,20 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_temp_rescale.h"
-#include <cstring>
 
-#include <cmath>
 #include "atom.h"
-#include "force.h"
-#include "group.h"
-#include "update.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "modify.h"
 #include "compute.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -51,10 +51,8 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   dynamic_group_allow = 1;
 
   tstr = nullptr;
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(&arg[4][2]) + 1;
-    tstr = new char[n];
-    strcpy(tstr,&arg[4][2]);
+  if (utils::strmatch(arg[4],"^v_")) {
+    tstr = utils::strdup(arg[4]+2);
     tstyle = EQUAL;
   } else {
     t_start = utils::numeric(FLERR,arg[4],false,lmp);
@@ -70,9 +68,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + temp, compute group = fix group
 
   std::string cmd = id + std::string("_temp");
-  id_temp = new char[cmd.size()+1];
-  strcpy(id_temp,cmd.c_str());
-
+  id_temp = utils::strdup(cmd);
   cmd += fmt::format(" {} temp",group->names[igroup]);
   modify->add_compute(cmd);
   tflag = 1;

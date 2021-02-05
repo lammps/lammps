@@ -493,6 +493,6 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
 
 double PairPeriPMB::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

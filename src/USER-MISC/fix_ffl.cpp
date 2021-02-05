@@ -455,7 +455,7 @@ void FixFFL::reset_dt() {
 ------------------------------------------------------------------------- */
 
 double FixFFL::memory_usage() {
-  double bytes = atom->nmax*(3*2)*sizeof(double);
+  double bytes = (double)atom->nmax*(3*2)*sizeof(double);
   return bytes;
 }
 

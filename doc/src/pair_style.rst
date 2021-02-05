@@ -159,6 +159,7 @@ accelerated styles exist.
 * :doc:`eam/cd <pair_eam>` - concentration-dependent EAM
 * :doc:`eam/cd/old <pair_eam>` - older two-site model for concentration-dependent EAM
 * :doc:`eam/fs <pair_eam>` - Finnis-Sinclair EAM
+* :doc:`eam/he <pair_eam>` - Finnis-Sinclair EAM modified for Helium in metals
 * :doc:`edip <pair_edip>` - three-body EDIP potential
 * :doc:`edip/multi <pair_edip>` - multi-element EDIP potential
 * :doc:`edpd <pair_mesodpd>` - eDPD particle interactions
@@ -326,6 +327,7 @@ accelerated styles exist.
 * :doc:`ufm <pair_ufm>` -
 * :doc:`vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential
 * :doc:`vashishta/table <pair_vashishta>` -
+* :doc:`wf/cut <pair_wf_cut>` - Wang-Frenkel Potential for short-ranged interactions
 * :doc:`yukawa <pair_yukawa>` - Yukawa potential
 * :doc:`yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
 * :doc:`zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential

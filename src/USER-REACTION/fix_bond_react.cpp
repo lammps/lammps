@@ -596,6 +596,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(create_atoms);
   memory->destroy(chiral_atoms);
 
+  memory->destroy(rxn_name);
   memory->destroy(nevery);
   memory->destroy(cutsq);
   memory->destroy(unreacted_mol);
@@ -613,7 +614,7 @@ FixBondReact::~FixBondReact()
   memory->destroy(molecule_keyword);
   memory->destroy(constraints);
   memory->destroy(nconstraints);
-  // need to delete rxn_name and constraintstr
+  memory->destroy(constraintstr);
   memory->destroy(create_atoms_flag);
   memory->destroy(modify_create_fragid);
   memory->destroy(overlapsq);

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Tine Curk (curk@northwestern.edu) and Jiaxing Yuan (yuanjiaxing123@hotmail.com)
+   Contributing author: Tine Curk (tcurk5@gmail.com) and Jiaxing Yuan (yuanjiaxing123@hotmail.com)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS

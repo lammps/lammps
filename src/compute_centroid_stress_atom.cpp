@@ -464,6 +464,6 @@ void ComputeCentroidStressAtom::unpack_reverse_comm(int n, int *list, double *bu
 
 double ComputeCentroidStressAtom::memory_usage()
 {
-  double bytes = nmax*9 * sizeof(double);
+  double bytes = (double)nmax*9 * sizeof(double);
   return bytes;
 }

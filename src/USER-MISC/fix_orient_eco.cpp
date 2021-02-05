@@ -474,7 +474,7 @@ void FixOrientECO::unpack_forward_comm(int n, int first, double *buf) {
  ------------------------------------------------------------------------- */
 
 double FixOrientECO::memory_usage() {
-  double bytes = nmax * sizeof(Nbr);
+  double bytes = (double)nmax * sizeof(Nbr);
   bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }

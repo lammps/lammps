@@ -3057,7 +3057,7 @@ int PPPM::timing_3d(int n, double &time3d)
 
 double PPPM::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
 
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);

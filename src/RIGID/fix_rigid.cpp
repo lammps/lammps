@@ -2452,7 +2452,7 @@ void FixRigid::write_restart_file(const char *file)
 double FixRigid::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   bytes += (double)nmax * sizeof(imageint);
   bytes += (double)nmax*3 * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);    // vatom

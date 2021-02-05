@@ -2873,7 +2873,7 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
 template<class DeviceType>
 double PPPMKokkos<DeviceType>::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   bytes += (double)4 * nbrick * sizeof(FFT_SCALAR);

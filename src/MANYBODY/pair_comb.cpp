@@ -2098,7 +2098,7 @@ void PairComb::Short_neigh()
 
 double PairComb::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)nmax * sizeof(int);
   bytes += (double)nmax * sizeof(int *);

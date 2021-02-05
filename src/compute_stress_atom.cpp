@@ -382,6 +382,6 @@ void ComputeStressAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeStressAtom::memory_usage()
 {
-  double bytes = nmax*6 * sizeof(double);
+  double bytes = (double)nmax*6 * sizeof(double);
   return bytes;
 }

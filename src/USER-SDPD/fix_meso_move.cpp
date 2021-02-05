@@ -799,7 +799,7 @@ void FixMesoMove::final_integrate () {
 ------------------------------------------------------------------------- */
 
 double FixMesoMove::memory_usage () {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   if (displaceflag) bytes += (double)atom->nmax*3 * sizeof(double);
   if (velocityflag) bytes += (double)atom->nmax*3 * sizeof(double);
   return bytes;

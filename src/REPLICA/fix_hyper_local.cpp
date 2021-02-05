@@ -1731,7 +1731,7 @@ double FixHyperLocal::query(int i)
 
 double FixHyperLocal::memory_usage()
 {
-  double bytes = maxbond * sizeof(OneBond);       // blist
+  double bytes = (double)maxbond * sizeof(OneBond);       // blist
   bytes = maxbond * sizeof(double);               // per-bond bias coeffs
   bytes += (double)3*maxlocal * sizeof(int);              // numbond,maxhalf,eligible
   bytes += (double)maxlocal * sizeof(double);             // maxhalfstrain

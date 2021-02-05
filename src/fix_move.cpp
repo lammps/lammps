@@ -964,7 +964,7 @@ void FixMove::final_integrate_respa(int ilevel, int /*iloop*/)
 
 double FixMove::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   if (theta_flag) bytes += (double)atom->nmax * sizeof(double);
   if (quat_flag) bytes += (double)atom->nmax*4 * sizeof(double);
   if (displaceflag) bytes += (double)atom->nmax*3 * sizeof(double);

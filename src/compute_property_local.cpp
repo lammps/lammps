@@ -650,7 +650,7 @@ void ComputePropertyLocal::reallocate(int n)
 
 double ComputePropertyLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   bytes += (double)nmax*2 * sizeof(int);
   return bytes;
 }

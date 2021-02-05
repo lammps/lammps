@@ -1131,7 +1131,7 @@ bigint FixAveChunk::nextvalid()
 
 double FixAveChunk::memory_usage()
 {
-  double bytes = maxvar * sizeof(double);         // varatom
+  double bytes = (double)maxvar * sizeof(double);         // varatom
   bytes += (double)4*maxchunk * sizeof(double);           // count one,many,sum,total
   bytes += (double)nvalues*maxchunk * sizeof(double);     // values one,many,sum,total
   bytes += (double)nwindow*maxchunk * sizeof(double);          // count_list

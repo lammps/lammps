@@ -406,7 +406,7 @@ void ComputeSNADAtom::unpack_reverse_comm(int n, int *list, double *buf)
 double ComputeSNADAtom::memory_usage()
 {
 
-  double bytes = nmax*size_peratom_cols * sizeof(double); // snad
+  double bytes = (double)nmax*size_peratom_cols * sizeof(double); // snad
   bytes += snaptr->memory_usage();                        // SNA object
 
   return bytes;

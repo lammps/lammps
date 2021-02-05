@@ -211,7 +211,7 @@ void MyPoolChunk<T>::allocate(int ibin) {
 
 template <class T>
 double MyPoolChunk<T>::size() const {
-  double bytes = npage*chunkperpage*sizeof(int);
+  double bytes = (double)npage*chunkperpage*sizeof(int);
   bytes += (double)npage*sizeof(T *);
   bytes += (double)npage*sizeof(int);
   for (int i=0; i < npage; ++i)

@@ -354,7 +354,7 @@ void DihedralHybrid::read_restart(FILE *fp)
 
 double DihedralHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)maxcvatom*9 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += (double)maxdihedral[m]*5 * sizeof(int);

@@ -3850,7 +3850,7 @@ void PairComb3::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairComb3::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)nmax * sizeof(int);
   bytes += (double)nmax * 8.0 * sizeof(double);

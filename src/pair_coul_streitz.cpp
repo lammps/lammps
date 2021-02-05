@@ -736,7 +736,7 @@ void PairCoulStreitz::ewald_sum(double qi, double qj, double zj, double r,
 
 double PairCoulStreitz::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)nmax * sizeof(int);
   bytes += (double)MAXNEIGH * nmax * sizeof(int);

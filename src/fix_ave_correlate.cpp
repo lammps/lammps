@@ -74,7 +74,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   int iarg = 0;
   while (iarg < nargnew) {
     ArgInfo argi(arg[iarg]);
-    
+
     if (argi.get_type() == ArgInfo::NONE) break;
     if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
       error->all(FLERR,"Invalid fix ave/correlate command");

@@ -56,8 +56,8 @@ namespace LAMMPS_NS {
 
   private:
     int exclusion_group, exclusion_group_bit;
-    int ngcmc_type, nevery, seed;
-    int nmc;                  // mc moves per cycle
+    int nevery, seed;         // begin MC cycle every nevery MD timesteps, random seed
+    int nmc;                  // MC move attempts per cycle
     double llength_unit_in_nm ; // LAMMPS unit of length in nm, needed since chemical potentials are in units of mol/l
     double pH, pKa, pKb, pKs, pI_plus, pI_minus; // chemical potentials
     double pmcmoves[3];       // mc move attempt probability: acid, base, ion pair exchange

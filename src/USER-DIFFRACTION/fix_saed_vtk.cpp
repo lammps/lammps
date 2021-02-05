@@ -386,15 +386,12 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
     if (nOutput > 0) {
       fclose(fp);
 
-      char nName [128];
-      snprintf(nName,128,"%s.%d.vtk",filename,nOutput);
-      fp = fopen(nName,"w");
+      std::string nName = fmt::format("{}.{}.vtk",filename,nOutput);
+      fp = fopen(nName.c_str(),"w");
 
-      if (fp == nullptr) {
-        char str[128];
-        snprintf(str,128,"Cannot open fix saed/vtk file %s",nName);
-        error->one(FLERR,str);
-      }
+      if (fp == nullptr)
+        error->one(FLERR,fmt::format("Cannot open fix saed/vtk file {}: {}",
+                                     nName,utils::getsyserror()));
     }
 
     fprintf(fp,"# vtk DataFile Version 3.0 c_%s\n",ids);
@@ -508,20 +505,15 @@ void FixSAEDVTK::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
       if (comm->me == 0) {
 
-         nOutput = 0;
-         int n = strlen(arg[iarg+1]) + 1;
-         filename = new char[n];
-         strcpy(filename,arg[iarg+1]);
+        nOutput = 0;
+        filename = utils::strdup(arg[iarg+1]);
 
-         char nName [128];
-         snprintf(nName,128,"%s.%d.vtk",filename,nOutput);
-         fp = fopen(nName,"w");
+        std::string nName = fmt::format("{}.{}.vtk",filename,nOutput);
+        fp = fopen(nName.c_str(),"w");
 
-        if (fp == nullptr) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix saed/vtk file %s",nName);
-          error->one(FLERR,str);
-        }
+        if (fp == nullptr)
+          error->one(FLERR,fmt::format("Cannot open fix saed/vtk file {}: {}",
+                                       nName,utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {

@@ -375,10 +375,10 @@ double FixQTB::memory_usage()
 {
   double bytes = 0.0;
   // random_arrays memory usage
-  bytes += (atom->nmax* 6*N_f * sizeof(double));
+  bytes += (double)(atom->nmax* 6*N_f * sizeof(double));
   // fran memory usage
-  bytes += (atom->nmax* 3 * sizeof(double));
-  bytes += (4*N_f * sizeof(double));
+  bytes += (double)(atom->nmax* 3 * sizeof(double));
+  bytes += (double)(4*N_f * sizeof(double));
   return bytes;
 }
 

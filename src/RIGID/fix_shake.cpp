@@ -2678,11 +2678,11 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 double FixShake::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax*4 * sizeof(int);
-  bytes += nmax*3 * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax*4 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
   return bytes;
 }
 

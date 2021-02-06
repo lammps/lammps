@@ -63,6 +63,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   z2r = nullptr;
   scale = nullptr;
 
+  rhomax = rhomin = 0.0;
+
   frho_spline = nullptr;
   rhor_spline = nullptr;
   z2r_spline = nullptr;
@@ -911,9 +913,9 @@ void PairEAM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairEAM::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }
 

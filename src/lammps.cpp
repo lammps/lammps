@@ -129,13 +129,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   init_pkg_lists();
 
-  // check if -mpi is first arg
+  // check if -mpicolor is first arg
   // if so, then 2 apps were launched with one mpirun command
   //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
   //     e.g. for client/server coupling with another code
   //     in the future LAMMPS might leverage this in other ways
   //   universe communicator needs to shrink to be just LAMMPS
-  // syntax: -mpi color
+  // syntax: -mpicolor color
   //   color = integer for this app, different than other app(s)
   // do the following:
   //   perform an MPI_Comm_split() to create a new LAMMPS-only subcomm
@@ -145,7 +145,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   //   cscomm is used by CSLIB package to exchange messages w/ other app
 
   int iarg = 1;
-  if (narg-iarg >= 2 && (strcmp(arg[iarg],"-mpi") == 0 ||
+  if (narg-iarg >= 2 && (strcmp(arg[iarg],"-mpicolor") == 0 ||
                          strcmp(arg[iarg],"-m") == 0)) {
     int me,nprocs;
     MPI_Comm_rank(communicator,&me);

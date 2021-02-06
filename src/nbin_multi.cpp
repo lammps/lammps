@@ -343,7 +343,7 @@ double NBinMulti::memory_usage()
 {
   double bytes = 0;
   for (int m = 0; m < maxcollections; m++)
-    bytes += maxbins_multi[m]*sizeof(int);
-  bytes += 2*maxatom*sizeof(int);  
+    bytes += (double)maxbins_multi[m]*sizeof(int);
+  bytes += (double)2*maxatom*sizeof(int);  
   return bytes;
 }

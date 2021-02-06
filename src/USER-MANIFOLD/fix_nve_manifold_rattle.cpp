@@ -330,10 +330,10 @@ double FixNVEManifoldRattle::memory_usage()
 {
   double bytes = 0.0;
 
-  bytes += sizeof(statistics);
-  bytes += sizeof(*ptr_m) + sizeof(ptr_m);
-  bytes += nvars*sizeof(double) + sizeof(double*);
-  bytes += nvars*( sizeof(char*) + 3*sizeof(int) );
+  bytes += (double)sizeof(statistics);
+  bytes += (double)sizeof(*ptr_m) + sizeof(ptr_m);
+  bytes += (double)nvars*sizeof(double) + sizeof(double*);
+  bytes += (double)nvars*( sizeof(char*) + 3*sizeof(int) );
   return bytes;
 }
 

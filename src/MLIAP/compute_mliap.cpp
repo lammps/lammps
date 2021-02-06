@@ -357,12 +357,12 @@ void ComputeMLIAP::compute_array()
 double ComputeMLIAP::memory_usage()
 {
 
-  double bytes = size_array_rows*size_array_cols *
+  double bytes = (double)size_array_rows*size_array_cols *
     sizeof(double);                                   // mliaparray
-  bytes += size_array_rows*size_array_cols *
+  bytes += (double)size_array_rows*size_array_cols *
     sizeof(double);                                   // mliaparrayall
   int n = atom->ntypes+1;
-  bytes += n*sizeof(int);                             // map
+  bytes += (double)n*sizeof(int);                             // map
 
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object

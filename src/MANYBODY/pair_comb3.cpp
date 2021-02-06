@@ -25,6 +25,7 @@
 #include "force.h"
 #include "group.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -39,6 +40,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 
 #define DELTA 4
 #define PGDELTA 1
@@ -800,7 +802,7 @@ void PairComb3::Short_neigh()
       delrj[0] = x[i][0] - x[j][0];
       delrj[1] = x[i][1] - x[j][1];
       delrj[2] = x[i][2] - x[j][2];
-      rsq1 = vec3_dot(delrj,delrj);
+      rsq1 = dot3(delrj,delrj);
       jtype = map[type[j]];
       iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -924,7 +926,7 @@ void PairComb3::compute(int eflag, int vflag)
         delrj[0] = x[j][0] - xtmp;
         delrj[1] = x[j][1] - ytmp;
         delrj[2] = x[j][2] - ztmp;
-        rsq = vec3_dot(delrj,delrj);
+        rsq = dot3(delrj,delrj);
 
         iparam_ij = elem2param[itype][jtype][jtype];
         iparam_ji = elem2param[jtype][itype][itype];
@@ -1095,7 +1097,7 @@ void PairComb3::compute(int eflag, int vflag)
       delrj[0] = x[j][0] - xtmp;
       delrj[1] = x[j][1] - ytmp;
       delrj[2] = x[j][2] - ztmp;
-      rsq1 = vec3_dot(delrj,delrj);
+      rsq1 = dot3(delrj,delrj);
       if (rsq1 > params[iparam_ij].cutsq) continue;
       nj ++;
 
@@ -1119,7 +1121,7 @@ void PairComb3::compute(int eflag, int vflag)
         delrk[0] = x[k][0] - xtmp;
         delrk[1] = x[k][1] - ytmp;
         delrk[2] = x[k][2] - ztmp;
-        rsq2 = vec3_dot(delrk,delrk);
+        rsq2 = dot3(delrk,delrk);
 
         if (rsq2 > params[iparam_ik].cutsq) continue;
 
@@ -1140,7 +1142,7 @@ void PairComb3::compute(int eflag, int vflag)
         // torsion: i-j-k-l: apply to all C-C bonds
 
         if (params[iparam_ij].tor_flag != 0) {
-          srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
+          srmu = dot3(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
           if (srmu > 0.1) {
@@ -1154,7 +1156,7 @@ void PairComb3::compute(int eflag, int vflag)
               delrl[0] = x[l][0] - x[j][0];
               delrl[1] = x[l][1] - x[j][1];
               delrl[2] = x[l][2] - x[j][2];
-              rsq3 = vec3_dot(delrl,delrl);
+              rsq3 = dot3(delrl,delrl);
               iparam_jl = elem2param[jtype][ltype][ltype];
 
               if (rsq3 > params[iparam_jl].cutsq) continue;
@@ -1184,16 +1186,16 @@ void PairComb3::compute(int eflag, int vflag)
         delrk[0] = x[l][0] - x[j][0];
         delrk[1] = x[l][1] - x[j][1];
         delrk[2] = x[l][2] - x[j][2];
-        rsq2 = vec3_dot(delrk,delrk);
+        rsq2 = dot3(delrk,delrk);
 
         delrl[0] = x[l][0] - x[j][0];
         delrl[1] = x[l][1] - x[j][1];
         delrl[2] = x[l][2] - x[j][2];
-        rsq2 = vec3_dot(delrl,delrl);
+        rsq2 = dot3(delrl,delrl);
 
         if (rsq2 > params[iparam_jl].cutsq) continue;
 
-        vec3_scale(-1,delrj,delrl);     // ji_hat is -(ij_hat)
+        scale3(-1,delrj,delrl);     // ji_hat is -(ij_hat)
 
         zeta_ji += zeta(&params[iparam_jil], &params[iparam_jl]
                         , rsq1, rsq2, delrl, delrk, j, ycn);
@@ -1245,7 +1247,7 @@ void PairComb3::compute(int eflag, int vflag)
         delrk[0] = x[k][0] - xtmp;
         delrk[1] = x[k][1] - ytmp;
         delrk[2] = x[k][2] - ztmp;
-        rsq2 = vec3_dot(delrk,delrk);
+        rsq2 = dot3(delrk,delrk);
         if (rsq2 > params[iparam_ik].cutsq) continue;
 
         // BO-dependent 3-body E & F
@@ -1272,7 +1274,7 @@ void PairComb3::compute(int eflag, int vflag)
 
         // torsion and radical: apply to all C-C bonds
         if (params[iparam_ijk].tor_flag != 0 && fabs(ptorr)>1.0e-8) {
-          srmu = vec3_dot(delrj,delrk)/(sqrt(rsq1*rsq2));
+          srmu = dot3(delrj,delrk)/(sqrt(rsq1*rsq2));
           srmu = sqrt(1.0-srmu*srmu);
 
           if (srmu > 0.1) {
@@ -1285,7 +1287,7 @@ void PairComb3::compute(int eflag, int vflag)
               delrl[0] = x[l][0] - x[j][0];
               delrl[1] = x[l][1] - x[j][1];
               delrl[2] = x[l][2] - x[j][2];
-              rsq3 = vec3_dot(delrl,delrl);
+              rsq3 = dot3(delrl,delrl);
 
               iparam_jl = elem2param[jtype][ltype][ltype];
               if (rsq3 > params[iparam_jl].cutsq) continue;
@@ -1329,7 +1331,7 @@ void PairComb3::compute(int eflag, int vflag)
               delrm[0] = x[m][0] - x[k][0];
               delrm[1] = x[m][1] - x[k][1];
               delrm[2] = x[m][2] - x[k][2];
-              rsq3 = vec3_dot(delrm,delrm);
+              rsq3 = dot3(delrm,delrm);
 
               iparam_km = elem2param[ktype][mtype][mtype];
               iparam_ki = elem2param[ktype][itype][itype];
@@ -1370,9 +1372,9 @@ void PairComb3::compute(int eflag, int vflag)
         delrk[1] = x[l][1] - x[j][1];
         delrk[2] = x[l][2] - x[j][2];
 
-        rsq2 = vec3_dot(delrk,delrk);
+        rsq2 = dot3(delrk,delrk);
         if (rsq2 > params[iparam_jl].cutsq) continue;
-        vec3_scale(-1,delrj,delrl);
+        scale3(-1,delrj,delrl);
 
         attractive(&params[iparam_jil],&params[iparam_ijl],&params[iparam_jli],
                 prefac_ji1,prefac_ji2,prefac_ji3,prefac_ji4,prefac_ji5,
@@ -1424,15 +1426,15 @@ void PairComb3::compute(int eflag, int vflag)
                 delrp[0] = x[p][0] - x[l][0];
                 delrp[1] = x[p][1] - x[l][1];
                 delrp[2] = x[p][2] - x[l][2];
-                rsq3 = vec3_dot(delrp,delrp);
+                rsq3 = dot3(delrp,delrp);
 
                 iparam_lp = elem2param[ltype][ptype][ptype];
 
                 if (rsq3 > params[iparam_lp].cutsq) continue;
 
-                vec3_scale(-1,delrj,delrj);
+                scale3(-1,delrj);
                 rad_force(&params[iparam_lp],rsq3,delrp,radtmp);
-                vec3_scale(-1,delrj,delrj);
+                scale3(-1,delrj);
                 for (im = 0; im < 3; im++) {
                   f[l][im] += fj_rad[im];
                   f[p][im] += fk_rad[im];
@@ -1506,7 +1508,7 @@ double PairComb3::zeta(Param *parami, Param *paramj, double rsqij,
   rij = sqrt(rsqij);
   if (rij > parami->bigr+parami->bigd) return 0.0;
   rik = sqrt(rsqik);
-  costheta = vec3_dot(delrij,delrik) / (rij*rik);
+  costheta = dot3(delrij,delrik) / (rij*rik);
 
   rlm3 = parami->beta;
   arg = pow(rlm3*(rij-rik),int(parami->powermint));
@@ -1557,7 +1559,7 @@ double PairComb3::ep6p(Param *paramj, Param *paramk, double rsqij, double rsqik,
     comtt=0.0;
     rij = sqrt(rsqij);
     rik = sqrt(rsqik);
-    costheta = vec3_dot(delrij,delrik) / (rij*rik);
+    costheta = dot3(delrij,delrik) / (rij*rik);
     fcj = comb_fc(rij,paramj);
     fck = comb_fc(rik,paramk);
 
@@ -1595,7 +1597,7 @@ void PairComb3::fp6p(Param *paramij,Param *paramik, double rsqij, double rsqik,
     ffk1 = 0.0, ffk2 = 0.0;
 
     rij = sqrt(rsqij); rik = sqrt(rsqik);
-    costheta = vec3_dot(delrij,delrik) / (rij*rik);
+    costheta = dot3(delrij,delrik) / (rij*rik);
     fcj = comb_fc(rij,paramij);
     fck = comb_fc(rik,paramik);
     fcj_d = comb_fc_d(rij,paramij);
@@ -1630,16 +1632,16 @@ void PairComb3::fp6p(Param *paramij,Param *paramik, double rsqij, double rsqik,
       ffk2 = 0.5*(-com4k/rik+com5*rmu/rsqik);
 
   // j-atom
-  vec3_scale(ffj1,delrik,drjlp);
-  vec3_scaleadd(ffj2,delrij,drjlp,drjlp);
+  scale3(ffj1,delrik,drjlp);
+  scaleadd3(ffj2,delrij,drjlp,drjlp);
 
   // k-atom
-  vec3_scale(ffk1,delrij,drklp);
-  vec3_scaleadd(ffk2,delrik,drklp,drklp);
+  scale3(ffk1,delrij,drklp);
+  scaleadd3(ffk2,delrik,drklp,drklp);
 
   // i-atom
-  vec3_add(drjlp,drklp,drilp);
-  vec3_scale(-1.0,drilp,drilp);
+  add3(drjlp,drklp,drilp);
+  scale3(-1.0,drilp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2146,11 +2148,11 @@ void PairComb3::attractive(Param *parami, Param *paramj , Param *paramk, double 
 
   rij = sqrt(rsqij);
   rijinv = 1.0/rij;
-  vec3_scale(rijinv,delrij,rij_hat);
+  scale3(rijinv,delrij,rij_hat);
 
   rik = sqrt(rsqik);
   rikinv = 1.0/rik;
-  vec3_scale(rikinv,delrik,rik_hat);
+  scale3(rikinv,delrik,rik_hat);
 
   comb_zetaterm_d(prefac_ij1, prefac_ij2, prefac_ij3, prefac_ij4, prefac_ij5,
         rij_hat, rij,rik_hat, rik, fi, fj, fk, parami, paramj, paramk,xcn);
@@ -2185,7 +2187,7 @@ void PairComb3::comb_zetaterm_d(double prefac_ij1, double prefac_ij2,
   else ex_delr = exp(tmp);
   ex_delr *= pcrossi;
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
   gijk = comb_gijk(cos_theta,parami,xcn);
   comb_gijk_d(cos_theta,parami,xcn,gijk_d,com3jk);
   costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
@@ -2210,26 +2212,26 @@ void PairComb3::comb_zetaterm_d(double prefac_ij1, double prefac_ij2,
   }
 
   ex_delr_d = mint*pow(rlm3,mint)*pow((rij-rik),(mint-1))*ex_delr; // com3
-  vec3_scale(-dfc_k*gijk*ex_delr,rik_hat,dri);          // com1
-  vec3_scaleadd(fc_k*gijk_d*ex_delr,dcosdri,dri,dri);   // com2
-  vec3_scaleadd(fc_k*gijk*ex_delr_d,rik_hat,dri,dri);   // com3 cont'd
-  vec3_scaleadd(-fc_k*gijk*ex_delr_d,rij_hat,dri,dri);  // com3 sums j
-  vec3_scaleadd(-com3k,rik_hat,dri,dri);                // com3k
-  vec3_scaleadd(-com3j,rij_hat,dri,dri);                // com3j
-  vec3_scale(prefac_ij1,dri,dri);
-  vec3_scaleadd(-com6,rik_hat,dri,dri);                 // com6
+  scale3(-dfc_k*gijk*ex_delr,rik_hat,dri);          // com1
+  scaleadd3(fc_k*gijk_d*ex_delr,dcosdri,dri,dri);   // com2
+  scaleadd3(fc_k*gijk*ex_delr_d,rik_hat,dri,dri);   // com3 cont'd
+  scaleadd3(-fc_k*gijk*ex_delr_d,rij_hat,dri,dri);  // com3 sums j
+  scaleadd3(-com3k,rik_hat,dri,dri);                // com3k
+  scaleadd3(-com3j,rij_hat,dri,dri);                // com3j
+  scale3(prefac_ij1,dri);
+  scaleadd3(-com6,rik_hat,dri,dri);                 // com6
 
-  vec3_scale(fc_k*gijk_d*ex_delr,dcosdrj,drj);          // com2
-  vec3_scaleadd(fc_k*gijk*ex_delr_d,rij_hat,drj,drj);   // com3 cont'd
-  vec3_scaleadd(com3j,rij_hat,drj,drj);                 // com3j
-  vec3_scale(prefac_ij1,drj,drj);
+  scale3(fc_k*gijk_d*ex_delr,dcosdrj,drj);          // com2
+  scaleadd3(fc_k*gijk*ex_delr_d,rij_hat,drj,drj);   // com3 cont'd
+  scaleadd3(com3j,rij_hat,drj,drj);                 // com3j
+  scale3(prefac_ij1,drj);
 
-  vec3_scale(dfc_k*gijk*ex_delr,rik_hat,drk);           // com1
-  vec3_scaleadd(fc_k*gijk_d*ex_delr,dcosdrk,drk,drk);   // com2
-  vec3_scaleadd(-fc_k*gijk*ex_delr_d,rik_hat,drk,drk);  // com3 cont'd
-  vec3_scaleadd(com3k,rik_hat,drk,drk);                 // com3k
-  vec3_scale(prefac_ij1,drk,drk);
-  vec3_scaleadd(com6,rik_hat,drk,drk);                  // com6
+  scale3(dfc_k*gijk*ex_delr,rik_hat,drk);           // com1
+  scaleadd3(fc_k*gijk_d*ex_delr,dcosdrk,drk,drk);   // com2
+  scaleadd3(-fc_k*gijk*ex_delr_d,rik_hat,drk,drk);  // com3 cont'd
+  scaleadd3(com3k,rik_hat,drk,drk);                 // com3k
+  scale3(prefac_ij1,drk);
+  scaleadd3(com6,rik_hat,drk,drk);                  // com6
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2237,14 +2239,14 @@ void PairComb3::comb_zetaterm_d(double prefac_ij1, double prefac_ij2,
 void PairComb3::costheta_d(double *rij_hat, double rij, double *rik_hat,
         double rik, double *dri, double *drj, double *drk)
 {
-  double cos_theta = vec3_dot(rij_hat,rik_hat);
+  double cos_theta = dot3(rij_hat,rik_hat);
 
-  vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
-  vec3_scale(1.0/rij,drj,drj);
-  vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
-  vec3_scale(1.0/rik,drk,drk);
-  vec3_add(drj,drk,dri);
-  vec3_scale(-1.0,dri,dri);
+  scaleadd3(-cos_theta,rij_hat,rik_hat,drj);
+  scale3(1.0/rij,drj);
+  scaleadd3(-cos_theta,rik_hat,rij_hat,drk);
+  scale3(1.0/rik,drk);
+  add3(drj,drk,dri);
+  scale3(-1.0,dri);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2928,9 +2930,9 @@ double PairComb3::bbtor1(int torindx, Param *paramk, Param *paraml,
   rik = sqrt(rsq2);
   rjl = sqrt(rsq3);
 
-  vec3_scale(-1.0,delrl,delrl);
-  rmul = vec3_dot(delrj,delrl)/(rij*rjl);
-  vec3_scale(-1.0,delrl,delrl);
+  scale3(-1.0,delrl,delrl);
+  rmul = dot3(delrj,delrl)/(rij*rjl);
+  scale3(-1.0,delrl,delrl);
   rmul = sqrt(1.0-rmul*rmul);
 
   if (rmul > 0.1) {
@@ -2946,7 +2948,7 @@ double PairComb3::bbtor1(int torindx, Param *paramk, Param *paraml,
     torl[1] = delrj[2]*delrl[0] - delrj[0]*delrl[2];
     tork[2] = delrk[0]*delrj[1] - delrk[1]*delrj[0];
     torl[2] = delrj[0]*delrl[1] - delrj[1]*delrl[0];
-    TT2 = vec3_dot(tork,torl);
+    TT2 = dot3(tork,torl);
     rmut = pow((TT2/TT1),2);
     if (torindx>=1) {
       btt = 1.0 - rmut;
@@ -3058,10 +3060,10 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
   rik = sqrt(rsq2);
   rjl = sqrt(rsq3);
 
-  rmu = vec3_dot(delrj,delrk)/(rij*rik);
-  vec3_scale(-1.0,delrl,delrl);
-  rmul = vec3_dot(delrj,delrl)/(rij*rjl);
-  vec3_scale(-1.0,delrl,delrl);
+  rmu = dot3(delrj,delrk)/(rij*rik);
+  scale3(-1.0,delrl,delrl);
+  rmul = dot3(delrj,delrl)/(rij*rjl);
+  scale3(-1.0,delrl,delrl);
   srmul = sqrt(1.0-rmul*rmul);
   if (acos(rmul) > MY_PI) srmul = -srmul;
 
@@ -3087,7 +3089,7 @@ void PairComb3::tor_force(int torindx, Param *paramk, Param *paraml,
     torl[1] = delrj[2]*delrl[0] - delrj[0]*delrl[2];
     tork[2] = delrk[0]*delrj[1] - delrk[1]*delrj[0];
     torl[2] = delrj[0]*delrl[1] - delrj[1]*delrl[0];
-    TT2 = vec3_dot(tork,torl);
+    TT2 = dot3(tork,torl);
 
     dt2dik[0] = -delrj[1]*torl[2] + delrj[2]*torl[1];
     dt2dik[1] = -delrj[2]*torl[0] + delrj[0]*torl[2];
@@ -3253,7 +3255,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
         delrj[0] = xtmp - x[j][0];
         delrj[1] = ytmp - x[j][1];
         delrj[2] = ztmp - x[j][2];
-        rsq1 = vec3_dot(delrj,delrj);
+        rsq1 = dot3(delrj,delrj);
 
         iparam_ij = elem2param[itype][jtype][jtype];
         iparam_ji = elem2param[jtype][itype][itype];
@@ -3300,7 +3302,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
         delrj[0] = xtmp - x[j][0];
         delrj[1] = ytmp - x[j][1];
         delrj[2] = ztmp - x[j][2];
-        rsq1 = vec3_dot(delrj,delrj);
+        rsq1 = dot3(delrj,delrj);
 
         iparam_ij = elem2param[itype][jtype][jtype];
         iparam_ji = elem2param[jtype][itype][itype];
@@ -3848,11 +3850,11 @@ void PairComb3::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairComb3::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += nmax * 8.0 * sizeof(double);
-  bytes += 25000*2*sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)nmax * 8.0 * sizeof(double);
+  bytes += (double)25000*2*sizeof(double);
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();

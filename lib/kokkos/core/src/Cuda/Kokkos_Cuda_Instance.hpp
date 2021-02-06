@@ -34,7 +34,9 @@ struct CudaTraits {
   enum : CudaSpace::size_type {
     KernelArgumentLimit = 0x001000 /*  4k bytes */
   };
-
+  enum : CudaSpace::size_type {
+    MaxHierarchicalParallelism = 1024 /* team_size * vector_length */
+  };
   using ConstantGlobalBufferType =
       unsigned long[ConstantMemoryUsage / sizeof(unsigned long)];
 

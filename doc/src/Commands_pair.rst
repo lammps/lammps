@@ -96,6 +96,7 @@ OPT.
    * :doc:`eam/cd <pair_eam>`
    * :doc:`eam/cd/old <pair_eam>`
    * :doc:`eam/fs (gikot) <pair_eam>`
+   * :doc:`eam/he <pair_eam>`
    * :doc:`edip (o) <pair_edip>`
    * :doc:`edip/multi <pair_edip>`
    * :doc:`edpd <pair_mesodpd>`
@@ -262,6 +263,7 @@ OPT.
    * :doc:`ufm (got) <pair_ufm>`
    * :doc:`vashishta (gko) <pair_vashishta>`
    * :doc:`vashishta/table (o) <pair_vashishta>`
+   * :doc:`wf/cut <pair_wf_cut>`
    * :doc:`yukawa (gko) <pair_yukawa>`
    * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`

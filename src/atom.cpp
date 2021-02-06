@@ -2700,12 +2700,12 @@ double Atom::memory_usage()
 {
   double bytes = avec->memory_usage();
 
-  bytes += max_same*sizeof(int);
+  bytes += (double)max_same*sizeof(int);
   if (map_style == MAP_ARRAY)
     bytes += memory->usage(map_array,map_maxarray);
   else if (map_style == MAP_HASH) {
-    bytes += map_nbucket*sizeof(int);
-    bytes += map_nhash*sizeof(HashElem);
+    bytes += (double)map_nbucket*sizeof(int);
+    bytes += (double)map_nhash*sizeof(HashElem);
   }
   if (maxnext) {
     bytes += memory->usage(next,maxnext);

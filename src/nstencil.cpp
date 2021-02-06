@@ -429,13 +429,13 @@ double NStencil::memory_usage()
     bytes += memory->usage(stencil,maxstencil);
     bytes += memory->usage(stencilxyz,maxstencil,3);
   } else if (neighstyle == Neighbor::MULTI_OLD) {
-    bytes += atom->ntypes*maxstencil_multi_old * sizeof(int);
-    bytes += atom->ntypes*maxstencil_multi_old * sizeof(double);
+    bytes += (double)atom->ntypes*maxstencil_multi_old * sizeof(int);
+    bytes += (double)atom->ntypes*maxstencil_multi_old * sizeof(double);
   } else if (neighstyle == Neighbor::MULTI) {
     int n = ncollections;
     for (int i = 0; i < n; i++) {
       for (int j = 0; j < n; j++) {
-        bytes += maxstencil_multi[i][j] * sizeof(int);
+        bytes += (double)maxstencil_multi[i][j] * sizeof(int);
       }
     }
   }

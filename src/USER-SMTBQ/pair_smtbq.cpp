@@ -40,23 +40,24 @@
 
 #include "pair_smtbq.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <algorithm>
-#include <vector>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
+
+#include <algorithm>
+#include <vector>
 #include <fstream>
 #include <iomanip>
 
@@ -64,6 +65,7 @@ using namespace std;
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 using namespace MathSpecial;
 
 #define MAXLINE 2048
@@ -2966,7 +2968,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
           delr[0] = x[j][0] - xtmp;
           delr[1] = x[j][1] - ytmp;
           delr[2] = x[j][2] - ztmp;
-          rsq = vec3_dot(delr,delr);
+          rsq = dot3(delr,delr);
 
           if (sqrt(rsq) <= intparams[m].dc2) {
             flag_QEq[i] = 1; flag_QEq[j] = 1;
@@ -3065,7 +3067,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
             delr[0] = x[j][0] - xtmp;
             delr[1] = x[j][1] - ytmp;
             delr[2] = x[j][2] - ztmp;
-            rsq = vec3_dot(delr,delr);
+            rsq = dot3(delr,delr);
 
             //     -------------------------------------
             if (sqrt(rsq) <= cutmax) {
@@ -3160,7 +3162,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
           delr[0] = x[j][0] - xtmp;
           delr[1] = x[j][1] - ytmp;
           delr[2] = x[j][2] - ztmp;
-          rsq = vec3_dot(delr,delr);
+          rsq = dot3(delr,delr);
 
           //    ----------------------------------------
           if (sqrt(rsq) <= cutmax) {
@@ -3522,10 +3524,10 @@ void PairSMTBQ::reverse_int(int *tab)
 
 double PairSMTBQ::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH * nmax * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)MAXNEIGH * nmax * sizeof(int);
   return bytes;
 }
 

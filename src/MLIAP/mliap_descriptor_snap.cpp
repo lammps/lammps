@@ -515,10 +515,10 @@ double MLIAPDescriptorSNAP::memory_usage()
 {
   double bytes = 0;
 
-  bytes += nelements*sizeof(double);            // radelem
-  bytes += nelements*sizeof(double);            // welem
-  bytes += nelements*nelements*sizeof(int);     // cutsq
-  bytes += snaptr->memory_usage();              // SNA object
+  bytes += (double)nelements*sizeof(double);            // radelem
+  bytes += (double)nelements*sizeof(double);            // welem
+  bytes += (double)nelements*nelements*sizeof(int);     // cutsq
+  bytes += snaptr->memory_usage();                      // SNA object
 
   return bytes;
 }

@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "group.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -28,6 +29,7 @@
 #include <omp.h>
 #endif
 using namespace LAMMPS_NS;
+using MathExtra::dot3;
 
 #define MAXNEIGH 24
 
@@ -246,7 +248,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
           delr1[0] = x[j][0] - xtmp;
           delr1[1] = x[j][1] - ytmp;
           delr1[2] = x[j][2] - ztmp;
-          rsq1 = vec3_dot(delr1,delr1);
+          rsq1 = dot3(delr1,delr1);
 
           if (rsq1 > params[iparam_ij].cutsq) continue;
           ++numcoor;
@@ -271,7 +273,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
-      rsq1 = vec3_dot(delr1,delr1);
+      rsq1 = dot3(delr1,delr1);
 
       if (rsq1 > params[iparam_ij].cutsq) continue;
       nj ++;
@@ -291,7 +293,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
-        rsq2 = vec3_dot(delr2,delr2);
+        rsq2 = dot3(delr2,delr2);
 
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
@@ -335,7 +337,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
         delr2[2] = x[k][2] - ztmp;
-        rsq2 = vec3_dot(delr2,delr2);
+        rsq2 = dot3(delr2,delr2);
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
         for (rsc = 0; rsc < 3; rsc++)
@@ -463,7 +465,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
         delr1[0] = x[j][0] - xtmp;
         delr1[1] = x[j][1] - ytmp;
         delr1[2] = x[j][2] - ztmp;
-        double rsq1 = vec3_dot(delr1,delr1);
+        double rsq1 = dot3(delr1,delr1);
 
         const int iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -501,7 +503,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
         delr1[0] = x[j][0] - xtmp;
         delr1[1] = x[j][1] - ytmp;
         delr1[2] = x[j][2] - ztmp;
-        double rsq1 = vec3_dot(delr1,delr1);
+        double rsq1 = dot3(delr1,delr1);
 
         const int iparam_ij = elem2param[itype][jtype][jtype];
 
@@ -618,7 +620,7 @@ void PairCombOMP::Short_neigh_thr()
         delrj[0] = xtmp - x[j][0];
         delrj[1] = ytmp - x[j][1];
         delrj[2] = ztmp - x[j][2];
-        rsq = vec3_dot(delrj,delrj);
+        rsq = dot3(delrj,delrj);
 
         if (rsq > cutmin) continue;
         neighptrj[nj++] = j;

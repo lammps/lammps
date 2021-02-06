@@ -5339,226 +5339,226 @@ double PairBOP::memory_usage()
   double bytes = 0.0;
 
 // rcut
-  bytes += npairs * sizeof (double);
+  bytes += (double)npairs * sizeof (double);
 // rcut3
-  bytes += npairs * sizeof (double);
+  bytes += (double)npairs * sizeof (double);
 // rcutsq
-  bytes += npairs * sizeof (double);
+  bytes += (double)npairs * sizeof (double);
 // rcutsq3
-  bytes += npairs * sizeof (double);
+  bytes += (double)npairs * sizeof (double);
 // dr
-  bytes += npairs * sizeof (double);
+  bytes += (double)npairs * sizeof (double);
 // rdr
-  bytes += npairs * sizeof (double);
+  bytes += (double)npairs * sizeof (double);
 // dr3
-  bytes += npairs * sizeof (double);
+  bytes += (double)npairs * sizeof (double);
 // rdr3
-  bytes += npairs * sizeof (double);
+  bytes += (double)npairs * sizeof (double);
 // setflag
-  bytes += (n+1) * (n+1) * sizeof (int);
+  bytes += (double)(n+1) * (n+1) * sizeof (int);
 // cutsq
-  bytes += (n+1) * (n+1) * sizeof (double);
+  bytes += (double)(n+1) * (n+1) * sizeof (double);
 // cutghost
-  bytes += (n+1) * (n+1) * sizeof (double);
+  bytes += (double)(n+1) * (n+1) * sizeof (double);
 // cutghost
-  bytes += (n+1) * (n+1) * sizeof (double);
+  bytes += (double)(n+1) * (n+1) * sizeof (double);
 // pBetaS
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaS1
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaS2
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaS3
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaS4
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaS5
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaS6
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pLong
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pLong1
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pLong2
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pLong3
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pLong4
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pLong5
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pLong6
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaP
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaP1
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaP2
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaP3
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaP4
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaP5
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pBetaP6
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pRepul
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pRepul1
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pRepul2
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pRepul3
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pRepul4
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pRepul5
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // pRepul6
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // FsigBO
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // FsigBO1
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // FsigBO2
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // FsigBO3
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // FsigBO4
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // FsigBO5
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // FsigBO6
-  bytes += npairs * nr * sizeof (double);
+  bytes += (double)npairs * nr * sizeof (double);
 // itypeSigBk
-  bytes += neigh_ct* sizeof(int);
+  bytes += (double)neigh_ct* sizeof(int);
 // itypePiBk
-  bytes += neigh_ct* sizeof(int);
+  bytes += (double)neigh_ct* sizeof(int);
 // BOP_index
-    bytes += nall * sizeof(double);
+    bytes += (double)nall * sizeof(double);
 // BOP_total
-    bytes += nall * sizeof(double);
+    bytes += (double)nall * sizeof(double);
   if (otfly==0) {
 // cosAng
-    bytes += cos_total* sizeof(double);
+    bytes += (double)cos_total* sizeof(double);
 // dcAng
-    bytes += cos_total * 3 * 2 * sizeof(double);
+    bytes += (double)cos_total * 3 * 2 * sizeof(double);
 // disij
-    bytes += neigh_total * 3 * sizeof(double);
+    bytes += (double)neigh_total * 3 * sizeof(double);
 // rij
-    bytes += neigh_total * sizeof(double);
+    bytes += (double)neigh_total * sizeof(double);
 // betaS
-    bytes += neigh_total * sizeof(double);
+    bytes += (double)neigh_total * sizeof(double);
 // dBetaS
-    bytes += neigh_total * sizeof(double);
+    bytes += (double)neigh_total * sizeof(double);
 // betaP
-    bytes += neigh_total * sizeof(double);
+    bytes += (double)neigh_total * sizeof(double);
 // dBetaP
-    bytes += neigh_total * sizeof(double);
+    bytes += (double)neigh_total * sizeof(double);
 // repul
-    bytes += neigh_total * sizeof(double);
+    bytes += (double)neigh_total * sizeof(double);
 // dRepul
-    bytes += neigh_total * sizeof(double);
+    bytes += (double)neigh_total * sizeof(double);
 // cos_index
-    bytes += nall * sizeof(double);
+    bytes += (double)nall * sizeof(double);
   }
 // pi_a
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pro
-  bytes += bop_types * sizeof(double);
+  bytes += (double)bop_types * sizeof(double);
 // pi_delta
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_p
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_c
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_r0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_r0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // phi_r0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_rc
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_rc
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_a
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pro_delta
-  bytes += bop_types * sizeof(double);
+  bytes += (double)bop_types * sizeof(double);
 // pi_delta
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_p
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_c
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_r0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_r0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // phi_r0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_rc
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_rc
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // phi_rc
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // r1
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_beta0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_beta0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // phi0
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_n
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_n
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // phi_m
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_nc
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // pi_nc
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // phi_nc
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_delta
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_c
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_a
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_f
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // sigma_k
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // small3
-  bytes += npairs * sizeof(double);
+  bytes += (double)npairs * sizeof(double);
 // bt_pi
-  bytes += maxneigh*(maxneigh/2) *sizeof(B_PI);
+  bytes += (double)maxneigh*(maxneigh/2) *sizeof(B_PI);
 // bt_sigma
-  bytes += maxneigh*(maxneigh/2) *sizeof(B_SG);
+  bytes += (double)maxneigh*(maxneigh/2) *sizeof(B_SG);
   if (npower<=2) {
 // gfunc
-    bytes += bop_types*bop_types*bop_types*ntheta *sizeof(double);
+    bytes += (double)bop_types*bop_types*bop_types*ntheta *sizeof(double);
 // gfunc1
-    bytes += bop_types*bop_types*bop_types*ntheta *sizeof(double);
+    bytes += (double)bop_types*bop_types*bop_types*ntheta *sizeof(double);
 // gfunc2
-    bytes += bop_types*bop_types*bop_types*ntheta *sizeof(double);
+    bytes += (double)bop_types*bop_types*bop_types*ntheta *sizeof(double);
 // gfunc3
-    bytes += bop_types*bop_types*bop_types*ntheta *sizeof(double);
+    bytes += (double)bop_types*bop_types*bop_types*ntheta *sizeof(double);
 // gfunc4
-    bytes += bop_types*bop_types*bop_types*ntheta *sizeof(double);
+    bytes += (double)bop_types*bop_types*bop_types*ntheta *sizeof(double);
 // gfunc5
-    bytes += bop_types*bop_types*bop_types*ntheta *sizeof(double);
+    bytes += (double)bop_types*bop_types*bop_types*ntheta *sizeof(double);
 // gfunc6
-    bytes += bop_types*bop_types*bop_types*ntheta *sizeof(double);
+    bytes += (double)bop_types*bop_types*bop_types*ntheta *sizeof(double);
   } else {
-    bytes += bop_types*bop_types*bop_types*npower+1 *sizeof(double);
+    bytes += (double)bop_types*bop_types*bop_types*npower+1 *sizeof(double);
   }
   return bytes;
 }

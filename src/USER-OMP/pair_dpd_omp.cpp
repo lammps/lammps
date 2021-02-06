@@ -220,8 +220,8 @@ double PairDPDOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairDPD::memory_usage();
-  bytes += comm->nthreads * sizeof(RanMars*);
-  bytes += comm->nthreads * sizeof(RanMars);
+  bytes += (double)comm->nthreads * sizeof(RanMars*);
+  bytes += (double)comm->nthreads * sizeof(RanMars);
 
   return bytes;
 }

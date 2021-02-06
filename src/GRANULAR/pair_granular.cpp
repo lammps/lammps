@@ -1760,7 +1760,7 @@ void PairGranular::unpack_forward_comm(int n, int first, double *buf)
 
 double PairGranular::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }
 

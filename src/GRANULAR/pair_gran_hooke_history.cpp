@@ -794,7 +794,7 @@ void PairGranHookeHistory::unpack_forward_comm(int n, int first, double *buf)
 
 double PairGranHookeHistory::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }
 

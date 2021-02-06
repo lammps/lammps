@@ -99,6 +99,7 @@ class lammps(object):
     #   so that LD_LIBRARY_PATH does not need to be set for regular install
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
+    # guess shared library extension based on OS, if not inferred from actual file
 
     if any([f.startswith('liblammps') and f.endswith('.dylib')
             for f in os.listdir(modpath)]):
@@ -111,7 +112,13 @@ class lammps(object):
       lib_ext = ".dll"
       modpath = winpath
     else:
-      lib_ext = ".so"
+      import platform
+      if platform.system() == "Darwin":
+        lib_ext = ".dylib"
+      elif platform.system() == "Windows":
+        lib_ext = ".dll"
+      else:
+        lib_ext = ".so"
 
     if not self.lib:
       try:
@@ -243,6 +250,7 @@ class lammps(object):
     self.lib.lammps_encode_image_flags.restype = self.c_imageint
 
     self.lib.lammps_config_package_name.argtypes = [c_int, c_char_p, c_int]
+    self.lib.lammps_config_accelerator.argtypes = [c_char_p, c_char_p, c_char_p]
 
     self.lib.lammps_set_variable.argtypes = [c_void_p, c_char_p, c_char_p]
 
@@ -1432,6 +1440,36 @@ class lammps(object):
     :rtype: bool
     """
     return self.lib.lammps_config_has_ffmpeg_support() != 0
+
+  # -------------------------------------------------------------------------
+
+  @property
+  def accelerator_config(self):
+    """ Return table with available accelerator configuration settings.
+
+    This is a wrapper around the :cpp:func:`lammps_config_accelerator`
+    function of the library interface which loops over all known packages
+    and categories and returns enabled features as a nested dictionary
+    with all enabled settings as list of strings.
+
+    :return: nested dictionary with all known enabled settings as list of strings
+    :rtype: dictionary
+    """
+
+    result = {}
+    for p in ['GPU', 'KOKKOS', 'USER-INTEL', 'USER-OMP']:
+      result[p] = {}
+      c = 'api'
+      result[p][c] = []
+      for s in ['cuda', 'hip', 'phi', 'pthreads', 'opencl', 'openmp', 'serial']:
+        if self.lib.lammps_config_accelerator(p.encode(),c.encode(),s.encode()):
+          result[p][c].append(s)
+      c = 'precision'
+      result[p][c] = []
+      for s in ['double', 'mixed', 'single']:
+        if self.lib.lammps_config_accelerator(p.encode(),c.encode(),s.encode()):
+          result[p][c].append(s)
+    return result
 
   # -------------------------------------------------------------------------
 

@@ -353,6 +353,6 @@ void ComputeDihedralLocal::reallocate(int n)
 
 double ComputeDihedralLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

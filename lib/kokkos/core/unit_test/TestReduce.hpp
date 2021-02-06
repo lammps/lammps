@@ -238,6 +238,15 @@ class CombinedReduceFunctorSameType {
     dst2 += iwork + 1;
     dst3 += nwork - iwork;
   }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(size_type iwork, size_type always_zero_1,
+                  size_type always_zero_2, ValueType& dst1, ValueType& dst2,
+                  ValueType& dst3) const {
+    dst1 += 1 + always_zero_1;
+    dst2 += iwork + 1 + always_zero_2;
+    dst3 += nwork - iwork;
+  }
 };
 
 namespace {
@@ -493,6 +502,27 @@ TEST(TEST_CATEGORY, int_combined_reduce) {
   Kokkos::parallel_reduce("int_combined_reduce",
                           Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
                           functor_type(nw), result1, result2, result3);
+
+  ASSERT_EQ(nw, result1);
+  ASSERT_EQ(nsum, result2);
+  ASSERT_EQ(nsum, result3);
+}
+
+TEST(TEST_CATEGORY, mdrange_combined_reduce) {
+  using functor_type = CombinedReduceFunctorSameType<int64_t, TEST_EXECSPACE>;
+  constexpr uint64_t nw = 1000;
+
+  uint64_t nsum = (nw / 2) * (nw + 1);
+
+  int64_t result1 = 0;
+  int64_t result2 = 0;
+  int64_t result3 = 0;
+
+  Kokkos::parallel_reduce(
+      "int_combined_reduce_mdrange",
+      Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<3>>({{0, 0, 0}},
+                                                             {{nw, 1, 1}}),
+      functor_type(nw), result1, result2, result3);
 
   ASSERT_EQ(nw, result1);
   ASSERT_EQ(nsum, result2);

@@ -205,8 +205,8 @@ class TaskQueueCommonMixin {
   KOKKOS_FUNCTION void complete(
       AggregateTask<TaskQueueTraits, SchedulingInfo>&& task,
       TeamSchedulerInfo const& info) {
-    // TODO @tasking DSH old code has a ifndef __HCC_ACCELERATOR__ here; figure
-    // out why
+    // TODO @tasking DSH old code has a ifndef __HIP_DEVICE_COMPILE__ here;
+    // figure out why
     _complete_finished_task(std::move(task), info);
   }
 

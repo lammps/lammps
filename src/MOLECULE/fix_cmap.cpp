@@ -1440,9 +1440,9 @@ int FixCMAP::unpack_exchange(int nlocal, double *buf)
 double FixCMAP::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);        // num_crossterm
-  bytes += nmax*CMAPMAX * sizeof(int);      // crossterm_type
-  bytes += 5*nmax*CMAPMAX * sizeof(int);    // crossterm_atom 12345
-  bytes += maxcrossterm*6 * sizeof(int);    // crosstermlist
+  double bytes = (double)nmax * sizeof(int);        // num_crossterm
+  bytes += (double)nmax*CMAPMAX * sizeof(int);      // crossterm_type
+  bytes += (double)5*nmax*CMAPMAX * sizeof(int);    // crossterm_atom 12345
+  bytes += (double)maxcrossterm*6 * sizeof(int);    // crosstermlist
   return bytes;
 }

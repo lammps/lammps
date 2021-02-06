@@ -102,6 +102,6 @@ void ComputeSMDTLSPHNumNeighs::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTLSPHNumNeighs::memory_usage() {
-    double bytes = nmax * sizeof(double);
+    double bytes = (double)nmax * sizeof(double);
     return bytes;
 }

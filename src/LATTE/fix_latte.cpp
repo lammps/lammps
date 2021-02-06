@@ -49,7 +49,6 @@ extern "C" {
 // difficult to debug crashes or memory corruption.
 
 #define LATTE_ABIVERSION 20180622
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -248,9 +247,9 @@ void FixLatte::post_force(int vflag)
   if (coulomb) {
     modify->clearstep_compute();
 
-    if (!(c_pe->invoked_flag & INVOKED_PERATOM)) {
+    if (!(c_pe->invoked_flag & Compute::INVOKED_PERATOM)) {
       c_pe->compute_peratom();
-      c_pe->invoked_flag |= INVOKED_PERATOM;
+      c_pe->invoked_flag |= Compute::INVOKED_PERATOM;
     }
 
     modify->addstep_compute(update->ntimestep+1);
@@ -356,7 +355,7 @@ double FixLatte::compute_scalar()
 double FixLatte::memory_usage()
 {
   double bytes = 0.0;
-  if (coulomb) bytes += nmax * sizeof(double);
-  if (coulomb) bytes += nmax*3 * sizeof(double);
+  if (coulomb) bytes += (double)nmax * sizeof(double);
+  if (coulomb) bytes += (double)nmax*3 * sizeof(double);
   return bytes;
 }

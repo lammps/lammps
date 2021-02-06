@@ -596,7 +596,7 @@ int FixOrientBCC::compare(const void *pi, const void *pj)
 
 double FixOrientBCC::memory_usage()
 {
-  double bytes = nmax * sizeof(Nbr);
-  bytes += 2*nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(Nbr);
+  bytes += (double)2*nmax * sizeof(double);
   return bytes;
 }

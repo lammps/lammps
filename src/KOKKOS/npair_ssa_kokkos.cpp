@@ -460,7 +460,8 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     Kokkos::deep_copy(data.new_maxneighs, data.h_new_maxneighs);
 
     // loop over bins with local atoms, storing half of the neighbors
-    Kokkos::parallel_for(ssa_phaseCt, LAMMPS_LAMBDA (const int workPhase) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ssa_phaseCt),
+     LAMMPS_LAMBDA (const int workPhase) {
       data.build_locals_onePhase(firstTry, comm->me, workPhase);
     });
     k_ssa_itemLoc.modify<DeviceType>();
@@ -473,7 +474,8 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
       h_ssa_itemLen(ssa_phaseCt-1,h_ssa_phaseLen(ssa_phaseCt-1)-1);
 
     // loop over AIR ghost atoms, storing their local neighbors
-    Kokkos::parallel_for(ssa_gphaseCt, LAMMPS_LAMBDA (const int workPhase) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ssa_gphaseCt),
+     LAMMPS_LAMBDA (const int workPhase) {
       data.build_ghosts_onePhase(workPhase);
     });
     k_ssa_gitemLoc.modify<DeviceType>();

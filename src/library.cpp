@@ -2693,7 +2693,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2726,7 +2726,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2756,9 +2756,10 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 
 
     }
+
     // property / atom
-    if ( (vptr == nullptr) && ((strstr(name,"d_") == name)
-                               || (strstr(name,"i_") == name))) {
+
+    if ((vptr == nullptr) && (utils::strmatch(name,"^[di]_"))) {
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
         if (lmp->comm->me == 0)
@@ -2912,7 +2913,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2946,7 +2947,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2977,7 +2978,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3154,7 +3155,7 @@ void lammps_gather_subset(void *handle, char *name,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3187,7 +3188,7 @@ void lammps_gather_subset(void *handle, char *name,
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3218,7 +3219,7 @@ void lammps_gather_subset(void *handle, char *name,
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3392,7 +3393,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3418,7 +3419,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3449,7 +3450,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3590,7 +3591,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3616,7 +3617,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3645,7 +3646,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -4301,6 +4302,31 @@ int lammps_config_package_name(int idx, char *buffer, int buf_size) {
 
   strncpy(buffer, LAMMPS::installed_packages[idx], buf_size);
   return 1;
+}
+
+/** Check for compile time settings in accelerator packages included in LAMMPS.
+ *
+\verbatim embed:rst
+This function checks availability of compile time settings of included
+:doc:`accelerator packages <Speed_packages>` in LAMMPS.
+Supported packages names are "GPU", "KOKKOS", "USER-INTEL", and "USER-OMP".
+Supported categories are "api" with possible settings "cuda", "hip", "phi",
+"pthreads", "opencl", "openmp", and "serial", and "precision" with
+possible settings "double", "mixed", and "single".  If the combination
+of package, category, and setting is available, the function returns 1,
+otherwise 0.
+\endverbatim
+ *
+ * \param  package   string with the name of the accelerator package
+ * \param  category  string with the category name of the setting
+ * \param  setting   string with the name of the specific setting
+ * \return 1 if available, 0 if not.
+ */
+int lammps_config_accelerator(const char *package,
+                              const char *category,
+                              const char *setting)
+{
+  return Info::has_accelerator_feature(package,category,setting) ? 1 : 0;
 }
 
 /* ---------------------------------------------------------------------- */

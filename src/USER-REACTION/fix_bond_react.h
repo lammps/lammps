@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+   Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -68,6 +68,7 @@ class FixBondReact : public Fix {
   int *stabilize_steps_flag;
   int *custom_charges_fragid;
   int *molecule_keyword;
+  int maxnconstraints;
   int *nconstraints;
   char **constraintstr;
   int narrhenius;

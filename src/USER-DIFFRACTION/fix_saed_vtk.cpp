@@ -343,7 +343,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
   }
 
   irepeat = 0;
-  nvalid = ntimestep+nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+nfreq - ((bigint)nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // average the final result for the Nfreq timestep
@@ -554,7 +554,7 @@ bigint FixSAEDVTK::nextvalid()
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= ((bigint)nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
 }

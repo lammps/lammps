@@ -70,7 +70,7 @@ The last type of reaction performs grand canonical MC exchange of ion pairs with
 In our implementation "acid" refers to particles that can attain charge :math:`q=\{0,-1\}` and "base" to particles with :math:`q=\{0,1\}`,
 whereas the MC exchange of free ions allows any integer charge values of :math:`{Z^+}` and :math:`{Z^-}`.
 
-Here we provide  several practical examples for modeling charge regulation eﬀects in solvated systems.
+Here we provide  several practical examples for modeling charge regulation effects in solvated systems.
 An acid ionization reaction (:math:`\mathrm{A} \rightleftharpoons \mathrm{A}^-+\mathrm{H}^+`) can be defined via a single line in the input file
 
 .. code-block:: LAMMPS

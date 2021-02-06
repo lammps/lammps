@@ -742,8 +742,8 @@ void PPPMDisp::setup()
       fkz2_6[i] = unitkz*per;
     }
     double sqk,vterm;
-    long double erft,expt,nom,denom;
-    long double b,bs,bt;
+    double erft,expt,nom,denom;
+    double b,bs,bt;
     double rtpi = sqrt(MY_PI);
     double gewinv = 1/g_ewald_6;
     n = 0;

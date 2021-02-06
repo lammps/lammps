@@ -726,9 +726,7 @@ void FixPIMD::unpack_forward_comm(int n, int first, double *buf)
 
 double FixPIMD::memory_usage()
 {
-  double bytes = 0;
-  bytes = atom->nmax * size_peratom_cols * sizeof(double);
-  return bytes;
+  return (double)atom->nmax * size_peratom_cols * sizeof(double);
 }
 
 /* ---------------------------------------------------------------------- */

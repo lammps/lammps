@@ -3564,8 +3564,8 @@ double FixRigidSmall::memory_usage()
   bytes += (double)maxvatom*6 * sizeof(double);     // vatom
   if (extended) {
     bytes += (double)nmax * sizeof(int);
-    if (orientflag) bytes = nmax*orientflag * sizeof(double);
-    if (dorientflag) bytes = nmax*3 * sizeof(double);
+    if (orientflag) bytes = (double)nmax*orientflag * sizeof(double);
+    if (dorientflag) bytes = (double)nmax*3 * sizeof(double);
   }
   bytes += (double)nmax_body * sizeof(Body);
   return bytes;

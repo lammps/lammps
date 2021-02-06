@@ -106,7 +106,7 @@ If neither the acid or the base type is specified, for example,
 the fix simply inserts or deletes an ion pair of a free cation (atom type 4) and a free anion (atom type 5) as done in a conventional grand-canonical MC simulation.
 
 
-The fix is compatible with LAMMPS sub-packages such as *molecule* or *rigid*. That said, the acid and base particles can be part of larger molecules or rigid bodies. Free ions that are inserted to or deleted from the system must be deﬁned as single particles (no bonded interactions allowed) and cannot be part of larger molecules or rigid bodies. If *molecule* package is used, all inserted ions have a molecule ID equal to zero.
+The fix is compatible with LAMMPS sub-packages such as *molecule* or *rigid*. That said, the acid and base particles can be part of larger molecules or rigid bodies. Free ions that are inserted to or deleted from the system must be defined as single particles (no bonded interactions allowed) and cannot be part of larger molecules or rigid bodies. If *molecule* package is used, all inserted ions have a molecule ID equal to zero.
 
 Note that LAMMPS implicitly assumes a constant number of particles (degrees of freedom). Since using this fix alters the total number of particles during the simulation, any thermostat used by LAMMPS, such as NVT or Langevin, must use a dynamic calculation of system temperature. This can be achieved by specifying a dynamic temperature compute (e.g. dtemp) and using it with the desired thermostat, e.g. a Langevin thermostat:
 

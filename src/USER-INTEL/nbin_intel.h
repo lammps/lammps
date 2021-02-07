@@ -33,7 +33,6 @@ class NBinIntel : public NBinStandard {
   NBinIntel(class LAMMPS *);
   ~NBinIntel();
   void bin_atoms_setup(int);
-  void setup_bins(int);
   void bin_atoms();
   int * get_binpacked() { return _binpacked; }
 

@@ -15,7 +15,7 @@
 
 NBinStyle(ssa,
           NBinSSA,
-          NB_SSA)
+          NB_STANDARD | NB_SSA)
 
 #else
 

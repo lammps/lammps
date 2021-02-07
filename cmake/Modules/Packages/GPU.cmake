@@ -97,9 +97,9 @@ if(GPU_API STREQUAL "CUDA")
   if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
     string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
   endif()
-  # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
+  # Ampere (GPU Arch 8.0 and 8.6) is supported by CUDA 11 and later
   if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
+    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86]")
   endif()
   if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
     message(WARNING "Unsupported CUDA version. Use at your own risk.")

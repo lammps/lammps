@@ -146,7 +146,7 @@ void NBinMulti::setup_bins(int /*style*/)
 
   // Identify smallest collection
   int icollectionmin = 0;
-  for (n = 0; n < maxcollections; n++)
+  for (n = 0; n < ncollections; n++)
     if (cutcollectionsq[n][n] < cutcollectionsq[icollectionmin][icollectionmin]) 
       icollectionmin = n;
 
@@ -188,7 +188,7 @@ void NBinMulti::setup_bins(int /*style*/)
   double binsize_optimal, binsizeinv, coord;
   int mbinxhi,mbinyhi,mbinzhi;
 
-  for (n = 0; n < maxcollections; n++) {
+  for (n = 0; n < ncollections; n++) {
     // binsize_user only relates to smallest collection
     // optimal bin size is roughly 1/2 the collection-collection cutoff
     // special case of all cutoffs = 0.0, binsize = box size
@@ -296,7 +296,7 @@ void NBinMulti::bin_atoms()
   int i,ibin,n;
 
   last_bin = update->ntimestep;
-  for (n = 0; n < maxcollections; n++) {
+  for (n = 0; n < ncollections; n++) {
     for (i = 0; i < mbins_multi[n]; i++) binhead_multi[n][i] = -1;
   }
   // bin in reverse order so linked list will be in forward order

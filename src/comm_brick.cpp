@@ -142,6 +142,7 @@ void CommBrick::init()
   // allocate in setup
 
   if (mode == Comm::MULTI && multilo == nullptr) {
+    ncollections = neighbor->ncollections;
     allocate_multi(maxswap);
     memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
     ncollections_prior = ncollections;
@@ -205,10 +206,12 @@ void CommBrick::setup()
     
       allocate_multi(maxswap);
       memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");  
-      memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
-      for(i = ncollections_prior; i < ncollections; i++)
-        cutusermulti[i] = -1.0;
-    
+      if(cutusermultiflag) {
+        memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
+        for(i = ncollections_prior; i < ncollections; i++)
+          cutusermulti[i] = -1.0;
+      }
+      
       ncollections_prior = ncollections;
     }
   

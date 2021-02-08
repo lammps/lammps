@@ -82,6 +82,8 @@ NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
   flag_half_multi = nullptr;
   flag_skip_multi = nullptr;
   bin_collection_multi = nullptr;
+  
+  maxcollections = 0;
 
   dimension = domain->dimension;
 }
@@ -105,15 +107,12 @@ NStencil::~NStencil()
     delete [] distsq_multi_old;
   }
   
-  if (stencil_multi) {
+  if (maxstencil_multi) {
       
-    int n = ncollections;      
     memory->destroy(nstencil_multi);
-    for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-        if (! flag_skip_multi[i][j]) 
-            memory->destroy(stencil_multi[i][j]);
-      }
+    for (int i = 0; i < maxcollections; i++) {
+      for (int j = 0; j < maxcollections; j++)
+          memory->destroy(stencil_multi[i][j]);
       delete [] stencil_multi[i];
     }
     delete [] stencil_multi;
@@ -275,47 +274,60 @@ void NStencil::create_setup()
     
     if(nb) copy_bin_info_multi();
 
-    // Allocate arrays to store stencil information
-    memory->create(flag_half_multi, n, n, 
-                   "neighstencil:flag_half_multi");
-    memory->create(flag_skip_multi, n, n, 
-                   "neighstencil:flag_skip_multi");
-    memory->create(bin_collection_multi, n, n, 
-                   "neighstencil:bin_collection_multi");
-
-    memory->create(stencil_sx_multi, n, n, 
-                   "neighstencil:stencil_sx_multi");               
-    memory->create(stencil_sy_multi, n, n, 
-                   "neighstencil:stencil_sy_multi");
-    memory->create(stencil_sz_multi, n, n, 
-                   "neighstencil:stencil_sz_multi");
-
-    memory->create(stencil_binsizex_multi, n, n, 
-                   "neighstencil:stencil_binsizex_multi");
-    memory->create(stencil_binsizey_multi, n, n, 
-                   "neighstencil:stencil_binsizey_multi");
-    memory->create(stencil_binsizez_multi, n, n, 
-                   "neighstencil:stencil_binsizez_multi");
-
-    memory->create(stencil_mbinx_multi, n, n, 
-                   "neighstencil:stencil_mbinx_multi");
-    memory->create(stencil_mbiny_multi, n, n, 
-                   "neighstencil:stencil_mbiny_multi");
-    memory->create(stencil_mbinz_multi, n, n, 
-                   "neighstencil:stencil_mbinz_multi");
-
-    // Skip all stencils by default, initialize smax
-    for (i = 0; i < n; i++) {
-      for (j = 0; j < n; j++) {
-        flag_skip_multi[i][j] = 1;   
+    // Deallocate arrays if previously allocated
+    if(n > maxcollections and stencil_multi){  
+      memory->destroy(nstencil_multi);
+      for (i = 0; i < maxcollections; i++) {
+        for (j = 0; j < maxcollections; j++)
+          memory->destroy(stencil_multi[i][j]);
+        delete [] stencil_multi[i];
       }
-    }
+      delete [] stencil_multi;   
+      memory->destroy(maxstencil_multi);    
+      memory->destroy(flag_half_multi);
+      memory->destroy(flag_skip_multi);
+      memory->destroy(bin_collection_multi);
+      memory->destroy(stencil_sx_multi);
+      memory->destroy(stencil_sy_multi);
+      memory->destroy(stencil_sz_multi);
+      memory->destroy(stencil_binsizex_multi);
+      memory->destroy(stencil_binsizey_multi);
+      memory->destroy(stencil_binsizez_multi);
+      memory->destroy(stencil_mbinx_multi);
+      memory->destroy(stencil_mbiny_multi);
+      memory->destroy(stencil_mbinz_multi);      
+    }      
       
-    // Determine which stencils need to be built
-    set_stencil_properties(); 
-    
-    // Allocate arrays to store stencils
-    if (!maxstencil_multi) {
+    // Allocate arrays 
+    if(!maxstencil_multi) {   
+      memory->create(flag_half_multi, n, n, 
+                     "neighstencil:flag_half_multi");
+      memory->create(flag_skip_multi, n, n, 
+                     "neighstencil:flag_skip_multi");
+      memory->create(bin_collection_multi, n, n, 
+                     "neighstencil:bin_collection_multi");
+      
+      memory->create(stencil_sx_multi, n, n, 
+                     "neighstencil:stencil_sx_multi");               
+      memory->create(stencil_sy_multi, n, n, 
+                     "neighstencil:stencil_sy_multi");
+      memory->create(stencil_sz_multi, n, n, 
+                     "neighstencil:stencil_sz_multi");
+      
+      memory->create(stencil_binsizex_multi, n, n, 
+                     "neighstencil:stencil_binsizex_multi");
+      memory->create(stencil_binsizey_multi, n, n, 
+                     "neighstencil:stencil_binsizey_multi");
+      memory->create(stencil_binsizez_multi, n, n, 
+                     "neighstencil:stencil_binsizez_multi");
+      
+      memory->create(stencil_mbinx_multi, n, n, 
+                     "neighstencil:stencil_mbinx_multi");
+      memory->create(stencil_mbiny_multi, n, n, 
+                     "neighstencil:stencil_mbiny_multi");
+      memory->create(stencil_mbinz_multi, n, n, 
+                     "neighstencil:stencil_mbinz_multi");
+                     
       memory->create(maxstencil_multi, n, n, "neighstencil::maxstencil_multi");
       memory->create(nstencil_multi, n, n, "neighstencil::nstencil_multi");
       stencil_multi = new int**[n]();
@@ -326,12 +338,22 @@ void NStencil::create_setup()
           nstencil_multi[i][j] = 0;
           stencil_multi[i][j] = nullptr;
         }
+      }       
+      maxcollections = n;      
+    }
+    
+    // Skip all stencils by default, initialize smax
+    for (i = 0; i < n; i++) {
+      for (j = 0; j < n; j++) {
+        flag_skip_multi[i][j] = 1;   
       }
-    }    
+    }
+      
+    // Determine which stencils need to be built
+    set_stencil_properties();  
     
     for (i = 0; i < n; i++) {
       for (j = 0; j < n; j++) {
-        
         // Skip creation of unused stencils 
         if (flag_skip_multi[i][j]) continue;
            
@@ -364,7 +386,8 @@ void NStencil::create_setup()
         
         if (smax > maxstencil_multi[i][j]) {
           maxstencil_multi[i][j] = smax;
-          memory->destroy(stencil_multi[i][j]);
+          if(stencil_multi[i][j])
+            memory->destroy(stencil_multi[i][j]);
           memory->create(stencil_multi[i][j], smax,
 	  	                 "neighstencil::stencil_multi");
         }

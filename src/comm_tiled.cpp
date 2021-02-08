@@ -104,6 +104,11 @@ void CommTiled::init_buffers()
   cutghostmultiold = nullptr;
   sendbox_multi = nullptr;
   sendbox_multiold = nullptr;
+  
+  // initialize ncollections so grow_swap_send_multi() will not 
+  // construct arrays in init() but will wait for setup()
+  ncollections = 0;
+  ncollections_prior = 0;
 
   maxswap = 6;
   allocate_swap(maxswap);
@@ -194,10 +199,12 @@ void CommTiled::setup()
       for(i = 0; i < maxswap; i ++)
         grow_swap_send_multi(i,DELTA_PROCS);
     
-      memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
-      for(i = ncollections_prior; i < ncollections; i++)
-        cutusermulti[i] = -1.0;    
-    
+      if(cutusermultiflag){
+        memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
+        for(i = ncollections_prior; i < ncollections; i++)
+          cutusermulti[i] = -1.0;    
+      } 
+      
       ncollections_prior = ncollections;    
     }      
 

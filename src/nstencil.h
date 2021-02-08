@@ -33,6 +33,7 @@ class NStencil : protected Pointers {
   int ** nstencil_multi;           // # bins bins in each igroup-jgroup multi stencil
   int *** stencil_multi;           // list of bin offsets in each multi stencil
   int ** maxstencil_multi;         // max stencil size for each multi stencil
+  int maxcollections;              // size of multi arrays
   
   int sx,sy,sz;                    // extent of stencil in each dim
   int **stencil_sx_multi;         // analogs for each multi stencil
@@ -42,7 +43,7 @@ class NStencil : protected Pointers {
   double cutoff_custom;            // cutoff set by requestor  
   
   // Arrays to store options for multi itype-jtype stencils
-  bool **flag_half_multi;          // flag creation of a half stencil for igroup-jgroup
+  bool **flag_half_multi;          // flag creation of a half stencil for icollection-jcollection
   bool **flag_skip_multi;          // skip creation of icollection-jcollection stencils (for newton on)  
   int **bin_collection_multi;      // what collection to use for bin information
 

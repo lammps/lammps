@@ -71,7 +71,7 @@ void NStencilHalfMulti2d::create()
       if (flag_skip_multi[icollection][jcollection]) continue;
       
       ns = 0;
-      
+            
       sx = stencil_sx_multi[icollection][jcollection];
       sy = stencil_sy_multi[icollection][jcollection];
       

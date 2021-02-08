@@ -33,6 +33,7 @@ class Comm : protected Pointers {
   double cutghost[3];               // cutoffs used for acquiring ghost atoms
   double cutghostuser;              // user-specified ghost cutoff (mode == 0)
   double *cutusermulti;             // per collection user ghost cutoff (mode == 1)
+  int cutusermultiflag;             
   std::vector<std::pair<std::string, double>> usermultiargs; 
                                     // collection args for custom ghost cutoffs  
   double *cutusermultiold;          // per type user ghost cutoff (mode == 2)

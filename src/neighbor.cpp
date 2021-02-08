@@ -426,7 +426,7 @@ void Neighbor::init()
         for(i = 1; i <= n; i++){
           cuttmp = sqrt(cutneighsq[i][i]);
           for(icollection = 0; icollection < ncollections; icollection ++){
-            if(collection2cut[icollection] > cuttmp) {
+            if(collection2cut[icollection] >= cuttmp) {
               type2collection[i] = icollection;
               break;
             }
@@ -2503,6 +2503,8 @@ void Neighbor::modify_params(int narg, char **arg)
       if(iarg+2 > narg)
         error->all(FLERR,"Invalid collection/interval command");
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if(ncollections < 1)
+        error->all(FLERR,"Invalid collection/interval command");
       if(iarg+1+ncollections > narg)
         error->all(FLERR,"Invalid collection/interval command");
 
@@ -2511,8 +2513,7 @@ void Neighbor::modify_params(int narg, char **arg)
       
       interval_collection_flag = 1;
       custom_collection_flag = 1;
-      if(not collection2cut)
-        memory->create(collection2cut,ncollections,"neigh:collection2cut");  
+      memory->grow(collection2cut,ncollections,"neigh:collection2cut");  
 
       // Set upper cutoff for each collection
       char *id;
@@ -2534,6 +2535,8 @@ void Neighbor::modify_params(int narg, char **arg)
       if(iarg+2 > narg)
         error->all(FLERR,"Invalid collection/type command");
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if(ncollections < 1)
+        error->all(FLERR,"Invalid collection/interval command");      
       if(iarg+1+ncollections > narg)
         error->all(FLERR,"Invalid collection/type command");
 

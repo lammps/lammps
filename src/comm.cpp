@@ -58,6 +58,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   bordergroup = 0;
   cutghostuser = 0.0;
   cutusermulti = nullptr;
+  cutusermultiflag = 0;
   cutusermultiold = nullptr;
   ncollections_prior = 0;
   ghost_velocity = 0;
@@ -348,6 +349,7 @@ void Comm::modify_params(int narg, char **arg)
       // ncollections can be changed by neigh_modify commands
       cut = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       cutghostuser = MAX(cutghostuser,cut);
+      cutusermultiflag = 1;
       if (cut < 0.0)
         error->all(FLERR,"Invalid cutoff in comm_modify command");
       usermultiargs.emplace_back(arg[iarg+1], cut);   

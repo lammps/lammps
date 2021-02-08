@@ -565,7 +565,7 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
     }
     // Edges along x (x components only)
     index = 0L; // Follows left slab
-    index2 = d * h * static_cast<size_t>(w - 1); // Follows right slab
+    index2 = static_cast<size_t>(d) * h * (w - 1); // Follows right slab
     if (periodic[0]) {
       xm =  d * h * (w - 1);
       xp =  d * h;

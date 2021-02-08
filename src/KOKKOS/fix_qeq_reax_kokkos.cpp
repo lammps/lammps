@@ -564,8 +564,8 @@ void FixQEqReaxKokkos<DeviceType>::compute_h_team(
             const X_FLOAT ytmp = x(i, 1);
             const X_FLOAT ztmp = x(i, 2);
             const int itype = type(i);
-            const tagint itag = tag(i);
-            const int jnum = s_numnbrs[idx];
+            tagint itag = tag(i); // removed "const" to work around GCC 7 bug
+            int jnum = s_numnbrs[idx]; // removed "const" to work around GCC 7 bug
 
             // calculate the write-offset for atom-i's first neighbor
             int atomi_firstnbr_idx = team_firstnbr_idx + s_firstnbr[idx];
@@ -1492,10 +1492,10 @@ double FixQEqReaxKokkos<DeviceType>::memory_usage()
   double bytes;
 
   bytes = atom->nmax*nprev*2 * sizeof(F_FLOAT); // s_hist & t_hist
-  bytes += atom->nmax*8 * sizeof(F_FLOAT); // storage
-  bytes += n_cap*2 * sizeof(int); // matrix...
-  bytes += m_cap * sizeof(int);
-  bytes += m_cap * sizeof(F_FLOAT);
+  bytes += (double)atom->nmax*8 * sizeof(F_FLOAT); // storage
+  bytes += (double)n_cap*2 * sizeof(int); // matrix...
+  bytes += (double)m_cap * sizeof(int);
+  bytes += (double)m_cap * sizeof(F_FLOAT);
 
   return bytes;
 }

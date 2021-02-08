@@ -306,9 +306,9 @@ class UnorderedMap {
         m_equal_to(equal_to),
         m_size(),
         m_available_indexes(calculate_capacity(capacity_hint)),
-        m_hash_lists(ViewAllocateWithoutInitializing("UnorderedMap hash list"),
+        m_hash_lists(view_alloc(WithoutInitializing, "UnorderedMap hash list"),
                      Impl::find_hash_size(capacity())),
-        m_next_index(ViewAllocateWithoutInitializing("UnorderedMap next index"),
+        m_next_index(view_alloc(WithoutInitializing, "UnorderedMap next index"),
                      capacity() + 1)  // +1 so that the *_at functions can
                                       // always return a valid reference
         ,
@@ -540,7 +540,10 @@ class UnorderedMap {
           // Previously claimed an unused entry that was not inserted.
           // Release this unused entry immediately.
           if (!m_available_indexes.reset(new_index)) {
+            // FIXME_SYCL SYCL doesn't allow printf in kernels
+#ifndef KOKKOS_ENABLE_SYCL
             printf("Unable to free existing\n");
+#endif
           }
         }
 
@@ -729,16 +732,16 @@ class UnorderedMap {
       tmp.m_size              = src.size();
       tmp.m_available_indexes = bitset_type(src.capacity());
       tmp.m_hash_lists        = size_type_view(
-          ViewAllocateWithoutInitializing("UnorderedMap hash list"),
+          view_alloc(WithoutInitializing, "UnorderedMap hash list"),
           src.m_hash_lists.extent(0));
       tmp.m_next_index = size_type_view(
-          ViewAllocateWithoutInitializing("UnorderedMap next index"),
+          view_alloc(WithoutInitializing, "UnorderedMap next index"),
           src.m_next_index.extent(0));
       tmp.m_keys =
-          key_type_view(ViewAllocateWithoutInitializing("UnorderedMap keys"),
+          key_type_view(view_alloc(WithoutInitializing, "UnorderedMap keys"),
                         src.m_keys.extent(0));
       tmp.m_values = value_type_view(
-          ViewAllocateWithoutInitializing("UnorderedMap values"),
+          view_alloc(WithoutInitializing, "UnorderedMap values"),
           src.m_values.extent(0));
       tmp.m_scalars = scalars_view("UnorderedMap scalars");
 

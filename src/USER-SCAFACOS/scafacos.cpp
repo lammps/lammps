@@ -380,8 +380,8 @@ int Scafacos::modify_param(int narg, char **arg)
 double Scafacos::memory_usage()
 {
   double bytes = 0.0;
-  bytes += maxatom * sizeof(double);
-  bytes += 3*maxatom * sizeof(double);
+  bytes += (double)maxatom * sizeof(double);
+  bytes += (double)3*maxatom * sizeof(double);
   return bytes;
 }
 

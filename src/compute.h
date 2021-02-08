@@ -20,6 +20,14 @@ namespace LAMMPS_NS {
 
 class Compute : protected Pointers {
  public:
+  enum {
+    INVOKED_NONE    = 0,
+    INVOKED_SCALAR  = 1<<0,
+    INVOKED_VECTOR  = 1<<1,
+    INVOKED_ARRAY   = 1<<2,
+    INVOKED_PERATOM = 1<<3,
+    INVOKED_LOCAL   = 1<<4,
+  };
   static int instance_total;     // # of Compute classes ever instantiated
 
   char *id,*style;

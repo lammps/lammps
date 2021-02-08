@@ -72,10 +72,6 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
 
 enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
 
 #define BIG 1.0e20
 
@@ -332,8 +328,7 @@ void Variable::set(int narg, char **arg)
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     copy(1,&arg[2],data[nvar]);
-    data[nvar][1] = new char[VALUELENGTH];
-    strcpy(data[nvar][1],"(undefined)");
+    data[nvar][1] = utils::strdup("(undefined)");
 
   // SCALARFILE for strings or numbers
   // which = 1st value
@@ -525,12 +520,9 @@ void Variable::set(int narg, char **arg)
 
   if (replaceflag) return;
 
-  int n = strlen(arg[0]) + 1;
-  names[nvar] = new char[n];
-  strcpy(names[nvar],arg[0]);
-
-  for (int i = 0; i < n-1; i++)
-    if (!isalnum(names[nvar][i]) && names[nvar][i] != '_')
+  names[nvar] = utils::strdup(arg[0]);
+  for (auto c : std::string(arg[0]))
+         if (!isalnum(c) && (c != '_'))
       error->all(FLERR,fmt::format("Variable name '{}' must have only "
                                    "alphanumeric characters or underscores",
                                    names[nvar]));
@@ -581,8 +573,7 @@ int Variable::set_string(const char *name, const char *str)
   if (ivar < 0) return -1;
   if (style[ivar] != STRING) return -1;
   delete [] data[ivar][0];
-  data[ivar][0] = new char[strlen(str)+1];
-  strcpy(data[ivar][0],str);
+  data[ivar][0] = utils::strdup(str);
   return 0;
 }
 
@@ -902,11 +893,8 @@ char *Variable::retrieve(const char *name)
       sprintf(padstr,"%%0%dd",pad[ivar]);
       sprintf(result,padstr,which[ivar]+1);
     }
-    int n = strlen(result) + 1;
     delete [] data[ivar][0];
-    data[ivar][0] = new char[n];
-    strcpy(data[ivar][0],result);
-    str = data[ivar][0];
+    str = data[ivar][0] = utils::strdup(result);
   } else if (style[ivar] == EQUAL) {
     double answer = evaluate(data[ivar][0],nullptr,ivar);
     sprintf(data[ivar][1],"%.15g",answer);
@@ -921,13 +909,8 @@ char *Variable::retrieve(const char *name)
   } else if (style[ivar] == GETENV) {
     const char *result = getenv(data[ivar][0]);
     if (result == nullptr) result = (const char *) "";
-    int n = strlen(result) + 1;
-    if (n > VALUELENGTH) {
-      delete [] data[ivar][1];
-      data[ivar][1] = new char[n];
-    }
-    strcpy(data[ivar][1],result);
-    str = data[ivar][1];
+    delete [] data[ivar][1];
+    str = data[ivar][1] = utils::strdup(result);
   } else if (style[ivar] == PYTHON) {
     int ifunc = python->variable_match(data[ivar][0],name,0);
     if (ifunc < 0)
@@ -1189,12 +1172,8 @@ void Variable::grow()
 
 void Variable::copy(int narg, char **from, char **to)
 {
-  int n;
-  for (int i = 0; i < narg; i++) {
-    n = strlen(from[i]) + 1;
-    to[i] = new char[n];
-    strcpy(to[i],from[i]);
-  }
+  for (int i = 0; i < narg; i++)
+    to[i] = utils::strdup(from[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1380,9 +1359,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_scalar != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between "
                               "runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
             compute->compute_scalar();
-            compute->invoked_flag |= INVOKED_SCALAR;
+            compute->invoked_flag |= Compute::INVOKED_SCALAR;
           }
 
           value1 = compute->scalar;
@@ -1407,9 +1386,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_vector != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between runs "
                               "is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
 
           if (compute->size_vector_variable &&
@@ -1439,9 +1418,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_array != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between runs "
                               "is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
-            compute->invoked_flag |= INVOKED_ARRAY;
+            compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
 
           if (compute->size_array_rows_variable &&
@@ -1473,9 +1452,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_vector != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between "
                               "runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
 
           Tree *newtree = new Tree();
@@ -1505,9 +1484,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_array != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable between "
                               "runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
-            compute->invoked_flag |= INVOKED_ARRAY;
+            compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
 
           Tree *newtree = new Tree();
@@ -1529,9 +1508,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_peratom != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable "
                               "between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
+            compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
 
           peratom2global(1,nullptr,compute->vector_atom,1,index1,
@@ -1549,9 +1528,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_peratom != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable "
                               "between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
+            compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
 
           if (compute->array_atom)
@@ -1578,9 +1557,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_peratom != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable "
                               "between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
+            compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
 
           Tree *newtree = new Tree();
@@ -1610,9 +1589,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (compute->invoked_peratom != update->ntimestep)
               print_var_error(FLERR,"Compute used in variable "
                               "between runs is not current",ivar);
-          } else if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+          } else if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
             compute->compute_peratom();
-            compute->invoked_flag |= INVOKED_PERATOM;
+            compute->invoked_flag |= Compute::INVOKED_PERATOM;
           }
 
           Tree *newtree = new Tree();
@@ -3313,7 +3292,7 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
 
   char *start = ++ptr;
 
-  if (varallow && strstr(ptr,"v_") == ptr) {
+  if (varallow && utils::strmatch(ptr,"^v_")) {
     varflag = 1;
     while (*ptr && *ptr != ']') {
       if (!isalnum(*ptr) && *ptr != '_')
@@ -4116,7 +4095,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     // argument is compute
 
-    if (strstr(args[0],"c_") == args[0]) {
+    if (utils::strmatch(args[0],"^c_")) {
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
@@ -4137,9 +4116,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
           if (compute->invoked_vector != update->ntimestep)
             print_var_error(FLERR,"Compute used in variable between runs "
                             "is not current",ivar);
-        } else if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        } else if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         nvec = compute->size_vector;
         nstride = 1;
@@ -4151,9 +4130,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
           if (compute->invoked_array != update->ntimestep)
             print_var_error(FLERR,"Compute used in variable between runs "
                             "is not current",ivar);
-        } else if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+        } else if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
           compute->compute_array();
-          compute->invoked_flag |= INVOKED_ARRAY;
+          compute->invoked_flag |= Compute::INVOKED_ARRAY;
         }
         nvec = compute->size_array_rows;
         nstride = compute->size_array_cols;
@@ -4161,7 +4140,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     // argument is fix
 
-    } else if (strstr(args[0],"f_") == args[0]) {
+    } else if (utils::strmatch(args[0],"^f_")) {
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
@@ -4199,7 +4178,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     // argument is vector-style variable
 
-    } else if (strstr(args[0],"v_") == args[0]) {
+    } else if (utils::strmatch(args[0],"^v_")) {
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
@@ -4732,18 +4711,14 @@ double Variable::constant(char *word)
 
 int Variable::parse_args(char *str, char **args)
 {
-  int n;
   char *ptrnext;
-
-  int narg = 0;
+  int   narg = 0;
   char *ptr = str;
 
   while (ptr && narg < MAXFUNCARG) {
     ptrnext = find_next_comma(ptr);
     if (ptrnext) *ptrnext = '\0';
-    n = strlen(ptr) + 1;
-    args[narg] = new char[n];
-    strcpy(args[narg],ptr);
+    args[narg] = utils::strdup(ptr);
     narg++;
     ptr = ptrnext;
     if (ptr) ptr++;
@@ -5093,8 +5068,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
                  "variable unless an atom map exists");
 
     std::string cmd = name + std::string("_VARIABLE_STORE");
-    id_fix = new char[cmd.size()+1];
-    strcpy(id_fix,cmd.c_str());
+    id_fix = utils::strdup(cmd);
 
     cmd += " all STORE peratom 0 1";
     modify->add_fix(cmd);

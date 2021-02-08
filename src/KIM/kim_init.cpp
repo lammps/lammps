@@ -86,10 +86,8 @@ void KimInit::command(int narg, char **arg)
   if (domain->box_exist)
     error->all(FLERR,"Must use 'kim_init' command before "
                      "simulation box is defined");
-  char *model_name = new char[strlen(arg[0])+1];
-  strcpy(model_name,arg[0]);
-  char *user_units = new char[strlen(arg[1])+1];
-  strcpy(user_units,arg[1]);
+  char *model_name = utils::strdup(arg[0]);
+  char *user_units = utils::strdup(arg[1]);
   if (narg == 3) {
     if (strcmp(arg[2],"unit_conversion_mode")==0) unit_conversion_mode = true;
     else {
@@ -214,8 +212,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
     if (units_accepted) {
       logID = fmt::format("{}_Model", comm->me);
       KIM_Model_SetLogID(pkim, logID.c_str());
-      *model_units = new char[strlen(user_units)+1];
-      strcpy(*model_units,user_units);
+      *model_units = utils::strdup(user_units);
       return;
     } else if (unit_conversion_mode) {
       KIM_Model_Destroy(&pkim);
@@ -237,8 +234,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
         if (units_accepted) {
           logID = fmt::format("{}_Model", comm->me);
           KIM_Model_SetLogID(pkim, logID.c_str());
-          *model_units = new char[strlen(systems[i])+1];
-          strcpy(*model_units,systems[i]);
+          *model_units = utils::strdup(systems[i]);
           return;
         }
         KIM_Model_Destroy(&pkim);
@@ -272,9 +268,7 @@ void KimInit::determine_model_type_and_units(char * model_name,
       if (0 == strcmp(sim_field,"units")) {
         KIM_SimulatorModel_GetSimulatorFieldLine(
           simulatorModel, i, 0, &sim_value);
-        int len=strlen(sim_value)+1;
-        *model_units = new char[len];
-        strcpy(*model_units,sim_value);
+        *model_units = utils::strdup(sim_value);
         break;
       }
     }

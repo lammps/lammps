@@ -505,12 +505,7 @@ void ComputeXRD::compute_array()
   double t2 = MPI_Wtime();
 
   // compute memory usage per processor
-  double bytes = size_array_rows * size_array_cols * sizeof(double); //array
-  bytes +=  4.0 * size_array_rows * sizeof(double); //Fvec1 & 2, scratch1 & 2
-  bytes += ntypes * sizeof(double); // f
-  bytes += 3.0 * nlocalgroup * sizeof(double); // xlocal
-  bytes += nlocalgroup * sizeof(int); // typelocal
-  bytes += 3.0 * size_array_rows * sizeof(int); // store_temp
+  double bytes = memory_usage();
 
   if (me == 0 && echo) {
     if (screen)
@@ -530,11 +525,11 @@ void ComputeXRD::compute_array()
 double ComputeXRD::memory_usage()
 {
   double bytes = size_array_rows * size_array_cols * sizeof(double); //array
-  bytes +=  4.0 * size_array_rows * sizeof(double); //Fvec1 & 2, scratch1 & 2
-  bytes += 3.0 * nlocalgroup * sizeof(double); // xlocal
-  bytes += nlocalgroup * sizeof(int); // typelocal
-  bytes += ntypes * sizeof(double); // f
-  bytes += 3.0 * size_array_rows * sizeof(int); // store_temp
+  bytes += (double) 4.0 * size_array_rows * sizeof(double); //Fvec1 & 2, scratch1 & 2
+  bytes += (double)3.0 * nlocalgroup * sizeof(double); // xlocal
+  bytes += (double)nlocalgroup * sizeof(int); // typelocal
+  bytes += (double)ntypes * sizeof(double); // f
+  bytes += (double)3.0 * size_array_rows * sizeof(int); // store_temp
 
   return bytes;
 }

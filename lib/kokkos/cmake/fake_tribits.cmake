@@ -38,12 +38,6 @@ MACRO(GLOBAL_SET VARNAME)
   SET(${VARNAME} ${ARGN} CACHE INTERNAL "" FORCE)
 ENDMACRO()
 
-FUNCTION(VERIFY_EMPTY CONTEXT)
-if(${ARGN})
-MESSAGE(FATAL_ERROR "Kokkos does not support all of Tribits. Unhandled arguments in ${CONTEXT}:\n${ARGN}")
-endif()
-ENDFUNCTION()
-
 MACRO(PREPEND_GLOBAL_SET VARNAME)
   ASSERT_DEFINED(${VARNAME})
   GLOBAL_SET(${VARNAME} ${ARGN} ${${VARNAME}})
@@ -89,7 +83,7 @@ FUNCTION(KOKKOS_ADD_TEST)
     CMAKE_PARSE_ARGUMENTS(TEST
       ""
       "EXE;NAME;TOOL"
-      ""
+      "ARGS"
       ${ARGN})
     IF(TEST_EXE)
       SET(EXE_ROOT ${TEST_EXE})
@@ -102,6 +96,7 @@ FUNCTION(KOKKOS_ADD_TEST)
       NAME ${TEST_NAME}
       COMM serial mpi
       NUM_MPI_PROCS 1
+      ARGS ${TEST_ARGS}
       ${TEST_UNPARSED_ARGUMENTS}
       ADDED_TESTS_NAMES_OUT ALL_TESTS_ADDED
     )
@@ -110,18 +105,25 @@ FUNCTION(KOKKOS_ADD_TEST)
     SET(TEST_NAME ${PACKAGE_NAME}_${TEST_NAME})
     SET(EXE ${PACKAGE_NAME}_${EXE_ROOT})
 
-    if(TEST_TOOL)
-      add_dependencies(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
-      foreach(TEST_ADDED ${ALL_TESTS_ADDED})
-        set_property(TEST ${TEST_ADDED} APPEND PROPERTY ENVIRONMENT "KOKKOS_PROFILE_LIBRARY=$<TARGET_FILE:${TEST_TOOL}>")
-      endforeach()
+    # The function TRIBITS_ADD_TEST() has a CATEGORIES argument that defaults
+    # to BASIC.  If a project elects to only enable tests marked as PERFORMANCE,
+    # the test won't actually be added and attempting to set a property on it below
+    # will yield an error.
+    if(TARGET ${EXE})
+      if(TEST_TOOL)
+        add_dependencies(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
+        foreach(TEST_ADDED ${ALL_TESTS_ADDED})
+          set_property(TEST ${TEST_ADDED} APPEND PROPERTY ENVIRONMENT "KOKKOS_PROFILE_LIBRARY=$<TARGET_FILE:${TEST_TOOL}>")
+        endforeach()
+      endif()
     endif()
   else()
     CMAKE_PARSE_ARGUMENTS(TEST
       "WILL_FAIL"
       "FAIL_REGULAR_EXPRESSION;PASS_REGULAR_EXPRESSION;EXE;NAME;TOOL"
-      "CATEGORIES;CMD_ARGS"
+      "CATEGORIES;ARGS"
       ${ARGN})
+    SET(TESTS_ADDED)
     # To match Tribits, we should always be receiving
     # the root names of exes/libs
     IF(TEST_EXE)
@@ -133,24 +135,46 @@ FUNCTION(KOKKOS_ADD_TEST)
     # These should be the full target name
     SET(TEST_NAME ${PACKAGE_NAME}_${TEST_NAME})
     SET(EXE ${PACKAGE_NAME}_${EXE_ROOT})
-    IF(WIN32)
-      ADD_TEST(NAME ${TEST_NAME} WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH} COMMAND ${EXE}${CMAKE_EXECUTABLE_SUFFIX} ${TEST_CMD_ARGS})
+    IF (TEST_ARGS)
+      SET(TEST_NUMBER 0)
+      FOREACH (ARG_STR ${TEST_ARGS})
+        # This is passed as a single string blob to match TriBITS behavior
+        # We need this to be turned into a list
+        STRING(REPLACE " " ";" ARG_STR_LIST ${ARG_STR})
+        IF(WIN32)
+          ADD_TEST(NAME ${TEST_NAME}${TEST_NUMBER} WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
+                   COMMAND ${EXE}${CMAKE_EXECUTABLE_SUFFIX} ${ARG_STR_LIST})
+        ELSE()
+          ADD_TEST(NAME ${TEST_NAME}${TEST_NUMBER} COMMAND ${EXE} ${ARG_STR_LIST})
+        ENDIF()
+        LIST(APPEND TESTS_ADDED "${TEST_NAME}${TEST_NUMBER}")
+        MATH(EXPR TEST_NUMBER "${TEST_NUMBER} + 1")
+      ENDFOREACH()
     ELSE()
-      ADD_TEST(NAME ${TEST_NAME} COMMAND ${EXE} ${TEST_CMD_ARGS})
+      IF(WIN32)
+        ADD_TEST(NAME ${TEST_NAME} WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH}
+                 COMMAND ${EXE}${CMAKE_EXECUTABLE_SUFFIX})
+      ELSE()
+        ADD_TEST(NAME ${TEST_NAME} COMMAND ${EXE})
+      ENDIF()
+      LIST(APPEND TESTS_ADDED "${TEST_NAME}")
     ENDIF()
-    IF(TEST_WILL_FAIL)
-      SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES WILL_FAIL ${TEST_WILL_FAIL})
-    ENDIF()
-    IF(TEST_FAIL_REGULAR_EXPRESSION)
-      SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES FAIL_REGULAR_EXPRESSION ${TEST_FAIL_REGULAR_EXPRESSION})
-    ENDIF()
-    IF(TEST_PASS_REGULAR_EXPRESSION)
-      SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION ${TEST_PASS_REGULAR_EXPRESSION})
-    ENDIF()
-    if(TEST_TOOL)
-      add_dependencies(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
-      set_property(TEST ${TEST_NAME} APPEND_STRING PROPERTY ENVIRONMENT "KOKKOS_PROFILE_LIBRARY=$<TARGET_FILE:${TEST_TOOL}>")
-    endif()
+
+    FOREACH(TEST_NAME ${TESTS_ADDED})
+      IF(TEST_WILL_FAIL)
+        SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES WILL_FAIL ${TEST_WILL_FAIL})
+      ENDIF()
+      IF(TEST_FAIL_REGULAR_EXPRESSION)
+        SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES FAIL_REGULAR_EXPRESSION ${TEST_FAIL_REGULAR_EXPRESSION})
+      ENDIF()
+      IF(TEST_PASS_REGULAR_EXPRESSION)
+        SET_TESTS_PROPERTIES(${TEST_NAME} PROPERTIES PASS_REGULAR_EXPRESSION ${TEST_PASS_REGULAR_EXPRESSION})
+      ENDIF()
+      if(TEST_TOOL)
+        add_dependencies(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
+        set_property(TEST ${TEST_NAME} APPEND_STRING PROPERTY ENVIRONMENT "KOKKOS_PROFILE_LIBRARY=$<TARGET_FILE:${TEST_TOOL}>")
+      endif()
+    ENDFOREACH()
     VERIFY_EMPTY(KOKKOS_ADD_TEST ${TEST_UNPARSED_ARGUMENTS})
   endif()
 ENDFUNCTION()

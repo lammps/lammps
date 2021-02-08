@@ -869,16 +869,13 @@ TEST(TEST_CATEGORY, team_vector) {
 
 #if !defined(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND)
 TEST(TEST_CATEGORY, triple_nested_parallelism) {
-// With KOKKOS_DEBUG enabled, the functor uses too many registers to run
+// With KOKKOS_ENABLE_DEBUG enabled, the functor uses too many registers to run
 // with a team size of 32 on GPUs, 16 is the max possible (at least on a K80
 // GPU) See https://github.com/kokkos/kokkos/issues/1513
 #if defined(KOKKOS_ENABLE_DEBUG) && defined(KOKKOS_ENABLE_CUDA)
   if (!std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value) {
 #endif
-#ifdef KOKKOS_ENABLE_ROCM  // ROCm doesn't support TeamSize 32x32
-    if (!std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value)
-#endif
-      TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 32, 32);
+    TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 32, 32);
     TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 32, 16);
 #if defined(KOKKOS_ENABLE_DEBUG) && defined(KOKKOS_ENABLE_CUDA)
   }
@@ -886,10 +883,7 @@ TEST(TEST_CATEGORY, triple_nested_parallelism) {
   TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 16, 16);
   TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 16, 33);
   TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 16, 19);
-#ifdef KOKKOS_ENABLE_ROCM  // ROCm doesn't support team sizes not powers of two
-  if (!std::is_same<TEST_EXECSPACE, Kokkos::Experimental::ROCm>::value)
-#endif
-    TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 7, 16);
+  TestTripleNestedReduce<double, TEST_EXECSPACE>(8192, 2048, 7, 16);
 }
 #endif
 

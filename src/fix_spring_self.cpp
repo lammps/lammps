@@ -210,7 +210,7 @@ double FixSpringSelf::compute_scalar()
 
 double FixSpringSelf::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

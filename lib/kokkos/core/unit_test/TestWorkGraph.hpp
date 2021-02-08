@@ -159,7 +159,12 @@ struct TestWorkGraph {
 }  // anonymous namespace
 
 TEST(TEST_CATEGORY, workgraph_fib) {
+  // FIXME_HIP The test is very slow with HIP and it causes the CI to timeout
+#ifdef KOKKOS_ENABLE_HIP
+  int limit = 7;
+#else
   int limit = 27;
+#endif
   for (int i = 0; i < limit; ++i) {
     TestWorkGraph<TEST_EXECSPACE> f(i);
     f.test_for();

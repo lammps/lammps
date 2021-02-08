@@ -762,7 +762,7 @@ void FixGLE::reset_dt()
 
 double FixGLE::memory_usage()
 {
-  double bytes = atom->nmax*(3*ns+2*3*(ns+1))*sizeof(double);
+  double bytes = (double)atom->nmax*(3*ns+2*3*(ns+1))*sizeof(double);
   return bytes;
 }
 

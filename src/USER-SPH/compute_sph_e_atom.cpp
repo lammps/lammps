@@ -93,6 +93,6 @@ void ComputeSPHEAtom::compute_peratom()
 
 double ComputeSPHEAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

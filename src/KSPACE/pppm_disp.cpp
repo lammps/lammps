@@ -8298,7 +8298,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
 
 double PPPMDisp::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
 
   int mixing = 1;
   int diff = 3;     //depends on differentiation
@@ -8314,27 +8314,27 @@ double PPPMDisp::memory_usage()
   if (function[0]) {
     int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
       (nzhi_out-nzlo_out+1);
-    bytes += (1 + diff +  per) * nbrick * sizeof(FFT_SCALAR);     //brick memory
-    bytes += 6 * nfft_both * sizeof(double);      // vg
-    bytes += nfft_both * sizeof(double);          // greensfn
-    bytes += nfft_both * 3 * sizeof(FFT_SCALAR);    // density_FFT, work1, work2
+    bytes += (double)(1 + diff +  per) * nbrick * sizeof(FFT_SCALAR);     //brick memory
+    bytes += (double)6 * nfft_both * sizeof(double);      // vg
+    bytes += (double)nfft_both * sizeof(double);          // greensfn
+    bytes += (double)nfft_both * 3 * sizeof(FFT_SCALAR);    // density_FFT, work1, work2
   }
 
   if (function[1] + function[2] + function[3]) {
     int nbrick = (nxhi_out_6-nxlo_out_6+1) * (nyhi_out_6-nylo_out_6+1) *
       (nzhi_out_6-nzlo_out_6+1);
     // density_brick + vd_brick + per atom bricks
-    bytes += (1 + diff + per ) * nbrick * sizeof(FFT_SCALAR) * mixing;
-    bytes += 6 * nfft_both_6 * sizeof(double);      // vg
-    bytes += nfft_both_6 * sizeof(double);          // greensfn
+    bytes += (double)(1 + diff + per ) * nbrick * sizeof(FFT_SCALAR) * mixing;
+    bytes += (double)6 * nfft_both_6 * sizeof(double);      // vg
+    bytes += (double)nfft_both_6 * sizeof(double);          // greensfn
     // density_FFT, work1, work2
-    bytes += nfft_both_6 * (mixing + 2) * sizeof(FFT_SCALAR);
+    bytes += (double)nfft_both_6 * (mixing + 2) * sizeof(FFT_SCALAR);
   }
 
   // four GridComm bufs
 
-  bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
-  bytes += (ngc6_buf1 + ngc6_buf2) * npergrid6 * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc6_buf1 + ngc6_buf2) * npergrid6 * sizeof(FFT_SCALAR);
 
   return bytes;
 }

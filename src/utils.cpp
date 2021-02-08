@@ -237,28 +237,27 @@ double utils::numeric(const char *file, int line, const char *str,
 
   if (str) n = strlen(str);
   if (n == 0) {
-    if (do_abort)
-      lmp->error->one(file,line,"Expected floating point parameter instead of"
-                      " NULL or empty string in input script or data file");
-    else
-      lmp->error->all(file,line,"Expected floating point parameter instead of"
-                      " NULL or empty string in input script or data file");
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i])) continue;
-    if (str[i] == '-' || str[i] == '+' || str[i] == '.') continue;
-    if (str[i] == 'e' || str[i] == 'E') continue;
-    std::string msg("Expected floating point parameter instead of '");
-    msg += str;
-    msg += "' in input script or data file";
+    const char msg[] = "Expected floating point parameter instead of"
+      " NULL or empty string in input script or data file";
     if (do_abort)
       lmp->error->one(file,line,msg);
     else
       lmp->error->all(file,line,msg);
   }
 
-  return atof(str);
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  if (buf.find_first_not_of("0123456789-+.eE") != std::string::npos) {
+    std::string msg("Expected floating point parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return atof(buf.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -274,26 +273,27 @@ int utils::inumeric(const char *file, int line, const char *str,
 
   if (str) n = strlen(str);
   if (n == 0) {
-    if (do_abort)
-      lmp->error->one(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-    else
-      lmp->error->all(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg("Expected integer parameter instead of '");
-    msg += str;
-    msg += "' in input script or data file";
+    const char msg[] = "Expected integer parameter instead of"
+      " NULL or empty string in input script or data file";
     if (do_abort)
       lmp->error->one(file,line,msg);
     else
       lmp->error->all(file,line,msg);
   }
 
-  return atoi(str);
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+    std::string msg("Expected integer parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return atoi(buf.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -309,26 +309,27 @@ bigint utils::bnumeric(const char *file, int line, const char *str,
 
   if (str) n = strlen(str);
   if (n == 0) {
-    if (do_abort)
-      lmp->error->one(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-    else
-      lmp->error->all(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg("Expected integer parameter instead of '");
-    msg += str;
-    msg += "' in input script or data file";
+    const char msg[] = "Expected integer parameter instead of"
+      " NULL or empty string in input script or data file";
     if (do_abort)
       lmp->error->one(file,line,msg);
     else
       lmp->error->all(file,line,msg);
   }
 
-  return ATOBIGINT(str);
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+    std::string msg("Expected integer parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return ATOBIGINT(buf.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -344,26 +345,27 @@ tagint utils::tnumeric(const char *file, int line, const char *str,
 
   if (str) n = strlen(str);
   if (n == 0) {
-    if (do_abort)
-      lmp->error->one(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-    else
-      lmp->error->all(file,line,"Expected integer parameter instead of "
-                      "NULL or empty string in input script or data file");
-  }
-
-  for (int i = 0; i < n; i++) {
-    if (isdigit(str[i]) || str[i] == '-' || str[i] == '+') continue;
-    std::string msg("Expected integer parameter instead of '");
-    msg += str;
-    msg += "' in input script or data file";
+    const char msg[] = "Expected integer parameter instead of"
+      " NULL or empty string in input script or data file";
     if (do_abort)
       lmp->error->one(file,line,msg);
     else
       lmp->error->all(file,line,msg);
   }
 
-  return ATOTAGINT(str);
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  if (buf.find_first_not_of("0123456789-+") != std::string::npos) {
+    std::string msg("Expected integer parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file,line,msg);
+    else
+      lmp->error->all(file,line,msg);
+  }
+
+  return ATOTAGINT(buf.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -545,10 +547,23 @@ int utils::expand_args(const char *file, int line, int narg, char **arg,
 }
 
 /* ----------------------------------------------------------------------
+   Make copy of string in new storage. Works like the (non-portable)
+   C-style strdup() but also accepts a C++ string as argument.
+------------------------------------------------------------------------- */
+
+char *utils::strdup(const std::string &text)
+{
+  char *tmp = new char[text.size()+1];
+  strcpy(tmp,text.c_str());
+  return tmp;
+}
+
+/* ----------------------------------------------------------------------
    Return string without leading or trailing whitespace
 ------------------------------------------------------------------------- */
 
-std::string utils::trim(const std::string &line) {
+std::string utils::trim(const std::string &line)
+{
   int beg = re_match(line.c_str(),"\\S+");
   int end = re_match(line.c_str(),"\\s+$");
   if (beg < 0) beg = 0;
@@ -561,12 +576,106 @@ std::string utils::trim(const std::string &line) {
    Return string without trailing # comment
 ------------------------------------------------------------------------- */
 
-std::string utils::trim_comment(const std::string &line) {
+std::string utils::trim_comment(const std::string &line)
+{
   auto end = line.find_first_of("#");
   if (end != std::string::npos) {
     return line.substr(0, end);
   }
   return std::string(line);
+}
+
+/* ----------------------------------------------------------------------
+   Replace UTF-8 encoded chars with known ASCII equivalents
+------------------------------------------------------------------------- */
+
+std::string utils::utf8_subst(const std::string &line)
+{
+  const unsigned char * const in = (const unsigned char *)line.c_str();
+  const int len = line.size();
+  std::string out;
+
+  for (int i=0; i < len; ++i) {
+
+    // UTF-8 2-byte character
+    if ((in[i] & 0xe0U) == 0xc0U) {
+      if ((i+1) < len) {
+        // NON-BREAKING SPACE (U+00A0)
+        if ((in[i] == 0xc2U) && (in[i+1] == 0xa0U))
+          out += ' ', ++i;
+        // MODIFIER LETTER PLUS SIGN (U+02D6)
+        if ((in[i] == 0xcbU) && (in[i+1] == 0x96U))
+          out += '+', ++i;
+        // MODIFIER LETTER MINUS SIGN (U+02D7)
+        if ((in[i] == 0xcbU) && (in[i+1] == 0x97U))
+          out += '-', ++i;
+      }
+    // UTF-8 3-byte character
+    } else if ((in[i] & 0xf0U) == 0xe0U) {
+      if ((i+2) < len) {
+        // EN QUAD (U+2000)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x80U))
+          out += ' ', i += 2;
+        // EM QUAD (U+2001)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x81U))
+          out += ' ', i += 2;
+        // EN SPACE (U+2002)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x82U))
+          out += ' ', i += 2;
+        // EM SPACE (U+2003)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x83U))
+          out += ' ', i += 2;
+        // THREE-PER-EM SPACE (U+2004)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x84U))
+          out += ' ', i += 2;
+        // FOUR-PER-EM SPACE (U+2005)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x85U))
+          out += ' ', i += 2;
+        // SIX-PER-EM SPACE (U+2006)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x86U))
+          out += ' ', i += 2;
+        // FIGURE SPACE (U+2007)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x87U))
+          out += ' ', i += 2;
+        // PUNCTUATION SPACE (U+2008)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x88U))
+          out += ' ', i += 2;
+        // THIN SPACE (U+2009)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x89U))
+          out += ' ', i += 2;
+        // HAIR SPACE (U+200A)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x8aU))
+          out += ' ', i += 2;
+        // ZERO WIDTH SPACE (U+200B)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x8bU))
+          out += ' ', i += 2;
+        // NARROW NO-BREAK SPACE (U+202F)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0xafU))
+          out += ' ', i += 2;
+        // WORD JOINER (U+2060)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x81U) && (in[i+2] == 0xa0U))
+          out += ' ', i += 2;
+        // INVISIBLE SEPARATOR (U+2063)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x81U) && (in[i+2] == 0xa3U))
+          out += ' ', i += 2;
+        // INVISIBLE PLUS (U+2064)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x81U) && (in[i+2] == 0xa4U))
+          out += '+', i += 2;
+        // MINUS SIGN (U+2212)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x88U) && (in[i+2] == 0x92U))
+          out += '-', i += 2;
+        // ZERO WIDTH NO-BREAK SPACE (U+FEFF)
+        if ((in[i] == 0xefU) && (in[i+1] == 0xbbU) && (in[i+2] == 0xbfU))
+          out += ' ', i += 2;
+      }
+    // UTF-8 4-byte character
+    } else if ((in[i] & 0xe8U) == 0xf0U) {
+      if ((i+3) < len) {
+        ;
+      }
+    } else out += in[i];
+  }
+  return out;
 }
 
 /* ----------------------------------------------------------------------

@@ -665,7 +665,7 @@ if(BUILD_SHARED_LIBS)
       install-python
       ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
       -p ${LAMMPS_PYTHON_DIR}/lammps
-      -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+      -l ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX}
       WORKING_DIRECTORY  ${LAMMPS_PYTHON_DIR}
       COMMENT "Installing LAMMPS Python module")
   else()

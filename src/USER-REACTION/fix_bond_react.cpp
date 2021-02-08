@@ -3273,7 +3273,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
   // inserting atoms based off fix_deposit->pre_exchange
   int flag;
   imageint *imageflags;
-  double **coords,lamda[3],rotmat[3][3],vnew[3];
+  double **coords,lamda[3],rotmat[3][3];
   double *newcoord;
   double **v = atom->v;
   double t,delx,dely,delz,rsq;
@@ -3352,7 +3352,7 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
         fit_incr++;
       }
     }
-    double rmsd = superposer.Superpose(xfrozen, xmobile);
+    superposer.Superpose(xfrozen, xmobile);
     for (int i = 0; i < 3; i++)
       for (int j = 0; j < 3; j++)
         rotmat[i][j] = superposer.R[i][j];

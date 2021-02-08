@@ -727,6 +727,6 @@ double FixBondSwap::compute_vector(int n)
 
 double FixBondSwap::memory_usage()
 {
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   return bytes;
 }

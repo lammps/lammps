@@ -65,7 +65,7 @@ TEST(TEST_CATEGORY, view_remap) {
       std::is_same<TEST_EXECSPACE, Kokkos::Experimental::HIP>::value, \
       Kokkos::Experimental::HIPHostPinnedSpace, TEST_EXECSPACE>::type
 #else
-#if defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_SYCL)
 #define EXECSPACE Kokkos::HostSpace
 #else
 #define EXECSPACE TEST_EXECSPACE
@@ -98,6 +98,8 @@ TEST(TEST_CATEGORY, view_remap) {
 
   Kokkos::fence();
   // Kokkos::deep_copy( diff, input ); // Throw with incompatible shape.
+  // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
   Kokkos::deep_copy(output, input);
   Kokkos::fence();
 
@@ -110,6 +112,7 @@ TEST(TEST_CATEGORY, view_remap) {
           ++value;
           ASSERT_EQ(value, ((int)output(i0, i1, i2, i3)));
         }
+#endif
 }
 
 TEST(TEST_CATEGORY, view_mirror_nonconst) {

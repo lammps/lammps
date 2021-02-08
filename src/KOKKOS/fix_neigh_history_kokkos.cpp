@@ -243,11 +243,11 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor_item(const int &ii) const
 template<class DeviceType>
 double FixNeighHistoryKokkos<DeviceType>::memory_usage()
 {
-  double bytes = d_firstflag.extent(0)*d_firstflag.extent(1)*sizeof(int);
-  bytes += d_firstvalue.extent(0)*d_firstvalue.extent(1)*sizeof(double);
-  bytes += 2*k_npartner.extent(0)*sizeof(int);
-  bytes += 2*k_partner.extent(0)*k_partner.extent(1)*sizeof(int);
-  bytes += 2*k_valuepartner.extent(0)*k_valuepartner.extent(1)*sizeof(double);
+  double bytes = (double)d_firstflag.extent(0)*d_firstflag.extent(1)*sizeof(int);
+  bytes += (double)d_firstvalue.extent(0)*d_firstvalue.extent(1)*sizeof(double);
+  bytes += (double)2*k_npartner.extent(0)*sizeof(int);
+  bytes += (double)2*k_partner.extent(0)*k_partner.extent(1)*sizeof(int);
+  bytes += (double)2*k_valuepartner.extent(0)*k_valuepartner.extent(1)*sizeof(double);
   return bytes;
 }
 

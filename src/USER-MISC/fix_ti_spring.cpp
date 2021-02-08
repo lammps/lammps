@@ -261,7 +261,7 @@ double FixTISpring::compute_vector(int n)
 
 double FixTISpring::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 

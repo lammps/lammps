@@ -260,32 +260,32 @@ double MLIAPData::memory_usage()
 {
   double bytes = 0.0;
 
-  bytes += nelements*nparams*sizeof(double);     // egradient
-  bytes += nmax*size_gradforce*sizeof(double);   // gradforce
+  bytes += (double)nelements*nparams*sizeof(double);     // egradient
+  bytes += (double)nmax*size_gradforce*sizeof(double);   // gradforce
 
   if (gradgradflag == 1) {
-    bytes += natomgamma_max*
+    bytes += (double)natomgamma_max*
       gamma_nnz*sizeof(int);                     //gamma_row_index
-    bytes += natomgamma_max*
+    bytes += (double)natomgamma_max*
       gamma_nnz*sizeof(int);                     // gamma_col_index
-    bytes += natomgamma_max*
+    bytes += (double)natomgamma_max*
       gamma_nnz*sizeof(double);                  // gamma
   }
 
-  bytes += natoms*ndescriptors*sizeof(int);      // betas
-  bytes += natoms*ndescriptors*sizeof(int);      // descriptors
-  bytes += natoms*sizeof(double);                // eatoms
+  bytes += (double)natoms*ndescriptors*sizeof(int);      // betas
+  bytes += (double)natoms*ndescriptors*sizeof(int);      // descriptors
+  bytes += (double)natoms*sizeof(double);                // eatoms
 
-  bytes += natomneigh_max*sizeof(int);               // iatoms
-  bytes += natomneigh_max*sizeof(int);               // ielems
-  bytes += natomneigh_max*sizeof(int);               // numneighs
+  bytes += (double)natomneigh_max*sizeof(int);               // iatoms
+  bytes += (double)natomneigh_max*sizeof(int);               // ielems
+  bytes += (double)natomneigh_max*sizeof(int);               // numneighs
 
-  bytes += nneigh_max*sizeof(int);                   // jatoms
-  bytes += nneigh_max*sizeof(int);                   // jelems
-  bytes += nneigh_max*3*sizeof(double);              // rij"
+  bytes += (double)nneigh_max*sizeof(int);                   // jatoms
+  bytes += (double)nneigh_max*sizeof(int);                   // jelems
+  bytes += (double)nneigh_max*3*sizeof(double);              // rij"
 
   if (gradgradflag == 0)
-    bytes += nneigh_max*ndescriptors*3*sizeof(double);// graddesc
+    bytes += (double)nneigh_max*ndescriptors*3*sizeof(double);// graddesc
 
   return bytes;
 }

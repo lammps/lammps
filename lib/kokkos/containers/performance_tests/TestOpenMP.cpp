@@ -43,7 +43,6 @@
 */
 
 #include <Kokkos_Macros.hpp>
-#if defined(KOKKOS_ENABLE_OPENMP)
 
 #include <gtest/gtest.h>
 
@@ -64,25 +63,13 @@
 
 namespace Performance {
 
-class openmp : public ::testing::Test {
- protected:
-  static void SetUpTestCase() {
-    std::cout << std::setprecision(5) << std::scientific;
-
-    Kokkos::initialize();
-    Kokkos::OpenMP::print_configuration(std::cout);
-  }
-
-  static void TearDownTestCase() { Kokkos::finalize(); }
-};
-
-TEST_F(openmp, dynrankview_perf) {
+TEST(TEST_CATEGORY, dynrankview_perf) {
   std::cout << "OpenMP" << std::endl;
   std::cout << " DynRankView vs View: Initialization Only " << std::endl;
   test_dynrankview_op_perf<Kokkos::OpenMP>(8192);
 }
 
-TEST_F(openmp, global_2_local) {
+TEST(TEST_CATEGORY, global_2_local) {
   std::cout << "OpenMP" << std::endl;
   std::cout << "size, create, generate, fill, find" << std::endl;
   for (unsigned i = Performance::begin_id_size; i <= Performance::end_id_size;
@@ -90,7 +77,7 @@ TEST_F(openmp, global_2_local) {
     test_global_to_local_ids<Kokkos::OpenMP>(i);
 }
 
-TEST_F(openmp, unordered_map_performance_near) {
+TEST(TEST_CATEGORY, unordered_map_performance_near) {
   unsigned num_openmp = 4;
   if (Kokkos::hwloc::available()) {
     num_openmp = Kokkos::hwloc::get_available_numa_count() *
@@ -102,7 +89,7 @@ TEST_F(openmp, unordered_map_performance_near) {
   Perf::run_performance_tests<Kokkos::OpenMP, true>(base_file_name.str());
 }
 
-TEST_F(openmp, unordered_map_performance_far) {
+TEST(TEST_CATEGORY, unordered_map_performance_far) {
   unsigned num_openmp = 4;
   if (Kokkos::hwloc::available()) {
     num_openmp = Kokkos::hwloc::get_available_numa_count() *
@@ -114,7 +101,7 @@ TEST_F(openmp, unordered_map_performance_far) {
   Perf::run_performance_tests<Kokkos::OpenMP, false>(base_file_name.str());
 }
 
-TEST_F(openmp, scatter_view) {
+TEST(TEST_CATEGORY, scatter_view) {
   std::cout << "ScatterView data-duplicated test:\n";
   Perf::test_scatter_view<Kokkos::OpenMP, Kokkos::LayoutRight,
                           Kokkos::Experimental::ScatterDuplicated,
@@ -127,7 +114,3 @@ TEST_F(openmp, scatter_view) {
 }
 
 }  // namespace Performance
-#else
-void KOKKOS_CONTAINERS_PERFORMANCE_TESTS_TESTOPENMP_PREVENT_EMPTY_LINK_ERROR() {
-}
-#endif

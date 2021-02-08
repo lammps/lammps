@@ -94,6 +94,6 @@ void ComputeSPHRhoAtom::compute_peratom()
 
 double ComputeSPHRhoAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

@@ -226,6 +226,6 @@ void ComputeBodyLocal::reallocate(int n)
 
 double ComputeBodyLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

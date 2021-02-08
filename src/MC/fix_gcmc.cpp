@@ -2515,7 +2515,7 @@ double FixGCMC::compute_vector(int n)
 
 double FixGCMC::memory_usage()
 {
-  double bytes = gcmc_nmax * sizeof(int);
+  double bytes = (double)gcmc_nmax * sizeof(int);
   return bytes;
 }
 

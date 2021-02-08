@@ -49,7 +49,6 @@ static char plumed_default_kernel[] = "PLUMED_KERNEL=" PLUMED_QUOTE(__PLUMED_DEF
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define INVOKED_SCALAR 1
 
 FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),

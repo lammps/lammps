@@ -112,6 +112,6 @@ void ComputeSMDTLSPHStrainRate::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTLSPHStrainRate::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

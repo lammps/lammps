@@ -81,11 +81,6 @@ __device__ inline void hip_intra_warp_shuffle_reduction(
       join(result, tmp);
     }
     shift *= 2;
-    // Not sure why there is a race condition here but we need to wait for the
-    // join operation to be finished to perform the next shuffle. Note that the
-    // problem was also found in the CUDA backend with CUDA clang
-    // (https://github.com/kokkos/kokkos/issues/941)
-    __syncthreads();
   }
 
   // Broadcast the result to all the threads in the warp
@@ -204,7 +199,6 @@ __device__ inline bool hip_inter_block_shuffle_reduction(
           value_type tmp = Kokkos::Experimental::shfl_down(value, i, warp_size);
           if (id + i < gridDim.x) join(value, tmp);
         }
-        __syncthreads();
       }
     }
   }

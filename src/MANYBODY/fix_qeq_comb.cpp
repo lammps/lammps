@@ -284,7 +284,7 @@ void FixQEQComb::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
 double FixQEQComb::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 /* ---------------------------------------------------------------------- */

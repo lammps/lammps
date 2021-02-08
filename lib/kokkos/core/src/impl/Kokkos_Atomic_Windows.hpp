@@ -67,13 +67,13 @@ _declspec(align(16))
     return (lower != a.lower) || upper != a.upper;
   }
 }
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 __attribute__((aligned(16)))
 #endif
 ;
 }  // namespace Impl
 
-#ifndef __CUDA_ARCH__
+#if !defined(__CUDA_ARCH__) || defined(__clang__)
 template <typename T>
 inline T atomic_compare_exchange(
     volatile T* const dest, const T& compare,
@@ -159,6 +159,7 @@ inline T atomic_compare_exchange_strong(volatile T* const dest,
   return atomic_compare_exchange(dest, compare, val);
 }
 #endif
+
 }  // namespace Kokkos
 #endif
 #endif

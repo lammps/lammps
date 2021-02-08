@@ -399,11 +399,11 @@ void ModifyKokkos::energy_atom(int nlocal, double *energy)
   int i,j;
   double *eatom;
 
-  //for (i = 0; i < n_energy_atom; i++) {
-  //  eatom = fix[list_energy_atom[i]]->eatom;
-  //  if (!eatom) continue;
-  //  for (j = 0; j < nlocal; j++) energy[j] += eatom[j];
-  //}
+  for (i = 0; i < n_energy_atom; i++) {
+    eatom = fix[list_energy_atom[i]]->eatom;
+    if (!eatom) continue;
+    for (j = 0; j < nlocal; j++) energy[j] += eatom[j];
+  }
 }
 
 /* ----------------------------------------------------------------------

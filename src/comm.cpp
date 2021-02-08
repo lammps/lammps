@@ -298,18 +298,32 @@ void Comm::modify_params(int narg, char **arg)
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
         if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
-        memory->destroy(cutusermulti);
-        cutusermulti = nullptr;
+        if(cutusermulti){
+          memory->destroy(cutusermulti);
+          cutusermulti = nullptr;
+        }
+        if(cutusermultiold){
+          memory->destroy(cutusermultiold);
+          cutusermultiold = nullptr;
+        }
         mode = Comm::SINGLE;
       } else if (strcmp(arg[iarg+1],"multi") == 0) {
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
         if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
+        if(cutusermultiold){
+          memory->destroy(cutusermultiold);
+          cutusermultiold = nullptr;
+        }
         mode = Comm::MULTI;
       } else if (strcmp(arg[iarg+1],"multi/old") == 0) {
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
         if (mode == Comm::MULTI) cutghostuser = 0.0;
+        if(cutusermulti){
+          memory->destroy(cutusermulti);
+          cutusermulti = nullptr;
+        }
         mode = Comm::MULTIOLD;
       } else error->all(FLERR,"Illegal comm_modify command");
       iarg += 2;

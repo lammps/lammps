@@ -414,9 +414,24 @@ void Info::command(int narg, char **arg)
       if (comm->mode == 1) {
         fputs("Communication mode = multi\n",out);
         double cut;
+        for (int i=0; i < neighbor->ncollections; ++i) {
+          if (comm->cutusermulti) cut = comm->cutusermulti[i];
+          else cut = 0.0;
+          for (int j=0; j < neighbor->ncollections; ++j) {
+            cut = MAX(cut,sqrt(neighbor->cutcollectionsq[i][j]));
+          }
+          
+          if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
+          fmt::print(out,"Communication cutoff for collection {} = {:.8}\n", i, cut);
+        }
+      }
+      
+      if (comm->mode == 2) {
+        fputs("Communication mode = multi/old\n",out);
+        double cut;
         for (int i=1; i <= atom->ntypes && neighbor->cuttype; ++i) {
           cut = neighbor->cuttype[i];
-          if (comm->cutusermulti) cut = MAX(cut,comm->cutusermulti[i]);
+          if (comm->cutusermultiold) cut = MAX(cut,comm->cutusermultiold[i]);
           fmt::print(out,"Communication cutoff for type {} = {:.8}\n", i, cut);
         }
       }

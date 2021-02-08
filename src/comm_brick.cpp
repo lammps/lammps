@@ -145,6 +145,12 @@ void CommBrick::init()
     ncollections = neighbor->ncollections;
     allocate_multi(maxswap);
     memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
+    if(cutusermultiflag) {
+      memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
+      for(int i = ncollections_prior; i < ncollections; i++)
+        cutusermulti[i] = -1.0;
+    }    
+    
     ncollections_prior = ncollections;
   }  
   if ((mode == Comm::SINGLE or mode == Comm::MULTIOLD) && multilo) {
@@ -218,7 +224,7 @@ void CommBrick::setup()
     // parse any cutoff/multi commands
     int nhi, nlo;
     for(auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
-      utils::bounds(FLERR,it->first,1,ncollections,nlo,nhi,error);
+      utils::bounds(FLERR,it->first,0,ncollections,nlo,nhi,error);
       if(nhi >= ncollections)
         error->all(FLERR, "Unused collection id in comm_modify cutoff/multi command");
       for (j=nlo; j<=nhi; ++j)
@@ -898,6 +904,22 @@ void CommBrick::borders()
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
                 sendlist[iswap][nsend++] = i;
               }
+          } else if (mode == Comm::MULTI) {
+            ngroup = atom->nfirst;
+            for (i = 0; i < ngroup; i++) {
+              icollection = collection[i];
+              if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
+            for (i = atom->nlocal; i < nlast; i++) {
+              icollection = collection[i];
+              if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }              
           } else {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++) {

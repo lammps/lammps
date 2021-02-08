@@ -198,7 +198,6 @@ void CommTiled::setup()
         
       for(i = 0; i < maxswap; i ++)
         grow_swap_send_multi(i,DELTA_PROCS);
-    
       if(cutusermultiflag){
         memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
         for(i = ncollections_prior; i < ncollections; i++)
@@ -211,10 +210,10 @@ void CommTiled::setup()
     // parse any cutoff/multi commands
     int nhi, nlo;
     for(auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
-      utils::bounds(FLERR,it->first,1,ncollections,nlo,nhi,error);
+      utils::bounds(FLERR,it->first,0,ncollections,nlo,nhi,error);
       if(nhi >= ncollections)
         error->all(FLERR, "Unused collection id in comm_modify cutoff/multi command");
-
+        
       for (j=nlo; j<=nhi; ++j)
         cutusermulti[j] = it->second;
     }
@@ -224,6 +223,7 @@ void CommTiled::setup()
     // If using multi/reduce, communicate particles a distance equal
     // to the max cutoff with equally sized or smaller collections
     // If not, communicate the maximum cutoff of the entire collection
+    
     for (i = 0; i < ncollections; i++) {
       if (cutusermulti) {
         cutghostmulti[i][0] = cutusermulti[i];

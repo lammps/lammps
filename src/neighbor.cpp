@@ -366,7 +366,8 @@ void Neighbor::init()
     if(not custom_collection_flag) {
       ncollections = n;
       interval_collection_flag = 0;
-      memory->create(type2collection,n+1,"neigh:type2collection");  
+      if(not type2collection)
+        memory->create(type2collection,n+1,"neigh:type2collection");  
       for(i = 1; i <= n; i++)
         type2collection[i] = i-1;
     }  

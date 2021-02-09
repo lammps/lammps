@@ -182,7 +182,7 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 
   // realloc firstflag and firstvalue if needed
 
-  if (maxatom < nlocal || k_list->maxneighs > d_firstflag.extent(1)) {
+  if (maxatom < nlocal || k_list->maxneighs > (int)d_firstflag.extent(1)) {
     maxatom = nall;
     d_firstflag = Kokkos::View<int**>("neighbor_history:firstflag",maxatom,k_list->maxneighs);
     d_firstvalue = Kokkos::View<LMP_FLOAT**>("neighbor_history:firstvalue",maxatom,k_list->maxneighs*dnum);

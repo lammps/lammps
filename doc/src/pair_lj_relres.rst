@@ -30,10 +30,13 @@ Examples
 Description
 """""""""""
 
-Style *lj/relres* computes a LJ interaction with RelRes methodology developed by :ref:`Chaimovich at al.<Chaimovich1>`
-This methodology applies fine-grained model between near neighbors (up to :math:`r_{si}` boundary) and a simplified coarse-grained model
-for far neighbors (beyond :math:`r_{so}` boundary) allowing significant improvement in computational efficiency while preserving correctness
-of simulation results.
+Style *lj/relres* computes a LJ model using the RelRes methodology
+developed by :ref:`Chaimovich at al.<Chaimovich1>`. This methodology
+applies a fine-grained model between near neighbors (up to
+:math:`r_{si}` boundary) and a simplified coarse-grained model for far
+neighbors (beyond :math:`r_{so}` boundary) and thus resulting in a
+significant improvement in computational efficiency while preserving
+the correctness of the simulation results.
 
 .. math::
 
@@ -44,21 +47,32 @@ of simulation results.
         \sum_{m=0}^{4} C_{cm}\left(r-r_{ci}\right)^m -G_c, &  r_{ci}\leq r< r_{co} \\
         0, &  r\geq r_{co}\end{array}\right.
 
-Between :math:`r_{si}` and :math:`r_{so}` the polynomial smoothing is applied in a way that the force and its 1st derivative are not discontinued
-at switching between fine- and coarse-grained potentials (between :math:`r_{si}` and :math:`r_{so}`) and at cutoff (between :math:`r_{ci}` and :math:`r_{co}`).
-The corresponding polynomial coefficients :math:`C_{sm}` and :math:`C_{cm}` and shifting constants :math:`G_{si}`, :math:`G_{so}` and :math:`G_{c}` are computed by LAMMPS accordingly.
-To avoid smoothing, the inner switching distance :math:`r_{si}` parameter should be set equal to the outer switching distance :math:`r_{so}` parameter
-(:math:`r_{si}=r_{so}`). Similarly, to avoid smoothing at cutoff, inner and outer cutoff parameters should be set equal (:math:`r_{ci}=r_{co}`).
-Details can be found in :ref:`(Chaimovich) <Chaimovich2>`.
+Between :math:`r_{si}` and :math:`r_{so}` the polynomial smoothing is
+applied in a way that the force and its 1st derivative are continuous
+when switching between fine- and coarse-grained potentials (between
+:math:`r_{si}` and :math:`r_{so}`) and at the cutoff (between
+:math:`r_{ci}` and :math:`r_{co}`).  The corresponding polynomial
+coefficients :math:`C_{sm}` and :math:`C_{cm}` and shifting constants
+:math:`G_{si}`, :math:`G_{so}` and :math:`G_{c}` are computed by LAMMPS
+accordingly.  To avoid smoothing, the inner switching distance
+:math:`r_{si}` parameter should be set equal to the outer switching
+distance :math:`r_{so}` parameter (:math:`r_{si}=r_{so}`). Similarly, to
+avoid smoothing at the cutoff, inner and outer cutoff parameters should
+be equal (:math:`r_{ci}=r_{co}`).  Details can be found in
+:ref:`(Chaimovich) <Chaimovich2>`.
 
 .. note::
 
    Energy and force resulting from this methodology can be plotted via the
    :doc:`pair_write <pair_write>` command to see the effect.
 
-In the implementation of *lj/relres* style, atoms are grouped in the way that one of the atoms in the group plays the role of a coarse-grained site for the calculation
-of interactions beyond :math:`r_{so}` distance while continuing to play the role of a fine-grained site for shorter distances.
-This atom must be defined as a different atom type. Other atoms in the group participate in the fine-grained interactions only.
+In the implementation of the *lj/relres* pair style, atoms are grouped
+in a way that one of the atoms in a group plays the role of a
+coarse-grained site for the calculation of interactions beyond the
+:math:`r_{so}` distance while continuing to be a fine-grained site for
+shorter distances.  This atom must be defined as a different atom
+type. Other atoms in the group participate in the fine-grained
+interactions only.
 
 The following coefficients must be defined for each pair of atom
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -81,8 +95,11 @@ Additional parameters can be defined to specify different :math:`r_{si}`, :math:
 * :math:`r_{ci}` (distance units)
 * :math:`r_{co}` (distance units)
 
-These parameters are optional and they are used to override global values defined in the pair_style command.
-If this override option is used, all four values must be specified.  If not specified, the global values for :math:`r_{si}`, :math:`r_{so}`, :math:`r_{ci}`, and :math:`r_{co}` are used.
+These parameters are optional and they are used to override global
+cutoff values as defined in the pair_style command.  If this override
+option is used, all four values must be specified.  If not specified,
+the global values for :math:`r_{si}`, :math:`r_{so}`, :math:`r_{ci}`,
+and :math:`r_{co}` are used.
 
 ----------
 
@@ -93,15 +110,19 @@ If this override option is used, all four values must be specified.  If not spec
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-For atom type pairs I,J with I != J, the :math:`\epsilon^{FG}`, :math:`\sigma^{FG}`, :math:`\epsilon^{CG}`, :math:`\sigma^{CG}`, :math:`r_{si}`, :math:`r_{so}`, :math:`r_{ci}`, and :math:`r_{co}`
+For atom type pairs I,J with I != J, the :math:`\epsilon^{FG}`,
+:math:`\sigma^{FG}`, :math:`\epsilon^{CG}`, :math:`\sigma^{CG}`,
+:math:`r_{si}`, :math:`r_{so}`, :math:`r_{ci}`, and :math:`r_{co}`
 parameters for this pair style can be mixed, if not defined explicitly.
 All parameters are mixed according to the pair_modify mix option.  The
-default mix value is *geometric*\ , and it is recommended to use with this *lj/relres* style.
-See the "pair_modify" command for details.
+default mix value is *geometric*\ , and it is recommended to use with
+this *lj/relres* style.  See the "pair_modify" command for details.
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
-option for the energy of the pair interaction. It is recommended to set this option to *yes*\ .
-Otherwise, the shifting constant :math:`G_{c}` is set to zero. Constants :math:`G_{si}` and :math:`G_{so}` are not impacted by this option.
+option for the energy of the pair interaction. It is recommended to set
+this option to *yes*\ .  Otherwise, the shifting constant :math:`G_{c}`
+is set to zero. Constants :math:`G_{si}` and :math:`G_{so}` are not
+impacted by this option.
 
 The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.
@@ -111,8 +132,9 @@ tail option for adding long-range tail corrections to energy and
 pressure, since the energy of the pair interaction is smoothed to 0.0
 at the cutoff.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
+This pair style writes its information to :doc:`binary restart files
+<restart>`, so pair_style and pair_coeff commands do not need to be
+specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the

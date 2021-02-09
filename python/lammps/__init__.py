@@ -5,4 +5,4 @@ from .pylammps import *
 
 # automatically updated during installation
 
-__version__ = 20201224
+__version__ = 0

@@ -150,3 +150,10 @@ if tryuser:
     setup(**setup_kwargs)
   except:
     print("Installation into user site package folder failed.")
+
+# restore __version__ == 0 for in place usage
+with open(os.path.join('lammps','__init__.py'), "r+") as f:
+    content = f.read()
+    f.seek(0)
+    f.write(re.sub(vregex, lambda match: '{}{}'.format(match.group(1), 0), content))
+    f.truncate()

@@ -382,8 +382,9 @@ class lammps(object):
     self._available_styles = None
 
     # check if liblammps version matches the installed python module version
+    # but not for in-place usage, i.e. when the version is 0
     import lammps
-    if lammps.__version__ != self.lib.lammps_version(self.lmp):
+    if lammps.__version__ > 0 and lammps.__version__ != self.lib.lammps_version(self.lmp):
         raise(AttributeError("LAMMPS Python module installed for LAMMPS version %d, but shared library is version %d" \
                 % (lammps.__version__, self.lib.lammps_version(self.lmp))))
 

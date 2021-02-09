@@ -122,10 +122,22 @@ Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files
-<restart>`.  The :doc:`fix_modify <fix_modify>` options relevant to this
-fix are listed below.  No global scalar or vector or per-atom quantities
-are stored by this fix for access by various :doc:`output commands
-<Howto_output>`.  No parameter of this fix can be used with the
+<restart>`.
+
+The :doc:`fix_modify <fix_modify>` *energy* option is not supported by
+this fix, but this fix does add the kinetic energy imparted to atoms
+by the momentum coupling mode of the AtC package to the global
+potential energy of the system as part of :doc:`thermodynamic output
+<thermo_style>`.
+
+Additional :doc:`fix_modify <fix_modify>` options relevant to this
+fix are listed below.
+
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the energy
+discussed in the previous paragraph.  The scalar value is "extensive".
+
+No parameter of this fix can be used with the
 *start/stop* keywords of the :doc:`run <run>` command.  This fix is not
 invoked during :doc:`energy minimization <minimize>`.
 
@@ -145,10 +157,10 @@ one, e.g. nve, nvt, etc. In addition, currently:
 Related commands
 """"""""""""""""
 
-After specifying this fix in your input script, several other
-:doc:`fix_modify <fix_modify>` commands are used to setup the problem,
-e.g. define the finite element mesh and prescribe initial and boundary
-conditions.
+After specifying this fix in your input script, several
+:doc:`fix_modify AtC <fix_modify>` commands are used to setup the
+problem, e.g. define the finite element mesh and prescribe initial and
+boundary conditions.  Each of these options has its own doc page.
 
 *fix_modify* commands for setup:
 
@@ -240,7 +252,8 @@ miscellaneous *fix_modify* commands:
 * :doc:`fix_modify AtC remove_species <atc_remove_species>`
 * :doc:`fix_modify AtC remove_molecule <atc_remove_molecule>`
 
-Note: a set of example input files with the attendant material files are included in the ``examples/USER/atc`` folders.
+Note: a set of example input files with the attendant material files
+are included in the ``examples/USER/atc`` folders.
 
 Default
 """""""
@@ -252,30 +265,52 @@ For detailed exposition of the theory and algorithms please see:
 
 .. _Wagner:
 
-**(Wagner)** Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, "An atomistic-to-continuum coupling method for heat transfer in solids." Special Issue of Computer Methods and Applied Mechanics (2008) 197:3351.
+**(Wagner)** Wagner, GJ; Jones, RE; Templeton, JA; Parks, MA, "An
+ atomistic-to-continuum coupling method for heat transfer in solids."
+ Special Issue of Computer Methods and Applied Mechanics (2008)
+ 197:3351.
 
 .. _Zimmeman2004:
 
-**(Zimmerman2004)** Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE; Klein, PA; Bammann, DJ, "Calculation of stress in atomistic simulation." Special Issue of Modelling and Simulation in Materials Science and Engineering (2004), 12:S319.
+**(Zimmerman2004)** Zimmerman, JA; Webb, EB; Hoyt, JJ;. Jones, RE;
+ Klein, PA; Bammann, DJ, "Calculation of stress in atomistic
+ simulation." Special Issue of Modelling and Simulation in Materials
+ Science and Engineering (2004), 12:S319.
 
 .. _Zimmerman2010:
 
-**(Zimmerman2010)** Zimmerman, JA; Jones, RE; Templeton, JA, "A material frame approach for evaluating continuum variables in atomistic simulations." Journal of Computational Physics (2010), 229:2364.
+**(Zimmerman2010)** Zimmerman, JA; Jones, RE; Templeton, JA, "A
+ material frame approach for evaluating continuum variables in
+ atomistic simulations." Journal of Computational Physics (2010),
+ 229:2364.
 
 .. _Templeton2010:
 
-**(Templeton2010)** Templeton, JA; Jones, RE; Wagner, GJ, "Application of a field-based method to spatially varying thermal transport problems in molecular dynamics." Modelling and Simulation in Materials Science and Engineering (2010), 18:085007.
+**(Templeton2010)** Templeton, JA; Jones, RE; Wagner, GJ, "Application
+ of a field-based method to spatially varying thermal transport
+ problems in molecular dynamics." Modelling and Simulation in
+ Materials Science and Engineering (2010), 18:085007.
 
 .. _Jones:
 
-**(Jones)** Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine, JA, "Electron transport enhanced molecular dynamics for metals and semi-metals." International Journal for Numerical Methods in Engineering (2010), 83:940.
+**(Jones)** Jones, RE; Templeton, JA; Wagner, GJ; Olmsted, D; Modine,
+ JA, "Electron transport enhanced molecular dynamics for metals and
+ semi-metals." International Journal for Numerical Methods in
+ Engineering (2010), 83:940.
 
 .. _Templeton2011:
 
-**(Templeton2011)** Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA; Wong, BM, "A long-range electric field solver for molecular dynamics based on atomistic-to-continuum modeling." Journal of Chemical Theory and Computation (2011), 7:1736.
+**(Templeton2011)** Templeton, JA; Jones, RE; Lee, JW; Zimmerman, JA;
+ Wong, BM, "A long-range electric field solver for molecular dynamics
+ based on atomistic-to-continuum modeling." Journal of Chemical Theory
+ and Computation (2011), 7:1736.
 
 .. _Mandadapu:
 
-**(Mandadapu)** Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization as a field variable from molecular dynamics simulations." Journal of Chemical Physics (2013), 139:054115.
+**(Mandadapu)** Mandadapu, KK; Templeton, JA; Lee, JW, "Polarization
+ as a field variable from molecular dynamics simulations." Journal of
+ Chemical Physics (2013), 139:054115.
 
-Please refer to the standard finite element (FE) texts, e.g. T.J.R Hughes " The finite element method ", Dover 2003, for the basics of FE simulation.
+Please refer to the standard finite element (FE) texts, e.g. T.J.R
+Hughes " The finite element method ", Dover 2003, for the basics of FE
+simulation.

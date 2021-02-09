@@ -35,7 +35,6 @@
 #include "respa.h"
 #include "update.h"
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -46,12 +45,6 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), id_temp(nullptr), random(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal langevin/spin command");
-
-  dynamic_group_allow = 1;
-  scalar_flag = 1;
-  global_freq = 1;
-  extscalar = 1;
-  nevery = 1;
 
   temp = utils::numeric(FLERR,arg[3],false,lmp);
   alpha_t = utils::numeric(FLERR,arg[4],false,lmp);
@@ -77,7 +70,6 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
 
   // random = new RanPark(lmp,seed + comm->me);
   random = new RanMars(lmp,seed + comm->me);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,10 +84,6 @@ FixLangevinSpin::~FixLangevinSpin()
 int FixLangevinSpin::setmask()
 {
   int mask = 0;
-  mask |= POST_FORCE;
-  mask |= POST_FORCE_RESPA;
-  mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -156,7 +144,6 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
 
 void FixLangevinSpin::add_temperature(double fmi[3])
 {
-
   // double rx = sigma*(2.0*random->uniform() - 1.0);
   // double ry = sigma*(2.0*random->uniform() - 1.0);
   // double rz = sigma*(2.0*random->uniform() - 1.0);
@@ -175,14 +162,4 @@ void FixLangevinSpin::add_temperature(double fmi[3])
   fmi[0] *= gil_factor;
   fmi[1] *= gil_factor;
   fmi[2] *= gil_factor;
-
 }
-
-
-/* ---------------------------------------------------------------------- */
-
-void FixLangevinSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
-{
-  if (ilevel == nlevels_respa-1) post_force(vflag);
-}
-

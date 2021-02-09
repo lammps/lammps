@@ -41,9 +41,10 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
 
   // parse args
 
@@ -225,7 +226,6 @@ int FixWall::setmask()
   if (fldflag) mask |= PRE_FORCE;
   else mask |= POST_FORCE;
 
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -302,12 +302,12 @@ void FixWall::pre_force(int vflag)
 
 void FixWall::post_force(int vflag)
 {
+  // virial setup
 
-  // energy and virial setup
+  v_init(vflag);
 
-  eflag = 0;
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  // energy intialize
+
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
   // coord = current position of wall

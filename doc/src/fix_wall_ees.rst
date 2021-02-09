@@ -131,7 +131,7 @@ The :doc:`fix_modify <fix_modify>` *energy* option is supported by
 these fixes to add the energy of interaction between atoms and all the
 specified walls or region wall to the global potential energy of the
 system as part of :doc:`thermodynamic output <thermo_style>`.  The
-default settings for thes fixes are :doc:`fix_modify energy no
+default settings for these fixes are :doc:`fix_modify energy no
 <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by

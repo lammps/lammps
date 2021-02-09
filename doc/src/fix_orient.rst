@@ -149,7 +149,7 @@ No information about this fix is written to :doc:`binary restart files
 
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by
 this fix to add the potential energy of atom interactions with the
-grain bounadry driving force to the global potential energy of the
+grain boundary driving force to the global potential energy of the
 system as part of :doc:`thermodynamic output <thermo_style>`.  The
 default setting for this fix is :doc:`fix_modify energy no
 <fix_modify>`.

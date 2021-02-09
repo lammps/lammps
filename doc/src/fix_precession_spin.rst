@@ -141,7 +141,7 @@ No information about this fix is written to :doc:`binary restart files
 <restart>`.
 
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by
-this fix to add the energy assocatiated with the spin precession
+this fix to add the energy associated with the spin precession
 torque to the global potential energy of the system as part of
 :doc:`thermodynamic output <thermo_style>`.  The default setting for
 this fix is :doc:`fix_modify energy no <fix_modify>`.

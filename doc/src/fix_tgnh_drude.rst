@@ -240,7 +240,7 @@ compute temperature on a subset of atoms.
    keyword will be unaffected by the *temp* setting.
 
 The cumulative energy change in the system imposed by these fixes, due
-to thermostatting and/or barostating, are included in the
+to thermostatting and/or barostatting, are included in the
 :doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
 *econserve*.  See the :doc:`thermo_style <thermo_style>` doc page for
 details.

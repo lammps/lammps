@@ -83,7 +83,7 @@ appropriate fix.
 
 .. note::
 
-   For most fixes that suppport the *energy* keyword, the default
+   For most fixes that support the *energy* keyword, the default
    setting is *no*.  For a few it is *yes*, when a user would expect
    that to be the case.  The doc page of each fix gives the default.
 
@@ -108,7 +108,7 @@ option to include or exclude the contribution from fixes.
 
 .. note::
 
-   For most fixes that suppport the *virial* keyword, the default
+   For most fixes that support the *virial* keyword, the default
    setting is *no*.  For a few it is *yes*, when a user would expect
    that to be the case.  The doc page of each fix gives the default.
 

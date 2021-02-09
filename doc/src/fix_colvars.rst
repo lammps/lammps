@@ -115,7 +115,7 @@ in a pair of double quotes ("), or can span multiple lines when bracketed
 by a pair of triple double quotes (""", like python embedded documentation).
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the Covars
+:doc:`output commands <Howto_output>`.  The scalar is the Colvars
 energy mentioned above.  The scalar value calculated by this fix is
 "extensive".
 

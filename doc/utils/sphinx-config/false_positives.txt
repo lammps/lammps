@@ -508,6 +508,7 @@ cpp
 cpu
 createatoms
 createAtoms
+CreateIDs
 crespi
 Crespi
 Critchley
@@ -788,6 +789,7 @@ ees
 eFF
 efield
 effm
+eflag
 eflux
 eg
 Eggebrecht
@@ -2681,6 +2683,7 @@ rfile
 rg
 Rg
 Rhaphson
+Rhe
 rheological
 rheology
 rhodo
@@ -3335,6 +3338,7 @@ verlet
 Verlet
 versa
 ves
+vflag
 vhi
 vibrational
 Vij

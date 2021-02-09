@@ -163,6 +163,7 @@ OPT.
    * :doc:`lj/long/dipole/long <pair_dipole>`
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
+   * :doc:`lj/relres <pair_lj_relres>`
    * :doc:`lj/sdk (gko) <pair_sdk>`
    * :doc:`lj/sdk/coul/long (go) <pair_sdk>`
    * :doc:`lj/sdk/coul/msm (o) <pair_sdk>`

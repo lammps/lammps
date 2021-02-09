@@ -168,7 +168,7 @@ void BondGaussian::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     bond_temperature[i] = bond_temp_one;
     nterms[i] = n;
-    delete[] alpha[i];    
+    delete[] alpha[i];
     alpha[i] = new double [n];
     delete[] width[i];
     width[i] = new double [n];

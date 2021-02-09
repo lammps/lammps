@@ -1,7 +1,10 @@
 .. index:: pair_style lj/relres
+.. index:: pair_style lj/relres/omp
 
 pair_style lj/relres command
 ============================
+
+Accelerator Variants: *lj/relres/omp*
 
 Syntax
 """"""
@@ -53,7 +56,7 @@ Details can be found in :ref:`(Chaimovich) <Chaimovich2>`.
    Energy and force resulting from this methodology can be plotted via the
    :doc:`pair_write <pair_write>` command to see the effect.
 
-In implementation of *lj/relres* style, atoms are grouped in the way that one of the atoms in the group plays the role of a coarse-grained site for the calculation
+In the implementation of *lj/relres* style, atoms are grouped in the way that one of the atoms in the group plays the role of a coarse-grained site for the calculation
 of interactions beyond :math:`r_{so}` distance while continuing to play the role of a fine-grained site for shorter distances.
 This atom must be defined as a different atom type. Other atoms in the group participate in the fine-grained interactions only.
 
@@ -80,6 +83,12 @@ Additional parameters can be defined to specify different :math:`r_{si}`, :math:
 
 These parameters are optional and they are used to override global values defined in the pair_style command.
 If this override option is used, all four values must be specified.  If not specified, the global values for :math:`r_{si}`, :math:`r_{so}`, :math:`r_{ci}`, and :math:`r_{co}` are used.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

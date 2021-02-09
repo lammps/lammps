@@ -15,17 +15,18 @@
    Contributing author: Mark Chaimovich(RSM) mark.chaimovich@russianschool.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include "pair_lj_relres.h"
+
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neigh_list.h"
 #include "memory.h"
-#include "error.h"
-#include "citeme.h"
+
+#include <cmath>
+#include <cstdlib>
 
 using namespace LAMMPS_NS;
 

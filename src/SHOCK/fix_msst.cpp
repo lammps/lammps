@@ -935,6 +935,7 @@ double FixMSST::compute_vector(int n)
 
 double FixMSST::compute_hugoniot()
 {
+  if (!temperature) return 0.0;
   double v, e, p;
   double dhugo;
 
@@ -960,6 +961,8 @@ double FixMSST::compute_hugoniot()
 
 double FixMSST::compute_rayleigh()
 {
+  if (!temperature) return 0.0;
+
   double v, p;
   double drayleigh;
 
@@ -1001,6 +1004,8 @@ double FixMSST::compute_lagrangian_position()
 
 double FixMSST::compute_etotal()
 {
+  if (!pe) return 0.0;
+
   double epot,ekin,etot;
   epot = pe->compute_scalar();
   ekin = temperature->compute_scalar();

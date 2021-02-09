@@ -244,6 +244,8 @@ void FixNPHug::compute_temp_target()
 
 double FixNPHug::compute_etotal()
 {
+  if (!pe) return 0.0;
+
   double epot,ekin,etot;
   epot = pe->compute_scalar();
   ekin = temperature->compute_scalar();
@@ -269,6 +271,8 @@ double FixNPHug::compute_vol()
 
 double FixNPHug::compute_hugoniot()
 {
+  if (!temperature) return 0.0;
+
   double v,e,p;
   double dhugo;
 
@@ -299,6 +303,8 @@ double FixNPHug::compute_hugoniot()
 
 double FixNPHug::compute_us()
 {
+  if (!temperature) return 0.0;
+
   double v,p;
   double eps,us;
 

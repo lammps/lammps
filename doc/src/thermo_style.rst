@@ -23,7 +23,7 @@ Syntax
                              atoms, temp, press, pe, ke, etotal,
                              evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                              emol, elong, etail,
-			     enthalpy, ecouple, econserve,
+                             enthalpy, ecouple, econserve,
                              vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
                              xy, xz, yz, xlat, ylat, zlat,
                              bonds, angles, dihedrals, impropers,
@@ -61,8 +61,8 @@ Syntax
            elong = long-range kspace energy
            etail = van der Waals energy long-range tail correction
            enthalpy = enthalpy (etotal + press\*vol)
-	   ecouple = cumulative energy change due to thermo/baro statting fixes
-	   econserve = pe + ke + ecouple = etotal + ecouple
+           ecouple = cumulative energy change due to thermo/baro statting fixes
+           econserve = pe + ke + ecouple = etotal + ecouple
            vol = volume
            density = mass density of system
            lx,ly,lz = box lengths in x,y,z

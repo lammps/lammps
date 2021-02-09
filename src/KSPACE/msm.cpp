@@ -654,7 +654,6 @@ void MSM::allocate()
       npergrid = 1;
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
-
     } else {
       delete gc[n];
       memory->destroy(gc_buf1[n]);
@@ -808,6 +807,10 @@ void MSM::allocate_levels()
 
   for (int n=0; n<levels; n++) {
     gc[n] = nullptr;
+
+    gc_buf1[n] = nullptr;
+    gc_buf2[n] = nullptr;
+
     world_levels[n] = MPI_COMM_NULL;
 
     qgrid[n] = nullptr;

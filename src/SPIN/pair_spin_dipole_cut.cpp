@@ -167,9 +167,8 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
   double rinv,r2inv,r3inv,rsq,local_cut2,evdwl,ecoul;
   double xi[3],rij[3],eij[3],spi[4],spj[4],fi[3],fmi[3];
 
+  ev_init(eflag,vflag);
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
 
   int *type = atom->type;
   int nlocal = atom->nlocal;

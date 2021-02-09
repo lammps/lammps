@@ -1,5 +1,11 @@
-The input script in.22DMH.relres provide example of simulation using Relative Resolution (RelRes) potential.
-In this example 2,2-Dimethylhexane is selected as simulated substance to give complete view of the RelRes utilization.
+The input script in.22DMH.relres provide example of simulation using
+Relative Resolution (RelRes) potential.  In this example 2,2-Dimethylhexane
+is selected as simulated substance to give complete view of the RelRes
+utilization.
 
-This script uses data file Data.22DMH.in.relres consisting 8000 molecule of the substance. It also generates RelRes potential for selected atom types. 
+This script uses data file Data.22DMH.in.relres consisting of 8000 molecules.
+It also generates RelRes potential for selected atom types.
 
+The input script in.22DMH.respa demonstrates the use of the lj/relres pair
+style with r-RESPA using multi-timestepping between FG and CG sites using
+a hybrid pair style configuration.

@@ -151,29 +151,24 @@ void PairLJRelRes::compute(int eflag, int vflag)
         if (rsq < cutf_inner_sq[itype][jtype]) {
           r6inv = r2inv*r2inv*r2inv;
           forcelj = r6inv*(ljf1[itype][jtype]*r6inv-ljf2[itype][jtype]);
-        } 
-        else 
-          if (rsq < cutfsq[itype][jtype]) {
-            r = sqrt(rsq);
-            t = r - cutf_inner[itype][jtype];
-            tsq = t*t;
-            fskin = ljswf1[itype][jtype]+ljswf2[itype][jtype]*t+
-              ljswf3[itype][jtype]*tsq+ljswf4[itype][jtype]*tsq*t;
-            forcelj = fskin*r;
-          } 
-          else 
-            if (rsq < cut_inner_sq[itype][jtype]) {
-              r6inv = r2inv*r2inv*r2inv;
-              forcelj = r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
-            } 
-            else {
-              r = sqrt(rsq);
-              t = r-cut_inner[itype][jtype];
-              tsq = t*t;
-              fskin = ljsw1[itype][jtype]+ljsw2[itype][jtype]*t+
-                ljsw3[itype][jtype]*tsq+ljsw4[itype][jtype]*tsq*t;
-              forcelj = fskin*r;
-            }
+        } else if (rsq < cutfsq[itype][jtype]) {
+          r = sqrt(rsq);
+          t = r - cutf_inner[itype][jtype];
+          tsq = t*t;
+          fskin = ljswf1[itype][jtype]+ljswf2[itype][jtype]*t+
+            ljswf3[itype][jtype]*tsq+ljswf4[itype][jtype]*tsq*t;
+          forcelj = fskin*r;
+        } else if (rsq < cut_inner_sq[itype][jtype]) {
+          r6inv = r2inv*r2inv*r2inv;
+          forcelj = r6inv*(lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
+        } else {
+          r = sqrt(rsq);
+          t = r-cut_inner[itype][jtype];
+          tsq = t*t;
+          fskin = ljsw1[itype][jtype]+ljsw2[itype][jtype]*t+
+            ljsw3[itype][jtype]*tsq+ljsw4[itype][jtype]*tsq*t;
+          forcelj = fskin*r;
+        }
 
         fpair = factor_lj*forcelj*r2inv;
 
@@ -187,22 +182,21 @@ void PairLJRelRes::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          if (rsq < cutf_inner_sq[itype][jtype])
+          if (rsq < cutf_inner_sq[itype][jtype]) {
             evdwl = r6inv*(ljf3[itype][jtype]*r6inv-
-              ljf4[itype][jtype])-offsetsm[itype][jtype];
-          else
-            if (rsq < cutfsq[itype][jtype])
-              evdwl = ljswf0[itype][jtype]-ljswf1[itype][jtype]*t-
-                ljswf2[itype][jtype]*tsq/2.0-ljswf3[itype][jtype]*tsq*t/3.0-
-                ljswf4[itype][jtype]*tsq*tsq/4.0-offsetsp[itype][jtype];
-            else
-              if (rsq < cut_inner_sq[itype][jtype])
-                evdwl = r6inv*(lj3[itype][jtype]*r6inv-
-                  lj4[itype][jtype])-offset[itype][jtype];
-              else
-                evdwl = ljsw0[itype][jtype]-ljsw1[itype][jtype]*t-
-                  ljsw2[itype][jtype]*tsq/2.0-ljsw3[itype][jtype]*tsq*t/3.0-
-                  ljsw4[itype][jtype]*tsq*tsq/4.0-offset[itype][jtype];
+                           ljf4[itype][jtype])-offsetsm[itype][jtype];
+          } else if (rsq < cutfsq[itype][jtype]) {
+            evdwl = ljswf0[itype][jtype]-ljswf1[itype][jtype]*t-
+              ljswf2[itype][jtype]*tsq/2.0-ljswf3[itype][jtype]*tsq*t/3.0-
+              ljswf4[itype][jtype]*tsq*tsq/4.0-offsetsp[itype][jtype];
+          } else if (rsq < cut_inner_sq[itype][jtype]) {
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv-
+                           lj4[itype][jtype])-offset[itype][jtype];
+          } else {
+            evdwl = ljsw0[itype][jtype]-ljsw1[itype][jtype]*t-
+              ljsw2[itype][jtype]*tsq/2.0-ljsw3[itype][jtype]*tsq*t/3.0-
+              ljsw4[itype][jtype]*tsq*tsq/4.0-offset[itype][jtype];
+          }
           evdwl *= factor_lj;
         }
 
@@ -328,7 +322,7 @@ void PairLJRelRes::coeff(int narg, char **arg)
     cutf_one = utils::numeric(FLERR,arg[7],false,lmp);
     cut_inner_one = utils::numeric(FLERR,arg[8],false,lmp);
     cut_one = utils::numeric(FLERR,arg[9],false,lmp);
-  }  
+  }
 
   if (cut_inner_one <= 0.0 || cut_inner_one > cut_one)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -366,7 +360,7 @@ void PairLJRelRes::coeff(int narg, char **arg)
 
 double PairLJRelRes::init_one(int i, int j)
 { double ljswc0,ljswc3,ljswc4;
-// mixing rules: 
+// mixing rules:
 //   fg and cg - no mixing;
 //   fg and fg or fg anf hybrid - mixing fg parameters only
 //   cg and cg of cg and hybrid - mixing cg parameters only
@@ -380,45 +374,39 @@ double PairLJRelRes::init_one(int i, int j)
       sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
       sigmaf[i][j] = mix_distance(sigmaf[i][i],sigmaf[j][j]);
       cut_inner[i][j] = cutf[i][j] = cutf_inner[i][j] = cut[i][j] = 0.0;
-    } 
-    else
-      if (epsilon[i][i] == 0.0 || epsilon[j][j] == 0.0) { // fg only 
-        epsilon[i][j] = 0.0;
-        sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
-        epsilonf[i][j] = mix_energy(epsilonf[i][i],epsilonf[j][j],
-                                    sigmaf[i][i],sigmaf[j][j]);
-        sigmaf[i][j] = mix_distance(sigmaf[i][i],sigmaf[j][j]);
-        cutf_inner[i][j] = mix_distance(cutf_inner[i][i],cutf_inner[j][j]);
-        cutf[i][j] = mix_distance(cutf[i][i],cutf[j][j]);
-        cut_inner[i][j] = cutf[i][j];
-        cut[i][j] = cutf[i][j];
-      } 
-      else
-        if (epsilonf[i][i] == 0.0 || epsilonf[j][j] == 0.0) { // cg only
-          epsilonf[i][j] = 0.0;
-          epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-                                     sigma[i][i],sigma[j][j]);
-          sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
-          sigmaf[i][j] = mix_distance(sigmaf[i][i],sigmaf[j][j]);
-          cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
-          cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
-          cutf_inner[i][j] = mix_distance(cutf_inner[i][i],cutf_inner[j][j]);
-          cutf[i][j] = mix_distance(cutf[i][i],cutf[j][j]);
-        } 
-        else {                                              // fg and cg
-          epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
-                                     sigma[i][i],sigma[j][j]);
-          sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
-          epsilonf[i][j] = mix_energy(epsilonf[i][i],epsilonf[j][j],
-                                      sigmaf[i][i],sigmaf[j][j]);
-          sigmaf[i][j] = mix_distance(sigmaf[i][i],sigmaf[j][j]);
-          cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
-          cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
-          cutf_inner[i][j] = mix_distance(cutf_inner[i][i],cutf_inner[j][j]);
-          cutf[i][j] = mix_distance(cutf[i][i],cutf[j][j]);
-        } 
+    } else if (epsilon[i][i] == 0.0 || epsilon[j][j] == 0.0) { // fg only
+      epsilon[i][j] = 0.0;
+      sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
+      epsilonf[i][j] = mix_energy(epsilonf[i][i],epsilonf[j][j],
+                                  sigmaf[i][i],sigmaf[j][j]);
+      sigmaf[i][j] = mix_distance(sigmaf[i][i],sigmaf[j][j]);
+      cutf_inner[i][j] = mix_distance(cutf_inner[i][i],cutf_inner[j][j]);
+      cutf[i][j] = mix_distance(cutf[i][i],cutf[j][j]);
+      cut_inner[i][j] = cutf[i][j];
+      cut[i][j] = cutf[i][j];
+    } else if (epsilonf[i][i] == 0.0 || epsilonf[j][j] == 0.0) { // cg only
+      epsilonf[i][j] = 0.0;
+      epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
+                                 sigma[i][i],sigma[j][j]);
+      sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
+      sigmaf[i][j] = mix_distance(sigmaf[i][i],sigmaf[j][j]);
+      cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
+      cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+      cutf_inner[i][j] = mix_distance(cutf_inner[i][i],cutf_inner[j][j]);
+      cutf[i][j] = mix_distance(cutf[i][i],cutf[j][j]);
+    } else {                                              // fg and cg
+      epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
+                                 sigma[i][i],sigma[j][j]);
+      sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
+      epsilonf[i][j] = mix_energy(epsilonf[i][i],epsilonf[j][j],
+                                  sigmaf[i][i],sigmaf[j][j]);
+      sigmaf[i][j] = mix_distance(sigmaf[i][i],sigmaf[j][j]);
+      cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
+      cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+      cutf_inner[i][j] = mix_distance(cutf_inner[i][i],cutf_inner[j][j]);
+      cutf[i][j] = mix_distance(cutf[i][i],cutf[j][j]);
+    }
   }
-
 
   cut_inner_sq[i][j] = cut_inner[i][j]*cut_inner[i][j];
   cutf_inner_sq[i][j] = cutf_inner[i][j]*cutf_inner[i][j];
@@ -440,12 +428,11 @@ double PairLJRelRes::init_one(int i, int j)
         cut_inner_sq[i][j];
       ljsw3[i][j] = -(3.0/tsq) * (ljsw1[i][j] + 2.0/3.0*ljsw2[i][j]*t);
       ljsw4[i][j] = -1.0/(3.0*tsq) * (ljsw2[i][j] + 2.0*ljsw3[i][j]*t);
-      if (offset_flag)
+      if (offset_flag) {
         offset[i][j] = ljsw0[i][j] - ljsw1[i][j]*t - ljsw2[i][j]*tsq/2.0 -
-        ljsw3[i][j]*tsq*t/3.0 - ljsw4[i][j]*tsq*tsq/4.0;
-      else offset[i][j] = 0.0;
-    } 
-    else {
+          ljsw3[i][j]*tsq*t/3.0 - ljsw4[i][j]*tsq*tsq/4.0;
+      } else offset[i][j] = 0.0;
+    } else {
       ljsw0[i][j] = 0.0;
       ljsw1[i][j] = 0.0;
       ljsw2[i][j] = 0.0;
@@ -455,9 +442,8 @@ double PairLJRelRes::init_one(int i, int j)
       if (offset_flag)
         offset[i][j] = 4.0*epsilon[i][j]*(pow(ratio,12.0) - pow(ratio,6.0));
       else offset[i][j] = 0.0;
-    } 
-  } 
-  else { 
+    }
+  } else {
     ljsw0[i][j] = 0.0;
     ljsw1[i][j] = 0.0;
     ljsw2[i][j] = 0.0;
@@ -488,8 +474,7 @@ double PairLJRelRes::init_one(int i, int j)
       ljswf4[i][j] = -1.0/(3.0*tsq) * (ljswf2[i][j] + 2.0*ljswf3[i][j]*t);
       offsetsp[i][j] = ljswf0[i][j] - ljswf1[i][j]*t - ljswf2[i][j]*tsq/2.0-
         ljswf3[i][j]*tsq*t/3.0 - ljswf4[i][j]*tsq*tsq/4.0;
-    } 
-    else {
+    } else {
       ljswf0[i][j] = 0.0;
       ljswf1[i][j] = 0.0;
       ljswf2[i][j] = 0.0;
@@ -498,8 +483,7 @@ double PairLJRelRes::init_one(int i, int j)
       double ratio = sigmaf[i][j] / cutf_inner[i][j];
       offsetsp[i][j] = 4.0*epsilonf[i][j]*(pow(ratio,12.0) - pow(ratio,6.0));
     }
-  } 
-  else {
+  } else {
     ljswf0[i][j] = 0.0;
     ljswf1[i][j] = 0.0;
     ljswf2[i][j] = 0.0;
@@ -524,32 +508,30 @@ double PairLJRelRes::init_one(int i, int j)
       double Ft = r6inv * (lj1[i][j] * r6inv - lj2[i][j]) / cutf[i][j];
       double dFt = -r6inv * (13.0*lj1[i][j]*r6inv - 7.0*lj2[i][j]) * r2inv;
       double A = Ft + dFt * t / 3.0;
-   
+
       ljswc3 = 3.0 * A * tsqinv;
       ljswc4 = -(2.0 * Ft + dFt * t) * tsqinv / t;
       ljswc0 = Et + ljswc3 * t * tsq /3.0 + ljswc4 * tsq * tsq / 4.0;
       offsetsm[i][j] = ljswc0;
-    } 
-    else {
+    } else {
       ljswc0 = 0.0;
       ljswc3 = 0.0;
       ljswc4 = 0.0;
       double ratio = sigma[i][j] / cutf_inner[i][j];
       offsetsm[i][j] = 4.0*epsilon[i][j]*(pow(ratio,12.0) - pow(ratio,6.0));
     }
-  } 
-  else {
+  } else {
     ljswc0 = 0.0;
     ljswc3 = 0.0;
     ljswc4 = 0.0;
     offsetsm[i][j] = 0.0;
   }
-// combine cutf coefficients
+  // combine cutf coefficients
   ljswf0[i][j] += ljswc0;
   ljswf3[i][j] += ljswc3;
   ljswf4[i][j] += ljswc4;
 
-// combine shifting constants
+  // combine shifting constants
   offsetsp[i][j] += offset[i][j];
   offsetsm[i][j] = offsetsp[i][j] - offsetsm[i][j];
 
@@ -723,47 +705,40 @@ double PairLJRelRes::single(int i, int j, int itype, int jtype, double rsq,
   if (rsq < cutf_inner_sq[itype][jtype]) {
     r6inv = r2inv*r2inv*r2inv;
     forcelj = r6inv*(ljf1[itype][jtype]*r6inv-ljf2[itype][jtype]);
-  } 
-  else 
-    if (rsq < cutfsq[itype][jtype]) {
-      r = sqrt(rsq);
-      t = r - cutf_inner[itype][jtype];
-      tsq = t*t;
-      fskin = ljswf1[itype][jtype]+ljswf2[itype][jtype]*t+
-        ljswf3[itype][jtype]*tsq+ljswf4[itype][jtype]*tsq*t;
-      forcelj = fskin*r;
-    } 
-    else 
-      if (rsq < cut_inner_sq[itype][jtype]) {
-        r6inv = r2inv*r2inv*r2inv;
-        forcelj = r6inv * (lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
-      } 
-      else {
-        r = sqrt(rsq);
-        t = r - cut_inner[itype][jtype];
-        tsq = t*t;
-        fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t +
-          ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t;
-        forcelj = fskin*r;
-      }
+  } else if (rsq < cutfsq[itype][jtype]) {
+    r = sqrt(rsq);
+    t = r - cutf_inner[itype][jtype];
+    tsq = t*t;
+    fskin = ljswf1[itype][jtype]+ljswf2[itype][jtype]*t+
+      ljswf3[itype][jtype]*tsq+ljswf4[itype][jtype]*tsq*t;
+    forcelj = fskin*r;
+  } else if (rsq < cut_inner_sq[itype][jtype]) {
+    r6inv = r2inv*r2inv*r2inv;
+    forcelj = r6inv * (lj1[itype][jtype]*r6inv-lj2[itype][jtype]);
+  } else {
+    r = sqrt(rsq);
+    t = r - cut_inner[itype][jtype];
+    tsq = t*t;
+    fskin = ljsw1[itype][jtype] + ljsw2[itype][jtype]*t +
+      ljsw3[itype][jtype]*tsq + ljsw4[itype][jtype]*tsq*t;
+    forcelj = fskin*r;
+  }
   fforce = factor_lj*forcelj*r2inv;
 
-  if (rsq < cutf_inner_sq[itype][jtype])
+  if (rsq < cutf_inner_sq[itype][jtype]) {
     philj = r6inv*(ljf3[itype][jtype]*r6inv-
-      ljf4[itype][jtype])-offsetsm[itype][jtype];
-  else
-    if (rsq < cutfsq[itype][jtype])
-      philj = ljswf0[itype][jtype]-ljswf1[itype][jtype]*t-
-        ljswf2[itype][jtype]*tsq/2.0-ljswf3[itype][jtype]*tsq*t/3.0-
-        ljswf4[itype][jtype]*tsq*tsq/4.0-offsetsp[itype][jtype];
-    else
-      if (rsq < cut_inner_sq[itype][jtype])
-        philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) -
-          offset[itype][jtype];
-      else
-        philj = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
-          ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
-          ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
-
+                   ljf4[itype][jtype])-offsetsm[itype][jtype];
+  } else if (rsq < cutfsq[itype][jtype]) {
+    philj = ljswf0[itype][jtype]-ljswf1[itype][jtype]*t-
+      ljswf2[itype][jtype]*tsq/2.0-ljswf3[itype][jtype]*tsq*t/3.0-
+      ljswf4[itype][jtype]*tsq*tsq/4.0-offsetsp[itype][jtype];
+  } else if (rsq < cut_inner_sq[itype][jtype]) {
+    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) -
+      offset[itype][jtype];
+  } else {
+    philj = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
+      ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
+      ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
+  }
   return factor_lj*philj;
 }

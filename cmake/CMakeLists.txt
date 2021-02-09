@@ -652,7 +652,7 @@ install(
 if(BUILD_SHARED_LIBS)
   if(CMAKE_VERSION VERSION_LESS 3.12)
     # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
-    set(Python_ADDITIONAL_VERSIONS 3.8 3.7 3.6 3.5)
+    set(Python_ADDITIONAL_VERSIONS 3.9 3.8 3.7 3.6 3.5)
     find_package(PythonInterp) # Deprecated since version 3.12
     if(PYTHONINTERP_FOUND)
         set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
@@ -665,7 +665,7 @@ if(BUILD_SHARED_LIBS)
       install-python
       ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
       -p ${LAMMPS_PYTHON_DIR}/lammps
-      -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+      -l ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX}
       WORKING_DIRECTORY  ${LAMMPS_PYTHON_DIR}
       COMMENT "Installing LAMMPS Python module")
   else()

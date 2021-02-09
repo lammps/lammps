@@ -140,10 +140,11 @@ output <thermo_style>`. The default setting for this fix is
 This fix computes a global scalar and a global vector quantities which
 can be accessed by various :doc:`output commands <Howto_output>`. The
 scalar is an energy which is the sum of the spring energy for each
-atom, where the per-atom energy is 0.5 \* k \* r\^2. The vector stores
-2 values.  The first value is the coupling parameter lambda.  The
-second value is the derivative of lambda with respect to the integer
-timestep *s*, i.e. d lambda / ds.  In order to obtain d lambda / dt,
+atom, where the per-atom energy is :math:`0.5 \cdot k \cdot r^2`.
+The vector stores 2 values.  The first value is the coupling parameter lambda.
+The second value is the derivative of lambda with respect to the integer
+timestep *s*, i.e. :math:`\frac{d \lambda}{d s}`.  In order to obtain
+:math:`\frac{d \lambda}{d t}`,
 where t is simulation time, this 2nd value needs to be divided by the
 timestep size (e.g. 0.5 fs).  The scalar and vector values calculated
 by this fix are "extensive".

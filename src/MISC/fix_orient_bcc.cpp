@@ -67,7 +67,7 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-
+  energy_global_flag = 1;
   peratom_flag = 1;
   size_peratom_cols = 2;
   peratom_freq = 1;
@@ -202,7 +202,6 @@ int FixOrientBCC::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }

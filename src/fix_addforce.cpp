@@ -36,8 +36,8 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr), idregion(nullptr), sforce(nullptr)
-
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
+  idregion(nullptr), sforce(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix addforce command");
 
@@ -48,9 +48,10 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
 
   xstr = ystr = zstr = nullptr;
 
@@ -128,7 +129,6 @@ int FixAddForce::setmask()
 
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -232,10 +232,9 @@ void FixAddForce::post_force(int vflag)
 
   if (update->ntimestep % nevery) return;
 
-  // energy and virial setup
+  // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   if (lmp->kokkos)
     atom->sync_modify(Host, (unsigned int) (F_MASK | MASK_MASK),
@@ -342,7 +341,7 @@ void FixAddForce::post_force(int vflag)
           v[3] = xstyle ? xvalue*unwrap[1] : 0.0;
           v[4] = xstyle ? xvalue*unwrap[2] : 0.0;
           v[5] = ystyle ? yvalue*unwrap[2] : 0.0;
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
     }

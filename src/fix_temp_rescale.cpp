@@ -48,6 +48,7 @@ FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
+  ecouple_flag = 1;
   dynamic_group_allow = 1;
 
   tstr = nullptr;
@@ -94,7 +95,6 @@ int FixTempRescale::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 

@@ -158,9 +158,12 @@ void ComputePressureBocs::init()
     if (dihedralflag && force->dihedral) nvirial++;
     if (improperflag && force->improper) nvirial++;
   }
-  if (fixflag)
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->virial_flag) nvirial++;
+  if (fixflag) {
+    Fix **fix = modify->fix;
+    int nfix = modify->nfix;
+    for (int i = 0; i < nfix; i++)
+      if (fix[i]->thermo_virial) nvirial++;
+  }
 
   if (nvirial) {
     vptr = new double*[nvirial];
@@ -174,7 +177,7 @@ void ComputePressureBocs::init()
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
       for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->virial_flag)
+        if (modify->fix[i]->virial_global_flag && modify->fix[i]->thermo_virial)
           vptr[nvirial++] = modify->fix[i]->virial;
   }
 
@@ -184,26 +187,24 @@ void ComputePressureBocs::init()
   else kspace_virial = nullptr;
 }
 
-/* Extra functions added for BOCS */
-
 /* ----------------------------------------------------------------------
    Compute the pressure correction for the analytical basis set
 ------------------------------------------------------------------------- */
+
 double ComputePressureBocs::get_cg_p_corr(int N_basis, double *phi_coeff,
                                       int N_mol, double vavg, double vCG)
 {
   double correction = 0.0;
   for (int i = 1; i <= N_basis; ++i)
-  {
     correction -= phi_coeff[i-1] * ( N_mol * i / vavg ) *
-                                   pow( ( 1 / vavg ) * ( vCG - vavg ),i-1);
-  }
+      pow( ( 1 / vavg ) * ( vCG - vavg ),i-1);
   return correction;
 }
 
 /* ----------------------------------------------------------------------
    Find the relevant index position if using a spline basis set
 ------------------------------------------------------------------------- */
+
 double ComputePressureBocs::find_index(double * grid, double value)
 {
   int i;
@@ -230,7 +231,7 @@ double ComputePressureBocs::find_index(double * grid, double value)
 ------------------------------------------------------------------------- */
 
 double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
-                                                               double vCG)
+                                          double vCG)
 {
   int i = find_index(grid[0],vCG);
   double correction, deltax = vCG - grid[0][i];
@@ -256,8 +257,10 @@ double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
    send cg info from fix_bocs to compute_pressure_bocs for the analytical
    basis set
 ------------------------------------------------------------------------- */
+
 void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
-                double *sent_phi_coeff, int sent_N_mol, double sent_vavg)
+                                       double *sent_phi_coeff, int sent_N_mol,
+                                       double sent_vavg)
 {
   if (basis_type == BASIS_ANALYTIC) { p_basis_type = BASIS_ANALYTIC; }
   else
@@ -280,8 +283,9 @@ void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
    send cg info from fix_bocs to compute_pressure_bocs for a spline basis
    set
 ------------------------------------------------------------------------- */
+
 void ComputePressureBocs::send_cg_info(int basis_type,
-                                         double ** in_splines, int gridsize)
+                                       double ** in_splines, int gridsize)
 {
   if (basis_type == BASIS_LINEAR_SPLINE) { p_basis_type = BASIS_LINEAR_SPLINE; }
   else if (basis_type == BASIS_CUBIC_SPLINE) { p_basis_type = BASIS_CUBIC_SPLINE; }
@@ -299,6 +303,7 @@ void ComputePressureBocs::send_cg_info(int basis_type,
 /* ----------------------------------------------------------------------
    compute total pressure, averaged over Pxx, Pyy, Pzz
 ------------------------------------------------------------------------- */
+
 double ComputePressureBocs::compute_scalar()
 {
   invoked_scalar = update->ntimestep;

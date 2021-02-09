@@ -81,16 +81,18 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Langevin thermostatting to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  Note that use of this option requires
-setting the *tally* keyword to *yes*\ .
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*\ , but only if the *tally* keyword to set to
+*yes*\ .  See the :doc:`thermo_style <thermo_style>` doc page for
+details.
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to this fix.  The scalar value calculated by this
-fix is "extensive".  Note that calculation of this quantity requires
-setting the *tally* keyword to *yes*\ .
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+Note that calculation of this quantity also requires setting the
+*tally* keyword to *yes*\ .
 
 This fix can ramp its target temperature over multiple runs, using the
 *start* and *stop* keywords of the :doc:`run <run>` command.  See the

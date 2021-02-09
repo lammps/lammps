@@ -34,13 +34,12 @@ of simulation results.
 
 .. math::
 
-   E & = & \left\{\begin{array}{lr} 
+   E = \left\{\begin{array}{lr}
         4 \epsilon^{FG} \left[ \left(\frac{\sigma^{FG}}{r}\right)^{12} - \left(\frac{\sigma^{FG}}{r}\right)^6 \right]-G_{si}, & r< r_{si} \\
         \sum_{m=0}^{4} C_{sm}\left(r-r_{si}\right)^m-G_{so} ,   &   r_{si}\leq r< r_{so} \\
         4 \epsilon^{CG} \left[ \left(\frac{\sigma^{CG}}{r}\right)^{12} -     \left(\frac{\sigma^{CG}}{r}\right)^6 \right]-G_c, &    r_{so}\leq r<r_{ci} \\
         \sum_{m=0}^{4} C_{cm}\left(r-r_{ci}\right)^m -G_c, &  r_{ci}\leq r< r_{co} \\
-        0, &  r\geq r_{co}\end{array}\right. \\  
-      &  &              
+        0, &  r\geq r_{co}\end{array}\right.
 
 Between :math:`r_{si}` and :math:`r_{so}` the polynomial smoothing is applied in a way that the force and its 1st derivative are not discontinued 
 at switching between fine- and coarse-grained potentials (between :math:`r_{si}` and :math:`r_{so}`) and at cutoff (between :math:`r_{ci}` and :math:`r_{co}`). 

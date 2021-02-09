@@ -381,6 +381,12 @@ class lammps(object):
     self._installed_packages = None
     self._available_styles = None
 
+    # check if liblammps version matches the installed python module version
+    import lammps
+    if lammps.__version__ != self.lib.lammps_version(self.lmp):
+        raise(AttributeError("LAMMPS Python module installed for LAMMPS version %d, but shared library is version %d" \
+                % (lammps.__version__, self.lib.lammps_version(self.lmp))))
+
     # add way to insert Python callback for fix external
     self.callback = {}
     self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, py_object, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))

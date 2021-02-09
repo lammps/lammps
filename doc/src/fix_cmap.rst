@@ -103,7 +103,7 @@ uninterrupted fashion.
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by
 this fix to add the potential energy of the CMAP interactions to both
 the global potential energy and peratom potential energies of the
-sysstem as part of :doc:`thermodynamic output <thermo_style>` or
+system as part of :doc:`thermodynamic output <thermo_style>` or
 output by the :doc:`compute pe/atom <compute_pe_atom>` command.  The
 default setting for this fix is :doc:`fix_modify energy yes
 <fix_modify>`.

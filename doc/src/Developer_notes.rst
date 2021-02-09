@@ -90,7 +90,7 @@ The fix must also do the following:
 The fix must also specify whether (by default) to include or exclude
 these contributions to the global/peratom energy/virial of the system.
 For the fix to include the contributions, set either of both of these
-variables in the contructor:
+variables in the constructor:
 
 * *thermo_energy* = 1, for global and peratom energy
 * *thermo_virial* = 1, for global and peratom virial

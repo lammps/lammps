@@ -10,7 +10,7 @@ build target in the conventional and CMake based build systems
 # copy LAMMPS shared library and lammps package to system dirs
 
 from __future__ import print_function
-import sys,os,re,shutil
+import sys,os,shutil
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='install.py',
@@ -90,34 +90,10 @@ def get_lammps_version(header):
 
 verstr = get_lammps_version(args.version)
 
-# convert string version to numeric version
-vernum = 0
-vregex = re.compile(r"([0-9]+)([A-Za-z]+)(2[0-9]+)")
-m = vregex.match(verstr)
-if (m):
-    month2num = { 'Jan' : 1, 'Feb' : 2, 'Mar' : 3, 'Apr' : 4, 'May' : 5, 'Jun' : 6,
-            'Jul' : 7, 'Aug' : 8, 'Sep' : 9, 'Oct' : 10, 'Nov' : 11, 'Dec' : 12 }
-    try:
-      vernum = int(m.group(3))*10000
-      vernum += month2num[m.group(2)]*100
-      vernum += int(m.group(1))
-    except:
-      exit('Failure to parse version string: %s' % verstr)
-
 print("Installing LAMMPS Python package version %s into site-packages folder" % verstr)
 
 # we need to switch to the folder of the python package
 os.chdir(os.path.dirname(args.package))
-
-
-
-# update version number in lammps module
-vregex = re.compile(r".*(__version__ += +)[0-9]+")
-with open(os.path.join('lammps','__init__.py'), "r+") as f:
-    content = f.read()
-    f.seek(0)
-    f.write(re.sub(vregex, lambda match: '{}{}'.format(match.group(1), vernum), content))
-    f.truncate()
 
 from distutils.core import setup
 from distutils.sysconfig import get_python_lib
@@ -150,10 +126,3 @@ if tryuser:
     setup(**setup_kwargs)
   except:
     print("Installation into user site package folder failed.")
-
-# restore __version__ == 0 for in place usage
-with open(os.path.join('lammps','__init__.py'), "r+") as f:
-    content = f.read()
-    f.seek(0)
-    f.write(re.sub(vregex, lambda match: '{}{}'.format(match.group(1), 0), content))
-    f.truncate()

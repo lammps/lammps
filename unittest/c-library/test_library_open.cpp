@@ -72,6 +72,7 @@ TEST(lammps_open, with_args)
     output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, HasSubstr("Total wall time:"));
     if (verbose) std::cout << output;
+    MPI_Comm_free(&mycomm);
 }
 
 TEST(lammps_open, with_kokkos)
@@ -195,4 +196,5 @@ TEST(lammps_open_fortran, no_args)
     output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, HasSubstr("Total wall time:"));
     if (verbose) std::cout << output;
+    MPI_Comm_free(&mycomm);
 }

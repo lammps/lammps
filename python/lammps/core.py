@@ -416,7 +416,7 @@ class lammps(object):
     :rtype: numpy_wrapper
     """
     if not self._numpy:
-      from .numpy import numpy_wrapper
+      from .numpy_wrapper import numpy_wrapper
       self._numpy = numpy_wrapper(self)
     return self._numpy
 

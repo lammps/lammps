@@ -278,7 +278,7 @@ inline double dist2(double* x,double* y);
   // Utility routine which wraps computing per-team scratch size requirements for
   // ComputeNeigh, ComputeUi, and ComputeFusedDeidrj
   template <typename scratch_type>
-  int scratch_size_helper(int values_per_team); 
+  int scratch_size_helper(int values_per_team);
 
 };
 

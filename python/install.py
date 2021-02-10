@@ -98,6 +98,12 @@ os.chdir(os.path.dirname(args.package))
 from distutils.core import setup
 from distutils.sysconfig import get_python_lib
 import site
+from sys import version_info
+
+if version_info.major >= 3:
+    pkgs = ['lammps', 'lammps.mliap']
+else:
+    pkgs = ['lammps']
 
 #Arguments common to global or user install -- everything but data_files
 setup_kwargs= dict(name="lammps",
@@ -107,7 +113,7 @@ setup_kwargs= dict(name="lammps",
         url="https://lammps.sandia.gov",
         description="LAMMPS Molecular Dynamics Python package",
         license="GPL",
-        packages=["lammps","lammps.mliap"],
+        packages=pkgs,
         )
 
 tryuser=False

@@ -17,21 +17,21 @@
 
 #ifdef FIX_CLASS
 
-FixStyle(charge_regulation,Fix_charge_regulation)
+FixStyle(charge/regulation,FixChargeRegulation)
 
 #else
 
-#ifndef LMP_FIX_charge_regulation_H
-#define LMP_FIX_charge_regulation_H
+#ifndef LMP_FIX_CHARGE_REGULATION_H
+#define LMP_FIX_CHARGE_REGULATION_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-  class Fix_charge_regulation : public Fix {
+  class FixChargeRegulation : public Fix {
   public:
-    Fix_charge_regulation(class LAMMPS *, int, char **);
-    ~Fix_charge_regulation();
+    FixChargeRegulation(class LAMMPS *, int, char **);
+    ~FixChargeRegulation();
     int setmask();
     void init();
     void pre_exchange();
@@ -59,7 +59,8 @@ namespace LAMMPS_NS {
     int nevery, seed;         // begin MC cycle every nevery MD timesteps, random seed
     int nmc;                  // MC move attempts per cycle
     double llength_unit_in_nm ; // LAMMPS unit of length in nm, needed since chemical potentials are in units of mol/l
-    double pH, pKa, pKb, pKs, pI_plus, pI_minus; // chemical potentials
+    double pH, pKa, pKb, pKs, pI_plus, pI_minus; // chemical potentials and equilibrium constant in log10 base
+    double c10pH, c10pKa, c10pKb, c10pOH, c10pI_plus, c10pI_minus; // 10 raised to chemical potential value, in units of concentration [mol/liter]
     double pmcmoves[3];       // mc move attempt probability: acid, base, ion pair exchange
     double pmcc;              // mc move cumulative attempt probability
     int npart_xrd;            // # of particles (ions) within xrd
@@ -78,7 +79,7 @@ namespace LAMMPS_NS {
     double reservoir_temperature;
     double beta, sigma, volume, volume_rx; // inverse temperature, speed, total volume, reacting volume
     int salt_charge[2];       // charge of salt ions: [0] - cation, [1] - anion
-    int salt_charge_ratio;    // charge ration when using multivalent ion exchange
+    int salt_charge_ratio;    // charge ratio when using multivalent ion exchange
     double xlo, xhi, ylo, yhi, zlo, zhi; // box size
     double energy_stored;     // full energy of old/current configuration
     int triclinic;            // 0 = orthog box, 1 = triclinic

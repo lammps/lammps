@@ -26,7 +26,7 @@ class Dihedral : protected Pointers {
   int *setflag;
   int writedata;                     // 1 if writes coeffs to data file
   double energy;                     // accumulated energy
-  double virial[6];                  // accumulated virial
+  double virial[6];                  // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;             // accumulated per-atom energy/virial
   double **cvatom;                   // accumulated per-atom centroid virial
 

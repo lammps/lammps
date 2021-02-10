@@ -91,6 +91,19 @@ public:
   static constexpr int tile_size_compute_yi = 4;
   static constexpr int team_size_compute_fused_deidrj = sizeof(real_type) == 4 ? 4 : 2;
 
+  // Custom MDRangePolicy, Rank3, to reduce verbosity of kernel launches
+  // This hides the Kokkos::IndexType<int> and Kokkos::Rank<3...>
+  // and reduces the verbosity of the LaunchBound by hiding the explicit
+  // multiplication by vector_length
+  template <class Device, int num_tiles, class TagPairSNAP>
+  using Snap3DRangePolicy = typename Kokkos::MDRangePolicy<Device, Kokkos::IndexType<int>, Kokkos::Rank<3, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, Kokkos::LaunchBounds<vector_length * num_tiles>, TagPairSNAP>;
+
+  // Custom SnapAoSoATeamPolicy to reduce the verbosity of kernel launches
+  // This hides the LaunchBounds abstraction by hiding the explicit
+  // multiplication by vector length
+  template <class Device, int num_teams, class TagPairSNAP>
+  using SnapAoSoATeamPolicy = typename Kokkos::TeamPolicy<Device, Kokkos::LaunchBounds<vector_length * num_teams>, TagPairSNAP>;
+
   PairSNAPKokkos(class LAMMPS *);
   ~PairSNAPKokkos();
 

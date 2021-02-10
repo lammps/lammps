@@ -10,7 +10,6 @@ endif()
 ########################################
 
 project(lammps CXX)
-set(SOVERSION 0)
 
 get_filename_component(LAMMPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
@@ -41,6 +40,7 @@ endif()
 include(LAMMPSUtils)
 
 get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h PROJECT_VERSION)
+get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h SOVERSION)
 
 include(PreventInSourceBuilds)
 

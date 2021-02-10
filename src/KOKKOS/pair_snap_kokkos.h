@@ -79,8 +79,16 @@ public:
   using real_type = real_type_;
   using complex = SNAComplex<real_type>;
 
-  // type-dependent team sizes
+  // Static team/tile sizes for device offload
+  static constexpr int team_size_compute_neigh = 4;
+  static constexpr int tile_size_compute_ck = 4;
+  static constexpr int tile_size_pre_ui = 4;
   static constexpr int team_size_compute_ui = sizeof(real_type) == 4 ? 8 : 4;
+  static constexpr int tile_size_transform_ui = 4;
+  static constexpr int tile_size_compute_zi = 4;
+  static constexpr int tile_size_compute_bi = 4;
+  static constexpr int tile_size_transform_bi = 4;
+  static constexpr int tile_size_compute_yi = 4;
   static constexpr int team_size_compute_fused_deidrj = sizeof(real_type) == 4 ? 4 : 2;
 
   PairSNAPKokkos(class LAMMPS *);
@@ -253,6 +261,11 @@ inline double dist2(double* x,double* y);
   Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
 
   friend void pair_virial_fdotr_compute<PairSNAPKokkos>(PairSNAPKokkos*);
+
+  // Utility routine which wraps computing per-team scratch size requirements for
+  // ComputeNeigh, ComputeUi, and ComputeFusedDeidrj
+  template <typename scratch_type>
+  int scratch_size_helper(int values_per_team); 
 
 };
 

@@ -75,7 +75,7 @@ class Domain : protected Pointers {
 
                                          // triclinic box
   double xy,xz,yz;                       // 3 tilt factors
-  double h[6],h_inv[6];                  // shape matrix in Voigt notation
+  double h[6],h_inv[6];                  // shape matrix in Voigt ordering
                                          // Voigt = xx,yy,zz,yz,xz,xy
   double h_rate[6],h_ratelo[3];          // rate of box size/shape change
 

@@ -1,0 +1,131 @@
+LAMMPS (10 Feb 2021)
+  using 1 OpenMP thread(s) per MPI task
+# Charge regulation lammps for a polymer chain
+units           lj
+atom_style      full
+neighbor        3.0 bin
+read_data       data.chreg-polymer
+Reading data file ...
+  orthogonal box = (-50.000000 -50.000000 -50.000000) to (50.000000 50.000000 50.000000)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  160 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  reading bonds ...
+  79 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.009 seconds
+
+bond_style      harmonic
+bond_coeff      1 100 1.122462 # K R0
+velocity        all create 1.0 8008 loop geom
+
+pair_style      lj/cut/coul/long 1.122462 20
+pair_coeff      * *  1.0 1.0 1.122462 # charges
+kspace_style    pppm 1.0e-3
+pair_modify     shift yes
+dielectric      1.0
+
+#########  VERLET INTEGRATION WITH LANGEVIN THERMOSTAT  ###########
+fix             fnve all nve
+compute         dtemp all temp
+compute_modify  dtemp dynamic yes
+fix             fT all langevin 1.0 1.0 1.0 123
+fix_modify      fT temp dtemp
+
+fix chareg1 all charge/regulation 2 3 acid_type 1 pH 7.0 pKa 6.5 pIp 3.0 pIm 3.0 temp 1.0 nmc 40 seed 2345
+fix chareg2 all charge/regulation 4 5 acid_type 1 pH 7.0 pKa 6.5 pIp 7.0 pIm 7.0 temp 1.0 nmc 40 seed 2345
+fix chareg3 all charge/regulation 4 3 pIp 7.0 pIm 3.0 temp 1.0 nmc 20 seed 2345
+
+thermo          100
+#               print: step, potential energy, temperature, neutral acids, charged acids, salt cations, salt anions, H+ ions, OH- ions
+thermo_style    custom step pe c_dtemp f_chareg1[3] f_chareg1[4] f_chareg1[7] f_chareg1[8] f_chareg2[7] f_chareg2[8]
+
+timestep        0.005
+run             2000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.077106934
+  grid = 8 8 8
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00074388331
+  estimated relative force accuracy = 0.00074388331
+  using double precision FFTW3
+  3d grid and FFT values/proc = 2197 512
+0 atoms in group FixChargeRegulation:exclusion_group:chareg1
+0 atoms in group FixChargeRegulation:exclusion_group:chareg2
+0 atoms in group FixChargeRegulation:exclusion_group:chareg3
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:486)
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 23
+  ghost atom cutoff = 23
+  binsize = 11.5, bins = 9 9 9
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.962 | 6.962 | 6.962 Mbytes
+Step PotEng c_dtemp f_chareg1[3] f_chareg1[4] f_chareg1[7] f_chareg1[8] f_chareg2[7] f_chareg2[8] 
+       0   0.50528297            1            0           80           80            0            0            0 
+     100   0.61185377   0.95892928           13           67           74            7            0            0 
+     200   0.54355177    1.1282424           19           61           76           15            0            0 
+     300    0.4519957    1.0764688           20           60           85           26            1            0 
+     400   0.41479389   0.99212685           24           56           92           36            0            0 
+     500   0.37382446   0.99776674           28           52           98           46            0            0 
+     600   0.34785337    1.1115081           28           52          109           57            0            0 
+     700   0.34637618    1.0332262           28           52          120           68            0            0 
+     800   0.21020932    1.1264036           29           51          125           74            0            0 
+     900   0.21246108    1.1168609           30           50          131           81            0            0 
+    1000   0.20997475    1.1201478           32           48          132           84            0            0 
+    1100    0.1984165    1.0209092           31           49          144           95            0            0 
+    1200    0.2061932   0.95880059           35           45          151          106            0            0 
+    1300   0.17220376     0.980077           36           44          156          112            0            0 
+    1400   0.15671143   0.93535342           37           43          161          118            0            0 
+    1500   0.16174665    0.9495928           36           44          168          124            0            0 
+    1600   0.11062965   0.94072924           40           40          164          124            0            0 
+    1700   0.13002563   0.95010828           38           42          167          125            0            0 
+    1800   0.14527814   0.93555342           37           43          172          129            0            0 
+    1900   0.17627465   0.96682495           32           48          176          128            0            0 
+    2000   0.16497265   0.95226954           33           47          180          133            0            0 
+Loop time of 7.45499 on 1 procs for 2000 steps with 393 atoms
+
+Performance: 115895.577 tau/day, 268.277 timesteps/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.45607    | 0.45607    | 0.45607    |   0.0 |  6.12
+Bond    | 0.0062385  | 0.0062385  | 0.0062385  |   0.0 |  0.08
+Kspace  | 2.3257     | 2.3257     | 2.3257     |   0.0 | 31.20
+Neigh   | 0.067103   | 0.067103   | 0.067103   |   0.0 |  0.90
+Comm    | 0.02577    | 0.02577    | 0.02577    |   0.0 |  0.35
+Output  | 0.00087047 | 0.00087047 | 0.00087047 |   0.0 |  0.01
+Modify  | 4.5664     | 4.5664     | 4.5664     |   0.0 | 61.25
+Other   |            | 0.006848   |            |       |  0.09
+
+Nlocal:        393.000 ave         393 max         393 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        749.000 ave         749 max         749 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        5359.00 ave        5359 max        5359 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 5359
+Ave neighs/atom = 13.636132
+Ave special neighs/atom = 1.1908397
+Neighbor list builds = 1489
+Dangerous builds = 0
+Total wall time: 0:00:07

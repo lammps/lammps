@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -154,9 +154,9 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   }
 
   if (mass_pertype && mass_peratom && comm->me == 0)
-    error->warning(FLERR,
-                   "Atom_style hybrid defines both pertype and peratom masses "
-                   "- both must be set, only peratom masses will be used");
+    error->warning(FLERR, "Atom style hybrid defines both, per-type "
+                   "and per-atom masses; both must be set, but only "
+                   "per-atom masses will be used");
 
   // free allstyles created by build_styles()
 
@@ -216,8 +216,8 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     char *dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
     if ((ptr && strstr(ptr+1,dup)) && (comm->me == 0))
-      error->warning(FLERR,fmt::format("Peratom {} is in multiple sub-styles "
-                                       "- must be used consistently",dup));
+      error->warning(FLERR,fmt::format("Per-atom {} is used in multiple sub-"
+                                       "styles; must be used consistently",dup));
   }
 
   delete [] concat_grow;

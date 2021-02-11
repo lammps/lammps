@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -299,7 +299,7 @@ double NeighList::memory_usage()
   double bytes = 0;
   bytes += memory->usage(ilist,maxatom);
   bytes += memory->usage(numneigh,maxatom);
-  bytes += maxatom * sizeof(int *);
+  bytes += (double)maxatom * sizeof(int *);
 
   int nmypage = comm->nthreads;
 
@@ -311,7 +311,7 @@ double NeighList::memory_usage()
   if (respainner) {
     bytes += memory->usage(ilist_inner,maxatom);
     bytes += memory->usage(numneigh_inner,maxatom);
-    bytes += maxatom * sizeof(int *);
+    bytes += (double)maxatom * sizeof(int *);
     if (ipage_inner) {
       for (int i = 0; i < nmypage; i++)
         bytes += ipage_inner[i].size();
@@ -321,7 +321,7 @@ double NeighList::memory_usage()
   if (respamiddle) {
     bytes += memory->usage(ilist_middle,maxatom);
     bytes += memory->usage(numneigh_middle,maxatom);
-    bytes += maxatom * sizeof(int *);
+    bytes += (double)maxatom * sizeof(int *);
     if (ipage_middle) {
       for (int i = 0; i < nmypage; i++)
         bytes += ipage_middle[i].size();

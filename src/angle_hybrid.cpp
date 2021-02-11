@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -113,7 +113,7 @@ void AngleHybrid::compute(int eflag, int vflag)
 
   const int nthreads = comm->nthreads;
   if (comm->nthreads > 1) {
-    const int nall = atom->nlocal + atom->nghost;
+    const bigint nall = atom->nlocal + atom->nghost;
     if (eflag_atom)
       memset(&eatom[0],0,nall*nthreads*sizeof(double));
     if (vflag_atom)
@@ -391,10 +391,10 @@ double AngleHybrid::single(int type, int i1, int i2, int i3)
 
 double AngleHybrid::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += maxcvatom*9 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += maxangle[m]*4 * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)maxcvatom*9 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double)maxangle[m]*4 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

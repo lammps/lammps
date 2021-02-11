@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -310,7 +310,7 @@ void PRD::command(int narg, char **arg)
       dynamics(t_event,time_dynamics);
       fix_event->store_state_quench();
       quench();
-      clock = clock + t_event*universe->nworlds;
+      clock += (bigint)t_event*universe->nworlds;
       ireplica = check_event();
       if (ireplica >= 0) break;
       fix_event->restore_state_quench();

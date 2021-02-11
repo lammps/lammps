@@ -77,9 +77,6 @@ public:
   ~KimParam();
 
   void command(int, char **);
-
-private:
-  void echo_var_assign(const std::string &name, const std::string &value) const;
 };
 
 } // namespace LAMMPS_NS

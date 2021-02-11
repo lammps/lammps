@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "error.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
 #include "potential_file_reader.h"
@@ -31,6 +32,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 using namespace MathSpecial;
 
 #define DELTA 4
@@ -58,7 +60,7 @@ void PairTersoffMOD::read_file(char *file)
     int unit_convert = reader.get_unit_convert();
     double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
                                                             unit_convert);
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -121,7 +123,7 @@ void PairTersoffMOD::read_file(char *file)
           params[nparams].biga *= conversion_factor;
           params[nparams].bigb *= conversion_factor;
         }
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 
@@ -148,7 +150,7 @@ void PairTersoffMOD::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 
@@ -206,14 +208,13 @@ void PairTersoffMOD::setup_params()
 /* ---------------------------------------------------------------------- */
 
 double PairTersoffMOD::zeta(Param *param, double rsqij, double rsqik,
-                         double *delrij, double *delrik)
+                         double *rij_hat, double *rik_hat)
 {
   double rij,rik,costheta,arg,ex_delr;
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
-  costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] +
-              delrij[2]*delrik[2]) / (rij*rik);
+  costheta = dot3(rij_hat,rik_hat);
 
   if (param->powermint == 3) arg = cube(param->lam3 * (rij-rik));
   else arg = param->lam3 * (rij-rik);
@@ -278,8 +279,8 @@ double PairTersoffMOD::ters_bij_d(double zeta, Param *param)
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffMOD::ters_zetaterm_d(double prefactor,
-                                  double *rij_hat, double rij,
-                                  double *rik_hat, double rik,
+                                  double *rij_hat, double rij, double rijinv,
+                                  double *rik_hat, double rik, double rikinv,
                                   double *dri, double *drj, double *drk,
                                   Param *param)
 {
@@ -299,37 +300,37 @@ void PairTersoffMOD::ters_zetaterm_d(double prefactor,
     ex_delr_d = 3.0*cube(param->lam3) * square(rij-rik)*ex_delr;
   else ex_delr_d = param->lam3 * ex_delr;
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
   gijk = ters_gijk_mod(cos_theta,param);
   gijk_d = ters_gijk_d_mod(cos_theta,param);
-  costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
+  costheta_d(rij_hat,rijinv,rik_hat,rikinv,dcosdri,dcosdrj,dcosdrk);
 
   // compute the derivative wrt Ri
   // dri = -dfc*gijk*ex_delr*rik_hat;
   // dri += fc*gijk_d*ex_delr*dcosdri;
   // dri += fc*gijk*ex_delr_d*(rik_hat - rij_hat);
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
-  vec3_scale(prefactor,dri,dri);
+  scale3(-dfc*gijk*ex_delr,rik_hat,dri);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdri,dri,dri);
+  scaleadd3(fc*gijk*ex_delr_d,rik_hat,dri,dri);
+  scaleadd3(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  scale3(prefactor,dri);
 
   // compute the derivative wrt Rj
   // drj = fc*gijk_d*ex_delr*dcosdrj;
   // drj += fc*gijk*ex_delr_d*rij_hat;
 
-  vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
-  vec3_scale(prefactor,drj,drj);
+  scale3(fc*gijk_d*ex_delr,dcosdrj,drj);
+  scaleadd3(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  scale3(prefactor,drj);
 
   // compute the derivative wrt Rk
   // drk = dfc*gijk*ex_delr*rik_hat;
   // drk += fc*gijk_d*ex_delr*dcosdrk;
   // drk += -fc*gijk*ex_delr_d*rik_hat;
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
-  vec3_scale(prefactor,drk,drk);
+  scale3(dfc*gijk*ex_delr,rik_hat,drk);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
+  scaleadd3(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
+  scale3(prefactor,drk);
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -111,14 +111,14 @@ void FixEOStable::init()
   double *dpdTheta = atom->dpdTheta;
   double tmp;
 
-  if(this->restart_reset){
+  if (this->restart_reset) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
         temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if(dpdTheta[i] <= 0.0)
+        if (dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(dpdTheta[i],tmp);
         uCond[i] = 0.0;
@@ -138,9 +138,9 @@ void FixEOStable::post_integrate()
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
-      if(dpdTheta[i] <= 0.0)
+      if (dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -156,9 +156,9 @@ void FixEOStable::end_of_step()
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
-      if(dpdTheta[i] <= 0.0)
+      if (dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -406,7 +406,7 @@ void FixEOStable::energy_lookup(double t, double &u)
   double fraction;
 
   Table *tb = &tables[0];
-  if(t < tb->lo || t > tb->hi){
+  if (t < tb->lo || t > tb->hi) {
     printf("Temperature=%lf TableMin=%lf TableMax=%lf\n",t,tb->lo,tb->hi);
     error->one(FLERR,"Temperature is not within table cutoffs");
   }
@@ -428,7 +428,7 @@ void FixEOStable::temperature_lookup(double u, double &t)
   double fraction;
 
   Table *tb = &tables[1];
-  if(u < tb->lo || u > tb->hi){
+  if (u < tb->lo || u > tb->hi) {
     printf("Energy=%lf TableMin=%lf TableMax=%lf\n",u,tb->lo,tb->hi);
     error->one(FLERR,"Energy is not within table cutoffs");
   }

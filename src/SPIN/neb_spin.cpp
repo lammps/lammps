@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -242,7 +242,7 @@ void NEBSpin::run()
   timer->init();
   timer->barrier_start();
 
-  // if(ireplica != 0 && ireplica != nreplica -1)
+  // if (ireplica != 0 && ireplica != nreplica -1)
 
   while (update->minimize->niter < n1steps) {
     update->minimize->run(nevery);
@@ -298,7 +298,7 @@ void NEBSpin::run()
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc EBF EBR RDT "
                 "RD1 PE1 RD2 PE2 ... RDN PEN "
-                "GradV0dottan DN0... GradVNdottan DNN\n");
+                "GradV0dottan DN0 ... GradVNdottan DNN\n");
       } else {
         fprintf(uscreen,"Step MaxReplicaTorque MaxAtomTorque "
                 "GradV0 GradV1 GradVc "

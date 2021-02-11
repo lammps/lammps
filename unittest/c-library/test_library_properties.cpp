@@ -13,6 +13,7 @@
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
+using ::LAMMPS_NS::tagint;
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
 using ::testing::StrEq;
@@ -53,16 +54,16 @@ protected:
 
 TEST_F(LibraryProperties, version)
 {
-    EXPECT_GE(20200824, lammps_version(lmp));
+    EXPECT_LT(20200917, lammps_version(lmp));
 };
 
 TEST_F(LibraryProperties, memory_usage)
 {
     double meminfo[3];
-    lammps_memory_usage(lmp,meminfo);
+    lammps_memory_usage(lmp, meminfo);
     EXPECT_GT(meminfo[0], 0.0);
 #if defined(__linux__) || defined(_WIN32)
-    EXPECT_GT(meminfo[1], 0.0);
+    EXPECT_GE(meminfo[1], 0.0);
 #endif
     EXPECT_GT(meminfo[2], 0.0);
 };
@@ -90,10 +91,11 @@ TEST_F(LibraryProperties, thermo)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
     std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
-    if (!verbose) ::testing::internal::CaptureStdout();
+    ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
     EXPECT_EQ(lammps_get_thermo(lmp, "step"), 2);
     EXPECT_EQ(lammps_get_thermo(lmp, "atoms"), 29);
     EXPECT_DOUBLE_EQ(lammps_get_thermo(lmp, "vol"), 3375.0);
@@ -105,10 +107,11 @@ TEST_F(LibraryProperties, box)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
     std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
-    if (!verbose) ::testing::internal::CaptureStdout();
+    ::testing::internal::CaptureStdout();
     lammps_file(lmp, input.c_str());
     lammps_command(lmp, "run 2 post no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
     double boxlo[3], boxhi[3], xy, yz, xz;
     int pflags[3], boxflag;
     lammps_extract_box(lmp, boxlo, boxhi, &xy, &yz, &xz, pflags, &boxflag);
@@ -197,6 +200,41 @@ TEST_F(LibraryProperties, setting)
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_command(lmp, "dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "universe_size"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "universe_rank"), 0);
+    EXPECT_GT(lammps_extract_setting(lmp, "nthreads"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 1);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "newton off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "newton on off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "newton off on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 1);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "newton on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_pair"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "newton_bond"), 1);
+
+    EXPECT_EQ(lammps_extract_setting(lmp, "ntypes"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nbondtypes"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nangletypes"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "ndihedraltypes"), 0);
+    EXPECT_EQ(lammps_extract_setting(lmp, "nimpropertypes"), 0);
+
     EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 0);
     EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
@@ -216,10 +254,22 @@ TEST_F(LibraryProperties, setting)
         EXPECT_EQ(lammps_extract_setting(lmp, "nghost"), 518);
         EXPECT_EQ(lammps_extract_setting(lmp, "nall"), 547);
         EXPECT_EQ(lammps_extract_setting(lmp, "nmax"), 16384);
+        EXPECT_EQ(lammps_extract_setting(lmp, "ntypes"), 5);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nbondtypes"), 5);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nangletypes"), 4);
+        EXPECT_EQ(lammps_extract_setting(lmp, "ndihedraltypes"), 5);
+        EXPECT_EQ(lammps_extract_setting(lmp, "nimpropertypes"), 2);
+
         EXPECT_EQ(lammps_extract_setting(lmp, "molecule_flag"), 1);
         EXPECT_EQ(lammps_extract_setting(lmp, "q_flag"), 1);
         EXPECT_EQ(lammps_extract_setting(lmp, "mu_flag"), 0);
         EXPECT_EQ(lammps_extract_setting(lmp, "rmass_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "radius_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "sphere_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "ellipsoid_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "omega_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "torque_flag"), 0);
+        EXPECT_EQ(lammps_extract_setting(lmp, "angmom_flag"), 0);
         if (!verbose) ::testing::internal::CaptureStdout();
         lammps_command(lmp, "change_box all triclinic");
         lammps_command(lmp, "fix rmass all property/atom rmass ghost yes");
@@ -239,20 +289,26 @@ TEST_F(LibraryProperties, global)
     lammps_command(lmp, "run 2 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    LAMMPS_NS::bigint *b_ptr;
-    char *c_ptr;
-    double *d_ptr;
-    int *i_ptr;
-
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "UNKNOWN"), -1);
     EXPECT_EQ(lammps_extract_global(lmp, "UNKNOWN"), nullptr);
-    c_ptr = (char *)lammps_extract_global(lmp, "units");
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "units"), LAMMPS_STRING);
+    char *c_ptr = (char *)lammps_extract_global(lmp, "units");
     EXPECT_THAT(c_ptr, StrEq("real"));
-    b_ptr = (LAMMPS_NS::bigint *)lammps_extract_global(lmp, "ntimestep");
+
+#if defined(LAMMPS_SMALLSMALL)
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT);
+    int *i_ptr = (int *)lammps_extract_global(lmp, "ntimestep");
+    EXPECT_EQ((*i_ptr), 2);
+#else
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "ntimestep"), LAMMPS_INT64);
+    int64_t *b_ptr = (int64_t *)lammps_extract_global(lmp, "ntimestep");
     EXPECT_EQ((*b_ptr), 2);
-    d_ptr = (double *)lammps_extract_global(lmp, "dt");
+#endif
+
+    EXPECT_EQ(lammps_extract_global_datatype(lmp, "dt"), LAMMPS_DOUBLE);
+    double *d_ptr = (double *)lammps_extract_global(lmp, "dt");
     EXPECT_DOUBLE_EQ((*d_ptr), 0.1);
-    int dtype = lammps_extract_global_datatype(lmp, "dt");
-    EXPECT_EQ(dtype, LAMMPS_DOUBLE);
 };
 
 class AtomProperties : public ::testing::Test {
@@ -264,8 +320,7 @@ protected:
 
     void SetUp() override
     {
-        const char *args[] = {"LAMMPS_test", "-log",      "none",
-                              "-echo",       "screen",    "-nocite"};
+        const char *args[] = {"LAMMPS_test", "-log", "none", "-echo", "screen", "-nocite"};
 
         char **argv = (char **)args;
         int argc    = sizeof(args) / sizeof(char *);
@@ -303,7 +358,7 @@ TEST_F(AtomProperties, invalid)
 TEST_F(AtomProperties, mass)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "mass"), LAMMPS_DOUBLE);
-    double * mass = (double *)lammps_extract_atom(lmp, "mass");
+    double *mass = (double *)lammps_extract_atom(lmp, "mass");
     ASSERT_NE(mass, nullptr);
     ASSERT_DOUBLE_EQ(mass[1], 3.0);
 }
@@ -311,7 +366,7 @@ TEST_F(AtomProperties, mass)
 TEST_F(AtomProperties, id)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "id"), LAMMPS_TAGINT);
-    LAMMPS_NS::tagint * id = (LAMMPS_NS::tagint *)lammps_extract_atom(lmp, "id");
+    tagint *id = (tagint *)lammps_extract_atom(lmp, "id");
     ASSERT_NE(id, nullptr);
     ASSERT_EQ(id[0], 1);
     ASSERT_EQ(id[1], 2);
@@ -320,7 +375,7 @@ TEST_F(AtomProperties, id)
 TEST_F(AtomProperties, type)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "type"), LAMMPS_INT);
-    int * type = (int *)lammps_extract_atom(lmp, "type");
+    int *type = (int *)lammps_extract_atom(lmp, "type");
     ASSERT_NE(type, nullptr);
     ASSERT_EQ(type[0], 1);
     ASSERT_EQ(type[1], 1);
@@ -329,7 +384,7 @@ TEST_F(AtomProperties, type)
 TEST_F(AtomProperties, position)
 {
     EXPECT_EQ(lammps_extract_atom_datatype(lmp, "x"), LAMMPS_DOUBLE_2D);
-    double ** x = (double **)lammps_extract_atom(lmp, "x");
+    double **x = (double **)lammps_extract_atom(lmp, "x");
     ASSERT_NE(x, nullptr);
     EXPECT_DOUBLE_EQ(x[0][0], 1.0);
     EXPECT_DOUBLE_EQ(x[0][1], 1.0);

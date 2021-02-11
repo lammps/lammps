@@ -81,8 +81,8 @@ struct Hierarchical_ForLoop_A {
     Kokkos::fence();
     auto v_H = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
 
-    int check   = 0;
-    const int s = sY * sX;
+    long long int check   = 0;
+    const long long int s = sY * sX;
     for (int i = 0; i < sX; ++i)
       for (int j = 0; j < sY; ++j) check += v_H(i, j);
     ASSERT_EQ(check, s * (s - 1) / 2);

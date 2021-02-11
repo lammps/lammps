@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -184,8 +184,8 @@ void BondSpecial::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&factor_lj[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&factor_coul[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&factor_lj[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&factor_coul[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&factor_lj[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&factor_coul[1],atom->nbondtypes,MPI_DOUBLE,0,world);

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,7 +27,6 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -108,17 +107,17 @@ void ComputeHeatFlux::compute_vector()
 
   // invoke 3 computes if they haven't been already
 
-  if (!(c_ke->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_ke->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_ke->compute_peratom();
-    c_ke->invoked_flag |= INVOKED_PERATOM;
+    c_ke->invoked_flag |= Compute::INVOKED_PERATOM;
   }
-  if (!(c_pe->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_pe->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_pe->compute_peratom();
-    c_pe->invoked_flag |= INVOKED_PERATOM;
+    c_pe->invoked_flag |= Compute::INVOKED_PERATOM;
   }
-  if (!(c_stress->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_stress->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_stress->compute_peratom();
-    c_stress->invoked_flag |= INVOKED_PERATOM;
+    c_stress->invoked_flag |= Compute::INVOKED_PERATOM;
   }
 
   // heat flux vector = jc[3] + jv[3]

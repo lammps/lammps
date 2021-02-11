@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -229,7 +229,7 @@ void FixNEBSpin::init()
 
   if (atom->nmax > maxlocal) reallocate();
 
-  if (MULTI_PROC && counts == nullptr) {
+  if (cmode == MULTI_PROC && counts == nullptr) {
     memory->create(xsendall,ntotal,3,"neb:xsendall");
     memory->create(xrecvall,ntotal,3,"neb:xrecvall");
     memory->create(fsendall,ntotal,3,"neb:fsendall");

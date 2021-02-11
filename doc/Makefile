@@ -14,7 +14,6 @@ TXT2RST        = $(VENV)/bin/txt2rst
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
-POLYFILL       = $(SPHINXCONFIG)/_static/polyfill.js
 
 PYTHON         = $(shell which python3)
 DOXYGEN        = $(shell which doxygen)
@@ -43,7 +42,9 @@ HAS_VIRTUALENV = YES
 endif
 
 ifeq ($(shell which pdflatex >/dev/null 2>&1; echo $$?), 0)
+ifeq ($(shell which latexmk >/dev/null 2>&1; echo $$?), 0)
 HAS_PDFLATEX = YES
+endif
 endif
 
 
@@ -63,7 +64,7 @@ DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+
 help:
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html          create HTML doc pages in html dir"
+	@echo "  html          create HTML pages in html dir"
 	@echo "  pdf           create Manual.pdf in this dir"
 	@echo "  fetch         fetch HTML and PDF files from LAMMPS web site"
 	@echo "  epub          create ePUB format manual for e-book readers"
@@ -93,7 +94,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	    -e 's,@LAMMPS_PYTHON_DIR@,$(BUILDDIR)/../python,g' \
 	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
-html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
+html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
@@ -117,7 +118,7 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
 	@rm -rf html/PDF/.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
-spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
+spelling: xmlgen $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
@@ -152,7 +153,7 @@ mobi: epub
 pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
-	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX was not found! Please check README.md for further instructions" 1>&2; exit 1; fi
+	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX or latexmk were not found! Please check README for further instructions" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
 		sphinx-build $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
@@ -166,14 +167,12 @@ pdf: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		deactivate ;\
 	)
 	@cd latex && \
-		sed 's/latexmk -pdf -dvi- -ps-/pdflatex/g' Makefile > temp && \
-		mv temp Makefile && \
 		sed 's/\\begin{equation}//g' LAMMPS.tex > tmp.tex && \
 		mv tmp.tex LAMMPS.tex && \
 		sed 's/\\end{equation}//g' LAMMPS.tex > tmp.tex && \
 		mv tmp.tex LAMMPS.tex && \
-		$(MAKE) $(MFLAGS) && \
-		$(MAKE) $(MFLAGS) && \
+		sed 's/\\contentsname}{.*}}/\\contentsname}{LAMMPS Documentation}}/g' LAMMPS.tex > tmp.tex && \
+		mv tmp.tex LAMMPS.tex && \
 		$(MAKE) $(MFLAGS) && \
 		mv LAMMPS.pdf ../Manual.pdf && \
 		cd ../;
@@ -230,15 +229,12 @@ $(VENV):
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
 		pip install --upgrade pip; \
-		pip install --use-feature=2020-resolver -r $(BUILDDIR)/utils/requirements.txt; \
+		pip install -r $(BUILDDIR)/utils/requirements.txt; \
 		deactivate;\
 	)
 
 $(MATHJAX):
 	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
-
-$(POLYFILL): $(MATHJAX)
-	@curl -s -o $@ "https://polyfill.io/v3/polyfill.min.js?features=es6"
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

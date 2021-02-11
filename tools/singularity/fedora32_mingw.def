@@ -9,7 +9,7 @@ From: fedora:32
                ccache gcc-c++ gcc-gfortran gdb valgrind eigen3-devel openblas-devel \
                openmpi-devel mpich-devel fftw-devel voro++-devel gsl-devel hdf5-devel \
                netcdf-devel netcdf-cxx-devel netcdf-mpich-devel netcdf-openmpi-devel \
-               python3-pyyaml \
+               readline-devel python3-pyyaml \
                mingw-filesystem-base mingw32-nsis mingw-binutils-generic \
                mingw32-filesystem mingw32-pkg-config \
                mingw64-filesystem mingw64-pkg-config \
@@ -19,23 +19,19 @@ From: fedora:32
                mingw64-cpp mingw64-gcc mingw64-gcc-gfortran mingw64-gcc-c++ \
                mingw32-libgomp mingw64-libgomp \
                mingw32-winpthreads mingw64-winpthreads \
-               mingw32-winpthreads-static mingw64-winpthreads-static \
                mingw32-eigen3 mingw64-eigen3 \
+               mingw32-fftw mingw64-fftw \
                mingw32-libjpeg-turbo mingw64-libjpeg-turbo \
-               mingw32-libjpeg-turbo-static mingw64-libjpeg-turbo-static \
                mingw32-libpng mingw64-libpng \
-               mingw32-libpng-static mingw64-libpng-static \
+               mingw32-readline mingw64-readline \
+               mingw32-termcap mingw64-termcap \
                mingw32-zlib mingw64-zlib \
-               mingw32-zlib-static mingw64-zlib-static \
-               mingw32-expat mingw64-expat \
-               mingw64-expat-static mingw32-expat-static \
-               mingw32-sqlite-static mingw64-sqlite-static \
-               enchant python3-virtualenv doxygen \
+               enchant python3-virtualenv doxygen latexmk \
                texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
                texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \
                texlive-latex-bin texlive-lualatex-math texlive-fncychap texlive-tabulary \
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
-               texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
+               texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng texlive-xindy \
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
                zstd libzstd-devel
         dnf clean all
@@ -60,6 +56,33 @@ From: fedora:32
         cd ../../
         rm -rvf plumed
 
+        # create missing termcap pkgconfig files
+        cat > /usr/i686-w64-mingw32/sys-root/mingw/lib/pkgconfig/termcap.pc <<EOF
+prefix=/usr/i686-w64-mingw32/sys-root/mingw
+exec_prefix=/usr/i686-w64-mingw32/sys-root/mingw
+libdir=/usr/i686-w64-mingw32/sys-root/mingw/lib
+includedir=/usr/i686-w64-mingw32/sys-root/mingw/include
+
+Name: Termcap
+Description: GNU/MinGW terminal feature database
+URL: ftp://ftp.gnu.org/gnu/termcap/
+Version: 1.3
+Libs: -L\${libdir} -ltermcap
+Cflags:
+EOF
+        cat > /usr/x86_64-w64-mingw32/sys-root/mingw/lib/pkgconfig/termcap.pc <<EOF
+prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
+exec_prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
+libdir=/usr/x86_64-w64-mingw32/sys-root/mingw/lib
+includedir=/usr/x86_64-w64-mingw32/sys-root/mingw/include
+
+Name: Termcap
+Description: GNU/MinGW terminal feature database
+URL: ftp://ftp.gnu.org/gnu/termcap/
+Version: 1.3
+Libs: -L\${libdir} -ltermcap
+Cflags:
+EOF
         # set custom prompt indicating the container name
         CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
         cat >$CUSTOM_PROMPT_ENV <<EOF

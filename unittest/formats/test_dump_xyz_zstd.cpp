@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,23 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
-#include "fmt/format.h"
-#include "utils.h"
 #include "../testing/core.h"
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
+#include "fmt/format.h"
+#include "utils.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
-char * ZSTD_BINARY = nullptr;
+char *ZSTD_BINARY = nullptr;
 
 using ::testing::Eq;
 
 class DumpXYZGZTest : public MeltTest {
     std::string dump_style = "xyz";
+
 public:
-    void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file, std::string compression_style,
-                                           std::string dump_modify_options, int ntimesteps) {
+    void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file,
+                                           std::string compression_style,
+                                           std::string dump_modify_options, int ntimesteps)
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         command(fmt::format("dump id0 all {} 1 {}", dump_style, text_file));
         command(fmt::format("dump id1 all {} 1 {}", compression_style, compressed_file));
@@ -41,10 +44,12 @@ public:
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-    std::string convert_compressed_to_text(std::string compressed_file) {
+    std::string convert_compressed_to_text(std::string compressed_file)
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         std::string converted_file = compressed_file.substr(0, compressed_file.find_last_of('.'));
-        std::string cmdline = fmt::format("{} -d -c {} > {}", ZSTD_BINARY, compressed_file, converted_file);
+        std::string cmdline =
+            fmt::format("{} -d -c {} > {}", ZSTD_BINARY, compressed_file, converted_file);
         system(cmdline.c_str());
         if (!verbose) ::testing::internal::GetCapturedStdout();
         return converted_file;
@@ -53,12 +58,12 @@ public:
 
 TEST_F(DumpXYZGZTest, compressed_run0)
 {
-    if(!ZSTD_BINARY) GTEST_SKIP();
+    if (!ZSTD_BINARY) GTEST_SKIP();
 
-    auto text_files = "dump_xyz_zstd_text_run*.melt.xyz";
+    auto text_files       = "dump_xyz_zstd_text_run*.melt.xyz";
     auto compressed_files = "dump_xyz_zstd_compressed_run*.melt.xyz.zst";
-    auto text_file = "dump_xyz_zstd_text_run0.melt.xyz";
-    auto compressed_file = "dump_xyz_zstd_compressed_run0.melt.xyz.zst";
+    auto text_file        = "dump_xyz_zstd_text_run0.melt.xyz";
+    auto compressed_file  = "dump_xyz_zstd_compressed_run0.melt.xyz.zst";
 
     generate_text_and_compressed_dump(text_files, compressed_files, "xyz/zstd", "", 0);
 

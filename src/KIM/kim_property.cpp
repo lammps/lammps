@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -100,11 +100,7 @@ void kimProperty::command(int narg, char **arg)
     error->all(FLERR, msg);
   }
 
-  if (comm->me == 0) {
-    std::string msg;
-    msg = "#=== kim-property ===========================================\n";
-    input->write_echo(msg);
-  }
+  input->write_echo("#=== kim-property ===========================================\n");
 
   // Get the kim_str ptr to the data associated with a kim_property_str
   // variable

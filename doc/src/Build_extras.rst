@@ -18,7 +18,7 @@ in addition to
 
           $ make yes-name
 
-as described on the :doc:`Build_package <Build_package>` doc page.
+as described on the :doc:`Build_package <Build_package>` page.
 
 For a CMake build there may be additional optional or required
 variables to set.  For a build with make, a provided library under the
@@ -37,6 +37,7 @@ This is the list of packages that may require additional steps.
    * :ref:`KOKKOS <kokkos>`
    * :ref:`LATTE <latte>`
    * :ref:`MESSAGE <message>`
+   * :ref:`MLIAP <mliap>`
    * :ref:`MSCG <mscg>`
    * :ref:`OPT <opt>`
    * :ref:`POEMS <poems>`
@@ -130,7 +131,7 @@ CMake build
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
                                 # value = yes (default) or no
    -D CUDPP_OPT=value           # optimization setting for GPU_API=cuda
-                                # enables CUDA Performance Primitives Optimizations
+                                # enables CUDA Performance Primitives Optimizations, must be "no" for CUDA_MPS_SUPPORT=yes
                                 # value = yes (default) or no
    -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active nvidia-cuda-mps daemon
                                 # value = yes or no (default)
@@ -218,10 +219,18 @@ Makefile if desired:
 * ``CUDA_PRECISION`` = precision (double, mixed, single)
 * ``EXTRAMAKE`` = which Makefile.lammps.\* file to copy to Makefile.lammps
 
-The file Makefile.linux_multi is set up to include support for multiple
+The file Makefile.cuda is set up to include support for multiple
 GPU architectures as supported by the CUDA toolkit in use. This is done
 through using the "--gencode " flag, which can be used multiple times and
 thus support all GPU architectures supported by your CUDA compiler.
+
+To include CUDA performance primitives set the Makefile variable
+``CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini``.
+
+To support the CUDA multiprocessor server you can set the define
+``-DCUDA_PROXY``.  Please note that in this case you should **not** use
+the CUDA performance primitives and thus set the variable ``CUDPP_OPT``
+to empty.
 
 If the library build is successful, 3 files should be created:
 ``lib/gpu/libgpu.a``\ , ``lib/gpu/nvc_get_devices``\ , and
@@ -282,6 +291,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
          -D DOWNLOAD_KIM=value           # download OpenKIM API v2 for build, value = no (default) or yes
          -D LMP_DEBUG_CURL=value         # set libcurl verbose mode on/off, value = off (default) or on
          -D LMP_NO_SSL_CHECK=value       # tell libcurl to not verify the peer, value = no (default) or yes
+         -D KIM_EXTRA_UNITTESTS=value    # enables extra unit tests, value = no (default) or yes
 
       If ``DOWNLOAD_KIM`` is set to *yes* (or *on*), the KIM API library
       will be downloaded and built inside the CMake build directory.  If
@@ -289,6 +299,11 @@ minutes to hours) to build.  Of course you only need to do that once.)
       where CMake cannot find it), you may need to set the
       ``PKG_CONFIG_PATH`` environment variable so that libkim-api can be
       found, or run the command ``source kim-api-activate``.
+
+      Extra unit tests can only be available if they are explicitly requested
+      (``KIM_EXTRA_UNITTESTS`` is set to *yes* (or *on*)) and the prerequisites
+      are met. See :ref:`KIM Extra unit tests <kim_extra_unittests>` for
+      more details on this.
 
    .. tab:: Traditional make
 
@@ -337,6 +352,38 @@ certificate. This option is insecure.  As an alternative, you can
 specify your own CA cert path by setting the environment variable
 ``CURL_CA_BUNDLE`` to the path of your choice.  A call to the KIM web
 query would get this value from the environment variable.
+
+.. _kim_extra_unittests:
+
+KIM Extra unit tests (CMake only)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+During development, testing, or debugging, if
+:doc:`unit testing <Build_development>` is enabled in LAMMPS, one can also
+enable extra tests on :doc:`KIM commands <kim_commands>` by setting the
+``KIM_EXTRA_UNITTESTS`` to *yes* (or *on*).
+
+Enabling the extra unit tests have some requirements,
+
+* It requires to have internet access.
+* It requires to have libcurl installed with the matching development headers
+  and the curl-config tool.
+* It requires to build LAMMPS with the PYTHON package installed and linked to
+  Python 3.6 or later. See the :ref:`PYTHON package build info <python>` for
+  more details on this.
+* It requires to have ``kim-property`` Python package installed, which can be
+  easily done using *pip* as ``pip install kim-property``, or from the
+  *conda-forge* channel as ``conda install kim-property`` if LAMMPS is built in
+  Conda. More detailed information is available at:
+  `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
+* It is also necessary to install
+  ``EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000``, and
+  ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`` KIM models.
+  See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_
+  to learn how to install a pre-build binary of the OpenKIM Repository of
+  Models or see
+  `Installing KIM Models <https://openkim.org/doc/usage/obtaining-models/#installing_models>`_
+  to learn how to install the specific KIM models.
 
 ----------
 
@@ -482,11 +529,14 @@ They must be specified in uppercase.
    *  - VEGA906
       - GPU
       - AMD GPU MI50/MI60 GFX906
+   *  - VEGA908
+      - GPU
+      - AMD GPU GFX908
    *  - INTEL_GEN
       - GPU
       - Intel GPUs Gen9+
 
-This list was last updated for version 3.2 of the Kokkos library.
+This list was last updated for version 3.3 of the Kokkos library.
 
 .. tabs::
 
@@ -729,6 +779,54 @@ be installed on your system.
       and ``lib/message/Makefile.lammps``.  The latter is copied from an
       existing ``Makefile.lammps.*`` and has settings to link with the ZeroMQ
       library if requested in the build.
+
+----------
+
+.. _mliap:
+
+MLIAP package
+---------------------------
+
+Building the MLIAP package requires including the :ref:`SNAP <PKG-SNAP>`
+package.  There will be an error message if this requirement is not satisfied.
+Using the *mliappy* model also requires enabling Python support, which
+in turn requires the :ref:`PYTHON <PKG-PYTHON>`
+package **and** requires you have the `cython <https://cython.org>`_ software
+installed and with it a working ``cythonize`` command.  This feature requires
+compiling LAMMPS with Python version 3.6 or later.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D MLIAP_ENABLE_PYTHON=value   # enable mliappy model (default is autodetect)
+
+      Without this setting, CMake will check whether it can find a
+      suitable Python version and the ``cythonize`` command and choose
+      the default accordingly.  During the build procedure the provided
+      .pyx file(s) will be automatically translated to C++ code and compiled.
+      Please do **not** run ``cythonize`` manually in the ``src/MLIAP`` folder,
+      as that can lead to compilation errors if Python support is not enabled.
+      If you did by accident, please remove the generated .cpp and .h files.
+
+   .. tab:: Traditional make
+
+      The build uses the ``lib/python/Makefile.mliap_python`` file in the
+      compile/link process to add a rule to update the files generated by
+      the ``cythonize`` command in case the corresponding .pyx file(s) were
+      modified.  You may need to modify ``lib/python/Makefile.lammps``
+      if the LAMMPS build fails.
+      To manually enforce building MLIAP with Python support enabled,
+      you can add
+      ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in your machine makefile.
+      You may have to manually run the ``cythonize`` command on .pyx file(s)
+      in the ``src`` folder, if this is not automatically done during
+      installing the MLIAP package.  Please do **not** run ``cythonize``
+      in the ``src/MLIAP`` folder, as that can lead to compilation errors
+      if Python support is not enabled.
+      If you did by accident, please remove the generated .cpp and .h files.
 
 ----------
 

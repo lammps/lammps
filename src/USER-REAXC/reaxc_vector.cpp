@@ -21,7 +21,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_vector.h"
@@ -107,15 +107,15 @@ void rtensor_MatVec( rvec ret, rtensor m, rvec v )
 
   if (ret == v)
     {
-      for( i = 0; i < 3; ++i )
+      for (i = 0; i < 3; ++i)
         temp[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
 
-      for( i = 0; i < 3; ++i )
+      for (i = 0; i < 3; ++i)
         ret[i] = temp[i];
     }
   else
     {
-      for( i = 0; i < 3; ++i )
+      for (i = 0; i < 3; ++i)
         ret[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
     }
 }

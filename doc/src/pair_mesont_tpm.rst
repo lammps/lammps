@@ -147,12 +147,17 @@ where L is the maximum segment length, R is the maximum tube radius, and
 segments. Because of the use of extended chain concept at CNT ends, the recommended
 cutoff is 3L.
 
-The MESONT-TABTP_10_10.xrs potential file provided with LAMMPS (see the
-potentials directory) is parameterized for metal :doc:`units <units>`.
+.. note::
+
+   Because of their size, *mesont* style potential files
+   are not bundled with LAMMPS.   When compiling LAMMPS from
+   source code, the file ``TABTP_10_10.mesont`` should be downloaded
+   transparently from `https://download.lammps.org/potentials/TABTP_10_10.mesont <https://download.lammps.org/potentials/TABTP_10_10.mesont>`_
+
+The ``TABTP_10_10.mesont`` potential file is parameterized for metal :doc:`units <units>`.
 You can use the carbon nanotube mesoscopic force field with any LAMMPS units,
-but you would need to create your own TPMSSTP.xrs and TPMA.xrs potential files
-with coefficients listed in appropriate units, if your simulation
-does not use "metal" units.
+but you would need to create your own potential files with coefficients listed in
+appropriate units, if your simulation does not use "metal" units.
 
 The chirality parameters set during system generation must match the values
 specified during generation of the potential tables.

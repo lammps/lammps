@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -136,7 +136,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   gfactor1 = new double[atom->ntypes+1];
   gfactor2 = new double[atom->ntypes+1];
   // allocate 3d grid variables
-  total_nnodes = nxnodes*nynodes*nznodes;
+  total_nnodes = (bigint)nxnodes*nynodes*nznodes;
   memory->create(nsum,nxnodes,nynodes,nznodes,"ttm/mod:nsum");
   memory->create(nsum_all,nxnodes,nynodes,nznodes,"ttm/mod:nsum_all");
   memory->create(sum_vsq,nxnodes,nynodes,nznodes,"ttm/mod:sum_vsq");
@@ -290,8 +290,8 @@ void FixTTMMod::post_force(int /*vflag*/)
       double vsq = v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2];
       if (vsq > v_0_sq) gamma1 *= (gamma_p + gamma_s)/gamma_p;
       gamma2 = gfactor2[type[i]] * tsqrt;
-      if (ixnode >= surface_l){
-        if (ixnode < surface_r){
+      if (ixnode >= surface_l) {
+        if (ixnode < surface_r) {
           flangevin[i][0] = gamma1*v[i][0] + gamma2*(random->uniform()-0.5);
           flangevin[i][1] = gamma1*v[i][1] + gamma2*(random->uniform()-0.5);
           flangevin[i][2] = gamma1*v[i][2] + gamma2*(random->uniform()-0.5);
@@ -320,8 +320,8 @@ void FixTTMMod::post_force(int /*vflag*/)
           double diff_x = (x_at - x_surf)*(x_at - x_surf);
           diff_x = pow(diff_x,0.5);
           double len_factor = diff_x/(diff_x+free_path);
-          if (movsur == 1){
-            if (x_at >= x_surf){
+          if (movsur == 1) {
+            if (x_at >= x_surf) {
               flangevin[i][0] -= pres_factor/ionic_density*((C_ir*T_ir*free_path/(diff_x+free_path)/(diff_x+free_path)) +
                                                             (len_factor/dx)*(C_ir*T_ir-C_i*T_i));
               flangevin[i][1] -= pres_factor/ionic_density/dy*(C_iu*T_iu-C_i*T_i);
@@ -337,8 +337,8 @@ void FixTTMMod::post_force(int /*vflag*/)
           f[i][2] += flangevin[i][2];
         }
       }
-      if (movsur == 1){
-        if (ixnode < surface_l){
+      if (movsur == 1) {
+        if (ixnode < surface_l) {
           t_surface_l = ixnode;
         }
       }
@@ -629,12 +629,12 @@ void FixTTMMod::end_of_step()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  if (movsur == 1){
+  if (movsur == 1) {
     for (int ixnode = 0; ixnode < nxnodes; ixnode++)
       for (int iynode = 0; iynode < nynodes; iynode++)
-        for (int iznode = 0; iznode < nznodes; iznode++){
+        for (int iznode = 0; iznode < nznodes; iznode++) {
           double TTT = T_electron[ixnode][iynode][iznode];
-          if (TTT > 0){
+          if (TTT > 0) {
             if (ixnode < t_surface_l)
               t_surface_l = ixnode;
           }
@@ -659,7 +659,7 @@ void FixTTMMod::end_of_step()
       while (ixnode < 0) ixnode += nxnodes;
       while (iynode < 0) iynode += nynodes;
       while (iznode < 0) iznode += nznodes;
-      if (ixnode >= t_surface_l){
+      if (ixnode >= t_surface_l) {
         if (ixnode < surface_r)
           net_energy_transfer[ixnode][iynode][iznode] +=
             (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
@@ -748,7 +748,7 @@ void FixTTMMod::end_of_step()
             double ixnode_d = double(ixnode);
             double surface_d = double(t_surface_l);
             mult_factor = 0.0;
-            if (duration < width){
+            if (duration < width) {
               if (ixnode >= t_surface_l) mult_factor = (intensity/(dx*skin_layer_d))*exp((-1.0)*(ixnode_d - surface_d)/skin_layer_d);
             }
             if (ixnode < t_surface_l) net_energy_transfer_all[ixnode][iynode][iznode] = 0.0;
@@ -862,7 +862,7 @@ void FixTTMMod::end_of_step()
             if (nsum_all[ixnode][iynode][iznode] > 0) {
               T_a = sum_mass_vsq_all[ixnode][iynode][iznode]/
                 (3.0*force->boltz*nsum_all[ixnode][iynode][iznode]/force->mvv2e);
-              if (movsur == 1){
+              if (movsur == 1) {
                 if (T_electron[ixnode][iynode][iznode]==0.0) T_electron[ixnode][iynode][iznode] = electron_temperature_min;
               }
             }
@@ -886,8 +886,8 @@ void FixTTMMod::end_of_step()
 double FixTTMMod::memory_usage()
 {
   double bytes = 0.0;
-  bytes += 5*total_nnodes * sizeof(int);
-  bytes += 14*total_nnodes * sizeof(double);
+  bytes += (double)5*total_nnodes * sizeof(int);
+  bytes += (double)14*total_nnodes * sizeof(double);
   return bytes;
 }
 

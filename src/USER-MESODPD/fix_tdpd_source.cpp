@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,7 +38,7 @@ FixTDPDSource::FixTDPDSource(LAMMPS *lmp, int narg, char **arg) :
   else error->all(FLERR,"Illegal fix tdpd/source command");
   iarg++;
 
-  if(option == 0){
+  if (option == 0) {
     if (narg != 10 ) error->all(FLERR,"Illegal fix tdpd/source command (5 args for sphere)");
     center[0] = utils::numeric(FLERR,arg[iarg++],false,lmp);
     center[1] = utils::numeric(FLERR,arg[iarg++],false,lmp);
@@ -46,7 +46,7 @@ FixTDPDSource::FixTDPDSource(LAMMPS *lmp, int narg, char **arg) :
     radius  = utils::numeric(FLERR,arg[iarg++],false,lmp);
     value   = utils::numeric(FLERR,arg[iarg++],false,lmp);
   }
-  else if(option == 1){
+  else if (option == 1) {
     if (narg != 12 ) error->all(FLERR,"Illegal fix tdpd/edpd command (7 args for cuboid)");
     center[0] = utils::numeric(FLERR,arg[iarg++],false,lmp);
     center[1] = utils::numeric(FLERR,arg[iarg++],false,lmp);
@@ -94,19 +94,19 @@ void FixTDPDSource::post_force(int /*vflag*/)
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      if(option == 0){
+      if (option == 0) {
         drx = x[i][0] - center[0];
         dry = x[i][1] - center[1];
         drz = x[i][2] - center[2];
         rsq = drx*drx + dry*dry + drz*drz;
-        if(rsq < radius_sq)
+        if (rsq < radius_sq)
           cc_flux[i][cc_index-1] += value;
       }
-      else if(option == 1){
+      else if (option == 1) {
         drx = x[i][0] - center[0];
         dry = x[i][1] - center[1];
         drz = x[i][2] - center[2];
-        if(fabs(drx) <= 0.5*dLx && fabs(dry) <= 0.5*dLy && fabs(drz) <= 0.5*dLz)
+        if (fabs(drx) <= 0.5*dLx && fabs(dry) <= 0.5*dLy && fabs(drz) <= 0.5*dLz)
           cc_flux[i][cc_index-1] += value;
       }
     }

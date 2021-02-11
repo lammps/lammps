@@ -21,7 +21,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_forces.h"
@@ -74,7 +74,7 @@ void Compute_Bonded_Forces( reax_system *system, control_params *control,
   int i;
 
   /* Implement all force calls as function pointers */
-  for( i = 0; i < NUM_INTRS; i++ ) {
+  for (i = 0; i < NUM_INTRS; i++) {
     (Interaction_Functions[i])( system, control, data, workspace,
                                 lists, out_control );
   }
@@ -104,8 +104,8 @@ void Compute_Total_Force( reax_system *system, control_params *control,
   int i, pj;
   reax_list *bonds = (*lists) + BONDS;
 
-  for( i = 0; i < system->N; ++i )
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
+  for (i = 0; i < system->N; ++i)
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
       if (i < bonds->select.bond_list[pj].nbr) {
         if (control->virial == 0)
           Add_dBond_to_Forces( system, i, pj, workspace, lists );
@@ -127,7 +127,7 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
   if (N > 0) {
     bonds = *lists + BONDS;
 
-    for( i = 0; i < N; ++i ) {
+    for (i = 0; i < N; ++i) {
       system->my_atoms[i].num_bonds = MAX(Num_Entries(i,bonds)*2, MIN_BONDS);
 
       if (i < N-1)
@@ -148,14 +148,14 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
   if (numH > 0) {
     hbonds = *lists + HBONDS;
 
-    for( i = 0; i < N; ++i ) {
+    for (i = 0; i < N; ++i) {
       Hindex = system->my_atoms[i].Hindex;
       if (Hindex > -1) {
         system->my_atoms[i].num_hbonds =
           (int)(MAX(Num_Entries(Hindex, hbonds)*saferzone, system->minhbonds));
 
         //if( Num_Entries(i, hbonds) >=
-        //(Start_Index(i+1,hbonds)-Start_Index(i,hbonds))*0.90/*DANGER_ZONE*/){
+        //(Start_Index(i+1,hbonds)-Start_Index(i,hbonds))*0.90/*DANGER_ZONE*/) {
         //  workspace->realloc.hbonds = 1;
 
         if (Hindex < numH-1)
@@ -176,7 +176,7 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
 
 void Init_Forces_noQEq( reax_system *system, control_params *control,
                         simulation_data *data, storage *workspace,
-                        reax_list **lists, output_controls * /*out_control*/ ) {
+                        reax_list **lists, output_controls * /*out_control*/) {
   int i, j, pj;
   int start_i, end_i;
   int type_i, type_j;
@@ -194,9 +194,9 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
   bonds = *lists + BONDS;
   hbonds = *lists + HBONDS;
 
-  for( i = 0; i < system->n; ++i )
+  for (i = 0; i < system->n; ++i)
     workspace->bond_mark[i] = 0;
-  for( i = system->n; i < system->N; ++i ) {
+  for (i = system->n; i < system->N; ++i) {
     workspace->bond_mark[i] = 1000; // put ghost atoms to an infinite distance
   }
 
@@ -205,7 +205,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
   btop_i = 0;
   renbr = (data->step-data->prev_steps) % control->reneighbor == 0;
 
-  for( i = 0; i < system->N; ++i ) {
+  for (i = 0; i < system->N; ++i) {
     atom_i = &(system->my_atoms[i]);
     type_i  = atom_i->type;
     if (type_i < 0) continue;
@@ -232,7 +232,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
     }
 
     /* update i-j distance - check if j is within cutoff */
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &( far_nbrs->select.far_nbr_list[pj] );
       j = nbr_pj->nbr;
       atom_j = &(system->my_atoms[j]);
@@ -263,7 +263,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
         if (local) {
           /* hydrogen bond lists */
           if (control->hbond_cut > 0 && (ihb==1 || ihb==2) &&
-              nbr_pj->d <= control->hbond_cut ) {
+              nbr_pj->d <= control->hbond_cut) {
             // fprintf( stderr, "%d %d\n", atom1, atom2 );
             jhb = sbp_j->p_hbond;
             if (ihb == 1 && jhb == 2) {
@@ -287,7 +287,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
         if (//(workspace->bond_mark[i] < 3 || workspace->bond_mark[j] < 3) &&
             nbr_pj->d <= control->bond_cut &&
             BOp( workspace, bonds, control->bo_cut,
-                 i , btop_i, nbr_pj, sbp_i, sbp_j, twbp ) ) {
+                 i , btop_i, nbr_pj, sbp_i, sbp_j, twbp )) {
           num_bonds += 2;
           ++btop_i;
 
@@ -343,7 +343,7 @@ void Estimate_Storages( reax_system *system, control_params *control,
   memset( bond_top, 0, sizeof(int) * system->total_cap );
   *num_3body = 0;
 
-  for( i = 0; i < system->N; ++i ) {
+  for (i = 0; i < system->N; ++i) {
     atom_i = &(system->my_atoms[i]);
     type_i  = atom_i->type;
     if (type_i < 0) continue;
@@ -362,12 +362,12 @@ void Estimate_Storages( reax_system *system, control_params *control,
       ihb = -1;
     }
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &( far_nbrs->select.far_nbr_list[pj] );
       j = nbr_pj->nbr;
       atom_j = &(system->my_atoms[j]);
 
-      if(nbr_pj->d <= cutoff) {
+      if (nbr_pj->d <= cutoff) {
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
         r_ij = nbr_pj->d;
@@ -380,11 +380,11 @@ void Estimate_Storages( reax_system *system, control_params *control,
 
           /* hydrogen bond lists */
           if (control->hbond_cut > 0.1 && (ihb==1 || ihb==2) &&
-              nbr_pj->d <= control->hbond_cut ) {
+              nbr_pj->d <= control->hbond_cut) {
             jhb = sbp_j->p_hbond;
             if (ihb == 1 && jhb == 2)
               ++hb_top[i];
-            else if( j < system->n && ihb == 2 && jhb == 1 )
+            else if (j < system->n && ihb == 2 && jhb == 1)
               ++hb_top[j];
           }
         }
@@ -422,10 +422,10 @@ void Estimate_Storages( reax_system *system, control_params *control,
   }
 
   *Htop = (int)(MAX( *Htop * safezone, mincap * MIN_HENTRIES ));
-  for( i = 0; i < system->n; ++i )
+  for (i = 0; i < system->n; ++i)
     hb_top[i] = (int)(MAX(hb_top[i] * saferzone, system->minhbonds));
 
-  for( i = 0; i < system->N; ++i ) {
+  for (i = 0; i < system->N; ++i) {
     *num_3body += SQR(bond_top[i]);
     bond_top[i] = MAX( bond_top[i] * 2, MIN_BONDS );
   }

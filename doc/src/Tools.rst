@@ -92,7 +92,9 @@ Miscellaneous tools
    * :ref:`emacs <emacs>`
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
+   * :ref:`LAMMPS shell <lammps_shell>`
    * :ref:`singularity <singularity_tool>`
+   * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
 
 ----------
@@ -397,10 +399,220 @@ The file was provided by Alessandro Luigi Sellerio
 
 ----------
 
+.. _lammps_shell:
+
+LAMMPS shell
+------------
+
+.. versionadded:: 9Oct2020
+
+Overview
+^^^^^^^^
+
+The LAMMPS Shell, ``lammps-shell`` is a program that functions very
+similar to the regular LAMMPS executable but has several modifications
+and additions that make it more powerful for interactive sessions,
+i.e. where you type LAMMPS commands from the prompt instead of reading
+them from a file.
+
+- It uses the readline and history libraries to provide command line
+  editing and context aware TAB-expansion (details on that below).
+
+- When processing an input file with the '-in' or '-i' flag from the
+  command line, it does not exit at the end of that input file but
+  stops at a prompt, so that additional commands can be issued
+
+- Errors will not abort the shell but return to the prompt.
+
+- It has additional commands aimed at interactive use (details below).
+
+- Interrupting a calculation with CTRL-C will not terminate the
+  session but rather enforce a timeout to cleanly stop an ongoing
+  run (more info on timeouts is in the :doc:`timer command <timer>`
+  documentation).
+
+These enhancements make the LAMMPS shell an attractive choice for
+interactive LAMMPS sessions in graphical desktop environments
+(e.g. Gnome, KDE, Cinnamon, XFCE, Windows).
+
+TAB-expansion
+^^^^^^^^^^^^^
+
+When writing commands interactively at the shell prompt, you can hit
+the TAB key at any time to try and complete the text.  This completion
+is context aware and will expand any first word only to commands
+available in that executable.
+
+- For style commands it will expand to available styles of the
+  corresponding category (e.g. pair styles after a
+  :doc:`pair_style <pair_style>` command).
+
+- For :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`dump <dump>`
+  it will also expand only to already defined groups for the group-ID
+  keyword.
+
+- For commands like :doc:`compute_modify <compute_modify>`,
+  :doc:`fix_modify <fix_modify>`, or :doc:`dump_modify <dump_modify>`
+  it will expand to known compute/fix/dump IDs only.
+
+- When typing references to computes, fixes, or variables with a
+  "c\_", "f\_", or "v\_" prefix, respectively, then the expansion will
+  be to known compute/fix IDs and variable names. Variable name
+  expansion is also available for the ${name} variable syntax.
+
+- In all other cases TAB expansion will complete to names of files
+  and directories.
+
+Command line editing and history
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When typing commands, command line editing similar to what BASH
+provides is available.  Thus it is possible to move around the
+currently line and perform various cut and insert and edit operations.
+Previous commands can be retrieved by scrolling up (and down)
+or searching (e.g. with CTRL-r).
+
+Also history expansion through using the exclamation mark '!'
+can be performed.  Examples: '!!' will be replaced with the previous
+command, '!-2' will repeat the command before that, '!30' will be
+replaced with event number 30 in the command history list, and
+'!run' with the last command line that started with "run".  Adding
+a ":p" to such a history expansion will result that the expansion is
+printed and added to the history list, but NOT executed.
+On exit the LAMMPS shell will write the history list to a file
+".lammps_history" in the current working directory.  If such a
+file exists when the LAMMPS shell is launched it will be read to
+populate the history list.
+
+This is realized via the readline library and can thus be customized
+with an ``.inputrc`` file in the home directory.  For application
+specific customization, the LAMMPS shell uses the name "lammps-shell".
+For more information about using and customizing an application using
+readline, please see the available documentation at:
+`http://www.gnu.org/s/readline/#Documentation
+<http://www.gnu.org/s/readline/#Documentation>`_
+
+Additional commands
+^^^^^^^^^^^^^^^^^^^
+
+The following commands are added to the LAMMPS shell on top of the
+regular LAMMPS commands:
+
+.. parsed-literal::
+
+   help (or ?)    print a brief help message
+   history        display the current command history list
+   clear_history  wipe out the current command history list
+   save_history <range> <file>
+                  write commands from the history to file.
+                  The range is given as <from>-<to>, where <from> and <to>
+                  may be empty. Example: save_history 100- in.recent
+   source <file>  read commands from file (same as "include")
+   pwd            print current working directory
+   cd <directory> change current working directory (same as pwd if no directory)
+   mem            print current and maximum memory usage
+   \|<command>     execute <command> as a shell command and return to the command prompt
+   exit           exit the LAMMPS shell cleanly (unlike the "quit" command)
+
+Please note that some known shell operations are implemented in the
+LAMMPS :doc:`shell command <shell>` in a platform neutral fashion,
+while using the '\|' character will always pass the following text
+to the operating system's shell command.
+
+Compilation
+^^^^^^^^^^^
+
+Compilation of the LAMMPS shell can be enabled by setting the CMake
+variable ``BUILD_LAMMPS_SHELL`` to "on" or using the makefile in the
+``tools/lammps-shell`` folder to compile after building LAMMPS using
+the conventional make procedure.  The makefile will likely need
+customization depending on the features and settings used for
+compiling LAMMPS.
+
+Limitations
+^^^^^^^^^^^
+
+The LAMMPS shell was not designed for use with MPI parallelization
+via ``mpirun`` or ``mpiexec`` or ``srun``.
+
+Readline customization
+^^^^^^^^^^^^^^^^^^^^^^
+
+The behavior of the readline functionality can be customized in the
+``${HOME}/.inputrc`` file.  This can be used to alter the default
+settings or change the key-bindings.  The LAMMPS Shell sets the
+application name ``lammps-shell``, so settings can be either applied
+globally or only for the LAMMPS shell by bracketing them between
+``$if lammps-shell`` and ``$endif`` like in the following example:
+
+.. code-block:: bash
+
+   $if lammps-shell
+   # disable "beep" or "screen flash"
+   set bell-style none
+   # bind the "Insert" key to toggle overwrite mode
+   "\e[2~": overwrite-mode
+   $endif
+
+More details about this are in the `readline documentation <https://tiswww.cwru.edu/php/chet/readline/rluserman.html#SEC9>`_.
+
+
+LAMMPS Shell tips and tricks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Below are some suggestions for how to use and customize the LAMMPS shell.
+
+Enable tilde expansion
+""""""""""""""""""""""
+
+Adding ``set expand-tilde on`` to ``${HOME}/.inputrc`` is recommended as
+this will change the filename expansion behavior to replace any text
+starting with "~" by the full path to the corresponding user's home
+directory.  While the expansion of filenames **will** happen on all
+arguments where the context is not known (e.g. ``~/compile/lamm<TAB>``
+will expand to ``~/compile/lammps/``), it will not replace the tilde by
+default.  But since LAMMPS does not do tilde expansion itself (unlike a
+shell), this will result in errors.  Instead the tilde-expression should
+be expanded into a valid path, where the plain "~/" stands for the
+current user's home directory and "~someuser/" stands for
+"/home/someuser" or whatever the full path to that user's home directory
+is.
+
+File extension association
+""""""""""""""""""""""""""
+
+Since the LAMMPS shell (unlike the regular LAMMPS executable) does not
+exit when an input file is passed on the command line with the "-in" or
+"-i" flag (the behavior is like for ``python -i <filename>``), it makes
+the LAMMPS shell suitable for associating it with input files based on
+their filename extension (e.g. ".lmp").  Since ``lammps-shell`` is a
+console application, you have to run it inside a terminal program with a
+command line like this:
+
+.. code-block:: bash
+
+   xterm -title "LAMMPS Shell" -e /path/to/lammps-shell -i in.file.lmp
+
+
+Use history to create an input file
+"""""""""""""""""""""""""""""""""""
+
+When experimenting with commands to interactively to figure out a
+suitable choice of settings or simply the correct syntax, you may want
+to record part of your commands to a file for later use.  This can be
+done with the ``save_history`` commands, which allows to selectively
+write a section of the command history to a file (Example:
+``save_history 25-30 in.run``).  This file can be further edited
+(Example: ``|vim in.run``) and then the file read back in and tried out
+(Example: ``source in.run``).  If the input also creates a system box,
+you first need to use the :doc:`clear` command.
+
+----------
+
 .. _arc:
 
 lmp2arc tool
-----------------------
+------------
 
 The lmp2arc sub-directory contains a tool for converting LAMMPS output
 files to the format for Accelrys' Insight MD code (formerly
@@ -663,6 +875,124 @@ The singularity sub-directory contains container definitions files
 that can be used to build container images for building and testing
 LAMMPS on specific OS variants using the `Singularity <https://sylabs.io>`_
 container software. Contributions for additional variants are welcome.
+For more details please see the README.md file in that folder.
+
+----------
+
+.. _swig:
+
+SWIG interface
+--------------
+
+The `SWIG tool <http://swig.org>`_ offers a mostly automated way to
+incorporate compiled code modules into scripting languages.  It
+processes the function prototypes in C and generates wrappers for a wide
+variety of scripting languages from it.  Thus it can also be applied to
+the :doc:`C language library interface <Library>` of LAMMPS so that
+build a wrapper that allows to call LAMMPS from programming languages
+like: C#/Mono, Lua, Java, JavaScript, Perl, Python, R, Ruby, Tcl, and
+more.
+
+What is included
+^^^^^^^^^^^^^^^^
+
+We provide here an "interface file", ``lammps.i``, that has the content
+of the ``library.h`` file adapted so SWIG can process it.  That will
+create wrappers for all the functions that are present in the LAMMPS C
+library interface.  Please note that not all kinds of C functions can be
+automatically translated, so you would have to add custom functions to
+be able to utilize those where the automatic translation does not work.
+A few functions for converting pointers and accessing arrays are
+predefined.  We provide the file here on an "as is" basis to help people
+getting started, but not as a fully tested and supported feature of the
+LAMMPS distribution.  Any contributions to complete this are, of course,
+welcome.  Please also note, that for the case of creating a Python wrapper,
+a fully supported :doc:`Ctypes based lammps module <Python_module>`
+already exists.  That module is designed to be object oriented while
+SWIG will generate a 1:1 translation of the functions in the interface file.
+
+Building the wrapper
+^^^^^^^^^^^^^^^^^^^^
+
+When using CMake, the build steps for building a wrapper
+module are integrated for the languages: Java, Lua,
+Perl5, Python, Ruby, and Tcl.  These require that the
+LAMMPS library is build as a shared library and all
+necessary development headers and libraries are present.
+
+.. code-block:: bash
+
+   -D WITH_SWIG=on         # to enable building any SWIG wrapper
+   -D BUILD_SWIG_JAVA=on   # to enable building the Java wrapper
+   -D BUILD_SWIG_LUA=on    # to enable building the Lua wrapper
+   -D BUILD_SWIG_PERL5=on  # to enable building the Perl 5.x wrapper
+   -D BUILD_SWIG_PYTHON=on # to enable building the Python wrapper
+   -D BUILD_SWIG_RUBY=on   # to enable building the Ruby wrapper
+   -D BUILD_SWIG_TCL=on    # to enable building the Tcl wrapper
+
+
+Manual building allows a little more flexibility. E.g. one can choose
+the name of the module and build and use a dynamically loaded object
+for Tcl with:
+
+.. code-block:: bash
+
+   $ swig -tcl -module tcllammps lammps.i
+   $ gcc -fPIC -shared $(pkgconf --cflags tcl) -o tcllammps.so \
+               lammps_wrap.c -L ../src/ -llammps
+   $ tclsh
+
+Or one can build an extended Tcl shell command with the wrapped
+functions included with:
+
+.. code-block:: bash
+
+   $ swig -tcl -module tcllmps lammps_shell.i
+   $ gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
+            -DHAVE_CONFIG_H $(pkgconf --cflags tcl) \
+            $(pkgconf --libs tcl) -L ../src -llammps
+
+In both cases it is assumed that the LAMMPS library was compiled
+as a shared library in the ``src`` folder. Otherwise the last
+part of the commands needs to be adjusted.
+
+Utility functions
+^^^^^^^^^^^^^^^^^
+
+Definitions for several utility functions required to manage and access
+data passed or returned as pointers are included in the ``lammps.i``
+file.  So most of the functionality of the library interface should be
+accessible.  What works and what does not depends a bit on the
+individual language for which the wrappers are built and how well SWIG
+supports those.  The `SWIG documentation <http://swig.org/doc.html>`_
+has very detailed instructions and recommendations.
+
+Usage examples
+^^^^^^^^^^^^^^
+
+The ``tools/swig`` folder has multiple shell scripts, ``run_<name>_example.sh``
+that will create a small example script and demonstrate how to load
+the wrapper and run LAMMPS through it in the corresponding programming
+language.
+
+For illustration purposes below is a part of the Tcl example script.
+
+.. code-block:: tcl
+
+   % load ./tcllammps.so
+   % set lmp [lammps_open_no_mpi 0 NULL NULL]
+   % lammps_command $lmp "units real"
+   % lammps_command $lmp "lattice fcc 2.5"
+   % lammps_command $lmp "region box block -5 5 -5 5 -5 5"
+   % lammps_command $lmp "create_box 1 box"
+   % lammps_command $lmp "create_atoms 1 box"
+   %
+   % set dt [doublep_value [voidp_to_doublep [lammps_extract_global $lmp dt]]]
+   % puts "LAMMPS version $ver"
+   % puts [format "Number of created atoms: %g" [lammps_get_natoms $lmp]]
+   % puts "Current size of timestep: $dt"
+   % puts "LAMMPS version: [lammps_version $lmp]"
+   % lammps_close $lmp
 
 ----------
 

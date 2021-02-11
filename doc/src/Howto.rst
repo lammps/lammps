@@ -9,18 +9,6 @@ example input scripts included in the examples directory of the LAMMPS
 distribution and highlighted on the :doc:`Examples <Examples>` doc page
 also show how to setup and run various kinds of simulations.
 
-Tutorials howto
-===============
-
-.. toctree::
-   :name: tutorials
-   :maxdepth: 1
-
-   Howto_cmake
-   Howto_github
-   Howto_pylammps
-   Howto_wsl
-
 General howto
 =============
 
@@ -94,3 +82,16 @@ Packages howto
    Howto_drude2
    Howto_manifold
    Howto_spins
+
+Tutorials howto
+===============
+
+.. toctree::
+   :name: tutorials
+   :maxdepth: 1
+
+   Howto_cmake
+   Howto_github
+   Howto_pylammps
+   Howto_wsl
+

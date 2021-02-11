@@ -17,7 +17,7 @@ Building LAMMPS with QUIP support:
 1) Building QUIP
 1.1) Obtaining QUIP
 
-The most current release of QUIP can be obtained from github:
+The most current release of QUIP can be obtained from GitHub:
 
 $ git clone https://github.com/libAtoms/QUIP.git QUIP
 

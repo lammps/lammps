@@ -2,6 +2,7 @@ set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
 set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                 ${GPU_SOURCES_DIR}/fix_gpu.h
                 ${GPU_SOURCES_DIR}/fix_gpu.cpp)
+target_compile_definitions(lammps PRIVATE -DLMP_GPU)
 
 set(GPU_API "opencl" CACHE STRING "API used by GPU package")
 set(GPU_API_VALUES opencl cuda hip)
@@ -35,6 +36,9 @@ if(GPU_API STREQUAL "CUDA")
   option(CUDPP_OPT "Enable CUDPP_OPT" ON)
   option(CUDA_MPS_SUPPORT "Enable tweaks to support CUDA Multi-process service (MPS)" OFF)
   if(CUDA_MPS_SUPPORT)
+    if(CUDPP_OPT)
+      message(FATAL_ERROR "Must use -DCUDPP_OPT=OFF with -DGPU_CUDA_MPS_SUPPORT=ON")
+    endif()
     set(GPU_CUDA_MPS_FLAGS "-DCUDA_PROXY")
   endif()
 
@@ -93,9 +97,9 @@ if(GPU_API STREQUAL "CUDA")
   if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
     string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
   endif()
-  # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
+  # Ampere (GPU Arch 8.0 and 8.6) is supported by CUDA 11 and later
   if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
+    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86]")
   endif()
   if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
     message(WARNING "Unsupported CUDA version. Use at your own risk.")
@@ -309,7 +313,7 @@ elseif(GPU_API STREQUAL "HIP")
     endif()
 
     add_custom_command(OUTPUT ${CUBIN_H_FILE}
-      COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILES=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
+      COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
       DEPENDS ${CUBIN_FILE}
       COMMENT "Generating ${CU_NAME}_cubin.h")
 

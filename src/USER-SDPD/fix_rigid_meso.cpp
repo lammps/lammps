@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,9 +40,11 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixRigidMeso::FixRigidMeso (LAMMPS *lmp, int narg, char **arg) :
-FixRigid (lmp, narg, arg) {
+  FixRigid (lmp, narg, arg)
+{
   scalar_flag = 0;
   size_array_cols = 28;
+
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
     error->all (FLERR, "fix rigid/meso command requires atom_style with"
                 " both energy and density");
@@ -160,8 +162,7 @@ void FixRigidMeso::initial_integrate (int vflag) {
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from quarternion and omega

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,10 +32,8 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg-6,&arg[6]);
 
-  if (strstr(arg[2],"v_") == arg[2]) {
-    int n = strlen(arg[2]+2) + 1;
-    xstr = new char[n];
-    strcpy(xstr,arg[2]+2);
+  if (utils::strmatch(arg[2],"^v_")) {
+    xstr = utils::strdup(arg[2]+2);
     xc = 0.0;
     xstyle = VARIABLE;
     varshape = 1;
@@ -44,10 +42,8 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     xstyle = CONSTANT;
   }
 
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(arg[3]+2) + 1;
-    ystr = new char[n];
-    strcpy(ystr,arg[3]+2);
+  if (utils::strmatch(arg[3],"^v_")) {
+    ystr = utils::strdup(arg[3]+2);
     yc = 0.0;
     ystyle = VARIABLE;
     varshape = 1;
@@ -56,10 +52,8 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     ystyle = CONSTANT;
   }
 
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(arg[4]+2) + 1;
-    zstr = new char[n];
-    strcpy(zstr,arg[4]+2);
+  if (utils::strmatch(arg[4],"^v_")) {
+    zstr = utils::strdup(arg[4]+2);
     zc = 0.0;
     zstyle = VARIABLE;
     varshape = 1;
@@ -68,10 +62,8 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
     zstyle = CONSTANT;
   }
 
-  if (strstr(arg[5],"v_") == arg[5]) {
-    int n = strlen(&arg[5][2]) + 1;
-    rstr = new char[n];
-    strcpy(rstr,&arg[5][2]);
+  if (utils::strmatch(arg[5],"^v_")) {
+    rstr = utils::strdup(arg[5]+2);
     radius = 0.0;
     rstyle = VARIABLE;
     varshape = 1;

@@ -160,7 +160,7 @@ For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for this pair style can be mixed.  The default mix
 value is *geometric*\ .  See the "pair_modify" command for details.
 
-This pair styles supports the :doc:`pair_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Lennard-Jones portion of the pair
 interaction, but only for sphere-sphere interactions.  There is no
 shifting performed for ellipsoidal interactions due to the anisotropic

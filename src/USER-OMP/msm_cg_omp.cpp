@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -166,7 +166,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
 
   current_level = 0;
   gcall->reverse_comm_kspace(this,1,sizeof(double),REVERSE_RHO,
-			     gcall_buf1,gcall_buf2,MPI_DOUBLE);
+                             gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // forward communicate charge density values to fill ghost grid points
   // compute direct sum interaction and then restrict to coarser grid
@@ -175,7 +175,7 @@ void MSMCGOMP::compute(int eflag, int vflag)
     if (!active_flag[n]) continue;
     current_level = n;
     gc[n]->forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
-			       gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+                               gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
     direct(n);
     restriction(n);
   }
@@ -187,16 +187,16 @@ void MSMCGOMP::compute(int eflag, int vflag)
     if (domain->nonperiodic) {
       current_level = levels-1;
       gc[levels-1]->
-	forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
-			    gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
+                            gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       direct_top(levels-1);
       gc[levels-1]->
-	reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
-			    gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
+                            gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
       if (vflag_atom)
-	gc[levels-1]->
-	  reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-			      gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        gc[levels-1]->
+          reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
+                              gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
 
     } else {
       // Here using MPI_Allreduce is cheaper than using commgrid
@@ -205,9 +205,9 @@ void MSMCGOMP::compute(int eflag, int vflag)
       grid_swap_reverse(levels-1,egrid[levels-1]);
       current_level = levels-1;
       if (vflag_atom)
-	gc[levels-1]->
-	  reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-			      gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
+        gc[levels-1]->
+          reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
+                              gc_buf1[levels-1],gc_buf2[levels-1],MPI_DOUBLE);
     }
   }
 
@@ -220,13 +220,13 @@ void MSMCGOMP::compute(int eflag, int vflag)
 
     current_level = n;
     gc[n]->reverse_comm_kspace(this,1,sizeof(double),REVERSE_AD,
-			       gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+                               gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
 
     // extra per-atom virial communication
 
     if (vflag_atom)
       gc[n]->reverse_comm_kspace(this,6,sizeof(double),REVERSE_AD_PERATOM,
-				 gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
+                                 gc_buf1[n],gc_buf2[n],MPI_DOUBLE);
   }
 
   // all procs communicate E-field values
@@ -234,13 +234,13 @@ void MSMCGOMP::compute(int eflag, int vflag)
 
   current_level = 0;
   gcall->forward_comm_kspace(this,1,sizeof(double),FORWARD_AD,
-			     gcall_buf1,gcall_buf2,MPI_DOUBLE);
+                             gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // extra per-atom energy/virial communication
 
   if (vflag_atom)
     gcall->forward_comm_kspace(this,6,sizeof(double),FORWARD_AD_PERATOM,
-			       gcall_buf1,gcall_buf2,MPI_DOUBLE);
+                               gcall_buf1,gcall_buf2,MPI_DOUBLE);
 
   // calculate the force on my particles (interpolation)
 
@@ -564,6 +564,6 @@ void MSMCGOMP::fieldforce_peratom()
 double MSMCGOMP::memory_usage()
 {
   double bytes = MSM::memory_usage();
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }

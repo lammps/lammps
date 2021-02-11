@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,28 +13,20 @@
 
 #include "compute_reduce_region.h"
 
+#include "arg_info.h"
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "group.h"
-#include "region.h"
-#include "fix.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "fix.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
 
 using namespace LAMMPS_NS;
-
-enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ComputeReduce
-enum{UNKNOWN=-1,X,V,F,COMPUTE,FIX,VARIABLE};
-enum{PERATOM,LOCAL};
-
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 
@@ -72,7 +64,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   // initialization in case it has not yet been run,
   // e.g. when invoked
-  if (n == UNKNOWN) {
+  if (n == ArgInfo::UNKNOWN) {
     init();
     n = value2index[m];
   }
@@ -83,20 +75,20 @@ double ComputeReduceRegion::compute_one(int m, int flag)
   if (mode == MINN) one = BIG;
   if (mode == MAXX) one = -BIG;
 
-  if (which[m] == X) {
+  if (which[m] == ArgInfo::X) {
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
           combine(one,x[i][j],i);
     } else one = x[flag][j];
-  } else if (which[m] == V) {
+  } else if (which[m] == ArgInfo::V) {
     double **v = atom->v;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
           combine(one,v[i][j],i);
     } else one = v[flag][j];
-  } else if (which[m] == F) {
+  } else if (which[m] == ArgInfo::F) {
     double **f = atom->f;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
@@ -106,13 +98,13 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   // invoke compute if not previously invoked
 
-  } else if (which[m] == COMPUTE) {
+  } else if (which[m] == ArgInfo::COMPUTE) {
     Compute *compute = modify->compute[n];
 
     if (flavor[m] == PERATOM) {
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
 
       if (j == 0) {
@@ -135,9 +127,9 @@ double ComputeReduceRegion::compute_one(int m, int flag)
       }
 
     } else if (flavor[m] == LOCAL) {
-      if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
         compute->compute_local();
-        compute->invoked_flag |= INVOKED_LOCAL;
+        compute->invoked_flag |= Compute::INVOKED_LOCAL;
       }
 
       if (j == 0) {
@@ -160,7 +152,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   // check if fix frequency is a match
 
-  } else if (which[m] == FIX) {
+  } else if (which[m] == ArgInfo::FIX) {
     if (update->ntimestep % modify->fix[n]->peratom_freq)
       error->all(FLERR,"Fix used in compute reduce not computed at "
                  "compatible time");
@@ -206,7 +198,7 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
   // evaluate atom-style variable
 
-  } else if (which[m] == VARIABLE) {
+  } else if (which[m] == ArgInfo::VARIABLE) {
     if (atom->nmax > maxatom) {
       maxatom = atom->nmax;
       memory->destroy(varatom);
@@ -230,9 +222,9 @@ bigint ComputeReduceRegion::count(int m)
 {
   int n = value2index[m];
 
-  if (which[m] == X || which[m] == V || which[m] == F)
+  if (which[m] == ArgInfo::X || which[m] == ArgInfo::V || which[m] == ArgInfo::F)
     return group->count(igroup,iregion);
-  else if (which[m] == COMPUTE) {
+  else if (which[m] == ArgInfo::COMPUTE) {
     Compute *compute = modify->compute[n];
     if (flavor[m] == PERATOM) {
       return group->count(igroup,iregion);
@@ -242,7 +234,7 @@ bigint ComputeReduceRegion::count(int m)
       MPI_Allreduce(&ncount,&ncountall,1,MPI_DOUBLE,MPI_SUM,world);
       return ncountall;
     }
-  } else if (which[m] == FIX) {
+  } else if (which[m] == ArgInfo::FIX) {
     Fix *fix = modify->fix[n];
     if (flavor[m] == PERATOM) {
       return group->count(igroup,iregion);
@@ -252,7 +244,7 @@ bigint ComputeReduceRegion::count(int m)
       MPI_Allreduce(&ncount,&ncountall,1,MPI_DOUBLE,MPI_SUM,world);
       return ncountall;
     }
-  } else if (which[m] == VARIABLE)
+  } else if (which[m] == ArgInfo::VARIABLE)
     return group->count(igroup,iregion);
 
   bigint dummy = 0;

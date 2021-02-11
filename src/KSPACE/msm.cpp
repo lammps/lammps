@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -640,6 +640,7 @@ void MSM::allocate()
     // create commgrid object for rho and electric field communication
 
     if (active_flag[n]) {
+      delete gc[n];
       int **procneigh = procneigh_levels[n];
       gc[n] = new GridComm(lmp,world_levels[n],2,nx_msm[n],ny_msm[n],nz_msm[n],
                            nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
@@ -653,8 +654,10 @@ void MSM::allocate()
       npergrid = 1;
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
-
     } else {
+      delete gc[n];
+      memory->destroy(gc_buf1[n]);
+      memory->destroy(gc_buf2[n]);
       gc[n] = nullptr;
       gc_buf1[n] = gc_buf2[n] = nullptr;
     }
@@ -675,28 +678,6 @@ void MSM::deallocate()
   memory->destroy(gcall_buf2);
   gcall = nullptr;
   gcall_buf1 = gcall_buf2 = nullptr;
-
-  for (int n=0; n<levels; n++) {
-    if (qgrid[n])
-      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-    if (egrid[n])
-      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-    if (world_levels)
-      if (world_levels[n] != MPI_COMM_NULL)
-          MPI_Comm_free(&world_levels[n]);
-
-    if (gc) {
-      if (gc[n]) {
-        delete gc[n];
-        memory->destroy(gc_buf1[n]);
-        memory->destroy(gc_buf2[n]);
-        gc[n] = nullptr;
-        gc_buf1[n] = gc_buf2[n] = nullptr;
-      }
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -826,6 +807,10 @@ void MSM::allocate_levels()
 
   for (int n=0; n<levels; n++) {
     gc[n] = nullptr;
+
+    gc_buf1[n] = nullptr;
+    gc_buf2[n] = nullptr;
+
     world_levels[n] = MPI_COMM_NULL;
 
     qgrid[n] = nullptr;
@@ -846,6 +831,30 @@ void MSM::allocate_levels()
 
 void MSM::deallocate_levels()
 {
+  if (world_levels) {
+    for (int n=0; n < levels; ++n) {
+      if (qgrid[n])
+        memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+
+      if (egrid[n])
+        memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+
+      if (gc) {
+        if (gc[n]) {
+          delete gc[n];
+          memory->destroy(gc_buf1[n]);
+          memory->destroy(gc_buf2[n]);
+          gc[n] = nullptr;
+          gc_buf1[n] = gc_buf2[n] = nullptr;
+        }
+      }
+
+      if (world_levels[n] != MPI_COMM_NULL) {
+        MPI_Comm_free(&world_levels[n]);
+      }
+    }
+  }
+
   delete [] ngrid;
   ngrid = nullptr;
 
@@ -3433,11 +3442,11 @@ double MSM::memory_usage()
 
   // all GridComm bufs
 
-  bytes += (ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
+  bytes += (double)(ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
 
   for (int n=0; n<levels; n++)
     if (active_flag[n])
-      bytes += (ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
+      bytes += (double)(ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
 
   return bytes;
 }

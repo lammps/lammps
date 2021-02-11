@@ -105,10 +105,10 @@ class DumpCustom : public Dump {
   double memory_usage();
 
   int parse_fields(int, char **);
-  int add_compute(char *);
-  int add_fix(char *);
-  int add_variable(char *);
-  int add_custom(char *, int);
+  int add_compute(const char *);
+  int add_fix(const char *);
+  int add_variable(const char *);
+  int add_custom(const char *, int);
   virtual int modify_param(int, char **);
 
   void header_format_binary();

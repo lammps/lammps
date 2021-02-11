@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,23 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
-#include "fmt/format.h"
-#include "utils.h"
 #include "../testing/core.h"
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
+#include "fmt/format.h"
+#include "utils.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
-char * GZIP_BINARY = nullptr;
+char *GZIP_BINARY = nullptr;
 
 using ::testing::Eq;
 
 class DumpCfgGZTest : public MeltTest {
     std::string dump_style = "cfg";
+
 public:
-    void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file, std::string compression_style,
-                                           std::string fields, std::string dump_modify_options, int ntimesteps) {
+    void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file,
+                                           std::string compression_style, std::string fields,
+                                           std::string dump_modify_options, int ntimesteps)
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         command(fmt::format("dump id0 all {} 1 {} {}", dump_style, text_file, fields));
         command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_file, fields));
@@ -41,10 +44,12 @@ public:
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-    std::string convert_compressed_to_text(std::string compressed_file) {
+    std::string convert_compressed_to_text(std::string compressed_file)
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         std::string converted_file = compressed_file.substr(0, compressed_file.find_last_of('.'));
-        std::string cmdline = fmt::format("{} -d -c {} > {}", GZIP_BINARY, compressed_file, converted_file);
+        std::string cmdline =
+            fmt::format("{} -d -c {} > {}", GZIP_BINARY, compressed_file, converted_file);
         system(cmdline.c_str());
         if (!verbose) ::testing::internal::GetCapturedStdout();
         return converted_file;
@@ -53,13 +58,13 @@ public:
 
 TEST_F(DumpCfgGZTest, compressed_run0)
 {
-    if(!GZIP_BINARY) GTEST_SKIP();
+    if (!GZIP_BINARY) GTEST_SKIP();
 
-    auto text_files = "dump_cfg_gz_text_run*.melt.cfg";
+    auto text_files       = "dump_cfg_gz_text_run*.melt.cfg";
     auto compressed_files = "dump_cfg_gz_compressed_run*.melt.cfg.gz";
-    auto text_file = "dump_cfg_gz_text_run0.melt.cfg";
-    auto compressed_file = "dump_cfg_gz_compressed_run0.melt.cfg.gz";
-    auto fields = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
+    auto text_file        = "dump_cfg_gz_text_run0.melt.cfg";
+    auto compressed_file  = "dump_cfg_gz_compressed_run0.melt.cfg.gz";
+    auto fields           = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     generate_text_and_compressed_dump(text_files, compressed_files, "cfg/gz", fields, "", 0);
 
@@ -77,16 +82,15 @@ TEST_F(DumpCfgGZTest, compressed_run0)
     delete_file(converted_file);
 }
 
-
 TEST_F(DumpCfgGZTest, compressed_unwrap_run0)
 {
-    if(!GZIP_BINARY) GTEST_SKIP();
+    if (!GZIP_BINARY) GTEST_SKIP();
 
-    auto text_files = "dump_cfg_unwrap_gz_text_run*.melt.cfg";
+    auto text_files       = "dump_cfg_unwrap_gz_text_run*.melt.cfg";
     auto compressed_files = "dump_cfg_unwrap_gz_compressed_run*.melt.cfg.gz";
-    auto text_file = "dump_cfg_unwrap_gz_text_run0.melt.cfg";
-    auto compressed_file = "dump_cfg_unwrap_gz_compressed_run0.melt.cfg.gz";
-    auto fields = "mass type xsu ysu zsu id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
+    auto text_file        = "dump_cfg_unwrap_gz_text_run0.melt.cfg";
+    auto compressed_file  = "dump_cfg_unwrap_gz_compressed_run0.melt.cfg.gz";
+    auto fields           = "mass type xsu ysu zsu id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     generate_text_and_compressed_dump(text_files, compressed_files, "cfg/gz", fields, "", 0);
 

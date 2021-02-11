@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -220,8 +220,8 @@ double PairDPDOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairDPD::memory_usage();
-  bytes += comm->nthreads * sizeof(RanMars*);
-  bytes += comm->nthreads * sizeof(RanMars);
+  bytes += (double)comm->nthreads * sizeof(RanMars*);
+  bytes += (double)comm->nthreads * sizeof(RanMars);
 
   return bytes;
 }

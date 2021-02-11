@@ -58,6 +58,7 @@
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
 #include <impl/Kokkos_Tags.hpp>
+#include <impl/Kokkos_ExecSpaceInitializer.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -181,6 +182,20 @@ struct DeviceTypeTraits<Threads> {
 };
 }  // namespace Experimental
 }  // namespace Tools
+
+namespace Impl {
+
+class ThreadsSpaceInitializer : public ExecSpaceInitializerBase {
+ public:
+  ThreadsSpaceInitializer()  = default;
+  ~ThreadsSpaceInitializer() = default;
+  void initialize(const InitArguments& args) final;
+  void finalize(const bool) final;
+  void fence() final;
+  void print_configuration(std::ostream& msg, const bool detail) final;
+};
+
+}  // namespace Impl
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -191,15 +206,15 @@ namespace Impl {
 template <>
 struct MemorySpaceAccess<Kokkos::Threads::memory_space,
                          Kokkos::Threads::scratch_memory_space> {
-  enum { assignable = false };
-  enum { accessible = true };
-  enum { deepcopy = false };
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = false };
 };
 
 template <>
 struct VerifyExecutionCanAccessMemorySpace<
     Kokkos::Threads::memory_space, Kokkos::Threads::scratch_memory_space> {
-  enum { value = true };
+  enum : bool { value = true };
   inline static void verify(void) {}
   inline static void verify(const void*) {}
 };

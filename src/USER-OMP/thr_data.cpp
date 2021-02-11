@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -278,8 +278,8 @@ void ThrData::virial_fdotr_compute(double **x, int nlocal, int nghost, int nfirs
 double ThrData::memory_usage()
 {
   double bytes = (7 + 6*6) * sizeof(double);
-  bytes += 2 * sizeof(double*);
-  bytes += 4 * sizeof(int);
+  bytes += (double)2 * sizeof(double*);
+  bytes += (double)4 * sizeof(int);
 
   return bytes;
 }

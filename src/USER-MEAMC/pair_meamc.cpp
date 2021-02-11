@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,6 @@
 
 #include "pair_meamc.h"
 
-
 #include <cstring>
 
 #include "meam.h"
@@ -29,8 +28,6 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-
-
 
 using namespace LAMMPS_NS;
 
@@ -52,6 +49,7 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   allocated = 0;
 
@@ -805,8 +803,8 @@ void PairMEAMC::unpack_reverse_comm(int n, int *list, double *buf)
 double PairMEAMC::memory_usage()
 {
   double bytes = 11 * meam_inst->nmax * sizeof(double);
-  bytes += (3 + 6 + 10 + 3 + 3 + 3) * meam_inst->nmax * sizeof(double);
-  bytes += 3 * meam_inst->maxneigh * sizeof(double);
+  bytes += (double)(3 + 6 + 10 + 3 + 3 + 3) * meam_inst->nmax * sizeof(double);
+  bytes += (double)3 * meam_inst->maxneigh * sizeof(double);
   return bytes;
 }
 

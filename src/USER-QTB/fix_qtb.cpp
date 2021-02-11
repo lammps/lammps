@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,8 +33,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -48,9 +46,6 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all(FLERR,"Illegal fix qtb command");
 
   // default parameters
-  global_freq = 1;
-  extscalar = 1;
-  nevery = 1;
 
   t_target = 300.0;
   t_period = 1.0;
@@ -147,7 +142,6 @@ int FixQTB::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -201,7 +195,7 @@ void FixQTB::init()
   // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
   for (int k = 0; k < 2*N_f; k++) {
     double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
-    if(k == N_f) {
+    if (k == N_f) {
       omega_H[k]=sqrt(force->boltz * t_target);
     } else {
       double energy_k= force->hplanck * fabs(f_k);
@@ -375,10 +369,10 @@ double FixQTB::memory_usage()
 {
   double bytes = 0.0;
   // random_arrays memory usage
-  bytes += (atom->nmax* 6*N_f * sizeof(double));
+  bytes += (double)(atom->nmax* 6*N_f * sizeof(double));
   // fran memory usage
-  bytes += (atom->nmax* 3 * sizeof(double));
-  bytes += (4*N_f * sizeof(double));
+  bytes += (double)(atom->nmax* 3 * sizeof(double));
+  bytes += (double)(4*N_f * sizeof(double));
   return bytes;
 }
 

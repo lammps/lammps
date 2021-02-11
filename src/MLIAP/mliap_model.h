@@ -33,8 +33,10 @@ public:
   virtual double memory_usage()=0;
   int nelements;                 // # of unique elements
   int nonlinearflag;             // 1 if gradient() requires descriptors
+  int nnflag;                    // 1 if model is nn
   int ndescriptors;              // number of descriptors
   int nparams;                   // number of parameters per element
+  int nlayers;                   // number of layers per element
 
 protected:
   virtual void read_coeffs(char *)=0;
@@ -47,9 +49,11 @@ public:
   virtual double memory_usage();
 
 protected:
+  int *activation;               // activation functions
+  int *nnodes;                   // number of nodes per layer
+  double ***scale;               // element scale values
   double **coeffelem;            // element coefficients
   virtual void read_coeffs(char *);
-
 };
 
 }

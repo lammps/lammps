@@ -44,6 +44,7 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
   ndescriptors = descriptor->ndescriptors;
   nelements = descriptor->nelements;
   nparams = model->get_nparams();
+  nlayers = model->nlayers;
 
   gamma_nnz = model->get_gamma_nnz(this);
   ndims_force = 3;

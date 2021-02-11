@@ -347,7 +347,7 @@ void FixChargeRegulation::forward_acid() {
 
   double energy_before = energy_stored;
   double factor;
-  double *dummyp;
+  double *dummyp = nullptr;
   double pos[3];
   pos[0] = 0;
   pos[1] = 0;
@@ -406,13 +406,13 @@ void FixChargeRegulation::backward_acid() {
   double energy_before = energy_stored;
   double factor;
   int mask_tmp;
-  double *dummyp;
+  double *dummyp = nullptr;
   double pos[3];
   pos[0] = 0;
   pos[1] = 0;
   pos[2] = 0; // acid/base particle position
   double pos_all[3];
-  int m1 = -1, m1_all = -1, m2 = -1, m2_all = -1;
+  int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(acid_type, -1, 0, dummyp);
   if (npart_xrd != nacid_charged) error->all(FLERR, "Fix charge regulation acid count inconsistent");
@@ -478,13 +478,13 @@ void FixChargeRegulation::forward_base() {
 
   double energy_before = energy_stored;
   double factor;
-  double *dummyp;
+  double *dummyp = nullptr;
   double pos[3];
   pos[0] = 0;
   pos[1] = 0;
   pos[2] = 0; // acid/base particle position
   double pos_all[3];
-  int m1 = -1, m1_all = -1, m2 = -1, m2_all = -1;
+  int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(base_type, 0, 0, dummyp);
   if (npart_xrd != nbase_neutral) error->all(FLERR, "Fix charge regulation acid count inconsistent");
@@ -535,14 +535,14 @@ void FixChargeRegulation::backward_base() {
 
   double energy_before = energy_stored;
   double factor;
-  double *dummyp;
+  double *dummyp = nullptr;
   int mask_tmp;
   double pos[3];
   pos[0] = 0;
   pos[1] = 0;
   pos[2] = 0; // acid/base particle position
   double pos_all[3];
-  int m1 = -1, m1_all = -1, m2 = -1, m2_all = -1;
+  int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(base_type, 1, 0, dummyp);
   if (npart_xrd != nbase_charged) error->all(FLERR, "Fix charge regulation acid count inconsistent");
@@ -607,7 +607,7 @@ void FixChargeRegulation::forward_ions() {
 
   double energy_before = energy_stored;
   double factor;
-  double *dummyp;
+  double *dummyp = nullptr;
   int m1 = -1, m2 = -1;
   factor = volume_rx * volume_rx * c10pI_plus * c10pI_minus /
            ((1 + ncation) * (1 + nanion));
@@ -642,7 +642,7 @@ void FixChargeRegulation::backward_ions() {
   double energy_before = energy_stored;
   double factor;
   int mask1_tmp, mask2_tmp;
-  double *dummyp;  // dummy pointer
+  double *dummyp = nullptr;
   int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(cation_type, +1, 0, dummyp);
@@ -1014,7 +1014,6 @@ int FixChargeRegulation::get_random_particle(int ptype, double charge, double rd
 }
 
 double FixChargeRegulation::energy_full() {
-  int imolecule;
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   comm->exchange();
@@ -1030,7 +1029,6 @@ double FixChargeRegulation::energy_full() {
     int overlaptest = 0;
     double delx, dely, delz, rsq;
     double **x = atom->x;
-    tagint *molecule = atom->molecule;
     int nall = atom->nlocal + atom->nghost;
     for (int i = 0; i < atom->nlocal; i++) {
       for (int j = i + 1; j < nall; j++) {
@@ -1115,7 +1113,6 @@ int FixChargeRegulation::particle_number(int ptype, double charge) {
 }
 
 double FixChargeRegulation::compute_vector(int n) {
-  double count_temp = 0;
   if (n == 0) {
     return nacid_attempts + nbase_attempts + nsalt_attempts;
   } else if (n == 1) {

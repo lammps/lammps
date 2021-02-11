@@ -61,10 +61,10 @@ using namespace MathSpecial;
 
 FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  ngroups(0), groupstrings(NULL),
-  random_equal(NULL), random_unequal(NULL),
-  idftemp(NULL), ptype_ID(NULL)
-  {
+  ngroups(0), groupstrings(nullptr), ptype_ID(nullptr),
+  random_equal(nullptr), random_unequal(nullptr),
+  idftemp(nullptr)
+{
 
   // Region restrictions not yet implemented ..
 
@@ -1221,7 +1221,7 @@ void FixChargeRegulation::options(int narg, char **arg) {
   exclusion_group_bit = 0;
   ngroups = 0;
   int ngroupsmax = 0;
-  groupstrings = NULL;
+  groupstrings = nullptr;
 
   int iarg = 0;
   while (iarg < narg) {

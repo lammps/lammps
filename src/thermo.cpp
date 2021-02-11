@@ -55,13 +55,14 @@ using namespace MathConst;
 
 // step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain,
 // part, timeremain
-// atoms, temp, press, pe, ke, etotal, enthalpy
+// atoms, temp, press, pe, ke, etotal
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
-// vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
+// enthalpy, ecouple, econserve
+// vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz
 // xlat, ylat, zlat
-// bonds, angles, dihedrals, impropers,
+// bonds, angles, dihedrals, impropers
 // pxx, pyy, pzz, pxy, pxz, pyz
-// fmax, fnorm, nbuild, ndanger,
+// fmax, fnorm, nbuild, ndanger
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
 
 // customize a new thermo style by adding a DEFINE to this list
@@ -752,11 +753,6 @@ void Thermo::parse_fields(char *str)
       addfield("TotEng",&Thermo::compute_etotal,FLOAT);
       index_temp = add_compute(id_temp,SCALAR);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (word == "enthalpy") {
-      addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
-      index_temp = add_compute(id_temp,SCALAR);
-      index_press_scalar = add_compute(id_press,SCALAR);
-      index_pe = add_compute(id_pe,SCALAR);
 
     } else if (word == "evdwl") {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
@@ -787,6 +783,19 @@ void Thermo::parse_fields(char *str)
       index_pe = add_compute(id_pe,SCALAR);
     } else if (word == "etail") {
       addfield("E_tail",&Thermo::compute_etail,FLOAT);
+      index_pe = add_compute(id_pe,SCALAR);
+
+    } else if (word == "enthalpy") {
+      addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
+      index_temp = add_compute(id_temp,SCALAR);
+      index_press_scalar = add_compute(id_press,SCALAR);
+      index_pe = add_compute(id_pe,SCALAR);
+    } else if (word == "ecouple") {
+      addfield("Ecouple",&Thermo::compute_ecouple,FLOAT);
+      index_pe = add_compute(id_pe,SCALAR);
+    } else if (word == "econserve") {
+      addfield("Econserve",&Thermo::compute_econserve,FLOAT);
+      index_temp = add_compute(id_temp,SCALAR);
       index_pe = add_compute(id_pe,SCALAR);
 
     } else if (word == "vol") {
@@ -1219,42 +1228,6 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     }
     compute_etotal();
 
-  } else if (strcmp(word,"enthalpy") == 0) {
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    if (update->whichflag == 0) {
-      if (pe->invoked_scalar != update->ntimestep)
-        error->all(FLERR,"Compute used in variable thermo keyword between runs "
-                   "is not current");
-    } else {
-      pe->compute_scalar();
-      pe->invoked_flag |= Compute::INVOKED_SCALAR;
-    }
-    if (!temperature)
-      error->all(FLERR,"Thermo keyword in variable requires "
-                 "thermo to use/init temp");
-    if (update->whichflag == 0) {
-      if (temperature->invoked_scalar != update->ntimestep)
-        error->all(FLERR,"Compute used in variable thermo keyword between runs "
-                   "is not current");
-    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
-      temperature->compute_scalar();
-      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
-    }
-    if (!pressure)
-      error->all(FLERR,"Thermo keyword in variable requires "
-                 "thermo to use/init press");
-    if (update->whichflag == 0) {
-      if (pressure->invoked_scalar != update->ntimestep)
-        error->all(FLERR,"Compute used in variable thermo keyword between runs "
-                   "is not current");
-    } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
-      pressure->compute_scalar();
-      pressure->invoked_flag |= Compute::INVOKED_SCALAR;
-    }
-    compute_enthalpy();
-
   } else if (strcmp(word,"evdwl") == 0) {
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
@@ -1340,6 +1313,69 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
     if (update->eflag_global != update->ntimestep)
       error->all(FLERR,"Energy was not tallied on needed timestep");
     compute_etail();
+
+  } else if (strcmp(word,"enthalpy") == 0) {
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    if (update->whichflag == 0) {
+      if (pe->invoked_scalar != update->ntimestep)
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
+    } else {
+      pe->compute_scalar();
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    }
+    if (!temperature)
+      error->all(FLERR,"Thermo keyword in variable requires "
+                 "thermo to use/init temp");
+    if (update->whichflag == 0) {
+      if (temperature->invoked_scalar != update->ntimestep)
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
+      temperature->compute_scalar();
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
+    }
+    if (!pressure)
+      error->all(FLERR,"Thermo keyword in variable requires "
+                 "thermo to use/init press");
+    if (update->whichflag == 0) {
+      if (pressure->invoked_scalar != update->ntimestep)
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
+      pressure->compute_scalar();
+      pressure->invoked_flag |= Compute::INVOKED_SCALAR;
+    }
+    compute_enthalpy();
+
+  } else if (strcmp(word,"ecouple") == 0) compute_ecouple();
+
+  else if (strcmp(word,"econserve") == 0) {
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    if (update->whichflag == 0) {
+      if (pe->invoked_scalar != update->ntimestep)
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
+    } else {
+      pe->compute_scalar();
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    }
+    if (!temperature)
+      error->all(FLERR,"Thermo keyword in variable requires "
+                 "thermo to use/init temp");
+    if (update->whichflag == 0) {
+      if (temperature->invoked_scalar != update->ntimestep)
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
+      temperature->compute_scalar();
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
+    }
+    compute_econserve();
 
   } else if (strcmp(word,"vol") == 0) compute_vol();
   else if (strcmp(word,"density") == 0) compute_density();
@@ -1706,27 +1742,26 @@ void Thermo::compute_ke()
 void Thermo::compute_etotal()
 {
   compute_pe();
-  double ke = temperature->scalar;
-  ke *= 0.5 * temperature->dof * force->boltz;
-  if (normflag) ke /= natoms;
-  dvalue += ke;
+  double dvalue_pe = dvalue;
+  compute_ke();
+  dvalue += dvalue_pe;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_enthalpy()
+void Thermo::compute_ecouple()
+{
+  dvalue = modify->energy_couple();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_econserve()
 {
   compute_etotal();
-  double etmp = dvalue;
-
-  compute_vol();
-  double vtmp = dvalue;
-  if (normflag) vtmp /= natoms;
-
-  compute_press();
-  double ptmp = dvalue;
-
-  dvalue = etmp + ptmp*vtmp/(force->nktv2p);
+  double dvalue_etotal = dvalue;
+  compute_ecouple();
+  dvalue += dvalue_etotal;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1851,6 +1886,24 @@ void Thermo::compute_etail()
     if (normflag) dvalue /= natoms;
   } else dvalue = 0.0;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_enthalpy()
+{
+  compute_etotal();
+  double etmp = dvalue;
+
+  compute_vol();
+  double vtmp = dvalue;
+  if (normflag) vtmp /= natoms;
+
+  compute_press();
+  double ptmp = dvalue;
+
+  dvalue = etmp + ptmp*vtmp/(force->nktv2p);
+}
+
 
 /* ---------------------------------------------------------------------- */
 

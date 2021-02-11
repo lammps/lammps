@@ -765,11 +765,11 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double FixLangevinKokkos<DeviceType>::compute_energy_item(int i) const
 {
-  double energy;
+  double my_energy = 0.0;
   if (mask[i] & groupbit)
-    energy = d_flangevin(i,0)*v(i,0) + d_flangevin(i,1)*v(i,1) +
+    my_energy = d_flangevin(i,0)*v(i,0) + d_flangevin(i,1)*v(i,1) +
       d_flangevin(i,2)*v(i,2);
-  return energy;
+  return my_energy;
 }
 
 /* ----------------------------------------------------------------------

@@ -230,7 +230,7 @@ conservation.
 
 .. note::
 
-   this accumulated energy does NOT include kinetic energy removed
+   This accumulated energy does NOT include kinetic energy removed
    by the *zero* flag. LAMMPS will print a warning when both options are
    active.
 
@@ -244,7 +244,8 @@ to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
-The keyword *gjf* can be used to run the :ref:`Gronbech-Jensen/Farago <Gronbech-Jensen>` time-discretization of the Langevin model.  As
+The keyword *gjf* can be used to run the :ref:`Gronbech-Jensen/Farago
+<Gronbech-Jensen>` time-discretization of the Langevin model.  As
 described in the papers cited below, the purpose of this method is to
 enable longer timesteps to be used (up to the numerical stability
 limit of the integrator), while still producing the correct Boltzmann
@@ -252,19 +253,20 @@ distribution of atom positions.
 
 The current implementation provides the user with the option to output
 the velocity in one of two forms: *vfull* or *vhalf*\ , which replaces
-the outdated option *yes*\ . The *gjf* option *vfull* outputs the on-site
-velocity given in :ref:`Gronbech-Jensen/Farago <Gronbech-Jensen>`; this velocity
-is shown to be systematically lower than the target temperature by a small
-amount, which grows quadratically with the timestep.
-The *gjf* option *vhalf* outputs the 2GJ half-step velocity given in
-:ref:`Gronbech Jensen/Gronbech-Jensen <2Gronbech-Jensen>`; for linear systems,
-this velocity is shown to not have any statistical errors for any stable time step.
-An overview of statistically correct Boltzmann and Maxwell-Boltzmann
-sampling of true on-site and true half-step velocities is given in
-:ref:`Gronbech-Jensen <1Gronbech-Jensen>`.
-Regardless of the choice of output velocity, the sampling of the configurational
-distribution of atom positions is the same, and linearly consistent with the
-target temperature.
+the outdated option *yes*\ . The *gjf* option *vfull* outputs the
+on-site velocity given in :ref:`Gronbech-Jensen/Farago
+<Gronbech-Jensen>`; this velocity is shown to be systematically lower
+than the target temperature by a small amount, which grows
+quadratically with the timestep.  The *gjf* option *vhalf* outputs the
+2GJ half-step velocity given in :ref:`Gronbech Jensen/Gronbech-Jensen
+<2Gronbech-Jensen>`; for linear systems, this velocity is shown to not
+have any statistical errors for any stable time step.  An overview of
+statistically correct Boltzmann and Maxwell-Boltzmann sampling of true
+on-site and true half-step velocities is given in
+:ref:`Gronbech-Jensen <1Gronbech-Jensen>`.  Regardless of the choice
+of output velocity, the sampling of the configurational distribution
+of atom positions is the same, and linearly consistent with the target
+temperature.
 
 ----------
 
@@ -287,16 +289,18 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Langevin thermostatting to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  Note that use of this option requires
-setting the *tally* keyword to *yes*\ .
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*\ , but only if the *tally* keyword to set to
+*yes*\ .  See the :doc:`thermo_style <thermo_style>` doc page for
+details.
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to this fix.  The scalar value calculated by this
-fix is "extensive".  Note that calculation of this quantity requires
-setting the *tally* keyword to *yes*\ .
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+Note that calculation of this quantity also requires setting the
+*tally* keyword to *yes*\ .
 
 This fix can ramp its target temperature over multiple runs, using the
 *start* and *stop* keywords of the :doc:`run <run>` command.  See the

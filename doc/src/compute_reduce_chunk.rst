@@ -30,7 +30,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute 1 all reduce/chunk/atom mychunk min c_cluster
+   compute 1 all reduce/chunk mychunk min c_cluster
 
 Description
 """""""""""

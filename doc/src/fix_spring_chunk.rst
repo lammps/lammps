@@ -62,9 +62,11 @@ will define the same number of chunks. The restart data is only applied
 when the number of chunks matches. Otherwise the center of mass
 coordinates are recomputed.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy stored in all the springs to the system's potential
-energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy stored in all the springs to the global
+potential energy of the system as part of :doc:`thermodynamic output
+<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
+energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`

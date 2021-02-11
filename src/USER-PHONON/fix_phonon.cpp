@@ -723,7 +723,7 @@ void FixPhonon::postprocess( )
     fwrite(&nucell, sizeof(int),    1, fp_bin);
     fwrite(&boltz,  sizeof(double), 1, fp_bin);
 
-    fwrite(Phi_all[0],sizeof(double),ntotal*fft_dim2*2,fp_bin);
+    fwrite(Phi_all[0],sizeof(double),(bigint)ntotal*fft_dim2*2,fp_bin);
 
     fwrite(&TempAve,      sizeof(double),1,      fp_bin);
     fwrite(&basevec[0],   sizeof(double),9,      fp_bin);

@@ -26,6 +26,23 @@ There are multiple Python interface classes in the :py:mod:`lammps` module:
 
 .. _mpi4py_url: https://mpi4py.readthedocs.io
 
+.. admonition:: Version check
+   :class: note
+
+   The :py:mod:`lammps` module stores the version number of the LAMMPS
+   version it is installed from.  When initializing the
+   :py:class:`lammps <lammps.lammps>` class, this version is checked to
+   be the same as the result from :py:func:`lammps.version`, the version
+   of the LAMMPS shared library that the module interfaces to.  If the
+   they are not the same an AttributeError exception is raised since a
+   mismatch of versions (e.g.  due to incorrect use of the
+   ``LD_LIBRARY_PATH`` or ``PYTHONPATH`` environment variables can lead
+   to crashes or data corruption and otherwise incorrect behavior.
+
+.. automodule:: lammps
+   :members:
+   :noindex:
+
 ----------
 
 The ``lammps`` class API

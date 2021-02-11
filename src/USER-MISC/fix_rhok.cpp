@@ -48,21 +48,19 @@ static const char cite_fix_rhok[] =
 FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   : Fix( inLMP, inArgc, inArgv )
 {
-
   if (lmp->citeme) lmp->citeme->add(cite_fix_rhok);
 
   // Check arguments
-  if (inArgc != 8)
-    error->all(FLERR,"Illegal fix rhoKUmbrella command" );
+  if (inArgc != 8) error->all(FLERR,"Illegal fix rhoKUmbrella command" );
 
   // Set up fix flags
   scalar_flag = 1;         // have compute_scalar
   vector_flag = 1;         // have compute_vector...
   size_vector = 3;         // ...with this many components
   global_freq = 1;         // whose value can be computed at every timestep
-  thermo_energy = 1;       // this fix changes system's potential energy
   extscalar = 0;           // but the deltaPE might not scale with # of atoms
   extvector = 0;           // neither do the components of the vector
+  energy_global_flag = 1;
 
   // Parse fix options
   int n[3];
@@ -79,29 +77,22 @@ FixRhok::FixRhok( LAMMPS* inLMP, int inArgc, char** inArgv )
   mRhoK0 = utils::numeric(FLERR,inArgv[7],false,lmp);
 }
 
-// Methods that this fix implements
-// --------------------------------
+/* ---------------------------------------------------------------------- */
 
 // Tells LAMMPS where this fix should act
-int
-FixRhok::setmask()
+int FixRhok::setmask()
 {
   int mask = 0;
-
-  // This fix modifies forces...
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
-
-  // ...and potential energies
-  mask |= THERMO_ENERGY;
-
   return mask;
 }
 
+/* ---------------------------------------------------------------------- */
+
 // Initializes the fix at the beginning of a run
-void
-FixRhok::init()
+void FixRhok::init()
 {
   // RESPA boilerplate
   if (strcmp( update->integrate_style, "respa" ) == 0)
@@ -121,9 +112,10 @@ FixRhok::init()
   mSqrtNThis = sqrt( mNThis );
 }
 
+/* ---------------------------------------------------------------------- */
+
 // Initial application of the fix to a system (when doing MD)
-void
-FixRhok::setup( int inVFlag )
+void FixRhok::setup( int inVFlag )
 {
   if (strcmp( update->integrate_style, "verlet" ) == 0)
     post_force( inVFlag );
@@ -135,16 +127,20 @@ FixRhok::setup( int inVFlag )
     }
 }
 
+/* ---------------------------------------------------------------------- */
+
 // Initial application of the fix to a system (when doing minimization)
-void
-FixRhok::min_setup( int inVFlag )
+
+void FixRhok::min_setup( int inVFlag )
 {
   post_force( inVFlag );
 }
 
+/* ---------------------------------------------------------------------- */
+
 // Modify the forces calculated in the main force loop of ordinary MD
-void
-FixRhok::post_force( int /*inVFlag*/ )
+
+void FixRhok::post_force( int /*inVFlag*/ )
 {
   double **x = atom->x;
   double **f = atom->f;
@@ -204,24 +200,27 @@ FixRhok::post_force( int /*inVFlag*/ )
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 // Forces in RESPA loop
-void
-FixRhok::post_force_respa( int inVFlag, int inILevel, int /*inILoop*/ )
+void FixRhok::post_force_respa( int inVFlag, int inILevel, int /*inILoop*/ )
 {
   if (inILevel == mNLevelsRESPA - 1)
     post_force( inVFlag );
 }
 
+/* ---------------------------------------------------------------------- */
+
 // Forces in minimization loop
-void
-FixRhok::min_post_force( int inVFlag )
+void FixRhok::min_post_force( int inVFlag )
 {
   post_force( inVFlag );
 }
 
+/* ---------------------------------------------------------------------- */
+
 // Compute the change in the potential energy induced by this fix
-double
-FixRhok::compute_scalar()
+double FixRhok::compute_scalar()
 {
   double rhoK = sqrt( mRhoKGlobal[0]*mRhoKGlobal[0]
                       + mRhoKGlobal[1]*mRhoKGlobal[1] );
@@ -229,9 +228,10 @@ FixRhok::compute_scalar()
   return 0.5 * mKappa * (rhoK - mRhoK0) * (rhoK - mRhoK0);
 }
 
+/* ---------------------------------------------------------------------- */
+
 // Compute the ith component of the vector
-double
-FixRhok::compute_vector( int inI )
+double FixRhok::compute_vector( int inI )
 {
   if (inI == 0)
     return mRhoKGlobal[0];   // Real part

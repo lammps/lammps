@@ -46,8 +46,8 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_initial_integrate = n_post_integrate = 0;
   n_pre_exchange = n_pre_neighbor = n_post_neighbor = 0;
   n_pre_force = n_pre_reverse = n_post_force = 0;
-  n_final_integrate = n_end_of_step = n_thermo_energy = 0;
-  n_thermo_energy_atom = 0;
+  n_final_integrate = n_end_of_step = 0;
+  n_energy_couple = n_energy_global = n_energy_atom = 0;
   n_initial_integrate_respa = n_post_integrate_respa = 0;
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
@@ -60,7 +60,7 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   list_pre_exchange = list_pre_neighbor = list_post_neighbor = nullptr;
   list_pre_force = list_pre_reverse = list_post_force = nullptr;
   list_final_integrate = list_end_of_step = nullptr;
-  list_thermo_energy = list_thermo_energy_atom = nullptr;
+  list_energy_couple = list_energy_global = list_energy_atom = nullptr;
   list_initial_integrate_respa = list_post_integrate_respa = nullptr;
   list_pre_force_respa = list_post_force_respa = nullptr;
   list_final_integrate_respa = nullptr;
@@ -137,8 +137,9 @@ Modify::~Modify()
   delete [] list_post_force;
   delete [] list_final_integrate;
   delete [] list_end_of_step;
-  delete [] list_thermo_energy;
-  delete [] list_thermo_energy_atom;
+  delete [] list_energy_couple;
+  delete [] list_energy_global;
+  delete [] list_energy_atom;
   delete [] list_initial_integrate_respa;
   delete [] list_post_integrate_respa;
   delete [] list_pre_force_respa;
@@ -218,8 +219,9 @@ void Modify::init()
   list_init(POST_FORCE,n_post_force,list_post_force);
   list_init(FINAL_INTEGRATE,n_final_integrate,list_final_integrate);
   list_init_end_of_step(END_OF_STEP,n_end_of_step,list_end_of_step);
-  list_init_thermo_energy(THERMO_ENERGY,n_thermo_energy,list_thermo_energy);
-  list_init_thermo_energy_atom(n_thermo_energy_atom,list_thermo_energy_atom);
+  list_init_energy_couple(n_energy_couple,list_energy_couple);
+  list_init_energy_global(n_energy_global,list_energy_global);
+  list_init_energy_atom(n_energy_atom,list_energy_atom);
 
   list_init(INITIAL_INTEGRATE_RESPA,
             n_initial_integrate_respa,list_initial_integrate_respa);
@@ -486,31 +488,45 @@ void Modify::end_of_step()
 }
 
 /* ----------------------------------------------------------------------
-   thermo energy call, only for relevant fixes
-   called by Thermo class
-   compute_scalar() is fix call to return energy
+   coupling energy call, only for relevant fixes
+   each thermostsat fix returns this via compute_scalar()
+   ecouple = cumulative energy added to reservoir by thermostatting
 ------------------------------------------------------------------------- */
 
-double Modify::thermo_energy()
+double Modify::energy_couple()
 {
   double energy = 0.0;
-  for (int i = 0; i < n_thermo_energy; i++)
-    energy += fix[list_thermo_energy[i]]->compute_scalar();
+  for (int i = 0; i < n_energy_couple; i++)
+    energy += fix[list_energy_couple[i]]->compute_scalar();
   return energy;
 }
 
 /* ----------------------------------------------------------------------
-   per-atom thermo energy call, only for relevant fixes
+   global energy call, only for relevant fixes
+   they return energy via compute_scalar()
+   called by compute pe
+------------------------------------------------------------------------- */
+
+double Modify::energy_global()
+{
+  double energy = 0.0;
+  for (int i = 0; i < n_energy_global; i++)
+    energy += fix[list_energy_global[i]]->compute_scalar();
+  return energy;
+}
+
+/* ----------------------------------------------------------------------
+   peratom energy call, only for relevant fixes
    called by compute pe/atom
 ------------------------------------------------------------------------- */
 
-void Modify::thermo_energy_atom(int nlocal, double *energy)
+void Modify::energy_atom(int nlocal, double *energy)
 {
   int i,j;
   double *eatom;
 
-  for (i = 0; i < n_thermo_energy_atom; i++) {
-    eatom = fix[list_thermo_energy_atom[i]]->eatom;
+  for (i = 0; i < n_energy_atom; i++) {
+    eatom = fix[list_energy_atom[i]]->eatom;
     if (!eatom) continue;
     for (j = 0; j < nlocal; j++) energy[j] += eatom[j];
   }
@@ -1632,43 +1648,60 @@ void Modify::list_init_end_of_step(int mask, int &n, int *&list)
 }
 
 /* ----------------------------------------------------------------------
-   create list of fix indices for thermo energy fixes
-   only added to list if fix has THERMO_ENERGY mask set,
-   and its thermo_energy flag was set via fix_modify
+   create list of fix indices for fixes that compute reservoir coupling energy
+   only added to list if fix has ecouple_flag set
 ------------------------------------------------------------------------- */
 
-void Modify::list_init_thermo_energy(int mask, int &n, int *&list)
+void Modify::list_init_energy_couple(int &n, int *&list)
 {
   delete [] list;
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fmask[i] & mask && fix[i]->thermo_energy) n++;
+    if (fix[i]->ecouple_flag) n++;
   list = new int[n];
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fmask[i] & mask && fix[i]->thermo_energy) list[n++] = i;
+    if (fix[i]->ecouple_flag) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------
-   create list of fix indices for peratom thermo energy fixes
-   only added to list if fix has its peatom_flag set,
-   and its thermo_energy flag was set via fix_modify
+   create list of fix indices for fixes that compute global energy
+   only added to list if fix has energy_global_flag and thermo_energy set
 ------------------------------------------------------------------------- */
 
-void Modify::list_init_thermo_energy_atom(int &n, int *&list)
+void Modify::list_init_energy_global(int &n, int *&list)
 {
   delete [] list;
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->peatom_flag && fix[i]->thermo_energy) n++;
+    if (fix[i]->energy_global_flag && fix[i]->thermo_energy) n++;
   list = new int[n];
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->peatom_flag && fix[i]->thermo_energy) list[n++] = i;
+    if (fix[i]->energy_global_flag && fix[i]->thermo_energy) list[n++] = i;
+}
+
+/* ----------------------------------------------------------------------
+   create list of fix indices for fixes that compute peratom energy
+   only added to list if fix has energy_peratom_flag and thermo_energy set
+------------------------------------------------------------------------- */
+
+void Modify::list_init_energy_atom(int &n, int *&list)
+{
+  delete [] list;
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) n++;
+  list = new int[n];
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------

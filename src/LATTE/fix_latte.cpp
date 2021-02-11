@@ -69,8 +69,9 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-  virial_flag = 1;
-  thermo_virial = 1;
+  energy_global_flag = 1;
+  virial_global_flag = 1;
+  thermo_energy = thermo_virial = 1;
 
   // store ID of compute pe/atom used to generate Coulomb potential for LATTE
   // null pointer means LATTE will compute Coulombic potential
@@ -116,12 +117,9 @@ FixLatte::~FixLatte()
 int FixLatte::setmask()
 {
   int mask = 0;
-  //mask |= INITIAL_INTEGRATE;
-  //mask |= FINAL_INTEGRATE;
   mask |= PRE_REVERSE;
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -266,9 +264,6 @@ void FixLatte::post_force(int vflag)
   // hardwire these unsupported flags for now
 
   int coulombflag = 0;
-  // pe_peratom = 0;
-  // virial_global = 1;              // set via vflag_global at some point
-  // virial_peratom = 0;
   neighflag = 0;
 
   // set flags used by LATTE

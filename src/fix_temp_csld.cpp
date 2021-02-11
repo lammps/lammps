@@ -52,6 +52,7 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   nevery = 1;
   scalar_flag = 1;
+  ecouple_flag = 1;
   global_freq = nevery;
   dynamic_group_allow = 1;
   extscalar = 1;
@@ -114,7 +115,6 @@ int FixTempCSLD::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -293,7 +293,6 @@ double FixTempCSLD::compute_scalar()
 {
   return energy;
 }
-
 
 /* ----------------------------------------------------------------------
    pack entire state of Fix into one write

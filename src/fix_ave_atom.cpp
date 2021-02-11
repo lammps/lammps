@@ -374,7 +374,7 @@ void FixAveAtom::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep+peratom_freq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+peratom_freq - ((bigint)nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   if (array == nullptr) return;
@@ -394,7 +394,7 @@ void FixAveAtom::end_of_step()
 double FixAveAtom::memory_usage()
 {
   double bytes;
-  bytes = atom->nmax*nvalues * sizeof(double);
+  bytes = (double)atom->nmax*nvalues * sizeof(double);
   return bytes;
 }
 
@@ -452,7 +452,7 @@ bigint FixAveAtom::nextvalid()
   if (nvalid-peratom_freq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= ((bigint)nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += peratom_freq;
   return nvalid;
 }

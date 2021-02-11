@@ -93,13 +93,14 @@ IDs of the new computes are the fix-ID + underscore + "temp" or fix_ID
 since pressure is computed for the entire system.
 
 Note that these are NOT the computes used by thermodynamic output (see
-the :doc:`thermo_style <thermo_style>` command) with ID = *thermo_temp*
-and *thermo_press*.  This means you can change the attributes of this
-fix's temperature or pressure via the
-:doc:`compute_modify <compute_modify>` command or print this temperature
-or pressure during thermodynamic output via the :doc:`thermo_style custom <thermo_style>` command using the appropriate compute-ID.
-It also means that changing attributes of *thermo_temp* or
-*thermo_press* will have no effect on this fix.
+the :doc:`thermo_style <thermo_style>` command) with ID =
+*thermo_temp* and *thermo_press*.  This means you can change the
+attributes of this fix's temperature or pressure via the
+:doc:`compute_modify <compute_modify>` command or print this
+temperature or pressure during thermodynamic output via the
+:doc:`thermo_style custom <thermo_style>` command using the
+appropriate compute-ID.  It also means that changing attributes of
+*thermo_temp* or *thermo_press* will have no effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
 with :doc:`compute commands <compute>` that calculate a temperature
@@ -129,18 +130,18 @@ a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
 The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
-supported by this fix.  You can use them to assign a
-:doc:`compute <compute>` you have defined to this fix which will be used
-in its thermostatting or barostatting procedure.  If you do this, note
-that the kinetic energy derived from the compute temperature should be
+supported by this fix.  You can use them to assign a :doc:`compute
+<compute>` you have defined to this fix which will be used in its
+thermostatting or barostatting procedure.  If you do this, note that
+the kinetic energy derived from the compute temperature should be
 consistent with the virial term computed using all atoms for the
 pressure.  LAMMPS will warn you if you choose to compute temperature
 on a subset of atoms.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Nose/Hoover thermostatting and
-barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 This fix computes the same global scalar and global vector of
 quantities as does the :doc:`fix npt <fix_nh>` command.

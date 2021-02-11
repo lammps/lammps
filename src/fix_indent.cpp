@@ -47,6 +47,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
+  energy_global_flag = 1;
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
@@ -107,7 +108,6 @@ int FixIndent::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;

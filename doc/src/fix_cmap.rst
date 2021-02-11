@@ -29,11 +29,12 @@ Description
 This command enables CMAP cross-terms to be added to simulations which
 use the CHARMM force field.  These are relevant for any CHARMM model
 of a peptide or protein sequences that is 3 or more amino-acid
-residues long; see :ref:`(Buck) <Buck>` and :ref:`(Brooks) <Brooks2>` for details,
-including the analytic energy expressions for CMAP interactions.  The
-CMAP cross-terms add additional potential energy contributions to pairs
-of overlapping phi-psi dihedrals of amino-acids, which are important
-to properly represent their conformational behavior.
+residues long; see :ref:`(Buck) <Buck>` and :ref:`(Brooks) <Brooks2>`
+for details, including the analytic energy expressions for CMAP
+interactions.  The CMAP cross-terms add additional potential energy
+contributions to pairs of overlapping phi-psi dihedrals of
+amino-acids, which are important to properly represent their
+conformational behavior.
 
 The examples/cmap directory has a sample input script and data file
 for a small peptide, that illustrates use of the fix cmap command.
@@ -93,19 +94,27 @@ the note below about how to include the CMAP energy when performing an
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the list of CMAP cross-terms to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
+This fix writes the list of CMAP cross-terms to :doc:`binary restart
+files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential "energy" of the CMAP interactions system's
-potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential energy of the CMAP interactions to both
+the global potential energy and peratom potential energies of the
+system as part of :doc:`thermodynamic output <thermo_style>` or
+output by the :doc:`compute pe/atom <compute_pe_atom>` command.  The
+default setting for this fix is :doc:`fix_modify energy yes
+<fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to the interaction between atoms to
-the system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial yes*
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the CMAP interactions to both
+the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the potential
@@ -121,8 +130,8 @@ invoked by the :doc:`minimize <minimize>` command.
 .. note::
 
    If you want the potential energy associated with the CMAP terms
-   forces to be included in the total potential energy of the system (the
-   quantity being minimized), you MUST enable the
+   forces to be included in the total potential energy of the system
+   (the quantity being minimized), you MUST not disable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 Restrictions

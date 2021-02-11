@@ -583,7 +583,7 @@ void FixAveChunk::end_of_step()
     }
     allocate();
     if (nrepeat > 1 && ave == ONE)
-      cchunk->lock(this,ntimestep,ntimestep+(nrepeat-1)*nevery);
+      cchunk->lock(this,ntimestep,ntimestep+((bigint)nrepeat-1)*nevery);
     else if ((ave == RUNNING || ave == WINDOW) && !lockforever) {
       cchunk->lock(this,update->ntimestep,-1);
       lockforever = 1;
@@ -841,7 +841,7 @@ void FixAveChunk::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep+nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+nfreq - ((bigint)nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // unlock compute chunk/atom at end of Nfreq epoch
@@ -1120,7 +1120,7 @@ bigint FixAveChunk::nextvalid()
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= ((bigint)nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
 }

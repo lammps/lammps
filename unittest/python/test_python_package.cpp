@@ -67,6 +67,7 @@ protected:
     void TearDown() override
     {
         if (!verbose) ::testing::internal::CaptureStdout();
+        delete info;
         delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }

@@ -45,10 +45,11 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = 1;
   dynamic_group_allow = 1;
-  nevery = 1;
   scalar_flag = 1;
-  global_freq = nevery;
   extscalar = 1;
+  ecouple_flag = 1;
+  nevery = 1;
+  global_freq = nevery;
 
   tstr = nullptr;
   if (utils::strmatch(arg[3],"^v_")) {
@@ -98,7 +99,6 @@ int FixTempBerendsen::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 

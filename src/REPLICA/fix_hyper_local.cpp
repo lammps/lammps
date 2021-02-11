@@ -31,7 +31,6 @@
 #include "memory.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -63,6 +62,7 @@ FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
 
   hyperflag = 2;
   scalar_flag = 1;
+  energy_global_flag = 1;
   vector_flag = 1;
   size_vector = 26;
   //size_vector = 28;   // can add 2 for debugging
@@ -237,7 +237,6 @@ int FixHyperLocal::setmask()
   mask |= PRE_NEIGHBOR;
   mask |= PRE_REVERSE;
   mask |= MIN_PRE_NEIGHBOR;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 

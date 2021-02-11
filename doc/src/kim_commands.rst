@@ -1286,7 +1286,7 @@ to cite the OpenKIM project :ref:`(Tadmor) <kim-mainpaper>`, KIM API
 in addition to the relevant scientific references for the IM.
 The citation format for an IM is displayed on its page on
 `OpenKIM <https://openkim.org>`_ along with the corresponding BibTex file,
-and is automatically added to the LAMMPS *log.cite* file.
+and is automatically added to the LAMMPS citation reminder.
 
 Citing the IM software (KIM infrastructure and specific PM or SM codes)
 used in the simulation gives credit to the researchers who developed them

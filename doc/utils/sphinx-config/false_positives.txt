@@ -2540,6 +2540,8 @@ Px
 pxx
 Pxx
 Pxy
+pxy
+pxz
 py
 Py
 pydir
@@ -2551,10 +2553,13 @@ pymol
 pypar
 pythonic
 pytorch
+pyy
 Pyy
+pyz
 pz
 Pz
 Pzz
+pzz
 qbmsst
 qcore
 qdist

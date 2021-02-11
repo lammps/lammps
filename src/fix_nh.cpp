@@ -1063,7 +1063,7 @@ void FixNH::couple()
   if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
     error->all(FLERR,"Non-numeric pressure - simulation unstable");
 
-  // switch order from xy-xz-yz to Voigt
+  // switch order from xy-xz-yz to Voigt ordering
 
   if (pstyle == TRICLINIC) {
     p_current[3] = tensor[5];
@@ -1118,7 +1118,7 @@ void FixNH::remap()
   // h_dot = omega_dot * h
   //
   // where h_dot, omega_dot and h are all upper-triangular
-  // 3x3 tensors. In Voigt notation, the elements of the
+  // 3x3 tensors. In Voigt ordering, the elements of the
   // RHS product tensor are:
   // h_dot = [0*0, 1*1, 2*2, 1*3+3*2, 0*4+5*3+4*2, 0*5+5*1]
   //

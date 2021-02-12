@@ -1031,23 +1031,28 @@ void FixBondReact::post_integrate()
       if (finalpartner[i] == 0) continue;
 
       j = atom->map(finalpartner[i]);
-      // if (j < 0 || tag[i] < tag[j]) {
-      if (tag[i] < tag[j]) { //atom->map(std::min(tag[i],tag[j])) <= nlocal &&
-        if (nattempt[rxnID] == maxattempt) {
+      if (tag[i] < tag[j]) {
+        if (nattempt[rxnID] > maxattempt-2) {
           maxattempt += DELTA;
-          // third column of 'attempt': bond/react integer ID
+          // third dim of 'attempt': bond/react integer ID
           memory->grow(attempt,maxattempt,2,nreacts,"bond/react:attempt");
         }
         // to ensure types remain in same order
-        // unnecessary now taken from reaction map file
         if (iatomtype[rxnID] == type[i]) {
           attempt[nattempt[rxnID]][0][rxnID] = tag[i];
           attempt[nattempt[rxnID]][1][rxnID] = finalpartner[i];
+          nattempt[rxnID]++;
+          // add another attempt if initiator atoms are same type
+          if (iatomtype[rxnID] == jatomtype[rxnID]) {
+            attempt[nattempt[rxnID]][0][rxnID] = finalpartner[i];
+            attempt[nattempt[rxnID]][1][rxnID] = tag[i];
+            nattempt[rxnID]++;
+          }
         } else {
           attempt[nattempt[rxnID]][0][rxnID] = finalpartner[i];
           attempt[nattempt[rxnID]][1][rxnID] = tag[i];
+          nattempt[rxnID]++;
         }
-        nattempt[rxnID]++;
       }
     }
   }

@@ -52,7 +52,6 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
   data->energy = 0.0;
 
   for (int ii = 0; ii < data->natoms; ii++) {
-      const int i = data->iatoms[ii];
       const int ielem = data->ielems[ii];
       const int nl = data->nlayers;
     

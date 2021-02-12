@@ -38,7 +38,6 @@ const bool have_openmpi = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::ExitedWithCode;
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
@@ -401,26 +400,33 @@ TEST_F(KimCommandsTest, kim_query)
 
     TEST_FAILURE(".*ERROR: Illegal 'kim query' command.*",
                  lmp->input->one("kim query"););
-    TEST_FAILURE(".*ERROR: Must use 'kim init' before 'kim query'.*",
-                 lmp->input->one("kim query a0 get_lattice_constant_cubic"););
-
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("kim init LennardJones612_UniversalShifted__MO_959249795837_003 real");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-
     TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe keyword 'split' "
                  "must be followed by the name of the query function.*",
                  lmp->input->one("kim query a0 split"););
+    TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe keyword 'list' "
+                 "must be followed by the name of the query function.*",
+                 lmp->input->one("kim query a0 list"););
+    TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe keyword 'index' "
+                 "must be followed by the name of the query function.*",
+                 lmp->input->one("kim query a0 index"););
     TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe 'list' keyword "
                  "can not be used after 'split'.*",
                  lmp->input->one("kim query a0 split list"););
+    TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe 'index' keyword "
+                 "can not be used after 'split'.*",
+                 lmp->input->one("kim query a0 split index"););
+    TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe 'split' keyword "
+                 "can not be used after 'list'.*",
+                 lmp->input->one("kim query a0 list split"););
+    TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe 'index' keyword "
+                 "can not be used after 'list'.*",
+                 lmp->input->one("kim query a0 list index"););
     TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe 'list' keyword "
-                 "must be followed by \\('split' and\\) the name of the query "
-                 "function.*", lmp->input->one("kim query a0 list"););
-    TEST_FAILURE(".*ERROR: Illegal 'model' key in 'kim query' command.*",
-                 lmp->input->one("kim query a0 get_lattice_constant_cubic "
-                                 "model=[MO_959249795837_003]"););
+                 "can not be used after 'index'.*",
+                 lmp->input->one("kim query a0 index list"););
+    TEST_FAILURE(".*ERROR: Illegal 'kim query' command.\nThe 'split' keyword "
+                 "can not be used after 'index'.*",
+                 lmp->input->one("kim query a0 index split"););
     TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `crystal` "
                  "to 'kim query' is wrong. The query format is the "
                  "keyword=\\[value\\], where value is always an array of one "
@@ -428,9 +434,9 @@ TEST_F(KimCommandsTest, kim_query)
                  lmp->input->one("kim query a0 get_lattice_constant_cubic "
                                  "crystal"););
     TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `"
-                 "crystal=fcc` to 'kim query' is wrong. The query format is "
-                 "the keyword=\\[value\\], where value is always an array of "
-                 "one or more comma-separated items.*",
+                 "crystal=fcc` to 'kim query' is wrong. The query format is the "
+                 "keyword=\\[value\\], where value is always an array of one "
+                 "or more comma-separated items.*",
                  lmp->input->one("kim query a0 get_lattice_constant_cubic "
                                  "crystal=fcc"););
     TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `"
@@ -448,46 +454,111 @@ TEST_F(KimCommandsTest, kim_query)
 
     std::string squery("kim query a0 get_lattice_constant_cubic ");
     squery += "crystal=[\"fcc\"] species=\"Al\",\"Ni\" units=[\"angstrom\"]";
-   TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
                  "\"Al\",\"Ni\"` to 'kim query' is wrong. The query format is "
                  "the keyword=\\[value\\], where value is always an array of "
                  "one or more comma-separated items.*",
                  lmp->input->one(squery););
 
     squery = "kim query a0 get_lattice_constant_cubic ";
-    squery += "crystal=[\"fcc\"] species=\"Al\",\"Ni\", units=[\"angstrom\"]";
-   TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
-                 "\"Al\",\"Ni\",` to 'kim query' is wrong. The query format is "
+    squery += "crystal=[fcc] species=Al,Ni units=[angstrom]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+                 "Al,Ni` to 'kim query' is wrong. The query format is "
                  "the keyword=\\[value\\], where value is always an array of "
                  "one or more comma-separated items.*",
                  lmp->input->one(squery););
 
-    squery = "kim query a0 get_lattice_constant_cubic crystal=[fcc] "
-             "species=[Al]";
-    TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
+    squery = "kim query a0 get_lattice_constant_cubic ";
+    squery += "crystal=[fcc] species=Al,Ni, units=[angstrom]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+                 "Al,Ni,` to 'kim query' is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*",
+                 lmp->input->one(squery););
+
+    squery = "kim query a0 get_lattice_constant_cubic crystal=[\"fcc\"] "
+             "species=[\"Al\"]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nMust use 'kim init' before "
+                 "'kim query' or must provide the model name after query "
+                 "function with the format of 'model=\\[model_name\\]'.*",
+                 lmp->input->one(squery););
 
     squery = "kim query a0 get_lattice_constant_cubic crystal=[fcc] "
-             "units=[\"angstrom\"]";
-    TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
+             "species=[Al]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nMust use 'kim init' before "
+                 "'kim query' or must provide the model name after query "
+                 "function with the format of 'model=\\[model_name\\]'.*",
+                 lmp->input->one(squery););
+
+    squery = "kim query a0 get_lattice_constant_cubic crystal=[\"fcc\"] "
+             "species=[Al]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nMust use 'kim init' before "
+                 "'kim query' or must provide the model name after query "
+                 "function with the format of 'model=\\[model_name\\]'.*",
+                 lmp->input->one(squery););
 
 #if defined(KIM_EXTRA_UNITTESTS)
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
-    lmp->input->one("kim init EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal");
 
-    squery = "kim query latconst split get_lattice_constant_hexagonal ";
-    squery += "crystal=[\"hcp\"] species=[\"Zr\"] units=[\"angstrom\"]";
+    squery = "kim query latconst_1 get_lattice_constant_cubic ";
+    squery += "crystal=[fcc] species=[Al] units=[angstrom] ";
+    squery += "model=[EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005]";
     lmp->input->one(squery);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_1")) ==
-                 std::string("3.234055244384789")));
-    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_2")) ==
-                 std::string("5.167650199630013")));
+                 "4.032082033157349"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
-    lmp->input->one("kim init EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000 metal");
+    lmp->input->one("kim init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal");
+
+    squery = "kim query latconst_1 get_lattice_constant_cubic ";
+    squery += "crystal=[fcc] species=[Al] units=[angstrom]";
+    lmp->input->one(squery);
+
+    squery = "kim query latconst_2 get_lattice_constant_cubic ";
+    squery += "crystal=[fcc] species=[Al] units=[angstrom] ";
+    squery += "model=[LennardJones612_UniversalShifted__MO_959249795837_003]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_1")) ==
+                 "4.032082033157349"));
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_2")) ==
+                 "3.328125931322575"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim init EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000 metal");
+
+    squery = "kim query latconst split get_lattice_constant_hexagonal ";
+    squery += "crystal=[hcp] species=[Zr] units=[angstrom]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_1")) ==
+                 "3.234055244384789"));
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst_2")) ==
+                 "5.167650199630013"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+
+    squery = "kim query latconst index get_lattice_constant_hexagonal ";
+    squery += "crystal=[hcp] species=[Zr] units=[angstrom] ";
+    squery += "model=[EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst")) ==
+                 "3.234055244384789"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("variable latconst delete");
+    lmp->input->one("clear");
+    lmp->input->one("kim init EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000 metal");
 
     squery = "kim query latconst list get_lattice_constant_hexagonal ";
     squery += "crystal=[hcp] species=[Zr] units=[angstrom]";
@@ -495,11 +566,7 @@ TEST_F(KimCommandsTest, kim_query)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_TRUE((std::string(lmp->input->variable->retrieve("latconst")) ==
-                 std::string("3.234055244384789  5.167650199630013")));
-
-    squery = "kim query latconst list get_lattice_constant_hexagonal ";
-    squery += "crystal=[bcc] species=[Zr] units=[angstrom]";
-    TEST_FAILURE(".*ERROR: OpenKIM query failed:.*", lmp->input->one(squery););
+                 "3.234055244384789 5.167650199630013"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
@@ -512,7 +579,28 @@ TEST_F(KimCommandsTest, kim_query)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_TRUE((std::string(lmp->input->variable->retrieve("alpha")) ==
-                 std::string("1.654960564704273e-05")));
+                 "1.654960564704273e-05"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+
+    squery = "kim query model_list list get_available_models ";
+    squery += "species=[Al]";
+    lmp->input->one(squery);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    std::string model_list = lmp->input->variable->retrieve("model_list");
+    auto n = model_list.find("EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005");
+    ASSERT_TRUE(n != std::string::npos);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+
+    squery = "kim query model_name index get_available_models ";
+    squery += "species=[Al]";
+    lmp->input->one(squery);
+    lmp->input->one("variable model_name delete");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 #endif
 }
 } // namespace LAMMPS_NS

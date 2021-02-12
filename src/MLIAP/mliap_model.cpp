@@ -193,7 +193,7 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
     if (comm->me == 0) fclose(fpcoeff);
   }
     
-  // set up the NET parameters
+  // set up the NN parameters
         
   else {
     int stats = 0;
@@ -220,18 +220,12 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
       nwords = utils::trim_and_count_words(line);
       if (nwords == 0) continue;
           
-//      std::cout << "nwords : " << nwords << std::endl;
-//      std::cout << "line : " << std::string(line) << std::endl;
-          
       if (stats == 0) { // Header NET
         tstr = strtok(line,"' \t\n\r\f");
-//        std::cout << "is ok NET? : " << tstr << std::endl;
         if (strncmp(tstr, "NET", 3) != 0) error->all(FLERR,"Incorrect format in NET coefficient file");
               
         ndescriptors = atoi(strtok(nullptr,"' \t\n\r\f"));
-//        std::cout << "ndescriptors : " << tstr << std::endl;
         nlayers = atoi(strtok(nullptr,"' \t\n\r\f"));
-//       std::cout << "nlayers : " << nparams << std::endl;
             
         memory->create(activation,nlayers,"mliap_model:activation");
         memory->create(nnodes,nlayers,"mliap_model:nnodes");
@@ -239,9 +233,7 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
 
         for (int ilayer = 0; ilayer < nlayers; ilayer++) {
           tstr = strtok(NULL,"' \t\n\r\f");
-//         std::cout << "AF of layer " << ilayer+1 << " :" << tstr << std::endl;
           nnodes[ilayer] = atoi(strtok(NULL,"' \t\n\r\f"));
-//         std::cout << "nnodes of layer " << ilayer+1 << " :" << nnodes[ilayer] << std::endl;
 
           if (strncmp(tstr, "linear", 6) == 0) activation[ilayer] = 0;
           else if (strncmp(tstr, "sigmoid", 7) == 0) activation[ilayer] = 1;
@@ -277,7 +269,7 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
       // set up coeff lists
           
       } else if (stats == 3) {
-     //         if (nwords > 5) error->all(FLERR,"Incorrect format in  coefficient file");
+     //         if (nwords > 30) error->all(FLERR,"Wrong number of items per line, max 30");
             
           coeffelem[ielem][l] = atof(strtok(line,"' \t\n\r\f"));
           for (int icoeff = 1; icoeff < nwords; icoeff++) {

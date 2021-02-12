@@ -136,30 +136,29 @@ KimParam::KimParam(LAMMPS *lmp) : Pointers(lmp) {}
 
 void KimParam::command(int narg, char **arg)
 {
-  // kim_param is a command for
+  // kim param is a command for
   // getting/setting the value of a %KIM PM parameter
   //
-  // kim_param get param_name index_range variables formatarg
-  // kim_param set param_name index_range values
+  // kim param get param_name index_range variables formatarg
+  // kim param set param_name index_range values
+  //
+  // kim param get paramname 1 varname
+  // kim param get paramname index_range varname_1, ..., varname_N
+  // kim param get paramname index_range varname_base split
+  // kim param get paramname index_range varname_base list
+  // kim param set paramname index_range values
 
-  // kim_param   get paramname 1 varname
-  // kim_param   get paramname index_range varname_1, ..., varname_N
-  // kim_param   get paramname index_range varname_base split
-  // kim_param   get paramname index_range varname_base list
-  // kim_param   set paramname index_range values
-
-  if (narg < 4)
-    error->all(FLERR, "Illegal kim_param command");
+  if (narg < 4) error->all(FLERR, "Illegal 'kim param' command");
 
   std::string kim_param_get_set = arg[0];
 
   if ((kim_param_get_set != "get") && (kim_param_get_set != "set")) {
-    std::string msg("Incorrect arguments in kim_param command.\n");
-    msg += "'kim_param get/set' is mandatory";
+    std::string msg("Incorrect arguments in 'kim param' command.\n");
+    msg += "'kim param get/set' is mandatory";
     error->all(FLERR, msg);
   }
 
-  // Check if we called a kim_init command
+  // Check if we called a kim init command
   // by finding fix STORE/KIM
   // retrieve model name and model units.
 
@@ -178,15 +177,16 @@ void KimParam::command(int narg, char **arg)
 
     isPortableModel = simulatorModel ? false : true;
     if (!isPortableModel)
-      error->all(FLERR, "kim_param can only be used with a KIM Portable Model");
+      error->all(FLERR,
+        "'kim param' can only be used with a KIM Portable Model");
 
     model_name = (char *)fix_store->getptr("model_name");
     model_units = (char *)fix_store->getptr("model_units");
   } else
-    error->all(FLERR, "Must use 'kim_init' before 'kim_param'");
+    error->all(FLERR, "Must use 'kim init' before 'kim param'");
 
-  input->write_echo(fmt::format("#=== BEGIN kim-param {} ==================="
-                                "==================\n",kim_param_get_set));
+  input->write_echo(fmt::format("#=== BEGIN kim param {} ==================="
+                                "==================\n", kim_param_get_set));
 
   KIM_Model *pkim = nullptr;
 
@@ -214,10 +214,10 @@ void KimParam::command(int narg, char **arg)
                         "no match for kim style in lammps");
   } else {
     if (kim_param_get_set == "set") {
-      std::string msg("Wrong 'kim_param set' command.\n");
+      std::string msg("Wrong 'kim param set' command.\n");
       msg += "To set the new parameter values, pair style must ";
-      msg += "be assigned.\nMust use 'kim_interactions' or";
-      msg += "'pair_style kim' before 'kim_param set'";
+      msg += "be assigned.\nMust use 'kim interactions' or";
+      msg += "'pair_style kim' before 'kim param set'";
       error->all(FLERR, msg);
     } else {
       KIM_LengthUnit lengthUnit;
@@ -287,7 +287,7 @@ void KimParam::command(int narg, char **arg)
         }
 
         if (param_index >= numberOfParameters) {
-          auto msg = fmt::format("Wrong argument in kim_param get command.\n"
+          auto msg = fmt::format("Wrong argument in 'kim param get' command.\n"
                                  "This Model does not have the requested '{}' "
                                  "parameter", paramname);
           error->all(FLERR, msg);
@@ -336,7 +336,7 @@ void KimParam::command(int narg, char **arg)
             nubound = nlbound;
           }
         } else {
-          std::string msg("Wrong number of arguments in 'kim_param get' ");
+          std::string msg("Wrong number of arguments in 'kim param get' ");
           msg += "command.\nIndex range after parameter name is mandatory";
           error->all(FLERR, msg);
         }
@@ -348,7 +348,7 @@ void KimParam::command(int narg, char **arg)
           // Get the variable/variable_base name
           varname = arg[i++];
         } else {
-          std::string msg("Wrong number of arguments in 'kim_param get' ");
+          std::string msg("Wrong number of arguments in 'kim param get' ");
           msg += "command.\nThe LAMMPS variable name is mandatory";
           error->all(FLERR, msg);
         }
@@ -377,14 +377,14 @@ void KimParam::command(int narg, char **arg)
               }
             } else {
               auto msg =
-                fmt::format("Wrong number of arguments in 'kim_param get' "
+                fmt::format("Wrong number of arguments in 'kim param get' "
                             "command.\nThe LAMMPS '{}' variable names or "
                             "'{} split' is mandatory", nvars, varname);
               error->all(FLERR, msg);
             }
           } else {
             auto msg =
-              fmt::format("Wrong number of arguments in 'kim_param get' "
+              fmt::format("Wrong number of arguments in 'kim param get' "
                           "command.\nThe LAMMPS '{}' variable names or "
                           "'{} split/list' is mandatory", nvars, varname);
             error->all(FLERR, msg);
@@ -498,6 +498,6 @@ void KimParam::command(int narg, char **arg)
   if (!isPairStyleAssigned)
     KIM_Model_Destroy(&pkim);
 
-  input->write_echo(fmt::format("#=== END kim-param {} ====================="
-                                "==================\n",kim_param_get_set));
+  input->write_echo(fmt::format("#=== END kim param {} ====================="
+                                "==================\n", kim_param_get_set));
 }

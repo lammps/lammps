@@ -65,13 +65,12 @@ class KimProperty : protected Pointers
 {
 public:
   KimProperty(class LAMMPS *lmp);
-
   void command(int, char **);
 };
 
-} // namespace LAMMPS_NS
+}
 
-#endif // LMP_KIM_PROPERTY_H
+#endif
 
 /* ERROR/WARNING messages:
 

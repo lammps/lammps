@@ -67,15 +67,12 @@ class KimParam : protected Pointers
 {
 public:
   KimParam(class LAMMPS *lmp);
-
-  ~KimParam();
-
   void command(int, char **);
 };
 
-} // namespace LAMMPS_NS
+}
 
-#endif // LMP_KIM_PARAM_H
+#endif
 
 /* ERROR/WARNING messages:
 

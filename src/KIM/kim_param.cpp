@@ -134,8 +134,6 @@ void get_kim_unit_names(
 
 KimParam::KimParam(LAMMPS *lmp) : Pointers(lmp) {}
 
-KimParam::~KimParam() {}
-
 void KimParam::command(int narg, char **arg)
 {
   // kim_param is a command for

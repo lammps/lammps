@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Axel Kohlmeyer (Temple U)
+   Contributing authors: Axel Kohlmeyer (Temple U),
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -64,6 +65,8 @@
 #include "kim_property.h"
 #include "kim_query.h"
 
+#include <memory>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -77,20 +80,19 @@ void KimCommand::command(int narg, char **arg)
   arg++;
 
   if (subcmd == "init") {
-    KimInit *cmd = new KimInit(lmp);
-    cmd->command(narg,arg);
+    std::unique_ptr<KimInit> cmd(new KimInit(lmp));
+    cmd->command(narg, arg);
   } else if (subcmd == "interactions") {
-    KimInteractions *cmd = new KimInteractions(lmp);
-    cmd->command(narg,arg);
+    std::unique_ptr<KimInteractions> cmd(new KimInteractions(lmp));
+    cmd->command(narg, arg);
   } else if (subcmd == "param") {
-    KimParam *cmd = new KimParam(lmp);
-    cmd->command(narg,arg);
+    std::unique_ptr<KimParam> cmd(new KimParam(lmp));
+    cmd->command(narg, arg);
   } else if (subcmd == "property") {
-    KimProperty *cmd = new KimProperty(lmp);
-    cmd->command(narg,arg);
+    std::unique_ptr<KimProperty> cmd(new KimProperty(lmp));
+    cmd->command(narg, arg);
   } else if (subcmd == "query") {
-    KimQuery *cmd = new KimQuery(lmp);
-    cmd->command(narg,arg);
-  } else error->all(FLERR,fmt::format("Unknown kim subcommand {}",subcmd));
+    std::unique_ptr<KimQuery> cmd(new KimQuery(lmp));
+    cmd->command(narg, arg);
+  } else error->all(FLERR, fmt::format("Unknown kim subcommand {}", subcmd));
 }
-

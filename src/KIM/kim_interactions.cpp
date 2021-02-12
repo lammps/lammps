@@ -83,10 +83,10 @@ using namespace LAMMPS_NS;
 
 void KimInteractions::command(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal kim_interactions command");
+  if (narg < 1) error->all(FLERR,"Illegal 'kim interactions' command");
 
   if (!domain->box_exist)
-    error->all(FLERR,"Must use 'kim_interactions' command after "
+    error->all(FLERR,"Must use 'kim interactions' command after "
                      "simulation box is defined");
 
   do_setup(narg,arg);
@@ -100,10 +100,10 @@ void KimInteractions::do_setup(int narg, char **arg)
   if ((narg == 1) && (0 == strcmp("fixed_types",arg[0]))) {
     fixed_types = true;
   } else if (narg != atom->ntypes) {
-    error->all(FLERR,fmt::format("Illegal kim_interactions command.\nThe "
+    error->all(FLERR,fmt::format("Illegal 'kim interactions' command.\nThe "
                                  "LAMMPS simulation has {} atom type(s), but "
                                  "{} chemical species passed to the "
-                                 "kim_interactions command",
+                                 "'kim interactions' command",
                                  atom->ntypes, narg));
   } else {
     fixed_types = false;
@@ -112,7 +112,7 @@ void KimInteractions::do_setup(int narg, char **arg)
   char *model_name = nullptr;
   KIM_SimulatorModel *simulatorModel(nullptr);
 
-  // check if we had a kim_init command by finding fix STORE/KIM
+  // check if we had a kim init command by finding fix STORE/KIM
   // retrieve model name and pointer to simulator model class instance.
   // validate model name if not given as null pointer.
 
@@ -121,10 +121,11 @@ void KimInteractions::do_setup(int narg, char **arg)
     FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
     model_name = (char *)fix_store->getptr("model_name");
     simulatorModel = (KIM_SimulatorModel *)fix_store->getptr("simulator_model");
-  } else error->all(FLERR,"Must use 'kim_init' before 'kim_interactions'");
+  } else error->all(FLERR,"Must use 'kim init' before 'kim interactions'");
 
   // Begin output to log file
-  input->write_echo("#=== BEGIN kim_interactions ==================================\n");
+  input->write_echo("#=== BEGIN kim interactions ==========================="
+                    "=======\n");
 
   if (simulatorModel) {
     if (!fixed_types) {
@@ -211,7 +212,7 @@ void KimInteractions::do_setup(int narg, char **arg)
             //  * This is an INTERNAL command.
             //  * It is intended for use only by KIM Simulator Models.
             //  * It is not possible to use this command outside of the context
-            //    of the kim_interactions command and KIM Simulator Models.
+            //    of the kim interactions command and KIM Simulator Models.
             //  * The command performs a transformation from symbolic
             //    string-based atom types to lammps numeric atom types for
             //    the pair_coeff and charge settings.
@@ -250,7 +251,8 @@ void KimInteractions::do_setup(int narg, char **arg)
   }
 
   // End output to log file
-  input->write_echo("#=== END kim_interactions ====================================\n\n");
+  input->write_echo("#=== END kim interactions ============================="
+                    "=======\n\n");
 }
 
 /* ---------------------------------------------------------------------- */

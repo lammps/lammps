@@ -70,7 +70,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-kimProperty::kimProperty(LAMMPS *lmp) : Pointers(lmp)
+KimProperty::KimProperty(LAMMPS *lmp) : Pointers(lmp)
 {
   // one-time initialization of Python interpreter
   python->init();
@@ -82,7 +82,7 @@ kimProperty::kimProperty(LAMMPS *lmp) : Pointers(lmp)
   }
 }
 
-void kimProperty::command(int narg, char **arg)
+void KimProperty::command(int narg, char **arg)
 {
 #if LMP_PYTHON
 #if PY_MAJOR_VERSION >= 3

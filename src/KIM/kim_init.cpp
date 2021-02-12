@@ -81,17 +81,17 @@ using namespace LAMMPS_NS;
 
 void KimInit::command(int narg, char **arg)
 {
-  if ((narg < 2) || (narg > 3)) error->all(FLERR,"Illegal kim_init command");
+  if ((narg < 2) || (narg > 3)) error->all(FLERR,"Illegal 'kim init' command");
 
   if (domain->box_exist)
-    error->all(FLERR,"Must use 'kim_init' command before "
+    error->all(FLERR,"Must use 'kim init' command before "
                      "simulation box is defined");
   char *model_name = utils::strdup(arg[0]);
   char *user_units = utils::strdup(arg[1]);
   if (narg == 3) {
     if (strcmp(arg[2],"unit_conversion_mode")==0) unit_conversion_mode = true;
     else {
-      error->all(FLERR,fmt::format("Illegal kim_init command.\nThe argument "
+      error->all(FLERR,fmt::format("Illegal 'kim init' command.\nThe argument "
                                    "followed by unit_style {} is an optional "
                                    "argument and when is used must "
                                    "be unit_conversion_mode", user_units));
@@ -283,7 +283,8 @@ void KimInit::determine_model_type_and_units(char * model_name,
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM_Model *&pkim)
+void KimInit::do_init(char *model_name, char *user_units, char *model_units,
+                      KIM_Model *&pkim)
 {
   // create storage proxy fix. delete existing fix, if needed.
 
@@ -298,7 +299,8 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   fix_store->setptr("model_units", (void *) model_units);
 
   // Begin output to log file
-  input->write_echo("#=== BEGIN kim-init ==========================================\n");
+  input->write_echo("#=== BEGIN kim init ==================================="
+                    "=======\n");
 
   KIM_SimulatorModel * simulatorModel;
   if (model_type == SM) {
@@ -407,7 +409,8 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   }
 
   // End output to log file
-  input->write_echo("#=== END kim-init ============================================\n\n");
+  input->write_echo("#=== END kim init ====================================="
+                    "=======\n\n");
 }
 
 /* ---------------------------------------------------------------------- */

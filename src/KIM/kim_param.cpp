@@ -120,11 +120,11 @@ void get_kim_unit_names(
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if (strcmp(system,"lj") == 0 ||
-             strcmp(system,"micro") ==0 ||
-             strcmp(system,"nano")==0) {
-    error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
-                                 "by KIM models", system));
+  } else if (strcmp(system, "lj") == 0 ||
+             strcmp(system, "micro") ==0 ||
+             strcmp(system, "nano")==0) {
+    error->all(FLERR, fmt::format("LAMMPS unit_style {} not supported "
+                                  "by KIM models", system));
   } else
     error->all(FLERR, "Unknown unit_style");
 }
@@ -227,8 +227,7 @@ void KimParam::command(int narg, char **arg)
       KIM_TimeUnit timeUnit;
 
       get_kim_unit_names(model_units, lengthUnit, energyUnit,
-                         chargeUnit, temperatureUnit, timeUnit,
-                         error);
+                         chargeUnit, temperatureUnit, timeUnit, error);
 
       int units_accepted;
 

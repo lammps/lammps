@@ -96,9 +96,9 @@ static size_t write_callback(void *, size_t, size_t, void *);
 
 void KimQuery::command(int narg, char **arg)
 {
-  if (narg < 2) error->all(FLERR,"Illegal kim_query command");
+  if (narg < 2) error->all(FLERR,"Illegal 'kim query' command");
 
-  // check if we had a kim_init command by finding fix STORE/KIM
+  // check if we had a kim init command by finding fix STORE/KIM
   // retrieve model name.
   char *model_name;
 
@@ -106,17 +106,17 @@ void KimQuery::command(int narg, char **arg)
   if (ifix >= 0) {
     FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
     model_name = (char *)fix_store->getptr("model_name");
-  } else error->all(FLERR,"Must use 'kim_init' before 'kim_query'");
+  } else error->all(FLERR,"Must use 'kim init' before 'kim query'");
 
   char *varname = arg[0];
 
   bool split = false;
   if (strcmp("split",arg[1]) == 0) {
-    if (narg == 2) error->all(FLERR,"Illegal kim_query command.\nThe keyword "
+    if (narg == 2) error->all(FLERR,"Illegal 'kim query' command.\nThe keyword "
                                     "'split' must be followed by the name of "
                                     "the query function");
     if (strcmp("list",arg[2]) == 0)
-      error->all(FLERR,"Illegal kim_query command.\nThe 'list' keyword "
+      error->all(FLERR,"Illegal 'kim query' command.\nThe 'list' keyword "
                        "can not be used after 'split'");
     split = true;
     arg++;
@@ -126,7 +126,7 @@ void KimQuery::command(int narg, char **arg)
   // The “list” is the default setting
   // the result is returned as a space-separated list of values in variable
   if (strcmp("list",arg[1]) == 0) {
-    if (narg == 2) error->all(FLERR,"Illegal kim_query command.\nThe 'list' "
+    if (narg == 2) error->all(FLERR,"Illegal 'kim query' command.\nThe 'list' "
                                     "keyword must be followed by ('split' "
                                     "and) the name of the query function");
     arg++;
@@ -136,11 +136,11 @@ void KimQuery::command(int narg, char **arg)
   char *function = arg[1];
   for (int i = 2; i < narg; ++i) {
     if (strncmp("model=",arg[i],6) == 0)
-      error->all(FLERR,"Illegal 'model' key in kim_query command");
+      error->all(FLERR,"Illegal 'model' key in 'kim query' command");
 
     if (!strchr(arg[i], '=') || !strchr(arg[i], '[') || !strchr(arg[i], ']'))
       error->all(FLERR,fmt::format("Illegal query format.\nInput argument of "
-                                   "`{}` to kim_query is wrong. The query "
+                                   "`{}` to 'kim query' is wrong. The query "
                                    "format is the keyword=[value], where value "
                                    "is always an array of one or more "
                                    "comma-separated items", arg[i]));
@@ -161,7 +161,8 @@ void KimQuery::command(int narg, char **arg)
     error->all(FLERR,fmt::format("OpenKIM query returned no results"));
   }
 
-  input->write_echo("#=== BEGIN kim-query =========================================\n");
+  input->write_echo("#=== BEGIN kim query =================================="
+                    "=======\n");
   ValueTokenizer values(value, ",");
   if (split) {
     int counter = 1;
@@ -182,11 +183,12 @@ void KimQuery::command(int narg, char **arg)
     input->variable->set(setcmd);
     input->write_echo(fmt::format("variable {}\n", setcmd));
   }
-  input->write_echo("#=== END kim-query ===========================================\n\n");
+  input->write_echo("#=== END kim query ===================================="
+                    "=======\n\n");
 
   delete[] value;
 #else
-  error->all(FLERR,"Cannot use 'kim_query' command when KIM package "
+  error->all(FLERR,"Cannot use 'kim query' command when KIM package "
                    "is compiled without support for libcurl");
 #endif
 }
@@ -292,7 +294,7 @@ char *do_query(char *qfunction, char * model_name, int narg, char **arg,
         }
       }
 
-      std::string user_agent = fmt::format("kim_query--LAMMPS/{} ({})",
+      std::string user_agent = fmt::format("kim query--LAMMPS/{} ({})",
                                            LAMMPS_VERSION, Info::get_os_info());
 
       curl_easy_setopt(handle, CURLOPT_USERAGENT, user_agent.c_str());

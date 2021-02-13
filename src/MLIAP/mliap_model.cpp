@@ -189,7 +189,6 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
         }
       }
     }
-
     if (comm->me == 0) fclose(fpcoeff);
   }
     
@@ -281,8 +280,8 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
             ielem++;
           }
       }
-  }
-  if (comm->me == 0) fclose(fpcoeff);
+    }
+    if (comm->me == 0) fclose(fpcoeff);
   }
 }
 

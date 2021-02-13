@@ -2710,7 +2710,7 @@ update molecule IDs, charges, types, special lists and all topology
 
 void FixBondReact::update_everything()
 {
-  int nlocal; // must be defined after create_atoms
+  int nlocal = atom->nlocal; // must be redefined after create atoms
   int *type = atom->type;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
@@ -2722,6 +2722,9 @@ void FixBondReact::update_everything()
   // used when deleting atoms
   int ndel,ndelone;
   int *mark;
+  int nmark = nlocal;
+  memory->create(mark,nmark,"bond/react:mark");
+  for (int i = 0; i < nmark; i++) mark[i] = 0;
   tagint *tag = atom->tag;
   AtomVec *avec = atom->avec;
 
@@ -2783,8 +2786,11 @@ void FixBondReact::update_everything()
 
     // mark to-delete atoms
     nlocal = atom->nlocal;
-    mark = new int[nlocal];
-    for (int i = 0; i < nlocal; i++) mark[i] = 0;
+    if (nlocal > nmark) {
+      memory->grow(mark,nlocal,"bond/react:mark");
+      for (int i = nmark; i < nlocal; i++) mark[i] = 0;
+      nmark = nlocal;
+    }
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
       onemol = atom->molecules[unreacted_mol[rxnID]];
@@ -3233,7 +3239,7 @@ void FixBondReact::update_everything()
       }
     }
   }
-  delete [] mark;
+  memory->destroy(mark);
 
   MPI_Allreduce(&ndelone,&ndel,1,MPI_INT,MPI_SUM,world);
 

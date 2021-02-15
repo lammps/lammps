@@ -45,12 +45,23 @@ to have the OpenCL headers and the (vendor neutral) OpenCL library installed.
 In OpenCL mode, the acceleration depends on having an `OpenCL Installable Client Driver (ICD) <https://www.khronos.org/news/permalink/opencl-installable-client-driver-icd-loader>`_
 installed. There can be multiple of them for the same or different hardware
 (GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
-as 'platforms'.  The GPU library will select the **first** suitable platform,
-but this can be overridden using the device option of the :doc:`package <package>`
+as 'platforms'.  The GPU library will try to auto-select the best suitable platform,
+but this can be overridden using the platform option of the :doc:`package <package>`
 command. run lammps/lib/gpu/ocl_get_devices to get a list of available
 platforms and devices with a suitable ICD available.
 
-To compute and use this package in HIP mode, you have to have the AMD ROCm
+To compile and use this package for Intel GPUs, OpenCL or the Intel oneAPI
+HPC Toolkit can be installed using linux package managers. The latter also
+provides optimized C++, MPI, and many other libraries and tools. See:
+
+* https://software.intel.com/content/www/us/en/develop/tools/oneapi/hpc-toolkit/download.html
+
+If you do not have a discrete GPU card installed, this package can still provide
+significant speedups on some CPUs that include integrated GPUs. Additionally, for
+many macs, OpenCL is already included with the OS and Makefiles are available
+in the lib/gpu directory.
+
+To compile and use this package in HIP mode, you have to have the AMD ROCm
 software installed. Versions of ROCm older than 3.5 are currently deprecated
 by AMD.
 
@@ -75,10 +86,20 @@ automatically if you create more MPI tasks/node than there are
 GPUs/mode.  E.g. with 8 MPI tasks/node and 2 GPUs, each GPU will be
 shared by 4 MPI tasks.
 
+The GPU package also has limited support for OpenMP for both
+multi-threading and vectorization of routines that are run on the CPUs.
+This requires that the GPU library and LAMMPS are built with flags to
+enable OpenMP support (e.g. -fopenmp -fopenmp-simd). Some styles for
+time integration are also available in the GPU package. These run
+completely on the CPUs in full double precision, but exploit
+multi-threading and vectorization for faster performance.
+
 Use the "-sf gpu" :doc:`command-line switch <Run_options>`, which will
 automatically append "gpu" to styles that support it.  Use the "-pk
 gpu Ng" :doc:`command-line switch <Run_options>` to set Ng = # of
-GPUs/node to use.
+GPUs/node to use. If Ng is 0, the number is selected automatically as
+the number of matching GPUs that have the highest number of compute
+cores.
 
 .. code-block:: bash
 
@@ -87,8 +108,8 @@ GPUs/node to use.
    mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script   # ditto on 4 16-core nodes
 
 Note that if the "-sf gpu" switch is used, it also issues a default
-:doc:`package gpu 1 <package>` command, which sets the number of
-GPUs/node to 1.
+:doc:`package gpu 0 <package>` command, which will result in
+automatic selection of the number of GPUs to use.
 
 Using the "-pk" switch explicitly allows for setting of the number of
 GPUs/node to use and additional options.  Its syntax is the same as
@@ -137,6 +158,13 @@ a function of the problem size and the pair style being using.
 Likewise, you should experiment with the precision setting for the GPU
 library to see if single or mixed precision will give accurate
 results, since they will typically be faster.
+
+MPI parallelism typically outperforms OpenMP parallelism, but in same cases
+using fewer MPI tasks and multiple OpenMP threads with the GPU package
+can give better performance. 3-body potentials can often perform better
+with multiple OMP threads because the inter-process communication is
+higher for these styles with the GPU package in order to allow
+deterministic results.
 
 **Guidelines for best performance:**
 

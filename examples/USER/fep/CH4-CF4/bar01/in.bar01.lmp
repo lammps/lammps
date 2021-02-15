@@ -32,28 +32,24 @@ pair_coeff    4    4  lj/cut/coul/long    0.0000   1.0000  # Hw Hw
 pair_coeff    4    5  lj/cut/coul/long    0.0000   1.7792  # Hw Ow
 pair_coeff    5    5  lj/cut/coul/long    0.1554   3.1655  # Ow Ow
 
-variable nsteps equal 500000
-variable nprint equal ${nsteps}/500
-variable ndump equal ${nsteps}/100
-# variable nrestart equal ${nsteps}/10
-
 variable temp equal 300.0
 variable press equal 1.0
 
 neighbor 2.0 bin
 
-timestep 2.0
+timestep 1.0
 
 velocity all create ${temp} 12345
 
-thermo_style multi
-thermo ${nprint}
+fix SHAKE all shake 0.0001 20 0 b 3 a 4
 
-fix fSHAKE all shake 0.0001 20 ${nprint} b 3 a 4
+fix NPT all npt temp ${temp} ${temp} 100 iso ${press} ${press} 500
 
-fix fNPT all npt temp ${temp} ${temp} 100 iso ${press} ${press} 500
+thermo_style custom step cpu etotal ke pe evdwl ecoul elong temp press vol density
+thermo 1000
 
 run 200000
+
 reset_timestep 0
 
 variable dlambda equal  1.0
@@ -62,28 +58,19 @@ variable dqC equal  0.48*v_dlambda-0.24*(1.0-v_dlambda)
 variable dqH equal  0.06*(1.0-v_dlambda)
 variable dqF equal -0.12*v_dlambda
 
-compute cFEP all fep ${temp} &
+compute FEP all fep ${temp} &
     pair lj/cut/coul/long/soft lambda 2 4*5 v_minusdl &
     pair lj/cut/coul/long/soft lambda 3 4*5 v_dlambda &
     atom charge 1 v_dqC &
     atom charge 2 v_dqH &
     atom charge 3 v_dqF
 
-fix fFEP all ave/time 1 1 100 c_cFEP[1] c_cFEP[2] file bar01.lmp
+fix FEP all ave/time 1 1 100 c_FEP[1] c_FEP[2] file bar01.fep
 
+dump TRAJ all custom 5000 dump.lammpstrj id mol type element xu yu zu
+dump_modify TRAJ element C H F H O
 
-# compute cRDF all rdf 100 1 1
-# fix fRDF all ave/time 20 100 ${nsteps} c_cRDF file rdf.lammps mode vector
-
-# compute cMSD all msd
-# fix fMSD all ave/time 1 1 ${ndump} c_cMSD[1] c_cMSD[2] c_cMSD[3] c_cMSD[4] file msd.lammps
-
-dump dCONF all custom ${ndump} dump.lammpstrj id mol type element x y z ix iy iz
-dump_modify dCONF element C H F H O
-
-# restart ${nrestart} restart.*.lmp
-
-run ${nsteps}
+run 500000
 
 # write_restart restart.*.lmp
 write_data data.*.lmp

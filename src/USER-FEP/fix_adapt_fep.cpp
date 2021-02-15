@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Charges by type and after option: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Charges by type and after option: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
 #include "fix_adapt_fep.h"

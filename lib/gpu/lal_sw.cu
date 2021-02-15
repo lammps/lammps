@@ -39,88 +39,161 @@ _texture( sw3_tex,int4);
 
 //#define THREE_CONCURRENT
 
-#if (ARCH < 300)
+#if (SHUFFLE_AVAIL == 0)
 
-#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
-                      eflag, vflag, ans, engv)                              \
+#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom,       \
+                        offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1) {                                                       \
-    __local acctyp red_acc[6][BLOCK_ELLIPSE];                               \
-    red_acc[0][tid]=f.x;                                                    \
-    red_acc[1][tid]=f.y;                                                    \
-    red_acc[2][tid]=f.z;                                                    \
-    red_acc[3][tid]=energy;                                                 \
-    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-      if (offset < s) {                                                     \
-        for (int r=0; r<4; r++)                                             \
-          red_acc[r][tid] += red_acc[r][tid+s];                             \
+    simd_reduce_add3(t_per_atom, red_acc, offset, tid, f.x, f.y, f.z);      \
+    if (EVFLAG && (vflag==2 || eflag==2)) {                                 \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        simd_reduce_add1(t_per_atom, red_acc, offset, tid, energy);         \
       }                                                                     \
-    }                                                                       \
-    f.x=red_acc[0][tid];                                                    \
-    f.y=red_acc[1][tid];                                                    \
-    f.z=red_acc[2][tid];                                                    \
-    energy=red_acc[3][tid];                                                 \
-    if (vflag>0) {                                                          \
-      for (int r=0; r<6; r++)                                               \
-        red_acc[r][tid]=virial[r];                                          \
-      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-        if (offset < s) {                                                   \
-          for (int r=0; r<6; r++)                                           \
-            red_acc[r][tid] += red_acc[r][tid+s];                           \
-        }                                                                   \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        simd_reduce_arr(6, t_per_atom, red_acc, offset, tid, virial);       \
       }                                                                     \
-      for (int r=0; r<6; r++)                                               \
-        virial[r]=red_acc[r][tid];                                          \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
-    int ei=ii;                                                              \
-    if (eflag>0) {                                                          \
-      engv[ei]+=energy*(acctyp)0.5;                                         \
-      ei+=inum;                                                             \
-    }                                                                       \
-    if (vflag>0) {                                                          \
-      for (int i=0; i<6; i++) {                                             \
-        engv[ei]+=virial[i]*(acctyp)0.5;                                    \
-        ei+=inum;                                                           \
-      }                                                                     \
-    }                                                                       \
+  if (offset==0 && ii<inum) {                                               \
     acctyp4 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
     ans[ii]=old;                                                            \
+  }                                                                         \
+  if (EVFLAG && (eflag || vflag)) {                                         \
+    int ei=BLOCK_ID_X;                                                      \
+    if (eflag!=2 && vflag!=2) {                                             \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        block_reduce_add1(simd_size(), red_acc, tid, energy);               \
+        if (vflag) __syncthreads();                                         \
+        if (tid==0) {                                                       \
+          engv[ei]+=energy*(acctyp)0.5;                                     \
+          ei+=ev_stride;                                                    \
+        }                                                                   \
+      }                                                                     \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        block_reduce_arr(6, simd_size(), red_acc, tid, virial);             \
+        if (tid==0) {                                                       \
+          for (int r=0; r<6; r++) {                                         \
+            engv[ei]+=virial[r]*(acctyp)0.5;                                \
+            ei+=ev_stride;                                                  \
+          }                                                                 \
+        }                                                                   \
+      }                                                                     \
+    } else if (offset==0 && ii<inum) {                                      \
+      int ei=ii;                                                            \
+      if (EVFLAG && eflag) {                                                \
+        engv[ei]+=energy*(acctyp)0.5;                                       \
+        ei+=inum;                                                           \
+      }                                                                     \
+      if (EVFLAG && vflag) {                                                \
+        for (int i=0; i<6; i++) {                                           \
+          engv[ei]+=virial[i]*(acctyp)0.5;                                  \
+          ei+=inum;                                                         \
+        }                                                                   \
+      }                                                                     \
+    }                                                                       \
   }
 
 #else
 
-#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom, offset, \
-                      eflag, vflag, ans, engv)                              \
+#if (EVFLAG == 1)
+
+#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom,       \
+                        offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1) {                                                       \
-    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-        f.x += shfl_xor(f.x, s, t_per_atom);                                \
-        f.y += shfl_xor(f.y, s, t_per_atom);                                \
-        f.z += shfl_xor(f.z, s, t_per_atom);                                \
-        energy += shfl_xor(energy, s, t_per_atom);                          \
-    }                                                                       \
-    if (vflag>0) {                                                          \
-      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-          for (int r=0; r<6; r++)                                           \
-            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
-      }                                                                     \
+    simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
+    if (vflag==2 || eflag==2) {                                             \
+      if (eflag)                                                            \
+        simd_reduce_add1(t_per_atom,energy);                                \
+      if (vflag)                                                            \
+        simd_reduce_arr(6, t_per_atom,virial);                              \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
-    int ei=ii;                                                              \
-    if (eflag>0) {                                                          \
-      engv[ei]+=energy*(acctyp)0.5;                                         \
-      ei+=inum;                                                             \
-    }                                                                       \
-    if (vflag>0) {                                                          \
-      for (int i=0; i<6; i++) {                                             \
-        engv[ei]+=virial[i]*(acctyp)0.5;                                    \
+  if (offset==0 && ii<inum) {                                               \
+    acctyp4 old=ans[ii];                                                    \
+    old.x+=f.x;                                                             \
+    old.y+=f.y;                                                             \
+    old.z+=f.z;                                                             \
+    ans[ii]=old;                                                            \
+  }                                                                         \
+  if (eflag || vflag) {                                                     \
+    if (eflag!=2 && vflag!=2) {                                             \
+      const int vwidth = simd_size();                                       \
+      const int voffset = tid & (simd_size() - 1);                          \
+      const int bnum = tid/simd_size();                                     \
+      int active_subgs = BLOCK_SIZE_X/simd_size();                          \
+      for ( ; active_subgs > 1; active_subgs /= vwidth) {                   \
+        if (active_subgs < BLOCK_SIZE_X/simd_size()) __syncthreads();       \
+        if (bnum < active_subgs) {                                          \
+          if (eflag) {                                                      \
+            simd_reduce_add1(vwidth, energy);                               \
+            if (voffset==0) red_acc[6][bnum] = energy;                      \
+          }                                                                 \
+          if (vflag) {                                                      \
+            simd_reduce_arr(6, vwidth, virial);                             \
+            if (voffset==0)                                                 \
+              for (int r=0; r<6; r++) red_acc[r][bnum]=virial[r];           \
+          }                                                                 \
+        }                                                                   \
+                                                                            \
+        __syncthreads();                                                    \
+        if (tid < active_subgs) {                                           \
+            if (eflag) energy = red_acc[6][tid];                            \
+          if (vflag)                                                        \
+            for (int r = 0; r < 6; r++) virial[r] = red_acc[r][tid];        \
+        } else {                                                            \
+          if (eflag) energy = (acctyp)0;                                    \
+          if (vflag) for (int r = 0; r < 6; r++) virial[r] = (acctyp)0;     \
+        }                                                                   \
+      }                                                                     \
+                                                                            \
+      if (bnum == 0) {                                                      \
+        int ei=BLOCK_ID_X;                                                  \
+        if (eflag) {                                                        \
+          simd_reduce_add1(vwidth, energy);                                 \
+          if (tid==0) {                                                     \
+            engv[ei]+=energy*(acctyp)0.5;                                   \
+            ei+=ev_stride;                                                  \
+          }                                                                 \
+        }                                                                   \
+        if (vflag) {                                                        \
+          simd_reduce_arr(6, vwidth, virial);                               \
+          if (tid==0) {                                                     \
+            for (int r=0; r<6; r++) {                                       \
+              engv[ei]+=virial[r]*(acctyp)0.5;                              \
+              ei+=ev_stride;                                                \
+            }                                                               \
+          }                                                                 \
+        }                                                                   \
+      }                                                                     \
+    } else if (offset==0 && ii<inum) {                                      \
+      int ei=ii;                                                            \
+      if (eflag) {                                                          \
+        engv[ei]+=energy*(acctyp)0.5;                                       \
         ei+=inum;                                                           \
       }                                                                     \
+      if (vflag) {                                                          \
+        for (int i=0; i<6; i++) {                                           \
+          engv[ei]+=virial[i]*(acctyp)0.5;                                  \
+          ei+=inum;                                                         \
+        }                                                                   \
+      }                                                                     \
     }                                                                       \
+  }
+
+#else
+
+#define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom,       \
+                        offset, eflag, vflag, ans, engv, ev_stride)         \
+  if (t_per_atom>1)                                                         \
+    simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
+  if (offset==0 && ii<inum) {                                               \
     acctyp4 old=ans[ii];                                                    \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
@@ -129,45 +202,45 @@ _texture( sw3_tex,int4);
   }
 
 #endif
+#endif
 
 __kernel void k_sw_short_nbor(const __global numtyp4 *restrict x_,
-                           const __global numtyp4 *restrict sw3,
-                           const __global int *restrict map,
-                           const __global int *restrict elem2param,
-                           const int nelements,
-                           const __global int * dev_nbor,
-                           const __global int * dev_packed,
-                           __global int * dev_short_nbor,
-                           const int inum, const int nbor_pitch, const int t_per_atom) {
-  __local int n_stride;
-  int tid, ii, offset;
-  atom_info(t_per_atom,ii,tid,offset);
+                              const __global numtyp * restrict cutsq,
+                              const int ntypes, __global int * dev_nbor,
+                              const __global int * dev_packed,
+                              const int inum, const int nbor_pitch,
+                              const int t_per_atom) {
+  const int ii=GLOBAL_ID_X;
+
+  #ifdef ONETYPE
+  const numtyp sw_cutsq=cutsq[ONETYPE];
+  #endif
 
   if (ii<inum) {
-    int nbor, nbor_end;
-    int i, numj;
-    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,nbor_end,nbor);
+    const int i=dev_packed[ii];
+    int nbor=ii+nbor_pitch;
+    const int numj=dev_packed[nbor];
+    nbor+=nbor_pitch;
+    const int nbor_end=nbor+fast_mul(numj,nbor_pitch);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int itype=ix.w;
-    itype=map[itype];
+    #ifndef ONETYPE
+    const int itype=ix.w*ntypes;
+    #endif
+    int newj=0;
 
-    int ncount = 0;
-    int m = nbor;
-    dev_short_nbor[m] = 0;
-    int nbor_short = nbor+n_stride;
+    __global int *out_list=dev_nbor+2*nbor_pitch+ii*t_per_atom;
+    const int out_stride=nbor_pitch*t_per_atom-t_per_atom;
 
-    for ( ; nbor<nbor_end; nbor+=n_stride) {
-
-      int j=dev_packed[nbor];
-      int nj = j;
-      j &= NEIGHMASK;
-
+    for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
+      int sj=dev_packed[nbor];
+      int j = sj & NEIGHMASK;
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype=jx.w;
-      jtype=map[jtype];
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
+
+      #ifndef ONETYPE
+      const int mtype=jx.w+itype;
+      const numtyp sw_cutsq=cutsq[mtype];
+      #endif
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -175,74 +248,69 @@ __kernel void k_sw_short_nbor(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<sw3[ijparam].y) { // sw_cutsq = sw3[ijparam].y
-        dev_short_nbor[nbor_short] = nj;
-        nbor_short += n_stride;
-        ncount++;
+      if (rsq<sw_cutsq) {
+        *out_list=sj;
+        out_list++;
+        newj++;
+        if ((newj & (t_per_atom-1))==0)
+          out_list+=out_stride;
       }
     } // for nbor
-
-    // store the number of neighbors for each thread
-    dev_short_nbor[m] = ncount;
-
+    dev_nbor[ii+nbor_pitch]=newj;
   } // if ii
 }
 
 __kernel void k_sw(const __global numtyp4 *restrict x_,
-                   const __global numtyp4 *restrict sw1,
-                   const __global numtyp4 *restrict sw2,
-                   const __global numtyp4 *restrict sw3,
-                   const __global int *restrict map,
-                   const __global int *restrict elem2param,
-                   const int nelements,
-                   const __global int * dev_nbor,
-                   const __global int * dev_packed,
-                   const __global int * dev_short_nbor,
+                   const __global numtyp4 * restrict sw_pre,
+                   const __global numtyp4 * restrict c_14,
+                   const __global numtyp2 * restrict c_56,
+                   const int ntypes, const __global int * dev_nbor,
                    __global acctyp4 *restrict ans,
                    __global acctyp *restrict engv,
                    const int eflag, const int vflag, const int inum,
-                   const int nbor_pitch, const int t_per_atom) {
-  __local int n_stride;
+                   const int nbor_pitch, const int t_per_atom,
+                   const int ev_stride) {
+  int n_stride;
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
+  local_allocate_store_pair();
 
-  acctyp energy=(acctyp)0;
+  #ifdef ONETYPE
+  const numtyp4 pre_sw=sw_pre[ONETYPE];
+  const numtyp4 pre_sw_c14=c_14[ONETYPE];
+  numtyp2 pre_sw_c56;
+  if (EVFLAG && eflag) pre_sw_c56=c_56[ONETYPE];
+  #endif
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
-
-  __syncthreads();
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end, i, numj;
-    const __global int* nbor_mem = dev_packed;
-    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,nbor_end,nbor);
+    nbor_info_p(dev_nbor,nbor_pitch,t_per_atom,ii,offset,i,numj,
+                n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    #ifndef ONETYPE
     int itype=ix.w;
-    itype=map[itype];
-
-    // recalculate numj and nbor_end for use of the short nbor list
-    if (dev_packed==dev_nbor) {
-      numj = dev_short_nbor[nbor];
-      nbor += n_stride;
-      nbor_end = nbor+fast_mul(numj,n_stride);
-      nbor_mem = dev_short_nbor;
-    }
+    itype*=ntypes;
+    #endif
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int j=nbor_mem[nbor];
+      int j=dev_nbor[nbor];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype=jx.w;
-      jtype=map[jtype];
-
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
+      #ifndef ONETYPE
+      int mtype=jx.w;
+      mtype+=itype;
+      #endif
 
       // Compute r12
       numtyp delx = ix.x-jx.x;
@@ -250,62 +318,49 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<sw3[ijparam].y) { // sw_cutsq = sw3[ijparam].y
-        numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-        numtyp sw_epsilon=sw1_ijparam.x;
-        numtyp sw_sigma=sw1_ijparam.y;
-        numtyp4 sw2_ijparam; fetch4(sw2_ijparam,ijparam,sw2_tex);
-        numtyp sw_biga=sw2_ijparam.x;
-        numtyp sw_bigb=sw2_ijparam.y;
-        numtyp sw_powerp=sw2_ijparam.z;
-        numtyp sw_powerq=sw2_ijparam.w;
-        numtyp4 sw3_ijparam; fetch4(sw3_ijparam,ijparam,sw3_tex);
-        numtyp sw_cut=sw3_ijparam.x;
-        numtyp pre_sw_c1=sw_biga*sw_epsilon*sw_powerp*sw_bigb*
-            pow(sw_sigma,sw_powerp);
-        numtyp pre_sw_c2=sw_biga*sw_epsilon*sw_powerq*
-            pow(sw_sigma,sw_powerq);
-        numtyp pre_sw_c3=sw_biga*sw_epsilon*sw_bigb*
-            pow(sw_sigma,sw_powerp+(numtyp)1.0);
-        numtyp pre_sw_c4=sw_biga*sw_epsilon*
-            pow(sw_sigma,sw_powerq+(numtyp)1.0);
-        numtyp pre_sw_c5=sw_biga*sw_epsilon*sw_bigb*
-            pow(sw_sigma,sw_powerp);
-        numtyp pre_sw_c6=sw_biga*sw_epsilon*
-            pow(sw_sigma,sw_powerq);
+      #ifndef ONETYPE
+      numtyp4 pre_sw=sw_pre[mtype];
+      numtyp4 pre_sw_c14=c_14[mtype];
+      #endif
+      numtyp r=ucl_sqrt(rsq);
+      #ifdef SPQ
+      numtyp rp=r*r;
+      rp=ucl_recip(rp*rp);
+      numtyp rq=(numtyp)1.0;
+      #else
+      numtyp rp=ucl_powr(r,-pre_sw.z);
+      numtyp rq=ucl_powr(r,-pre_sw.w);
+      #endif
+      numtyp rainv=ucl_recip(r-pre_sw.x);
+      numtyp expsrainv=ucl_exp(pre_sw.y*rainv);
+      rainv*=rainv*r;
+      numtyp force = (pre_sw_c14.x*rp-pre_sw_c14.y*rq +
+                     (pre_sw_c14.z*rp-pre_sw_c14.w*rq) * rainv)*
+                     expsrainv*ucl_recip(rsq);
 
-        numtyp r=ucl_sqrt(rsq);
-        numtyp rp=ucl_powr(r,-sw_powerp);
-        numtyp rq=ucl_powr(r,-sw_powerq);
-        numtyp rainv=ucl_recip(r-sw_cut);
-        numtyp expsrainv=ucl_exp(sw_sigma*rainv);
-        rainv*=rainv*r;
-        numtyp force = (pre_sw_c1*rp-pre_sw_c2*rq +
-                       (pre_sw_c3*rp-pre_sw_c4*rq) * rainv)*
-                       expsrainv*ucl_recip(rsq);
+      f.x+=delx*force;
+      f.y+=dely*force;
+      f.z+=delz*force;
 
-        f.x+=delx*force;
-        f.y+=dely*force;
-        f.z+=delz*force;
+      if (EVFLAG && eflag) {
+        #ifndef ONETYPE
+        numtyp2 pre_sw_c56=c_56[mtype];
+        #endif
+        energy+=(pre_sw_c56.x*rp - pre_sw_c56.y*rq) * expsrainv;
+      }
 
-        if (eflag>0)
-          energy+=(pre_sw_c5*rp - pre_sw_c6*rq) * expsrainv;
-
-        if (vflag>0) {
-          virial[0] += delx*delx*force;
-          virial[1] += dely*dely*force;
-          virial[2] += delz*delz*force;
-          virial[3] += delx*dely*force;
-          virial[4] += delx*delz*force;
-          virial[5] += dely*delz*force;
-        }
+      if (EVFLAG && vflag) {
+        virial[0] += delx*delx*force;
+        virial[1] += dely*dely*force;
+        virial[2] += delz*delz*force;
+        virial[3] += delx*dely*force;
+        virial[4] += delx*delz*force;
+        virial[5] += dely*delz*force;
       }
     } // for nbor
-
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
-
+  store_answers_p(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                  ans,engv,ev_stride);
 }
 
 #define threebody(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z, eflag, energy)  \
@@ -334,7 +389,7 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
   numtyp facrad = sw_lambda_epsilon_ijk * facexp*delcssq;                    \
   numtyp frad1 = facrad*gsrainvsq1;                                          \
   numtyp frad2 = facrad*gsrainvsq2;                                          \
-  numtyp facang = sw_lambda_epsilon2_ijk * facexp*delcs;                     \
+  numtyp facang = (numtyp)2.0 * sw_lambda_epsilon_ijk * facexp*delcs;        \
   numtyp facang12 = rinv12*facang;                                           \
   numtyp csfacang = cs*facang;                                               \
   numtyp csfac1 = rinvsq1*csfacang;                                          \
@@ -349,9 +404,9 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
   fky = delr2y*(frad2+csfac2)-delr1y*facang12;                               \
   fkz = delr2z*(frad2+csfac2)-delr1z*facang12;                               \
                                                                              \
-  if (eflag>0)                                                               \
+  if (EVFLAG && eflag)                                                       \
     energy+=facrad;                                                          \
-  if (vflag>0) {                                                             \
+  if (EVFLAG && vflag) {                                                     \
     virial[0] += delr1x*fjx + delr2x*fkx;                                    \
     virial[1] += delr1y*fjy + delr2y*fky;                                    \
     virial[2] += delr1z*fjz + delr2z*fkz;                                    \
@@ -384,7 +439,7 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
                                                                              \
   numtyp facrad = sw_lambda_epsilon_ijk * facexp*delcssq;                    \
   numtyp frad1 = facrad*gsrainvsq1;                                          \
-  numtyp facang = sw_lambda_epsilon2_ijk * facexp*delcs;                     \
+  numtyp facang = (numtyp)2.0 * sw_lambda_epsilon_ijk * facexp*delcs;        \
   numtyp facang12 = rinv12*facang;                                           \
   numtyp csfacang = cs*facang;                                               \
   numtyp csfac1 = rinvsq1*csfacang;                                          \
@@ -394,67 +449,68 @@ __kernel void k_sw(const __global numtyp4 *restrict x_,
   fjz = delr1z*(frad1+csfac1)-delr2z*facang12;                               \
 }
 
+#ifdef ONETYPE
+#define sw_cut_ij sw_cut
+#define sw_cut_ik sw_cut
+#define sw_sigma_gamma_ij sw_sigma_gamma
+#define sw_sigma_gamma_ik sw_sigma_gamma
+#endif
+
 __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
-                                const __global numtyp4 *restrict sw1,
-                                const __global numtyp4 *restrict sw2,
-                                const __global numtyp4 *restrict sw3,
-                                const __global int *restrict map,
-                                const __global int *restrict elem2param,
-                                const int nelements,
+                                const __global numtyp2 *restrict cut_sig_gamma,
+                                const __global numtyp2 *restrict sw_pre3,
+                                const int ntypes,
                                 const __global int * dev_nbor,
-                                const __global int * dev_packed,
-                                const __global int * dev_short_nbor,
                                 __global acctyp4 *restrict ans,
                                 __global acctyp *restrict engv,
                                 const int eflag, const int vflag,
                                 const int inum,  const int nbor_pitch,
                                 const int t_per_atom, const int evatom) {
-  __local int tpa_sq, n_stride;
-  tpa_sq=fast_mul(t_per_atom,t_per_atom);
-  numtyp sw_sigma_gamma_ij, sw_cut_ij, sw_sigma_gamma_ik, sw_cut_ik;
-  numtyp sw_costheta_ijk, sw_lambda_epsilon_ijk, sw_lambda_epsilon2_ijk;
+  int n_stride;
+  const int tpa_sq=fast_mul(t_per_atom,t_per_atom);
+  local_allocate_store_three();
 
   int tid, ii, offset;
   atom_info(tpa_sq,ii,tid,offset);
 
-  acctyp energy=(acctyp)0;
+  #ifdef ONETYPE
+  const numtyp sw_cut=cut_sig_gamma[ONETYPE].x;
+  const numtyp sw_sigma_gamma=cut_sig_gamma[ONETYPE].y;
+  const numtyp sw_lambda_epsilon_ijk=sw_pre3[ONETYPE3].x;
+  const numtyp sw_costheta_ijk=sw_pre3[ONETYPE3].y;
+  #endif
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
-
-  __syncthreads();
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end;
-    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
-    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
-              n_stride,nbor_end,nbor_j);
+    nbor_info_p(dev_nbor,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
+                n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    #ifndef ONETYPE
     int itype=ix.w;
-    itype=map[itype];
-
-    // recalculate numj and nbor_end for use of the short nbor list
-    if (dev_packed==dev_nbor) {
-      numj = dev_short_nbor[nbor_j];
-      nbor_j += n_stride;
-      nbor_end = nbor_j+fast_mul(numj,n_stride);
-      nbor_mem = dev_short_nbor;
-    }
-    int nborj_start = nbor_j;
+    itype*=ntypes;
+    #endif
 
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
 
-      int j=nbor_mem[nbor_j];
+      int j=dev_nbor[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype=jx.w;
-      jtype=map[jtype];
+      #ifndef ONETYPE
+      int mtypej=jx.w;
+      mtypej+=itype;
+      #endif
 
       // Compute r12
       numtyp delr1x = jx.x-ix.x;
@@ -462,139 +518,116 @@ __kernel void k_sw_three_center(const __global numtyp4 *restrict x_,
       numtyp delr1z = jx.z-ix.z;
       numtyp rsq1 = delr1x*delr1x+delr1y*delr1y+delr1z*delr1z;
 
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
-      numtyp4 sw3_ijparam; fetch4(sw3_ijparam,ijparam,sw3_tex);
+      #ifndef ONETYPE
+      const numtyp sw_cut_ij=cut_sig_gamma[mtypej].x;
+      const numtyp sw_sigma_gamma_ij=cut_sig_gamma[mtypej].y;
+      #endif
 
-      if (rsq1 > sw3_ijparam.y) continue;
+      int nbor_k;
+      nbor_k = nbor_j-offset_j+offset_k;
+      if (nbor_k<=nbor_j) nbor_k += n_stride;
 
-      numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-      sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
-      sw_cut_ij=sw3_ijparam.x;
-
-      int nbor_k,k_end;
-      if (dev_packed==dev_nbor) {
-        nbor_k=nborj_start-offset_j+offset_k;
-        int numk = dev_short_nbor[nbor_k-n_stride];
-        k_end = nbor_k+fast_mul(numk,n_stride);
-      } else {
-        nbor_k = nbor_j-offset_j+offset_k;
-        if (nbor_k<=nbor_j) nbor_k += n_stride;
-        k_end = nbor_end;
-      }
-
-      for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=nbor_mem[nbor_k];
+      for ( ; nbor_k<nbor_end; nbor_k+=n_stride) {
+        int k=dev_nbor[nbor_k];
         k &= NEIGHMASK;
 
-        if (dev_packed==dev_nbor && k <= j) continue;
-
         numtyp4 kx; fetch4(kx,k,pos_tex);
-        int ktype=kx.w;
-        ktype=map[ktype];
-        int ikparam=elem2param[itype*nelements*nelements+ktype*nelements+ktype];
-        numtyp4 sw3_ikparam; fetch4(sw3_ikparam,ikparam,sw3_tex);
+        #ifndef ONETYPE
+        const int ktype=kx.w;
+        const int mtypek=itype+ktype;
+        #endif
 
         numtyp delr2x = kx.x-ix.x;
         numtyp delr2y = kx.y-ix.y;
         numtyp delr2z = kx.z-ix.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
-        if (rsq2 < sw3_ikparam.y) {   // sw_cutsq=sw3[ikparam].y;
-          numtyp4 sw1_ikparam; fetch4(sw1_ikparam,ikparam,sw1_tex);
-          sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
-          sw_cut_ik=sw3_ikparam.x;
+        #ifndef ONETYPE
+        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
+        const numtyp sw_sigma_gamma_ik=cut_sig_gamma[mtypek].y;
+        const int mtypejk=ntypes*mtypej+ktype;
+        const numtyp sw_lambda_epsilon_ijk=sw_pre3[mtypejk].x;
+        const numtyp sw_costheta_ijk=sw_pre3[mtypejk].y;
+        #endif
 
-          int ijkparam=elem2param[itype*nelements*nelements+jtype*nelements+ktype];
-          numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
-          sw_lambda_epsilon_ijk=sw1_ijkparam.x*sw1_ijkparam.z; //sw_lambda*sw_epsilon;
-          sw_lambda_epsilon2_ijk=(numtyp)2.0*sw_lambda_epsilon_ijk;
-          numtyp4 sw3_ijkparam; fetch4(sw3_ijkparam,ijkparam,sw3_tex);
-          sw_costheta_ijk=sw3_ijkparam.z;
+        numtyp fjx, fjy, fjz, fkx, fky, fkz;
+        threebody(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z,eflag,energy);
 
-          numtyp fjx, fjy, fjz, fkx, fky, fkz;
-          threebody(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z,eflag,energy);
-
-          f.x -= fjx + fkx;
-          f.y -= fjy + fky;
-          f.z -= fjz + fkz;
-        }
+        f.x -= fjx + fkx;
+        f.y -= fjy + fky;
+        f.z -= fjz + fkz;
       }
     } // for nbor
 
-    numtyp pre;
-    if (evatom==1)
-      pre=THIRD;
-    else
-      pre=(numtyp)2.0;
-    energy*=pre;
-    for (int i=0; i<6; i++)
-      virial[i]*=pre;
-
-    store_answers_p(f,energy,virial,ii,inum,tid,tpa_sq,offset,
-                    eflag,vflag,ans,engv);
-
+    if (EVFLAG) {
+      numtyp pre;
+      if (evatom==1)
+        pre=THIRD;
+      else
+        pre=(numtyp)2.0;
+      energy*=pre;
+      if (vflag)
+      for (int i=0; i<6; i++)
+        virial[i]*=pre;
+    }
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,tpa_sq,offset,
+                eflag,vflag,ans,engv);
 }
 
 __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
-                             const __global numtyp4 *restrict sw1,
-                             const __global numtyp4 *restrict sw2,
-                             const __global numtyp4 *restrict sw3,
-                             const __global int *restrict map,
-                             const __global int *restrict elem2param,
-                             const int nelements,
-                             const __global int * dev_nbor,
-                             const __global int * dev_packed,
+                             const __global numtyp2 *restrict cut_sig_gamma,
+                             const __global numtyp2 *restrict sw_pre3,
+                             const int ntypes, const __global int * dev_nbor,
                              const __global int * dev_ilist,
-                             const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag,
                              const int inum,  const int nbor_pitch,
                              const int t_per_atom, const int gpu_nbor) {
-  __local int tpa_sq, n_stride;
-  tpa_sq=fast_mul(t_per_atom,t_per_atom);
-  numtyp sw_sigma_gamma_ij, sw_cut_ij, sw_sigma_gamma_ik, sw_cut_ik;
-  numtyp sw_costheta_ijk, sw_lambda_epsilon_ijk, sw_lambda_epsilon2_ijk;
-
+  int n_stride;
+  const int tpa_sq=fast_mul(t_per_atom,t_per_atom);
   int tid, ii, offset;
   atom_info(tpa_sq,ii,tid,offset);
 
-  acctyp energy=(acctyp)0;
+  local_allocate_store_three();
+
+  #ifdef ONETYPE
+  const numtyp sw_cut=cut_sig_gamma[ONETYPE].x;
+  const numtyp sw_sigma_gamma=cut_sig_gamma[ONETYPE].y;
+  const numtyp sw_lambda_epsilon_ijk=sw_pre3[ONETYPE3].x;
+  const numtyp sw_costheta_ijk=sw_pre3[ONETYPE3].y;
+  #endif
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
-
-  __syncthreads();
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
-    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
-              n_stride,nbor_end,nbor_j);
+    nbor_info_p(dev_nbor,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
+                n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    #ifndef ONETYPE
     int itype=ix.w;
-    itype=map[itype];
-
-    // recalculate numj and nbor_end for use of the short nbor list
-    if (dev_packed==dev_nbor) {
-      numj = dev_short_nbor[nbor_j];
-      nbor_j += n_stride;
-      nbor_end = nbor_j+fast_mul(numj,n_stride);
-      nbor_mem = dev_short_nbor;
-    }
+    itype*=ntypes;
+    #endif
 
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-      int j=nbor_mem[nbor_j];
+      int j=dev_nbor[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype=jx.w;
-      jtype=map[jtype];
+      #ifndef ONETYPE
+      const int jtype=jx.w;
+      const int mtypej=itype+jtype;
+      #endif
 
       // Compute r12
       numtyp delr1x = ix.x-jx.x;
@@ -602,148 +635,116 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
       numtyp delr1z = ix.z-jx.z;
       numtyp rsq1 = delr1x*delr1x+delr1y*delr1y+delr1z*delr1z;
 
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
-      numtyp4 sw3_ijparam; fetch4(sw3_ijparam,ijparam,sw3_tex);
+      #ifndef ONETYPE
+      const numtyp sw_cut_ij=cut_sig_gamma[mtypej].x;
+      const numtyp sw_sigma_gamma_ij=cut_sig_gamma[mtypej].y;
+      #endif
 
-      if (rsq1 > sw3_ijparam.y) continue;
-
-      numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-      sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
-      sw_cut_ij=sw3_ijparam.x;
-
-      int nbor_k,numk;
-      if (dev_nbor==dev_packed) {
-        if (gpu_nbor) nbor_k=j+nbor_pitch;
-        else nbor_k=dev_ilist[j]+nbor_pitch;
-        numk=dev_nbor[nbor_k];
-        nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
-        k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
-        nbor_k+=offset_k;
-      } else {
-        nbor_k=dev_ilist[j]+nbor_pitch;
-        numk=dev_nbor[nbor_k];
-        nbor_k+=nbor_pitch;
-        nbor_k=dev_nbor[nbor_k];
-        k_end=nbor_k+numk;
-        nbor_k+=offset_k;
-      }
-
-      // recalculate numk and k_end for the use of short neighbor list
-      if (dev_packed==dev_nbor) {
-        numk = dev_short_nbor[nbor_k];
-        nbor_k += n_stride;
-        k_end = nbor_k+fast_mul(numk,n_stride);
-      }
+      int nbor_k;
+      if (gpu_nbor) nbor_k=j+nbor_pitch;
+      else nbor_k=dev_ilist[j]+nbor_pitch;
+      const int numk=dev_nbor[nbor_k];
+      nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
+      k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk&(t_per_atom-1));
+      nbor_k+=offset_k;
 
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=nbor_mem[nbor_k];
+        int k=dev_nbor[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;
 
         numtyp4 kx; fetch4(kx,k,pos_tex);
-        int ktype=kx.w;
-        ktype=map[ktype];
-        int ikparam=elem2param[jtype*nelements*nelements+ktype*nelements+ktype]; //jk
+        #ifndef ONETYPE
+        const int ktype=kx.w;
+        const int mtypek=jtype*ntypes+ktype;
+        #endif
 
         numtyp delr2x = kx.x - jx.x;
         numtyp delr2y = kx.y - jx.y;
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
-        numtyp4 sw3_ikparam; fetch4(sw3_ikparam,ikparam,sw3_tex);
 
-        if (rsq2 < sw3_ikparam.y) {
-          numtyp4 sw1_ikparam; fetch4(sw1_ikparam,ikparam,sw1_tex);
-          sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
-          sw_cut_ik=sw3_ikparam.x;
+        #ifndef ONETYPE
+        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
+        const numtyp sw_sigma_gamma_ik=cut_sig_gamma[mtypek].y;
+        const int mtypejik=jtype*ntypes*ntypes+itype+ktype;
+        const numtyp sw_lambda_epsilon_ijk=sw_pre3[mtypejik].x;
+        const numtyp sw_costheta_ijk=sw_pre3[mtypejik].y;
+        #endif
 
-          int ijkparam=elem2param[jtype*nelements*nelements+itype*nelements+ktype]; //jik
-          numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
-          sw_lambda_epsilon_ijk=sw1_ijkparam.x*sw1_ijkparam.z; //sw_lambda*sw_epsilon;
-          sw_lambda_epsilon2_ijk=(numtyp)2.0*sw_lambda_epsilon_ijk;
-          numtyp4 sw3_ijkparam; fetch4(sw3_ijkparam,ijkparam,sw3_tex);
-          sw_costheta_ijk=sw3_ijkparam.z;
+        numtyp fjx, fjy, fjz;
+        threebody_half(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z);
 
-          numtyp fjx, fjy, fjz;
-          threebody_half(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z);
-
-          f.x += fjx;
-          f.y += fjy;
-          f.z += fjz;
-        }
+        f.x += fjx;
+        f.y += fjy;
+        f.z += fjz;
       }
-
     } // for nbor
-    #ifdef THREE_CONCURRENT
-    store_answers(f,energy,virial,ii,inum,tid,tpa_sq,offset,
-                  eflag,vflag,ans,engv);
-    #else
-    store_answers_p(f,energy,virial,ii,inum,tid,tpa_sq,offset,
-                    eflag,vflag,ans,engv);
-    #endif
   } // if ii
+  #ifdef THREE_CONCURRENT
+  store_answers(f,energy,virial,ii,inum,tid,tpa_sq,offset,
+                eflag,vflag,ans,engv);
+  #else
+  store_answers_p(f,energy,virial,ii,inum,tid,tpa_sq,offset,
+                  eflag,vflag,ans,engv,NUM_BLOCKS_X);
+  #endif
 }
 
 __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
-                             const __global numtyp4 *restrict sw1,
-                             const __global numtyp4 *restrict sw2,
-                             const __global numtyp4 *restrict sw3,
-                             const __global int *restrict map,
-                             const __global int *restrict elem2param,
-                             const int nelements,
-                             const __global int * dev_nbor,
-                             const __global int * dev_packed,
+                             const __global numtyp2 *restrict cut_sig_gamma,
+                             const __global numtyp2 *restrict sw_pre3,
+                             const int ntypes, const __global int * dev_nbor,
                              const __global int * dev_ilist,
-                             const __global int * dev_short_nbor,
                              __global acctyp4 *restrict ans,
                              __global acctyp *restrict engv,
                              const int eflag, const int vflag,
                              const int inum,  const int nbor_pitch,
                              const int t_per_atom, const int gpu_nbor) {
-  __local int tpa_sq, n_stride;
-  tpa_sq=fast_mul(t_per_atom,t_per_atom);
-  numtyp sw_sigma_gamma_ij, sw_cut_ij, sw_sigma_gamma_ik, sw_cut_ik;
-  numtyp sw_costheta_ijk, sw_lambda_epsilon_ijk, sw_lambda_epsilon2_ijk;
-
+  int n_stride;
+  const int tpa_sq=fast_mul(t_per_atom,t_per_atom);
   int tid, ii, offset;
   atom_info(tpa_sq,ii,tid,offset);
 
-  acctyp energy=(acctyp)0;
+  local_allocate_store_three();
+
+  #ifdef ONETYPE
+  const numtyp sw_cut=cut_sig_gamma[ONETYPE].x;
+  const numtyp sw_sigma_gamma=cut_sig_gamma[ONETYPE].y;
+  const numtyp sw_lambda_epsilon_ijk=sw_pre3[ONETYPE3].x;
+  const numtyp sw_costheta_ijk=sw_pre3[ONETYPE3].y;
+  #endif
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
-
-  __syncthreads();
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int i, numj, nbor_j, nbor_end, k_end;
-    const __global int* nbor_mem = dev_packed;
     int offset_j=offset/t_per_atom;
-    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
-              n_stride,nbor_end,nbor_j);
+    nbor_info_p(dev_nbor,nbor_pitch,t_per_atom,ii,offset_j,i,numj,
+                n_stride,nbor_end,nbor_j);
     int offset_k=tid & (t_per_atom-1);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    #ifndef ONETYPE
     int itype=ix.w;
-    itype=map[itype];
-
-    // recalculate numj and nbor_end for use of the short nbor list
-    if (dev_packed==dev_nbor) {
-      numj = dev_short_nbor[nbor_j];
-      nbor_j += n_stride;
-      nbor_end = nbor_j+fast_mul(numj,n_stride);
-      nbor_mem = dev_short_nbor;
-    }
+    itype*=ntypes;
+    #endif
 
     for ( ; nbor_j<nbor_end; nbor_j+=n_stride) {
-      int j=nbor_mem[nbor_j];
+      int j=dev_nbor[nbor_j];
       j &= NEIGHMASK;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
-      int jtype=jx.w;
-      jtype=map[jtype];
+      #ifndef ONETYPE
+      const int jtype=jx.w;
+      const int mtypej=itype+jtype;
+      #endif
 
       // Compute r12
       numtyp delr1x = ix.x-jx.x;
@@ -751,88 +752,61 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
       numtyp delr1z = ix.z-jx.z;
       numtyp rsq1 = delr1x*delr1x+delr1y*delr1y+delr1z*delr1z;
 
-      int ijparam=elem2param[itype*nelements*nelements+jtype*nelements+jtype];
-      numtyp4 sw3_ijparam; fetch4(sw3_ijparam,ijparam,sw3_tex);
+      #ifndef ONETYPE
+      const numtyp sw_cut_ij=cut_sig_gamma[mtypej].x;
+      const numtyp sw_sigma_gamma_ij=cut_sig_gamma[mtypej].y;
+      #endif
 
-      if (rsq1 > sw3_ijparam.y) continue;
-
-      numtyp4 sw1_ijparam; fetch4(sw1_ijparam,ijparam,sw1_tex);
-      sw_sigma_gamma_ij=sw1_ijparam.y*sw1_ijparam.w; //sw_sigma*sw_gamma;
-      sw_cut_ij=sw3_ijparam.x;
-
-      int nbor_k,numk;
-      if (dev_nbor==dev_packed) {
-        if (gpu_nbor) nbor_k=j+nbor_pitch;
-        else nbor_k=dev_ilist[j]+nbor_pitch;
-        numk=dev_nbor[nbor_k];
-        nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
-        k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk & (t_per_atom-1));
-        nbor_k+=offset_k;
-      } else {
-        nbor_k=dev_ilist[j]+nbor_pitch;
-        numk=dev_nbor[nbor_k];
-        nbor_k+=nbor_pitch;
-        nbor_k=dev_nbor[nbor_k];
-        k_end=nbor_k+numk;
-        nbor_k+=offset_k;
-      }
-
-      // recalculate numk and k_end for the use of short neighbor list
-      if (dev_packed==dev_nbor) {
-        numk = dev_short_nbor[nbor_k];
-        nbor_k += n_stride;
-        k_end = nbor_k+fast_mul(numk,n_stride);
-      }
+      int nbor_k;
+      if (gpu_nbor) nbor_k=j+nbor_pitch;
+      else nbor_k=dev_ilist[j]+nbor_pitch;
+      const int numk=dev_nbor[nbor_k];
+      nbor_k+=nbor_pitch+fast_mul(j,t_per_atom-1);
+      k_end=nbor_k+fast_mul(numk/t_per_atom,n_stride)+(numk&(t_per_atom-1));
+      nbor_k+=offset_k;
 
       for ( ; nbor_k<k_end; nbor_k+=n_stride) {
-        int k=nbor_mem[nbor_k];
+        int k=dev_nbor[nbor_k];
         k &= NEIGHMASK;
 
         if (k == i) continue;
 
         numtyp4 kx; fetch4(kx,k,pos_tex);
-        int ktype=kx.w;
-        ktype=map[ktype];
-        int ikparam=elem2param[jtype*nelements*nelements+ktype*nelements+ktype]; // jk
-        numtyp4 sw3_ikparam; fetch4(sw3_ikparam,ikparam,sw3_tex);
+        #ifndef ONETYPE
+        const int ktype=kx.w;
+        const int mtypek=jtype*ntypes+ktype;
+        #endif
 
         numtyp delr2x = kx.x - jx.x;
         numtyp delr2y = kx.y - jx.y;
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
 
-        if (rsq2 < sw3_ikparam.y) {
-          numtyp4 sw1_ikparam; fetch4(sw1_ikparam,ikparam,sw1_tex);
-          sw_sigma_gamma_ik=sw1_ikparam.y*sw1_ikparam.w; //sw_sigma*sw_gamma;
-          sw_cut_ik=sw3_ikparam.x;
+        #ifndef ONETYPE
+        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
+        const numtyp sw_sigma_gamma_ik=cut_sig_gamma[mtypek].y;
+        const int mtypejik=jtype*ntypes*ntypes+itype+ktype;
+        const numtyp sw_lambda_epsilon_ijk=sw_pre3[mtypejik].x;
+        const numtyp sw_costheta_ijk=sw_pre3[mtypejik].y;
+        #endif
 
-          int ijkparam=elem2param[jtype*nelements*nelements+itype*nelements+ktype]; // jik
-          numtyp4 sw1_ijkparam; fetch4(sw1_ijkparam,ijkparam,sw1_tex);
-          sw_lambda_epsilon_ijk=sw1_ijkparam.x*sw1_ijkparam.z; //sw_lambda*sw_epsilon;
-          sw_lambda_epsilon2_ijk=(numtyp)2.0*sw_lambda_epsilon_ijk;
-          numtyp4 sw3_ijkparam; fetch4(sw3_ijkparam,ijkparam,sw3_tex);
-          sw_costheta_ijk=sw3_ijkparam.z;
+        numtyp fjx, fjy, fjz, fkx, fky, fkz;
+        threebody(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z,eflag,energy);
 
-          numtyp fjx, fjy, fjz, fkx, fky, fkz;
-          threebody(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z,eflag,energy);
-
-          f.x += fjx;
-          f.y += fjy;
-          f.z += fjz;
-        }
+        f.x += fjx;
+        f.y += fjy;
+        f.z += fjz;
       }
-
     } // for nbor
     energy*=THIRD;
     for (int i=0; i<6; i++)
       virial[i]*=THIRD;
-    #ifdef THREE_CONCURRENT
-    store_answers(f,energy,virial,ii,inum,tid,tpa_sq,offset,
-                  eflag,vflag,ans,engv);
-    #else
-    store_answers_p(f,energy,virial,ii,inum,tid,tpa_sq,offset,
-                    eflag,vflag,ans,engv);
-    #endif
   } // if ii
+  #ifdef THREE_CONCURRENT
+  store_answers(f,energy,virial,ii,inum,tid,tpa_sq,offset,
+                eflag,vflag,ans,engv);
+  #else
+  store_answers_p(f,energy,virial,ii,inum,tid,tpa_sq,offset,
+                  eflag,vflag,ans,engv,NUM_BLOCKS_X);
+  #endif
 }
-

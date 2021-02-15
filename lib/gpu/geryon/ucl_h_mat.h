@@ -241,7 +241,7 @@ class UCL_H_Mat : public UCL_BaseMat {
     _array=input.begin()+offset;
     _end=_array+_cols;
     #ifdef _OCL_MAT
-    _host_view(*this,input,_row_bytes*_rows);
+    _host_view(*this,input,offset*sizeof(numtyp),_row_bytes*_rows);
     #endif
   }
 

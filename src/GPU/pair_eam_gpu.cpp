@@ -50,11 +50,11 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
 void eam_gpu_clear();
 int** eam_gpu_compute_n(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, double *sublo,
-                        double *subhi, tagint *tag, int **nspecial, tagint **special,
-                        const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist,
-                        int **jnum,  const double cpu_time, bool &success,
-                        int &inum, void **fp_ptr);
+                        double *subhi, tagint *tag, int **nspecial,
+                        tagint **special, const bool eflag, const bool vflag,
+                        const bool eatom, const bool vatom, int &host_start,
+                        int **ilist, int **jnum,  const double cpu_time,
+                        bool &success, int &inum, void **fp_ptr);
 void eam_gpu_compute(const int ago, const int inum_full, const int nlocal,
                      const int nall,double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh,
@@ -185,10 +185,11 @@ void PairEAMGPU::init_style()
   if (atom->molecular)
     maxspecial=atom->maxspecial;
   int fp_size;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = eam_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
                              type2frho, rhor_spline, z2r_spline, frho_spline,
                              rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
-                             atom->nlocal, atom->nlocal+atom->nghost, 300,
+                             atom->nlocal, atom->nlocal+atom->nghost, mnf,
                              maxspecial, cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -197,7 +198,6 @@ void PairEAMGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
-
   if (fp_size == sizeof(double))
     fp_single = false;
   else

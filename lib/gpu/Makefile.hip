@@ -17,7 +17,7 @@ LMP_INC = -DLAMMPS_SMALLBIG
 HIP_PRECISION = -D_SINGLE_DOUBLE
 
 HIP_OPTS = -O3
-HIP_HOST_OPTS = -Wno-deprecated-declarations
+HIP_HOST_OPTS = -Wno-deprecated-declarations -fopenmp -fopenmp-sim
 HIP_HOST_INCLUDE =
 
 # use device sort

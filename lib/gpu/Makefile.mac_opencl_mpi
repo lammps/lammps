@@ -1,0 +1,23 @@
+# /* ----------------------------------------------------------------------   
+#  Generic Mac Makefile for OpenCL - Single precision with FFT_SINGLE
+# ------------------------------------------------------------------------- */
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.mac_ocl
+
+LMP_INC = -DLAMMPS_SMALLBIG
+
+OCL_CPP = mpicxx -std=c++11 -O3 -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+OCL_LINK = -framework OpenCL
+OCL_PREC = -D_SINGLE_SINGLE
+OCL_TUNE = -DUCL_NO_EXIT -DMPI_GERYON
+
+BIN_DIR = ./
+OBJ_DIR = ./
+LIB_DIR = ./
+AR = ar
+BSH = /bin/sh
+
+include Opencl.makefile
+

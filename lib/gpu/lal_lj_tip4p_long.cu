@@ -129,7 +129,7 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
         f.x += fM.x * (acctyp)0.5 * alpha;
         f.y += fM.y * (acctyp)0.5 * alpha;
         f.z += fM.z * (acctyp)0.5 * alpha;
-        if (vflag > 0) {
+        if (EVFLAG && vflag) {
           vM = ansO[inum  +iO];
           engv[inum*engv_iter + i] += vM.x * (acctyp)0.5 * alpha; engv_iter++;
           engv[inum*engv_iter + i] += vM.y * (acctyp)0.5 * alpha; engv_iter++;
@@ -147,13 +147,13 @@ __kernel void k_lj_tip4p_long_distrib(const __global numtyp4 *restrict x_,
       f.x += fM.x * (acctyp)(1 - alpha);
       f.y += fM.y * (acctyp)(1 - alpha);
       f.z += fM.z * (acctyp)(1 - alpha);
-      if (eflag > 0) {
+      if (EVFLAG && eflag) {
         eM = engv[i+inum];
         engv[inum+i] = eM*(acctyp)(1 - alpha);
         if (iH1 < inum) engv[inum+iH1] += eM * (acctyp)0.5 * alpha;
         if (iH2 < inum) engv[inum+iH2] += eM * (acctyp)0.5 * alpha;
       }
-      if (vflag > 0) {
+      if (EVFLAG && vflag) {
         vM = ansO[inum   + i];
         engv[inum*engv_iter + i] += vM.x * (acctyp)(1 - alpha); engv_iter++;
         engv[inum*engv_iter + i] += vM.y * (acctyp)(1 - alpha); engv_iter++;
@@ -276,22 +276,27 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
-  acctyp energy = (acctyp)0;
-  acctyp e_coul = (acctyp)0;
+  int n_stride;
+  local_allocate_store_charge();
+
   acctyp4 f, fO;
   f.x=(acctyp)0;  f.y=(acctyp)0;  f.z=(acctyp)0;
   fO.x=(acctyp)0; fO.y=(acctyp)0; fO.z=(acctyp)0;
-  acctyp virial[6],vO[6];
-  for (int i=0; i<6; i++) {
-    virial[i]=(acctyp)0;
-    vO[i]=(acctyp)0;
+  acctyp energy, e_coul, virial[6], vO[6];
+  if (EVFLAG) {
+    energy = (acctyp)0;
+    e_coul = (acctyp)0;
+    for (int i=0; i<6; i++) {
+      virial[i]=(acctyp)0;
+      vO[i]=(acctyp)0;
+    }
   }
 
+  int i;
   if (ii<inum) {
-    int i, numj, nbor, nbor_end;
-    __local int n_stride;
+    int numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-        n_stride,nbor_end,nbor);
+              n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
@@ -343,11 +348,11 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
         f.y += dely*forcelj;
         f.z += delz*forcelj;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e = r6inv * (lj3[mtype].x*r6inv-lj3[mtype].y);
           energy += factor_lj * (e - lj3[mtype].z);
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*forcelj;
           virial[1] += dely*dely*forcelj;
           virial[2] += delz*delz*forcelj;
@@ -396,10 +401,10 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             fO.z += delz * force_coul;
             fO.w += 0;
           }
-          if (eflag>0) {
+          if (EVFLAG && eflag) {
             e_coul += prefactor*(_erfc-factor_coul);
           }
-          if (vflag>0) {
+          if (EVFLAG && vflag) {
             acctyp4 fd;
             fd.x = delx*force_coul;
             fd.y = dely*force_coul;
@@ -489,10 +494,10 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
             f.y += fd.y;
             f.z += fd.z;
 
-            if (eflag>0) {
+            if (EVFLAG && eflag) {
               e_coul += prefactor*(_erfc-factor_coul) * (acctyp)0.5 * alpha;
             }
-            if (vflag>0) {
+            if (EVFLAG && vflag) {
               numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
               numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
               numtyp4 xO;  fetch4(xO,iO,pos_tex);
@@ -508,62 +513,64 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
         }
       } // if cut_coulsqplus
     } // for nbor
-    if (t_per_atom>1) {
-#if (ARCH < 300)
-      __local acctyp red_acc[6][BLOCK_PAIR];
-      red_acc[0][tid]=fO.x;
-      red_acc[1][tid]=fO.y;
-      red_acc[2][tid]=fO.z;
-      red_acc[3][tid]=fO.w;
+  } // if ii
+  if (t_per_atom>1) {
+#if (SHUFFLE_AVAIL == 0)
+    red_acc[0][tid]=fO.x;
+    red_acc[1][tid]=fO.y;
+    red_acc[2][tid]=fO.z;
+    red_acc[3][tid]=fO.w;
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+      simdsync();
+      if (offset < s) {
+        for (int r=0; r<4; r++)
+          red_acc[r][tid] += red_acc[r][tid+s];
+      }
+    }
+    fO.x=red_acc[0][tid];
+    fO.y=red_acc[1][tid];
+    fO.z=red_acc[2][tid];
+    fO.w=red_acc[3][tid];
+    if (EVFLAG && vflag) {
+      simdsync();
+      for (int r=0; r<6; r++) red_acc[r][tid]=vO[r];
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+        simdsync();
         if (offset < s) {
-          for (int r=0; r<4; r++)
+          for (int r=0; r<6; r++)
             red_acc[r][tid] += red_acc[r][tid+s];
         }
       }
-      fO.x=red_acc[0][tid];
-      fO.y=red_acc[1][tid];
-      fO.z=red_acc[2][tid];
-      fO.w=red_acc[3][tid];
-      if (vflag>0) {
-        for (int r=0; r<6; r++) red_acc[r][tid]=vO[r];
-        for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
-          if (offset < s) {
-            for (int r=0; r<6; r++)
-              red_acc[r][tid] += red_acc[r][tid+s];
-          }
-        }
-        for (int r=0; r<6; r++) vO[r]=red_acc[r][tid];
-      }
+      for (int r=0; r<6; r++) vO[r]=red_acc[r][tid];
+    }
 #else
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+      fO.x += shfl_down(fO.x, s, t_per_atom);
+      fO.y += shfl_down(fO.y, s, t_per_atom);
+      fO.z += shfl_down(fO.z, s, t_per_atom);
+      fO.w += shfl_down(fO.w, s, t_per_atom);
+    }
+    if (EVFLAG && vflag) {
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
-        fO.x += shfl_xor(fO.x, s, t_per_atom);
-        fO.y += shfl_xor(fO.y, s, t_per_atom);
-        fO.z += shfl_xor(fO.z, s, t_per_atom);
-        fO.w += shfl_xor(fO.w, s, t_per_atom);
+        for (int r=0; r<6; r++)
+          vO[r] += shfl_down(vO[r], s, t_per_atom);
       }
-      if (vflag>0) {
-        for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
-          for (int r=0; r<6; r++)
-            vO[r] += shfl_xor(vO[r], s, t_per_atom);
-        }
-      }
+    }
 #endif
+  }
+  if(offset == 0 && ii<inum) {
+    ansO[i] = fO;
+    if (EVFLAG && vflag) {
+      ansO[inum   + i].x = vO[0];
+      ansO[inum   + i].y = vO[1];
+      ansO[inum   + i].z = vO[2];
+      ansO[inum*2 + i].x = vO[3];
+      ansO[inum*2 + i].y = vO[4];
+      ansO[inum*2 + i].z = vO[5];
     }
-    if(offset == 0) {
-      ansO[i] = fO;
-      if (vflag>0) {
-        ansO[inum   + i].x = vO[0];
-        ansO[inum   + i].y = vO[1];
-        ansO[inum   + i].z = vO[2];
-        ansO[inum*2 + i].x = vO[3];
-        ansO[inum*2 + i].y = vO[4];
-        ansO[inum*2 + i].z = vO[5];
-      }
-    }
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-        vflag,ans,engv);
-  } // if ii
+  }
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
 }
 
 __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
@@ -592,28 +599,32 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
   if (tid<8)
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
-    if (eflag>0)
+    if (EVFLAG && eflag)
       lj3[tid]=lj3_in[tid];
   }
-  acctyp energy = (acctyp)0;
-  acctyp e_coul = (acctyp)0;
   acctyp4 f, fO;
   f.x=(acctyp)0;  f.y=(acctyp)0;  f.z=(acctyp)0;
   fO.x=(acctyp)0; fO.y=(acctyp)0; fO.z=(acctyp)0;
-  acctyp virial[6],vO[6];
-  for (int i=0; i<6; i++) {
-    virial[i]=(acctyp)0;
-    vO[i]=(acctyp)0;
+  acctyp energy, e_coul, virial[6], vO[6];
+  if (EVFLAG) {
+    energy = (acctyp)0;
+    e_coul = (acctyp)0;
+    for (int i=0; i<6; i++) {
+      virial[i]=(acctyp)0;
+      vO[i]=(acctyp)0;
+    }
   }
 
   __syncthreads();
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
         n_stride,nbor_end,nbor);
 
@@ -667,11 +678,11 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
         f.y += dely*forcelj;
         f.z += delz*forcelj;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e = r6inv * (lj3[mtype].x*r6inv-lj3[mtype].y);
           energy += factor_lj * (e - lj3[mtype].z);
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*forcelj;
           virial[1] += dely*dely*forcelj;
           virial[2] += delz*delz*forcelj;
@@ -720,10 +731,10 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
             fO.z += delz * force_coul;
             fO.w += 0;
           }
-          if (eflag>0) {
+          if (EVFLAG && eflag) {
             e_coul += prefactor*(_erfc-factor_coul);
           }
-          if (vflag>0) {
+          if (EVFLAG && vflag) {
             acctyp4 fd;
             fd.x = delx*force_coul;
             fd.y = dely*force_coul;
@@ -813,10 +824,10 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
             f.y += fd.y;
             f.z += fd.z;
 
-            if (eflag>0) {
+            if (EVFLAG && eflag) {
               e_coul += prefactor*(_erfc-factor_coul) * (acctyp)0.5 * alpha;
             }
-            if (vflag>0) {
+            if (EVFLAG && vflag) {
               numtyp4 xH1; fetch4(xH1,iH1,pos_tex);
               numtyp4 xH2; fetch4(xH2,iH2,pos_tex);
               numtyp4 xO;  fetch4(xO,iO,pos_tex);
@@ -833,13 +844,13 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
       } // if cut_coulsqplus
     } // for nbor
     if (t_per_atom>1) {
-#if (ARCH < 300)
-      __local acctyp red_acc[6][BLOCK_PAIR];
+#if (SHUFFLE_AVAIL == 0)
       red_acc[0][tid]=fO.x;
       red_acc[1][tid]=fO.y;
       red_acc[2][tid]=fO.z;
       red_acc[3][tid]=fO.w;
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+        simdsync();
         if (offset < s) {
           for (int r=0; r<4; r++)
             red_acc[r][tid] += red_acc[r][tid+s];
@@ -849,9 +860,10 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
       fO.y=red_acc[1][tid];
       fO.z=red_acc[2][tid];
       fO.w=red_acc[3][tid];
-      if (vflag>0) {
+      if (EVFLAG && vflag) {
         for (int r=0; r<6; r++) red_acc[r][tid]=vO[r];
         for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
+          simdsync();
           if (offset < s) {
             for (int r=0; r<6; r++)
               red_acc[r][tid] += red_acc[r][tid+s];
@@ -861,22 +873,22 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
       }
 #else
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
-        fO.x += shfl_xor(fO.x, s, t_per_atom);
-        fO.y += shfl_xor(fO.y, s, t_per_atom);
-        fO.z += shfl_xor(fO.z, s, t_per_atom);
-        fO.w += shfl_xor(fO.w, s, t_per_atom);
+        fO.x += shfl_down(fO.x, s, t_per_atom);
+        fO.y += shfl_down(fO.y, s, t_per_atom);
+        fO.z += shfl_down(fO.z, s, t_per_atom);
+        fO.w += shfl_down(fO.w, s, t_per_atom);
       }
-      if (vflag>0) {
+      if (EVFLAG && vflag) {
         for (unsigned int s=t_per_atom/2; s>0; s>>=1) {
           for (int r=0; r<6; r++)
-            vO[r] += shfl_xor(vO[r], s, t_per_atom);
+            vO[r] += shfl_down(vO[r], s, t_per_atom);
         }
       }
 #endif
     }
     if(offset == 0) {
       ansO[i] = fO;
-      if (vflag>0) {
+      if (EVFLAG && vflag) {
         ansO[inum   + i].x = vO[0];
         ansO[inum   + i].y = vO[1];
         ansO[inum   + i].z = vO[2];
@@ -885,7 +897,7 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
         ansO[inum*2 + i].z = vO[5];
       }
     }
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-        vflag,ans,engv);
   } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
 }

@@ -267,7 +267,7 @@ data file in the required format.
 See the header of the polarizer.py file for details.
 
 The tool is authored by Agilio Padua and Alain Dequidt: agilio.padua
-at univ-bpclermont.fr, alain.dequidt at univ-bpclermont.fr
+at ens-lyon.fr, alain.dequidt at uca.fr
 
 ----------
 
@@ -341,8 +341,7 @@ The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
 simulations using the USER-FEP package.
 
-The scripts were contributed by Agilio Padua (Universite Blaise
-Pascal Clermont-Ferrand), agilio.padua at univ-bpclermont.fr.
+The scripts were contributed by Agilio Padua (ENS de Lyon), agilio.padua at ens-lyon.fr.
 
 See README file in the tools/fep directory.
 

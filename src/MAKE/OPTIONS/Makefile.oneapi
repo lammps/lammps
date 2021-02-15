@@ -1,4 +1,4 @@
-# g++_serial = GNU g++ compiler, no MPI
+# oneapi = For Intel oneAPI builds with GPU package
 
 SHELL = /bin/sh
 
@@ -6,14 +6,17 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++ -std=c++11
-CCFLAGS =	-g -O3
+CC =		mpiicpc -std=c++11
+OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
+CCFLAGS =	-qopenmp -qopenmp-simd -qno-offload -ansi-alias -restrict \
+                -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
+                -I$(MKLROOT)/include
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		g++ -std=c++11
-LINKFLAGS =	-g -O
-LIB = 
+LINK =		mpiicpc -std=c++11
+LINKFLAGS =	-qopenmp -qopenmp-simd $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
+LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core	
 SIZE =		size
 
 ARCHIVE =	ar
@@ -39,9 +42,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -I../STUBS 
-MPI_PATH =      -L../STUBS
-MPI_LIB =	-lmpi_stubs
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
+MPI_PATH = 
+MPI_LIB =
 
 # FFT library
 # see discussion in Section 3.5.2 of manual
@@ -50,8 +53,8 @@ MPI_LIB =	-lmpi_stubs
 # PATH = path for FFT library
 # LIB = name of FFT library
 
-FFT_INC =
-FFT_PATH =
+FFT_INC =       -DFFT_MKL -DFFT_SINGLE
+FFT_PATH = 
 FFT_LIB =
 
 # JPEG and/or PNG library

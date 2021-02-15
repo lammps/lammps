@@ -46,6 +46,7 @@ FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
+  ecouple_flag = 1;
 
   t_start = utils::numeric(FLERR,arg[4],false,lmp);
   t_stop = utils::numeric(FLERR,arg[5],false,lmp);
@@ -87,7 +88,6 @@ int FixTempRescaleEff::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 

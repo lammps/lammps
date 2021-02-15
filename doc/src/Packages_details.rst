@@ -668,8 +668,8 @@ A general interface for machine-learning interatomic potentials, including PyTor
 
 To use this package, also the :ref:`SNAP package <PKG-SNAP>` package needs
 to be installed.  To make the *mliappy* model available, also the
-:ref:`PYTHON package <PKG-PYTHON>` package needs to be installed, the version of
-Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
+:ref:`PYTHON package <PKG-PYTHON>` package needs to be installed, the version
+of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
 must be installed.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).

@@ -243,7 +243,7 @@ void PairTersoff::eval()
 
       if (rsq1 >= params[iparam_ij].cutsq) continue;
 
-      double r1inv = 1.0/sqrt(dot3(delr1, delr1));
+      const double r1inv = 1.0/sqrt(dot3(delr1, delr1));
       scale3(r1inv, delr1, r1_hat);
 
       // accumulate bondorder zeta for each i-j interaction via loop over k

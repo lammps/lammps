@@ -1,11 +1,133 @@
-Notes for Developers and Code Maintainers
+Notes for developers and code maintainers
 -----------------------------------------
 
-This section documents how a few large sections of code with LAMMPS
-work at a conceptual level.  Comments on code in source files
+This section documents how some of the code functionality within
+LAMMPS works at a conceptual level.  Comments on code in source files
 typically document what a variable stores, what a small section of
-code does, or what a function does or its input/outputs.  The topics
-on this page are intended to document code at a higher level.
+code does, or what a function does and its input/outputs.  The topics
+on this page are intended to document code functionality at a higher level.
+
+Fix contributions to instantaneous energy, virial, and cumulative energy
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Fixes can calculate contributions to the instantaneous energy and/or
+virial of the system, both in a global and peratom sense.  Fixes that
+perform thermostatting or barostatting can calculate the cumulative
+energy they add to or subtract from the system, which is accessed by
+the *ecouple* and *econserve* thermodynamic keywords.  This subsection
+explains how both work and what flags to set in a new fix to enable
+this functionality.
+
+Let's start with thermostatting and barostatting fixes.  Examples are
+the :doc:`fix langevin <fix_langevin>` and :doc:`fix npt <fix_nh>`
+commands.  Here is what the fix needs to do:
+
+* Set the variable *ecouple_flag* = 1 in the constructor.  Also set
+  *scalar_flag* = 1, *extscalar* = 1, and *global_freq* to a timestep
+  increment which matches how often the fix is invoked.
+* Implement a compute_scalar() method that returns the cumulative
+  energy added or subtracted by the fix, e.g. by rescaling the
+  velocity of atoms.  The sign convention is that subtracted energy is
+  positive, added energy is negative.  This must be the total energy
+  added to the entire system, i.e. an "extensive" quantity, not a
+  per-atom energy.  Cumulative means the summed energy since the fix
+  was instantiated, even across multiple runs.  This is because the
+  energy is used by the *econserve* thermodynamic keyword to check
+  that the fix is conserving the total energy of the system,
+  i.e. potential energy + kinetic energy + coupling energy = a
+  constant.
+
+And here is how the code operates:
+
+* The Modify class makes a list of all fixes that set *ecouple_flag* = 1.
+* The :doc:`thermo_style custom <thermo_style>` command defines
+  *ecouple* and *econserve* keywords.
+* These keywords sum the energy contributions from all the
+  *ecouple_flag* = 1 fixes by invoking the energy_couple() method in
+  the Modify class, which calls the compute_scalar() method of each
+  fix in the list.
+
+------------------
+
+Next, here is how a fix contributes to the instantaneous energy and
+virial of the system.  First, it sets any or all of these flags to a
+value of 1 in their constructor:
+
+* *energy_global_flag* to contribute to global energy, example: :doc:`fix indent <fix_indent>`
+* *energy_peratom_flag* to contribute to peratom energy, :doc:`fix cmap <fix_cmap>`
+* *virial_global_flag* to contribute to global virial, example: :doc:`fix wall <fix_wall>`
+* *virial_peratom_flag* to contribute to peratom virial, example: :doc:`fix wall <fix_wall>`
+
+The fix must also do the following:
+
+* For global energy, implement a compute_scalar() method that returns
+  the energy added or subtracted on this timestep.  Here the sign
+  convention is that added energy is positive, subtracted energy is
+  negative.
+* For peratom energy, invoke the ev_init(eflag,vflag) function each
+  time the fix is invoked, which initializes per-atom energy storage.
+  The value of eflag may need to be stored from an earlier call to the
+  fix during the same timestep.  See how the :doc:`fix cmap
+  <fix_cmap>` command does this in src/MOLECULE/fix_cmap.cpp.  When an
+  energy for one or more atoms is calculated, invoke the ev_tally()
+  function to tally the contribution to each atom.  Both the ev_init()
+  and ev_tally() methods are in the parent Fix class.
+* For global and/or peratom virial, invoke the v_init(vflag) function
+  each time the fix is invoked, which initializes virial storage.
+  When forces on one or more atoms are calculated, invoke the
+  v_tally() function to tally the contribution.  Both the v_init() and
+  v_tally() methods are in the parent Fix class.  Note that there are
+  several variants of v_tally(); choose the one appropriate to your
+  fix.
+
+.. note::
+
+   The ev_init() and ev_tally() methods also account for global and
+   peratom virial contributions.  Thus you do not need to invoke the
+   v_init() and v_tally() methods, if the fix also calculates peratom
+   energies.
+
+The fix must also specify whether (by default) to include or exclude
+these contributions to the global/peratom energy/virial of the system.
+For the fix to include the contributions, set either of both of these
+variables in the constructor:
+
+* *thermo_energy* = 1, for global and peratom energy
+* *thermo_virial* = 1, for global and peratom virial
+
+Note that these variables are zeroed in fix.cpp.  Thus if you don't
+set the variables, the contributions will be excluded (by default)
+
+However, the user has ultimate control over whether to include or
+exclude the contributions of the fix via the :doc:`fix modify
+<fix_modify>` command:
+
+* fix modify *energy yes* to include global and peratom energy contributions
+* fix modify *virial yes* to include global and peratom virial contributions
+
+If the fix contributes to any of the global/peratom energy/virial
+values for the system, it should be explained on the fix doc page,
+along with the default values for the *energy yes/no* and *virial
+yes/no* settings of the :doc:`fix modify <fix_modify>` command.
+
+Finally, these 4 contributions are included in the output of 4
+computes:
+
+* global energy in :doc:`compute pe <compute_pe>`
+* peratom energy in :doc:`compute pe/atom <compute_pe_atom>`
+* global virial in :doc:`compute pressure <compute_pressure>`
+* peratom virial in :doc:`compute stress/atom <compute_stress_atom>`
+
+These computes invoke a method of the Modify class to include
+contributions from fixes that have the corresponding flags set,
+e.g. *energy_peratom_flag* and *thermo_energy* for :doc:`compute
+pe/atom <compute_pe_atom>`.
+
+Note that each compute has an optional keyword to either include or
+exclude all contributions from fixes.  Also note that :doc:`compute pe
+<compute_pe>` and :doc:`compute pressure <compute_pressure>` are what
+is used (by default) by :doc:`thermodynamic output <thermo_style>` to
+calculate values for its *pe* and *press* keywords.
 
 KSpace PPPM FFT grids
 ^^^^^^^^^^^^^^^^^^^^^

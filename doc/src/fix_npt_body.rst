@@ -45,7 +45,8 @@ can also have a bias velocity removed from them before thermostatting
 takes place; see the description below.
 
 Additional parameters affecting the thermostat and barostat are
-specified by keywords and values documented with the :doc:`fix npt <fix_nh>` command.  See, for example, discussion of the *temp*\ ,
+specified by keywords and values documented with the :doc:`fix npt
+<fix_nh>` command.  See, for example, discussion of the *temp*\ ,
 *iso*\ , *aniso*\ , and *dilate* keywords.
 
 The particles in the fix group are the only ones whose velocities and
@@ -121,10 +122,10 @@ consistent with the virial term computed using all atoms for the
 pressure.  LAMMPS will warn you if you choose to compute temperature
 on a subset of atoms.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Nose/Hoover thermostatting and
-barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 This fix computes the same global scalar and global vector of
 quantities as does the :doc:`fix npt <fix_nh>` command.

@@ -539,7 +539,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
   double area = 0.5 * MathExtra::len3(norm);
   rmass[m] *= area;
 
-  // inertia = inertia tensor of triangle as 6-vector in Voigt notation
+  // inertia = inertia tensor of triangle as 6-vector in Voigt ordering
 
   double inertia[6];
   MathExtra::inertia_triangle(c1,c2,c3,rmass[m],inertia);
@@ -605,7 +605,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
 double AtomVecTri::memory_usage_bonus()
 {
   double bytes = 0;
-  bytes += nmax_bonus*sizeof(Bonus);
+  bytes += (double)nmax_bonus*sizeof(Bonus);
   return bytes;
 }
 

@@ -332,8 +332,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
   // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // reallocate per-atom arrays if necessary
 

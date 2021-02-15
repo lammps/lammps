@@ -3696,25 +3696,25 @@ double PairReaxCKokkos<DeviceType>::memory_usage()
   double bytes = 0.0;
 
   if (cut_hbsq > 0.0) {
-    bytes += nmax*3*sizeof(int);
-    bytes += maxhb*nmax*sizeof(int);
+    bytes += (double)nmax*3*sizeof(int);
+    bytes += (double)maxhb*nmax*sizeof(int);
   }
-  bytes += nmax*2*sizeof(int);
-  bytes += maxbo*nmax*sizeof(int);
+  bytes += (double)nmax*2*sizeof(int);
+  bytes += (double)maxbo*nmax*sizeof(int);
 
-  bytes += nmax*17*sizeof(F_FLOAT);
-  bytes += maxbo*nmax*34*sizeof(F_FLOAT);
+  bytes += (double)nmax*17*sizeof(F_FLOAT);
+  bytes += (double)maxbo*nmax*34*sizeof(F_FLOAT);
 
   // FixReaxCSpecies
   if (fixspecies_flag) {
-    bytes += MAXSPECBOND*nmax*sizeof(tagint);
-    bytes += MAXSPECBOND*nmax*sizeof(F_FLOAT);
+    bytes += (double)MAXSPECBOND*nmax*sizeof(tagint);
+    bytes += (double)MAXSPECBOND*nmax*sizeof(F_FLOAT);
   }
 
   // FixReaxCBonds
-  bytes += maxbo*nmax*sizeof(tagint);
-  bytes += maxbo*nmax*sizeof(F_FLOAT);
-  bytes += nmax*sizeof(int);
+  bytes += (double)maxbo*nmax*sizeof(tagint);
+  bytes += (double)maxbo*nmax*sizeof(F_FLOAT);
+  bytes += (double)nmax*sizeof(int);
 
   return bytes;
 }

@@ -191,22 +191,29 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to keeping the constraints to the
-system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial yes*
+No information about these fixes is written to :doc:`binary restart
+files <restart>`.
 
-No information about these fixes is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to these fixes.  No global or per-atom quantities are
-stored by these fixes for access by various :doc:`output commands <Howto_output>`.  No parameter of these fixes can be used
-with the *start/stop* keywords of the :doc:`run <run>` command.  These
-fixes are not invoked during :doc:`energy minimization <minimize>`.
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+these fixes to add the contribution due to the added forces on atoms
+to both the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
+
+No global or per-atom quantities are stored by these fixes for access
+by various :doc:`output commands <Howto_output>`.  No parameter of
+these fixes can be used with the *start/stop* keywords of the
+:doc:`run <run>` command.  These fixes are not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
 These fixes are part of the RIGID package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 For computational efficiency, there can only be one shake or rattle
 fix defined in a simulation.

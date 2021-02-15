@@ -216,6 +216,11 @@ an identical manner to compute *stress/atom*.  See the :doc:`Howto
 output <Howto_output>` doc page for an overview of LAMMPS output
 options.
 
+The ordering of the 6 columns for *stress/atom* is as follows: xx, yy,
+zz, xy, xz, yz.  The ordering of the 9 columns for
+*centroid/stress/atom* is as follows: xx, yy, zz, xy, xz, yz, yx, zx,
+zy.
+
 The per-atom array values will be in pressure\*volume :doc:`units
 <units>` as discussed above.
 

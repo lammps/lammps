@@ -50,7 +50,8 @@ This fix is based on the :doc:`fix rigid <fix_rigid>` command, and was
 created to be used in place of that fix, to integrate the equations of
 motion of spherical rigid bodies when a lattice-Boltzmann fluid is
 present with a user-specified value of the force-coupling constant.
-The fix uses the integration algorithm described in :ref:`Mackay et al. <Mackay>` to update the positions, velocities, and orientations of
+The fix uses the integration algorithm described in :ref:`Mackay et
+al. <Mackay>` to update the positions, velocities, and orientations of
 a set of spherical rigid bodies experiencing velocity dependent
 hydrodynamic forces.  The spherical bodies are assumed to rotate as
 solid, uniform density spheres, with moments of inertia calculated
@@ -88,9 +89,18 @@ Restart, fix_modify, output, run start/stop, minimize info
 No information about the *rigid* and *rigid/nve* fixes are written to
 :doc:`binary restart files <restart>`.
 
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the added forces on atoms to
+both the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
+
 Similar to the :doc:`fix rigid <fix_rigid>` command: The rigid fix
-computes a global scalar which can be accessed by various :doc:`output commands <Howto_output>`.  The scalar value calculated by these
-fixes is "intensive".  The scalar is the current temperature of the
+computes a global scalar which can be accessed by various :doc:`output
+commands <Howto_output>`.  The scalar value calculated by these fixes
+is "intensive".  The scalar is the current temperature of the
 collection of rigid bodies.  This is averaged over all rigid bodies
 and their translational and rotational degrees of freedom.  The
 translational energy of a rigid body is 1/2 m v\^2, where m = total
@@ -130,7 +140,8 @@ Restrictions
 """"""""""""
 
 This fix is part of the USER-LB package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 Can only be used if a lattice-Boltzmann fluid has been created via the
 :doc:`fix lb/fluid <fix_lb_fluid>` command, and must come after this

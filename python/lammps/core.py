@@ -99,6 +99,7 @@ class lammps(object):
     #   so that LD_LIBRARY_PATH does not need to be set for regular install
     # fall back to loading with a relative path,
     #   typically requires LD_LIBRARY_PATH to be set appropriately
+    # guess shared library extension based on OS, if not inferred from actual file
 
     if any([f.startswith('liblammps') and f.endswith('.dylib')
             for f in os.listdir(modpath)]):
@@ -111,7 +112,13 @@ class lammps(object):
       lib_ext = ".dll"
       modpath = winpath
     else:
-      lib_ext = ".so"
+      import platform
+      if platform.system() == "Darwin":
+        lib_ext = ".dylib"
+      elif platform.system() == "Windows":
+        lib_ext = ".dll"
+      else:
+        lib_ext = ".so"
 
     if not self.lib:
       try:
@@ -374,6 +381,13 @@ class lammps(object):
     self._installed_packages = None
     self._available_styles = None
 
+    # check if liblammps version matches the installed python module version
+    # but not for in-place usage, i.e. when the version is 0
+    import lammps
+    if lammps.__version__ > 0 and lammps.__version__ != self.lib.lammps_version(self.lmp):
+        raise(AttributeError("LAMMPS Python module installed for LAMMPS version %d, but shared library is version %d" \
+                % (lammps.__version__, self.lib.lammps_version(self.lmp))))
+
     # add way to insert Python callback for fix external
     self.callback = {}
     self.FIX_EXTERNAL_CALLBACK_FUNC = CFUNCTYPE(None, py_object, self.c_bigint, c_int, POINTER(self.c_tagint), POINTER(POINTER(c_double)), POINTER(POINTER(c_double)))
@@ -402,7 +416,7 @@ class lammps(object):
     :rtype: numpy_wrapper
     """
     if not self._numpy:
-      from .numpy import numpy_wrapper
+      from .numpy_wrapper import numpy_wrapper
       self._numpy = numpy_wrapper(self)
     return self._numpy
 

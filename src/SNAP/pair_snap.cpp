@@ -747,11 +747,11 @@ double PairSNAP::memory_usage()
   double bytes = Pair::memory_usage();
 
   int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);      // setflag
-  bytes += n*n*sizeof(double);   // cutsq
-  bytes += n*sizeof(int);        // map
-  bytes += beta_max*ncoeff*sizeof(double); // bispectrum
-  bytes += beta_max*ncoeff*sizeof(double); // beta
+  bytes += (double)n*n*sizeof(int);      // setflag
+  bytes += (double)n*n*sizeof(double);   // cutsq
+  bytes += (double)n*sizeof(int);        // map
+  bytes += (double)beta_max*ncoeff*sizeof(double); // bispectrum
+  bytes += (double)beta_max*ncoeff*sizeof(double); // beta
 
   bytes += snaptr->memory_usage(); // SNA object
 

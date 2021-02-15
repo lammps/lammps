@@ -26,6 +26,15 @@ task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
 GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
 produce an executable compatible with a specific hardware.
 
+.. admonition:: C++14 support
+      :class: note
+
+   Kokkos requires using a compiler that supports the c++14 standard. For
+   some compilers, it may be necessary to add a flag to enable c++14 support.
+   For example, the GNU compiler uses the -std=c++14 flag. For a list of
+   compilers that have been tested with the Kokkos library, see the Kokkos
+   `README <https://github.com/kokkos/kokkos/blob/master/README.md>`_.
+
 .. admonition:: NVIDIA CUDA support
    :class: note
 

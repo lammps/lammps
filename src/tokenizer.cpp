@@ -210,6 +210,7 @@ std::string ValueTokenizer::next_string() {
 int ValueTokenizer::next_int() {
     if (has_next()) {
         std::string current = tokens.next();
+        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
         if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
@@ -225,6 +226,7 @@ int ValueTokenizer::next_int() {
 bigint ValueTokenizer::next_bigint() {
     if (has_next()) {
         std::string current = tokens.next();
+        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
         if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
@@ -240,6 +242,7 @@ bigint ValueTokenizer::next_bigint() {
 tagint ValueTokenizer::next_tagint() {
     if (has_next()) {
         std::string current = tokens.next();
+        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
         if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
@@ -255,6 +258,7 @@ tagint ValueTokenizer::next_tagint() {
 double ValueTokenizer::next_double() {
     if (has_next()) {
         std::string current = tokens.next();
+        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
         if (!utils::is_double(current)) {
             throw InvalidFloatException(current);
         }

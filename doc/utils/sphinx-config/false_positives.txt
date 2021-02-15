@@ -508,6 +508,7 @@ cpp
 cpu
 createatoms
 createAtoms
+CreateIDs
 crespi
 Crespi
 Critchley
@@ -597,6 +598,7 @@ Dcut
 de
 dE
 De
+deallocated
 decorrelation
 debye
 Debye
@@ -692,6 +694,7 @@ dmi
 dnf
 DNi
 Dobson
+Dobnikar
 Dodds
 docenv
 dodgerblue
@@ -786,6 +789,7 @@ ees
 eFF
 efield
 effm
+eflag
 eflux
 eg
 Eggebrecht
@@ -1232,6 +1236,7 @@ Hibbs
 Higdon
 Hijazi
 Hilger
+Hinestrosa
 histo
 histogrammed
 histogramming
@@ -2476,6 +2481,9 @@ Poresag
 pos
 Poschel
 posix
+postfix
+postfixed
+postfixes
 Postma
 Potapkin
 potin
@@ -2532,6 +2540,8 @@ Px
 pxx
 Pxx
 Pxy
+pxy
+pxz
 py
 Py
 pydir
@@ -2543,10 +2553,13 @@ pymol
 pypar
 pythonic
 pytorch
+pyy
 Pyy
+pyz
 pz
 Pz
 Pzz
+pzz
 qbmsst
 qcore
 qdist
@@ -2675,6 +2688,7 @@ rfile
 rg
 Rg
 Rhaphson
+Rhe
 rheological
 rheology
 rhodo
@@ -3329,6 +3343,7 @@ verlet
 Verlet
 versa
 ves
+vflag
 vhi
 vibrational
 Vij
@@ -3406,6 +3421,7 @@ WeinanE
 Wennberg
 Westmere
 Westview
+wf
 wget
 Whelan
 whitesmoke

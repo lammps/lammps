@@ -120,6 +120,6 @@ void ComputeDamageAtom::compute_peratom()
 
 double ComputeDamageAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

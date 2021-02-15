@@ -415,7 +415,7 @@ void ComputeSNAVAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeSNAVAtom::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double); // snav
+  double bytes = (double)nmax*size_peratom_cols * sizeof(double); // snav
   bytes += snaptr->memory_usage();                        // SNA object
 
   return bytes;

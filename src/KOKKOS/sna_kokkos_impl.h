@@ -1068,7 +1068,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::pre_ui_cpu(const typename 
 {
   for (int jelem = 0; jelem < nelements; jelem++) {
     for (int j = 0; j <= twojmax; j++) {
-      const int jju = idxu_half_block(j);
+      int jju = idxu_half_block(j); // removed "const" to work around GCC 7 bug
 
       // Only diagonal elements get initialized
       // for (int m = 0; m < (j+1)*(j/2+1); m++)
@@ -1218,7 +1218,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
           [&] (const int& jjb) {
           const int j1 = idxb(jjb, 0);
           const int j2 = idxb(jjb, 1);
-          const int j = idxb(jjb, 2);
+          int j = idxb(jjb, 2); // removed "const" to work around GCC 7 bug
 
           int jjz = idxz_block(j1, j2, j);
           int jju = idxu_block[j];
@@ -1241,7 +1241,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_bi_cpu(const typen
           // For j even, special treatment for middle column
 
           if (j%2 == 0) {
-            const int mb = j/2;
+            int mb = j/2; // removed "const" to work around GCC 7 bug
             Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, mb),
                 [&] (const int ma, real_type& sum) {
               const int jju_index = jju+(mb-1)*(j+1)+(j+1)+ma;
@@ -1551,8 +1551,8 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_uarray_cpu(const t
   ulist(0,iatom,jnbor).im = 0.0;
 
   for (int j = 1; j <= twojmax; j++) {
-    const int jju = idxu_cache_block[j];
-    const int jjup = idxu_cache_block[j-1];
+    int jju = idxu_cache_block[j]; // removed "const" to work around GCC 7 bug
+    int jjup = idxu_cache_block[j-1]; // removed "const" to work around GCC 7 bug
 
     // fill in left side of matrix layer from previous layer
 

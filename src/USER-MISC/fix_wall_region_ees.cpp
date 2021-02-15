@@ -38,12 +38,14 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix wall/region/ees command");
+
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
 
   // parse args
 
@@ -77,7 +79,6 @@ int FixWallRegionEES::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;

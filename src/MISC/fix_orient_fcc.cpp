@@ -65,7 +65,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-
+  energy_global_flag = 1;
   peratom_flag = 1;
   size_peratom_cols = 2;
   peratom_freq = 1;
@@ -200,7 +200,6 @@ int FixOrientFCC::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -594,7 +593,7 @@ int FixOrientFCC::compare(const void *pi, const void *pj)
 
 double FixOrientFCC::memory_usage()
 {
-  double bytes = nmax * sizeof(Nbr);
-  bytes += 2*nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(Nbr);
+  bytes += (double)2*nmax * sizeof(double);
   return bytes;
 }

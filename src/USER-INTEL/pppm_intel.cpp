@@ -979,16 +979,16 @@ double PPPMIntel::memory_usage()
 {
   double bytes = PPPM::memory_usage();
   if ((comm->nthreads > 1) && !_use_lrt) {
-    bytes += (comm->nthreads - 1) * (ngrid + INTEL_P3M_ALIGNED_MAXORDER) *
+    bytes += (double)(comm->nthreads - 1) * (ngrid + INTEL_P3M_ALIGNED_MAXORDER) *
       sizeof(FFT_SCALAR);
   }
   if (differentiation_flag == 1) {
-    bytes += 3 * nmax * sizeof(FFT_SCALAR);
+    bytes += (double)3 * nmax * sizeof(FFT_SCALAR);
   }
   if (_use_table) {
-    bytes += rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
+    bytes += (double)rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
     if (differentiation_flag == 1) {
-      bytes += rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
+      bytes += (double)rho_points * INTEL_P3M_ALIGNED_MAXORDER * sizeof(FFT_SCALAR);
     }
   }
   return bytes;

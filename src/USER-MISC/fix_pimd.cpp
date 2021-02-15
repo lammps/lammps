@@ -121,7 +121,6 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   peratom_freq    = 1;
 
   global_freq = 1;
-  thermo_energy = 1;
   vector_flag = 1;
   size_vector = 2;
   extvector   = 1;
@@ -726,9 +725,7 @@ void FixPIMD::unpack_forward_comm(int n, int first, double *buf)
 
 double FixPIMD::memory_usage()
 {
-  double bytes = 0;
-  bytes = atom->nmax * size_peratom_cols * sizeof(double);
-  return bytes;
+  return (double)atom->nmax * size_peratom_cols * sizeof(double);
 }
 
 /* ---------------------------------------------------------------------- */

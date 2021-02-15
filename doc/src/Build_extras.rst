@@ -131,7 +131,7 @@ CMake build
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
                                 # value = yes (default) or no
    -D CUDPP_OPT=value           # optimization setting for GPU_API=cuda
-                                # enables CUDA Performance Primitives Optimizations
+                                # enables CUDA Performance Primitives Optimizations, must be "no" for CUDA_MPS_SUPPORT=yes
                                 # value = yes (default) or no
    -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active nvidia-cuda-mps daemon
                                 # value = yes or no (default)
@@ -219,10 +219,18 @@ Makefile if desired:
 * ``CUDA_PRECISION`` = precision (double, mixed, single)
 * ``EXTRAMAKE`` = which Makefile.lammps.\* file to copy to Makefile.lammps
 
-The file Makefile.linux_multi is set up to include support for multiple
+The file Makefile.cuda is set up to include support for multiple
 GPU architectures as supported by the CUDA toolkit in use. This is done
 through using the "--gencode " flag, which can be used multiple times and
 thus support all GPU architectures supported by your CUDA compiler.
+
+To include CUDA performance primitives set the Makefile variable
+``CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini``.
+
+To support the CUDA multiprocessor server you can set the define
+``-DCUDA_PROXY``.  Please note that in this case you should **not** use
+the CUDA performance primitives and thus set the variable ``CUDPP_OPT``
+to empty.
 
 If the library build is successful, 3 files should be created:
 ``lib/gpu/libgpu.a``\ , ``lib/gpu/nvc_get_devices``\ , and
@@ -521,11 +529,14 @@ They must be specified in uppercase.
    *  - VEGA906
       - GPU
       - AMD GPU MI50/MI60 GFX906
+   *  - VEGA908
+      - GPU
+      - AMD GPU GFX908
    *  - INTEL_GEN
       - GPU
       - Intel GPUs Gen9+
 
-This list was last updated for version 3.2 of the Kokkos library.
+This list was last updated for version 3.3 of the Kokkos library.
 
 .. tabs::
 

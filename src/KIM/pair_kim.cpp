@@ -601,6 +601,8 @@ void PairKIM::init_style()
 
     // set cutoff
     neighbor->requests[irequest]->cut = 1;
+    if (kim_cutoff_values[i] <= neighbor->skin)
+      error->all(FLERR,"Illegal neighbor request (force cutoff <= skin)");
     neighbor->requests[irequest]->cutoff
       = kim_cutoff_values[i] + neighbor->skin;
   }

@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.10)
 project(simple CXX)
 
 set(LAMMPS_SRC_DIRECTORY "" CACHE PATH "Path for lammps source")
-if(NOT LAMMPS_SRC_DIRECTORY STREQUAL "" AND EXISTS ${LAMMPS_SRC_DIRECTORY}/cmake/CMakeLists.txt)
+if(TARGET LAMMPS::lammps)
+  # nothing to detect
+elseif(NOT LAMMPS_SRC_DIRECTORY STREQUAL "" AND EXISTS ${LAMMPS_SRC_DIRECTORY}/cmake/CMakeLists.txt)
   option(BUILD_LIB "Build LAMMPS library" ON)
   add_subdirectory(${LAMMPS_SRC_DIRECTORY}/cmake lammps)
 else()

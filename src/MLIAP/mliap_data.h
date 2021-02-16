@@ -41,7 +41,6 @@ class MLIAPData : protected Pointers {
   int ndescriptors;            // number of descriptors
   int nparams;                 // number of model parameters per element
   int nelements;               // number of elements
-  int nlayers;                 // number of layers per element
 
   // data structures for grad-grad list (gamma)
 

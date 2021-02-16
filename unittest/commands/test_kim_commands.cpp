@@ -347,6 +347,71 @@ TEST_F(KimCommandsTest, kim_param)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_TRUE(std::string(lmp->input->variable->retrieve("shift")) == "2");
+
+    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+                 lmp->input->one("kim param get cutoffs 1:3 list"););
+    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+                 lmp->input->one("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 list"););
+    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+                 lmp->input->one("kim param get cutoffs 1:3 split"););
+    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+                 lmp->input->one("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 split"););
+    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+                 lmp->input->one("kim param get cutoffs 1:3 explicit"););
+    TEST_FAILURE(".*ERROR: Illegal variable name in 'kim param get'.*",
+                 lmp->input->one("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 explicit"););
+    TEST_FAILURE(".*ERROR: Wrong number of arguments in 'kim param get' "
+                 "command.\nThe LAMMPS '3' variable names or 'cutoffs "
+                 "split/list' is mandatory.*",
+                 lmp->input->one("kim param get cutoffs 1:3 cutoffs"););
+    TEST_FAILURE(".*ERROR: Wrong number of arguments in 'kim param get' "
+                 "command.\nThe LAMMPS '3' variable names or 'cutoffs_1 "
+                 "split' is mandatory.*",
+                 lmp->input->one("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2"););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 cutoffs_3");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_1")) == "2.20943");
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_2")) == "2.10252");
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_3")) == "5.666115");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("kim param get cutoffs 1:3 cutoffs_1 cutoffs_2 cutoffs_3 explicit");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_1")) == "2.20943");
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_2")) == "2.10252");
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_3")) == "5.666115");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("kim param get cutoffs 1:3 cutoffs split");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_1")) == "2.20943");
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_2")) == "2.10252");
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs_3")) == "5.666115");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("kim param get cutoffs 1:3 cutoffs list");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs")) == "2.20943 2.10252 5.666115");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("kim param set cutoffs 1 2.21 cutoffs 2 2.11");
+    lmp->input->one("kim param get cutoffs 1:2 cutoffs list");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs")) == "2.21 2.11");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("kim param set cutoffs 1:3 2.3 2.2 5.7");
+    lmp->input->one("kim param get cutoffs 1:3 cutoffs list");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs")) == "2.3 2.2 5.7");
 }
 
 TEST_F(KimCommandsTest, kim_property)

@@ -367,10 +367,12 @@ KIM package
 
 **Contents:**
 
-This package contains a set of commands that serve as a wrapper on the
+This package contains a command with a set of subcommands that serve as a
+wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs) enabling compatible ones to be used in
 LAMMPS simulations.
+
 
 This includes :doc:`kim_init <kim_commands>`, and
 :doc:`kim_interactions <kim_commands>` commands to select, initialize and

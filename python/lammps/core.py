@@ -1612,7 +1612,7 @@ class lammps(object):
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NeighList` which wraps access to the neighbor list with the given index
 
-    See :py:meth:`lammps.numpy.get_neighlist() <lammps.numpy_wrapper.get_neighlist()>` if you want to use
+    See :py:meth:`lammps.numpy.get_neighlist() <lammps.numpy_wrapper.numpy_wrapper.get_neighlist()>` if you want to use
     NumPy arrays instead of ``c_int`` pointers.
 
     :param idx: index of neighbor list

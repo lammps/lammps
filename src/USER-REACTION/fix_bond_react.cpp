@@ -1031,23 +1031,28 @@ void FixBondReact::post_integrate()
       if (finalpartner[i] == 0) continue;
 
       j = atom->map(finalpartner[i]);
-      // if (j < 0 || tag[i] < tag[j]) {
-      if (tag[i] < tag[j]) { //atom->map(std::min(tag[i],tag[j])) <= nlocal &&
-        if (nattempt[rxnID] == maxattempt) {
+      if (tag[i] < tag[j]) {
+        if (nattempt[rxnID] > maxattempt-2) {
           maxattempt += DELTA;
-          // third column of 'attempt': bond/react integer ID
+          // third dim of 'attempt': bond/react integer ID
           memory->grow(attempt,maxattempt,2,nreacts,"bond/react:attempt");
         }
         // to ensure types remain in same order
-        // unnecessary now taken from reaction map file
         if (iatomtype[rxnID] == type[i]) {
           attempt[nattempt[rxnID]][0][rxnID] = tag[i];
           attempt[nattempt[rxnID]][1][rxnID] = finalpartner[i];
+          nattempt[rxnID]++;
+          // add another attempt if initiator atoms are same type
+          if (iatomtype[rxnID] == jatomtype[rxnID]) {
+            attempt[nattempt[rxnID]][0][rxnID] = finalpartner[i];
+            attempt[nattempt[rxnID]][1][rxnID] = tag[i];
+            nattempt[rxnID]++;
+          }
         } else {
           attempt[nattempt[rxnID]][0][rxnID] = finalpartner[i];
           attempt[nattempt[rxnID]][1][rxnID] = tag[i];
+          nattempt[rxnID]++;
         }
-        nattempt[rxnID]++;
       }
     }
   }
@@ -2705,7 +2710,7 @@ update molecule IDs, charges, types, special lists and all topology
 
 void FixBondReact::update_everything()
 {
-  int nlocal; // must be defined after create_atoms
+  int nlocal = atom->nlocal; // must be redefined after create atoms
   int *type = atom->type;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
@@ -2717,6 +2722,9 @@ void FixBondReact::update_everything()
   // used when deleting atoms
   int ndel,ndelone;
   int *mark;
+  int nmark = nlocal;
+  memory->create(mark,nmark,"bond/react:mark");
+  for (int i = 0; i < nmark; i++) mark[i] = 0;
   tagint *tag = atom->tag;
   AtomVec *avec = atom->avec;
 
@@ -2778,8 +2786,11 @@ void FixBondReact::update_everything()
 
     // mark to-delete atoms
     nlocal = atom->nlocal;
-    mark = new int[nlocal];
-    for (int i = 0; i < nlocal; i++) mark[i] = 0;
+    if (nlocal > nmark) {
+      memory->grow(mark,nlocal,"bond/react:mark");
+      for (int i = nmark; i < nlocal; i++) mark[i] = 0;
+      nmark = nlocal;
+    }
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
       onemol = atom->molecules[unreacted_mol[rxnID]];
@@ -3228,7 +3239,7 @@ void FixBondReact::update_everything()
       }
     }
   }
-  delete [] mark;
+  memory->destroy(mark);
 
   MPI_Allreduce(&ndelone,&ndel,1,MPI_INT,MPI_SUM,world);
 

@@ -120,8 +120,6 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D OCL_TUNE=value            # hardware choice for GPU_API=opencl
-                                # generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)
    -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
                                 # value = sm_XX, see below
                                 # default is sm_50

@@ -171,7 +171,6 @@ if (test $1 = 1) then
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_GPU |' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then

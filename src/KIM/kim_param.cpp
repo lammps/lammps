@@ -367,7 +367,7 @@ void KimParam::command(int narg, char **arg)
               varsname.resize(1);
               varsname[0] = varname;
             // Default explicit (optional) formatarg
-            } else if (i - 1 + nvars < narg) {
+            } else if (i - 1 + nvars - 1 < narg) {
               varsname.resize(nvars);
               --i;
               for (int j = 0; j < nvars; ++j, ++i) varsname[j] = arg[i];

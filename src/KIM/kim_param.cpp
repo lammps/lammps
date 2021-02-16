@@ -346,6 +346,8 @@ void KimParam::command(int narg, char **arg)
         if (i < narg) {
           // Get the variable/variable_base name
           varname = arg[i++];
+          if (varname == "split" || varname == "list" || varname == "explicit")
+            error->all(FLERR, "Illegal variable name in 'kim param get'");
         } else {
           std::string msg("Wrong number of arguments in 'kim param get' ");
           msg += "command.\nThe LAMMPS variable name is mandatory";
@@ -362,15 +364,22 @@ void KimParam::command(int narg, char **arg)
               for (int j = 0, k = nlbound; j < nvars; ++j, ++k) {
                 varsname[j] = fmt::format("{}_{}", varname, k);
               }
+              ++i;
             } else if (strcmp(arg[i], "list") == 0) {
               list_requested = true;
               varsname.resize(1);
               varsname[0] = varname;
+              ++i;
             // Default explicit (optional) formatarg
             } else if (i - 1 + nvars - 1 < narg) {
               varsname.resize(nvars);
               --i;
-              for (int j = 0; j < nvars; ++j, ++i) varsname[j] = arg[i];
+              for (int j = 0; j < nvars; ++j, ++i) {
+                varsname[j] = arg[i];
+                if (varsname[j] == "split" || varsname[j] == "list" ||
+                    varsname[j] == "explicit")
+                  error->all(FLERR, "Illegal variable name in 'kim param get'");
+              }
               if (i < narg) {
                 if (strcmp(arg[i], "explicit") == 0) ++i;
               }
@@ -396,8 +405,7 @@ void KimParam::command(int narg, char **arg)
               ++i;
             } else {
               if ((strcmp(arg[i], "list") == 0) ||
-                  (strcmp(arg[i], "explicit") == 0))
-                ++i;
+                  (strcmp(arg[i], "explicit") == 0)) ++i;
 
               varsname[0] = varname;
             }
@@ -427,7 +435,7 @@ void KimParam::command(int narg, char **arg)
               str += fmt::format(" {}", V);
             }
 
-            auto setcmd = fmt::format("{} string {}", varsname[0], str);
+            auto setcmd = fmt::format("{} string \"{}\"", varsname[0], str);
             input->variable->set(setcmd);
             input->write_echo(fmt::format("variable {}\n", setcmd));
 
@@ -465,7 +473,7 @@ void KimParam::command(int narg, char **arg)
               str += fmt::format(" {}", V);
             }
 
-            auto setcmd = fmt::format("{} string {}", varsname[0], str);
+            auto setcmd = fmt::format("{} string \"{}\"", varsname[0], str);
             input->variable->set(setcmd);
             input->write_echo(fmt::format("variable {}\n", setcmd));
 

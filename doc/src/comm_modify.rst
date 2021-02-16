@@ -34,7 +34,7 @@ Examples
 
    comm_modify mode multi reduce/multi
    comm_modify mode multi group solvent
-   comm_modift mode multi cutoff/multi 1 10.0 cutoff/multi 2*4 15.0
+   comm_modift mode multi cutoff/multi 0 10.0 cutoff/multi 2*4 15.0
    comm_modify vel yes
    comm_modify mode single cutoff 5.0 vel yes
    comm_modify cutoff/multi * 0.0
@@ -101,6 +101,7 @@ communication mode *multi* instead. Since the communication
 cutoffs are determined per atom collections, a collection specifier is needed and
 cutoff for one or multiple collections can be extended. Also ranges of collections
 using the usual asterisk notation can be given. 
+Collections are indexed from 0 to N-1 where N is the total number of collections.
 Note that the arguments for *cutoff/multi* are parsed right before each
 simulation to account for potential changes in the number of collections.
 Custom cutoffs are preserved between runs but if collections are redefined, 

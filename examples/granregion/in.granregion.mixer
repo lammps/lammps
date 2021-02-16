@@ -49,7 +49,7 @@ pair_style	gran/hertz/history &
 		${kn} ${kt} ${gamma_n} ${gamma_t} ${coeffFric} 1
 pair_coeff	* *
 
-neighbor        ${skin} bin
+neighbor        ${skin} multi
 thermo 		${logfreq}
 
 comm_style	brick

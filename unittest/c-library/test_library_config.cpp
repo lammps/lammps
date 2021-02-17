@@ -200,7 +200,10 @@ TEST(LAMMPSConfig, exceptions)
 
 TEST(LAMMPSConfig, mpi_support)
 {
-    EXPECT_EQ(lammps_config_has_mpi_support(), LAMMPS_HAS_MPI);
+    if (LAMMPS_HAS_MPI)
+        EXPECT_GT(lammps_config_has_mpi_support(), 0);
+    else
+        EXPECT_EQ(lammps_config_has_mpi_support(), 0);
 };
 
 TEST(LAMMPSConfig, png_support)

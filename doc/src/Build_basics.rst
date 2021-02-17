@@ -95,7 +95,7 @@ standard. A more detailed discussion of that is below.
 
       .. note::
 
-         The file ``src/STUBS/mpi.c`` provides a CPU timer function
+         The file ``src/STUBS/mpi.cpp`` provides a CPU timer function
          called ``MPI_Wtime()`` that calls ``gettimeofday()``.  If your
          operating system does not support ``gettimeofday()``, you will
          need to insert code to call another timer.  Note that the

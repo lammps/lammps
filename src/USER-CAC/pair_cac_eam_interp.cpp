@@ -699,23 +699,31 @@ void PairCACEAMInterp::compute_electron_densities(int i) {
 
   //sum over quadrature points to compute force density
   for (int quad_loop=0; quad_loop < quadrature_counts[i] ; quad_loop++){
-  if(!atomic_flag){
-  s = quadrature_point_data[qi][0];
-  t = quadrature_point_data[qi][1];
-  w = quadrature_point_data[qi][2];
-  sq = quadrature_point_data[qi][3];
-  tq = quadrature_point_data[qi][4];
-  wq = quadrature_point_data[qi][5];
-  coefficients = quadrature_point_data[qi][6];
-  }
-  for (poly_counter = 0; poly_counter < current_poly_count; poly_counter++){
-    current_nodal_positions = nodal_positions[i][poly_counter];
-    if(!atomic_flag)
-    quad_electron_density(i, s, t, w);
-    else
-    quad_electron_density(i, current_x[0], current_x[1], current_x[2]);
-    pqi++;
-  }
+    if(atom->cac_flux_flag==2&&flux_compute) quad_flux_flag = 1;
+    else if(atom->cac_flux_flag==1&&flux_compute){
+      //check to make sure this quadrature point is the closest one to a node
+      if(quadrature_point_data[qi + quad_loop][7]) quad_flux_flag = 1;
+      else quad_flux_flag = 0;
+    }
+    else quad_flux_flag = 0;
+
+    if(!atomic_flag){
+      s = quadrature_point_data[qi][0];
+      t = quadrature_point_data[qi][1];
+      w = quadrature_point_data[qi][2];
+      sq = quadrature_point_data[qi][3];
+      tq = quadrature_point_data[qi][4];
+      wq = quadrature_point_data[qi][5];
+      coefficients = quadrature_point_data[qi][6];
+    }
+    for (poly_counter = 0; poly_counter < current_poly_count; poly_counter++){
+      current_nodal_positions = nodal_positions[i][poly_counter];
+      if(!atomic_flag)
+        quad_electron_density(i, s, t, w);
+      else
+        quad_electron_density(i, current_x[0], current_x[1], current_x[2]);
+      pqi++;
+    }
   qi++;
   }
     

@@ -2153,7 +2153,7 @@ void Atom::setup_sort_bins()
   bininvy = nbiny / (bboxhi[1]-bboxlo[1]);
   bininvz = nbinz / (bboxhi[2]-bboxlo[2]);
 
-  #ifdef LMP_USER_INTEL
+#ifdef LMP_USER_INTEL
   int intel_neigh = 0;
   if (neighbor->nrequest) {
     if (neighbor->requests[0]->intel) intel_neigh = 1;
@@ -2198,9 +2198,9 @@ void Atom::setup_sort_bins()
     bboxhi[1] = bboxlo[1] + static_cast<double>(nbiny) / bininvy;
     bboxhi[2] = bboxlo[2] + static_cast<double>(nbinz) / bininvz;
   }
-  #endif
+#endif
 
-  #ifdef LMP_GPU
+#ifdef LMP_GPU
   if (userbinsize == 0.0) {
     int ifix = modify->find_fix("package_gpu");
     if (ifix >= 0) {
@@ -2212,7 +2212,7 @@ void Atom::setup_sort_bins()
       binsize = fix->binsize(subx, suby, subz, atom->nlocal,
                              neighbor->cutneighmax);
       bininv = 1.0 / binsize;
-      
+
       nbinx = static_cast<int> (ceil(subx * bininv));
       nbiny = static_cast<int> (ceil(suby * bininv));
       nbinz = static_cast<int> (ceil(subz * bininv));
@@ -2227,7 +2227,7 @@ void Atom::setup_sort_bins()
       bininvz = bininv;
     }
   }
-  #endif
+#endif
 
   if (1.0*nbinx*nbiny*nbinz > INT_MAX)
     error->one(FLERR,"Too many atom sorting bins");

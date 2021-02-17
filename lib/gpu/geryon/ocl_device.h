@@ -28,6 +28,10 @@
 #include <vector>
 #include <iostream>
 
+#ifndef CL_TARGET_OPENCL_VERSION
+#define CL_TARGET_OPENCL_VERSION 210
+#endif
+
 #ifdef __APPLE__
 #include <OpenCL/cl.h>
 #include <OpenCL/cl_platform.h>

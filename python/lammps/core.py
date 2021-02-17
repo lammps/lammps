@@ -325,6 +325,10 @@ class lammps(object):
         else:
           MPI_Comm = c_void_p
 
+        # Detect whether LAMMPS and mpi4py definitely use different MPI libs
+        if sizeof(MPI_Comm) != self.lib.lammps_config_has_mpi_support():
+          raise Exception('Inconsistent MPI library in LAMMPS and mpi4py')
+
         narg = 0
         cargs = None
         if cmdargs:

@@ -175,7 +175,7 @@ package.
 
 The *Ngpu* argument sets the number of GPUs per node. If *Ngpu* is 0
 and no other keywords are specified, GPU or accelerator devices are
-autoselected. In this process, all platforms are searched for
+auto-selected. In this process, all platforms are searched for
 accelerator devices and GPUs are chosen if available. The device with
 the highest number of compute cores is selected. The number of devices
 is increased to be the number of matching accelerators with the same
@@ -257,7 +257,8 @@ the other particles.
 The *gpuID* keyword is used to specify the first ID for the GPU or
 other accelerator that LAMMPS will use. For example, if the ID is
 1 and *Ngpu* is 3, GPUs 1-3 will be used. Device IDs should be
-determined from the output of nvc_get_devices or ocl_get_devices
+determined from the output of nvc_get_devices, ocl_get_devices,
+or hip_get_devices
 as provided in the lib/gpu directory. When using OpenCL with
 accelerators that have main memory NUMA, the accelerators can be
 split into smaller virtual accelerators for more efficient use
@@ -306,13 +307,14 @@ PPPM_MAX_SPLINE.
 
 CONFIG_ID can be 0. SHUFFLE_AVAIL in {0,1} indicates that inline-PTX
 (NVIDIA) or OpenCL extensions (Intel) should be used for horizontal
-vector operataions. FAST_MATH in {0,1} indicates that OpenCL fast math
-optimizations are used during the build and HW-accelerated
-transcendentals are used when available. THREADS_PER_* give the default
-*tpa* values for ellipsoidal models, styles using charge, and any other
-styles. The BLOCK_* parameters specify the block sizes for various
-kernal calls and the MAX_*SHARED*_ parameters are used to determine the
-amount of local shared memory to use for storing model parameters.
+vector operations. FAST_MATH in {0,1} indicates that OpenCL fast math
+optimizations are used during the build and hardware-accelerated
+transcendental functions are used when available. THREADS_PER_* give the
+default *tpa* values for ellipsoidal models, styles using charge, and
+any other styles. The BLOCK_* parameters specify the block sizes for
+various kernel calls and the MAX_*SHARED*_ parameters are used to
+determine the amount of local shared memory to use for storing model
+parameters.
 
 For OpenCL, the routines are compiled at runtime for the specified GPU
 or accelerator architecture. The *ocl_args* keyword can be used to

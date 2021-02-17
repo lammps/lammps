@@ -45,8 +45,10 @@ efficient use with MPI.
 
 After building the GPU library, for OpenCL:
   ./ocl_get_devices
-and for CUDA
+for CUDA:
   ./nvc_get_devices
+and for ROCm HIP:
+  ./hip_get_devices
 
 ------------------------------------------------------------------------------
                               QUICK START

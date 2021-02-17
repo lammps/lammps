@@ -1,11 +1,14 @@
 GPU package
 ===========
 
-The GPU package was developed by Mike Brown while at SNL and ORNL
-and his collaborators, particularly Trung Nguyen (now at Northwestern).
-It provides GPU versions of many pair styles and for parts of the
-:doc:`kspace_style pppm <kspace_style>` for long-range Coulombics.
-It has the following general features:
+The GPU package was developed by Mike Brown while at SNL and ORNL (now
+at Intel Corp.) and his collaborators, particularly Trung Nguyen (now at
+Northwestern).  Support for AMD GPUs via HIP was added by Vsevolod Nikolskiy
+and coworkers at HSE University.
+
+The GPU package provides GPU versions of many pair styles and for
+parts of the :doc:`kspace_style pppm <kspace_style>` for long-range
+Coulombics.  It has the following general features:
 
 * It is designed to exploit common GPU hardware configurations where one
   or more GPUs are coupled to many cores of one or more multi-core CPUs,
@@ -24,8 +27,9 @@ It has the following general features:
   force vectors.
 * LAMMPS-specific code is in the GPU package.  It makes calls to a
   generic GPU library in the lib/gpu directory.  This library provides
-  NVIDIA support as well as more general OpenCL support, so that the
-  same functionality is supported on a variety of hardware.
+  either Nvidia support, AMD support, or more general OpenCL support
+  (for Nvidia GPUs, AMD GPUs, Intel GPUs, and multi-core CPUs).
+  so that the same functionality is supported on a variety of hardware.
 
 **Required hardware/software:**
 
@@ -89,10 +93,10 @@ shared by 4 MPI tasks.
 The GPU package also has limited support for OpenMP for both
 multi-threading and vectorization of routines that are run on the CPUs.
 This requires that the GPU library and LAMMPS are built with flags to
-enable OpenMP support (e.g. -fopenmp -fopenmp-simd). Some styles for
-time integration are also available in the GPU package. These run
-completely on the CPUs in full double precision, but exploit
-multi-threading and vectorization for faster performance.
+enable OpenMP support (e.g. -fopenmp). Some styles for time integration
+are also available in the GPU package. These run completely on the CPUs
+in full double precision, but exploit multi-threading and vectorization
+for faster performance.
 
 Use the "-sf gpu" :doc:`command-line switch <Run_options>`, which will
 automatically append "gpu" to styles that support it.  Use the "-pk
@@ -159,11 +163,11 @@ Likewise, you should experiment with the precision setting for the GPU
 library to see if single or mixed precision will give accurate
 results, since they will typically be faster.
 
-MPI parallelism typically outperforms OpenMP parallelism, but in same cases
-using fewer MPI tasks and multiple OpenMP threads with the GPU package
-can give better performance. 3-body potentials can often perform better
-with multiple OMP threads because the inter-process communication is
-higher for these styles with the GPU package in order to allow
+MPI parallelism typically outperforms OpenMP parallelism, but in some
+cases using fewer MPI tasks and multiple OpenMP threads with the GPU
+package can give better performance. 3-body potentials can often perform
+better with multiple OMP threads because the inter-process communication
+is higher for these styles with the GPU package in order to allow
 deterministic results.
 
 **Guidelines for best performance:**
@@ -189,6 +193,12 @@ deterministic results.
   :doc:`angle <angle_style>`, :doc:`dihedral <dihedral_style>`,
   :doc:`improper <improper_style>`, and :doc:`long-range <kspace_style>`
   calculations will not be included in the "Pair" time.
+* Since only part of the pppm kspace style is GPU accelerated, it
+  may be faster to only use GPU acceleration for Pair styles with
+  long-range electrostatics.  See the "pair/only" keyword of the
+  package command for a shortcut to do that.  The work between kspace
+  on the CPU and non-bonded interactions on the GPU can be balanced
+  through adjusting the coulomb cutoff without loss of accuracy.
 * When the *mode* setting for the package gpu command is force/neigh,
   the time for neighbor list calculations on the GPU will be added into
   the "Pair" time, not the "Neigh" time.  An additional breakdown of the

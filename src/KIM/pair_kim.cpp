@@ -1163,6 +1163,6 @@ void PairKIM::set_kim_model_has_flags()
   }
 }
 
-KIM_Model *PairKIM::get_KIM_Model() { return pkim; }
+KIM_Model *PairKIM::get_kim_model() { return pkim; }
 
 std::string PairKIM::get_atom_type_list() { return atom_type_list; }

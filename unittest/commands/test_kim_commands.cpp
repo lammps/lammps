@@ -263,8 +263,6 @@ TEST_F(KimCommandsTest, kim_param)
     TEST_FAILURE(".*ERROR: Incorrect arguments in 'kim param' command.\n"
                  "'kim param get/set' is mandatory.*",
                  lmp->input->one("kim param unknown shift 1 shift"););
-    TEST_FAILURE(".*ERROR: Must use 'kim init' before 'kim param'.*",
-                 lmp->input->one("kim param get shift 1 shift"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
@@ -277,6 +275,27 @@ TEST_F(KimCommandsTest, kim_param)
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("clear");
     lmp->input->one("kim init LennardJones612_UniversalShifted__MO_959249795837_003 real");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    TEST_FAILURE(".*ERROR: Illegal 'kim param get' command.\nTo get the new "
+                 "parameter values, pair style must be assigned.\nMust use 'kim"
+                 " interactions' or 'pair_style kim' before 'kim param get'.*",
+                 lmp->input->one("kim param get shift 1 shift"););
+
+    TEST_FAILURE(".*ERROR: Illegal 'kim param set' command.\nTo set the new "
+                 "parameter values, pair style must be assigned.\nMust use 'kim"
+                 " interactions' or 'pair_style kim' before 'kim param set'.*",
+                 lmp->input->one("kim param set shift 1 2"););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("kim init LennardJones612_UniversalShifted__MO_959249795837_003 real");
+    lmp->input->one("lattice fcc 4.4300");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    lmp->input->one("kim interactions Ar");
+    lmp->input->one("mass 1 39.95");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Illegal index '0' for "
@@ -301,11 +320,6 @@ TEST_F(KimCommandsTest, kim_param)
     TEST_FAILURE(".*ERROR: Wrong argument in 'kim param get' command.\nThis "
                  "Model does not have the requested 'unknown' parameter.*",
                  lmp->input->one("kim param get unknown 1 unknown"););
-    TEST_FAILURE(".*ERROR: Wrong 'kim param set' command.\n"
-                 "To set the new parameter values, pair style must "
-                 "be assigned.\nMust use 'kim interactions' or"
-                 "'pair_style kim' before 'kim param set'.*",
-                 lmp->input->one("kim param set shift 1 2"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("kim param get shift 1 shift");
@@ -313,17 +327,6 @@ TEST_F(KimCommandsTest, kim_param)
 
     ASSERT_FALSE(lmp->input->variable->find("shift") == -1);
     ASSERT_TRUE(std::string(lmp->input->variable->retrieve("shift")) == "1");
-
-    if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("kim init LennardJones612_UniversalShifted__MO_959249795837_003 real");
-    lmp->input->one("lattice fcc 4.4300");
-    lmp->input->one("region box block 0 10 0 10 0 10");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 box");
-    lmp->input->one("kim interactions Ar");
-    lmp->input->one("mass 1 39.95");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Illegal index '2' for "
                  "'shift' parameter with the extent of '1'.*",
@@ -412,6 +415,32 @@ TEST_F(KimCommandsTest, kim_param)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_TRUE(std::string(lmp->input->variable->retrieve("cutoffs")) == "2.3 2.2 5.7");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+    lmp->input->one("units real");
+    lmp->input->one("lattice fcc 4.4300");
+    lmp->input->one("region box block 0 10 0 10 0 10");
+    lmp->input->one("create_box 1 box");
+    lmp->input->one("create_atoms 1 box");
+    lmp->input->one("mass 1 39.95");
+    lmp->input->one("pair_style kim LennardJones612_UniversalShifted__MO_959249795837_003");
+    lmp->input->one("pair_coeff * * Ar");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("kim param get shift 1 shift");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("shift")) == "1");
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("variable new_shift equal 2");
+    lmp->input->one("kim param set shift 1 ${new_shift}");
+    lmp->input->one("kim param get shift 1 shift");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ASSERT_TRUE(std::string(lmp->input->variable->retrieve("shift")) == "2");
 }
 
 TEST_F(KimCommandsTest, kim_property)

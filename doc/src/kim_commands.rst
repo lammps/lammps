@@ -751,11 +751,10 @@ for details).
 
 .. note::
 
-   The *kim param get/set* commands must be preceded by *kim init*\ .
-   The *kim param set* command must additionally be preceded by a
-   *kim_interactions* command (or alternatively by a *pair_style kim* and
-   *pair_coeff* commands).  The *kim param set* command may be used wherever a
-   *pair_coeff* command may occur.
+   The *kim param set/get* command must be preceded by a *kim_interactions*
+   command (or alternatively by a *pair_style kim* and *pair_coeff* commands).
+   The *kim param set* command may be used wherever a *pair_coeff* command may
+   occur.
 
 The syntax for the *kim param* command is as follows:
 
@@ -820,11 +819,21 @@ are provided below.
 
 .. code-block:: LAMMPS
 
-   kim init  SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
+   kim init SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
    ...
+   kim interactions Si
    kim param get A 1 VARA
 
-In this case, the value of the SW *A* parameter is retrieved and placed in the
+or,
+
+.. code-block:: LAMMPS
+
+   ...
+   pair_style kim SW_StillingerWeber_1985_Si__MO_405512056662_005
+   pair_coeff * * Si
+   kim param get A 1 VARA
+
+In these cases, the value of the SW *A* parameter is retrieved and placed in the
 LAMMPS variable *VARA*\ .  The variable *VARA* can be used in the remainder of
 the input script in the same manner as any other LAMMPS variable.
 
@@ -832,8 +841,8 @@ the input script in the same manner as any other LAMMPS variable.
 
 .. code-block:: LAMMPS
 
-   kim init  SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
    ...
+   kim interactions Si
    kim param get A 1 VARA B 1 VARB
 
 In this example, it is shown how to retrieve the *A* and *B* parameters of the
@@ -846,8 +855,9 @@ determined by the *formatarg* argument.
 
 .. code-block:: LAMMPS
 
-   kim init  SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
+   kim init SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
    ...
+   kim interactions Te Zn Se
    kim param get lambda 7:9 LAM_TeTe LAM_TeZn LAM_TeSe
 
 In this case, *formatarg* is not specified and therefore the default
@@ -868,8 +878,8 @@ lambda retrieved by the *get* operation are placed in the LAMMPS variables
 
 .. code-block:: LAMMPS
 
-   kim init SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
    ...
+   kim      interactions Te Zn Se
    kim      param get lambda 15:17 LAMS list
    variable LAM_VALUE index ${LAMS}
    label    loop_on_lambda
@@ -888,8 +898,8 @@ the current value of lambda.
 
 .. code-block:: LAMMPS
 
-   kim init  SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002 metal
    ...
+   kim interactions Te Zn Se
    kim param get lambda 15:17 LAM split
 
 In this case, the "split" mode of *formatarg* is used.  The three values

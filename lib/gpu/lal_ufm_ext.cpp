@@ -57,7 +57,7 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
   int init_ok=0;
   if (world_me==0)
     init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3,
-                        offset, special_lj, inum, nall, 300,
+                        offset, special_lj, inum, nall, max_nbors,
                         maxspecial, cell_size, gpu_split, screen);
 
   UFMLMF.device->world_barrier();
@@ -75,7 +75,7 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3,
-                         offset, special_lj, inum, nall, 300, maxspecial,
+                         offset, special_lj, inum, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
     UFMLMF.device->gpu_barrier();

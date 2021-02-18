@@ -37,6 +37,8 @@ namespace ucl_cudadr {
 // --------------------------------------------------------------------------
 typedef CUstream command_queue;
 
+inline void ucl_flush(command_queue &cq) {}
+
 inline void ucl_sync(CUstream &stream) {
   CU_SAFE_CALL(cuStreamSynchronize(stream));
 }
@@ -156,14 +158,25 @@ class UCL_Device {
   inline std::string device_type_name(const int i) { return "GPU"; }
 
   /// Get current device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
-  inline int device_type() { return device_type(_device); }
+  inline enum UCL_DEVICE_TYPE device_type() { return device_type(_device); }
   /// Get device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
-  inline int device_type(const int i) { return UCL_GPU; }
+  inline enum UCL_DEVICE_TYPE device_type(const int i) { return UCL_GPU; }
 
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory() { return shared_memory(_device); }
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory(const int i) { return device_type(i)==UCL_CPU; }
+
+  /// Returns preferred vector width
+  inline int preferred_fp32_width() { return preferred_fp32_width(_device); }
+  /// Returns preferred vector width
+  inline int preferred_fp32_width(const int i)
+    {return _properties[i].SIMDWidth;}
+  /// Returns preferred vector width
+  inline int preferred_fp64_width() { return preferred_fp64_width(_device); }
+  /// Returns preferred vector width
+  inline int preferred_fp64_width(const int i)
+    {return _properties[i].SIMDWidth;}
 
   /// Returns true if double precision is support for the current device
   inline bool double_precision() { return double_precision(_device); }
@@ -228,6 +241,18 @@ class UCL_Device {
   /// Get the maximum number of threads per block
   inline size_t group_size(const int i)
     { return _properties[i].maxThreadsPerBlock; }
+  /// Get the maximum number of threads per block in dimension 'dim'
+  inline size_t group_size_dim(const int dim)
+    { return group_size_dim(_device, dim); }
+  /// Get the maximum number of threads per block in dimension 'dim'
+  inline size_t group_size_dim(const int i, const int dim)
+    { return _properties[i].maxThreadsDim[dim]; }
+  
+  /// Get the shared local memory size in bytes
+  inline size_t slm_size() { return slm_size(_device); }
+  /// Get the shared local memory size in bytes
+  inline size_t slm_size(const int i)
+    { return _properties[i].sharedMemPerBlock; }
 
   /// Return the maximum memory pitch in bytes for current device
   inline size_t max_pitch() { return max_pitch(_device); }
@@ -268,11 +293,22 @@ class UCL_Device {
   inline int max_sub_devices(const int i)
     { return 0; }
 
+  /// True if the device supports shuffle intrinsics
+  inline bool has_shuffle_support()
+    { return has_shuffle_support(_device); }
+  /// True if the device supports shuffle intrinsics
+  inline bool has_shuffle_support(const int i)
+    { return arch(i)>=3.0; }
+
   /// List all devices along with all properties
   inline void print_all(std::ostream &out);
 
-  /// Select the platform that has accelerators (for compatibility with OpenCL)
-  inline int set_platform_accelerator(int pid=-1) { return UCL_SUCCESS; }
+  /// For compatability with OCL API
+  inline int auto_set_platform(const enum UCL_DEVICE_TYPE type=UCL_GPU,
+			       const std::string vendor="",
+			       const int ndevices=-1,
+			       const int first_device=-1)
+    { return set_platform(0); }
 
  private:
   int _device, _num_devices;

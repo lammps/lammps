@@ -52,8 +52,8 @@ int ** dpd_gpu_compute_n(const int ago, const int inum_full, const int nall,
                          double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time, bool &success,
-                         double **host_v, const double dtinvsqrt,
+                         int **ilist, int **jnum, const double cpu_time,
+                         bool &success, double **host_v, const double dtinvsqrt,
                          const int seed, const int timestep,
                          double *boxlo, double *prd);
 void dpd_gpu_compute(const int ago, const int inum_full, const int nall,
@@ -308,9 +308,10 @@ void PairDPDGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = dpd_gpu_init(atom->ntypes+1, cutsq, a0, gamma, sigma,
                              cut, force->special_lj, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

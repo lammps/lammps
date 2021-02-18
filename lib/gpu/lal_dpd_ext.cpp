@@ -55,7 +55,7 @@ int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
   int init_ok=0;
   if (world_me==0)
     init_ok=DPDMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                       host_cut, special_lj, false, inum, nall, 300,
+                       host_cut, special_lj, false, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen);
 
   DPDMF.device->world_barrier();
@@ -73,7 +73,7 @@ int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=DPDMF.init(ntypes, cutsq, host_a0, host_gamma, host_sigma,
-                         host_cut, special_lj, false, inum, nall, 300,
+                         host_cut, special_lj, false, inum, nall, max_nbors,
                          maxspecial, cell_size, gpu_split, screen);
 
     DPDMF.device->gpu_barrier();

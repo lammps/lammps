@@ -842,12 +842,12 @@ void LAMMPS::post_create()
     if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
       error->all(FLERR,"Using suffix omp without USER-OMP package installed");
 
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
+    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
     if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
     if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
 
     if (suffix2) {
-      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
+      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 0");
       if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
       if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
     }

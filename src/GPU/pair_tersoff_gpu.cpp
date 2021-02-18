@@ -66,8 +66,6 @@ void tersoff_gpu_compute(const int ago, const int nlocal, const int nall,
                     const bool vflag, const bool eatom, const bool vatom,
                     int &host_start, const double cpu_time, bool &success);
 double tersoff_gpu_bytes();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                             double **vatom, double *virial, double &ecoul);
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -216,8 +214,9 @@ void PairTersoffGPU::init_style()
     _cutsq[i] = params[i].cutsq;
   }
 
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = tersoff_gpu_init(atom->ntypes+1, atom->nlocal,
-                                 atom->nlocal+atom->nghost, 300,
+                                 atom->nlocal+atom->nghost, mnf,
                                  cell_size, gpu_mode, screen, map, nelements,
                                  elem2param, nparams, lam1, lam2, lam3,
                                  powermint, biga, bigb, bigr, bigd,
@@ -252,7 +251,6 @@ void PairTersoffGPU::init_style()
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->ghost = 1;
   }
-
   if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser = 2.0*cutmax + neighbor->skin;
     if (comm->me == 0)

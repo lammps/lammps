@@ -150,22 +150,13 @@ void KimParam::command(int narg, char **arg)
 
   if (narg < 4) error->all(FLERR, "Illegal 'kim param' command");
 
-  std::string kim_param_get_set = arg[0];
+  std::string kim_param_get_set(arg[0]);
 
   if ((kim_param_get_set != "get") && (kim_param_get_set != "set")) {
     std::string msg("Incorrect arguments in 'kim param' command.\n");
     msg += "'kim param get/set' is mandatory";
     error->all(FLERR, msg);
   }
-
-  // Check if we called a kim init command
-  // by finding fix STORE/KIM
-  // retrieve model name and model units.
-
-  char *model_name;
-  char *model_units;
-
-  bool isPortableModel(false);
 
   int const ifix = modify->find_fix("KIM_MODEL_STORE");
   if (ifix >= 0) {
@@ -175,15 +166,10 @@ void KimParam::command(int narg, char **arg)
         reinterpret_cast<KIM_SimulatorModel *>(
             fix_store->getptr("simulator_model"));
 
-    isPortableModel = simulatorModel ? false : true;
-    if (!isPortableModel)
+    if (simulatorModel)
       error->all(FLERR,
         "'kim param' can only be used with a KIM Portable Model");
-
-    model_name = (char *)fix_store->getptr("model_name");
-    model_units = (char *)fix_store->getptr("model_units");
-  } else
-    error->all(FLERR, "Must use 'kim init' before 'kim param'");
+  }
 
   input->write_echo(fmt::format("#=== BEGIN kim param {} ==================="
                                 "==================\n", kim_param_get_set));
@@ -192,15 +178,13 @@ void KimParam::command(int narg, char **arg)
 
   std::string atom_type_list;
 
-  int kim_error;
-
   bool isPairStyleAssigned = force->pair ? true : false;
   if (isPairStyleAssigned) {
     Pair *pair = force->pair_match("kim", 1, 0);
     if (pair) {
       PairKIM *pairKIM = reinterpret_cast<PairKIM *>(pair);
 
-      pkim = pairKIM->get_KIM_Model();
+      pkim = pairKIM->get_kim_model();
       if (!pkim)
         error->all(FLERR, "Unable to get the KIM Portable Model");
 
@@ -213,39 +197,11 @@ void KimParam::command(int narg, char **arg)
       error->all(FLERR, "Pair style is defined, but there is "
                         "no match for kim style in lammps");
   } else {
-    if (kim_param_get_set == "set") {
-      std::string msg("Wrong 'kim param set' command.\n");
-      msg += "To set the new parameter values, pair style must ";
-      msg += "be assigned.\nMust use 'kim interactions' or";
-      msg += "'pair_style kim' before 'kim param set'";
-      error->all(FLERR, msg);
-    } else {
-      KIM_LengthUnit lengthUnit;
-      KIM_EnergyUnit energyUnit;
-      KIM_ChargeUnit chargeUnit;
-      KIM_TemperatureUnit temperatureUnit;
-      KIM_TimeUnit timeUnit;
-
-      get_kim_unit_names(model_units, lengthUnit, energyUnit,
-                         chargeUnit, temperatureUnit, timeUnit, error);
-
-      int units_accepted;
-
-      kim_error = KIM_Model_Create(KIM_NUMBERING_zeroBased,
-                                   lengthUnit,
-                                   energyUnit,
-                                   chargeUnit,
-                                   temperatureUnit,
-                                   timeUnit,
-                                   model_name,
-                                   &units_accepted,
-                                   &pkim);
-      if (kim_error)
-        error->all(FLERR, "Unable to create KIM Portable Model");
-
-      auto logID = fmt::format("{}_Model", comm->me);
-      KIM_Model_SetLogID(pkim, logID.c_str());
-    }
+    auto msg = fmt::format("Illegal 'kim param {0}' command.\nTo {0} the new "
+                           "parameter values, pair style must be assigned.\n"
+                           "Must use 'kim interactions' or 'pair_style kim' "
+                           "before 'kim param {0}'", kim_param_get_set);
+    error->all(FLERR, msg);
   }
 
   // Get the number of mutable parameters in the kim model
@@ -255,6 +211,7 @@ void KimParam::command(int narg, char **arg)
   if (numberOfParameters) {
     // Get the parameters
     if (kim_param_get_set == "get") {
+      int kim_error;
       // Parameter name
       char *paramname = nullptr;
       // Variable name
@@ -501,9 +458,6 @@ void KimParam::command(int narg, char **arg)
     }
   } else
     error->all(FLERR, "This model has No mutable parameters");
-
-  if (!isPairStyleAssigned)
-    KIM_Model_Destroy(&pkim);
 
   input->write_echo(fmt::format("#=== END kim param {} ====================="
                                 "==================\n", kim_param_get_set));

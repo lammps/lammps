@@ -695,6 +695,30 @@ TEST_F(KimCommandsTest, kim_query)
     lmp->input->one(squery);
     lmp->input->one("variable model_name delete");
     if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("clear");
+
+    squery = "kim query model_name index get_available_models ";
+    squery += "species=[Al] potential_type=[eam,meam]";
+    lmp->input->one(squery);
+    lmp->input->one("variable model_name delete");
+
+    squery = "kim query model_name index get_available_models ";
+    squery += "species=[Al] potential_type=[\"eam\",\"meam\"]";
+    lmp->input->one(squery);
+    lmp->input->one("variable model_name delete");
+
+    squery = "kim query model_name index get_available_models ";
+    squery += "species=[Al] potential_type=[eam,\"meam\"]";
+    lmp->input->one(squery);
+    lmp->input->one("variable model_name delete");
+
+    squery = "kim query model_name index get_available_models ";
+    squery += "species=[Al] potential_type=[\"eam\",meam]";
+    lmp->input->one(squery);
+    lmp->input->one("variable model_name delete");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 #endif
 }
 } // namespace LAMMPS_NS

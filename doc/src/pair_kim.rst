@@ -28,14 +28,14 @@ This pair style is a wrapper on the
 repository of interatomic potentials to enable their use in LAMMPS scripts.
 
 The preferred interface for using interatomic models archived in
-OpenKIM is the :doc:`kim command interface <kim_commands>`. That
+OpenKIM is the :doc:`kim command <kim_commands>` interface. That
 interface supports both "KIM Portable Models" (PMs) that conform to the
 KIM API Portable Model Interface (PMI) and can be used by any
 simulation code that conforms to the KIM API/PMI, and
 "KIM Simulator Models" (SMs) that are natively implemented within a single
 simulation code (like LAMMPS) and can only be used with it.
 The *pair_style kim* command is limited to KIM PMs. It is
-used by the :doc:`kim command interface <kim_commands>` as needed.
+used by the :doc:`kim command <kim_commands>` interface as needed.
 
 .. note::
 

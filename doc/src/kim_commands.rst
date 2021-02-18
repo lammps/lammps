@@ -83,7 +83,7 @@ Full syntax
             next command.  This enables the construction of simple loops
      *explicit* = returns the values separately in one more more variable names
             provided as arguments that precede *formatarg*\ . [default for
-            *kim_param*]
+            *kim param*]
 
 * query_function = name of the OpenKIM web API query function to be used
 * queryargs = a series of *keyword=value* pairs that represent the web query;
@@ -173,7 +173,7 @@ Convenience
 * IMs in OpenKIM are distributed in binary form along with LAMMPS and can be
   used in a LAMMPS input script simply by providing their KIM ID in the
   *kim init* command documented on this page.
-* The *kim_query* web query tool provides the ability to use the predictions of
+* The *kim query* web query tool provides the ability to use the predictions of
   IMs for supported material properties (computed via
   `KIM Tests <https://openkim.org/doc/evaluation/kim-tests/>`_) as part of a
   LAMMPS input script setup and analysis.
@@ -445,7 +445,7 @@ Alternatively, for a model with a fixed mapping the command would be:
    kim interactions fixed_types
 
 The *kim interactions* command performs all the necessary steps to set up the
-OpenKIM IM selected in the *kim_init* command.  The specific actions depend on
+OpenKIM IM selected in the *kim init* command.  The specific actions depend on
 whether the IM is a KIM PM or a KIM SM.  For a KIM PM, a
 :doc:`pair_style kim <pair_kim>` command is executed followed by the appropriate
 *pair_coeff* command.  For example, for the Ercolessi and Adams (1994) KIM PM for
@@ -751,7 +751,7 @@ for details).
 
 .. note::
 
-   The *kim param set/get* command must be preceded by a *kim_interactions*
+   The *kim param set/get* command must be preceded by a *kim interactions*
    command (or alternatively by a *pair_style kim* and *pair_coeff* commands).
    The *kim param set* command may be used wherever a *pair_coeff* command may
    occur.

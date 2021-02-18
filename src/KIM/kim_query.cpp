@@ -296,7 +296,7 @@ char *do_query(const std::string &qfunction, const std::string &mname,
             std::string sval = val.substr(0, n);
             if (utils::is_integer(sval) ||
                 utils::is_double(sval) ||
-                (val.front() == '"' && val.back() == '"')) {
+                (sval.front() == '"' && sval.back() == '"')) {
               query += fmt::format("{},", sval);
             } else {
               query += fmt::format("\"{}\",", sval);

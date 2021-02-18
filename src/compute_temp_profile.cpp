@@ -577,7 +577,7 @@ void ComputeTempProfile::bin_assign()
 
 double ComputeTempProfile::memory_usage()
 {
-  double bytes = maxatom * sizeof(int);
-  bytes += nbins*ncount * sizeof(double);
+  double bytes = (double)maxatom * sizeof(int);
+  bytes += (double)nbins*ncount * sizeof(double);
   return bytes;
 }

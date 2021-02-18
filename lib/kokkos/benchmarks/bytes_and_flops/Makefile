@@ -1,6 +1,6 @@
 KOKKOS_DEVICES=Cuda
 KOKKOS_CUDA_OPTIONS=enable_lambda
-KOKKOS_ARCH = "SNB,Kepler35"
+KOKKOS_ARCH = "SNB,Volta70"
 
 
 MAKEFILE_PATH := $(subst Makefile,,$(abspath $(lastword $(MAKEFILE_LIST))))
@@ -22,7 +22,7 @@ CXX = ${KOKKOS_PATH}/bin/nvcc_wrapper
 EXE = bytes_and_flops.cuda
 else
 CXX = g++
-EXE = bytes_and_flops.host
+EXE = bytes_and_flops.exe
 endif
 
 CXXFLAGS ?= -O3 -g

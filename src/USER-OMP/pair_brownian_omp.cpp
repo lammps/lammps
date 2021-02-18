@@ -406,8 +406,8 @@ double PairBrownianOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairBrownian::memory_usage();
-  bytes += nthreads * sizeof(RanMars*);
-  bytes += nthreads * sizeof(RanMars);
+  bytes += (double)nthreads * sizeof(RanMars*);
+  bytes += (double)nthreads * sizeof(RanMars);
 
   return bytes;
 }

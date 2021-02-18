@@ -4,6 +4,7 @@ from lammps import lammps
 
 has_mpi=False
 has_mpi4py=False
+has_exceptions=False
 try:
     from mpi4py import __version__ as mpi4py_version
     # tested to work with mpi4py versions 2 and 3
@@ -36,7 +37,7 @@ class PythonOpen(unittest.TestCase):
         lmp=lammps(name=self.machine)
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
-        self.assertEqual(has_mpi4py,lmp.has_mpi4py)
+        self.assertEqual(has_mpi and has_mpi4py,lmp.has_mpi4py)
         self.assertEqual(has_mpi,lmp.has_mpi_support)
         lmp.close()
         self.assertIsNone(lmp.lmp,None)

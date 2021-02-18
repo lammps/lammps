@@ -30,6 +30,7 @@ AR = ar
 BSH = /bin/sh
 
 CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+CUDA_MPS  =
 
 # device code compiler and settings
 
@@ -37,7 +38,8 @@ NVCC = nvcc
 
 CUDA_ARCH = -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] \
 	    -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] \
-	    -gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_75,code=[sm_75,compute_75]
+	    -gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_75,code=[sm_75,compute_75] \
+	    -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86]
 CUDA_INCLUDE = -I$(CUDA_HOME)/include
 CUDA_LIB = -L$(CUDA_HOME)/lib64 -L$(CUDA_HOME)/lib64/stubs
 CUDA_OPTS = -DUNIX -O3 --use_fast_math $(LMP_INC) -Xcompiler -fPIC
@@ -51,7 +53,7 @@ BIN2C = $(CUDA_HOME)/bin/bin2c
 
 CUDR_CPP = mpicxx -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1 -fPIC
 CUDR_OPTS = -O2 $(LMP_INC)
-CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
+CUDR  = $(CUDR_CPP) $(CUDR_OPTS) $(CUDA_PROXY) $(CUDA_PRECISION) $(CUDA_INCLUDE) \
          $(CUDPP_OPT)
 
 # Headers for Geryon

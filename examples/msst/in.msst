@@ -36,15 +36,12 @@ unfix		 2
 # MSST fix
 fix		msst all msst z 28.0 q 200 mu 3e2 tscale 0.01 
 
-# this is needed to make etotal equal the MSST conserved quantity  
-fix_modify msst energy yes
-
 variable dhug equal f_msst[1]
 variable dray equal f_msst[2]
 variable lgr_vel equal f_msst[3]
 variable lgr_pos equal f_msst[4]
 
-thermo_style custom step temp ke pe lx ly lz pxx pyy pzz etotal &
+thermo_style custom step temp ke pe lx ly lz pxx pyy pzz econserve &
 	     v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
 
 #dump		id all atom 50 dump.msst

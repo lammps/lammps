@@ -15,7 +15,6 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-
 #include <cmath>
 
 #include "fix_langevin_eff.h"

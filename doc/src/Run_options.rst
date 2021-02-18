@@ -11,6 +11,7 @@ letter abbreviation can be used:
 * :ref:`-k or -kokkos <run-kokkos>`
 * :ref:`-l or -log <log>`
 * :ref:`-m or -mpicolor <mpicolor>`
+* :ref:`-c or -cite <cite>`
 * :ref:`-nc or -nocite <nocite>`
 * :ref:`-pk or -package <package>`
 * :ref:`-p or -partition <partition>`
@@ -220,14 +221,31 @@ links with from the lib/message directory.  See the
 
 ----------
 
+.. _cite:
+
+**-cite style or file name**
+
+Select how and where to output a reminder about citing contributions
+to the LAMMPS code that were used during the run. Available styles are
+"both", "none", "screen", or "log".  Any flag will be considered a file
+name to write the detailed citation info to.  Default is the "log" style
+where there is a short summary in the screen output and detailed citations
+in BibTeX format in the logfile.  The option "both" selects the detailed
+output for both, "none", the short output for both, and "screen" will
+write the detailed info to the screen and the short version to the log
+file.  If a dedicated citation info file is requested, the screen and
+log file output will be in the short format (same as with "none").
+
+See the :doc:`citation page <Intro_citing>` for more details on
+how to correctly reference and cite LAMMPS.
+
+----------
+
 .. _nocite:
 
 **-nocite**
 
-Disable writing the log.cite file which is normally written to list
-references for specific cite-able features used during a LAMMPS run.
-See the `citation page <https://lammps.sandia.gov/cite.html>`_ for more
-details.
+Disable generating a citation reminder (see above) at all.
 
 ----------
 

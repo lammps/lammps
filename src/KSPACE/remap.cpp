@@ -597,7 +597,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   if (memory == 1) {
     if (nrecv > 0) {
       plan->scratch =
-        (FFT_SCALAR *) malloc(nqty*out.isize*out.jsize*out.ksize *
+        (FFT_SCALAR *) malloc((size_t)nqty*out.isize*out.jsize*out.ksize *
                               sizeof(FFT_SCALAR));
       if (plan->scratch == nullptr) return nullptr;
     }

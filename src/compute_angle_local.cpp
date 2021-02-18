@@ -343,6 +343,6 @@ void ComputeAngleLocal::reallocate(int n)
 
 double ComputeAngleLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

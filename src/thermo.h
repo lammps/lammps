@@ -143,7 +143,6 @@ class Thermo : protected Pointers {
   void compute_pe();
   void compute_ke();
   void compute_etotal();
-  void compute_enthalpy();
 
   void compute_evdwl();
   void compute_ecoul();
@@ -155,6 +154,10 @@ class Thermo : protected Pointers {
   void compute_emol();
   void compute_elong();
   void compute_etail();
+
+  void compute_enthalpy();
+  void compute_ecouple();
+  void compute_econserve();
 
   void compute_vol();
   void compute_density();

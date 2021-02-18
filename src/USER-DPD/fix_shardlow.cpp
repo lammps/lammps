@@ -729,8 +729,8 @@ void FixShardlow::unpack_reverse_comm(int n, int *list, double *buf)
 double FixShardlow::memory_usage()
 {
   double bytes = 0.0;
-  bytes += sizeof(double)*3*atom->nghost; // v_t0[]
-  bytes += sizeof(*rand_state)*maxRNG; // rand_state[]
+  bytes += (double)sizeof(double)*3*atom->nghost; // v_t0[]
+  bytes += (double)sizeof(*rand_state)*maxRNG; // rand_state[]
   return bytes;
 }
 

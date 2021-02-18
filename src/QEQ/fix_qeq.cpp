@@ -524,11 +524,11 @@ double FixQEq::memory_usage()
 {
   double bytes;
 
-  bytes = atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
-  bytes += atom->nmax*11 * sizeof(double); // storage
-  bytes += n_cap*2 * sizeof(int); // matrix...
-  bytes += m_cap * sizeof(int);
-  bytes += m_cap * sizeof(double);
+  bytes = (double)atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
+  bytes += (double)atom->nmax*11 * sizeof(double); // storage
+  bytes += (double)n_cap*2 * sizeof(int); // matrix...
+  bytes += (double)m_cap * sizeof(int);
+  bytes += (double)m_cap * sizeof(double);
 
   return bytes;
 }

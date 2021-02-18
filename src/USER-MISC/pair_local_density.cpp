@@ -139,10 +139,8 @@ void PairLocalDensity::compute(int eflag, int vflag)
   double p, *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
+  ev_init(eflag,vflag);
   phi = uLD = evdwl = fpair = rsqinv = 0.0;
-
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   /* localrho = LD at each atom
      fp = derivative of embedding energy at each atom for each LD potential
@@ -881,9 +879,9 @@ void PairLocalDensity::unpack_reverse_comm(int n, int *list, double *buf) {
 
 double PairLocalDensity::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * (nmax*nLD) * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * (nmax*nLD) * sizeof(double);
   return bytes;
 }
 

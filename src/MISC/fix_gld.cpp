@@ -487,7 +487,7 @@ void FixGLD::reset_dt()
 
 double FixGLD::memory_usage()
 {
-  double bytes = atom->nmax*3*prony_terms*sizeof(double);
+  double bytes = (double)atom->nmax*3*prony_terms*sizeof(double);
   return bytes;
 }
 

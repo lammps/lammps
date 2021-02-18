@@ -51,17 +51,10 @@
 #include <Kokkos_Parallel_Reduce.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 #include <Kokkos_AnonymousSpace.hpp>
+#include <impl/Kokkos_Utilities.hpp>  // comma operator fold emulation
 
 namespace Kokkos {
 namespace Impl {
-
-// TODO move this to a more general backporting facilities file
-
-// acts like void for comma fold emulation
-struct _fold_comma_emulation_return {};
-
-template <class... Ts>
-KOKKOS_INLINE_FUNCTION void emulate_fold_comma_operator(Ts&&...) noexcept {}
 
 //==============================================================================
 // <editor-fold desc="CombinedReducer reducer and value storage helpers"> {{{1
@@ -381,19 +374,18 @@ struct CombinedReductionFunctorWrapperImpl<integer_sequence<size_t, Idxs...>,
   //----------------------------------------------------------------------------
   // <editor-fold desc="call operator"> {{{2
 
-  template <class IndexOrMemberType>
-  KOKKOS_FUNCTION void operator()(IndexOrMemberType&& arg_first,
-                                  value_type& out) const {
-    m_functor((IndexOrMemberType &&) arg_first,
-              out.template get<Idxs, typename Reducers::value_type>()...);
-  }
-
-  // Tagged version
-  template <class Tag, class IndexOrMemberType>
-  KOKKOS_FUNCTION void operator()(Tag&& arg_tag, IndexOrMemberType&& arg_first,
-                                  value_type& out) const {
-    m_functor((Tag &&) arg_tag, (IndexOrMemberType &&) arg_first,
-              out.template get<Idxs, typename Reducers::value_type>()...);
+  // Variadic version for MDRangePolicy
+  // There are a number of ways to do this, but most of them that involve
+  // not assuming an implementation of tuple is available are gross.
+  // Unfortunately, that's what we have to do here
+  template <class IndexOrMemberOrTagType1,
+            class... IndexOrMemberTypesThenValueType>
+  KOKKOS_FUNCTION void operator()(
+      IndexOrMemberOrTagType1&& arg_first,
+      IndexOrMemberTypesThenValueType&&... args) const {
+    this->template _call_op_impl<IndexOrMemberOrTagType1&&>(
+        (IndexOrMemberOrTagType1 &&) arg_first,
+        (IndexOrMemberTypesThenValueType &&) args...);
   }
 
   // </editor-fold> end call operator }}}2
@@ -405,6 +397,29 @@ struct CombinedReductionFunctorWrapperImpl<integer_sequence<size_t, Idxs...>,
   // TODO: forward join() function to user functor hook, or just ignore it?
   // TODO: forward init() function to user functor hook, or just ignore it?
   // TODO: forward final() function to user functor hook, or just ignore it?
+
+ private:
+  // variadic forwarding for MDRangePolicy
+  // see comment above for why this has to be so gross
+  // recursive case
+  template <class... IdxOrMemberTypes, class IdxOrMemberType1,
+            class... IdxOrMemberTypesThenValueType>
+  KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<
+      !std::is_same<remove_cvref_t<IdxOrMemberType1>, value_type>::value>
+  _call_op_impl(IdxOrMemberTypes&&... idxs, IdxOrMemberType1&& idx,
+                IdxOrMemberTypesThenValueType&&... args) const {
+    this->template _call_op_impl<IdxOrMemberTypes&&..., IdxOrMemberType1&&>(
+        (IdxOrMemberTypes &&) idxs..., (IdxOrMemberType1 &&) idx,
+        (IdxOrMemberTypesThenValueType &&) args...);
+  }
+
+  // base case
+  template <class... IdxOrMemberTypes>
+  KOKKOS_FORCEINLINE_FUNCTION void _call_op_impl(IdxOrMemberTypes&&... idxs,
+                                                 value_type& out) const {
+    m_functor((IdxOrMemberTypes &&) idxs...,
+              out.template get<Idxs, typename Reducers::value_type>()...);
+  }
 };
 
 template <class Functor, class Space, class... Reducers>

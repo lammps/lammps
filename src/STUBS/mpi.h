@@ -16,11 +16,16 @@
 
 #include <stdlib.h>
 
-/* use C bindings for MPI interface */
+/* We compile STUBS with C++ so the symbols embedded
+ * the serial shared library will not collide with any
+ * corresponding symbols from a real MPI library (which
+ * uses C bindings). As a consequence the header *must*
+ * enforce compiling with C++ only. */
 
-#ifdef __cplusplus
-extern "C" {
+#ifndef __cplusplus
+#error "MPI STUBS must be compiled with a C++ compiler"
 #endif
+
 
 /* Dummy defs for MPI stubs */
 
@@ -175,9 +180,5 @@ int MPI_Alltoallv(void *sendbuf, int *sendcounts, int *sdispls,
                   void *recvbuf, int *recvcounts, int *rdispls,
                   MPI_Datatype recvtype, MPI_Comm comm);
 /* ---------------------------------------------------------------------- */
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

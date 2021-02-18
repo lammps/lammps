@@ -95,17 +95,20 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
-  acctyp energy=(acctyp)0;
+  int n_stride;
+  local_allocate_store_pair();
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -142,7 +145,7 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y,
                          coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
           e += coeff3[mtype].z;
@@ -151,7 +154,7 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
           }
           energy+=e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -162,9 +165,9 @@ __kernel void k_zbl(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 
 __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
@@ -186,25 +189,28 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
   __local numtyp4 coeff1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 coeff2[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 coeff3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  int n_stride;
+  local_allocate_store_pair();
+
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff1[tid]=coeff1_in[tid];
     coeff2[tid]=coeff2_in[tid];
     coeff3[tid]=coeff3_in[tid];
   }
 
-  acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   __syncthreads();
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -242,7 +248,7 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e=e_zbl(r, coeff2[mtype].x, coeff2[mtype].y,
                          coeff2[mtype].z, coeff2[mtype].w, coeff1[mtype].z);
           e += coeff3[mtype].z;
@@ -251,7 +257,7 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
           }
           energy+=e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -262,8 +268,8 @@ __kernel void k_zbl_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 

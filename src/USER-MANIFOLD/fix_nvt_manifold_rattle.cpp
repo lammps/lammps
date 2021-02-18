@@ -402,7 +402,7 @@ void FixNVTManifoldRattle::reset_dt()
 double FixNVTManifoldRattle::memory_usage()
 {
   double bytes = FixNVEManifoldRattle::memory_usage();
-  bytes += (4*mtchain+1)*sizeof(double);
+  bytes += (double)(4*mtchain+1)*sizeof(double);
 
   return bytes;
 }

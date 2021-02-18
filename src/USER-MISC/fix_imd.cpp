@@ -919,7 +919,7 @@ void FixIMD::post_force(int /*vflag*/)
 
           if (imd_forces < length) { /* grow holding space for forces, if needed. */
             memory->destroy(force_buf);
-            force_buf = (void *) memory->smalloc(length*size_one,
+            force_buf = (void *) memory->smalloc((bigint)length*size_one,
                                                  "imd:force_buf");
           }
           imd_forces = length;
@@ -960,7 +960,7 @@ void FixIMD::post_force(int /*vflag*/)
       if (old_imd_forces < imd_forces) { /* grow holding space for forces, if needed. */
         if (force_buf != nullptr)
           memory->sfree(force_buf);
-        force_buf = memory->smalloc(imd_forces*size_one, "imd:force_buf");
+        force_buf = memory->smalloc((bigint)imd_forces*size_one, "imd:force_buf");
       }
     }
     MPI_Bcast(force_buf, imd_forces*size_one, MPI_BYTE, 0, world);

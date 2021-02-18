@@ -65,21 +65,20 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_eco);
 
-  // get rank of this processor
   MPI_Comm_rank(world, &me);
 
-  // check for illegal command
   if (narg != 7) error->all(FLERR, "Illegal fix orient/eco command");
 
-  // set fix flags
   scalar_flag = 1;          // computes scalar
   global_freq = 1;          // values can be computed at every timestep
   extscalar = 1;            // scalar scales with # of atoms
   peratom_flag = 1;         // quantities are per atom quantities
   size_peratom_cols = 2;    // # of per atom quantities
-  peratom_freq = 1;         //
+  peratom_freq = 1;
+  energy_global_flag = 1;
 
   // parse input parameters
+
   u_0 = utils::numeric(FLERR, arg[3],false,lmp);
   sign = (u_0 >= 0.0 ? 1 : -1);
   eta = utils::numeric(FLERR, arg[4],false,lmp);
@@ -87,6 +86,7 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
 
   // read reference orientations from file
   // work on rank 0 only
+
   int n = strlen(arg[6]) + 1;
   dir_filename = new char[n];
   strcpy(dir_filename, arg[6]);
@@ -151,7 +151,6 @@ FixOrientECO::~FixOrientECO() {
 int FixOrientECO::setmask() {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -474,8 +473,8 @@ void FixOrientECO::unpack_forward_comm(int n, int first, double *buf) {
  ------------------------------------------------------------------------- */
 
 double FixOrientECO::memory_usage() {
-  double bytes = nmax * sizeof(Nbr);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(Nbr);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }
 

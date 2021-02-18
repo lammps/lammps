@@ -1,6 +1,7 @@
 # Headers for Geryon
 UCL_H  = $(wildcard ./geryon/ucl*.h)
-NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) lal_preprocessor.h
+NVD_H  = $(wildcard ./geryon/nvd*.h) $(UCL_H) lal_preprocessor.h \
+         lal_pre_cuda_hip.h
 ALL_H  =  $(NVD_H) $(wildcard ./lal_*.h)
 
 # Source files
@@ -39,17 +40,21 @@ BIN2C = $(CUDA_HOME)/bin/bin2c
 
 # device code compilation
 
-$(OBJ_DIR)/pppm_f.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h
+$(OBJ_DIR)/pppm_f.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h \
+                         lal_pre_cuda_hip.h
 	$(CUDA) --fatbin -DNV_KERNEL -Dgrdtyp=float -Dgrdtyp4=float4 -o $@ lal_pppm.cu
 
 $(OBJ_DIR)/pppm_f_cubin.h: $(OBJ_DIR)/pppm_f.cubin
 	$(BIN2C) -c -n pppm_f $(OBJ_DIR)/pppm_f.cubin > $(OBJ_DIR)/pppm_f_cubin.h
+	rm $(OBJ_DIR)/pppm_f.cubin
 
-$(OBJ_DIR)/pppm_d.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h
+$(OBJ_DIR)/pppm_d.cubin: lal_pppm.cu lal_precision.h lal_preprocessor.h \
+                         lal_pre_cuda_hip.h
 	$(CUDA) --fatbin -DNV_KERNEL -Dgrdtyp=double -Dgrdtyp4=double4 -o $@ lal_pppm.cu
 
 $(OBJ_DIR)/pppm_d_cubin.h: $(OBJ_DIR)/pppm_d.cubin
 	$(BIN2C) -c -n pppm_d $(OBJ_DIR)/pppm_d.cubin > $(OBJ_DIR)/pppm_d_cubin.h
+	rm $(OBJ_DIR)/pppm_d.cubin
 
 $(OBJ_DIR)/%_cubin.h: lal_%.cu  $(ALL_H)
 	$(CUDA) --fatbin -DNV_KERNEL -o $(OBJ_DIR)/$*.cubin $(OBJ_DIR)/lal_$*.cu
@@ -93,7 +98,7 @@ $(BIN_DIR)/nvc_get_devices: ./geryon/ucl_get_devices.cpp $(NVD_H)
 	$(CUDR) -o $@ ./geryon/ucl_get_devices.cpp -DUCL_CUDADR $(CUDA_LIB) -lcuda 
 
 clean:
-	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CUHS) *.linkinfo
+	-rm -f $(EXECS) $(GPU_LIB) $(OBJS) $(CUDPP) $(CUHS) *.cubin *.linkinfo
 
 veryclean: clean
 	-rm -rf *~ *.linkinfo

@@ -13,13 +13,12 @@
 
 #include "fix_property_atom.h"
 
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
 
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -75,7 +74,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       style[nvalue] = RMASS;
       atom->rmass_flag = rmass_flag = 1;
       nvalue++;
-    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^i_")) {
       style[nvalue] = INTEGER;
       int tmp;
       index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
@@ -83,7 +82,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],0);
       nvalue++;
-    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^d_")) {
       style[nvalue] = DOUBLE;
       int tmp;
       index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
@@ -126,9 +125,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // store current atom style
 
-  int n = strlen(atom->atom_style) + 1;
-  astyle = new char[n];
-  strcpy(astyle,atom->atom_style);
+  astyle = utils::strdup(atom->atom_style);
 
   // perform initial allocation of atom-based array
   // register with Atom class

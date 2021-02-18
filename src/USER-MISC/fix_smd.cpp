@@ -58,7 +58,7 @@ FixSMD::FixSMD(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
 
   int argoffs=3;
   if (strcmp(arg[argoffs],"cvel") == 0) {
@@ -182,10 +182,9 @@ void FixSMD::setup(int vflag)
 
 void FixSMD::post_force(int vflag)
 {
-  // energy and virial setup
+  // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   if (styleflag & SMD_TETHER) smd_tether();
   else smd_couple();
@@ -276,7 +275,7 @@ void FixSMD::smd_tether()
           v[3] = -fx*massfrac*unwrap[1];
           v[4] = -fx*massfrac*unwrap[2];
           v[5] = -fy*massfrac*unwrap[2];
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
   } else {
@@ -297,7 +296,7 @@ void FixSMD::smd_tether()
           v[3] = -fx*massfrac*unwrap[1];
           v[4] = -fx*massfrac*unwrap[2];
           v[5] = -fy*massfrac*unwrap[2];
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
   }

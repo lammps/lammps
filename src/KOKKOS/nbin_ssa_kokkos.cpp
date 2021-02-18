@@ -158,16 +158,16 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     auto gbincount_ = gbincount;
     auto gbins_ = gbins;
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(nlocal,nall),
-      LAMMPS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nall),
+     LAMMPS_LAMBDA (const int i) {
       const int iAIR = binID_(i);
       if (iAIR > 0) { // include only ghost atoms in an AIR
         const int ac = Kokkos::atomic_fetch_add(&gbincount_[iAIR], (int)1);
         gbins_(iAIR, ac) = i;
       }
     });
-    Kokkos::parallel_for(Kokkos::RangePolicy<LMPDeviceType>(1,8),
-      LAMMPS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(1,8),
+     LAMMPS_LAMBDA (const int i) {
       sortBin(gbincount_, gbins_, i);
     });
   }
@@ -190,8 +190,8 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_for(nlocal, f);
 
-    Kokkos::parallel_for(mbins,
-      LAMMPS_LAMBDA (const int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,mbins),
+     LAMMPS_LAMBDA (const int i) {
       sortBin(bincount_, bins_, i);
     });
   }

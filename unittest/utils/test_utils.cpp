@@ -30,6 +30,21 @@ using ::testing::StrEq;
 #define FLERR __FILE__, __LINE__
 #endif
 
+TEST(Utils, strdup)
+{
+    std::string original("some_text");
+    const char *copy = utils::strdup(original);
+    ASSERT_THAT(original, StrEq(copy));
+    ASSERT_NE(copy,original.c_str());
+
+    const char *copy2 = utils::strdup(copy);
+    ASSERT_THAT(original, StrEq(copy2));
+    ASSERT_NE(copy,copy2);
+
+    delete[] copy;
+    delete[] copy2;
+}
+
 TEST(Utils, trim)
 {
     auto trimmed = utils::trim("\t some text");
@@ -52,6 +67,23 @@ TEST(Utils, trim_comment)
 {
     auto trimmed = utils::trim_comment("some text # comment");
     ASSERT_THAT(trimmed, StrEq("some text "));
+}
+
+TEST(Utils, has_utf8)
+{
+    const char ascii_string[] = " -2";
+    const char utf8_string[] = " −2";
+    ASSERT_FALSE(utils::has_utf8(ascii_string));
+    ASSERT_TRUE(utils::has_utf8(utf8_string));
+}
+
+TEST(Utils, utf8_subst)
+{
+    const char ascii_string[] = " -2";
+    const char utf8_string[] = " −2";
+    auto ascii = utils::utf8_subst(ascii_string);
+    auto utf8  = utils::utf8_subst(utf8_string);
+    ASSERT_TRUE(ascii == utf8);
 }
 
 TEST(Utils, count_words)

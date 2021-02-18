@@ -26,15 +26,15 @@ namespace LAMMPS_NS {
 
 class FixLangevinSpin : public Fix {
  public:
+  int tdamp_flag,ldamp_flag,temp_flag;           // damping and temperature flags
+
   FixLangevinSpin(class LAMMPS *, int, char **);
   virtual ~FixLangevinSpin();
   int setmask();
   void init();
   void setup(int);
-  void post_force_respa(int, int, int);
   void add_tdamping(double *, double *);                 // add transverse damping
   void add_temperature(double *);                        // add temperature
-  int tdamp_flag, ldamp_flag, temp_flag;                 // damping and temperature flags
 
  protected:
   double alpha_t;               // transverse mag. damping

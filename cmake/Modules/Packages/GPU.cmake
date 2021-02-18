@@ -1,7 +1,9 @@
 set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
 set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                 ${GPU_SOURCES_DIR}/fix_gpu.h
-                ${GPU_SOURCES_DIR}/fix_gpu.cpp)
+                ${GPU_SOURCES_DIR}/fix_gpu.cpp
+                ${GPU_SOURCES_DIR}/fix_nh_gpu.h
+                ${GPU_SOURCES_DIR}/fix_nh_gpu.cpp)
 target_compile_definitions(lammps PRIVATE -DLMP_GPU)
 
 set(GPU_API "opencl" CACHE STRING "API used by GPU package")
@@ -36,6 +38,9 @@ if(GPU_API STREQUAL "CUDA")
   option(CUDPP_OPT "Enable CUDPP_OPT" ON)
   option(CUDA_MPS_SUPPORT "Enable tweaks to support CUDA Multi-process service (MPS)" OFF)
   if(CUDA_MPS_SUPPORT)
+    if(CUDPP_OPT)
+      message(FATAL_ERROR "Must use -DCUDPP_OPT=OFF with -DGPU_CUDA_MPS_SUPPORT=ON")
+    endif()
     set(GPU_CUDA_MPS_FLAGS "-DCUDA_PROXY")
   endif()
 
@@ -94,9 +99,9 @@ if(GPU_API STREQUAL "CUDA")
   if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
     string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
   endif()
-  # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
+  # Ampere (GPU Arch 8.0 and 8.6) is supported by CUDA 11 and later
   if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
+    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86]")
   endif()
   if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
     message(WARNING "Unsupported CUDA version. Use at your own risk.")
@@ -152,11 +157,6 @@ elseif(GPU_API STREQUAL "OPENCL")
   else()
     find_package(OpenCL REQUIRED)
   endif()
-  set(OCL_TUNE "generic" CACHE STRING "OpenCL Device Tuning")
-  set(OCL_TUNE_VALUES intel fermi kepler cypress generic)
-  set_property(CACHE OCL_TUNE PROPERTY STRINGS ${OCL_TUNE_VALUES})
-  validate_option(OCL_TUNE OCL_TUNE_VALUES)
-  string(TOUPPER ${OCL_TUNE} OCL_TUNE)
 
   include(OpenCLUtils)
   set(OCL_COMMON_HEADERS ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_preprocessor.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_aux_fun1.h)
@@ -200,7 +200,7 @@ elseif(GPU_API STREQUAL "OPENCL")
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
   target_link_libraries(gpu PRIVATE OpenCL::OpenCL)
   target_include_directories(gpu PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/gpu)
-  target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -D${OCL_TUNE}_OCL -DMPI_GERYON -DUCL_NO_EXIT)
+  target_compile_definitions(gpu PRIVATE -D_${GPU_PREC_SETTING} -DMPI_GERYON -DGERYON_NUMA_FISSION -DUCL_NO_EXIT)
   target_compile_definitions(gpu PRIVATE -DUSE_OPENCL)
 
   target_link_libraries(lammps PRIVATE gpu)

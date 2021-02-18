@@ -77,7 +77,7 @@ int Init_Simulation_Data(reax_system *system, control_params *control,
 
   /* initialize the timer(s) */
   if (system->my_rank == MASTER_NODE) {
-    data->timing.start = Get_Time();
+    data->timing.start = MPI_Wtime();
   }
 
   data->step = data->prev_steps = 0;

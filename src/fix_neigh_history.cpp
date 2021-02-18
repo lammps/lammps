@@ -672,11 +672,11 @@ void FixNeighHistory::post_run()
 double FixNeighHistory::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);    // npartner
-  bytes += nmax * sizeof(tagint *);     // partner
-  bytes += nmax * sizeof(double *);     // valuepartner
-  bytes += maxatom * sizeof(int *);     // firstflag
-  bytes += maxatom * sizeof(double *);  // firstvalue
+  double bytes = (double)nmax * sizeof(int);    // npartner
+  bytes += (double)nmax * sizeof(tagint *);     // partner
+  bytes += (double)nmax * sizeof(double *);     // valuepartner
+  bytes += (double)maxatom * sizeof(int *);     // firstflag
+  bytes += (double)maxatom * sizeof(double *);  // firstvalue
 
   int nmypage = comm->nthreads;
   for (int i = 0; i < nmypage; i++) {

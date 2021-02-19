@@ -1449,8 +1449,13 @@ void Info::get_memory_info(double *meminfo)
     meminfo[2] = (double)pmc.PeakWorkingSetSize/1048576.0;
 #else
 #if defined(__linux__)
+#if defined(__GLIBC__) && __GLIBC_PREREQ(2, 33)
+    struct mallinfo2 mi;
+    mi = mallinfo2();
+#else
     struct mallinfo mi;
     mi = mallinfo();
+#endif
     meminfo[1] = (double)mi.uordblks/1048576.0+(double)mi.hblkhd/1048576.0;
 #endif
     struct rusage ru;

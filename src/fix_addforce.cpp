@@ -83,7 +83,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
-      nevery = atoi(arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal fix addforce command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {

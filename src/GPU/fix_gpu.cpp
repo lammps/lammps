@@ -32,16 +32,18 @@
 #include "citeme.h"
 #include "error.h"
 
+#if (LAL_USE_OMP == 1)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 
-extern int lmp_init_device(MPI_Comm world, MPI_Comm replica,
-                           const int ngpu, const int first_gpu_id,
-                           const int gpu_mode, const double particle_split,
-                           const int nthreads, const int t_per_atom,
+extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
+                           const int first_gpu_id, const int gpu_mode,
+                           const double particle_split, const int t_per_atom,
                            const double cell_size, char *opencl_args,
                            const int ocl_platform, char *device_type_flags,
                            const int block_pair);
@@ -123,7 +125,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   _gpu_mode = GPU_NEIGH;
   _particle_split = 1.0;
-  int nthreads = 1;
+  int nthreads = 0;
   int newtonflag = 0;
   int threads_per_atom = -1;
   double binsize = 0.0;
@@ -167,10 +169,10 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       threads_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"nthreads") == 0) {
+    } else if (strcmp(arg[iarg],"omp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
       nthreads = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nthreads < 1) error->all(FLERR,"Illegal fix GPU command");
+      if (nthreads < 0) error->all(FLERR,"Illegal fix GPU command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"platform") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -200,6 +202,11 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   #if (LAL_USE_OMP == 0)
   if (nthreads > 1)
     error->all(FLERR,"No OpenMP support compiled in");
+  #else
+  if (nthreads > 0) {
+    omp_set_num_threads(nthreads);
+    comm->nthreads = nthreads;
+  }
   #endif
 
   // set newton pair flag
@@ -227,9 +234,9 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (binsize == 0.0) binsize = -1.0;
   _binsize = binsize;
   int gpu_flag = lmp_init_device(universe->uworld, world, ngpu, first_gpu_id,
-                                 _gpu_mode, _particle_split, nthreads,
-                                 threads_per_atom, binsize, opencl_args,
-                                 ocl_platform, device_type_flags, block_pair);
+                                 _gpu_mode, _particle_split, threads_per_atom,
+                                 binsize, opencl_args, ocl_platform,
+                                 device_type_flags, block_pair);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
 }
 

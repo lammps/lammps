@@ -250,7 +250,7 @@ void BaseEllipsoidT::output_times() {
       if (times[6]>0)
         fprintf(screen,"Device Overhead: %.4f s.\n",times[6]/replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
-      fprintf(screen,"Threads / atom:  %d.\n",_threads_per_atom);
+      fprintf(screen,"Lanes / atom:    %d.\n",_threads_per_atom);
       fprintf(screen,"Vector width:    %d.\n", device->simd_size());
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       if (nbor->gpu_nbor()==2)

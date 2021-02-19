@@ -331,11 +331,11 @@ void AnswerT::get_answers(double **f, double **tor) {
       }
       if (_rot) {
         vec3d *torp=reinterpret_cast<vec3d*>(&(tor[0][0]));
-        forcep=reinterpret_cast<vec4d_t*>(&(force[_inum*4]));
+        vec4d_t *torquep=reinterpret_cast<vec4d_t*>(&(force[_inum*4]));
         for (int i=ifrom; i<ito; i++) {
-          torp[i].x+=forcep[i].x;
-          torp[i].y+=forcep[i].y;
-          torp[i].z+=forcep[i].z;
+          torp[i].x+=torquep[i].x;
+          torp[i].y+=torquep[i].y;
+          torp[i].z+=torquep[i].z;
         }
       }
     }

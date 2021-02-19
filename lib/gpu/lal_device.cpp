@@ -53,14 +53,10 @@ DeviceT::~Device() {
 template <class numtyp, class acctyp>
 int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                          const int first_gpu_id, const int gpu_mode,
-                         const double p_split, const int nthreads,
-                         const int t_per_atom, const double user_cell_size,
-                         char *ocl_args, const int ocl_platform,
-                         char *device_type_flags, const int block_pair) {
-  _nthreads=nthreads;
-  #if (LAL_USE_OMP == 1)
-  omp_set_num_threads(nthreads);
-  #endif
+                         const double p_split, const int t_per_atom,
+                         const double user_cell_size, char *ocl_args,
+                         const int ocl_platform, char *device_type_flags,
+                         const int block_pair) {
   _threads_per_atom=t_per_atom;
   _threads_per_charge=t_per_atom;
   _threads_per_three=t_per_atom;
@@ -583,7 +579,7 @@ void DeviceT::init_message(FILE *screen, const char *name,
     fprintf(screen,"- Using acceleration for %s:\n",name);
     fprintf(screen,"-  with %d proc(s) per device.\n",_procs_per_gpu);
     #if (LAL_USE_OMP == 1)
-    fprintf(screen,"-  with %d thread(s) per proc.\n",_nthreads);
+    fprintf(screen,"-  with %d thread(s) per proc.\n", omp_get_max_threads());
     #endif
     #ifdef USE_OPENCL
     fprintf(screen,"-  with OpenCL Parameters for: %s (%d)\n",
@@ -803,7 +799,7 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       if (times[5]>0)
         fprintf(screen,"Device Overhead: %.4f s.\n",times[5]/_replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
-      fprintf(screen,"Threads / atom:  %d.\n",threads_per_atom);
+      fprintf(screen,"Lanes / atom:    %d.\n",threads_per_atom);
       fprintf(screen,"Vector width:    %d.\n", simd_size());
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       if (nbor.gpu_nbor()==2)
@@ -1031,13 +1027,13 @@ Device<PRECISION,ACC_PRECISION> global_device;
 using namespace LAMMPS_AL;
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                     const int first_gpu_id, const int gpu_mode,
-                    const double particle_split, const int nthreads,
-                    const int t_per_atom, const double user_cell_size,
-                    char *opencl_config, const int ocl_platform,
-                    char *device_type_flags, const int block_pair) {
+                    const double particle_split, const int t_per_atom,
+                    const double user_cell_size, char *opencl_config,
+                    const int ocl_platform, char *device_type_flags,
+                    const int block_pair) {
   return global_device.init_device(world,replica,ngpu,first_gpu_id,gpu_mode,
-                                   particle_split,nthreads,t_per_atom,
-                                   user_cell_size,opencl_config,ocl_platform,
+                                   particle_split,t_per_atom,user_cell_size,
+                                   opencl_config,ocl_platform,
                                    device_type_flags,block_pair);
 }
 

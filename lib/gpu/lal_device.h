@@ -49,10 +49,10 @@ class Device {
     * - -11 if config_string has the wrong number of parameters **/
   int init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                   const int first_gpu_id, const int gpu_mode,
-                  const double particle_split, const int nthreads,
-                  const int t_per_atom, const double user_cell_size,
-                  char *config_string, const int ocl_platform,
-                  char *device_type_flags, const int block_pair);
+                  const double particle_split, const int t_per_atom,
+                  const double user_cell_size, char *config_string,
+                  const int ocl_platform, char *device_type_flags,
+                  const int block_pair);
 
   /// Initialize the device for Atom storage
   /** \param charge True if charges need to be stored
@@ -201,8 +201,6 @@ class Device {
 
   /// Return the number of procs sharing a device (size of device communicator)
   inline int procs_per_gpu() const { return _procs_per_gpu; }
-  /// Return the number of threads per proc
-  inline int num_threads() const { return _nthreads; }
   /// My rank within all processes
   inline int world_me() const { return _world_me; }
   /// Total number of processes
@@ -331,7 +329,7 @@ class Device {
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,
       _replica_size;
-  int _gpu_mode, _first_device, _last_device, _platform_id, _nthreads;
+  int _gpu_mode, _first_device, _last_device, _platform_id;
   double _particle_split;
   double _cpu_full;
   double _ptx_arch;

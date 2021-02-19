@@ -608,7 +608,13 @@ too.
    not, the last one invoked will take precedence, for all packages.
    Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel" command, followed by a
    "package omp" command, both with a setting of *Nthreads* = 0. Likewise
-   for a hybrid suffix for gpu and omp.
+   for a hybrid suffix for gpu and omp. Note that KOKKOS also supports
+   setting the number of OpenMP threads from the command line using the
+   "-k on" :doc:`command-line switch <Run_options>`. The default for
+   KOKKOS is 1 thread per MPI task, so any other number of threads should
+   be explicitly set using the "-k on" command-line switch (and this
+   setting should be consistent with settings from any other packages
+   used).
 
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.

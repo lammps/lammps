@@ -29,164 +29,16 @@ Examples
 Description
 """""""""""
 
-*kim command* provides a set of high-level wrapper around the
-`Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
-repository of interatomic models (IMs) (potentials and force fields),
-so that they can be used by LAMMPS scripts.  This command is followed by a
-a set of sub-coammnds.  The kim command does not implement any computations
-directly, but rather generates LAMMPS input commands based on the information
-retrieved from the OpenKIM repository to initialize and activate OpenKIM IMs
-and query their predictions for use in the LAMMPS script.
-All LAMMPS input commands generated and executed by *kim command* are
-echoed to the LAMMPS log file.
+The *kim command* includes a set of sub-commands that allow LAMMPS users
+to use interatomic models (IM) (potentials and force fields) and their predictions
+for various physical properties archived in the 
+`Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_ repository.
 
-Full syntax
-"""""""""""
-
-.. code-block:: LAMMPS
-
-   kim init model user_units unitarg
-   kim interactions typeargs
-   kim query variable formatarg query_function queryargs
-   kim param get param_name index_range variables formatarg
-   kim param set param_name index_range values
-   kim property create  instance_id property_id
-   kim property modify  instance_id key key_name key_name_key key_name_value
-   kim property remove  instance_id key key_name
-   kim property destroy instance_id
-   kim property dump    file
-
-.. _formatarg_options:
-
-* model = name of the KIM interatomic model (the KIM ID for models archived in
-  OpenKIM)
-* user_units = the LAMMPS :doc:`units <units>` style assumed in the LAMMPS
-  input script
-* unitarg = *unit_conversion_mode* (optional)
-* typeargs = atom type to species mapping (one entry per atom type) or
-  *fixed_types* for models with a preset fixed mapping
-* variable(s) = single name or list of names of (string style) LAMMPS
-  variable(s) where a query result or parameter get result is stored.  Variables
-  that do not exist will be created by the command
-* formatarg = *list, split, index, or explicit* (optional):
-
-  .. parsed-literal::
-
-     *list* = returns a single string with a list of space separated values
-            (e.g. "1.0 2.0 3.0"), which is placed in a LAMMPS variable as
-            defined by the *variable* argument. [default for *query*
-            sub-command]
-     *split* = returns the values separately in new variables with names based
-            on the prefix specified in *variable* and a number appended to
-            indicate which element in the list of values is in the variable
-     *index* = returns a variable style index that can be incremented via the
-            next command.  This enables the construction of simple loops
-     *explicit* = returns the values separately in one more more variable names
-            provided as arguments that precede *formatarg*\ . [default for
-            *kim param*]
-
-* query_function = name of the OpenKIM web API query function to be used
-* queryargs = a series of *keyword=value* pairs that represent the web query;
-  supported keywords depend on the query function
-* param_name = name of a KIM portable model parameter
-* index_range = KIM portable model parameter index range (an integer for a
-  single element, or pair of integers separated by a colon for a range of
-  elements)
-* values = new value(s) to replace the current value(s) of a KIM portable model
-  parameter
-* instance_id = a positive integer identifying the KIM property instance
-* property_id = identifier of a
-  `KIM Property Definition <https://openkim.org/properties>`_, which can be (1)
-  a property short name, (2) the full unique ID of the property (including the
-  contributor and date), (3) a file name corresponding to a local property
-  definition file
-* key_name = one of the keys belonging to the specified KIM property definition
-* key_name_key = a key belonging to a key-value pair (standardized in the
-  `KIM Properties Framework <https://openkim.org/doc/schema/properties-framework>`__)
-* key_name_value = value to be associated with a key_name_key in a key-value
-  pair
-* file = name of a file to write the currently defined set of KIM property
-  instances to
-
-Full syntax examples
-""""""""""""""""""""
-
-.. code-block:: LAMMPS
-
-   kim init SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
-   kim interactions Si
-   kim init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_001 real
-   kim init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_001 metal unit_conversion_mode
-   kim interactions C H O
-   kim init Sim_LAMMPS_IFF_PCFF_HeinzMishraLinEmami_2015Ver1v5_FccmetalsMineralsSolventsPolymers__SM_039297821658_000 real
-   kim interactions fixed_types
-   kim query a0 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom]
-   kim query model index get_available_models species=[Al] potential_type=[eam]
-   kim param get gamma  1 varGamma
-   kim param set gamma  1 3.0
-   kim property create  1 atomic-mass
-   kim property modify  1 key mass source-value 26.98154
-   kim property modify  1 key species source-value Al
-   kim property remove  1 key species
-   kim property destroy 1
-   kim property dump    results.edn
-
-Benefits of Using OpenKIM IMs
------------------------------
-
-Employing OpenKIM IMs provides LAMMPS users with multiple benefits:
-
-Reliability
-^^^^^^^^^^^
-
-* All content archived in OpenKIM is reviewed by the
-  `KIM Editor <https://openkim.org/governance/>`_ for quality.
-* IMs in OpenKIM are archived with full provenance control.  Each is associated
-  with a maintainer responsible for the integrity of the content.  All changes
-  are tracked and recorded.
-* IMs in OpenKIM are exhaustively tested using
-  `KIM Tests <https://openkim.org/doc/evaluation/kim-tests/>`_ that compute a
-  host of material properties, and
-  `KIM Verification Checks <https://openkim.org/doc/evaluation/kim-verification-checks/>`_
-  that provide the user with information on various aspects of the IM behavior
-  and coding correctness.  This information is displayed on the IM's page
-  accessible through the
-  `OpenKIM browse interface <https://openkim.org/browse>`_.
-
-Reproducibility
-^^^^^^^^^^^^^^^
-
-* Each IM in OpenKIM is issued a unique identifier
-  (`KIM ID <https://openkim.org/doc/schema/kim-ids/>`_), which includes a
-  version number (last three digits).  Any changes that can result in different
-  numerical values lead to a version increment in the KIM ID.  This makes it
-  possible to reproduce simulations since the specific version of a specific IM
-  used can be retrieved using its KIM ID.
-* OpenKIM is a member organization of `DataCite <https://datacite.org/>`_ and
-  issues digital object identifiers (DOIs) to all IMs archived in OpenKIM.  This
-  makes it possible to cite the IM code used in a simulation in a publications
-  to give credit to the developers and further facilitate reproducibility.
-
-Convenience
-^^^^^^^^^^^
-
-* IMs in OpenKIM are distributed in binary form along with LAMMPS and can be
-  used in a LAMMPS input script simply by providing their KIM ID in the
-  *kim init* command documented on this page.
-* The *kim query* web query tool provides the ability to use the predictions of
-  IMs for supported material properties (computed via
-  `KIM Tests <https://openkim.org/doc/evaluation/kim-tests/>`_) as part of a
-  LAMMPS input script setup and analysis.
-* Support is provided for unit conversion between the :doc:`unit style <units>`
-  used in the LAMMPS input script and the units required by the OpenKIM IM.
-  This makes it possible to use a single input script with IMs using different
-  units without change and minimizes the likelihood of errors due to
-  incompatible units.
+Using OpenKIM provides LAMMPS users with immediate access to a large number of
+verified IMs and their predictions. OpenKIM IMs have multiple benefits including
+`reliability, reproducibility and convenience <https://openkim.org/doc/overview/kim-features/>`_.
 
 .. _IM_types:
-
-Types of IMs in OpenKIM
------------------------
 
 There are two types of IMs archived in OpenKIM:
 
@@ -237,7 +89,7 @@ The URL for the Model Page is constructed from the
 
    https://openkim.org/id/extended_KIM_ID
 
-For example, for the Stillinger--Weber potential listed above the Model Page is
+For example, for the Stillinger-Weber potential listed above the Model Page is
 located at:
 
 .. parsed-literal::
@@ -256,13 +108,47 @@ learn how to install a pre-built binary of the OpenKIM Repository of Models.
    It is also possible to locally install IMs not archived in OpenKIM,
    in which case their names do not have to conform to the KIM ID format.
 
-Using OpenKIM IMs with LAMMPS
------------------------------
+Using OpenKIM IMs with LAMMPS (*kim init*, *kim interactions*)
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Two sub-commands are employed when using OpenKIM IMs, one to select the
+Two sub-commands are employed when using OpenKIM IMs in LAMMPS, one to select the
 IM and perform necessary initialization (\ *kim init*\ ), and the second
 to set up the IM for use by executing any necessary LAMMPS commands
 (\ *kim interactions*\ ).  Both are required.
+
+Syntax
+------
+
+.. code-block:: LAMMPS
+
+   kim init model user_units unitarg
+   kim interactions typeargs
+
+.. _formatarg_options:
+
+* model = name of the KIM interatomic model (the KIM ID for models archived in
+  OpenKIM)
+* user_units = the LAMMPS :doc:`units <units>` style assumed in the LAMMPS
+  input script
+* unitarg = *unit_conversion_mode* (optional)
+* typeargs = atom type to species mapping (one entry per atom type) or
+  *fixed_types* for models with a preset fixed mapping
+
+Examples
+--------
+
+.. code-block:: LAMMPS
+
+   kim init SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
+   kim interactions Si
+  
+   kim init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_001 real
+   kim init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_001 metal unit_conversion_mode
+   kim interactions C H O
+   
+   kim init Sim_LAMMPS_IFF_PCFF_HeinzMishraLinEmami_2015Ver1v5_FccmetalsMineralsSolventsPolymers__SM_039297821658_000 real
+   kim interactions fixed_types
+
 
 See the *examples/kim* directory for example input scripts that use KIM PMs
 and KIM SMs.
@@ -270,7 +156,7 @@ and KIM SMs.
 .. _init:
 
 OpenKIM IM Initialization (*kim init*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 The *kim* command followed by *init* sub-command must be issued **before**
 the simulation box is created (normally at the top of the file).  This command
@@ -314,6 +200,7 @@ terminated with an error.
 Here is an example of a LAMMPS script to compute the cohesive energy of a
 face-centered cubic (fcc) lattice for the MEAM potential by Pascuet and
 Fernandez (2015) for Al.
+
 
 .. code-block:: LAMMPS
 
@@ -411,11 +298,10 @@ to convert the box and all atomic positions to the correct units:
    Unit conversion will only work if the conversion factors are placed in all
    appropriate places in the input script.  It is up to the user to do this
    correctly.
-
 .. _interactions:
 
 OpenKIM IM Execution (*kim interactions*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 
 The second and final step in using an OpenKIM IM is to execute the
 *kim interactions* command.  This command must be preceded by a *kim init*
@@ -520,21 +406,52 @@ the *kim interactions* command executes the following LAMMPS input commands:
 .. _query:
 
 Using OpenKIM Web Queries in LAMMPS (*kim query*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""""""""""""""""""""""""""""
 
 The *kim query* command performs a web query to retrieve the predictions of an
 IM set by *kim init* for material properties archived in
 `OpenKIM <https://openkim.org>`_.
 
-The syntax for the *kim query* command is as follows:
+Syntax
+------
 
 .. code-block:: LAMMPS
 
    kim query variable formatarg query_function queryargs
 
+.. _formatarg_options:
+
+* variable(s) = single name or list of names of (string style) LAMMPS
+  variable(s) where a query result or parameter get result is stored.  Variables
+  that do not exist will be created by the command
+* formatarg = *list, split, or index* (optional):
+
+  .. parsed-literal::
+
+     *list* = returns a single string with a list of space separated values
+            (e.g. "1.0 2.0 3.0"), which is placed in a LAMMPS variable as
+            defined by the *variable* argument. [default]
+     *split* = returns the values separately in new variables with names based
+            on the prefix specified in *variable* and a number appended to
+            indicate which element in the list of values is in the variable
+     *index* = returns a variable style index that can be incremented via the
+            next command.  This enables the construction of simple loops
+
+* query_function = name of the OpenKIM web API query function to be used
+* queryargs = a series of *keyword=value* pairs that represent the web query;
+  supported keywords depend on the query function
+
+Examples
+--------
+
+.. code-block:: LAMMPS
+
+   kim query a0 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom]
+   kim query model index get_available_models species=[Al] potential_type=[eam]
+
 The result of the query is stored in one or more
 :doc:`string style variables <variable>` as determined by the optional
-*formatarg* argument :ref:`documented above <formatarg_options>`.  For the "list"
+*formatarg* argument.  For the "list"
 setting of *formatarg* (or if *formatarg* is not specified), the result is
 returned as a space-separated list of values in *variable*\ .  The *formatarg*
 keyword "split" separates the result values into individual variables of the
@@ -544,8 +461,7 @@ the returned values is determined by the type of query performed.  The
 *formatarg* keyword "index" returns a :doc:`variable style index <variable>`
 that can be incremented via the :doc:`next <next>` command.  This enables the
 construction of simple loops over the returned values by the type of query
-performed. (Note that the "explicit" setting of *formatarg* is not supported by
-*kim query*\ .)
+performed.
 
 .. note::
 
@@ -565,11 +481,11 @@ of query functions is available on the OpenKIM webpage at
 
 .. note::
 
-   All query functions, except *get_available_models* function, require the
+   All query functions, except *get_available_models*, require the
    *model* keyword, which identifies the IM whose predictions are being queried.
    *kim query* automatically generates the *model* keyword based on the IM set
    in by *kim init*, and it can be overwritten if specified as an argument to
-   the *kim query*\ .  Where *Kim init* is not specified, the *model* keyword
+   the *kim query*\ .  Where *kim init* is not specified, the *model* keyword
    must be provided as an argument to the *kim query*\ .
 
 .. note::
@@ -583,7 +499,7 @@ of query functions is available on the OpenKIM webpage at
    methods are available for a given *query_function*\ .
 
 *kim query* Usage Examples and Further Clarifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------
 
 The data obtained by *kim query* commands can be used as part of the setup or
 analysis phases of LAMMPS simulations.  Some examples are given below.
@@ -718,7 +634,7 @@ each potential for the fcc structure and places it in variable *latconst*\ .
 .. _param:
 
 Accessing KIM Model Parameters from LAMMPS (*kim param*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 All IMs are functional forms containing a set of parameters.  These parameters'
 values are typically selected to best reproduce a training set of quantum
@@ -756,18 +672,39 @@ for details).
    The *kim param set* command may be used wherever a *pair_coeff* command may
    occur.
 
-The syntax for the *kim param* command is as follows:
+Syntax
+------
 
 .. code-block:: LAMMPS
 
    kim param get param_name index_range variable formatarg
    kim param set param_name index_range values
+   
+* param_name = name of a KIM portable model parameter (which is published by the
+  PM and available for access). The specific string used to identify a parameter
+  is defined by the PM.  For example, for the
+  `Stillinger-Weber (SW) potential in OpenKIM <https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005>`_,
+  the parameter names are *A, B, p, q, sigma, gamma, cutoff, lambda, costheta0*
+* index_range = KIM portable model parameter index range (an integer for a
+  single element, or pair of integers separated by a colon for a range of
+  elements)
+* variable(s) = single name or list of names of (string style) LAMMPS
+  variable(s) where a query result or parameter get result is stored.  Variables
+  that do not exist will be created by the command
+* formatarg = *list, split, or explicit* (optional):
 
-Here, *param_name* is the name of a KIM PM parameter (which is published by the
-PM and available for access).  The specific string used to identify a parameter
-is defined by the PM.  For example, for the
-`Stillinger--Weber (SW) potential in OpenKIM <https://openkim.org/id/SW_StillingerWeber_1985_Si__MO_405512056662_005>`_,
-the parameter names are *A, B, p, q, sigma, gamma, cutoff, lambda, costheta0*\ .
+  .. parsed-literal::
+
+     *list* = returns a single string with a list of space separated values
+            (e.g. "1.0 2.0 3.0"), which is placed in a LAMMPS variable as
+            defined by the *variable* argument.
+     *split* = returns the values separately in new variables with names based
+            on the prefix specified in *variable* and a number appended to
+            indicate which element in the list of values is in the variable
+     *explicit* = returns the values separately in one more more variable names
+            provided as arguments that precede *formatarg*\ . [default]
+* values = new value(s) to replace the current value(s) of a KIM portable model
+  parameter
 
 .. note::
 
@@ -810,7 +747,7 @@ spaces.  Multiple parameters can be set with a single call to *kim param set* by
 repeating the argument list following *set*\ .
 
 *kim param* Usage Examples and Further Clarifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------
 
 Examples of getting and setting KIM PM parameters with further clarifications
 are provided below.
@@ -824,7 +761,7 @@ are provided below.
    kim interactions Si
    kim param get A 1 VARA
 
-or,
+or
 
 .. code-block:: LAMMPS
 
@@ -868,7 +805,7 @@ lambda retrieved by the *get* operation are placed in the LAMMPS variables
 
 .. note::
 
-   In the above example, elements 7--9 of the lambda parameter correspond to
+   In the above example, elements 7-9 of the lambda parameter correspond to
    Te-Te, Te-Zm and Te-Se interactions.  This can be determined by visiting the
    `model page for the specified potential <https://openkim.org/id/SW_ZhouWardMartin_2013_CdTeZnSeHgS__MO_503261197030_002>`_
    and looking at its parameter file linked to at the bottom of the page (file
@@ -962,10 +899,10 @@ values 2.35214, 2.23869, 2.04516, 2.43269 and 1.80415 in order.
 
 .. _property:
 
-Writing material properties computed in LAMMPS to standard KIM property instance format (*kim property*)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Writing material properties in standard KIM Property Instance format (*kim property*)
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-As explained :ref:`above<kim_description>`, the OpenKIM system includes a
+The OpenKIM system includes a
 collection of Tests (material property calculation codes), Models (interatomic
 potentials), Predictions, and Reference Data (DFT or experiments).  Specifically,
 a KIM Test is a computation that when coupled with a KIM Model generates the
@@ -990,7 +927,10 @@ uploaded to the official repository (see below).  Once one or more applicable
 property definitions have been identified, the *kim property create*,
 *kim property modify*, *kim property remove*, and *kim property destroy*,
 commands provide an interface to create, set, modify, remove, and destroy
-instances of them within a LAMMPS script.  Their general syntax is as follows,
+instances of them within a LAMMPS script.
+
+Syntax
+------
 
 .. code-block:: LAMMPS
 
@@ -1000,13 +940,22 @@ instances of them within a LAMMPS script.  Their general syntax is as follows,
    kim property destroy instance_id
    kim property dump    file
 
-Here, *instance_id* is a positive integer used to uniquely identify each
-property instance; (note that the results file can contain multiple property
-instances).  A *property_id* is an identifier of a
-`KIM Property Definition <https://openkim.org/properties>`_,
-which can be (1) a property short name, (2) the full unique ID of the property
-(including the contributor and date), (3) a file name corresponding to a local
-property definition file.  Examples of each of these cases are shown below,
+* instance_id = a positive integer identifying the KIM property instance;
+  (note that the results file can contain multiple property instances)
+* property_id = identifier of a
+  `KIM Property Definition <https://openkim.org/properties>`_, which can be (1)
+  a property short name, (2) the full unique ID of the property (including the
+  contributor and date), (3) a file name corresponding to a local property
+  definition file
+* key_name = one of the keys belonging to the specified KIM property definition
+* key_name_key = a key belonging to a key-value pair (standardized in the
+  `KIM Properties Framework <https://openkim.org/doc/schema/properties-framework>`__)
+* key_name_value = value to be associated with a key_name_key in a key-value
+  pair
+* file = name of a file to write the currently defined set of KIM property
+  instances to
+
+Examples of each of the three *property_id* cases are shown below,
 
 .. code-block:: LAMMPS
 
@@ -1074,7 +1023,7 @@ or, equivalently,
                                      source-unit  amu
 
 *kim property* Usage Examples and Further Clarifications
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------------
 
 **Create**
 
@@ -1377,7 +1326,7 @@ For example,
     instances from memory.
 
 Citation of OpenKIM IMs
------------------------
+"""""""""""""""""""""""
 
 When publishing results obtained using OpenKIM IMs researchers are requested
 to cite the OpenKIM project :ref:`(Tadmor) <kim-mainpaper>`, KIM API
@@ -1425,3 +1374,4 @@ doi: `https://doi.org/10.1007/s11837-011-0102-6 <https://doi.org/10.1007/s11837-
 
 **(Elliott)** Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api <https://openkim.org/kim-api>`_ (2011)
 doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_
+

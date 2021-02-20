@@ -1385,9 +1385,9 @@ void FixBondReact::superimpose_algorithm()
           }
         }
 
-        if (status == ACCEPT && check_constraints()) { // reaction site found successfully!
-          glove_ghostcheck();
-        }
+        // reaction site found successfully!
+        if (status == ACCEPT) glove_ghostcheck();
+
         hang_catch++;
         // let's go ahead and catch the simplest of hangs
         //if (hang_catch > onemol->natoms*4)
@@ -1627,7 +1627,7 @@ void FixBondReact::check_a_neighbor()
 
             glove_counter++;
             if (glove_counter == onemol->natoms) {
-              if (ring_check()) status = ACCEPT;
+              if (ring_check() && check_constraints()) status = ACCEPT;
               else status = GUESSFAIL;
               return;
             }
@@ -1679,7 +1679,7 @@ void FixBondReact::check_a_neighbor()
 
         glove_counter++;
         if (glove_counter == onemol->natoms) {
-          if (ring_check()) status = ACCEPT;
+          if (ring_check() && check_constraints()) status = ACCEPT;
           else status = GUESSFAIL;
           return;
           // will never complete here when there are edge atoms
@@ -1791,7 +1791,7 @@ void FixBondReact::inner_crosscheck_loop()
   }
   glove_counter++;
   if (glove_counter == onemol->natoms) {
-    if (ring_check()) status = ACCEPT;
+    if (ring_check() && check_constraints()) status = ACCEPT;
     else status = GUESSFAIL;
     return;
   }

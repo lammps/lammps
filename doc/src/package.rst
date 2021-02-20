@@ -32,10 +32,12 @@ Syntax
              size = bin size for neighbor list construction (distance units)
            *split* = fraction
              fraction = fraction of atoms assigned to GPU (default = 1.0)
-           *tpa* value = Nthreads
-             Nthreads = # of GPU vector lanes used per atom
+           *tpa* value = Nlanes
+             Nlanes = # of GPU vector lanes (CUDA threads) used per atom
            *blocksize* value = size
              size = thread block size for pair force computation
+           *omp* value = Nthreads
+             Nthreads = number of OpenMP threads to use on CPU (default = 0)
            *platform* value = id
              id = For OpenCL, platform ID for the GPU or accelerator
            *gpuID* values = id
@@ -101,7 +103,7 @@ Syntax
              off = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
              on  = use device acceleration only for pair styles (and host acceleration for others)
        *omp* args = Nthreads keyword value ...
-         Nthread = # of OpenMP threads to associate with each MPI process
+         Nthreads = # of OpenMP threads to associate with each MPI process
          zero or more keyword/value pairs may be appended
          keywords = *neigh*
            *neigh* value = *yes* or *no*
@@ -116,7 +118,7 @@ Examples
    package gpu 0
    package gpu 1 split 0.75
    package gpu 2 split -1.0
-   package gpu 0 device_type intelgpu
+   package gpu 0 omp 2 device_type intelgpu
    package kokkos neigh half comm device
    package omp 0 neigh no
    package omp 4
@@ -266,10 +268,10 @@ with MPI.
 
 The *tpa* keyword sets the number of GPU vector lanes per atom used to
 perform force calculations.  With a default value of 1, the number of
-threads will be chosen based on the pair style, however, the value can
+lanes will be chosen based on the pair style, however, the value can
 be set explicitly with this keyword to fine-tune performance.  For
 large cutoffs or with a small number of particles per GPU, increasing
-the value can improve performance. The number of threads per atom must
+the value can improve performance. The number of lanes per atom must
 be a power of 2 and currently cannot be greater than the SIMD width
 for the GPU / accelerator. In the case it exceeds the SIMD width, it
 will automatically be decreased to meet the restriction.
@@ -281,6 +283,14 @@ are 64, 128, or 256. A larger block size increases occupancy of
 individual GPU cores, but reduces the total number of thread blocks,
 thus may lead to load imbalance. On modern hardware, the sensitivity
 to the blocksize is typically low.
+
+The *Nthreads* value for the *omp* keyword sets the number of OpenMP
+threads allocated for each MPI task. This setting controls OpenMP
+parallelism only for routines run on the CPUs. For more details on
+setting the number of OpenMP threads, see the discussion of the
+*Nthreads* setting on this doc page for the "package omp" command.
+The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
 an OpenCL platform. See the output from ocl_get_devices in the lib/gpu
@@ -336,44 +346,13 @@ built with co-processor support.
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
 
-The *omp* keyword determines the number of OpenMP threads allocated
-for each MPI task when any portion of the interactions computed by a
-USER-INTEL pair style are run on the CPU.  This can be the case even
-if LAMMPS was built with co-processor support; see the *balance*
-keyword discussion below.  If you are running with less MPI tasks/node
-than there are CPUs, it can be advantageous to use OpenMP threading on
-the CPUs.
-
-.. note::
-
-   The *omp* keyword has nothing to do with co-processor threads on
-   the Xeon Phi; see the *tpc* and *tptask* keywords below for a
-   discussion of co-processor threads.
-
-The *Nthread* value for the *omp* keyword sets the number of OpenMP
-threads allocated for each MPI task.  Setting *Nthread* = 0 (the
-default) instructs LAMMPS to use whatever value is the default for the
-given OpenMP environment. This is usually determined via the
-*OMP_NUM_THREADS* environment variable or the compiler runtime, which
-is usually a value of 1.
-
-For more details, including examples of how to set the OMP_NUM_THREADS
-environment variable, see the discussion of the *Nthreads* setting on
-this doc page for the "package omp" command.  Nthreads is a required
-argument for the USER-OMP package.  Its meaning is exactly the same
-for the USER-INTEL package.
-
-.. note::
-
-   If you build LAMMPS with both the USER-INTEL and USER-OMP
-   packages, be aware that both packages allow setting of the *Nthreads*
-   value via their package commands, but there is only a single global
-   *Nthreads* value used by OpenMP.  Thus if both package commands are
-   invoked, you should insure the two values are consistent.  If they are
-   not, the last one invoked will take precedence, for both packages.
-   Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel"
-   command, followed by a "package omp" command, both with a setting of
-   *Nthreads* = 0.
+The *Nthreads* value for the *omp* keyword sets the number of OpenMP
+threads allocated for each MPI task. This setting controls OpenMP
+parallelism only for routines run on the CPUs. For more details on
+setting the number of OpenMP threads, see the discussion of the
+*Nthreads* setting on this doc page for the "package omp" command.
+The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+and GPU packages.
 
 The *mode* keyword determines the precision mode to use for
 computing pair style forces, either on the CPU or on the co-processor,
@@ -579,7 +558,7 @@ result in better performance for certain configurations and system sizes.
 The *omp* style invokes settings associated with the use of the
 USER-OMP package.
 
-The *Nthread* argument sets the number of OpenMP threads allocated for
+The *Nthreads* argument sets the number of OpenMP threads allocated for
 each MPI task.  For example, if your system has nodes with dual
 quad-core processors, it has a total of 8 cores per node.  You could
 use two MPI tasks per node (e.g. using the -ppn option of the mpirun
@@ -588,7 +567,7 @@ This would use all 8 cores on each node.  Note that the product of MPI
 tasks \* threads/task should not exceed the physical number of cores
 (on a node), otherwise performance will suffer.
 
-Setting *Nthread* = 0 instructs LAMMPS to use whatever value is the
+Setting *Nthreads* = 0 instructs LAMMPS to use whatever value is the
 default for the given OpenMP environment. This is usually determined
 via the *OMP_NUM_THREADS* environment variable or the compiler
 runtime.  Note that in most cases the default for OpenMP capable
@@ -618,6 +597,24 @@ is difficult to predict and can depend on many components of your
 input.  Not all features of LAMMPS support OpenMP threading via the
 USER-OMP package and the parallel efficiency can be very different,
 too.
+
+.. note::
+
+   If you build LAMMPS with the GPU, USER-INTEL, and / or USER-OMP
+   packages, be aware these packages all allow setting of the *Nthreads*
+   value via their package commands, but there is only a single global
+   *Nthreads* value used by OpenMP.  Thus if multiple package commands are
+   invoked, you should insure the values are consistent.  If they are
+   not, the last one invoked will take precedence, for all packages.
+   Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel" command, followed by a
+   "package omp" command, both with a setting of *Nthreads* = 0. Likewise
+   for a hybrid suffix for gpu and omp. Note that KOKKOS also supports
+   setting the number of OpenMP threads from the command line using the
+   "-k on" :doc:`command-line switch <Run_options>`. The default for
+   KOKKOS is 1 thread per MPI task, so any other number of threads should
+   be explicitly set using the "-k on" command-line switch (and this
+   setting should be consistent with settings from any other packages
+   used).
 
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
@@ -665,7 +662,7 @@ Default
 
 For the GPU package, the default is Ngpu = 0 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
-to Ngpu-1, tpa = 1, and platform=-1.  These settings are made
+to Ngpu-1, tpa = 1, omp = 0, and platform=-1.  These settings are made
 automatically if the "-sf gpu" :doc:`command-line switch <Run_options>`
 is used.  If it is not used, you must invoke the package gpu command
 in your input script or via the "-pk gpu" :doc:`command-line switch <Run_options>`.

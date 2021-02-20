@@ -1627,8 +1627,8 @@ void FixBondReact::check_a_neighbor()
 
             glove_counter++;
             if (glove_counter == onemol->natoms) {
-              status = ACCEPT;
-              ring_check();
+              if (ring_check()) status = ACCEPT;
+              else status = GUESSFAIL;
               return;
             }
             // status should still == PROCEED
@@ -1679,8 +1679,8 @@ void FixBondReact::check_a_neighbor()
 
         glove_counter++;
         if (glove_counter == onemol->natoms) {
-          status = ACCEPT;
-          ring_check();
+          if (ring_check()) status = ACCEPT;
+          else status = GUESSFAIL;
           return;
           // will never complete here when there are edge atoms
           // ...actually that could be wrong if people get creative...shouldn't affect anything
@@ -1791,8 +1791,8 @@ void FixBondReact::inner_crosscheck_loop()
   }
   glove_counter++;
   if (glove_counter == onemol->natoms) {
-    status = ACCEPT;
-    ring_check();
+    if (ring_check()) status = ACCEPT;
+    else status = GUESSFAIL;
     return;
   }
   status = CONTINUE;
@@ -1803,21 +1803,17 @@ void FixBondReact::inner_crosscheck_loop()
   Necessary for certain ringed structures
 ------------------------------------------------------------------------- */
 
-void FixBondReact::ring_check()
+int FixBondReact::ring_check()
 {
   // ring_check can be made more efficient by re-introducing 'frozen' atoms
   // 'frozen' atoms have been assigned and also are no longer pioneers
 
   // double check the number of neighbors match for all non-edge atoms
   // otherwise, atoms at 'end' of symmetric ring can behave like edge atoms
-  for (int i = 0; i < onemol->natoms; i++) {
-    if (edge[i][rxnID] == 0) {
-      if (onemol_nxspecial[i][0] != nxspecial[atom->map(glove[i][1])][0]) {
-        status = GUESSFAIL;
-        return;
-      }
-    }
-  }
+  for (int i = 0; i < onemol->natoms; i++)
+    if (edge[i][rxnID] == 0 &&
+        onemol_nxspecial[i][0] != nxspecial[atom->map(glove[i][1])][0])
+      return 0;
 
   for (int i = 0; i < onemol->natoms; i++) {
     for (int j = 0; j < onemol_nxspecial[i][0]; j++) {
@@ -1829,12 +1825,10 @@ void FixBondReact::ring_check()
           break;
         }
       }
-      if (ring_fail == 1) {
-        status = GUESSFAIL;
-        return;
-      }
+      if (ring_fail == 1) return 0;
     }
   }
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

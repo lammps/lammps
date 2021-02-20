@@ -171,7 +171,7 @@ class FixBondReact : public Fix {
   void check_a_neighbor();
   void crosscheck_the_neighbor();
   void inner_crosscheck_loop();
-  void ring_check();
+  int ring_check();
   int check_constraints();
   void get_IDcoords(int, int, double *);
   double get_temperature(tagint **, int, int);

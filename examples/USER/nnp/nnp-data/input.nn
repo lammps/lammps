@@ -1,0 +1,120 @@
+###############################################################################
+# HDNNP for water H2O
+###############################################################################
+# Length unit     : Bohr
+# Energy unit     : Ha
+# Reference method: RPBE-D3
+###############################################################################
+
+###############################################################################
+# DATA SET NORMALIZATION
+###############################################################################
+# This section was automatically added by nnp-norm.
+mean_energy  -2.5521343547039809E+01
+conv_energy   2.4265748255366972E+02
+conv_length   5.8038448995319847E+00
+###############################################################################
+
+###############################################################################
+# GENERAL NNP SETTINGS
+###############################################################################
+# These keywords are (almost) always required.
+number_of_elements              2              # Number of elements.
+elements                        H O            # Specification of elements.
+#atom_energy                     H -0.45890771  # Free atom reference energy (H).
+#atom_energy                     O -74.94518524 # Free atom reference energy (O).
+cutoff_type                     2              # Cutoff type.
+scale_symmetry_functions                       # Scale all symmetry functions with min/max values.
+#scale_symmetry_functions_sigma                 # Scale all symmetry functions with sigma.
+scale_min_short                 0.0            # Minimum value for scaling.
+scale_max_short                 1.0            # Maximum value for scaling.
+center_symmetry_functions                      # Center all symmetry functions, i.e. subtract mean value.
+global_hidden_layers_short      2              # Number of hidden layers.
+global_nodes_short              25 25          # Number of nodes in each hidden layer.
+global_activation_short         t t l          # Activation function for each hidden layer and output layer.
+#normalize_nodes                                # Normalize input of nodes.
+
+###############################################################################
+# SYMMETRY FUNCTIONS
+###############################################################################
+
+# Radial symmetry function (type 2):
+#symfunction_short <element-central> 2 <element-neighbor> <eta> <rshift> <rcutoff>
+
+# Narrow Angular symmetry function (type 3):
+#symfunction_short <element-central> 3 <element-neighbor1> <element-neighbor2> <eta> <lambda> <zeta> <rcutoff>
+
+# Wide Angular symmetry function (type 9):
+#symfunction_short <element-central> 9 <element-neighbor1> <element-neighbor2> <eta> <lambda> <zeta> <rcutoff>
+
+# radial H H
+symfunction_short H 2 H 0.001 0.0 12.00
+symfunction_short H 2 H 0.01  0.0 12.00
+symfunction_short H 2 H 0.03  0.0 12.00
+symfunction_short H 2 H 0.06  0.0 12.00
+symfunction_short H 2 H 0.15  1.9 12.00
+symfunction_short H 2 H 0.30  1.9 12.00
+symfunction_short H 2 H 0.60  1.9 12.00
+symfunction_short H 2 H 1.50  1.9 12.00
+
+# radial H O / O H
+symfunction_short H 2 O 0.001 0.0 12.00
+symfunction_short H 2 O 0.01  0.0 12.00
+symfunction_short H 2 O 0.03  0.0 12.00
+symfunction_short H 2 O 0.06  0.0 12.00
+symfunction_short H 2 O 0.15  0.9 12.00
+symfunction_short H 2 O 0.30  0.9 12.00
+symfunction_short H 2 O 0.60  0.9 12.00
+symfunction_short H 2 O 1.50  0.9 12.00
+
+symfunction_short O 2 H 0.001 0.0 12.00
+symfunction_short O 2 H 0.01  0.0 12.00
+symfunction_short O 2 H 0.03  0.0 12.00
+symfunction_short O 2 H 0.06  0.0 12.00
+symfunction_short O 2 H 0.15  0.9 12.00
+symfunction_short O 2 H 0.30  0.9 12.00
+symfunction_short O 2 H 0.60  0.9 12.00
+symfunction_short O 2 H 1.50  0.9 12.00
+
+# radial O O
+symfunction_short O 2 O 0.001 0.0 12.00
+symfunction_short O 2 O 0.01  0.0 12.00
+symfunction_short O 2 O 0.03  0.0 12.00
+symfunction_short O 2 O 0.06  0.0 12.00
+symfunction_short O 2 O 0.15  4.0 12.00
+symfunction_short O 2 O 0.30  4.0 12.00
+symfunction_short O 2 O 0.60  4.0 12.00
+symfunction_short O 2 O 1.50  4.0 12.00
+
+# angular
+symfunction_short H 3 O H 0.2  1.0 1.0  12.00000
+
+symfunction_short O 3 H H 0.07  1.0 1.0  12.00000
+symfunction_short H 3 O H 0.07  1.0 1.0  12.00000
+symfunction_short O 3 H H 0.07 -1.0 1.0  12.00000
+symfunction_short H 3 O H 0.07 -1.0 1.0  12.00000
+
+symfunction_short O 3 H H 0.03  1.0 1.0  12.00000
+symfunction_short H 3 O H 0.03  1.0 1.0  12.00000
+symfunction_short O 3 H H 0.03 -1.0 1.0  12.00000
+symfunction_short H 3 O H 0.03 -1.0 1.0  12.00000
+
+symfunction_short O 3 H H 0.01  1.0 4.0  12.00000
+symfunction_short H 3 O H 0.01  1.0 4.0  12.00000
+symfunction_short O 3 H H 0.01 -1.0 4.0  12.00000
+symfunction_short H 3 O H 0.01 -1.0 4.0  12.00000
+
+symfunction_short O 3 O H 0.03  1.0 1.0   12.00000
+symfunction_short O 3 O H 0.03 -1.0 1.0   12.00000
+symfunction_short O 3 O H 0.001  1.0 4.0  12.00000
+symfunction_short O 3 O H 0.001 -1.0 4.0  12.00000
+
+symfunction_short H 3 O O 0.03  1.0 1.0   12.00000
+symfunction_short H 3 O O 0.03 -1.0 1.0   12.00000
+symfunction_short H 3 O O 0.001  1.0 4.0  12.00000
+symfunction_short H 3 O O 0.001 -1.0 4.0  12.00000
+
+symfunction_short O 3 O O 0.03  1.0 1.0   12.00000
+symfunction_short O 3 O O 0.03 -1.0 1.0   12.00000
+symfunction_short O 3 O O 0.001  1.0 4.0  12.00000
+symfunction_short O 3 O O 0.001 -1.0 4.0  12.00000

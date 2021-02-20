@@ -86,7 +86,7 @@ class FixBondReact : public Fix {
   int nmax; // max num local atoms
   int max_natoms; // max natoms in a molecule template
   tagint *partner,*finalpartner;
-  double **distsq,*probability;
+  double **distsq;
   int *nattempt;
   int maxattempt;
   int allnattempt;

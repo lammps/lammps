@@ -8,21 +8,23 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   kim sub-command
+   kim sub-command args
 
 * sub-command = :ref:`init <init>` or :ref:`interactions <interactions>` or
   :ref:`query <query>` or :ref:`param <param>` or :ref:`property <property>`
+
+* args = arguments used by a particular sub-command
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   kim init ...
-   kim interactions ...
-   kim query ...
-   kim param ...
-   kim property ...
+   kim init args
+   kim interactions args
+   kim query args
+   kim param args
+   kim property args
 
 .. _kim_description:
 
@@ -31,7 +33,7 @@ Description
 
 The *kim command* includes a set of sub-commands that allow LAMMPS users
 to use interatomic models (IM) (potentials and force fields) and their predictions
-for various physical properties archived in the 
+for various physical properties archived in the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_ repository.
 
 Using OpenKIM provides LAMMPS users with immediate access to a large number of
@@ -141,11 +143,11 @@ Examples
 
    kim init SW_StillingerWeber_1985_Si__MO_405512056662_005 metal
    kim interactions Si
-  
+
    kim init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_001 real
    kim init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_001 metal unit_conversion_mode
    kim interactions C H O
-   
+
    kim init Sim_LAMMPS_IFF_PCFF_HeinzMishraLinEmami_2015Ver1v5_FccmetalsMineralsSolventsPolymers__SM_039297821658_000 real
    kim interactions fixed_types
 
@@ -679,7 +681,7 @@ Syntax
 
    kim param get param_name index_range variable formatarg
    kim param set param_name index_range values
-   
+
 * param_name = name of a KIM portable model parameter (which is published by the
   PM and available for access). The specific string used to identify a parameter
   is defined by the PM.  For example, for the
@@ -1374,4 +1376,3 @@ doi: `https://doi.org/10.1007/s11837-011-0102-6 <https://doi.org/10.1007/s11837-
 
 **(Elliott)** Elliott, Tadmor and Bernstein, `https://openkim.org/kim-api <https://openkim.org/kim-api>`_ (2011)
 doi: `https://doi.org/10.25950/FF8F563A <https://doi.org/10.25950/FF8F563A>`_
-

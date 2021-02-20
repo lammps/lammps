@@ -26,6 +26,7 @@
 #include "error.h"
 #include "update.h"
 #include "utils.h"
+#include "InterfaceLammps.h"
 
 using namespace LAMMPS_NS;
 
@@ -33,6 +34,7 @@ using namespace LAMMPS_NS;
 
 PairNNP::PairNNP(LAMMPS *lmp) : Pair(lmp)
 {
+    interface = new nnp::InterfaceLammps();
 }
 
 /* ----------------------------------------------------------------------
@@ -41,6 +43,7 @@ PairNNP::PairNNP(LAMMPS *lmp) : Pair(lmp)
 
 PairNNP::~PairNNP()
 {
+    delete interface;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -51,13 +54,13 @@ void PairNNP::compute(int eflag, int vflag)
   else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   // Set number of local atoms and add index and element.
-  interface.setLocalAtoms(atom->nlocal,atom->tag,atom->type);
+  interface->setLocalAtoms(atom->nlocal,atom->tag,atom->type);
 
   // Transfer local neighbor list to NNP interface.
   transferNeighborList();
 
   // Compute symmetry functions, atomic neural networks and add up energy.
-  interface.process();
+  interface->process();
 
   // Do all stuff related to extrapolation warnings.
   if(showew == true || showewsum > 0 || maxew >= 0) {
@@ -65,16 +68,16 @@ void PairNNP::compute(int eflag, int vflag)
   }
 
   // Calculate forces of local and ghost atoms.
-  interface.getForces(atom->f);
+  interface->getForces(atom->f);
 
   // Add energy contribution to total energy.
   if (eflag_global)
-     ev_tally(0,0,atom->nlocal,1,interface.getEnergy(),0.0,0.0,0.0,0.0,0.0);
+     ev_tally(0,0,atom->nlocal,1,interface->getEnergy(),0.0,0.0,0.0,0.0,0.0);
 
   // Add atomic energy if requested (CAUTION: no physical meaning!).
   if (eflag_atom)
     for (int i = 0; i < atom->nlocal; ++i)
-      eatom[i] = interface.getAtomicEnergy(i);
+      eatom[i] = interface->getAtomicEnergy(i);
 
   // If virial needed calculate via F dot r.
   if (vflag_fdotr) virial_fdotr_compute();
@@ -215,32 +218,32 @@ void PairNNP::init_style()
   neighbor->requests[irequest]->full = 1;
 
   // Return immediately if NNP setup is already completed.
-  if (interface.isInitialized()) return;
+  if (interface->isInitialized()) return;
 
   // Activate screen and logfile output only for rank 0.
   if (comm->me == 0) {
-    if (lmp->screen != NULL)
-      interface.log.registerCFilePointer(&(lmp->screen));    
-    if (lmp->logfile != NULL)
-      interface.log.registerCFilePointer(&(lmp->logfile));    
+    if (lmp->screen != nullptr)
+      interface->log.registerCFilePointer(&(lmp->screen));
+    if (lmp->logfile != nullptr)
+      interface->log.registerCFilePointer(&(lmp->logfile));
   }
 
   // Initialize interface on all processors.
-  interface.initialize(directory,
-                       emap,
-                       showew,
-                       resetew,
-                       showewsum,
-                       maxew,
-                       cflength,
-                       cfenergy,
-                       maxCutoffRadius,
-                       atom->ntypes,
-                       comm->me);
+  interface->initialize(directory,
+                        emap,
+                        showew,
+                        resetew,
+                        showewsum,
+                        maxew,
+                        cflength,
+                        cfenergy,
+                        maxCutoffRadius,
+                        atom->ntypes,
+                        comm->me);
 
   // LAMMPS cutoff radius (given via pair_coeff) should not be smaller than
   // maximum symmetry function cutoff radius.
-  if (maxCutoffRadius < interface.getMaxCutoffRadius())
+  if (maxCutoffRadius < interface->getMaxCutoffRadius())
     error->all(FLERR,"Inconsistent cutoff radius");
 }
 
@@ -321,7 +324,7 @@ void PairNNP::transferNeighborList()
       double dz = atom->x[i][2] - atom->x[j][2];
       double d2 = dx * dx + dy * dy + dz * dz;
       if (d2 <= rc2) {
-        interface.addNeighbor(i,j,atom->tag[j],atom->type[j],dx,dy,dz,d2);
+        interface->addNeighbor(i,j,atom->tag[j],atom->type[j],dx,dy,dz,d2);
       }
     }
   }
@@ -331,7 +334,7 @@ void PairNNP::handleExtrapolationWarnings()
 {
   // Get number of extrapolation warnings for local atoms.
   // TODO: Is the conversion from std::size_t to long ok?
-  long numCurrentEW = (long)interface.getNumExtrapolationWarnings();
+  long numCurrentEW = (long)interface->getNumExtrapolationWarnings();
 
   // Update (or set, resetew == true) total warnings counter.
   if (resetew) numExtrapolationWarningsTotal = numCurrentEW;
@@ -347,7 +350,7 @@ void PairNNP::handleExtrapolationWarnings()
   // rank 0.
   if(showew > 0) {
     // First collect an overview of extrapolation warnings per process.
-    long* numEWPerProc = NULL;
+    long* numEWPerProc = nullptr;
     if(comm->me == 0) numEWPerProc = new long[comm->nprocs];
     MPI_Gather(&numCurrentEW, 1, MPI_LONG, numEWPerProc, 1, MPI_LONG, 0, world);
 
@@ -361,18 +364,18 @@ void PairNNP::handleExtrapolationWarnings()
           char* buf = new char[bs];
           // Receive buffer.
           MPI_Recv(buf, bs, MPI_BYTE, i, 0, world, &ms);
-          interface.extractEWBuffer(buf, bs);
+          interface->extractEWBuffer(buf, bs);
           delete[] buf;
         }
       }
-      interface.writeExtrapolationWarnings();
+      interface->writeExtrapolationWarnings();
     }
     else if(numCurrentEW > 0) {
       // Get desired buffer length for all extrapolation warning entries.
-      long bs = interface.getEWBufferSize();
+      long bs = interface->getEWBufferSize();
       // Allocate and fill buffer.
       char* buf = new char[bs];
-      interface.fillEWBuffer(buf, bs);
+      interface->fillEWBuffer(buf, bs);
       // Send buffer size and buffer.
       MPI_Send(&bs, 1, MPI_LONG, 0, 0, world);
       MPI_Send(buf, bs, MPI_BYTE, 0, 0, world);
@@ -415,5 +418,5 @@ void PairNNP::handleExtrapolationWarnings()
   }
 
   // Reset internal extrapolation warnings counters.
-  interface.clearExtrapolationWarnings();
+  interface->clearExtrapolationWarnings();
 }

@@ -24,7 +24,10 @@ PairStyle(nnp,PairNNP)
 #define LMP_PAIR_NNP_H
 
 #include "pair.h"
-#include "InterfaceLammps.h"
+
+namespace nnp {
+    class InterfaceLammps;
+}
 
 namespace LAMMPS_NS {
 
@@ -61,7 +64,7 @@ class PairNNP : public Pair {
   double maxCutoffRadius;
   char* directory;
   char* emap;
-  nnp::InterfaceLammps interface;
+  nnp::InterfaceLammps* interface;
 };
 
 }

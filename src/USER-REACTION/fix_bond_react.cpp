@@ -868,16 +868,15 @@ void FixBondReact::post_integrate()
     ghostly_rxn_count[i] = 0;
     nlocalskips[i] = 0;
     nghostlyskips[i] = 0;
+    // update reaction probability
+    if (var_flag[PROB][i])
+      fraction[i] = input->variable->compute_equal(var_id[PROB][i]);
   }
 
   if (nevery_check) {
     unlimit_bond();
     return;
   }
-
-  // update reaction probability
-  if (var_flag[PROB][rxnID])
-    fraction[rxnID] = input->variable->compute_equal(var_id[PROB][rxnID]);
 
   // acquire updated ghost atom positions
   // necessary b/c are calling this after integrate, but before Verlet comm

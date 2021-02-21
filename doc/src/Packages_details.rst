@@ -88,6 +88,7 @@ page gives those details.
    * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
    * :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`
    * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
+   * :ref:`USER-NNP <PKG-USER-NNP>`
    * :ref:`USER-OMP <PKG-USER-OMP>`
    * :ref:`USER-PHONON <PKG-USER-PHONON>`
    * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
@@ -1918,6 +1919,35 @@ This package has :ref:`specific installation instructions <user-netcdf>` on the 
 * src/USER-NETCDF/README
 * lib/netcdf/README
 * :doc:`dump netcdf <dump_netcdf>`
+
+----------
+
+.. _PKG-USER-NNP:
+
+USER-NNP package
+----------------
+
+**Contents:**
+
+:doc:`pair_style nnp <pair_nnp>` command
+
+.. _n2p2: https://github.com/CompPhysVienna/n2p2
+
+To use this package you must have the n2p2 core and interface library
+(``libnnp``, ``libnnpif``) available on your system.
+
+**Author:** Andreas Singraber
+
+**Install:**
+
+This package has :ref:`specific installation instructions <user-nnp>` on the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/USER-NNP: filenames -> commands
+* src/USER-NNP/README
+* :doc:`pair_style nnp <pair_nnp>`
+* examples/USER/nnp
 
 ----------
 

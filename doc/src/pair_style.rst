@@ -260,6 +260,7 @@ accelerated styles exist.
 * :doc:`nm/cut <pair_nm>` - N-M potential
 * :doc:`nm/cut/coul/cut <pair_nm>` - N-M potential with cutoff Coulomb
 * :doc:`nm/cut/coul/long <pair_nm>` - N-M potential with long-range Coulomb
+* :doc:`nnp <pair_nnp>` - High-dimensional neural network potential
 * :doc:`oxdna/coaxstk <pair_oxdna>` -
 * :doc:`oxdna/excv <pair_oxdna>` -
 * :doc:`oxdna/hbond <pair_oxdna>` -

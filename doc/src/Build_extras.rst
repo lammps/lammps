@@ -52,6 +52,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
+   * :ref:`USER-NNP <user-nnp>`
    * :ref:`USER-PLUMED <user-plumed>`
    * :ref:`USER-OMP <user-omp>`
    * :ref:`USER-QMMM <user-qmmm>`
@@ -1583,6 +1584,25 @@ on your system.
       package.  If the settings are not valid for your system, you will
       need to edit the ``Makefile.lammps`` file.  See
       ``lib/netcdf/README`` for details.
+
+----------
+
+.. _user-nnp:
+
+USER-NNP package
+---------------------------------
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         ADD STUFF HERE
+
+   .. tab:: Traditional make
+
+      ADD STUFF HERE
 
 ----------
 

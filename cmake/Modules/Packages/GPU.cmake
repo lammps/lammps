@@ -382,12 +382,8 @@ elseif(GPU_API STREQUAL "HIP")
   target_link_libraries(lammps PRIVATE gpu)
 endif()
 
-# GPU package
-FindStyleHeaders(${GPU_SOURCES_DIR} FIX_CLASS fix_ FIX)
-
 set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
-
-# detects styles which have GPU version
+# detect styles which have a GPU version
 RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)

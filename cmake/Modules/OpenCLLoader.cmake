@@ -11,7 +11,7 @@ set(OPENCL_LOADER_URL "https://download.lammps.org/thirdparty/opencl-loader-2020
 mark_as_advanced(OPENCL_LOADER_URL)
 ExternalProject_Add(opencl_loader
                     URL ${OPENCL_LOADER_URL}
-                    URL_MD5         d89ab1dc1121b96c9c37526b9db46df1
+                    URL_MD5         011cdcbd41030be94f3fced6d763a52a
                     SOURCE_DIR      "${CMAKE_BINARY_DIR}/opencl_loader-src"
                     BINARY_DIR      "${CMAKE_BINARY_DIR}/opencl_loader-build"
                     CMAKE_ARGS      ${CMAKE_REQUEST_PIC} ${CMAKE_EXTRA_OPENCL_LOADER_OPTS}

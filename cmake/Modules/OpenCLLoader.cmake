@@ -20,7 +20,7 @@ ExternalProject_Add(opencl_loader
                                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                    BUILD_BYPRODUCTS <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}OpenCL${OPENCL_LOADER_LIB_POSTFIX}.a
+                    BUILD_BYPRODUCTS <BINARY_DIR>/libOpenCL${OPENCL_LOADER_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
                     LOG_DOWNLOAD ON
                     LOG_CONFIGURE ON
                     LOG_BUILD ON
@@ -34,7 +34,7 @@ set(OPENCL_LOADER_INCLUDE_DIR ${SOURCE_DIR}/inc)
 file(MAKE_DIRECTORY ${OPENCL_LOADER_INCLUDE_DIR})
 
 ExternalProject_Get_Property(opencl_loader BINARY_DIR)
-  set(OPENCL_LOADER_LIBRARY_PATH "${BINARY_DIR}/libOpenCL${OPENCL_LOADER_LIB_POSTFIX}.a")
+set(OPENCL_LOADER_LIBRARY_PATH "${BINARY_DIR}/libOpenCL${OPENCL_LOADER_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 find_package(Threads QUIET)
 if(NOT WIN32)

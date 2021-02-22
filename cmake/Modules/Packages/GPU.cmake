@@ -385,6 +385,7 @@ endif()
 set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
 # detect styles which have a GPU version
 RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
+RegisterFixStyle(${GPU_SOURCES_DIR}/fix_gpu.h)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 

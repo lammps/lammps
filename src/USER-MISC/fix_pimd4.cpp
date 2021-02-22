@@ -21,7 +21,7 @@
    Version      1.0
 ------------------------------------------------------------------------- */
 
-#include "fix_pimd3.h"
+#include "fix_pimd4.h"
 #include <mpi.h>
 #include <cmath>
 #include <cstring>

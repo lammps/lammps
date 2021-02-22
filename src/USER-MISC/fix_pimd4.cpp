@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Package      FixPIMD3
+   Package      FixPIMD4
    Purpose      Quantum Path Integral Algorithm for Quantum Chemistry
    Copyright    Voth Group @ University of Chicago
    Authors      Chris Knight & Yuxing Peng (yuxing at uchicago.edu)
@@ -56,7 +56,7 @@ enum{MSTI, SCTI};
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMD3::FixPIMD3(LAMMPS *lmp, int narg, char **arg) : 
+FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) : 
   Fix(lmp, narg, arg),
   random(NULL), c_pe(NULL)
 {
@@ -251,7 +251,7 @@ FixPIMD3::FixPIMD3(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 /*
-FixPIMD3::~FixPIMD3()
+FixPIMD4::~FixPIMD4()
 {
   if(thermostat==baoab)
   {
@@ -261,7 +261,7 @@ FixPIMD3::~FixPIMD3()
 */
 /* ---------------------------------------------------------------------- */
 
-int FixPIMD3::setmask()
+int FixPIMD4::setmask()
 {
   int mask = 0;
   //mask |= PRE_EXCHANGE;
@@ -276,7 +276,7 @@ int FixPIMD3::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::end_of_step()
+void FixPIMD4::end_of_step()
 {
   compute_totke();
   compute_tote();
@@ -289,7 +289,7 @@ void FixPIMD3::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::init()
+void FixPIMD4::init()
 {
   if (atom->map_style == 0)
     error->all(FLERR,"Fix pimd requires an atom map, see atom_modify");
@@ -370,8 +370,8 @@ void FixPIMD3::init()
   if(universe->me==0) fprintf(screen, "Fix pimd successfully initialized!\n");
 }
 
-void FixPIMD3::setup_pre_force(int vflag)
-//void FixPIMD3::setup_pre_exchange()
+void FixPIMD4::setup_pre_force(int vflag)
+//void FixPIMD4::setup_pre_exchange()
 {
   atom->x[0][0] = 0.0;
   atom->x[0][1] = 0.0;
@@ -429,7 +429,7 @@ void FixPIMD3::setup_pre_force(int vflag)
   // if(universe->me==0)  printf("Fix pimd successfully initialized!\n");
 }
 
-void FixPIMD3::setup(int vflag)
+void FixPIMD4::setup(int vflag)
 {
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
@@ -445,7 +445,7 @@ void FixPIMD3::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::initial_integrate(int /*vflag*/)
+void FixPIMD4::initial_integrate(int /*vflag*/)
 {
   char x_tmp[8];
   int nlocal = atom->nlocal;
@@ -516,7 +516,7 @@ void FixPIMD3::initial_integrate(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::post_integrate()
+void FixPIMD4::post_integrate()
 {
   if(integrator==baoab)
   {
@@ -564,7 +564,7 @@ void FixPIMD3::post_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::final_integrate()
+void FixPIMD4::final_integrate()
 {
   if(integrator==baoab)
   {
@@ -578,7 +578,7 @@ void FixPIMD3::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::post_force(int /*flag*/)
+void FixPIMD4::post_force(int /*flag*/)
 {
   //char x_tmp[8];
   //int nlocal = atom->nlocal;
@@ -634,7 +634,7 @@ void FixPIMD3::post_force(int /*flag*/)
    Langevin thermostat, BAOAB integrator
 ------------------------------------------------------------------------- */
 
-void FixPIMD3::baoab_init()
+void FixPIMD4::baoab_init()
 {
   double KT = force->boltz * baoab_temp;
   double beta = 1.0 / KT;
@@ -661,7 +661,7 @@ void FixPIMD3::baoab_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::b_step()
+void FixPIMD4::b_step()
 {
   // if(universe->iworld==0) printf("start of b_step, %.6e.\n", atom->x[0][0]);
   int n = atom->nlocal;
@@ -683,7 +683,7 @@ void FixPIMD3::b_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::a_step(){
+void FixPIMD4::a_step(){
   int n = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
@@ -718,7 +718,7 @@ void FixPIMD3::a_step(){
 }
 
 /* ---------------------------------------------------------------------- */
-void FixPIMD3::svr_step()
+void FixPIMD4::svr_step()
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -764,7 +764,7 @@ void FixPIMD3::svr_step()
 
 }
 
-void FixPIMD3::o_step()
+void FixPIMD4::o_step()
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
@@ -848,12 +848,12 @@ void FixPIMD3::o_step()
    Normal Mode PIMD
 ------------------------------------------------------------------------- */
 
-void FixPIMD3::nmpimd_init()
+void FixPIMD4::nmpimd_init()
 {
   memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
   memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
 
-  lam = (double*) memory->smalloc(sizeof(double)*np, "FixPIMD3::lam");
+  lam = (double*) memory->smalloc(sizeof(double)*np, "FixPIMD4::lam");
 
   // Set up  eigenvalues
 
@@ -907,7 +907,7 @@ void FixPIMD3::nmpimd_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::nmpimd_fill(double **ptr)
+void FixPIMD4::nmpimd_fill(double **ptr)
 {
   comm_ptr = ptr;
   comm->forward_comm_fix(this);
@@ -915,7 +915,7 @@ void FixPIMD3::nmpimd_fill(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::nmpimd_transform(double** src, double** des, double *vector)
+void FixPIMD4::nmpimd_transform(double** src, double** des, double *vector)
 {
   int n = atom->nlocal;
   int m = 0;
@@ -932,7 +932,7 @@ void FixPIMD3::nmpimd_transform(double** src, double** des, double *vector)
    Comm operations
 ------------------------------------------------------------------------- */
 
-void FixPIMD3::comm_init()
+void FixPIMD4::comm_init()
 {
   if(size_plan)
   {
@@ -1019,7 +1019,7 @@ void FixPIMD3::comm_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::comm_exec(double **ptr)
+void FixPIMD4::comm_exec(double **ptr)
 {
   int nlocal = atom->nlocal;
 
@@ -1027,10 +1027,10 @@ void FixPIMD3::comm_exec(double **ptr)
   {
     max_nlocal = nlocal+200;
     int size = sizeof(double) * max_nlocal * 3;
-    buf_recv = (double*) memory->srealloc(buf_recv, size, "FixPIMD3:x_recv");
+    buf_recv = (double*) memory->srealloc(buf_recv, size, "FixPIMD4:x_recv");
 
     for(int i=0; i<np; i++)
-      buf_beads[i] = (double*) memory->srealloc(buf_beads[i], size, "FixPIMD3:x_beads[i]");
+      buf_beads[i] = (double*) memory->srealloc(buf_beads[i], size, "FixPIMD4:x_beads[i]");
   }
 
   // copy local positions
@@ -1053,8 +1053,8 @@ void FixPIMD3::comm_exec(double **ptr)
     if(nsend > max_nsend)
     {
       max_nsend = nsend+200;
-      tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixPIMD3:tag_send");
-      buf_send = (double*) memory->srealloc(buf_send, sizeof(double)*max_nsend*3, "FixPIMD3:x_send");
+      tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixPIMD4:tag_send");
+      buf_send = (double*) memory->srealloc(buf_send, sizeof(double)*max_nsend*3, "FixPIMD4:x_send");
     }
 
     // send tags
@@ -1101,17 +1101,17 @@ void FixPIMD3::comm_exec(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::comm_coords()
+void FixPIMD4::comm_coords()
 {
   int nlocal = atom->nlocal;
 
   // assign memory for arrays
   int size_coords = sizeof(double) * nlocal * 3;
   int size_tags;// = sizeof(tagint) * nlocal;
-  coords_recv = (double*) memory->srealloc(coords_recv, size_coords, "FixPIMD3:coords_recv");
+  coords_recv = (double*) memory->srealloc(coords_recv, size_coords, "FixPIMD4:coords_recv");
   for(int i=0; i<np; i++)
   {
-    coords[i] = (double*) memory->srealloc(coords[i], size_coords, "FixPIMD3:coords[i]");
+    coords[i] = (double*) memory->srealloc(coords[i], size_coords, "FixPIMD4:coords[i]");
   }
   
   // copy local positions and tags
@@ -1135,8 +1135,8 @@ void FixPIMD3::comm_coords()
     size_coords = sizeof(double) * nsend * 3;
     size_tags = sizeof(tagint) * nsend;
 
-    coords_send = (double*) memory->srealloc(coords_send, size_coords, "FixPIMD3:coords_send");
-    tags_send = (tagint*) memory->srealloc(tags_send, size_tags, "FixPIMD3:tags_send");
+    coords_send = (double*) memory->srealloc(coords_send, size_coords, "FixPIMD4:coords_send");
+    tags_send = (tagint*) memory->srealloc(tags_send, size_tags, "FixPIMD4:tags_send");
 
     MPI_Sendrecv(atom->tag, nlocal, MPI_LMP_TAGINT, proc_send, 0,
                  tags_send, nsend, MPI_LMP_TAGINT, proc_recv, 0,
@@ -1172,17 +1172,17 @@ void FixPIMD3::comm_coords()
   }
 }
 
-void FixPIMD3::comm_forces()
+void FixPIMD4::comm_forces()
 {
   int nlocal = atom->nlocal;
 
   // assign memory for arrays
   int size_forces = sizeof(double) * nlocal * 3;
   int size_tags;// = sizeof(tagint) * nlocal;
-  forces_recv = (double*) memory->srealloc(forces_recv, size_forces, "FixPIMD3:forces_recv");
+  forces_recv = (double*) memory->srealloc(forces_recv, size_forces, "FixPIMD4:forces_recv");
   for(int i=0; i<np; i++)
   {
-    forces[i] = (double*) memory->srealloc(forces[i], size_forces, "FixPIMD3:forces[i]");
+    forces[i] = (double*) memory->srealloc(forces[i], size_forces, "FixPIMD4:forces[i]");
   }
   
   // copy local positions and tags
@@ -1206,8 +1206,8 @@ void FixPIMD3::comm_forces()
     size_forces = sizeof(double) * nsend * 3;
     size_tags = sizeof(tagint) * nsend;
 
-    forces_send = (double*) memory->srealloc(forces_send, size_forces, "FixPIMD3:forces_send");
-    tags_send = (tagint*) memory->srealloc(tags_send, size_tags, "FixPIMD3:tags_send");
+    forces_send = (double*) memory->srealloc(forces_send, size_forces, "FixPIMD4:forces_send");
+    tags_send = (tagint*) memory->srealloc(tags_send, size_tags, "FixPIMD4:tags_send");
 
     MPI_Sendrecv(atom->tag, nlocal, MPI_LMP_TAGINT, proc_send, 0,
                  tags_send, nsend, MPI_LMP_TAGINT, proc_recv, 0,
@@ -1245,10 +1245,10 @@ void FixPIMD3::comm_forces()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::compute_xc()
+void FixPIMD4::compute_xc()
 {
   int nlocal = atom->nlocal;
-  xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixPIMD3:xc");
+  xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixPIMD4:xc");
   for(int i=0; i<nlocal; i++)
   {
     xc[3*i] = xc[3*i+1] = xc[3*i+2] = 0.0;
@@ -1264,10 +1264,10 @@ void FixPIMD3::compute_xc()
   } 
 }
 
-void FixPIMD3::compute_fc()
+void FixPIMD4::compute_fc()
 {
   int nlocal = atom->nlocal;
-  fc = (double*) memory->srealloc(fc, sizeof(double) * nlocal * 3, "FixPIMD3:fc");
+  fc = (double*) memory->srealloc(fc, sizeof(double) * nlocal * 3, "FixPIMD4:fc");
   for(int i=0; i<nlocal; i++)
   {
     fc[3*i] = fc[3*i+1] = fc[3*i+2] = 0.0;
@@ -1283,7 +1283,7 @@ void FixPIMD3::compute_fc()
   } 
 }
 
-void FixPIMD3::compute_vir()
+void FixPIMD4::compute_vir()
 {
   int nlocal = atom->nlocal;  
   xf = vir = xcfc = centroid_vir = 0.0;
@@ -1301,12 +1301,12 @@ void FixPIMD3::compute_vir()
 }
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::compute_xscaled()
+void FixPIMD4::compute_xscaled()
 {
   int nlocal = atom->nlocal;
   for(int i=0; i<np; i++)
   {
-    x_scaled[i] = (double*) memory->srealloc(x_scaled[i], sizeof(double) * nlocal * 3, "FixPIMD3:x_scaled[i]");
+    x_scaled[i] = (double*) memory->srealloc(x_scaled[i], sizeof(double) * nlocal * 3, "FixPIMD4:x_scaled[i]");
   }
   for(int i=0; i<np; i++)
   {
@@ -1324,7 +1324,7 @@ void FixPIMD3::compute_xscaled()
    Compute centroid-virial kinetic energy estimator
 ------------------------------------------------------------------------- */
 
-void FixPIMD3::compute_t_vir()
+void FixPIMD4::compute_t_vir()
 {
   t_vir = -0.5 / np * vir;
   t_cv = 1.5 * atom->natoms * force->boltz * temp - 0.5 / np * (vir - centroid_vir);
@@ -1334,25 +1334,25 @@ void FixPIMD3::compute_t_vir()
    Compute primitive kinetic energy estimator
 ------------------------------------------------------------------------- */
 
-void FixPIMD3::compute_t_prim()
+void FixPIMD4::compute_t_prim()
 {
   // fprintf(stdout, "in compute_t_prim, me = %d, N = %d, np = %d, force->boltz = %2.8f, temp = %2.8f, total_spring_energy = %2.8e.\n", universe->me, atom->natoms, np, force->boltz, temp, total_spring_energy);
   t_prim = 1.5 * atom->natoms * np * force->boltz * temp - total_spring_energy;
 }
 
-void FixPIMD3::compute_p_prim()
+void FixPIMD4::compute_p_prim()
 {
   p_prim = atom->natoms * np * force->boltz * temp * inv_volume - 1.0 / 1.5 * inv_volume * total_spring_energy + 1.0 / 3 / np * inv_volume * vir;
 }
 
-void FixPIMD3::compute_p_cv()
+void FixPIMD4::compute_p_cv()
 {
   p_cv = 3 * atom->natoms * force->boltz * temp * inv_volume + 1.0 / np * inv_volume * centroid_vir; 
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::compute_totke()
+void FixPIMD4::compute_totke()
 {
   double kine = 0.0;
   totke = 0.0;
@@ -1375,7 +1375,7 @@ void FixPIMD3::compute_totke()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::compute_pote()
+void FixPIMD4::compute_pote()
 {
   double pot_energy_partition = 0.0;
   pote = 0.0;
@@ -1390,7 +1390,7 @@ void FixPIMD3::compute_pote()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::compute_spring_energy()
+void FixPIMD4::compute_spring_energy()
 {
   spring_energy = 0.0;
 
@@ -1430,7 +1430,7 @@ void FixPIMD3::compute_spring_energy()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMD3::compute_tote()
+void FixPIMD4::compute_tote()
 {
   // tote = totke + hope;
   tote = totke + pote + total_spring_energy;
@@ -1438,7 +1438,7 @@ void FixPIMD3::compute_tote()
 
 /* ---------------------------------------------------------------------- */
 
-double FixPIMD3::compute_vector(int n)
+double FixPIMD4::compute_vector(int n)
 {
   if(n==0) { return totke; }
   if(n==1) { return total_spring_energy; }

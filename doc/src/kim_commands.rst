@@ -263,7 +263,7 @@ units of the IM.
    create_atoms 1 box
    mass         1 $(4.480134e-26*v__u_mass)
    kim          interactions Al
-   neighbor     $(0.001e-10*v__u_distance) bin
+   neighbor     $(2e-10*v__u_distance) bin
    run          0
    variable     Ec_in_J equal (pe/count(all))/v__u_energy
    print        "Cohesive Energy = ${Ec_in_J} J"

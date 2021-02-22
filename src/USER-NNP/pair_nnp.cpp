@@ -253,44 +253,7 @@ void PairNNP::init_style()
 
 double PairNNP::init_one(int i, int j)
 {
-  // TODO: Check how this actually works for different cutoffs.
   return maxCutoffRadius;
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes to restart file
-------------------------------------------------------------------------- */
-
-void PairNNP::write_restart(FILE *fp)
-{
-    return;
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads from restart file, bcasts
-------------------------------------------------------------------------- */
-
-void PairNNP::read_restart(FILE *fp)
-{
-    return;
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes to restart file
-------------------------------------------------------------------------- */
-
-void PairNNP::write_restart_settings(FILE *fp)
-{
-    return;
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads from restart file, bcasts
-------------------------------------------------------------------------- */
-
-void PairNNP::read_restart_settings(FILE *fp)
-{
-    return;
 }
 
 /* ----------------------------------------------------------------------
@@ -333,7 +296,6 @@ void PairNNP::transferNeighborList()
 void PairNNP::handleExtrapolationWarnings()
 {
   // Get number of extrapolation warnings for local atoms.
-  // TODO: Is the conversion from std::size_t to long ok?
   long numCurrentEW = (long)interface->getNumExtrapolationWarnings();
 
   // Update (or set, resetew == true) total warnings counter.

@@ -42,10 +42,6 @@ class PairNNP : public Pair {
   virtual void coeff(int, char **);
   virtual void init_style();
   virtual double init_one(int, int);
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
 
  protected:
 

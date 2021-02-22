@@ -58,7 +58,7 @@ enum{MSTI, SCTI};
 
 FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) : 
   Fix(lmp, narg, arg),
-  random(NULL), c_pe(NULL)
+  random(nullptr), c_pe(nullptr)
 {
   method       = PIMD;
   integrator   = baoab;
@@ -173,23 +173,23 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   /* Initiation */
 
   max_nsend = 0;
-  tag_send = NULL;
-  buf_send = NULL;
+  tag_send = nullptr;
+  buf_send = nullptr;
 
   max_nlocal = 0;
-  buf_recv = NULL;
-  buf_beads = NULL;
+  buf_recv = nullptr;
+  buf_beads = nullptr;
 
-  coords_send = coords_recv = NULL;
-  forces_send = forces_recv = NULL;
+  coords_send = coords_recv = nullptr;
+  forces_send = forces_recv = nullptr;
   nsend = nrecv = 0;
-  tags_send = NULL;
-  coords = NULL;
-  forces = NULL;
+  tags_send = nullptr;
+  coords = nullptr;
+  forces = nullptr;
   size_plan = 0;
-  plan_send = plan_recv = NULL;
+  plan_send = plan_recv = nullptr;
 
-  xc = NULL;
+  xc = fc = nullptr;
   xf = 0.0;
   t_vir = t_cv = 0.0;
   total_spring_energy = 0.0;
@@ -199,15 +199,15 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   totke = 0.0;
 
   dfdl = 0.0;
-  x_scaled = NULL;
+  x_scaled = nullptr;
 
-  M_x2xp = M_xp2x = NULL; // M_f2fp = M_fp2f = NULL;
-  lam = NULL;
-  mode_index = NULL;
+  M_x2xp = M_xp2x = nullptr; // M_f2fp = M_fp2f = nullptr;
+  lam = nullptr;
+  mode_index = nullptr;
 
-  mass = NULL;
+  mass = nullptr;
 
-  array_atom = NULL;
+  array_atom = nullptr;
 
   gamma = 0.0;
   c1 = 0.0;
@@ -987,7 +987,7 @@ void FixPIMD4::comm_init()
   }
 
   buf_beads = new double* [np];
-  for(int i=0; i<np; i++) buf_beads[i] = NULL;
+  for(int i=0; i<np; i++) buf_beads[i] = nullptr;
   
   if(coords)
   {
@@ -1002,10 +1002,10 @@ void FixPIMD4::comm_init()
   }
   
   coords = new double* [np];
-  for(int i=0; i<np; i++) coords[i] = NULL;
+  for(int i=0; i<np; i++) coords[i] = nullptr;
 
   forces = new double* [np];
-  for(int i=0; i<np; i++) forces[i] = NULL;
+  for(int i=0; i<np; i++) forces[i] = nullptr;
   
   if(x_scaled)
   {
@@ -1014,7 +1014,7 @@ void FixPIMD4::comm_init()
   }
 
   x_scaled = new double* [np];
-  for(int i=0; i<np; i++) x_scaled[i] = NULL;
+  for(int i=0; i<np; i++) x_scaled[i] = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

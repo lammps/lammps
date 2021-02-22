@@ -12,7 +12,7 @@ ExternalProject_Add(libyaml
                                       CXX=${CMAKE_CXX_COMPILER}
                                       CC=${CMAKE_C_COMPILER}
                                       --prefix=<INSTALL_DIR> --disable-shared
-                    BUILD_BYPRODUCTS  <INSTALL_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}yaml.a
+                    BUILD_BYPRODUCTS  <INSTALL_DIR>/lib/libyaml${CMAKE_STATIC_LIBRARY_SUFFIX}
                     TEST_COMMAND      "")
 
 ExternalProject_Get_Property(libyaml INSTALL_DIR)
@@ -23,7 +23,7 @@ set(YAML_LIBRARY_DIR ${INSTALL_DIR}/lib)
 file(MAKE_DIRECTORY ${YAML_INCLUDE_DIR})
 file(MAKE_DIRECTORY ${YAML_LIBRARY_DIR})
 
-set(YAML_LIBRARY_PATH ${INSTALL_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}yaml.a)
+set(YAML_LIBRARY_PATH ${INSTALL_DIR}/lib/libyaml${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 add_library(Yaml::Yaml UNKNOWN IMPORTED)
 set_target_properties(Yaml::Yaml PROPERTIES

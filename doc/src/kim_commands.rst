@@ -123,6 +123,8 @@ Syntax
    kim init model user_units unitarg
    kim interactions typeargs
 
+.. _typeargs_options:
+
 * model = name of the KIM interatomic model (the KIM ID for models archived in
   OpenKIM)
 * user_units = the LAMMPS :doc:`units <units>` style assumed in the LAMMPS
@@ -192,7 +194,10 @@ the required units of the IM or the IM must be able to adjust its units to
 match. (The latter is only possible with some KIM PMs; SMs can never adjust
 their units.) If a match is possible, the LAMMPS :doc:`units <units>` command is
 called to set the units to *user_units*\ .  If the match fails, the simulation
-is terminated with an error.
+is terminated with an error.  The *kim init* command also sets the
+default value for the :doc:`skin <neighbor>` (extra distance beyond force
+cutoff) as 2.0 Angstroms and sets the default value for the
+:doc:`timestep <timestep>` size as 1.0 femtosecond.
 
 Here is an example of a LAMMPS script to compute the cohesive energy of a
 face-centered cubic (fcc) lattice for the MEAM potential by Pascuet and
@@ -392,13 +397,16 @@ the *kim interactions* command executes the following LAMMPS input commands:
 
 .. note::
 
-   Changing a periodic boundary to a non-periodic one, or in general using the
-   :doc:`change_box <change_box>` command after the interactions are set via
-   *kim interactions* or *pair_coeff* commands might affect some of the
-   settings.  For example, SM models containing Coulombic terms in the
-   interactions require different settings if a periodic boundary changes to a
-   non-periodic one.  In these cases, *kim interactions* must be called again
-   after the *change_box* command to provide the correct settings.
+   *kim interactions* must be called each time after the
+   :doc:`change_box <change_box>` command to provide the correct settings (it
+   should be called with the same :ref:`typeargs <typeargs_options>` as the
+   first call.)  The reason is that changing a periodic boundary to a
+   non-periodic one, or in general, using the *change_box* command after the
+   interactions are set via *kim interactions* or *pair_coeff* commands might
+   affect some of the settings.  For example, SM models containing Coulombic
+   terms in the interactions require different settings if a periodic boundary
+   changes to a non-periodic one.  In other cases, the second call to
+   *kim interactions* does not affect any other settings.
 
 .. _query:
 
@@ -675,6 +683,8 @@ Syntax
    kim param get param_name index_range variable formatarg
    kim param set param_name index_range values
 
+.. _formatarg_options:
+
 * param_name = name of a KIM portable model parameter (which is published by the
   PM and available for access). The specific string used to identify a parameter
   is defined by the PM.  For example, for the
@@ -686,9 +696,6 @@ Syntax
 * variable(s) = single name or list of names of (string style) LAMMPS
   variable(s) where a query result or parameter get result is stored.  Variables
   that do not exist will be created by the command
-
-.. _formatarg_options:
-
 * formatarg = *list, split, or explicit* (optional):
   .. parsed-literal::
 

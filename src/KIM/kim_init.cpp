@@ -347,6 +347,24 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units,
   cmd += model_units;
   input->one(cmd);
 
+  // Set the skin and timestep default values as
+  // 2.0 Angstroms and 1.0 femtosecond
+
+  std::string skin_cmd =
+    (strcmp(model_units, "real") == 0) ? "neighbor 2.0 bin   # Angstroms":
+    (strcmp(model_units, "metal") == 0) ? "neighbor 2.0 bin   # Angstroms":
+    (strcmp(model_units, "si") == 0) ? "neighbor 2e-10 bin   # meters":
+    (strcmp(model_units, "cgs") == 0) ? "neighbor 2e-8 bin   # centimeters":
+    "neighbor 3.77945224 bin   # Bohr";
+  std::string step_cmd =
+    (strcmp(model_units, "real") == 0) ? "timestep 1.0       # femtoseconds":
+    (strcmp(model_units, "metal") == 0) ? "timestep 1.0e-3    # picoseconds":
+    (strcmp(model_units, "si") == 0) ? "timestep 1e-15       # seconds":
+    (strcmp(model_units, "cgs") == 0) ? "timestep 1e-15      # seconds":
+    "timestep 1.0              # femtoseconds";
+  input->one(skin_cmd);
+  input->one(step_cmd);
+
   if (model_type == SM) {
     int sim_fields, sim_lines;
     char const *sim_field, *sim_value;

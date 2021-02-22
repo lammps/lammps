@@ -537,7 +537,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   partner = finalpartner = nullptr;
   distsq = nullptr;
-  probability = nullptr;
   maxattempt = 0;
   attempt = nullptr;
   nattempt = nullptr;
@@ -585,7 +584,6 @@ FixBondReact::~FixBondReact()
   memory->destroy(finalpartner);
   memory->destroy(nattempt);
   memory->destroy(distsq);
-  memory->destroy(probability);
   memory->destroy(attempt);
   memory->destroy(edge);
   memory->destroy(equivalences);
@@ -870,6 +868,9 @@ void FixBondReact::post_integrate()
     ghostly_rxn_count[i] = 0;
     nlocalskips[i] = 0;
     nghostlyskips[i] = 0;
+    // update reaction probability
+    if (var_flag[PROB][i])
+      fraction[i] = input->variable->compute_equal(var_id[PROB][i]);
   }
 
   if (nevery_check) {
@@ -890,16 +891,14 @@ void FixBondReact::post_integrate()
     memory->destroy(finalpartner);
     memory->destroy(distsq);
     memory->destroy(nattempt);
-    memory->destroy(probability);
     nmax = atom->nmax;
     memory->create(partner,nmax,"bond/react:partner");
     memory->create(finalpartner,nmax,"bond/react:finalpartner");
     memory->create(distsq,nmax,2,"bond/react:distsq");
     memory->create(nattempt,nreacts,"bond/react:nattempt");
-    memory->create(probability,nmax,"bond/react:probability");
   }
 
-  // reset create counts
+  // reset 'attempt' counts
   for (int i = 0; i < nreacts; i++) {
     nattempt[i] = 0;
   }
@@ -962,25 +961,14 @@ void FixBondReact::post_integrate()
       comm->reverse_comm_fix(this);
     }
 
-    // update reaction probability
-    if (var_flag[PROB][rxnID])
-      fraction[rxnID] = input->variable->compute_equal(var_id[PROB][rxnID]);
-
     // each atom now knows its winning partner
-    // for prob check, generate random value for each atom with a bond partner
-    // forward comm of partner and random value, so ghosts have it
-
-    if (fraction[rxnID] < 1.0) {
-      for (int i = 0; i < nlocal; i++)
-        if (partner[i]) probability[i] = random[rxnID]->uniform();
-    }
+    // forward comm of partner, so ghosts have it
 
     commflag = 2;
     comm->forward_comm_fix(this,2);
 
     // consider for reaction:
     // only if both atoms list each other as winning bond partner
-    //   and probability constraint is satisfied
     // if other atom is owned by another proc, it should do same thing
 
     int temp_nattempt = 0;
@@ -992,16 +980,6 @@ void FixBondReact::post_integrate()
       j = atom->map(partner[i]);
       if (partner[j] != tag[i]) {
         continue;
-      }
-
-      // apply probability constraint using RN for atom with smallest ID
-
-      if (fraction[rxnID] < 1.0) {
-        if (tag[i] < tag[j]) {
-          if (probability[i] >= fraction[rxnID]) continue;
-        } else {
-          if (probability[j] >= fraction[rxnID]) continue;
-        }
       }
 
       // store final bond partners and count the rxn possibility once
@@ -1345,10 +1323,14 @@ void FixBondReact::superimpose_algorithm()
              (nxspecial[local_atom1][0] == 0 ||
               xspecial[local_atom1][0] == atom->tag[local_atom2]) &&
              check_constraints()) {
-          status = ACCEPT;
-          glove_ghostcheck();
-        } else
-          status = REJECT;
+          if (fraction[rxnID] < 1.0 &&
+              random[rxnID]->uniform() >= fraction[rxnID]) {
+            status = REJECT;
+          } else {
+            status = ACCEPT;
+            glove_ghostcheck();
+          }
+        } else status = REJECT;
       }
 
       avail_guesses = 0;
@@ -1385,9 +1367,12 @@ void FixBondReact::superimpose_algorithm()
           }
         }
 
-        if (status == ACCEPT && check_constraints()) { // reaction site found successfully!
-          glove_ghostcheck();
-        }
+        // reaction site found successfully!
+        if (status == ACCEPT)
+          if (fraction[rxnID] < 1.0 &&
+              random[rxnID]->uniform() >= fraction[rxnID]) status = REJECT;
+          else glove_ghostcheck();
+
         hang_catch++;
         // let's go ahead and catch the simplest of hangs
         //if (hang_catch > onemol->natoms*4)
@@ -1627,8 +1612,8 @@ void FixBondReact::check_a_neighbor()
 
             glove_counter++;
             if (glove_counter == onemol->natoms) {
-              status = ACCEPT;
-              ring_check();
+              if (ring_check() && check_constraints()) status = ACCEPT;
+              else status = GUESSFAIL;
               return;
             }
             // status should still == PROCEED
@@ -1679,8 +1664,8 @@ void FixBondReact::check_a_neighbor()
 
         glove_counter++;
         if (glove_counter == onemol->natoms) {
-          status = ACCEPT;
-          ring_check();
+          if (ring_check() && check_constraints()) status = ACCEPT;
+          else status = GUESSFAIL;
           return;
           // will never complete here when there are edge atoms
           // ...actually that could be wrong if people get creative...shouldn't affect anything
@@ -1791,8 +1776,8 @@ void FixBondReact::inner_crosscheck_loop()
   }
   glove_counter++;
   if (glove_counter == onemol->natoms) {
-    status = ACCEPT;
-    ring_check();
+    if (ring_check() && check_constraints()) status = ACCEPT;
+    else status = GUESSFAIL;
     return;
   }
   status = CONTINUE;
@@ -1803,21 +1788,17 @@ void FixBondReact::inner_crosscheck_loop()
   Necessary for certain ringed structures
 ------------------------------------------------------------------------- */
 
-void FixBondReact::ring_check()
+int FixBondReact::ring_check()
 {
   // ring_check can be made more efficient by re-introducing 'frozen' atoms
   // 'frozen' atoms have been assigned and also are no longer pioneers
 
   // double check the number of neighbors match for all non-edge atoms
   // otherwise, atoms at 'end' of symmetric ring can behave like edge atoms
-  for (int i = 0; i < onemol->natoms; i++) {
-    if (edge[i][rxnID] == 0) {
-      if (onemol_nxspecial[i][0] != nxspecial[atom->map(glove[i][1])][0]) {
-        status = GUESSFAIL;
-        return;
-      }
-    }
-  }
+  for (int i = 0; i < onemol->natoms; i++)
+    if (edge[i][rxnID] == 0 &&
+        onemol_nxspecial[i][0] != nxspecial[atom->map(glove[i][1])][0])
+      return 0;
 
   for (int i = 0; i < onemol->natoms; i++) {
     for (int j = 0; j < onemol_nxspecial[i][0]; j++) {
@@ -1829,12 +1810,10 @@ void FixBondReact::ring_check()
           break;
         }
       }
-      if (ring_fail == 1) {
-        status = GUESSFAIL;
-        return;
-      }
+      if (ring_fail == 1) return 0;
     }
   }
+  return 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -3952,20 +3931,10 @@ int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
 
   m = 0;
 
-  if (commflag == 1) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      printf("hello you shouldn't be here\n");
-      //buf[m++] = ubuf(bondcount[j]).d;
-    }
-    return m;
-  }
-
   if (commflag == 2) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = ubuf(partner[j]).d;
-      buf[m++] = probability[j];
     }
     return m;
   }
@@ -3991,15 +3960,9 @@ void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
 
-  if (commflag == 1) {
+  if (commflag == 2) {
     for (i = first; i < last; i++)
-      printf("hello you shouldn't be here\n");
-    // bondcount[i] = (int) ubuf(buf[m++]).i;
-  } else if (commflag == 2) {
-    for (i = first; i < last; i++) {
       partner[i] = (tagint) ubuf(buf[m++]).i;
-      probability[i] = buf[m++];
-    }
   } else {
     m = 0;
     last = first + n;
@@ -4040,20 +4003,18 @@ void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
 
   m = 0;
 
-  if (commflag != 1) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      if (closeneigh[rxnID] != 0) {
-        if (buf[m+1] < distsq[j][1]) {
-          partner[j] = (tagint) ubuf(buf[m++]).i;
-          distsq[j][1] = buf[m++];
-        } else m += 2;
-      } else {
-        if (buf[m+1] > distsq[j][0]) {
-          partner[j] = (tagint) ubuf(buf[m++]).i;
-          distsq[j][0] = buf[m++];
-        } else m += 2;
-      }
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    if (closeneigh[rxnID] != 0) {
+      if (buf[m+1] < distsq[j][1]) {
+        partner[j] = (tagint) ubuf(buf[m++]).i;
+        distsq[j][1] = buf[m++];
+      } else m += 2;
+    } else {
+      if (buf[m+1] > distsq[j][0]) {
+        partner[j] = (tagint) ubuf(buf[m++]).i;
+        distsq[j][0] = buf[m++];
+      } else m += 2;
     }
   }
 }

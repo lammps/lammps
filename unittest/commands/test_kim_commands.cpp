@@ -86,15 +86,15 @@ TEST_F(KimCommandsTest, kim)
                  lmp->input->one("kim"););
     TEST_FAILURE(".*ERROR: Unknown kim subcommand.*",
                  lmp->input->one("kim unknown"););
-    TEST_FAILURE(".*ERROR: Unknown command: kim_init.*",
+    TEST_FAILURE(".*kim_init.*has been renamed to.*",
                  lmp->input->one("kim_init"););
-    TEST_FAILURE(".*ERROR: Unknown command: kim_interactions.*",
+    TEST_FAILURE(".*kim_interactions.*has been renamed to.*",
                  lmp->input->one("kim_interactions"););
-    TEST_FAILURE(".*ERROR: Unknown command: kim_param.*",
+    TEST_FAILURE(".*kim_param.*has been renamed to.*",
                  lmp->input->one("kim_param"););
-    TEST_FAILURE(".*ERROR: Unknown command: kim_property.*",
+    TEST_FAILURE(".*kim_property.*has been renamed to.*",
                  lmp->input->one("kim_property"););
-    TEST_FAILURE(".*ERROR: Unknown command: kim_query.*",
+    TEST_FAILURE(".*kim_query.*has been renamed to.*",
                  lmp->input->one("kim_query"););
 }
 

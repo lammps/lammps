@@ -309,13 +309,11 @@ void PairKIM::settings(int narg, char **arg)
   set_lmps_flags();
 
   // set KIM Model name
-  int nmlen = strlen(arg[0]);
   if (kim_modelname != 0) {
     delete [] kim_modelname;
     kim_modelname = 0;
   }
-  kim_modelname = new char[nmlen+1];
-  strcpy(kim_modelname, arg[0]);
+  kim_modelname = utils::strdup(arg[0]);
 
   // initialize KIM Model
   kim_init();
@@ -373,9 +371,7 @@ void PairKIM::coeff(int narg, char **arg)
       if (strcmp(arg[i],lmps_unique_elements[j]) == 0) break;
     lmps_map_species_to_unique[i-1] = j;
     if (j == lmps_num_unique_elements) {
-      n = strlen(arg[i]) + 1;
-      lmps_unique_elements[j] = new char[n];
-      strcpy(lmps_unique_elements[j],arg[i]);
+      lmps_unique_elements[j] = utils::strdup(arg[i]);
       lmps_num_unique_elements++;
     }
   }

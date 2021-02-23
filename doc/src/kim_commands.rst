@@ -10,7 +10,7 @@ Syntax
 
    kim sub-command args
 
-* sub-command = :ref:`init <init>` or :ref:`interactions <interactions>` or
+* sub-command = :ref:`init <kim_init>` or :ref:`interactions <interactions>` or
   :ref:`query <query>` or :ref:`param <param>` or :ref:`property <property>`
 
 * args = arguments used by a particular sub-command
@@ -152,7 +152,7 @@ Examples
 See the *examples/kim* directory for example input scripts that use KIM PMs
 and KIM SMs.
 
-.. _init:
+.. _kim_init:
 
 OpenKIM IM Initialization (*kim init*)
 --------------------------------------

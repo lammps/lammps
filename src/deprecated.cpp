@@ -36,6 +36,9 @@ void Deprecated::command(int /* narg */, char ** /* arg */)
   } else if (cmd == "reset_ids") {
     if (lmp->comm->me == 0)
       utils::logmesg(lmp,"\n'reset_ids' has been renamed to 'reset_atom_ids'\n\n");
+  } else if (utils::strmatch(cmd,"^kim_")) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,"\n'kim_<command>' has been renamed to 'kim <command>'\n\n");
   }
   error->all(FLERR,"This command is no longer available");
 }

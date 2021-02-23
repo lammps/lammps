@@ -328,7 +328,7 @@ void PairKIM::coeff(int narg, char **arg)
   // This is called when "pair_coeff ..." is read from input
   // may be called multiple times
 
-  int i,j,n;
+  int i,j;
 
   if (!allocated) allocate();
 

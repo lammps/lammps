@@ -55,7 +55,7 @@ int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=CDMF.init(ntypes, inum, nall, 300, maxspecial, cell_size,
+    init_ok=CDMF.init(ntypes, inum, nall, max_nbors, maxspecial, cell_size,
                       gpu_split, screen, host_cut_coulsq, host_special_coul,
                       qqrd2e, e_shift, f_shift, alpha);
 
@@ -73,7 +73,7 @@ int cdsf_gpu_init(const int ntypes, const int inum, const int nall,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=CDMF.init(ntypes, inum, nall, 300, maxspecial, cell_size,
+      init_ok=CDMF.init(ntypes, inum, nall, max_nbors, maxspecial, cell_size,
                         gpu_split, screen, host_cut_coulsq, host_special_coul,
                         qqrd2e, e_shift, f_shift, alpha);
 

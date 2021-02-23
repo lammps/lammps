@@ -33,22 +33,19 @@ in its name, e.g. lammps-23Jun18.
 
 ----------
 
-You can also download a zip file via the "Clone or download" button on
-the `LAMMPS GitHub site <git_>`_.  The file name will be lammps-master.zip
-which can be unzipped with the following command, to create
-a lammps-master dir:
+You can also download a compressed tar or zip archives from the
+"Assets" sections of the `LAMMPS GitHub releases site <git_>`_.
+The file name will be lammps-<version>.zip which can be unzipped
+with the following command, to create a lammps-<version> dir:
 
 .. code-block:: bash
 
    $ unzip lammps*.zip
 
-This version is the most up-to-date LAMMPS development version.  It
-will have the date of the most recent patch release (see the file
-src/version.h).  But it will also include any new bug-fixes or
-features added since the last patch release.  They will be included in
-the next patch release tarball.
+This version corresponds to the selected LAMMPS patch or stable
+release.
 
-.. _git: https://github.com/lammps/lammps
+.. _git: https://github.com/lammps/lammps/releases
 
 ----------
 

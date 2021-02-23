@@ -62,7 +62,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     init_ok=LJTIP4PLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
         host_lj4, offset, special_lj, inum,
-        tH, tO, alpha, qdist, nall, 300,
+        tH, tO, alpha, qdist, nall, max_nbors,
         maxspecial, cell_size, gpu_split, screen,
         host_cut_ljsq, host_cut_coulsq, host_cut_coulsqplus,
         host_special_coul, qqrd2e, g_ewald, map_size, max_same);
@@ -83,7 +83,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=LJTIP4PLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
           offset, special_lj, inum,
-          tH, tO, alpha, qdist, nall, 300, maxspecial,
+          tH, tO, alpha, qdist, nall, max_nbors, maxspecial,
           cell_size, gpu_split, screen, host_cut_ljsq,
           host_cut_coulsq, host_cut_coulsqplus,
           host_special_coul, qqrd2e,
@@ -97,7 +97,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     fprintf(screen,"\n");
 
   if (init_ok==0)
-    LJTIP4PLMF.estimate_gpu_overhead();
+    LJTIP4PLMF.estimate_gpu_overhead(2);
   return init_ok;
 }
 

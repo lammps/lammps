@@ -37,7 +37,7 @@ class ResetIDs : protected Pointers {
     int ilocal;
   };
 
-  #if defined(LMP_QSORT)
+#if defined(LMP_QSORT)
   // static variable across all ResetID objects, for qsort callback
   static AtomRvous *sortrvous;
 #endif

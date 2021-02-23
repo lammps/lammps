@@ -18,7 +18,7 @@ Syntax
        *gpu* args = Ngpu keyword value ...
          Ngpu = # of GPUs per node
          zero or more keyword/value pairs may be appended
-         keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *device* or *blocksize*
+         keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *platform* or *device_type* or *ocl_args*
            *neigh* value = *yes* or *no*
              yes = neighbor list build on GPU (default)
              no = neighbor list build on CPU
@@ -32,17 +32,20 @@ Syntax
              size = bin size for neighbor list construction (distance units)
            *split* = fraction
              fraction = fraction of atoms assigned to GPU (default = 1.0)
-           *gpuID* values = first last
-             first = ID of first GPU to be used on each node
-             last = ID of last GPU to be used on each node
-           *tpa* value = Nthreads
-             Nthreads = # of GPU threads used per atom
-           *device* value = device_type or platform_id:device_type or platform_id:custom,val1,val2,val3,..,val13
-             platform_id = numerical OpenCL platform id (default: -1)
-             device_type = *kepler* or *fermi* or *cypress* or *intel* or *phi* or *generic* or *custom*
-             val1,val2,... = custom OpenCL tune parameters (see below for details)
+           *tpa* value = Nlanes
+             Nlanes = # of GPU vector lanes (CUDA threads) used per atom
            *blocksize* value = size
              size = thread block size for pair force computation
+           *omp* value = Nthreads
+             Nthreads = number of OpenMP threads to use on CPU (default = 0)
+           *platform* value = id
+             id = For OpenCL, platform ID for the GPU or accelerator
+           *gpuID* values = id
+             id = ID of first GPU to be used on each node
+           *device_type* value = *intelgpu* or *nvidiagpu* or *amdgpu* or *applegpu* or *generic* or *custom,val1,val2,...*
+             val1,val2,... = custom OpenCL accelerator configuration parameters (see below for details)
+           *ocl_args* value = args
+             args = List of additional OpenCL compiler arguments delimited by colons
        *intel* args = NPhi keyword value ...
          Nphi = # of co-processors per node
          zero or more keyword/value pairs may be appended
@@ -100,7 +103,7 @@ Syntax
              off = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
              on  = use device acceleration only for pair styles (and host acceleration for others)
        *omp* args = Nthreads keyword value ...
-         Nthread = # of OpenMP threads to associate with each MPI process
+         Nthreads = # of OpenMP threads to associate with each MPI process
          zero or more keyword/value pairs may be appended
          keywords = *neigh*
            *neigh* value = *yes* or *no*
@@ -112,12 +115,10 @@ Examples
 
 .. code-block:: LAMMPS
 
-   package gpu 1
+   package gpu 0
    package gpu 1 split 0.75
    package gpu 2 split -1.0
-   package gpu 1 device kepler
-   package gpu 1 device 2:generic
-   package gpu 1 device custom,32,4,8,256,11,128,256,128,32,64,8,128,128
+   package gpu 0 omp 2 device_type intelgpu
    package kokkos neigh half comm device
    package omp 0 neigh no
    package omp 4
@@ -174,10 +175,18 @@ simulations.
 The *gpu* style invokes settings associated with the use of the GPU
 package.
 
-The *Ngpu* argument sets the number of GPUs per node.  There must be
-at least as many MPI tasks per node as GPUs, as set by the mpirun or
-mpiexec command.  If there are more MPI tasks (per node)
-than GPUs, multiple MPI tasks will share each GPU.
+The *Ngpu* argument sets the number of GPUs per node. If *Ngpu* is 0
+and no other keywords are specified, GPU or accelerator devices are
+auto-selected. In this process, all platforms are searched for
+accelerator devices and GPUs are chosen if available. The device with
+the highest number of compute cores is selected. The number of devices
+is increased to be the number of matching accelerators with the same
+number of compute cores. If there are more devices than MPI tasks,
+the additional devices will be unused. The auto-selection of GPUs/
+accelerator devices and platforms can be restricted by specifying
+a non-zero value for *Ngpu* and / or using the *gpuID*, *platform*,
+and *device_type* keywords as described below. If there are more MPI
+tasks (per node) than GPUs, multiple MPI tasks will share each GPU.
 
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
@@ -212,18 +221,8 @@ overlapped with all other computations on the CPU.
 
 The *binsize* keyword sets the size of bins used to bin atoms in
 neighbor list builds performed on the GPU, if *neigh* = *yes* is set.
-If *binsize* is set to 0.0 (the default), then bins = the size of the
-pairwise cutoff + neighbor skin distance.  This is 2x larger than the
-LAMMPS default used for neighbor list building on the CPU.  This will
-be close to optimal for the GPU, so you do not normally need to use
-this keyword.  Note that if you use a longer-than-usual pairwise
-cutoff, e.g. to allow for a smaller fraction of KSpace work with a
-:doc:`long-range Coulombic solver <kspace_style>` because the GPU is
-faster at performing pairwise interactions, then it may be optimal to
-make the *binsize* smaller than the default.  For example, with a
-cutoff of 20\*sigma in LJ :doc:`units <units>` and a neighbor skin
-distance of sigma, a *binsize* = 5.25\*sigma can be more efficient than
-the default.
+If *binsize* is set to 0.0 (the default), then the binsize is set
+automatically using heuristics in the GPU package.
 
 The *split* keyword can be used for load balancing force calculations
 between CPU and GPU cores in GPU-enabled pair styles. If 0 < *split* <
@@ -257,63 +256,79 @@ cores would perform force calculations for some fraction of the
 particles at the same time the GPUs performed force calculation for
 the other particles.
 
-The *gpuID* keyword allows selection of which GPUs on each node will
-be used for a simulation.  The *first* and *last* values specify the
-GPU IDs to use (from 0 to Ngpu-1).  By default, first = 0 and last =
-Ngpu-1, so that all GPUs are used, assuming Ngpu is set to the number
-of physical GPUs.  If you only wish to use a subset, set Ngpu to a
-smaller number and first/last to a sub-range of the available GPUs.
+The *gpuID* keyword is used to specify the first ID for the GPU or
+other accelerator that LAMMPS will use. For example, if the ID is
+1 and *Ngpu* is 3, GPUs 1-3 will be used. Device IDs should be
+determined from the output of nvc_get_devices, ocl_get_devices,
+or hip_get_devices
+as provided in the lib/gpu directory. When using OpenCL with
+accelerators that have main memory NUMA, the accelerators can be
+split into smaller virtual accelerators for more efficient use
+with MPI.
 
-The *tpa* keyword sets the number of GPU thread per atom used to
+The *tpa* keyword sets the number of GPU vector lanes per atom used to
 perform force calculations.  With a default value of 1, the number of
-threads will be chosen based on the pair style, however, the value can
+lanes will be chosen based on the pair style, however, the value can
 be set explicitly with this keyword to fine-tune performance.  For
 large cutoffs or with a small number of particles per GPU, increasing
-the value can improve performance. The number of threads per atom must
-be a power of 2 and currently cannot be greater than 32.
-
-The *device* keyword can be used to tune parameters optimized for a
-specific accelerator and platform when using OpenCL. OpenCL supports
-the concept of a **platform**\ , which represents one or more devices that
-share the same driver (e.g. there would be a different platform for
-GPUs from different vendors or for CPU based accelerator support).
-In LAMMPS only one platform can be active at a time and by default
-the first platform with an accelerator is selected. This is equivalent
-to using a platform ID of -1. The platform ID is a number corresponding
-to the output of the ocl_get_devices tool. The platform ID is passed
-to the GPU library, by prefixing the *device* keyword with that number
-separated by a colon. For CUDA, the *device* keyword is ignored.
-Currently, the device tuning support is limited to NVIDIA Kepler, NVIDIA
-Fermi, AMD Cypress, Intel x86_64 CPU, Intel Xeon Phi, or a generic device.
-More devices may be added later.  The default device type can be
-specified when building LAMMPS with the GPU library, via setting a
-variable in the lib/gpu/Makefile that is used.
-
-In addition, a device type *custom* is available, which is followed by
-13 comma separated numbers, which allows to set those tweakable parameters
-from the package command. It can be combined with the (colon separated)
-platform id. The individual settings are:
-
-* MEM_THREADS
-* THREADS_PER_ATOM
-* THREADS_PER_CHARGE
-* BLOCK_PAIR
-* MAX_SHARED_TYPES
-* BLOCK_NBOR_BUILD
-* BLOCK_BIO_PAIR
-* BLOCK_ELLIPSE
-* WARP_SIZE
-* PPPM_BLOCK_1D
-* BLOCK_CELL_2D
-* BLOCK_CELL_ID
-* MAX_BIO_SHARED_TYPES
+the value can improve performance. The number of lanes per atom must
+be a power of 2 and currently cannot be greater than the SIMD width
+for the GPU / accelerator. In the case it exceeds the SIMD width, it
+will automatically be decreased to meet the restriction.
 
 The *blocksize* keyword allows you to tweak the number of threads used
 per thread block. This number should be a multiple of 32 (for GPUs)
 and its maximum depends on the specific GPU hardware. Typical choices
 are 64, 128, or 256. A larger block size increases occupancy of
 individual GPU cores, but reduces the total number of thread blocks,
-thus may lead to load imbalance.
+thus may lead to load imbalance. On modern hardware, the sensitivity
+to the blocksize is typically low.
+
+The *Nthreads* value for the *omp* keyword sets the number of OpenMP
+threads allocated for each MPI task. This setting controls OpenMP
+parallelism only for routines run on the CPUs. For more details on
+setting the number of OpenMP threads, see the discussion of the
+*Nthreads* setting on this doc page for the "package omp" command.
+The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+and GPU packages.
+
+The *platform* keyword is only used with OpenCL to specify the ID for
+an OpenCL platform. See the output from ocl_get_devices in the lib/gpu
+directory. In LAMMPS only one platform can be active at a time and by
+default (id=-1) the platform is auto-selected to find the GPU with the
+most compute cores. When *Ngpu* or other keywords are specified, the
+auto-selection is appropriately restricted. For example, if *Ngpu* is
+3, only platforms with at least 3 accelerators are considered. Similar
+restrictions can be enforced by the *gpuID* and *device_type* keywords.
+
+The *device_type* keyword can be used for OpenCL to specify the type of
+GPU to use or specify a custom configuration for an accelerator. In most
+cases this selection will be automatic and there is no need to use the
+keyword. The *applegpu* type is not specific to a particular GPU vendor,
+but is separate due to the more restrictive Apple OpenCL implementation.
+For expert users, to specify a custom configuration, the *custom* keyword
+followed by the next parameters can be specified:
+
+CONFIG_ID, SIMD_SIZE, MEM_THREADS, SHUFFLE_AVAIL, FAST_MATH,
+THREADS_PER_ATOM, THREADS_PER_CHARGE, THREADS_PER_THREE, BLOCK_PAIR,
+BLOCK_BIO_PAIR, BLOCK_ELLIPSE, PPPM_BLOCK_1D, BLOCK_NBOR_BUILD,
+BLOCK_CELL_2D, BLOCK_CELL_ID, MAX_SHARED_TYPES, MAX_BIO_SHARED_TYPES,
+PPPM_MAX_SPLINE.
+
+CONFIG_ID can be 0. SHUFFLE_AVAIL in {0,1} indicates that inline-PTX
+(NVIDIA) or OpenCL extensions (Intel) should be used for horizontal
+vector operations. FAST_MATH in {0,1} indicates that OpenCL fast math
+optimizations are used during the build and hardware-accelerated
+transcendental functions are used when available. THREADS_PER_* give the
+default *tpa* values for ellipsoidal models, styles using charge, and
+any other styles. The BLOCK_* parameters specify the block sizes for
+various kernel calls and the MAX_*SHARED*_ parameters are used to
+determine the amount of local shared memory to use for storing model
+parameters.
+
+For OpenCL, the routines are compiled at runtime for the specified GPU
+or accelerator architecture. The *ocl_args* keyword can be used to
+specify additional flags for the runtime build.
 
 ----------
 
@@ -331,44 +346,13 @@ built with co-processor support.
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
 
-The *omp* keyword determines the number of OpenMP threads allocated
-for each MPI task when any portion of the interactions computed by a
-USER-INTEL pair style are run on the CPU.  This can be the case even
-if LAMMPS was built with co-processor support; see the *balance*
-keyword discussion below.  If you are running with less MPI tasks/node
-than there are CPUs, it can be advantageous to use OpenMP threading on
-the CPUs.
-
-.. note::
-
-   The *omp* keyword has nothing to do with co-processor threads on
-   the Xeon Phi; see the *tpc* and *tptask* keywords below for a
-   discussion of co-processor threads.
-
-The *Nthread* value for the *omp* keyword sets the number of OpenMP
-threads allocated for each MPI task.  Setting *Nthread* = 0 (the
-default) instructs LAMMPS to use whatever value is the default for the
-given OpenMP environment. This is usually determined via the
-*OMP_NUM_THREADS* environment variable or the compiler runtime, which
-is usually a value of 1.
-
-For more details, including examples of how to set the OMP_NUM_THREADS
-environment variable, see the discussion of the *Nthreads* setting on
-this doc page for the "package omp" command.  Nthreads is a required
-argument for the USER-OMP package.  Its meaning is exactly the same
-for the USER-INTEL package.
-
-.. note::
-
-   If you build LAMMPS with both the USER-INTEL and USER-OMP
-   packages, be aware that both packages allow setting of the *Nthreads*
-   value via their package commands, but there is only a single global
-   *Nthreads* value used by OpenMP.  Thus if both package commands are
-   invoked, you should insure the two values are consistent.  If they are
-   not, the last one invoked will take precedence, for both packages.
-   Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel"
-   command, followed by a "package omp" command, both with a setting of
-   *Nthreads* = 0.
+The *Nthreads* value for the *omp* keyword sets the number of OpenMP
+threads allocated for each MPI task. This setting controls OpenMP
+parallelism only for routines run on the CPUs. For more details on
+setting the number of OpenMP threads, see the discussion of the
+*Nthreads* setting on this doc page for the "package omp" command.
+The meaning of *Nthreads* is exactly the same for the GPU, USER-INTEL,
+and GPU packages.
 
 The *mode* keyword determines the precision mode to use for
 computing pair style forces, either on the CPU or on the co-processor,
@@ -574,7 +558,7 @@ result in better performance for certain configurations and system sizes.
 The *omp* style invokes settings associated with the use of the
 USER-OMP package.
 
-The *Nthread* argument sets the number of OpenMP threads allocated for
+The *Nthreads* argument sets the number of OpenMP threads allocated for
 each MPI task.  For example, if your system has nodes with dual
 quad-core processors, it has a total of 8 cores per node.  You could
 use two MPI tasks per node (e.g. using the -ppn option of the mpirun
@@ -583,7 +567,7 @@ This would use all 8 cores on each node.  Note that the product of MPI
 tasks \* threads/task should not exceed the physical number of cores
 (on a node), otherwise performance will suffer.
 
-Setting *Nthread* = 0 instructs LAMMPS to use whatever value is the
+Setting *Nthreads* = 0 instructs LAMMPS to use whatever value is the
 default for the given OpenMP environment. This is usually determined
 via the *OMP_NUM_THREADS* environment variable or the compiler
 runtime.  Note that in most cases the default for OpenMP capable
@@ -613,6 +597,24 @@ is difficult to predict and can depend on many components of your
 input.  Not all features of LAMMPS support OpenMP threading via the
 USER-OMP package and the parallel efficiency can be very different,
 too.
+
+.. note::
+
+   If you build LAMMPS with the GPU, USER-INTEL, and / or USER-OMP
+   packages, be aware these packages all allow setting of the *Nthreads*
+   value via their package commands, but there is only a single global
+   *Nthreads* value used by OpenMP.  Thus if multiple package commands are
+   invoked, you should insure the values are consistent.  If they are
+   not, the last one invoked will take precedence, for all packages.
+   Also note that if the :doc:`-sf hybrid intel omp command-line switch <Run_options>` is used, it invokes a "package intel" command, followed by a
+   "package omp" command, both with a setting of *Nthreads* = 0. Likewise
+   for a hybrid suffix for gpu and omp. Note that KOKKOS also supports
+   setting the number of OpenMP threads from the command line using the
+   "-k on" :doc:`command-line switch <Run_options>`. The default for
+   KOKKOS is 1 thread per MPI task, so any other number of threads should
+   be explicitly set using the "-k on" command-line switch (and this
+   setting should be consistent with settings from any other packages
+   used).
 
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
@@ -658,9 +660,9 @@ Related commands
 Default
 """""""
 
-For the GPU package, the default is Ngpu = 1 and the option defaults
+For the GPU package, the default is Ngpu = 0 and the option defaults
 are neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0
-to Ngpu-1, tpa = 1, and device = not used.  These settings are made
+to Ngpu-1, tpa = 1, omp = 0, and platform=-1.  These settings are made
 automatically if the "-sf gpu" :doc:`command-line switch <Run_options>`
 is used.  If it is not used, you must invoke the package gpu command
 in your input script or via the "-pk gpu" :doc:`command-line switch <Run_options>`.

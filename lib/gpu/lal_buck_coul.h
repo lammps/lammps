@@ -78,7 +78,7 @@ class BuckCoul : public BaseCharge<numtyp, acctyp> {
 
  private:
   bool _allocated;
-  void loop(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
 };
 
 }

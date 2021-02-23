@@ -2297,6 +2297,7 @@ omegaz
 Omelyan
 omp
 OMP
+oneAPI
 onelevel
 oneway
 onn
@@ -2528,6 +2529,7 @@ ptm
 PTM
 ptol
 ptr
+PTX
 pu
 purdue
 Purohit

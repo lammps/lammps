@@ -67,7 +67,7 @@ int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
     init_ok=EAMALMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                        host_type2frho, host_rhor_spline, host_z2r_spline,
                        host_frho_spline, rdr, rdrho, rhomax, nrhor, nrho, nz2r,
-                       nfrho, nr, nlocal, nall, 300, maxspecial, cell_size,
+                       nfrho, nr, nlocal, nall, max_nbors, maxspecial, cell_size,
                        gpu_split, screen);
 
   EAMALMF.device->world_barrier();
@@ -87,7 +87,7 @@ int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
       init_ok=EAMALMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                          host_type2frho, host_rhor_spline, host_z2r_spline,
                          host_frho_spline, rdr, rdrho, rhomax, nrhor, nrho,
-                         nz2r, nfrho, nr, nlocal, nall, 300, maxspecial,
+                         nz2r, nfrho, nr, nlocal, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
     EAMALMF.device->gpu_barrier();

@@ -38,9 +38,6 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*nnp[^ \t]* //g' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-I..\/..\/lib\/nnp\/include |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L..\/..\/lib\/nnp\/lib |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&-lnnpif -lnnp |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(nnp_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(nnp_SYSLIB) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(nnp_SYSPATH) |' ../Makefile.package
@@ -50,7 +47,7 @@ if (test $1 = 1) then
     sed -i -e '/^include.*nnp.*$/d' ../Makefile.package.settings
     # multiline form needed for BSD sed on Macs
     sed -i -e '4 i \
-include ..\/..\/lib\/nnp\/src\/libnnpif\/LAMMPS\/Makefile.lammps
+include ..\/..\/lib\/nnp\/Makefile.lammps\
 ' ../Makefile.package.settings
 
   fi

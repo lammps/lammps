@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,8 +24,8 @@
 #include "gtest/gtest.h"
 
 #include "atom.h"
-#include "dihedral.h"
 #include "compute.h"
+#include "dihedral.h"
 #include "fmt/format.h"
 #include "force.h"
 #include "info.h"
@@ -56,8 +56,6 @@ static void delete_file(const std::string &filename)
     remove(filename.c_str());
 };
 
-// Clean auxilliary files generated during the test
-// which are also useful for debugging failing tests
 void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     delete_file(cfg.basename + ".restart");
@@ -66,8 +64,6 @@ void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
     delete lmp;
 }
 
-// Initialize LAMMPS
-// with the certain arguments, test configuration and an optional flag for newton
 LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool newton = true)
 {
     LAMMPS *lmp;
@@ -80,7 +76,8 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     for (auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
-        // if the suffixed version of dihedral style is not available, don't test it
+        // this is a test for dihedral styles, so if the suffixed
+        // version is not available, there is no reason to test.
         if (prerequisite.first == "dihedral") {
             if (lmp->suffix_enable) {
                 style += "/";
@@ -91,18 +88,15 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
         if (!info->has_style(prerequisite.first, style)) ++nfail;
     }
     delete info;
-    // abort if prerequisites are not met
     if (nfail > 0) {
         cleanup_lammps(lmp, cfg);
         return nullptr;
     }
 
     // utility lambdas to improve readability
-    // execute a single-line command
     auto command = [&](const std::string &line) {
         lmp->input->one(line.c_str());
     };
-    // parse and execute all commands in a file
     auto parse_input_script = [&](const std::string &filename) {
         lmp->input->file(filename.c_str());
     };
@@ -133,7 +127,6 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     }
 
     command("run 0 post no");
-    // auxilliary files for running and debugging tests
     command("write_restart " + cfg.basename + ".restart");
     command("write_data " + cfg.basename + ".data");
     command("write_coeff " + cfg.basename + "-coeffs.in");
@@ -141,7 +134,6 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     return lmp;
 }
 
-// Run a very short NVE simulation
 void run_lammps(LAMMPS *lmp)
 {
     // utility lambda to improve readability
@@ -150,7 +142,6 @@ void run_lammps(LAMMPS *lmp)
     };
 
     command("fix 1 all nve");
-    // just measure the relevant part of potential energy
     command("compute pe all pe/atom dihedral");
     command("compute sum all reduce sum c_pe");
     command("thermo_style custom step temp pe press c_sum");
@@ -158,8 +149,6 @@ void run_lammps(LAMMPS *lmp)
     command("run 4 post no");
 }
 
-// Restart LAMMPS simulation
-// to test "write_restart" and "read_restart" functions of dihedral styles
 void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     // utility lambda to improve readability
@@ -170,13 +159,10 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("clear");
     command("read_restart " + cfg.basename + ".restart");
 
-    // add the dihedral style if it's not defined already in the restart file
     if (!lmp->force->dihedral) {
         command("dihedral_style " + cfg.dihedral_style);
     }
 
-    // add the dihedral coefficients if hybrid style is used
-    // or somehow they aren't defined already in the restart file
     if ((cfg.dihedral_style.substr(0, 6) == "hybrid") || !lmp->force->dihedral->writedata) {
         for (auto &dihedral_coeff : cfg.dihedral_coeff) {
             command("dihedral_coeff " + dihedral_coeff);
@@ -190,9 +176,6 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("run 0 post no");
 }
 
-// What's the purpose?
-// Reads the input structure of atoms
-// sets some essential variables
 void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
     // utility lambdas to improve readability
@@ -203,7 +186,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
         lmp->input->file(filename.c_str());
     };
 
-    command("clear"); // clears everything except variables, log, echo
+    command("clear");
     command("variable dihedral_style delete");
     command("variable data_file  delete");
     command("variable newton_bond delete");
@@ -227,6 +210,8 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     }
     command("run 0 post no");
 }
+
+// re-generate yaml file with current settings.
 
 void generate_yaml_file(const char *outfile, const TestConfig &config)
 {
@@ -393,8 +378,8 @@ TEST(DihedralStyle, plain)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    auto dihedral  = lmp->force->dihedral;
-    auto stress = dihedral->virial;
+    auto dihedral = lmp->force->dihedral;
+    auto stress   = dihedral->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -461,8 +446,8 @@ TEST(DihedralStyle, plain)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        dihedral  = lmp->force->dihedral;
-        stress = dihedral->virial;
+        dihedral = lmp->force->dihedral;
+        stress   = dihedral->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 2 * epsilon);
         EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 2 * epsilon);
@@ -524,8 +509,8 @@ TEST(DihedralStyle, plain)
     }
     if (print_stats) std::cerr << "restart_forces stats:" << stats << std::endl;
 
-    dihedral  = lmp->force->dihedral;
-    stress = dihedral->virial;
+    dihedral = lmp->force->dihedral;
+    stress   = dihedral->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -554,8 +539,8 @@ TEST(DihedralStyle, plain)
     }
     if (print_stats) std::cerr << "data_forces stats:" << stats << std::endl;
 
-    dihedral  = lmp->force->dihedral;
-    stress = dihedral->virial;
+    dihedral = lmp->force->dihedral;
+    stress   = dihedral->virial;
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, epsilon);
@@ -578,7 +563,7 @@ TEST(DihedralStyle, omp)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
     const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite",
-                          "-pk",        "omp",  "4",    "-sf",   "omp"};
+                          "-pk",           "omp",  "4",    "-sf",   "omp"};
 
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);
@@ -621,8 +606,8 @@ TEST(DihedralStyle, omp)
     }
     if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
 
-    auto dihedral  = lmp->force->dihedral;
-    auto stress = dihedral->virial;
+    auto dihedral = lmp->force->dihedral;
+    auto stress   = dihedral->virial;
 
     stats.reset();
     EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
@@ -693,8 +678,8 @@ TEST(DihedralStyle, omp)
         }
         if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
 
-        dihedral  = lmp->force->dihedral;
-        stress = dihedral->virial;
+        dihedral = lmp->force->dihedral;
+        stress   = dihedral->virial;
         stats.reset();
         EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
         EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);

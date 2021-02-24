@@ -41,6 +41,8 @@ mscg          hooks to the MSCG library, used by fix_mscg command
                 from Jacob Wagner and Greg Voth group (U Chicago)
 netcdf        hooks to a NetCDF library installed on your system
                 from Lars Pastewka (Karlsruhe Institute of Technology)
+nnp           hooks to n2p2, neural network potential package, used by USER-NNP
+                from Andreas Singraber
 poems	      POEMS rigid-body integration package, POEMS package
                 from Rudranarayan Mukherjee (RPI)
 python        hooks to the system Python library, used by the PYTHON package

@@ -1079,6 +1079,8 @@
 /pair_nm_cut_coul_cut.h
 /pair_nm_cut_coul_long.cpp
 /pair_nm_cut_coul_long.h
+/pair_nnp.cpp
+/pair_nnp.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp

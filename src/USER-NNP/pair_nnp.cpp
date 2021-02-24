@@ -1,32 +1,35 @@
-// n2p2 - A neural network potential package
-// Copyright (C) 2018 Andreas Singraber (University of Vienna)
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
 
-#include <mpi.h>
-#include <string.h>
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   This file initially came from n2p2 (https://github.com/CompPhysVienna/n2p2)
+   Copyright (2018) Andreas Singraber (University of Vienna)
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Andreas Singraber
+------------------------------------------------------------------------- */
+
 #include "pair_nnp.h"
+#include <mpi.h>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
 #include "update.h"
 #include "utils.h"
-#include "InterfaceLammps.h"
+#include "InterfaceLammps.h" // n2p2 interface header
 
 using namespace LAMMPS_NS;
 
@@ -89,6 +92,18 @@ void PairNNP::compute(int eflag, int vflag)
 
 void PairNNP::settings(int narg, char **arg)
 {
+  single_enable = 0;           // 1 if single() routine exists
+  single_hessian_enable = 0;   // 1 if single_hessian() routine exists
+  restartinfo = 0;             // 1 if pair style writes restart info
+  respa_enable = 0;            // 1 if inner/middle/outer rRESPA routines
+  one_coeff = 1;               // 1 if allows only one coeff * * call
+  manybody_flag = 1;           // 1 if a manybody potential
+  unit_convert_flag = 0;       // value != 0 indicates support for unit conversion.
+  no_virial_fdotr_compute = 0; // 1 if does not invoke virial_fdotr_compute()
+  writedata = 0;               // 1 if writes coeffs to data file
+  ghostneigh = 0;              // 1 if pair style needs neighbors of ghosts
+  reinitflag = 0;              // 1 if compatible with fix adapt and alike
+
   int iarg = 0;
 
   if (narg == 0) error->all(FLERR,"Illegal pair_style command");
@@ -312,7 +327,7 @@ void PairNNP::handleExtrapolationWarnings()
   // rank 0.
   if(showew > 0) {
     // First collect an overview of extrapolation warnings per process.
-    long* numEWPerProc = nullptr;
+    long *numEWPerProc = nullptr;
     if(comm->me == 0) numEWPerProc = new long[comm->nprocs];
     MPI_Gather(&numCurrentEW, 1, MPI_LONG, numEWPerProc, 1, MPI_LONG, 0, world);
 
@@ -323,7 +338,7 @@ void PairNNP::handleExtrapolationWarnings()
           MPI_Status ms;
           // Get buffer size.
           MPI_Recv(&bs, 1, MPI_LONG, i, 0, world, &ms);
-          char* buf = new char[bs];
+          char *buf = new char[bs];
           // Receive buffer.
           MPI_Recv(buf, bs, MPI_BYTE, i, 0, world, &ms);
           interface->extractEWBuffer(buf, bs);
@@ -336,7 +351,7 @@ void PairNNP::handleExtrapolationWarnings()
       // Get desired buffer length for all extrapolation warning entries.
       long bs = interface->getEWBufferSize();
       // Allocate and fill buffer.
-      char* buf = new char[bs];
+      char *buf = new char[bs];
       interface->fillEWBuffer(buf, bs);
       // Send buffer size and buffer.
       MPI_Send(&bs, 1, MPI_LONG, 0, 0, world);

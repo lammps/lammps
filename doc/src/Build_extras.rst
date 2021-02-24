@@ -1592,17 +1592,38 @@ on your system.
 USER-NNP package
 ---------------------------------
 
+To build with the USER-NNP package it is required to download and build the
+external `n2p2 <https://github.com/CompPhysVienna/n2p2>`__ library ``v2.2.0``
+(or higher) before starting the LAMMPS build process. More specifically, only
+the *n2p2* core library ``libnnp`` and interface library ``libnnpif`` are
+actually needed: when using GCC it should suffice to execute ``make libnnpif``
+in the *n2p2* ``src`` directory. For more details please see the `n2p2 build
+documentation <https://compphysvienna.github.io/n2p2/topics/build.html>`__. If
+*n2p2* is downloaded and compiled in the LAMMPS directory ``lib/nnp/n2p2`` no
+special flags need to be set besides the usual package activation. If you prefer
+to install *n2p2* somewhere else on your system you must specify the path via
+the ``N2P2_DIR`` variable.
+
 .. tabs::
 
    .. tab:: CMake build
 
+      There is one additional setting besides ``-D PKG_USER-NNP=yes`` in case
+      *n2p2* is not installed in the ``lib/nnp/n2p2`` directory:
+
       .. code-block:: bash
 
-         ADD STUFF HERE
+         -D N2P2_DIR=path      # path ... n2p2 installation path
 
    .. tab:: Traditional make
 
-      ADD STUFF HERE
+      There is one additional variable that needs to be set besides ``make
+      yes-user-nnp`` in case *n2p2* is not installed in the ``lib/nnp/n2p2``
+      directory:
+
+      .. code-block:: bash
+
+         make N2P2_DIR=path ...
 
 ----------
 

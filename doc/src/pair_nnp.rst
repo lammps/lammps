@@ -112,7 +112,7 @@ function setup, ``scaling.data`` with symmetry function scaling data and
 
 The keyword *showew* can be used to turn on/off the display of extrapolation
 warnings (EWs) which are issued whenever a symmetry function value is out of
-bounds defined by minimum/maximum values in "scaling.data". An extrapolation
+bounds defined by minimum/maximum values in ``scaling.data``. An extrapolation
 warning may look like this:
 
 .. code-block:: LAMMPS
@@ -221,14 +221,14 @@ present elements (see above).
 
 .. _Behler_Parrinello_2007:
 
-**(Behler and Parrinello 2007)** Behler, J.; Parrinello, M. Generalized
+**(Behler and Parrinello 2007)** `Behler, J.; Parrinello, M. Generalized
 Neural-Network Representation of High-Dimensional Potential-Energy Surfaces.
 Phys. Rev. Lett.  2007, 98 (14), 146401.
-https://doi.org/10.1103/PhysRevLett.98.146401
+<https://doi.org/10.1103/PhysRevLett.98.146401>`__
 
 .. _Singraber_et_al_2019:
 
-**(Singraber et al 2019)** Singraber, A.; Behler, J.; Dellago, C. Library-Based
+**(Singraber et al 2019)** `Singraber, A.; Behler, J.; Dellago, C. Library-Based
 LAMMPS Implementation of High-Dimensional Neural Network Potentials. J. Chem.
-Theory Comput. 2019, 15 (3), 1827–1840.
-https://doi.org/10.1021/acs.jctc.8b00770.
+Theory Comput. 2019, 15 (3), 1827-1840
+<https://doi.org/10.1021/acs.jctc.8b00770>`__

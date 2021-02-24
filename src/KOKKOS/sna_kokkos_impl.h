@@ -886,6 +886,7 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi(int iatom_mod, 
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, int vector_length>
+template<int dir>
 KOKKOS_INLINE_FUNCTION
 void SNAKokkos<DeviceType, real_type, vector_length>::compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int iatom_mod, const int j_bend, const int jnbor, const int iatom_div)
 {
@@ -2158,15 +2159,6 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_s_dsfac(const real
 
     }
   } else { sfac = zero; dsfac = zero; }
-}
-
-/* ---------------------------------------------------------------------- */
-
-// set direction of batched Duidrj
-template<class DeviceType, typename real_type, int vector_length>
-KOKKOS_FORCEINLINE_FUNCTION
-void SNAKokkos<DeviceType, real_type, vector_length>::set_dir(int dir_) {
-  dir = dir_;
 }
 
 /* ----------------------------------------------------------------------

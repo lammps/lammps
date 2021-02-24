@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -67,7 +67,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   int seed    = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // 7 = series type
-  if(strcmp(arg[7],"pprony") == 0) {
+  if (strcmp(arg[7],"pprony") == 0) {
      series_type = 1;   // series type 1 is 'positive Prony series'
   } else {
      error->all(FLERR,"Fix gld series type must be pprony for now");
@@ -487,7 +487,7 @@ void FixGLD::reset_dt()
 
 double FixGLD::memory_usage()
 {
-  double bytes = atom->nmax*3*prony_terms*sizeof(double);
+  double bytes = (double)atom->nmax*3*prony_terms*sizeof(double);
   return bytes;
 }
 

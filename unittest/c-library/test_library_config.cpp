@@ -74,7 +74,7 @@ TEST(LAMMPSConfig, package_name)
         EXPECT_EQ(lammps_config_package_name(numpkgs + 10, buf, 128), 0);
         EXPECT_THAT(buf, StrEq(""));
     } else {
-        EXPECT_EQ(lammps_config_package_name(0, buf, 128), 1);
+        EXPECT_EQ(lammps_config_package_name(0, buf, 128), 0);
         EXPECT_THAT(buf, StrEq(""));
     }
 };
@@ -105,7 +105,7 @@ TEST_F(LibraryConfig, style_count)
     EXPECT_GT(lammps_style_count(lmp, "dihedral"), 1);
     EXPECT_GT(lammps_style_count(lmp, "improper"), 1);
     EXPECT_GT(lammps_style_count(lmp, "pair"), 1);
-    EXPECT_GT(lammps_style_count(lmp, "kspace"), 1);
+    EXPECT_GE(lammps_style_count(lmp, "kspace"), 0);
     EXPECT_GT(lammps_style_count(lmp, "compute"), 1);
     EXPECT_GT(lammps_style_count(lmp, "fix"), 1);
     EXPECT_GT(lammps_style_count(lmp, "region"), 1);
@@ -200,7 +200,10 @@ TEST(LAMMPSConfig, exceptions)
 
 TEST(LAMMPSConfig, mpi_support)
 {
-    EXPECT_EQ(lammps_config_has_mpi_support(), LAMMPS_HAS_MPI);
+    if (LAMMPS_HAS_MPI)
+        EXPECT_GT(lammps_config_has_mpi_support(), 0);
+    else
+        EXPECT_EQ(lammps_config_has_mpi_support(), 0);
 };
 
 TEST(LAMMPSConfig, png_support)

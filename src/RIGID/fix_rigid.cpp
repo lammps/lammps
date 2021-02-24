@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,8 +37,6 @@
 #include "error.h"
 #include "rigid_const.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -64,7 +62,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   time_integrate = 1;
   rigid_flag = 1;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
@@ -129,7 +127,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
       // determine whether atom-style variable or atom property is used
 
-      if (strstr(arg[4],"i_") == arg[4]) {
+      if (utils::strmatch(arg[4],"^i_")) {
         int is_double=0;
         int custom_index = atom->find_custom(arg[4]+2,is_double);
         if (custom_index == -1)
@@ -151,7 +149,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
           else
             molecule[i] = 0;
 
-      } else if (strstr(arg[4],"v_") == arg[4]) {
+      } else if (utils::strmatch(arg[4],"^v_")) {
         int ivariable = input->variable->find(arg[4]+2);
         if (ivariable < 0)
           error->all(FLERR,"Variable name for fix rigid custom does not exist");
@@ -502,9 +500,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,
@@ -531,9 +527,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       delete [] inpfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      inpfile = new char[n];
-      strcpy(inpfile,arg[iarg+1]);
+      inpfile = utils::strdup(arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
       iarg += 2;
@@ -548,9 +542,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"gravity") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
       delete [] id_gravity;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_gravity = new char[n];
-      strcpy(id_gravity,arg[iarg+1]);
+      id_gravity = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal fix rigid command");
@@ -887,8 +879,7 @@ void FixRigid::setup(int vflag)
 
   // virial setup before call to set_v
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set velocities from angmom & omega
 
@@ -951,8 +942,7 @@ void FixRigid::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from quarternion and omega
@@ -1098,12 +1088,12 @@ void FixRigid::compute_forces_and_torques()
   // include Langevin thermostat forces
 
   for (ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
-    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
-    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
-    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
-    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
-    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+    fcm[ibody][0] = all[ibody][0] + fflag[ibody][0]*langextra[ibody][0];
+    fcm[ibody][1] = all[ibody][1] + fflag[ibody][1]*langextra[ibody][1];
+    fcm[ibody][2] = all[ibody][2] + fflag[ibody][2]*langextra[ibody][2];
+    torque[ibody][0] = all[ibody][3] + tflag[ibody][0]*langextra[ibody][3];
+    torque[ibody][1] = all[ibody][4] + tflag[ibody][1]*langextra[ibody][4];
+    torque[ibody][2] = all[ibody][5] + tflag[ibody][2]*langextra[ibody][5];
   }
 
   // add gravity force to COM of each body
@@ -2452,14 +2442,14 @@ void FixRigid::write_restart_file(const char *file)
 double FixRigid::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax * sizeof(imageint);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);    // vatom
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(imageint);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);    // vatom
   if (extended) {
-    bytes += nmax * sizeof(int);
-    if (orientflag) bytes = nmax*orientflag * sizeof(double);
-    if (dorientflag) bytes = nmax*3 * sizeof(double);
+    bytes += (double)nmax * sizeof(int);
+    if (orientflag) bytes = (double)nmax*orientflag * sizeof(double);
+    if (dorientflag) bytes = (double)nmax*3 * sizeof(double);
   }
   return bytes;
 }
@@ -2710,11 +2700,15 @@ double FixRigid::compute_scalar()
 
 void *FixRigid::extract(const char *str, int &dim)
 {
+  dim = 0;
+
   if (strcmp(str,"body") == 0) {
+    if (!setupflag) return nullptr;
     dim = 1;
     return body;
   }
   if (strcmp(str,"masstotal") == 0) {
+    if (!setupflag) return nullptr;
     dim = 1;
     return masstotal;
   }

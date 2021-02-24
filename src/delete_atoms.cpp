@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -557,6 +557,7 @@ void DeleteAtoms::recount_topology()
     for (int i = 0; i < nlocal; i++) {
       imol = molindex[i];
       iatom = molatom[i];
+      if (imol < 0) continue;
       nbonds += onemols[imol]->num_bond[iatom];
       nangles += onemols[imol]->num_angle[iatom];
       ndihedrals += onemols[imol]->num_dihedral[iatom];

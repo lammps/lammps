@@ -60,5 +60,103 @@ class PythonCapabilities(unittest.TestCase):
         pairs = self.lmp.available_styles('pair')
         self.assertIn('lj/cut', pairs)
 
+    def test_has_id(self):
+        self.lmp.command('fix charge all property/atom q ghost yes')
+        self.lmp.command('region box block 0 1 0 1 0 1')
+        self.lmp.command('create_box 1 box')
+        self.lmp.command('group none empty')
+        self.lmp.command('variable test index 1')
+        self.assertTrue(self.lmp.has_id('compute', 'thermo_temp'))
+        self.assertTrue(self.lmp.has_id('compute', 'thermo_press'))
+        self.assertTrue(self.lmp.has_id('compute', 'thermo_pe'))
+        self.assertFalse(self.lmp.has_id('compute', 'xxx'))
+        self.assertFalse(self.lmp.has_id('dump', 'xxx'))
+        self.assertTrue(self.lmp.has_id('fix', 'charge'))
+        self.assertFalse(self.lmp.has_id('fix', 'xxx'))
+        self.assertTrue(self.lmp.has_id('group', 'all'))
+        self.assertTrue(self.lmp.has_id('group', 'none'))
+        self.assertFalse(self.lmp.has_id('group', 'xxx'))
+        self.assertTrue(self.lmp.has_id('region', 'box'))
+        self.assertFalse(self.lmp.has_id('region', 'xxx'))
+        self.assertTrue(self.lmp.has_id('variable', 'test'))
+        self.assertFalse(self.lmp.has_id('variable', 'xxx'))
+
+    def test_available_id(self):
+        self.lmp.command('fix charge all property/atom q ghost yes')
+        self.lmp.command('region box block 0 1 0 1 0 1')
+        self.lmp.command('create_box 1 box')
+        self.lmp.command('group none empty')
+        self.lmp.command('variable test index 1')
+        ids = self.lmp.available_ids('compute')
+        self.assertIn('thermo_pe', ids)
+        self.assertEqual(len(ids),3)
+        ids = self.lmp.available_ids('dump')
+        self.assertEqual(len(ids),0)
+        ids = self.lmp.available_ids('fix')
+        self.assertIn('charge', ids)
+        self.assertEqual(len(ids),1)
+        ids = self.lmp.available_ids('group')
+        self.assertIn('none', ids)
+        self.assertEqual(len(ids),2)
+        ids = self.lmp.available_ids('molecule')
+        self.assertEqual(len(ids),0)
+        ids = self.lmp.available_ids('region')
+        self.assertIn('box', ids)
+        self.assertEqual(len(ids),1)
+        ids = self.lmp.available_ids('variable')
+        self.assertIn('test', ids)
+        self.assertEqual(len(ids),1)
+
+    def test_is_running(self):
+        self.assertFalse(self.lmp.is_running)
+
+    def test_force_timeout(self):
+        self.lmp.command('region box block 0 1 0 1 0 1')
+        self.lmp.command('create_box 1 box')
+        self.lmp.command('mass * 1.0')
+        self.lmp.command('run 10')
+        self.assertEqual(self.lmp.extract_global('ntimestep'),10)
+        self.lmp.force_timeout()
+        self.lmp.command('run 10')
+        self.assertEqual(self.lmp.extract_global('ntimestep'),10)
+        self.lmp.command('timer timeout off')
+        self.lmp.command('run 10')
+        self.assertEqual(self.lmp.extract_global('ntimestep'),20)
+
+    def test_accelerator_config(self):
+
+        settings = self.lmp.accelerator_config
+        if self.cmake_cache['PKG_USER-OMP']:
+            if self.cmake_cache['BUILD_OMP']:
+                self.assertIn('openmp',settings['USER-OMP']['api'])
+            else:
+                self.assertIn('serial',settings['USER-OMP']['api'])
+            self.assertIn('double',settings['USER-OMP']['precision'])
+
+        if self.cmake_cache['PKG_USER-INTEL']:
+            if 'LMP_INTEL_OFFLOAD' in self.cmake_cache.keys():
+                self.assertIn('phi',settings['USER-INTEL']['api'])
+            elif self.cmake_cache['BUILD_OMP']:
+                self.assertIn('openmp',settings['USER-INTEL']['api'])
+            else:
+                self.assertIn('serial',settings['USER-INTEL']['api'])
+            self.assertIn('double',settings['USER-INTEL']['precision'])
+            self.assertIn('mixed',settings['USER-INTEL']['precision'])
+            self.assertIn('single',settings['USER-INTEL']['precision'])
+
+        if self.cmake_cache['PKG_GPU']:
+            if self.cmake_cache['GPU_API'].lower() == 'opencl':
+                 self.assertIn('opencl',settings['GPU']['api'])
+            if self.cmake_cache['GPU_API'].lower() == 'cuda':
+                 self.assertIn('cuda',settings['GPU']['api'])
+            if self.cmake_cache['GPU_API'].lower() == 'hip':
+                 self.assertIn('hip',settings['GPU']['api'])
+            if self.cmake_cache['GPU_PREC'].lower() == 'double':
+                 self.assertIn('double',settings['GPU']['precision'])
+            if self.cmake_cache['GPU_PREC'].lower() == 'mixed':
+                 self.assertIn('mixed',settings['GPU']['precision'])
+            if self.cmake_cache['GPU_PREC'].lower() == 'single':
+                 self.assertIn('single',settings['GPU']['precision'])
+
 if __name__ == "__main__":
     unittest.main()

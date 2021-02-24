@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -485,8 +485,7 @@ void FixGCMC::init()
         (force->pair->single_enable == 0) ||
         (force->pair_match("^hybrid",0)) ||
         (force->pair_match("^eam",0)) ||
-        (force->pair->tail_flag)
-        ) {
+        (force->pair->tail_flag)) {
       full_flag = true;
       if (comm->me == 0)
         error->warning(FLERR,"Fix gcmc using full_energy option");
@@ -2335,9 +2334,9 @@ double FixGCMC::energy_full()
   if (modify->n_post_force) modify->post_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
 
-  // NOTE: all fixes with THERMO_ENERGY mask set and which
+  // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force() or end_of_step()
-  //   and which user has enable via fix_modify thermo yes,
+  //   and which user has enabled via fix_modify energy yes,
   //   will contribute to total MC energy via pe->compute_scalar()
 
   update->eflag_global = update->ntimestep;
@@ -2516,7 +2515,7 @@ double FixGCMC::compute_vector(int n)
 
 double FixGCMC::memory_usage()
 {
-  double bytes = gcmc_nmax * sizeof(int);
+  double bytes = (double)gcmc_nmax * sizeof(int);
   return bytes;
 }
 

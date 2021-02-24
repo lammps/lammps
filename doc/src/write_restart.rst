@@ -58,10 +58,21 @@ file via the MPI-IO library, which is part of the MPI standard for
 versions 2.0 and above.  Using MPI-IO requires two steps.  First,
 build LAMMPS with its MPIIO package installed, e.g.
 
-.. code-block:: bash
+.. tabs::
 
-   make yes-mpiio    # installs the MPIIO package
-   make mpi          # build LAMMPS for your platform
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         cmake . -DPKG_MPIIO=on  # enables the MPIIO package in the build folder
+         cmake --build .         # recompiles LAMMPS with the package code included
+
+   .. tab:: Traditional make
+
+      .. code-block:: bash
+
+         make yes-mpiio    # installs the MPIIO package
+         make mpi          # build LAMMPS for your platform
 
 Second, use a restart filename which contains ".mpiio".  Note that it
 does not have to end in ".mpiio", just contain those characters.

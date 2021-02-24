@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -232,7 +232,7 @@ double ComputeTempCS::compute_scalar()
 
   double t = 0.0;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       vthermal[0] = v[i][0] - vint[i][0];
       vthermal[1] = v[i][1] - vint[i][1];
@@ -271,7 +271,7 @@ void ComputeTempCS::compute_vector()
   double t[6];
   for (int i = 0; i < 6; i++) t[i] = 0.0;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];

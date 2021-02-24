@@ -39,6 +39,7 @@ From: ubuntu:18.04
         libnuma-dev \
         libpng-dev \
         libproj-dev \
+        libreadline-dev \
         libvtk6-dev \
         libyaml-dev \
         libzstd-dev \
@@ -122,6 +123,21 @@ From: ubuntu:18.04
     # Customizations
     ###########################################################################
 
+    # create missing readline pkgconfig file
+    cat > /usr/lib/x86_64-linux-gnu/pkgconfig/readline.pc <<EOF
+prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib/x86_64-linux-gnu
+includedir=/usr/include
+
+Name: Readline
+Description: GNU Readline library for command line editing
+URL: http://tiswww.cwru.edu/php/chet/readline/rltop.html
+Version: 7.0
+Requires.private: tinfo
+Libs: -L\${libdir} -lreadline
+Cflags: -I\${includedir}/readline
+EOF
     # set custom prompt indicating the container name
     CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
     cat >$CUSTOM_PROMPT_ENV <<EOF

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,6 +23,7 @@
 
 #include "fix_ave_correlate_long.h"
 
+#include "arg_info.h"
 #include "citeme.h"
 #include "compute.h"
 #include "error.h"
@@ -39,12 +40,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{COMPUTE,FIX,VARIABLE};
 enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
 
 static const char cite_fix_ave_correlate_long[] =
 "fix ave/correlate/long command:\n\n"
@@ -85,33 +81,18 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   int iarg = 5;
   while (iarg < narg) {
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0 ||
-        strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+    ArgInfo argi(arg[iarg]);
+    if (argi.get_type() == ArgInfo::NONE) break;
+    if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+      error->all(FLERR,"Illegal fix ave/correlate/long command");
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix ave/correlate/long command");
-        argindex[nvalues] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
+    which[nvalues] = argi.get_type();
+    argindex[nvalues] = argi.get_index1();
+    ids[nvalues] = argi.copy_name();
 
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      delete [] suffix;
-
-      nvalues++;
-      iarg++;
-    } else break;
+    nvalues++;
+    iarg++;
   }
 
   // optional args
@@ -207,7 +188,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
     error->all(FLERR,"Illegal fix ave/correlate/long command");
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/correlate/long does not exist");
@@ -221,7 +202,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Fix ave/correlate/long compute vector "
                    "is accessed out-of-range");
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/correlate/long does not exist");
@@ -236,7 +217,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Fix for fix ave/correlate/long "
                    "not computed at compatible time");
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/correlate/long does not exist");
@@ -380,19 +361,19 @@ void FixAveCorrelateLong::init()
   // set current indices for all computes,fixes,variables
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/correlate/long does not exist");
       value2index[i] = icompute;
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/correlate/long does not exist");
       value2index[i] = ifix;
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/correlate/long does not exist");
@@ -444,26 +425,26 @@ void FixAveCorrelateLong::end_of_step()
 
     // invoke compute if not previously invoked
 
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
-        if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
           compute->compute_scalar();
-          compute->invoked_flag |= INVOKED_SCALAR;
+          compute->invoked_flag |= Compute::INVOKED_SCALAR;
         }
         scalar = compute->scalar;
       } else {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         scalar = compute->vector[argindex[i]-1];
       }
 
     // access fix fields, guaranteed to be ready
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       if (argindex[i] == 0)
         scalar = modify->fix[m]->compute_scalar();
       else
@@ -471,7 +452,7 @@ void FixAveCorrelateLong::end_of_step()
 
     // evaluate equal-style variable
 
-    } else if (which[i] == VARIABLE)
+    } else if (which[i] == ArgInfo::VARIABLE)
       scalar = input->variable->compute_equal(m);
 
     values[i] = scalar;
@@ -491,7 +472,7 @@ void FixAveCorrelateLong::end_of_step()
   evaluate();
 
   if (fp && me == 0) {
-    if(overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) fseek(fp,filepos,SEEK_SET);
     fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
       fprintf(fp, "%lg ", t[i]*update->dt*nevery);
@@ -590,7 +571,7 @@ void FixAveCorrelateLong::accumulate()
 /* ----------------------------------------------------------------------
    Add a scalar value to the autocorrelator k of pair i
 ------------------------------------------------------------------------- */
-void FixAveCorrelateLong::add(const int i, const double w, const int k){
+void FixAveCorrelateLong::add(const int i, const double w, const int k) {
   // If we exceed the correlator side, the value is discarded
   if (k == numcorrelators) return;
   if (k > kmax) kmax=k;
@@ -721,8 +702,8 @@ double FixAveCorrelateLong::memory_usage() {
   //    f:              npair x numcorrelators x p
   double bytes = (4*npair*numcorrelators*p + 2*npair*numcorrelators
                   + numcorrelators*p)*sizeof(double)
-    + numcorrelators*p*sizeof(unsigned long int)
-    + 2*numcorrelators*sizeof(unsigned int);
+    + (double)numcorrelators*p*sizeof(unsigned long int)
+    + 2.0*numcorrelators*sizeof(unsigned int);
   return bytes;
 }
 

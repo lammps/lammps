@@ -57,6 +57,8 @@ struct HIPTraits {
   static int constexpr WarpSize       = 64;
   static int constexpr WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
   static int constexpr WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/
+  static int constexpr MaxThreadsPerBlock =
+      1024;  // FIXME_HIP -- assumed constant for now
 
   static int constexpr ConstantMemoryUsage        = 0x008000; /* 32k bytes */
   static int constexpr ConstantMemoryUseThreshold = 0x000200; /* 512 bytes */
@@ -92,9 +94,11 @@ class HIPInternal {
   int m_shmemPerSM;
   int m_maxShmemPerBlock;
   int m_maxThreadsPerSM;
-  int m_maxThreadsPerBlock;
+
+  // Scratch Spaces for Reductions
   size_type m_scratchSpaceCount;
   size_type m_scratchFlagsCount;
+
   size_type *m_scratchSpace;
   size_type *m_scratchFlags;
   uint32_t *m_scratchConcurrentBitset = nullptr;
@@ -102,6 +106,10 @@ class HIPInternal {
   hipDeviceProp_t m_deviceProp;
 
   hipStream_t m_stream;
+
+  // Team Scratch Level 1 Space
+  mutable int64_t m_team_scratch_current_size;
+  mutable void *m_team_scratch_ptr;
 
   bool was_finalized = false;
 
@@ -113,7 +121,7 @@ class HIPInternal {
     return m_hipDev >= 0;
   }  // 0 != m_scratchSpace && 0 != m_scratchFlags ; }
 
-  void initialize(int hip_device_id, hipStream_t stream = 0);
+  void initialize(int hip_device_id, hipStream_t stream = nullptr);
   void finalize();
 
   void print_configuration(std::ostream &) const;
@@ -132,15 +140,21 @@ class HIPInternal {
         m_shmemPerSM(0),
         m_maxShmemPerBlock(0),
         m_maxThreadsPerSM(0),
-        m_maxThreadsPerBlock(0),
         m_scratchSpaceCount(0),
         m_scratchFlagsCount(0),
-        m_scratchSpace(0),
-        m_scratchFlags(0),
-        m_stream(0) {}
+        m_scratchSpace(nullptr),
+        m_scratchFlags(nullptr),
+        m_stream(nullptr),
+        m_team_scratch_current_size(0),
+        m_team_scratch_ptr(nullptr) {}
 
+  // Resizing of reduction related scratch spaces
   size_type *scratch_space(const size_type size);
   size_type *scratch_flags(const size_type size);
+
+  // Resizing of team level 1 scratch
+  void *resize_team_scratch_space(std::int64_t bytes,
+                                  bool force_shrink = false);
 };
 
 }  // namespace Impl

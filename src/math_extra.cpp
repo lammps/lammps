@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -396,7 +396,7 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
    compute space-frame inertia tensor of an ellipsoid
    radii = 3 radii of ellipsoid
    quat = orientiation quaternion of ellipsoid
-   return symmetric inertia tensor as 6-vector in Voigt notation
+   return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 void inertia_ellipsoid(double *radii, double *quat, double mass,
@@ -424,7 +424,7 @@ void inertia_ellipsoid(double *radii, double *quat, double mass,
    compute space-frame inertia tensor of a line segment in 2d
    length = length of line
    theta = orientiation of line
-   return symmetric inertia tensor as 6-vector in Voigt notation
+   return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 void inertia_line(double length, double theta, double mass, double *inertia)
@@ -453,7 +453,7 @@ void inertia_line(double length, double theta, double mass, double *inertia)
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of a triangle
    v0,v1,v2 = 3 vertices of triangle
-   from http://en.wikipedia.org/wiki/Inertia_tensor_of_triangle
+   from https://en.wikipedia.org/wiki/List_of_moments_of_inertia
    inertia tensor = a/24 (v0^2 + v1^2 + v2^2 + (v0+v1+v2)^2) I - a Vt S V
    a = 2*area of tri = |(v1-v0) x (v2-v0)|
    I = 3x3 identity matrix
@@ -462,7 +462,7 @@ void inertia_line(double length, double theta, double mass, double *inertia)
    S = 1/24 [2 1 1]
             [1 2 1]
             [1 1 2]
-   return symmetric inertia tensor as 6-vector in Voigt notation
+   return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 void inertia_triangle(double *v0, double *v1, double *v2,
@@ -503,7 +503,7 @@ void inertia_triangle(double *v0, double *v1, double *v2,
    compute space-frame inertia tensor of a triangle
    idiag = previously computed diagonal inertia tensor
    quat = orientiation quaternion of triangle
-   return symmetric inertia tensor as 6-vector in Voigt notation
+   return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 void inertia_triangle(double *idiag, double *quat, double /*mass*/,

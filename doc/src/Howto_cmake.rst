@@ -401,10 +401,18 @@ It is also possible to do this incrementally.
    cmake -C ../cmake/presets/minimal.cmake ../cmake
    cmake -D PKG_MISC=on .
 
-will achieve the same configuration like in the first example above.  In
-this scenario it is particularly convenient to do the second
+will achieve the same final configuration as in the first example above.
+In this scenario it is particularly convenient to do the second
 configuration step using either the text mode or graphical user
 interface (``ccmake`` or ``cmake-gui``).
+
+.. note::
+
+   Using a preset to select a compiler package (``clang.cmake``,
+   ``gcc.cmake``, or ``intel.cmake``) are an exception to the option
+   of updating the configuration incrementally, as they will trigger
+   a reset of cached internal CMake settings and thus reset them to
+   their default values.
 
 Compilation and build targets
 -----------------------------

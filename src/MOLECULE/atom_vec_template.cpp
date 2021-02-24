@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,6 +27,8 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
   mass_type = PER_TYPE;
 
   atom->molecule_flag = 1;
+  atom->molindex_flag = 1;
+  atom->molatom_flag = 1;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -44,7 +46,7 @@ AtomVecTemplate::AtomVecTemplate(LAMMPS *lmp) : AtomVec(lmp)
   fields_restart = (char *) "molecule molindex molatom";
   fields_create = (char *) "molecule molindex molatom";
   fields_data_atom = (char *) "id molecule molindex molatom type x";
-  fields_data_vel = (char *) "";
+  fields_data_vel = (char *) "id v";
 
   setup_fields();
 }
@@ -63,12 +65,6 @@ void AtomVecTemplate::process_args(int narg, char **arg)
 
   onemols = &atom->molecules[imol];
   nset = atom->molecules[imol]->nset;
-
-  // error check on molecule template fields
-
-  for (int i = 0; i < nset; i++)
-    if (onemols[i]->typeflag == 0)
-      error->all(FLERR,"Atom style template molecule must have atom types");
 
   // set bonds_allow,angles_allow,etc based on the molecules in template set
   // similar to how atom_style bond,angle,full set it
@@ -113,17 +109,38 @@ void AtomVecTemplate::create_atom_post(int ilocal)
 }
 
 /* ----------------------------------------------------------------------
+   modify values for AtomVec::pack_data() to pack
+------------------------------------------------------------------------- */
+
+void AtomVecTemplate::pack_data_pre(int ilocal)
+{
+  molindex[ilocal]++;
+  molatom[ilocal]++;
+}
+
+/* ----------------------------------------------------------------------
+   unmodify values packed by AtomVec::pack_data()
+------------------------------------------------------------------------- */
+
+void AtomVecTemplate::pack_data_post(int ilocal)
+{
+  molindex[ilocal]--;
+  molatom[ilocal]--;
+}
+
+
+/* ----------------------------------------------------------------------
    modify what AtomVec::data_atom() just unpacked
    or initialize other atom quantities
 ------------------------------------------------------------------------- */
 
 void AtomVecTemplate::data_atom_post(int ilocal)
 {
-  int molindex_one = molindex[ilocal];
-  int molatom_one = molatom[ilocal];
+  int molindex_one = --molindex[ilocal];
+  int molatom_one = --molatom[ilocal];
 
-  if (molindex_one < 0 || molindex_one >= nset)
+  if ((molindex_one < -1) || (molindex_one >= nset))
     error->one(FLERR,"Invalid template index in Atoms section of data file");
-  if (molatom_one < 0 || molatom_one >= onemols[molindex_one]->natoms)
+  if ((molatom_one < -1) || ((molindex_one >= 0) && (molatom_one >= onemols[molindex_one]->natoms)))
     error->one(FLERR,"Invalid template atom in Atoms section of data file");
 }

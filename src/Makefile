@@ -272,13 +272,15 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
-# include python package settings to
-#   automatically adapt name of python interpreter
+# include python package settings to automatically adapt name of
+# the python interpreter. must purge build folder to not install
+# unwanted outdated files.
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
+	@rm -rf ../python/build
 	@$(PYTHON) ../python/install.py -v ../src/version.h \
-		-m ../python/lammps.py -l ../src/liblammps.so
+		-p ../python/lammps -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 

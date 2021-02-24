@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +49,7 @@ void DihedralCharmmOMP::compute(int eflag, int vflag)
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (weightflag && vflag_global == 2)
+  if (weightflag && vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   const int nall = atom->nlocal + atom->nghost;

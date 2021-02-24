@@ -29,7 +29,7 @@ PROGRAM f_driver
 
   REAL (kind=8), ALLOCATABLE :: x(:)
   REAL (kind=8), PARAMETER   :: epsilon=0.1
-  
+
   CHARACTER (len=64)   :: arg
   CHARACTER (len=1024) :: line
 
@@ -116,12 +116,11 @@ PROGRAM f_driver
      natoms = NINT(lmp%get_natoms())
      ALLOCATE(x(3*natoms))
 
-     ! these calls are commented out, b/c libfwrapper.c
-     ! needs to be updated to use gather_atoms and scatter_atoms
+     ! these calls are commented out, because they are not interfaced yet
 
-     !CALL lammps_gather_atoms(ptr,'x',1,3,x)
+     !CALL lmp%gather_atoms('x',1,3,x)
      !x(1) = x(1) + epsilon
-     !CALL lammps_scatter_atoms(ptr,'x',1,3,x)
+     !CALL lmp%scatter_atoms('x',1,3,x)
 
      DEALLOCATE(x)
 

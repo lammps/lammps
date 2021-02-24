@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -139,10 +139,8 @@ void PairLocalDensity::compute(int eflag, int vflag)
   double p, *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
+  ev_init(eflag,vflag);
   phi = uLD = evdwl = fpair = rsqinv = 0.0;
-
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   /* localrho = LD at each atom
      fp = derivative of embedding energy at each atom for each LD potential
@@ -182,7 +180,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
     }
   }
   else {
-    for (k = 0; k < nLD; k++){
+    for (k = 0; k < nLD; k++) {
         for (i = 0; i < nlocal; i++) {
             localrho[k][i] = 0.0;
             fp[k][i] = 0.0;
@@ -594,7 +592,7 @@ void PairLocalDensity::interpolate_cbspl(int n, double delta,
      fpa = 0.;
      fpb = 0.;
 
-     for ( i = 0; i < n-1; i++ ) {
+     for (i = 0; i < n-1; i++) {
          dl[i] = du[i] = delta;
      }
 
@@ -602,32 +600,32 @@ void PairLocalDensity::interpolate_cbspl(int n, double delta,
      dd[n-1] = 2.0 * delta;
      coeff_c[0] = ( 3.0 / delta ) * ( f[1] - f[0] ) - 3.0 * fpa;
      coeff_c[n-1] = 3.0 * fpb - ( 3.0 / delta ) * ( f[n-1] - f[n-2] );
-     for ( i = 0; i < n-2; i++ ) {
+     for (i = 0; i < n-2; i++) {
          dd[i+1] = 4.0 * delta;
          coeff_c[i+1] = ( 3.0 / delta ) * ( f[i+2] - f[i+1] ) -
                         ( 3.0 / delta ) * ( f[i+1] - f[i] );
      }
 
      // tridiagonal solver
-     for ( i = 0; i < n-1; i++ ) {
+     for (i = 0; i < n-1; i++) {
          du[i] /= dd[i];
          dd[i+1] -= dl[i]*du[i];
      }
 
      coeff_c[0] /= dd[0];
-     for ( i = 1; i < n; i++ )
+     for (i = 1; i < n; i++)
          coeff_c[i] = ( coeff_c[i] - dl[i-1] * coeff_c[i-1] ) / dd[i];
 
-     for ( i = n-2; i >= 0; i-- )
+     for (i = n-2; i >= 0; i--)
          coeff_c[i] -= coeff_c[i+1] * du[i];
 
-     for ( i = 0; i < n-1; i++ ) {
+     for (i = 0; i < n-1; i++) {
          coeff_d[i] = ( coeff_c[i+1] - coeff_c[i] ) / ( 3.0 * delta );
          coeff_b[i] = ( f[i+1] - f[i] ) / delta - delta * ( coeff_c[i+1] + 2.0*coeff_c[i] ) / 3.0;
      }
 
      // normalize
-     for ( i = 0; i < n-1; i++ ) {
+     for (i = 0; i < n-1; i++) {
          coeff_b[i] = coeff_b[i] * delta ;
          coeff_c[i] = coeff_c[i] * delta*delta ;
          coeff_d[i] = coeff_d[i] * delta*delta*delta;
@@ -710,7 +708,7 @@ void PairLocalDensity::parse_file(char *filename) {
   memory->create(a, nLD, atom->ntypes+1 , "pairLD:a");
   memory->create(b, nLD, atom->ntypes+1, "pairLD:b");
   if (me == 0) {
-    for (n = 1; n <= atom->ntypes; n++){
+    for (n = 1; n <= atom->ntypes; n++) {
         for (k = 0; k < nLD; k++) {
             a[k][n] = 0;
             b[k][n] = 0;
@@ -881,9 +879,9 @@ void PairLocalDensity::unpack_reverse_comm(int n, int *list, double *buf) {
 
 double PairLocalDensity::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * (nmax*nLD) * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * (nmax*nLD) * sizeof(double);
   return bytes;
 }
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,6 +26,14 @@
 #include <cstring>
 #include <Python.h>  // IWYU pragma: export
 
+#ifdef MLIAP_PYTHON
+#include "mliap_model_python.h"
+// The above should somehow really be included in the next file.
+// We could get around this with cython --capi-reexport-cincludes
+// However, that exposes -too many- headers.
+#include "mliap_model_python_couple.h"
+#endif
+
 using namespace LAMMPS_NS;
 
 enum{NONE,INT,DOUBLE,STRING,PTR};
@@ -47,13 +55,27 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 
   nfunc = 0;
   pfuncs = nullptr;
-
   // one-time initialization of Python interpreter
   // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();
 
+#ifdef MLIAP_PYTHON
+  // Inform python intialization scheme of the mliappy module.
+  // This -must- happen before python is initialized.
+  int err = PyImport_AppendInittab("mliap_model_python_couple", PyInit_mliap_model_python_couple);
+  if (err) error->all(FLERR,"Could not register MLIAPPY embedded python module.");
+#endif
+
   Py_Initialize();
-  PyEval_InitThreads();
+
+  // only needed for Python 2.x and Python 3 < 3.7
+  // With Python 3.7 this function is now called by Py_Initialize()
+  // Deprecated since version 3.9, will be removed in version 3.11
+#if PY_MAJOR_VERSION < 3 || PY_MINOR_VERSION < 7
+  if (!PyEval_ThreadsInitialized()) {
+    PyEval_InitThreads();
+  }
+#endif
 
   PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -68,7 +90,7 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 
 PythonImpl::~PythonImpl()
 {
-  if(pyMain) {
+  if (pyMain) {
     // clean up
     PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -162,9 +184,7 @@ void PythonImpl::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
-      int n = strlen(arg[iarg+1]) + 1;
-      format = new char[n];
-      strcpy(format,arg[iarg+1]);
+      format = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"length") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
@@ -174,9 +194,7 @@ void PythonImpl::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
       delete[] pyfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      pyfile = new char[n];
-      strcpy(pyfile,arg[iarg+1]);
+      pyfile = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"here") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
@@ -402,9 +420,7 @@ int PythonImpl::create_entry(char *name)
     nfunc++;
     pfuncs = (PyFunc *)
       memory->srealloc(pfuncs,nfunc*sizeof(struct PyFunc),"python:pfuncs");
-    int n = strlen(name) + 1;
-    pfuncs[ifunc].name = new char[n];
-    strcpy(pfuncs[ifunc].name,name);
+    pfuncs[ifunc].name = utils::strdup(name);
   } else deallocate(ifunc);
 
   pfuncs[ifunc].ninput = ninput;
@@ -428,38 +444,30 @@ int PythonImpl::create_entry(char *name)
     char type = format[i];
     if (type == 'i') {
       pfuncs[ifunc].itype[i] = INT;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
         pfuncs[ifunc].ivalue[i] = utils::inumeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 'f') {
       pfuncs[ifunc].itype[i] = DOUBLE;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
         pfuncs[ifunc].dvalue[i] = utils::numeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 's') {
       pfuncs[ifunc].itype[i] = STRING;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
-        int n = strlen(istr[i]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],istr[i]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]);
       }
     } else if (type == 'p') {
       pfuncs[ifunc].ivarflag[i] = 0;
@@ -491,9 +499,7 @@ int PythonImpl::create_entry(char *name)
   }
 
   if (strstr(ostr,"v_") != ostr) error->all(FLERR,"Invalid python command");
-  int n = strlen(&ostr[2]) + 1;
-  pfuncs[ifunc].ovarname = new char[n];
-  strcpy(pfuncs[ifunc].ovarname,&ostr[2]);
+  pfuncs[ifunc].ovarname = utils::strdup(ostr+2);
 
   return ifunc;
 }

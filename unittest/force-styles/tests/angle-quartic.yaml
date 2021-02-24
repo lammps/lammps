@@ -1,7 +1,7 @@
 ---
 lammps_version: 24 Aug 2020
 date_generated: Tue Sep 15 09:44:35 202
-epsilon: 2.5e-13
+epsilon: 4e-13
 prerequisites: ! |
   atom full
   angle quartic

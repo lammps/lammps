@@ -89,8 +89,7 @@ class PairKIM : public Pair {
   virtual double memory_usage();
 
   // Get the KIM_Model object
-  KIM_Model *get_KIM_Model();
-
+  KIM_Model *get_kim_model();
   // Get the atom type list
   std::string get_atom_type_list();
  protected:

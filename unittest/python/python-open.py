@@ -4,6 +4,7 @@ from lammps import lammps
 
 has_mpi=False
 has_mpi4py=False
+has_exceptions=False
 try:
     from mpi4py import __version__ as mpi4py_version
     # tested to work with mpi4py versions 2 and 3
@@ -18,6 +19,7 @@ try:
         machine = ""
     lmp = lammps(name=machine)
     has_mpi = lmp.has_mpi_support
+    has_exceptions = lmp.has_exceptions
     lmp.close()
 except:
     pass
@@ -35,7 +37,7 @@ class PythonOpen(unittest.TestCase):
         lmp=lammps(name=self.machine)
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
-        self.assertEqual(has_mpi4py,lmp.has_mpi4py)
+        self.assertEqual(has_mpi and has_mpi4py,lmp.has_mpi4py)
         self.assertEqual(has_mpi,lmp.has_mpi_support)
         lmp.close()
         self.assertIsNone(lmp.lmp,None)
@@ -55,6 +57,33 @@ class PythonOpen(unittest.TestCase):
         lmp=lammps(name=self.machine,comm=mycomm)
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
+        lmp.close()
+
+    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
+    def testUnknownCommand(self):
+        lmp = lammps(name=self.machine)
+
+        with self.assertRaisesRegex(Exception, "ERROR: Unknown command: write_paper"):
+            lmp.command("write_paper")
+
+        lmp.close()
+
+    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
+    def testUnknownCommandInList(self):
+        lmp = lammps(name=self.machine)
+
+        with self.assertRaisesRegex(Exception, "ERROR: Unknown command: write_paper"):
+            lmp.commands_list(["write_paper"])
+
+        lmp.close()
+
+    @unittest.skipIf(not has_exceptions,"Skipping death test since LAMMPS isn't compiled with exception support")
+    def testUnknownCommandInList(self):
+        lmp = lammps(name=self.machine)
+
+        with self.assertRaisesRegex(Exception, "ERROR: Unknown command: write_paper"):
+            lmp.commands_string("write_paper")
+
         lmp.close()
 
 if __name__ == "__main__":

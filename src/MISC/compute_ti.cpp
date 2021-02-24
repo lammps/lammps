@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -216,7 +216,7 @@ double ComputeTI::compute_scalar()
         eng = force->kspace->energy;
       else {
         double *eatom = force->kspace->eatom;
-        for(int i = 0; i < nlocal; i++)
+        for (int i = 0; i < nlocal; i++)
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i]))
             eng += eatom[i];
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);

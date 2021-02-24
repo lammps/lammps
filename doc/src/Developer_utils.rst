@@ -1,6 +1,6 @@
 
-LAMMPS utility functions
-========================
+Utility functions
+-----------------
 
 The ``utils`` sub-namespace inside the ``LAMMPS_NS`` namespace provides
 a collection of convenience functions and utilities that perform common
@@ -71,10 +71,19 @@ and parsing files or arguments.
 
 ----------
 
+.. doxygenfunction:: strdup
+   :project: progguide
+
 .. doxygenfunction:: trim
    :project: progguide
 
 .. doxygenfunction:: trim_comment
+   :project: progguide
+
+.. doxygenfunction:: has_utf8
+   :project: progguide
+
+.. doxygenfunction:: utf8_subst
    :project: progguide
 
 .. doxygenfunction:: count_words(const char *text)
@@ -172,29 +181,8 @@ Customized standard functions
 
 ---------------------------
 
-Communication buffer coding with *ubuf*
-=========================================
-
-LAMMPS uses communication buffers where it collects data from various
-class instances and then exchanges the data with neighboring sub-domains.
-For simplicity those buffers are defined as ``double`` buffers and
-used for doubles and integer numbers. This presents a unique problem
-when 64-bit integers are used.  While the storage needed for a ``double``
-is also 64-bit, it cannot be used by a simple assignment.  To get around
-that limitation, LAMMPS uses the :cpp:union:`ubuf <LAMMPS_NS::ubuf>`
-union.  It is used in the various "pack" and "unpack" functions in the
-LAMMPS classes to store and retrieve integers that may be 64-bit from
-the communication buffers.
-
----------------------------
-
-.. doxygenunion:: LAMMPS_NS::ubuf
-   :project: progguide
-
----------------------------
-
 Tokenizer classes
-=================
+-----------------
 
 The purpose of the tokenizer classes is to simplify the recurring task
 of breaking lines of text down into words and/or numbers.
@@ -307,8 +295,52 @@ This code example should produce the following output:
 
 ----------
 
+
+Argument parsing classes
+---------------------------
+
+The purpose of argument parsing classes it to simplify and unify how
+arguments of commands in LAMMPS are parsed and to make abstractions of
+repetitive tasks.
+
+The :cpp:class:`LAMMPS_NS::ArgInfo` class provides an abstraction
+for parsing references to compute or fix styles or variables. These
+would start with a "c\_", "f\_", "v\_" followed by the ID or name of
+than instance and may be postfixed with one or two array indices
+"[<number>]" with numbers > 0.
+
+A typical code segment would look like this:
+
+.. code-block:: C++
+   :caption: Usage example for ArgInfo class
+
+   int nvalues = 0;
+   for (iarg = 0; iarg < nargnew; iarg++) {
+     ArgInfo argi(arg[iarg]);
+
+     which[nvalues] = argi.get_type();
+     argindex[nvalues] = argi.get_index1();
+     ids[nvalues] = argi.copy_name();
+
+     if ((which[nvalues] == ArgInfo::UNKNOWN)
+          || (which[nvalues] == ArgInfo::NONE)
+          || (argi.get_dim() > 1))
+       error->all(FLERR,"Illegal compute XXX command");
+
+     nvalues++;
+   }
+
+----------
+
+.. doxygenclass:: LAMMPS_NS::ArgInfo
+   :project: progguide
+   :members:
+
+
+----------
+
 File reader classes
-====================
+-------------------
 
 The purpose of the file reader classes is to simplify the recurring task
 of reading and parsing files. They can use the
@@ -382,7 +414,7 @@ A file that would be parsed by the reader code fragment looks like this:
 ----------
 
 Memory pool classes
-===================
+-------------------
 
 The memory pool classes are used for cases where otherwise many
 small memory allocations would be needed and where the data would
@@ -446,7 +478,7 @@ its size is registered later with :cpp:func:`vgot()
 ----------
 
 Eigensolver functions
-=====================
+---------------------
 
 The ``MathEigen`` sub-namespace of the ``LAMMPS_NS`` namespace contains
 functions and classes for eigensolvers. Currently only the
@@ -480,5 +512,26 @@ Tohoku University (under MIT license)
    :project: progguide
 
 .. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3])
+   :project: progguide
+
+---------------------------
+
+Communication buffer coding with *ubuf*
+---------------------------------------
+
+LAMMPS uses communication buffers where it collects data from various
+class instances and then exchanges the data with neighboring sub-domains.
+For simplicity those buffers are defined as ``double`` buffers and
+used for doubles and integer numbers. This presents a unique problem
+when 64-bit integers are used.  While the storage needed for a ``double``
+is also 64-bit, it cannot be used by a simple assignment.  To get around
+that limitation, LAMMPS uses the :cpp:union:`ubuf <LAMMPS_NS::ubuf>`
+union.  It is used in the various "pack" and "unpack" functions in the
+LAMMPS classes to store and retrieve integers that may be 64-bit from
+the communication buffers.
+
+---------------------------
+
+.. doxygenunion:: LAMMPS_NS::ubuf
    :project: progguide
 

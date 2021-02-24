@@ -100,11 +100,14 @@ last example holds the ion a distance 5 away from the pore axis
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy stored in the spring to the system's potential
-energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy stored in the spring to the global
+potential energy of the system as part of :doc:`thermodynamic output
+<thermo_style>`. The default setting for this fix is :doc:`fix_modify
+energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`

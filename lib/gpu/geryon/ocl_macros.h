@@ -4,12 +4,8 @@
 #include <cstdio>
 #include <cassert>
 
-/* We default to OpenCL 1.2 as target version for now as
- * there are known issues with OpenCL 2.0 and later.
- * This is also to silence warnings from generic OpenCL headers */
-
-#if !defined(CL_TARGET_OPENCL_VERSION)
-#define CL_TARGET_OPENCL_VERSION 120
+#ifndef CL_TARGET_OPENCL_VERSION
+#define CL_TARGET_OPENCL_VERSION 210
 #endif
 
 #ifdef __APPLE__

@@ -30,6 +30,16 @@ action () {
 
 action fix_gpu.cpp
 action fix_gpu.h
+action fix_nve_gpu.h
+action fix_nve_gpu.cpp
+action fix_nh_gpu.h
+action fix_nh_gpu.cpp
+action fix_nvt_gpu.h
+action fix_nvt_gpu.cpp
+action fix_npt_gpu.h
+action fix_npt_gpu.cpp
+action fix_nve_asphere_gpu.h fix_nve_asphere.h
+action fix_nve_asphere_gpu.cpp fix_nve_asphere.cpp
 action gpu_extra.h
 action pair_beck_gpu.cpp
 action pair_beck_gpu.h
@@ -83,6 +93,8 @@ action pair_lj96_cut_gpu.cpp
 action pair_lj96_cut_gpu.h
 action pair_lj_charmm_coul_long_gpu.cpp pair_lj_charmm_coul_long.cpp
 action pair_lj_charmm_coul_long_gpu.h pair_lj_charmm_coul_long.cpp
+action pair_lj_charmm_coul_charmm_gpu.cpp pair_lj_charmm_coul_charmm.cpp
+action pair_lj_charmm_coul_charmm_gpu.h pair_lj_charmm_coul_charmm.cpp
 action pair_lj_class2_coul_long_gpu.cpp pair_lj_class2_coul_long.cpp
 action pair_lj_class2_coul_long_gpu.h pair_lj_class2_coul_long.cpp
 action pair_lj_class2_gpu.cpp pair_lj_class2.cpp
@@ -152,6 +164,8 @@ if (test $1 = 1) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]*GPU[^ \t]* //' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_GPU |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lgpu |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
@@ -171,6 +185,7 @@ elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
+    sed -i -e 's/[^ \t]*GPU[^ \t]* //' ../Makefile.package
   fi
 
   if (test -e ../Makefile.package.settings) then

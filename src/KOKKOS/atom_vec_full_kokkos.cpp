@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,8 +23,6 @@
 
 
 using namespace LAMMPS_NS;
-
-#define DELTA 10
 
 /* ---------------------------------------------------------------------- */
 
@@ -58,6 +56,7 @@ AtomVecFullKokkos::AtomVecFullKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
 
 void AtomVecFullKokkos::grow(int n)
 {
+  auto DELTA = LMP_KOKKOS_AV_DELTA;
   int step = MAX(DELTA,nmax*0.01);
   if (n == 0) nmax += step;
   else nmax = n;
@@ -382,7 +381,7 @@ int AtomVecFullKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
       dy = pbc[1];
       dz = pbc[2];
     }
-    if(space==Host) {
+    if (space==Host) {
       AtomVecFullKokkos_PackBorder<LMPHostType,1> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
         iswap,h_x,h_tag,h_type,h_mask,h_q,h_molecule,dx,dy,dz);
@@ -396,7 +395,7 @@ int AtomVecFullKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
 
   } else {
     dx = dy = dz = 0;
-    if(space==Host) {
+    if (space==Host) {
       AtomVecFullKokkos_PackBorder<LMPHostType,0> f(
         buf.view<LMPHostType>(), k_sendlist.view<LMPHostType>(),
         iswap,h_x,h_tag,h_type,h_mask,h_q,h_molecule,dx,dy,dz);
@@ -587,7 +586,7 @@ struct AtomVecFullKokkos_UnpackBorder {
       typename AT::t_tagint_1d &molecule,
       const int& first):
     _buf(buf),_x(x),_tag(tag),_type(type),_mask(mask),_q(q),_molecule(molecule),
-    _first(first){
+    _first(first) {
   };
 
   KOKKOS_INLINE_FUNCTION
@@ -610,9 +609,10 @@ void AtomVecFullKokkos::unpack_border_kokkos(const int &n, const int &first,
                                                   const DAT::tdual_xfloat_2d &buf,
                                                   ExecutionSpace space) {
   atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
+
   while (first+n >= nmax) grow(0);
-  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
-  if(space==Host) {
+
+  if (space==Host) {
     struct AtomVecFullKokkos_UnpackBorder<LMPHostType>
       f(buf.view<LMPHostType>(),h_x,h_tag,h_type,h_mask,h_q,h_molecule,first);
     Kokkos::parallel_for(n,f);
@@ -621,6 +621,8 @@ void AtomVecFullKokkos::unpack_border_kokkos(const int &n, const int &first,
       f(buf.view<LMPDeviceType>(),d_x,d_tag,d_type,d_mask,d_q,d_molecule,first);
     Kokkos::parallel_for(n,f);
   }
+
+  atomKK->modified(space,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -631,9 +633,9 @@ void AtomVecFullKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
-    atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -643,6 +645,8 @@ void AtomVecFullKokkos::unpack_border(int n, int first, double *buf)
     h_q(i) = buf[m++];
     h_molecule(i) = (tagint) ubuf(buf[m++]).i;
   }
+
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -658,9 +662,9 @@ void AtomVecFullKokkos::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
-    atomKK->modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -673,6 +677,8 @@ void AtomVecFullKokkos::unpack_border_vel(int n, int first, double *buf)
     h_v(i,1) = buf[m++];
     h_v(i,2) = buf[m++];
   }
+
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|Q_MASK|MOLECULE_MASK|V_MASK);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -825,7 +831,7 @@ struct AtomVecFullKokkos_PackExchangeFunctor {
     _sendlist(sendlist.template view<DeviceType>()),
     _copylist(copylist.template view<DeviceType>()),
     _nlocal(nlocal),_dim(dim),
-    _lo(lo),_hi(hi){
+    _lo(lo),_hi(hi) {
     // 3 comp of x, 3 comp of v, 1 tag, 1 type, 1 mask, 1 image, 1 molecule, 3 nspecial,
     // maxspecial special, 1 num_bond, bond_per_atom bond_type, bond_per_atom bond_atom,
     // 1 num_angle, angle_per_atom angle_type, angle_per_atom angle_atom1, angle_atom2,
@@ -896,7 +902,7 @@ struct AtomVecFullKokkos_PackExchangeFunctor {
 
     const int j = _copylist(mysend);
 
-    if(j>-1) {
+    if (j>-1) {
     _xw(i,0) = _x(j,0);
     _xw(i,1) = _x(j,1);
     _xw(i,2) = _x(j,2);
@@ -956,12 +962,12 @@ int AtomVecFullKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2
 {
   const int elements = 20+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
-  if(nsend > (int) (k_buf.view<LMPHostType>().extent(0)*
+  if (nsend > (int) (k_buf.view<LMPHostType>().extent(0)*
               k_buf.view<LMPHostType>().extent(1))/elements) {
     int newsize = nsend*elements/k_buf.view<LMPHostType>().extent(1)+1;
     k_buf.resize(newsize,k_buf.view<LMPHostType>().extent(1));
   }
-  if(space == Host) {
+  if (space == Host) {
     AtomVecFullKokkos_PackExchangeFunctor<LMPHostType>
       f(atomKK,k_buf,k_sendlist,k_copylist,atom->nlocal,dim,lo,hi);
     Kokkos::parallel_for(nsend,f);
@@ -1107,7 +1113,7 @@ struct AtomVecFullKokkos_UnpackExchangeFunctor {
     _improper_atom3(atom->k_improper_atom3.view<DeviceType>()),
     _improper_atom4(atom->k_improper_atom4.view<DeviceType>()),
     _nlocal(nlocal.template view<DeviceType>()),_dim(dim),
-    _lo(lo),_hi(hi){
+    _lo(lo),_hi(hi) {
 
     elements = 20+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
       5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
@@ -1179,7 +1185,7 @@ int AtomVecFullKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,int nr
                                               ExecutionSpace space) {
   const size_t elements = 20+atom->maxspecial+2*atom->bond_per_atom+4*atom->angle_per_atom+
     5*atom->dihedral_per_atom + 5*atom->improper_per_atom;
-  if(space == Host) {
+  if (space == Host) {
     k_count.h_view(0) = nlocal;
     AtomVecFullKokkos_UnpackExchangeFunctor<LMPHostType>
       f(atomKK,k_buf,k_count,dim,lo,hi);

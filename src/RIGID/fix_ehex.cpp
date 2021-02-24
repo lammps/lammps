@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,7 @@
 
    This source file implements the asymmetric version of the enhanced heat
    exchange (eHEX/a) algorithm. The paper is available for download on
-   arXiv: http://arxiv.org/pdf/1507.07081.pdf.
+   arXiv: https://arxiv.org/pdf/1507.07081.pdf.
 
    This file is based on fix_heat.cpp written by Paul Crozier (SNL)
    which implements the heat exchange (HEX) algorithm.
@@ -273,7 +273,7 @@ void FixEHEX::rescale() {
   vsub[1] = (scale-1.0) * vcm[1];
   vsub[2] = (scale-1.0) * vcm[2];
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
 
     if (scalingmask[i]) {
 
@@ -309,7 +309,6 @@ double FixEHEX::compute_scalar()
   return scale;
 }
 
-
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
@@ -317,7 +316,7 @@ double FixEHEX::compute_scalar()
 double FixEHEX::memory_usage()
 {
   double bytes = 0.0;
-  bytes += atom->nmax * sizeof(double);
+  bytes += (double)atom->nmax * sizeof(double);
   return bytes;
 }
 

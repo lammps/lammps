@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,7 +39,7 @@ FixMvvDPD::FixMvvDPD(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix mvv/dpd command");
 
   verlet = 0.5;
-  if(narg > 3) verlet = utils::numeric(FLERR,arg[3],false,lmp);
+  if (narg > 3) verlet = utils::numeric(FLERR,arg[3],false,lmp);
 
   dynamic_group_allow = 1;
   time_integrate = 1;

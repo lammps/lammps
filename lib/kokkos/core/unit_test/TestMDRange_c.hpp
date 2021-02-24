@@ -47,10 +47,7 @@
 namespace Test {
 
 TEST(TEST_CATEGORY, mdrange_2d) {
-#if !defined(KOKKOS_ENABLE_ROCM)  // MDRange Reduce explicitly handled in its
-                                  // own cpp file
   TestMDRange_2D<TEST_EXECSPACE>::test_reduce2(100, 100);
-#endif
   TestMDRange_2D<TEST_EXECSPACE>::test_for2(100, 100);
 }
 

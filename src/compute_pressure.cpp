@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -217,7 +217,7 @@ void ComputePressure::init()
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
       for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->thermo_virial)
+        if (modify->fix[i]->virial_global_flag && modify->fix[i]->thermo_virial)
           vptr[nvirial++] = modify->fix[i]->virial;
   }
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,6 +34,7 @@ PairEAMFS::PairEAMFS(LAMMPS *lmp) : PairEAM(lmp)
 {
   one_coeff = 1;
   manybody_flag = 1;
+  he_flag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -117,8 +118,9 @@ void PairEAMFS::read_file(char *filename)
   Fs *file = fs;
 
   // read potential file
-  if(comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "eam/fs", unit_convert_flag);
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, he_flag ? "eam/he" : "eam/fs",
+                               unit_convert_flag);
 
     // transparently convert units for supported conversions
 
@@ -149,12 +151,14 @@ void PairEAMFS::read_file(char *filename)
 
       //
 
-      values = reader.next_values(5);
+      if (he_flag) values = reader.next_values(6);
+      else values = reader.next_values(5);
       file->nrho = values.next_int();
       file->drho = values.next_double();
       file->nr   = values.next_int();
       file->dr   = values.next_double();
       file->cut  = values.next_double();
+      if (he_flag) rhomax = values.next_double();
 
       if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
         error->one(FLERR,"Invalid EAM potential file");
@@ -202,6 +206,7 @@ void PairEAMFS::read_file(char *filename)
   MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
   MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&rhomax, 1, MPI_DOUBLE, 0, world);
 
   // allocate memory on other procs
   if (comm->me != 0) {
@@ -255,7 +260,8 @@ void PairEAMFS::file2array()
   nr = fs->nr;
   drho = fs->drho;
   dr = fs->dr;
-  rhomax = (nrho-1) * drho;
+  if (he_flag) rhomin = rhomax - (nrho-1) * drho;
+  else rhomax = (nrho-1) * drho;
 
   // ------------------------------------------------------------------
   // setup frho arrays

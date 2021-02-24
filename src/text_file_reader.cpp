@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -101,7 +101,7 @@ char *TextFileReader::next_line(int nparams) {
     n = strlen(line);
   }
 
-  while(nwords == 0 || nwords < nparams) {
+  while (nwords == 0 || nwords < nparams) {
     char *ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
@@ -148,7 +148,7 @@ void TextFileReader::next_dvector(double * list, int n) {
     }
 
     ValueTokenizer values(line);
-    while(values.has_next()) {
+    while (values.has_next()) {
       list[i++] = values.next_double();
     }
   }

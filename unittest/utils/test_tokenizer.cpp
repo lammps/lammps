@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -158,13 +158,15 @@ TEST(ValueTokenizer, valid_double_with_exponential)
     ASSERT_DOUBLE_EQ(values.next_double(), 3.14e22);
 }
 
-TEST(ValueTokenizer, contains) {
+TEST(ValueTokenizer, contains)
+{
     ValueTokenizer values("test word");
     ASSERT_TRUE(values.contains("test"));
     ASSERT_TRUE(values.contains("word"));
 }
 
-TEST(ValueTokenizer, not_contains) {
+TEST(ValueTokenizer, not_contains)
+{
     ValueTokenizer values("test word");
     ASSERT_FALSE(values.contains("test2"));
 }

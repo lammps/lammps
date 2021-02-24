@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,6 +9,10 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
 #include "mliap_model_linear.h"
@@ -21,14 +25,14 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
-  MLIAPModel(lmp, coefffilename)
+  MLIAPModelSimple(lmp, coefffilename)
 {
   if (nparams > 0) ndescriptors = nparams - 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModelLinear::~MLIAPModelLinear(){}
+MLIAPModelLinear::~MLIAPModelLinear() {}
 
 /* ----------------------------------------------------------------------
    get number of parameters
@@ -51,8 +55,9 @@ int MLIAPModelLinear::get_nparams()
 
 void MLIAPModelLinear::compute_gradients(MLIAPData* data)
 {
+  data->energy = 0.0;
+
   for (int ii = 0; ii < data->natoms; ii++) {
-    const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
     double* coeffi = coeffelem[ielem];
@@ -74,7 +79,8 @@ void MLIAPModelLinear::compute_gradients(MLIAPData* data)
       for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
         etmp += coeffi[icoeff+1]*data->descriptors[ii][icoeff];
 
-      data->pairmliap->e_tally(i,etmp);
+      data->energy += etmp;
+      data->eatoms[ii] = etmp;
     }
   }
 }

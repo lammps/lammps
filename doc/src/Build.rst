@@ -1,5 +1,5 @@
 Build LAMMPS
-************
+============
 
 LAMMPS is built as a library and an executable from source code using
 either traditional makefiles for use with GNU make (which may require
@@ -8,7 +8,7 @@ Makefiles, Ninja, Xcode, Visual Studio, KDevelop, CodeBlocks and more).
 
 As an alternative you can download a package with pre-built executables
 or automated build trees as described on the :doc:`Install <Install>`
-doc page.
+page.
 
 .. toctree::
    :maxdepth: 1
@@ -20,5 +20,6 @@ doc page.
    Build_settings
    Build_package
    Build_extras
+   Build_manual
    Build_windows
    Build_development

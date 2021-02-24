@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -61,17 +61,17 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
   rcutfac = atof(arg[3]);
   rfac0 = atof(arg[4]);
   twojmax = atoi(arg[5]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     radelem[i+1] = atof(arg[6+i]);
-  for(int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++)
     wjelem[i+1] = atof(arg[6+ntypes+i]);
   // construct cutsq
   double cut;
   memory->create(cutsq,ntypes+1,ntypes+1,"sna/atom:cutsq");
-  for(int i = 1; i <= ntypes; i++) {
+  for (int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
     cutsq[i][i] = cut*cut;
-    for(int j = i+1; j <= ntypes; j++) {
+    for (int j = i+1; j <= ntypes; j++) {
       cut = (radelem[i]+radelem[j])*rcutfac;
       cutsq[i][j] = cutsq[j][i] = cut*cut;
     }
@@ -108,7 +108,7 @@ ComputeSNAVAtom::ComputeSNAVAtom(LAMMPS *lmp, int narg, char **arg) :
       chemflag = 1;
       memory->create(map,ntypes+1,"compute_sna_atom:map");
       nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      for(int i = 0; i < ntypes; i++) {
+      for (int i = 0; i < ntypes; i++) {
         int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
         if (jelem < 0 || jelem >= nelements)
           error->all(FLERR,"Illegal compute snav/atom command");
@@ -415,7 +415,7 @@ void ComputeSNAVAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeSNAVAtom::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double); // snav
+  double bytes = (double)nmax*size_peratom_cols * sizeof(double); // snav
   bytes += snaptr->memory_usage();                        // SNA object
 
   return bytes;

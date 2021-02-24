@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,7 +47,7 @@ DihedralNHarmonic::~DihedralNHarmonic()
   if (allocated) {
     memory->destroy(setflag);
     for (int i = 1; i <= atom->ndihedraltypes; i++)
-      if ( a[i] ) delete [] a[i];
+      if (a[i]) delete [] a[i];
     delete [] a;
     delete [] nterms;
   }
@@ -290,7 +290,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     a[i] = new double [n];
     nterms[i] = n;
-    for (int j = 0; j < n; j++ ) {
+    for (int j = 0; j < n; j++) {
       a[i][j] = utils::numeric(FLERR,arg[2+j],false,lmp);
       setflag[i] = 1;
     }
@@ -307,7 +307,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 void DihedralNHarmonic::write_restart(FILE *fp)
 {
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
-  for(int i = 1; i <= atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     fwrite(a[i],sizeof(double),nterms[i],fp);
 }
 
@@ -325,11 +325,11 @@ void DihedralNHarmonic::read_restart(FILE *fp)
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
   // allocate
-  for(int i = 1; i <= atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     a[i] = new double [nterms[i]];
 
   if (comm->me == 0) {
-    for(int i = 1; i <= atom->ndihedraltypes; i++)
+    for (int i = 1; i <= atom->ndihedraltypes; i++)
       utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,nullptr,error);
   }
 

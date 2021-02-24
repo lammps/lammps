@@ -74,8 +74,8 @@ struct ViewDataAnalysis;
 template <class, class...>
 class ViewMapping {
  public:
-  enum { is_assignable_data_type = false };
-  enum { is_assignable = false };
+  enum : bool { is_assignable_data_type = false };
+  enum : bool { is_assignable = false };
 };
 
 template <typename IntType>
@@ -1706,41 +1706,6 @@ class View : public ViewTraits<DataType, Properties...> {
 #endif
   }
 
-  // For backward compatibility
-  explicit inline View(const ViewAllocateWithoutInitializing& arg_prop,
-                       const typename traits::array_layout& arg_layout)
-      : View(Impl::ViewCtorProp<std::string,
-                                Kokkos::Impl::WithoutInitializing_t>(
-                 arg_prop.label, Kokkos::WithoutInitializing),
-             arg_layout) {}
-
-  explicit inline View(const ViewAllocateWithoutInitializing& arg_prop,
-                       const size_t arg_N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : View(Impl::ViewCtorProp<std::string,
-                                Kokkos::Impl::WithoutInitializing_t>(
-                 arg_prop.label, Kokkos::WithoutInitializing),
-             typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
-                                           arg_N4, arg_N5, arg_N6, arg_N7)) {
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-    Impl::runtime_check_rank_host(
-        traits::rank_dynamic,
-        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
-        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7, label());
-#else
-    Impl::runtime_check_rank_device(
-        traits::rank_dynamic,
-        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
-        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
-
-#endif
-  }
   // Construct view from ViewTracker and map
   // This should be the preferred method because future extensions may need to
   // use the ViewTracker class.

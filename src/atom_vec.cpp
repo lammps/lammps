@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,9 +28,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-
-#define DELTA 16384
-#define DELTA_BONUS 8192
 
 /* ---------------------------------------------------------------------- */
 
@@ -188,6 +185,8 @@ void AtomVec::init()
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }
 
+static constexpr bigint DELTA=16384;
+
 /* ----------------------------------------------------------------------
    roundup N so it is a multiple of DELTA
    error if N exceeds 32-bit int, since will be used as arg to grow()
@@ -210,6 +209,8 @@ void AtomVec::grow_nmax()
   nmax = nmax/DELTA * DELTA;
   nmax += DELTA;
 }
+
+static constexpr bigint DELTA_BONUS=8192;
 
 /* ----------------------------------------------------------------------
    grow nmax_bonus so it is a multiple of DELTA_BONUS

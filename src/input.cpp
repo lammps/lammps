@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -106,6 +106,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   label_active = 0;
   labelstr = nullptr;
   jump_skip = 0;
+  utf8_warn = true;
 
   if (me == 0) {
     nfile = 1;
@@ -189,8 +190,15 @@ void Input::file()
     // if line ends in continuation char '&', concatenate next line
 
     if (me == 0) {
+
       m = 0;
       while (1) {
+
+        if (infile == nullptr) {
+          n = 0;
+          break;
+        }
+
         if (maxline-m < 2) reallocate(line,maxline,0);
 
         // end of file reached, so break
@@ -412,6 +420,16 @@ void Input::parse()
       else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
     }
     ptr++;
+  }
+
+  if (utils::has_utf8(copy)) {
+    std::string buf = utils::utf8_subst(copy);
+    strcpy(copy,buf.c_str());
+    if (utf8_warn && (comm->me == 0))
+      error->warning(FLERR,"Detected non-ASCII characters in input. "
+                     "Will try to continue by replacing with ASCII "
+                     "equivalents where known.");
+    utf8_warn = false;
   }
 
   // perform $ variable substitution (print changes)
@@ -1708,7 +1726,10 @@ void Input::pair_style()
     int match = 0;
     if (style == force->pair_style) match = 1;
     if (!match && lmp->suffix_enable) {
-      if (lmp->suffix)
+      if (lmp->suffixp)
+        if (style + "/" + lmp->suffixp == force->pair_style) match = 1;
+
+      if (lmp->suffix && !lmp->suffixp)
         if (style + "/" + lmp->suffix == force->pair_style) match = 1;
 
       if (lmp->suffix2)

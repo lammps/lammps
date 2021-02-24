@@ -62,7 +62,7 @@ struct TestTeamPolicy {
   view_type m_flags;
 
   TestTeamPolicy(const size_t league_size)
-      : m_flags(Kokkos::ViewAllocateWithoutInitializing("flags"),
+      : m_flags(Kokkos::view_alloc(Kokkos::WithoutInitializing, "flags"),
                 Kokkos::TeamPolicy<ScheduleType, ExecSpace>(1, 1).team_size_max(
                     *this, Kokkos::ParallelReduceTag()),
                 league_size) {}
@@ -118,6 +118,18 @@ struct TestTeamPolicy {
         TestTeamPolicy());
   }
 
+  static void test_constructors() {
+    constexpr const int smallest_work = 1;
+    Kokkos::TeamPolicy<ExecSpace, NoOpTag> none_auto(
+        smallest_work, smallest_work, smallest_work);
+    Kokkos::TeamPolicy<ExecSpace, NoOpTag> both_auto(
+        smallest_work, Kokkos::AUTO(), Kokkos::AUTO());
+    Kokkos::TeamPolicy<ExecSpace, NoOpTag> auto_vector(
+        smallest_work, smallest_work, Kokkos::AUTO());
+    Kokkos::TeamPolicy<ExecSpace, NoOpTag> auto_team(
+        smallest_work, Kokkos::AUTO(), smallest_work);
+  }
+
   static void test_for(const size_t league_size) {
     TestTeamPolicy functor(league_size);
     using policy_type = Kokkos::TeamPolicy<ScheduleType, ExecSpace>;
@@ -135,6 +147,7 @@ struct TestTeamPolicy {
                          functor);
 
     test_small_league_size();
+    test_constructors();
   }
 
   struct ReduceTag {};
@@ -1325,11 +1338,12 @@ struct TestTeamBroadcast<
   template <class ScalarType>
   static inline
       typename std::enable_if<!std::is_integral<ScalarType>::value, void>::type
-      compare_test(ScalarType A, ScalarType B) {
-    if (std::is_same<ScalarType, double>::value) {
-      ASSERT_DOUBLE_EQ((double)A, (double)B);
-    } else if (std::is_same<ScalarType, float>::value) {
-      ASSERT_FLOAT_EQ((double)A, (double)B);
+      compare_test(ScalarType A, ScalarType B, double epsilon_factor) {
+    if (std::is_same<ScalarType, double>::value ||
+        std::is_same<ScalarType, float>::value) {
+      ASSERT_NEAR((double)A, (double)B,
+                  epsilon_factor * std::abs(A) *
+                      std::numeric_limits<ScalarType>::epsilon());
     } else {
       ASSERT_EQ(A, B);
     }
@@ -1338,7 +1352,7 @@ struct TestTeamBroadcast<
   template <class ScalarType>
   static inline
       typename std::enable_if<std::is_integral<ScalarType>::value, void>::type
-      compare_test(ScalarType A, ScalarType B) {
+      compare_test(ScalarType A, ScalarType B, double) {
     ASSERT_EQ(A, B);
   }
 
@@ -1369,10 +1383,10 @@ struct TestTeamBroadcast<
           (value_type((i % team_size) * 3) + off) * (value_type)team_size;
       expected_result += val;
     }
-    compare_test(expected_result,
-                 total);  // printf("team_broadcast with value --
-                          // expected_result=%d,
-                          // total=%d\n",expected_result, total);
+    // For comparison purposes treat the reduction as a random walk in the
+    // least significant digit, which gives a typical walk distance
+    // sqrt(league_size) Add 4x for larger sigma
+    compare_test(expected_result, total, 4.0 * std::sqrt(league_size));
 
     // team_broadcast with function object
     total = 0;
@@ -1386,10 +1400,10 @@ struct TestTeamBroadcast<
                        (value_type)(2 * team_size);
       expected_result += val;
     }
-    compare_test(expected_result,
-                 total);  // printf("team_broadcast with function object --
-                          // expected_result=%d,
-                          // total=%d\n",expected_result, total);
+    // For comparison purposes treat the reduction as a random walk in the
+    // least significant digit, which gives a typical walk distance
+    // sqrt(league_size) Add 4x for larger sigma
+    compare_test(expected_result, total, 4.0 * std::sqrt(league_size));
   }
 };
 

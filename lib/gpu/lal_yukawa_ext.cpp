@@ -55,7 +55,7 @@ int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
   int init_ok=0;
   if (world_me==0)
     init_ok=YKMF.init(ntypes, cutsq, kappa, host_a, offset, special_lj,
-                      inum, nall, 300, maxspecial, cell_size,
+                      inum, nall, max_nbors, maxspecial, cell_size,
                       gpu_split, screen);
 
   YKMF.device->world_barrier();
@@ -73,7 +73,7 @@ int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=YKMF.init(ntypes, cutsq, kappa, host_a, offset, special_lj,
-                      inum, nall, 300, maxspecial, cell_size,
+                      inum, nall, max_nbors, maxspecial, cell_size,
                       gpu_split, screen);
 
     YKMF.device->gpu_barrier();

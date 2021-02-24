@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1510,7 +1510,7 @@ void *CommBrick::extract(const char *str, int &dim)
 double CommBrick::memory_usage()
 {
   double bytes = 0;
-  bytes += nprocs * sizeof(int);    // grid2proc
+  bytes += (double)nprocs * sizeof(int);    // grid2proc
   for (int i = 0; i < nswap; i++)
     bytes += memory->usage(sendlist[i],maxsendlist[i]);
   bytes += memory->usage(buf_send,maxsend+bufextra);

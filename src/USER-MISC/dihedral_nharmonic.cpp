@@ -181,15 +181,14 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
     // p = sum (i=1,n) a_i * c**(i-1)
     // pd = dp/dc
 
-    c_ = c;
-    p = this->a[type][0];
-    pd = this->a[type][1];
-    for (int i = 1; i < nterms[type]-1; i++) {
-      p += c_ * this->a[type][i];
-      pd += c_ * static_cast<double>(i+1) * this->a[type][i+1];
+    c_ = 1.0;
+    p = a[type][0];
+    pd = 0.0;
+    for (int i = 1; i < nterms[type]; i++) {
+      pd += c_ * i * a[type][i];
       c_ *= c;
+      p += c_ * a[type][i];
     }
-    p += c_ * this->a[type][nterms[type]-1];
 
     if (eflag) edihedral = p;
 
@@ -275,7 +274,7 @@ void DihedralNHarmonic::allocate()
 
 void DihedralNHarmonic::coeff(int narg, char **arg)
 {
-  if (narg < 4 ) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg < 3) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   int n = utils::inumeric(FLERR,arg[1],false,lmp);
   if (narg != n + 2)

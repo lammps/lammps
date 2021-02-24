@@ -254,13 +254,19 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
     if ((m = atom->map(itag)) >= 0) {
       for (j = 0; j < nvalue; j++) {
-        if (style[j] == MOLECULE) atom->molecule[m] = ATOTAGINT(values[j+1]);
-        else if (style[j] == CHARGE) atom->q[m] = atof(values[j+1]);
-        else if (style[j] == RMASS) atom->rmass[m] = atof(values[j+1]);
-        else if (style[j] == INTEGER)
-          atom->ivector[index[j]][m] = atoi(values[j+1]);
-        else if (style[j] == DOUBLE)
-          atom->dvector[index[j]][m] = atof(values[j+1]);
+        if (style[j] == MOLECULE) {
+          atom->molecule[m] = utils::tnumeric(FLERR,values[j+1],false,lmp);
+        } else if (style[j] == CHARGE) {
+          atom->q[m] = utils::numeric(FLERR,values[j+1],false,lmp);
+        } else if (style[j] == RMASS) {
+          atom->rmass[m] = utils::numeric(FLERR,values[j+1],false,lmp);
+        } else if (style[j] == INTEGER) {
+          atom->ivector[index[j]][m] = utils::inumeric(FLERR,values[j+1],
+                                                       false,lmp);
+        } else if (style[j] == DOUBLE) {
+          atom->dvector[index[j]][m] = utils::numeric(FLERR,values[j+1],
+                                                      true,lmp);
+        }
       }
     }
 

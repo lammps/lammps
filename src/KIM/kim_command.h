@@ -12,10 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN),
-                         Ellad B. Tadmor (UMN),
-                         Yaser Afshar (UMN)
+   Contributing authors: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -56,71 +53,31 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_KIM_INIT_H
-#define LMP_KIM_INIT_H
+#ifdef COMMAND_CLASS
+
+CommandStyle(kim,KimCommand)
+
+#else
+
+#ifndef LMP_KIM_COMMAND_H
+#define LMP_KIM_COMMAND_H
 
 #include "pointers.h"
 
-// Forward declaration.
-typedef struct KIM_Model KIM_Model;
-
 namespace LAMMPS_NS {
 
-class KimInit : protected Pointers {
+class KimCommand : protected Pointers {
  public:
-  KimInit(class LAMMPS *lmp) : Pointers(lmp) {};
+  KimCommand(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
- private:
-  enum model_type_enum {MO, SM};
-  model_type_enum model_type;
-  bool unit_conversion_mode;
-
-  void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
-  void write_log_cite(char *);
-  void do_init(char *, char *, char *, KIM_Model *&);
-  void do_variables(const std::string &, const std::string &);
 };
 
 }
 
 #endif
+#endif
 
 /* ERROR/WARNING messages:
 
-E: Illegal kim_init command
-
-Incorrect number or kind of arguments to kim_init.
-
-E: Must use 'kim_init' command before simulation box is defined
-
-Self-explanatory.
-
-E: KIM Model does not support the requested unit system
-
-Self-explanatory.
-
-E: KIM Model does not support any lammps unit system
-
-Self-explanatory.
-
-E: KIM model name not found
-
-Self-explanatory.
-
-E: Incompatible KIM Simulator Model
-
-The requested KIM Simulator Model was defined for a different MD code
-and thus is not compatible with LAMMPS.
-
-E: Incompatible units for KIM Simulator Model
-
-The selected unit style is not compatible with the requested KIM
-Simulator Model.
-
-E: KIM Simulator Model has no Model definition
-
-There is no model definition (key: model-defn) in the KIM Simulator
-Model.  Please contact the OpenKIM database maintainers to verify
-and potentially correct this.
 
 */

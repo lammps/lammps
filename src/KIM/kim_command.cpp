@@ -1,6 +1,6 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,8 +13,6 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN),
-                         Ellad B. Tadmor (UMN),
                          Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
@@ -56,71 +54,45 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_KIM_INIT_H
-#define LMP_KIM_INIT_H
+#include "kim_command.h"
 
-#include "pointers.h"
+#include "error.h"
 
-// Forward declaration.
-typedef struct KIM_Model KIM_Model;
+// include KIM sub-command headers here
+#include "kim_init.h"
+#include "kim_interactions.h"
+#include "kim_param.h"
+#include "kim_property.h"
+#include "kim_query.h"
 
-namespace LAMMPS_NS {
+#include <memory>
 
-class KimInit : protected Pointers {
- public:
-  KimInit(class LAMMPS *lmp) : Pointers(lmp) {};
-  void command(int, char **);
- private:
-  enum model_type_enum {MO, SM};
-  model_type_enum model_type;
-  bool unit_conversion_mode;
+using namespace LAMMPS_NS;
 
-  void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
-  void write_log_cite(char *);
-  void do_init(char *, char *, char *, KIM_Model *&);
-  void do_variables(const std::string &, const std::string &);
-};
+/* ---------------------------------------------------------------------- */
 
+void KimCommand::command(int narg, char **arg)
+{
+  if (narg < 1) error->all(FLERR,"Illegal kim command");
+
+  const std::string subcmd(arg[0]);
+  narg--;
+  arg++;
+
+  if (subcmd == "init") {
+    std::unique_ptr<KimInit> cmd(new KimInit(lmp));
+    cmd->command(narg, arg);
+  } else if (subcmd == "interactions") {
+    std::unique_ptr<KimInteractions> cmd(new KimInteractions(lmp));
+    cmd->command(narg, arg);
+  } else if (subcmd == "param") {
+    std::unique_ptr<KimParam> cmd(new KimParam(lmp));
+    cmd->command(narg, arg);
+  } else if (subcmd == "property") {
+    std::unique_ptr<KimProperty> cmd(new KimProperty(lmp));
+    cmd->command(narg, arg);
+  } else if (subcmd == "query") {
+    std::unique_ptr<KimQuery> cmd(new KimQuery(lmp));
+    cmd->command(narg, arg);
+  } else error->all(FLERR, fmt::format("Unknown kim subcommand {}", subcmd));
 }
-
-#endif
-
-/* ERROR/WARNING messages:
-
-E: Illegal kim_init command
-
-Incorrect number or kind of arguments to kim_init.
-
-E: Must use 'kim_init' command before simulation box is defined
-
-Self-explanatory.
-
-E: KIM Model does not support the requested unit system
-
-Self-explanatory.
-
-E: KIM Model does not support any lammps unit system
-
-Self-explanatory.
-
-E: KIM model name not found
-
-Self-explanatory.
-
-E: Incompatible KIM Simulator Model
-
-The requested KIM Simulator Model was defined for a different MD code
-and thus is not compatible with LAMMPS.
-
-E: Incompatible units for KIM Simulator Model
-
-The selected unit style is not compatible with the requested KIM
-Simulator Model.
-
-E: KIM Simulator Model has no Model definition
-
-There is no model definition (key: model-defn) in the KIM Simulator
-Model.  Please contact the OpenKIM database maintainers to verify
-and potentially correct this.
-
-*/

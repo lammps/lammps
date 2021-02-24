@@ -141,6 +141,7 @@ inline
   void compute_bi_cpu(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, int);    // ForceSNAP
 
   // functions for derivatives, GPU only
+  template<int dir>
   KOKKOS_INLINE_FUNCTION
   void compute_fused_deidrj(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int); //ForceSNAP
 
@@ -163,10 +164,6 @@ inline
   void sincos_wrapper(double x, double* sin_, double *cos_) { sincos(x, sin_, cos_); }
   static KOKKOS_FORCEINLINE_FUNCTION
   void sincos_wrapper(float x, float* sin_, float *cos_) { sincosf(x, sin_, cos_); }
-
-  // Set the direction for split ComputeDuidrj
-  KOKKOS_INLINE_FUNCTION
-  void set_dir(int);
 
 #ifdef TIMING_INFO
   double* timers;
@@ -298,9 +295,6 @@ inline
 
   int bzero_flag; // 1 if bzero subtracted from barray
   Kokkos::View<real_type*, DeviceType> bzero; // array of B values for isolated atoms
-
-  // for per-direction dulist calculation, specify the direction.
-  int dir;
 };
 
 }

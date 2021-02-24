@@ -99,9 +99,13 @@ if(GPU_API STREQUAL "CUDA")
   if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
     string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
   endif()
-  # Ampere (GPU Arch 8.0 and 8.6) is supported by CUDA 11 and later
+  # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
   if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80] -gencode arch=compute_86,code=[sm_86,compute_86]")
+    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
+  endif()
+  # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
+  if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
+    string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
   endif()
   if(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
     message(WARNING "Unsupported CUDA version. Use at your own risk.")
@@ -141,19 +145,10 @@ if(GPU_API STREQUAL "CUDA")
   target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
 
 elseif(GPU_API STREQUAL "OPENCL")
-  if(${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    # download and unpack support binaries for compilation of windows binaries.
-    set(LAMMPS_THIRDPARTY_URL "https://download.lammps.org/thirdparty")
-    file(DOWNLOAD "${LAMMPS_THIRDPARTY_URL}/opencl-win-devel.tar.gz" "${CMAKE_CURRENT_BINARY_DIR}/opencl-win-devel.tar.gz"
-            EXPECTED_MD5 2c00364888d5671195598b44c2e0d44d)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf opencl-win-devel.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    add_library(OpenCL::OpenCL UNKNOWN IMPORTED)
-    if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86")
-      set_target_properties(OpenCL::OpenCL PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win32/libOpenCL.dll")
-    elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-      set_target_properties(OpenCL::OpenCL PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/lib_win64/libOpenCL.dll")
-    endif()
-    set_target_properties(OpenCL::OpenCL PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/OpenCL/include")
+  option(USE_STATIC_OPENCL_LOADER "Download and include a static OpenCL ICD loader" ON)
+  mark_as_advanced(USE_STATIC_OPENCL_LOADER)
+  if (USE_STATIC_OPENCL_LOADER)
+    include(OpenCLLoader)
   else()
     find_package(OpenCL REQUIRED)
   endif()
@@ -208,6 +203,7 @@ elseif(GPU_API STREQUAL "OPENCL")
   add_executable(ocl_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(ocl_get_devices PRIVATE -DUCL_OPENCL)
   target_link_libraries(ocl_get_devices PRIVATE OpenCL::OpenCL)
+  add_dependencies(ocl_get_devices OpenCL::OpenCL)
 elseif(GPU_API STREQUAL "HIP")
   if(NOT DEFINED HIP_PATH)
       if(NOT DEFINED ENV{HIP_PATH})
@@ -390,13 +386,10 @@ elseif(GPU_API STREQUAL "HIP")
   target_link_libraries(lammps PRIVATE gpu)
 endif()
 
-# GPU package
-FindStyleHeaders(${GPU_SOURCES_DIR} FIX_CLASS fix_ FIX)
-
 set_property(GLOBAL PROPERTY "GPU_SOURCES" "${GPU_SOURCES}")
-
-# detects styles which have GPU version
+# detect styles which have a GPU version
 RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
+RegisterFixStyle(${GPU_SOURCES_DIR}/fix_gpu.h)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 

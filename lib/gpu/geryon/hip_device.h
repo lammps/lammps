@@ -8,6 +8,9 @@
 #ifndef HIP_DEVICE
 #define HIP_DEVICE
 
+// workaround after GPU package Feb2021 update
+// todo: make new neighbor code work with HIP
+#define LAL_USE_OLD_NEIGHBOR
 
 #include <hip/hip_runtime.h>
 #include <unordered_map>
@@ -41,8 +44,8 @@ struct NVDProperties {
   int maxThreadsPerBlock;
   int maxThreadsDim[3];
   int maxGridSize[3];
-  int sharedMemPerBlock;
-  int totalConstantMemory;
+  CUDA_INT_TYPE sharedMemPerBlock;
+  CUDA_INT_TYPE totalConstantMemory;
   int SIMDWidth;
   int memPitch;
   int regsPerBlock;
@@ -362,32 +365,35 @@ UCL_Device::UCL_Device() {
     CU_SAFE_CALL_NS(hipDeviceGetName(namecstr,1024,dev));
     prop.name=namecstr;
 
-    CU_SAFE_CALL_NS(hipDeviceTotalMem(&prop.totalGlobalMem,dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.multiProcessorCount, hipDeviceAttributeMultiprocessorCount, dev));
+    hipDeviceProp_t hip_prop;
 
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsPerBlock, hipDeviceAttributeMaxThreadsPerBlock, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[0], hipDeviceAttributeMaxBlockDimX, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[1], hipDeviceAttributeMaxBlockDimY, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[2], hipDeviceAttributeMaxBlockDimZ, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[0], hipDeviceAttributeMaxGridDimX, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[1], hipDeviceAttributeMaxGridDimY, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[2], hipDeviceAttributeMaxGridDimZ, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.sharedMemPerBlock, hipDeviceAttributeMaxSharedMemoryPerBlock, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.totalConstantMemory, hipDeviceAttributeTotalConstantMemory, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.SIMDWidth, hipDeviceAttributeWarpSize, dev));
+    CU_SAFE_CALL_NS(hipGetDeviceProperties(&hip_prop,dev));
+
+    prop.totalGlobalMem = hip_prop.totalGlobalMem;
+    prop.multiProcessorCount = hip_prop.multiProcessorCount;
+    prop.maxThreadsPerBlock = hip_prop.maxThreadsPerBlock;
+    prop.maxThreadsDim[0] = hip_prop.maxThreadsDim[0];
+    prop.maxThreadsDim[1] = hip_prop.maxThreadsDim[1];
+    prop.maxThreadsDim[2] = hip_prop.maxThreadsDim[2];
+    prop.maxGridSize[0] = hip_prop.maxGridSize[0];
+    prop.maxGridSize[1] = hip_prop.maxGridSize[1];
+    prop.maxGridSize[2] = hip_prop.maxGridSize[2];
+    prop.sharedMemPerBlock = hip_prop.sharedMemPerBlock;
+    prop.totalConstantMemory = hip_prop.totalConstMem;
+    prop.SIMDWidth = hip_prop.warpSize;
+    prop.regsPerBlock = hip_prop.regsPerBlock;
+    prop.clockRate = hip_prop.clockRate;
+    prop.computeMode = hip_prop.computeMode;
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.memPitch, CU_DEVICE_ATTRIBUTE_MAX_PITCH, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.regsPerBlock, hipDeviceAttributeMaxRegistersPerBlock, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.clockRate, hipDeviceAttributeClockRate, dev));
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.textureAlign, CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT, dev));
 
     //#if CUDA_VERSION >= 2020
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.kernelExecTimeoutEnabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT,dev));
     CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.integrated, hipDeviceAttributeIntegrated, dev));
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.canMapHostMemory, CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.computeMode, hipDeviceAttributeComputeMode,dev));
     //#endif
     //#if CUDA_VERSION >= 3010
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.concurrentKernels, hipDeviceAttributeConcurrentKernels, dev));
+    prop.concurrentKernels = hip_prop.concurrentKernels;
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.ECCEnabled, CU_DEVICE_ATTRIBUTE_ECC_ENABLED, dev));
     //#endif
 

@@ -69,6 +69,9 @@ class UCL_Program {
     return _device_ptr->load_module(program, _module, log);
   }
 
+  /// Return the default command queue/stream associated with this data
+  inline hipStream_t & cq() { return _cq; }
+
   friend class UCL_Kernel;
  private:
   hipModule_t _module;

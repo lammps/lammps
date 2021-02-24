@@ -1929,12 +1929,15 @@ USER-NNP package
 
 **Contents:**
 
-:doc:`pair_style nnp <pair_nnp>` command
+A :doc:`pair_style nnp <pair_nnp>` command which allows to use high-dimensional
+neural network potentials (HDNNPs), a form of machine learning potentials.
+HDNNPs must be carefully trained prior to their application in a molecular
+dynamics simulation.
 
 .. _n2p2: https://github.com/CompPhysVienna/n2p2
 
-To use this package you must have the n2p2 core and interface library
-(``libnnp``, ``libnnpif``) available on your system.
+To use this package you must have the `n2p2 <n2p2_>`_ library installed and
+compiled on your system.
 
 **Author:** Andreas Singraber
 
@@ -1946,6 +1949,7 @@ This package has :ref:`specific installation instructions <user-nnp>` on the :do
 
 * src/USER-NNP: filenames -> commands
 * src/USER-NNP/README
+* lib/nnp/README
 * :doc:`pair_style nnp <pair_nnp>`
 * examples/USER/nnp
 

@@ -8,7 +8,7 @@ details on how the pair style is used. An example is provided in the
 "examples/USER/nnp" directory of LAMMPS.
 
 The USER-NNP package requires the external library n2p2 which must be
-downloaded and compiled before starting the build process of LAMMPS. A rough
+downloaded and compiled before starting the build process of LAMMPS. A
 guideline on how to build n2p2 is presented in "lib/nnp/README". This package
 supports the LAMMPS build process via CMake and traditional makefiles, please
 see the LAMMPS manual section on building with external libraries for more

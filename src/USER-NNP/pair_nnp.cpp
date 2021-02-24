@@ -21,6 +21,7 @@
 #include "pair_nnp.h"
 #include <mpi.h>
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
@@ -33,20 +34,34 @@
 
 using namespace LAMMPS_NS;
 
+static const char cite_user_nnp_package[] =
+  "USER-NNP package:\n\n"
+  "@Article{Singraber19,\n"
+  " author = {Singraber, Andreas and Behler, J{\"o}rg and Dellago, Christoph},\n"
+  " title = {Library-{{Based LAMMPS Implementation}} of {{High}}-{{Dimensional Neural Network Potentials}}},\n"
+  " year = {2019},\n"
+  " month = mar,\n"
+  " volume = {15},\n"
+  " pages = {1827--1840},\n"
+  " doi = {10.1021/acs.jctc.8b00770},\n"
+  " journal = {J.~Chem.~Theory~Comput.},\n"
+  " number = {3}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 PairNNP::PairNNP(LAMMPS *lmp) : Pair(lmp)
 {
-    interface = new nnp::InterfaceLammps();
+  if (lmp->citeme) lmp->citeme->add(cite_user_nnp_package);
+
+  interface = new nnp::InterfaceLammps();
 }
 
-/* ----------------------------------------------------------------------
-   check if allocated, since class can be destructed when incomplete
-------------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
 PairNNP::~PairNNP()
 {
-    delete interface;
+  delete interface;
 }
 
 /* ---------------------------------------------------------------------- */

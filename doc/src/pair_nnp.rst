@@ -49,14 +49,13 @@ This pair style adds an interaction based on the high-dimensional neural network
 potential (HDNNP) method as presented in :ref:`(Behler and Parrinello 2007)
 <Behler_Parrinello_2007>`. HDNNPs are machine learning potentials which require
 careful training of neural networks prior to application in MD simulations. The
-pair style uses an interface to the *n2p2* library :ref:`(Singraber et al 2019)
-<Singraber_et_al_2019>` which is available on Github `here
-<https://github.com/CompPhysVienna/n2p2>`__. Please see the *n2p2*
+pair style uses an interface to the *n2p2* library :ref:`(Singraber, Behler and
+Dellago 2019) <Singraber_Behler_Dellago_2019>` which is available on Github
+`here <https://github.com/CompPhysVienna/n2p2>`__. Please see the *n2p2*
 `documentation <https://compphysvienna.github.io/n2p2/>`__ for further details.
 *n2p2* (and hence this pair style) is compatible with neural network potentials
-trained with its own tools and with `RuNNer
-<https://www.uni-goettingen.de/de/560580.html>`__. However, at this point only
-short-range HDNNPs are supported.
+trained with its own tools :ref:`(Singraber et al 2019) <Singraber_et_al_2019>`
+and with `RuNNer <https://www.uni-goettingen.de/de/560580.html>`__.
 
 The maximum cutoff radius of all symmetry functions (the atomic environment
 descriptors of HDNNPs) is the only argument of the *pair_coeff* command which
@@ -189,17 +188,20 @@ should only be invoked with asterisk wild cards (see above).
 This style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This style does not write information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair_style and
-pair_coeff commands in an input script that reads a restart file.
+This style does not write information to :doc:`binary restart files <restart>`.
+Thus, you need to re-specify the pair_style and pair_coeff commands in an input
+script that reads a restart file.
 
-This style can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  It does not support the *inner*\ ,
-*middle*\ , *outer* keywords.
+This style can only be used via the *pair* keyword of the :doc:`run_style respa
+<run_style>` command.  It does not support the *inner*\ , *middle*\ , *outer*
+keywords.
 
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-NNP package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the USER-NNP package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` doc
+page for more info.
 
 Please report bugs and feature requests to the `n2p2 GitHub issue page
 <https://github.com/CompPhysVienna/n2p2/issues>`__.
@@ -226,9 +228,16 @@ Neural-Network Representation of High-Dimensional Potential-Energy Surfaces.
 Phys. Rev. Lett.  2007, 98 (14), 146401.
 <https://doi.org/10.1103/PhysRevLett.98.146401>`__
 
+.. _Singraber_Behler_Dellago_2019:
+
+**(Singraber, Behler and Dellago 2019)** `Singraber, A.; Behler, J.; Dellago, C.
+Library-Based LAMMPS Implementation of High-Dimensional Neural Network
+Potentials. J. Chem.  Theory Comput. 2019, 15 (3), 1827-1840
+<https://doi.org/10.1021/acs.jctc.8b00770>`__
+
 .. _Singraber_et_al_2019:
 
-**(Singraber et al 2019)** `Singraber, A.; Behler, J.; Dellago, C. Library-Based
-LAMMPS Implementation of High-Dimensional Neural Network Potentials. J. Chem.
-Theory Comput. 2019, 15 (3), 1827-1840
-<https://doi.org/10.1021/acs.jctc.8b00770>`__
+**(Singraber et al 2019)** `Singraber, A.; Morawietz, T.; Behler, J.; Dellago,
+C. Parallel Multistream Training of High-Dimensional Neural Network Potentials.
+J. Chem. Theory Comput.  2019, 15 (5), 3075-3092.
+<https://doi.org/10.1021/acs.jctc.8b01092>`__

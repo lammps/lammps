@@ -264,18 +264,18 @@ To build with this package, the KIM library with API v2 must be downloaded
 and built on your system. It must include the KIM models that you want to
 use with LAMMPS.
 
-If you would like to use the :doc:`kim_query <kim_commands>`
+If you would like to use the :doc:`kim query <kim_commands>`
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
-If you would like to use the :doc:`kim_property <kim_commands>`
+If you would like to use the :doc:`kim property <kim_commands>`
 command, you need to build LAMMPS with the PYTHON package installed
 and linked to Python 3.6 or later. See the :ref:`PYTHON package build info <python>`
 for more details on this. After successfully building LAMMPS with Python, you
-also need to install the kim-property Python package, which can be easily done using
-*pip* as ``pip install kim-property``, or from the *conda-forge* channel as
-``conda install kim-property`` if LAMMPS is built in Conda. More detailed
-information is available at:
+also need to install the ``kim-property`` Python package, which can be easily
+done using *pip* as ``pip install kim-property``, or from the *conda-forge*
+channel as ``conda install kim-property`` if LAMMPS is built in Conda. More
+detailed information is available at:
 `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
 
 In addition to installing the KIM API, it is also necessary to install the
@@ -315,7 +315,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
 
       You can download and build the KIM library manually if you prefer;
       follow the instructions in ``lib/kim/README``.  You can also do
-      this in one step from the lammps/src dir, using a command like
+      this in one step from the lammps/src directory, using a command like
       these, which simply invoke the ``lib/kim/Install.py`` script with
       the specified args.
 
@@ -335,7 +335,7 @@ minutes to hours) to build.  Of course you only need to do that once.)
 
       .. code-block:: make
 
-         LMP_INC =       -DLMP_NO_SSL_CHECK
+         LMP_INC = -DLMP_NO_SSL_CHECK
 
 Debugging OpenKIM web queries in LAMMPS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -383,10 +383,11 @@ Enabling the extra unit tests have some requirements,
   Conda. More detailed information is available at:
   `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
 * It is also necessary to install
-  ``EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000``, and
-  ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`` KIM models.
+  ``EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000``,
+  ``EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005``, and
+  ``LennardJones612_UniversalShifted__MO_959249795837_003`` KIM models.
   See `Obtaining KIM Models <http://openkim.org/doc/usage/obtaining-models>`_
-  to learn how to install a pre-build binary of the OpenKIM Repository of
+  to learn how to install a pre-built binary of the OpenKIM Repository of
   Models or see
   `Installing KIM Models <https://openkim.org/doc/usage/obtaining-models/#installing_models>`_
   to learn how to install the specific KIM models.

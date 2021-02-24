@@ -55,12 +55,6 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_param, KimParam)
-
-#else
-
 #ifndef LMP_KIM_PARAM_H
 #define LMP_KIM_PARAM_H
 
@@ -73,16 +67,12 @@ class KimParam : protected Pointers
 {
 public:
   KimParam(class LAMMPS *lmp);
-
-  ~KimParam();
-
   void command(int, char **);
 };
 
-} // namespace LAMMPS_NS
+}
 
-#endif // LMP_KIM_PARAM_H
-#endif // COMMAND_CLASS
+#endif
 
 /* ERROR/WARNING messages:
 

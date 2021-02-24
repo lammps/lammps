@@ -52,29 +52,30 @@ using namespace MathConst;
 // External functions from cuda library for atom decomposition
 
 int dplj_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
-                 double **host_lj2, double **host_lj3, double **host_lj4,
-                 double **offset, double *special_lj, const int nlocal,
-                 const int nall, const int max_nbors, const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen,
-                 double **host_cut_ljsq, const double host_cut_coulsq,
-                 double *host_special_coul, const double qqrd2e, const double g_ewald);
+                  double **host_lj2, double **host_lj3, double **host_lj4,
+                  double **offset, double *special_lj, const int nlocal,
+                  const int nall, const int max_nbors, const int maxspecial,
+                  const double cell_size, int &gpu_mode, FILE *screen,
+                  double **host_cut_ljsq, const double host_cut_coulsq,
+                  double *host_special_coul, const double qqrd2e,
+                  const double g_ewald);
 void dplj_gpu_clear();
 int ** dplj_gpu_compute_n(const int ago, const int inum,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag,
-                         int **nspecial, tagint **special, const bool eflag,
-                         const bool vflag, const bool eatom, const bool vatom,
-                         int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success,
-                         double *host_q, double **host_mu,
-                         double *boxlo, double *prd);
+                          const int nall, double **host_x, int *host_type,
+                          double *sublo, double *subhi, tagint *tag,
+                          int **nspecial, tagint **special, const bool eflag,
+                          const bool vflag, const bool eatom, const bool vatom,
+                          int &host_start, int **ilist, int **jnum,
+                          const double cpu_time, bool &success,
+                          double *host_q, double **host_mu,
+                          double *boxlo, double *prd);
 void dplj_gpu_compute(const int ago, const int inum,
-                     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-                     const bool eflag, const bool vflag, const bool eatom,
-                     const bool vatom, int &host_start, const double cpu_time,
-                     bool &success, double *host_q, double **host_mu,
-                     const int nlocal, double *boxlo, double *prd);
+                      const int nall, double **host_x, int *host_type,
+                      int *ilist, int *numj, int **firstneigh,
+                      const bool eflag, const bool vflag, const bool eatom,
+                      const bool vatom, int &host_start, const double cpu_time,
+                      bool &success, double *host_q, double **host_mu,
+                      const int nlocal, double *boxlo, double *prd);
 double dplj_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
@@ -196,9 +197,10 @@ void PairLJCutDipoleLongGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = dplj_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                              offset, force->special_lj, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen, cut_ljsq, cut_coulsq,
                              force->special_coul, force->qqrd2e, g_ewald);
   GPU_EXTRA::check_flag(success,error,world);

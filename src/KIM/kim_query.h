@@ -55,12 +55,6 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_query,KimQuery)
-
-#else
-
 #ifndef LMP_KIM_QUERY_H
 #define LMP_KIM_QUERY_H
 
@@ -76,7 +70,6 @@ class KimQuery : protected Pointers {
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

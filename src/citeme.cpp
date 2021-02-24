@@ -118,7 +118,7 @@ void CiteMe::flush()
       if (!citefile.empty())
         logbuffer += fmt::format(cite_file,"file",citefile);
       if (screen_flag == VERBOSE)
-        scrbuffer += fmt::format(cite_file,"screen","output");
+        logbuffer += fmt::format(cite_file,"screen","output");
       logbuffer += cite_separator;
       if (logfile) fputs(logbuffer.c_str(),logfile);
       logbuffer.clear();

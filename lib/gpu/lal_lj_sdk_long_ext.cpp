@@ -58,7 +58,7 @@ int sdkl_gpu_init(const int ntypes, double **cutsq, int **cg_type,
   int init_ok=0;
   if (world_me==0)
     init_ok=CMMLMF.init(ntypes, cutsq, cg_type, host_lj1, host_lj2, host_lj3,
-                        host_lj4, offset, special_lj, inum, nall, 300,
+                        host_lj4, offset, special_lj, inum, nall, max_nbors,
                         maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e,g_ewald);
 
@@ -77,7 +77,7 @@ int sdkl_gpu_init(const int ntypes, double **cutsq, int **cg_type,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=CMMLMF.init(ntypes, cutsq, cg_type, host_lj1, host_lj2, host_lj3,
-                          host_lj4, offset, special_lj, inum,  nall, 300,
+                          host_lj4, offset, special_lj, inum,  nall, max_nbors,
                           maxspecial, cell_size, gpu_split, screen,
                           host_cut_ljsq, host_cut_coulsq, host_special_coul,
                           qqrd2e, g_ewald);

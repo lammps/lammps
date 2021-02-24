@@ -173,9 +173,10 @@ void PairLJCutDipoleCutGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = dpl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                              offset, force->special_lj, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen, cut_ljsq, cut_coulsq,
                              force->special_coul, force->qqrd2e);
   GPU_EXTRA::check_flag(success,error,world);

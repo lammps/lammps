@@ -39,7 +39,7 @@ class UCL_H_Vec : public UCL_BaseMat {
    };
    typedef numtyp data_type;
 
-  UCL_H_Vec() : _cols(0) {
+ UCL_H_Vec() : _cols(0), _row_bytes(0) {
     #ifdef _OCL_MAT
     _carray=(cl_mem)(0);
     #endif
@@ -135,7 +135,7 @@ class UCL_H_Vec : public UCL_BaseMat {
     _cols=cols;
     _row_bytes=_cols*sizeof(numtyp);
     this->_cq=input.cq();
-    _array=input.begin();
+    _array=(numtyp *)input.begin();
     _end=_array+_cols;
     #ifdef _OCL_MAT
     _carray=input.cbegin();
@@ -240,10 +240,10 @@ class UCL_H_Vec : public UCL_BaseMat {
     _cols=cols;
     _row_bytes=_cols*sizeof(numtyp);
     this->_cq=input.cq();
-    _array=input.begin()+offset;
+    _array=(numtyp *)input.begin()+offset;
     _end=_array+_cols;
     #ifdef _OCL_MAT
-    _host_view(*this,input,_row_bytes);
+    _host_view(*this,input,offset*sizeof(numtyp),_row_bytes);
     #endif
   }
 

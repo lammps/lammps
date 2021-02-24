@@ -309,13 +309,11 @@ void PairKIM::settings(int narg, char **arg)
   set_lmps_flags();
 
   // set KIM Model name
-  int nmlen = strlen(arg[0]);
   if (kim_modelname != 0) {
     delete [] kim_modelname;
     kim_modelname = 0;
   }
-  kim_modelname = new char[nmlen+1];
-  strcpy(kim_modelname, arg[0]);
+  kim_modelname = utils::strdup(arg[0]);
 
   // initialize KIM Model
   kim_init();
@@ -330,7 +328,7 @@ void PairKIM::coeff(int narg, char **arg)
   // This is called when "pair_coeff ..." is read from input
   // may be called multiple times
 
-  int i,j,n;
+  int i,j;
 
   if (!allocated) allocate();
 
@@ -373,9 +371,7 @@ void PairKIM::coeff(int narg, char **arg)
       if (strcmp(arg[i],lmps_unique_elements[j]) == 0) break;
     lmps_map_species_to_unique[i-1] = j;
     if (j == lmps_num_unique_elements) {
-      n = strlen(arg[i]) + 1;
-      lmps_unique_elements[j] = new char[n];
-      strcpy(lmps_unique_elements[j],arg[i]);
+      lmps_unique_elements[j] = utils::strdup(arg[i]);
       lmps_num_unique_elements++;
     }
   }
@@ -601,6 +597,8 @@ void PairKIM::init_style()
 
     // set cutoff
     neighbor->requests[irequest]->cut = 1;
+    if (kim_cutoff_values[i] <= neighbor->skin)
+      error->all(FLERR,"Illegal neighbor request (force cutoff <= skin)");
     neighbor->requests[irequest]->cutoff
       = kim_cutoff_values[i] + neighbor->skin;
   }
@@ -1161,6 +1159,6 @@ void PairKIM::set_kim_model_has_flags()
   }
 }
 
-KIM_Model *PairKIM::get_KIM_Model() { return pkim; }
+KIM_Model *PairKIM::get_kim_model() { return pkim; }
 
 std::string PairKIM::get_atom_type_list() { return atom_type_list; }

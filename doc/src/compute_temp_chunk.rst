@@ -153,7 +153,7 @@ temp/chunk calculation to a file is to use the :doc:`fix ave/time <fix_ave_time>
 
    compute cc1 all chunk/atom molecule
    compute myChunk all temp/chunk cc1 temp
-   fix 1 all ave/time 100 1 100 c_myChunk file tmp.out mode vector
+   fix 1 all ave/time 100 1 100 c_myChunk[1] file tmp.out mode vector
 
 ----------
 

@@ -57,7 +57,7 @@ class BaseCharge {
                   const void *pair_program, const char *k_name);
 
   /// Estimate the overhead for GPU context changes and CPU driver
-  void estimate_gpu_overhead();
+  void estimate_gpu_overhead(const int add_kernels=0);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -103,7 +103,7 @@ class BaseCharge {
   /// Accumulate timers
   inline void acc_timers() {
     if (device->time_device()) {
-      nbor->acc_timers();
+      nbor->acc_timers(screen);
       time_pair.add_to_total();
       atom->acc_timers();
       ans->acc_timers();
@@ -177,9 +177,15 @@ class BaseCharge {
   Neighbor *nbor;
 
   // ------------------------- DEVICE KERNELS -------------------------
-  UCL_Program *pair_program;
-  UCL_Kernel k_pair_fast, k_pair;
+  UCL_Program *pair_program, *pair_program_noev;
+  UCL_Kernel k_pair_fast, k_pair, k_pair_noev, *k_pair_sel;
   inline int block_size() { return _block_size; }
+  inline void set_kernel(const int eflag, const int vflag) {
+    #if defined(LAL_OCL_EV_JIT)
+    if (eflag || vflag) k_pair_sel = &k_pair_fast;
+    else k_pair_sel = &k_pair_noev;
+    #endif
+  }
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture pos_tex;
@@ -194,7 +200,7 @@ class BaseCharge {
 
   void compile_kernels(UCL_Device &dev, const void *pair_string, const char *k);
 
-  virtual void loop(const bool _eflag, const bool _vflag) = 0;
+  virtual int loop(const int eflag, const int vflag) = 0;
 };
 
 }

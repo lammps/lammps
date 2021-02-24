@@ -129,7 +129,8 @@ double pppm_gpu_bytes_f() {
 void pppm_gpu_forces_f(double **f) {
   double etmp;
   PPPMF.atom->data_unavail();
-  PPPMF.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp);
+  int error_flag;
+  PPPMF.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp,error_flag);
 }
 
 double * pppm_gpu_init_d(const int nlocal, const int nall, FILE *screen,
@@ -173,6 +174,7 @@ double pppm_gpu_bytes_d() {
 void pppm_gpu_forces_d(double **f) {
   double etmp;
   PPPMD.atom->data_unavail();
-  PPPMD.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp);
+  int error_flag;
+  PPPMD.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp,error_flag);
 }
 

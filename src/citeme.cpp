@@ -15,7 +15,7 @@
 #include "comm.h"
 #include "universe.h"
 
-#include <cstdint>
+#include <functional>
 
 using namespace LAMMPS_NS;
 
@@ -28,23 +28,8 @@ static const char cite_nagline[] =
 static const char cite_file[] = "The {} {} lists these citations in "
                                 "BibTeX format.\n\n";
 
-// for crc32 checksums
-static uint32_t crc32_table[0x100];
-static uint32_t crc32_for_byte(uint32_t r)
-{
-  for(int j = 0; j < 8; ++j)
-    r = (r & 1? 0: (uint32_t)0xEDB88320L) ^ r >> 1;
-  return r ^ (uint32_t)0xFF000000L;
-}
-
-// compute crc32 for string
-static unsigned int get_crc32(const std::string &text)
-{
-  uint32_t crc = 0;
-  for (auto c : text)
-    crc = crc32_table[(uint8_t)crc ^ (uint8_t)c] ^ crc >> 8;
-  return crc;
-}
+// define hash function
+static std::hash<std::string> get_hash;
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,10 +38,6 @@ CiteMe::CiteMe(LAMMPS *lmp, int _screen, int _logfile, const char *_file)
 {
   fp = nullptr;
   cs = new citeset();
-
-  // fill crc32 table
-  for(size_t i = 0; i < 0x100; ++i)
-    crc32_table[i] = crc32_for_byte(i);
 
   screen_flag = _screen;
   scrbuffer.clear();
@@ -96,7 +77,7 @@ void CiteMe::add(const std::string &reference)
 {
   if (comm->me != 0) return;
 
-  unsigned int crc = get_crc32(reference);
+  unsigned int crc = get_hash(reference);
   if (cs->find(crc) != cs->end()) return;
   cs->insert(crc);
 

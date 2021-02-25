@@ -18,16 +18,16 @@
 
 #include "dihedral_helix.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -161,8 +161,8 @@ void DihedralHelix::compute(int eflag, int vflag)
     // error check
 
     if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
+      int me = comm->me;
+
       if (screen) {
         char str[128];
         sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "

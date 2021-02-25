@@ -199,6 +199,15 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("variable dihedral_style index '" + cfg.dihedral_style + "'");
     command("variable data_file index " + cfg.basename + ".data");
 
+    // special treatment for dihedral styles charmm and charmmfsw
+    if (cfg.dihedral_style == "charmm") {
+        command("variable pair_style delete");
+        command("variable pair_style index 'lj/charmm/coul/charmm 7.0 8.0'");
+    } else if (cfg.dihedral_style == "charmmfsw") {
+        command("variable pair_style delete");
+        command("variable pair_style index 'lj/charmmfsw/coul/charmmfsh 7.0 8.0'");
+    }
+
     std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
     parse_input_script(input_file);
 

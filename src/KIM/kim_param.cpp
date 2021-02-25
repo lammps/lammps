@@ -90,43 +90,45 @@ void get_kim_unit_names(
     KIM_TimeUnit &timeUnit,
     Error *error)
 {
-  if ((strcmp(system, "real") == 0)) {
+  const std::string system_str(system);
+  if (system_str == "real") {
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_kcal_mol;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((strcmp(system, "metal") == 0)) {
+  } else if (system_str == "metal") {
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_eV;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_ps;
-  } else if ((strcmp(system, "si") == 0)) {
+  } else if (system_str == "si") {
     lengthUnit = KIM_LENGTH_UNIT_m;
     energyUnit = KIM_ENERGY_UNIT_J;
     chargeUnit = KIM_CHARGE_UNIT_C;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if ((strcmp(system, "cgs") == 0)) {
+  } else if (system_str == "cgs") {
     lengthUnit = KIM_LENGTH_UNIT_cm;
     energyUnit = KIM_ENERGY_UNIT_erg;
     chargeUnit = KIM_CHARGE_UNIT_statC;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if ((strcmp(system, "electron") == 0)) {
+  } else if (system_str == "electron") {
     lengthUnit = KIM_LENGTH_UNIT_Bohr;
     energyUnit = KIM_ENERGY_UNIT_Hartree;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if (strcmp(system, "lj") == 0 ||
-             strcmp(system, "micro") ==0 ||
-             strcmp(system, "nano")==0) {
+  } else if ((system_str == "lj") ||
+             (system_str == "micro") ||
+             (system_str == "nano")) {
     error->all(FLERR, fmt::format("LAMMPS unit_style {} not supported "
-                                  "by KIM models", system));
-  } else
+                                  "by KIM models", system_str));
+  } else {
     error->all(FLERR, "Unknown unit_style");
+  }
 }
 } // namespace
 
@@ -213,7 +215,7 @@ void KimParam::command(int narg, char **arg)
     if (kim_param_get_set == "get") {
       int kim_error;
       // Parameter name
-      char *paramname = nullptr;
+      std::string paramname;
       // Variable name
       std::string varname;
 
@@ -221,7 +223,7 @@ void KimParam::command(int narg, char **arg)
       for (int i = 1; i < narg;) {
         // Parameter name
         if (i < narg)
-          paramname = arg[i++];
+          paramname = std::string(arg[i++]);
         else
           break;
 
@@ -239,7 +241,8 @@ void KimParam::command(int narg, char **arg)
           if (kim_error)
             error->all(FLERR, "KIM GetParameterMetadata returned error");
 
-          if (strcmp(paramname, str_name) == 0) break;
+          const std::string str_name_str(str_name);
+          if (paramname == str_name_str) break;
         }
 
         if (param_index >= numberOfParameters) {
@@ -302,8 +305,10 @@ void KimParam::command(int narg, char **arg)
 
         if (i < narg) {
           // Get the variable/variable_base name
-          varname = arg[i++];
-          if (varname == "split" || varname == "list" || varname == "explicit")
+          varname = std::string(arg[i++]);
+          if ((varname == "split") ||
+              (varname == "list") ||
+              (varname == "explicit"))
             error->all(FLERR, "Illegal variable name in 'kim param get'");
         } else {
           std::string msg("Wrong number of arguments in 'kim param get' ");
@@ -316,13 +321,14 @@ void KimParam::command(int narg, char **arg)
 
         if (nvars > 1) {
           if (i < narg) {
-            if (strcmp(arg[i], "split") == 0) {
+            std::string formatarg(arg[i]);
+            if (formatarg == "split") {
               varsname.resize(nvars);
               for (int j = 0, k = nlbound; j < nvars; ++j, ++k) {
                 varsname[j] = fmt::format("{}_{}", varname, k);
               }
               ++i;
-            } else if (strcmp(arg[i], "list") == 0) {
+            } else if (formatarg == "list") {
               list_requested = true;
               varsname.resize(1);
               varsname[0] = varname;
@@ -332,13 +338,14 @@ void KimParam::command(int narg, char **arg)
               varsname.resize(nvars);
               --i;
               for (int j = 0; j < nvars; ++j, ++i) {
-                varsname[j] = arg[i];
+                varsname[j] = std::string(arg[i]);
                 if (varsname[j] == "split" || varsname[j] == "list" ||
                     varsname[j] == "explicit")
                   error->all(FLERR, "Illegal variable name in 'kim param get'");
               }
               if (i < narg) {
-                if (strcmp(arg[i], "explicit") == 0) ++i;
+                formatarg = std::string(arg[i]);
+                if (formatarg == "explicit") ++i;
               }
             } else {
               auto msg =
@@ -357,13 +364,12 @@ void KimParam::command(int narg, char **arg)
         } else {
           varsname.resize(1);
           if (i < narg) {
-            if (strcmp(arg[i], "split") == 0) {
+            const std::string formatarg(arg[i]);
+            if (formatarg == "split") {
               varsname[0] = fmt::format("{}_{}", varname, nlbound);
               ++i;
             } else {
-              if ((strcmp(arg[i], "list") == 0) ||
-                  (strcmp(arg[i], "explicit") == 0)) ++i;
-
+              if (formatarg == "list" || formatarg == "explicit") ++i;
               varsname[0] = varname;
             }
           } else {

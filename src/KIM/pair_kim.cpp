@@ -309,10 +309,11 @@ void PairKIM::settings(int narg, char **arg)
   init_style_call_count = 0;
 
   if (narg != 1) {
-    if ((narg > 0) && ((0 == strcmp("KIMvirial", arg[0])) ||
-                       (0 == strcmp("LAMMPSvirial", arg[0])))) {
-      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not "
-                       "supported with kim-api");
+    const std::string arg_str(arg[0]);
+    if ((narg > 0) &&
+        ((arg_str == "KIMvirial") || (arg_str == "LAMMPSvirial"))) {
+      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported "
+                       "with kim-api");
     } else error->all(FLERR,"Illegal pair_style command");
   }
   // arg[0] is the KIM Model name
@@ -355,14 +356,16 @@ void PairKIM::coeff(int narg, char **arg)
 
   // insure I,J args are * *
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+  const std::string arg_0_str(arg[0]);
+  const std::string arg_1_str(arg[1]);
+  if ((arg_0_str != "*") || (arg_1_str != "*"))
     error->all(FLERR,"Incorrect args for pair coefficients.\nThe first two "
                      "arguments of pair_coeff command must be * * to span "
                      "all LAMMPS atom types");
 
   int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg_0_str,1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg_1_str,1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
@@ -444,12 +447,12 @@ void PairKIM::coeff(int narg, char **arg)
     int kimerror;
 
     // Parameter name
-    char *paramname = nullptr;
+    std::string paramname;
 
     for (int i = 2 + atom->ntypes; i < narg;) {
       // Parameter name
       if (i < narg)
-        paramname = arg[i++];
+        paramname = std::string(arg[i++]);
       else
         break;
 
@@ -466,7 +469,8 @@ void PairKIM::coeff(int narg, char **arg)
         if (kimerror)
           error->all(FLERR,"KIM GetParameterMetadata returned error");
 
-        if (strcmp(paramname, str_name) == 0) break;
+        const std::string str_name_str(str_name);
+        if (paramname == str_name_str) break;
       }
 
       if (param_index >= numberOfParameters) {
@@ -1012,47 +1016,49 @@ void PairKIM::set_lmps_flags()
   if (force->pair_match("hybrid",0))
     error->all(FLERR,"pair_kim does not support hybrid");
 
+  const std::string unit_style_str(update->unit_style);
+
   // determine unit system and set lmps_units flag
-  if (strcmp(update->unit_style,"real") == 0) {
+  if (unit_style_str == "real") {
     lmps_units = REAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_kcal_mol;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if (strcmp(update->unit_style,"metal") == 0) {
+  } else if (unit_style_str == "metal") {
     lmps_units = METAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_eV;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_ps;
-  } else if (strcmp(update->unit_style,"si") == 0) {
+  } else if (unit_style_str == "si") {
     lmps_units = SI;
     lengthUnit = KIM_LENGTH_UNIT_m;
     energyUnit = KIM_ENERGY_UNIT_J;
     chargeUnit = KIM_CHARGE_UNIT_C;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if (strcmp(update->unit_style,"cgs") == 0) {
+  } else if (unit_style_str == "cgs") {
     lmps_units = CGS;
     lengthUnit = KIM_LENGTH_UNIT_cm;
     energyUnit = KIM_ENERGY_UNIT_erg;
     chargeUnit = KIM_CHARGE_UNIT_statC;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if (strcmp(update->unit_style,"electron") == 0) {
+  } else if (unit_style_str == "electron") {
     lmps_units = ELECTRON;
     lengthUnit = KIM_LENGTH_UNIT_Bohr;
     energyUnit = KIM_ENERGY_UNIT_Hartree;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if (strcmp(update->unit_style,"lj") == 0 ||
-             strcmp(update->unit_style,"micro") == 0 ||
-             strcmp(update->unit_style,"nano") == 0) {
+  } else if ((unit_style_str == "lj") ||
+             (unit_style_str == "micro") ||
+             (unit_style_str == "nano")) {
     error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
-                                 "by KIM models", update->unit_style));
+                                 "by KIM models", unit_style_str));
   } else {
     error->all(FLERR,"Unknown unit_style");
   }

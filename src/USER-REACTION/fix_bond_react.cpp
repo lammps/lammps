@@ -1392,11 +1392,20 @@ void FixBondReact::superimpose_algorithm()
 
   MPI_Allreduce(&local_rxn_count[0],&reaction_count[0],nreacts,MPI_INT,MPI_SUM,world);
 
+  int rxnflag = 0;
   if (me == 0)
-    for (int i = 0; i < nreacts; i++)
+    for (int i = 0; i < nreacts; i++) {
       reaction_count_total[i] += reaction_count[i] + ghostly_rxn_count[i];
+      rxnflag += reaction_count[i] + ghostly_rxn_count[i];
+    }
 
   MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
+  MPI_Bcast(&rxnflag, 1, MPI_INT, 0, world);
+
+  if (!rxnflag) {
+    unlimit_bond();
+    return;
+  }
 
   // check if we overstepped our reaction limit
   for (int i = 0; i < nreacts; i++) {
@@ -2531,9 +2540,9 @@ we give them back to the system thermostat
 
 void FixBondReact::unlimit_bond()
 {
-  //let's now unlimit in terms of i_limit_tags
-  //we just run through all nlocal, looking for > limit_duration
-  //then we return i_limit_tag to 0 (which removes from dynamic group)
+  // let's now unlimit in terms of i_limit_tags
+  // we just run through all nlocal, looking for > limit_duration
+  // then we return i_limit_tag to 0 (which removes from dynamic group)
   int flag;
   int index1 = atom->find_custom("limit_tags",flag);
   int *i_limit_tags = atom->ivector[index1];
@@ -2547,18 +2556,20 @@ void FixBondReact::unlimit_bond()
   int index3 = atom->find_custom("react_tags",flag);
   int *i_react_tags = atom->ivector[index3];
 
+  int unlimitflag = 0;
   for (int i = 0; i < atom->nlocal; i++) {
     // unlimit atoms for next step! this resolves # of procs disparity, mostly
     // first '1': indexing offset, second '1': for next step
-    if (i_limit_tags[i] != 0 && (update->ntimestep + 1 - i_limit_tags[i]) > limit_duration[i_react_tags[i]]) { // + 1
+    if (i_limit_tags[i] != 0 && (update->ntimestep + 1 - i_limit_tags[i]) > limit_duration[i_react_tags[i]]) {
+      unlimitflag = 1;
       i_limit_tags[i] = 0;
       if (stabilization_flag == 1) i_statted_tags[i] = 1;
       i_react_tags[i] = 0;
     }
   }
 
-  //really should only communicate this per-atom property, not entire reneighboring
-  next_reneighbor = update->ntimestep;
+  // really should only communicate this per-atom property, not entire reneighboring
+  if (unlimitflag) next_reneighbor = update->ntimestep;
 }
 
 /* ----------------------------------------------------------------------

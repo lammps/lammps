@@ -27,7 +27,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperZero::ImproperZero(LAMMPS *lmp) : Improper(lmp), coeffflag(1) {}
+ImproperZero::ImproperZero(LAMMPS *lmp) : Improper(lmp), coeffflag(1)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

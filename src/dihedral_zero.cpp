@@ -27,7 +27,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp), coeffflag(1) {}
+DihedralZero::DihedralZero(LAMMPS *lmp) : Dihedral(lmp), coeffflag(1)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 

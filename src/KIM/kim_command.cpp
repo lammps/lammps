@@ -66,8 +66,6 @@
 #include "kim_property.h"
 #include "kim_query.h"
 
-#include <memory>
-
 using namespace LAMMPS_NS;
 
 static constexpr const char *const cite_openkim =
@@ -113,20 +111,25 @@ void KimCommand::command(int narg, char **arg)
   if (lmp->citeme) lmp->citeme->add(cite_openkim);
 
   if (subcmd == "init") {
-    std::unique_ptr<KimInit> cmd(new KimInit(lmp));
+    KimInit *cmd = new KimInit(lmp);
     cmd->command(narg, arg);
+    delete cmd;
   } else if (subcmd == "interactions") {
-    std::unique_ptr<KimInteractions> cmd(new KimInteractions(lmp));
+    KimInteractions *cmd = new KimInteractions(lmp);
     cmd->command(narg, arg);
+    delete cmd;
   } else if (subcmd == "param") {
-    std::unique_ptr<KimParam> cmd(new KimParam(lmp));
+    KimParam *cmd = new KimParam(lmp);
     cmd->command(narg, arg);
+    delete cmd;
   } else if (subcmd == "property") {
-    std::unique_ptr<KimProperty> cmd(new KimProperty(lmp));
+    KimProperty *cmd = new KimProperty(lmp);
     cmd->command(narg, arg);
+    delete cmd;
   } else if (subcmd == "query") {
     if (lmp->citeme) lmp->citeme->add(cite_openkim_query);
-    std::unique_ptr<KimQuery> cmd(new KimQuery(lmp));
+    KimQuery *cmd = new KimQuery(lmp);
     cmd->command(narg, arg);
+    delete cmd;
   } else error->all(FLERR, fmt::format("Unknown kim subcommand {}", subcmd));
 }

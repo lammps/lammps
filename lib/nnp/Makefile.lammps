@@ -1,0 +1,24 @@
+# Settings that the LAMMPS build will import when this package library is used
+# Normally, you do NOT need to edit this file!
+
+# Check out if n2p2 or a link is right here.
+N2P2_LOCALDIR=$(realpath ../../lib/nnp/n2p2)
+ifeq ($(N2P2_DIR),)
+  N2P2_DIR=$(shell test -d $(N2P2_LOCALDIR) && echo $(N2P2_LOCALDIR))
+else
+# If n2p2 is not found in this directory then use environment variable or set manually here:
+# N2P2_DIR=
+endif
+
+# Give up if n2p2 not found yet.
+ifeq ($(N2P2_DIR),)
+$(error Cannot find library for USER-NNP package, please set environment or make variable N2P2_DIR manually.)
+endif
+
+# Read extra NNP_ compilation flags from makefile provided by n2p2:
+include $(N2P2_DIR)/lib/Makefile.lammps-extra
+
+# Next, add general info to include/lib/path variables.
+nnp_SYSINC += -I$(N2P2_DIR)/include
+nnp_SYSLIB += -L$(N2P2_DIR)/lib -lnnpif -lnnp
+nnp_SYSPATH +=

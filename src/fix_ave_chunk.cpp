@@ -15,6 +15,7 @@
 
 #include "arg_info.h"
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
@@ -52,8 +53,6 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/chunk command");
 
-  MPI_Comm_rank(world,&me);
-
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
   nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
@@ -64,6 +63,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   global_freq = nfreq;
   no_change_box = 1;
+
+  char * group = arg[1];
 
   // expand args if any have wildcard character "*"
 
@@ -206,7 +207,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      if (me == 0) {
+      if (comm->me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
           error->one(FLERR,fmt::format("Cannot open fix ave/chunk file {}: {}",
@@ -328,11 +329,11 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // print file comment lines
 
-  if (fp && me == 0) {
+  if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n",
-                 id,arg[1]);
+                 id, group);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# Timestep Number-of-chunks Total-count\n");
     if (title3) fprintf(fp,"%s\n",title3);
@@ -423,7 +424,7 @@ FixAveChunk::~FixAveChunk()
   delete [] ids;
   delete [] value2index;
 
-  if (fp && me == 0) fclose(fp);
+  if (fp && comm->me == 0) fclose(fp);
 
   memory->destroy(varatom);
   memory->destroy(count_one);
@@ -949,7 +950,7 @@ void FixAveChunk::end_of_step()
 
   // output result to file
 
-  if (fp && me == 0) {
+  if (fp && comm->me == 0) {
     clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     double count = 0.0;

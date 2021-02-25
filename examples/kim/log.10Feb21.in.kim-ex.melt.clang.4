@@ -44,8 +44,8 @@ Created 32000 atoms
 kim          interactions Ar
 #=== BEGIN kim interactions ==================================
 pair_style kim LennardJones_Ar
-WARNING: KIM Model does not provide 'partialParticleEnergy'; energy per atom will be zero (src/KIM/pair_kim.cpp:1139)
-WARNING: KIM Model does not provide 'partialParticleVirial'; virial per atom will be zero (src/KIM/pair_kim.cpp:1145)
+WARNING: KIM Model does not provide 'partialParticleEnergy'; energy per atom will be zero (src/KIM/pair_kim.cpp:1153)
+WARNING: KIM Model does not provide 'partialParticleVirial'; virial per atom will be zero (src/KIM/pair_kim.cpp:1159)
 pair_coeff * * Ar
 #=== END kim interactions ====================================
 
@@ -60,6 +60,26 @@ fix          1 all nve
 #fix         1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
 
 run          100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
 Neighbor list info ...
   update every 1 steps, delay 0 steps, check yes
   max neighbors/atom: 2000, page size: 100000
@@ -76,20 +96,20 @@ Per MPI rank memory allocation (min/avg/max) = 9.791 | 9.791 | 9.791 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          200    145069.63            0    164146.22    128015.94 
      100    95.179703    154939.42            0    164017.94    131602.75 
-Loop time of 0.857614 on 4 procs for 100 steps with 32000 atoms
+Loop time of 0.843382 on 4 procs for 100 steps with 32000 atoms
 
-Performance: 10.074 ns/day, 2.382 hours/ns, 116.603 timesteps/s
-99.6% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 10.244 ns/day, 2.343 hours/ns, 118.570 timesteps/s
+99.8% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.73048    | 0.73398    | 0.73855    |   0.3 | 85.58
-Neigh   | 0.083739   | 0.083964   | 0.084335   |   0.1 |  9.79
-Comm    | 0.017996   | 0.022912   | 0.026515   |   2.1 |  2.67
-Output  | 2.7e-05    | 3.5e-05    | 4.5e-05    |   0.0 |  0.00
-Modify  | 0.010073   | 0.010158   | 0.010271   |   0.1 |  1.18
-Other   |            | 0.006571   |            |       |  0.77
+Pair    | 0.71505    | 0.71942    | 0.72345    |   0.4 | 85.30
+Neigh   | 0.089886   | 0.090153   | 0.090611   |   0.1 | 10.69
+Comm    | 0.016342   | 0.020141   | 0.024546   |   2.5 |  2.39
+Output  | 2.4e-05    | 2.625e-05  | 3.2e-05    |   0.0 |  0.00
+Modify  | 0.008197   | 0.0083267  | 0.008504   |   0.1 |  0.99
+Other   |            | 0.005318   |            |       |  0.63
 
 Nlocal:        8000.00 ave        8018 max        7967 min
 Histogram: 1 0 0 0 0 0 1 0 0 2

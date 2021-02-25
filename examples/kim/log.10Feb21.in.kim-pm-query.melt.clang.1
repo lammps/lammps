@@ -90,7 +90,22 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- @Comment
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/MO_405512056662_005#item-citation
+
+@Comment
 {
 \documentclass{article}
 \usepackage{url}
@@ -161,6 +176,19 @@ This Model originally published in \cite{MO_405512056662_005a, MO_405512056662_0
   title = {Modeling Materials: {C}ontinuum, Atomistic and Multiscale Techniques},
   year = {2011},
 }
+- OpenKIM query: https://doi.org/10.1063/5.0014267
+
+@Article{karls:bierbaum:2020,
+ author = {D. S. Karls and M. Bierbaum and A. A. Alemi and R. S. Elliott and J. P. Sethna and E. B. Tadmor},
+ title = {The {O}pen{KIM} processing pipeline: {A} cloud-based automatic material property computation engine},
+ journal = {{T}he {J}ournal of {C}hemical {P}hysics},
+ year =    2020,
+ volume =  153,
+ number =  6,
+ pages =   {064104},
+ doi =     {10.1063/5.0014267}
+}
+
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Neighbor list info ...
@@ -179,20 +207,20 @@ Per MPI rank memory allocation (min/avg/max) = 10.36 | 10.36 | 10.36 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          200   -126084.25            0   -107007.66    1528.8768 
      100    94.450495   -116016.03            0   -107007.07    2282.2685 
-Loop time of 18.2886 on 1 procs for 100 steps with 32000 atoms
+Loop time of 18.2008 on 1 procs for 100 steps with 32000 atoms
 
-Performance: 0.472 ns/day, 50.802 hours/ns, 5.468 timesteps/s
+Performance: 0.475 ns/day, 50.558 hours/ns, 5.494 timesteps/s
 99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 18.155     | 18.155     | 18.155     |   0.0 | 99.27
-Neigh   | 0.087194   | 0.087194   | 0.087194   |   0.0 |  0.48
-Comm    | 0.009477   | 0.009477   | 0.009477   |   0.0 |  0.05
-Output  | 6.7e-05    | 6.7e-05    | 6.7e-05    |   0.0 |  0.00
-Modify  | 0.02616    | 0.02616    | 0.02616    |   0.0 |  0.14
-Other   |            | 0.0111     |            |       |  0.06
+Pair    | 18.058     | 18.058     | 18.058     |   0.0 | 99.21
+Neigh   | 0.097367   | 0.097367   | 0.097367   |   0.0 |  0.53
+Comm    | 0.009271   | 0.009271   | 0.009271   |   0.0 |  0.05
+Output  | 6.1e-05    | 6.1e-05    | 6.1e-05    |   0.0 |  0.00
+Modify  | 0.025469   | 0.025469   | 0.025469   |   0.0 |  0.14
+Other   |            | 0.01084    |            |       |  0.06
 
 Nlocal:        32000.0 ave       32000 max       32000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

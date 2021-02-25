@@ -73,7 +73,9 @@ class AvgChunkFiles(unittest.TestCase):
         self.assertEqual(cfile.timesteps, list(range(10000, 110000, 5000)))
 
         ntimesteps = len(cfile.timesteps)
+        ntotal_count = len(cfile.total_count)
         nchunks = len(cfile.chunks)
+        self.assertEqual(ntimesteps, ntotal_count)
         self.assertEqual(nchunks, 20)
 
         for i in range(1, nchunks+1):

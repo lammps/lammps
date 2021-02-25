@@ -142,7 +142,7 @@ void KimQuery::command(int narg, char **arg)
   if (query_function != "get_available_models") {
     for (int i = 2; i < narg; ++i) {
       // check if the model is specified as an argument
-      if (strncmp("model=", arg[i], 6) == 0) {
+      if (utils::strmatch(arg[i], "^model=")) {
         ValueTokenizer values(arg[i], "=[]");
         std::string key = values.next_string();
         model_name = values.next_string();

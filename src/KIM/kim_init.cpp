@@ -70,6 +70,7 @@
 #include "variable.h"
 
 #include <cstring>
+#include <regex>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
@@ -489,7 +490,15 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
 
 void KimInit::write_log_cite(char *model_name)
 {
-  KIM_Collections * collections;
+  if (!lmp->citeme) return;
+
+  std::string model_name_str(model_name);
+  std::regex re("[MOS]{2}_[0-9]{12}_[0-9]{3}");
+  std::smatch sm;
+
+  if (!std::regex_search(model_name_str, sm, re)) return;
+
+  KIM_Collections *collections;
   int err = KIM_Collections_Create(&collections);
   if (err) return;
 
@@ -514,19 +523,25 @@ void KimInit::write_log_cite(char *model_name)
     return;
   }
 
+  auto pos = sm.prefix().length();
+  auto cite_openkim_potential = fmt::format("OpenKIM potential: "
+    "https://openkim.org/cite/{}#item-citation\n\n",
+    model_name_str.substr(pos, 19));
+
   for (int i = 0; i < extent; ++i) {
-    char const * fileName;
+    char const *fileName;
     int availableAsString;
-    char const * fileString;
+    char const *fileString;
     err = KIM_Collections_GetItemMetadataFile(
-        collections, i, &fileName, nullptr, nullptr,
-        &availableAsString, &fileString);
+      collections, i, &fileName, nullptr, nullptr,
+      &availableAsString, &fileString);
     if (err) continue;
 
-    if (0 == strncmp("kimcite", fileName, 7)) {
-      if ((lmp->citeme) && (availableAsString)) lmp->citeme->add(fileString);
-    }
+    if ((strncmp("kimcite", fileName, 7) == 0) and availableAsString)
+      cite_openkim_potential += fileString;
   }
+
+  lmp->citeme->add(cite_openkim_potential.c_str());
 
   KIM_Collections_Destroy(&collections);
 }

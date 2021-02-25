@@ -57,6 +57,7 @@
 #include "pair_kim.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -72,6 +73,21 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
+
+static constexpr const char *const cite_openkim =
+  "OpenKIM: https://doi.org/10.1007/s11837-011-0102-6\n\n"
+  "@Article{tadmor:elliott:2011,\n"
+  " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
+  "and C. A. Becker},\n"
+  " title = {The potential of atomistic simulations and the {K}nowledgebase of "
+  "{I}nteratomic {M}odels},\n"
+  " journal = {{JOM}},\n"
+  " year =    2011,\n"
+  " volume =  63,\n"
+  " number =  17,\n"
+  " pages =   {17},\n"
+  " doi =     {10.1007/s11837-011-0102-6}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -120,6 +136,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   // (used by kim_free(), etc.)
   kim_init_ok = false;
   kim_particle_codes_ok = false;
+
+  if (lmp->citeme) lmp->citeme->add(cite_openkim);
   // END
 }
 

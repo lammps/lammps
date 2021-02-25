@@ -1402,10 +1402,7 @@ void FixBondReact::superimpose_algorithm()
   MPI_Bcast(&reaction_count_total[0], nreacts, MPI_INT, 0, world);
   MPI_Bcast(&rxnflag, 1, MPI_INT, 0, world);
 
-  if (!rxnflag) {
-    unlimit_bond();
-    return;
-  }
+  if (!rxnflag) return;
 
   // check if we overstepped our reaction limit
   for (int i = 0; i < nreacts; i++) {

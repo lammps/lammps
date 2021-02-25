@@ -71,8 +71,12 @@ void PairNNP::compute(int eflag, int vflag)
   if(eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
-  // Set number of local atoms and add index and element.
-  interface->setLocalAtoms(atom->nlocal,atom->tag,atom->type);
+  // Set number of local atoms and add element.
+  interface->setLocalAtoms(atom->nlocal,atom->type);
+  // Transfer tags separately. Interface::setLocalTags is overloaded internally
+  // to work with both -DLAMMPS_SMALLBIG (tagint = int) and -DLAMMPS_BIGBIG
+  // (tagint = int64_t)
+  interface->setLocalTags(atom->tag);
 
   // Transfer local neighbor list to NNP interface.
   transferNeighborList();

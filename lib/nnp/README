@@ -44,11 +44,11 @@ Please make sure that your compiler settings for n2p2 and LAMMPS are compatible
 (avoid mixing different compilers).
 
 If you want to build a serial version of LAMMPS with USER-NNP package n2p2 must
-also be built without MPI enabled. This can be achieved with a preprocessor
-flag (-DN2P2_NO_MPI) which is (among others) prepared, but commented out, in
-the provided compiler-specific settings makefiles. For example, if you use the
-GNU compiler simply remove the comment character '#' in front of the
-corresponding line in "makefile.gnu". It should then look like this:
+also be built with MPI disabled. This can be achieved with a preprocessor flag
+(-DN2P2_NO_MPI) which is (among others) prepared, but commented out, in the
+provided compiler-specific settings makefiles. For example, if you use the GNU
+compiler simply remove the comment character '#' in front of the corresponding
+line (around line 49) in "makefile.gnu". It should then look like this:
 
     PROJECT_OPTIONS+= -DN2P2_NO_MPI
 

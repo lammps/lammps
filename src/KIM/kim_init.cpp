@@ -537,7 +537,7 @@ void KimInit::write_log_cite(char *model_name)
       &availableAsString, &fileString);
     if (err) continue;
 
-    if ((strncmp("kimcite", fileName, 7) == 0) and availableAsString)
+    if (utils::strmatch(fileName, "^kimcite") && availableAsString)
       cite_openkim_potential += fileString;
   }
 

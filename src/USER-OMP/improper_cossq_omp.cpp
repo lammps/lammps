@@ -15,18 +15,19 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "improper_cossq_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-
-#include "force.h"
-#include "update.h"
 #include "error.h"
-
+#include "force.h"
+#include "neighbor.h"
 #include "suffix.h"
+#include "update.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 #define TOLERANCE 0.05
@@ -145,7 +146,6 @@ void ImproperCossqOMP::eval(int nfrom, int nto, ThrData * const thr)
         fprintf(screen,"  4th atom: %d %g %g %g\n",
                 me,x[i4].x,x[i4].y,x[i4].z);
       }
-
 
       /* Apply corrections to round-off errors. */
       if (cosphi > 1.0)  cosphi -= SMALL;

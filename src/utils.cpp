@@ -110,7 +110,7 @@ bool utils::strmatch(const std::string &text, const std::string &pattern)
 
 /** This function is a companion function to utils::strmatch(). Arguments
  *  and logic is the same, but instead of a boolean, it returns the
- *  substring that matches the regex pattern.  There can be only one match.
+ *  sub-string that matches the regex pattern.  There can be only one match.
  *  This can be used as a more flexible alternative to strstr().
  */
 std::string utils::strfind(const std::string &text, const std::string &pattern)

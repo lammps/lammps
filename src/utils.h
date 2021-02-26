@@ -37,7 +37,7 @@ namespace LAMMPS_NS {
 
     bool strmatch(const std::string &text, const std::string &pattern);
 
-    /** Find substring that matches a simplified regex pattern
+    /** Find sub-string that matches a simplified regex pattern
      *
      *  \param text the text to be matched against the pattern
      *  \param pattern the search pattern, which may contain regexp markers

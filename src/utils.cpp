@@ -108,6 +108,21 @@ bool utils::strmatch(const std::string &text, const std::string &pattern)
   return (pos >= 0);
 }
 
+/** This function is a companion function to utils::strmatch(). Arguments
+ *  and logic is the same, but instead of a boolean, it returns the
+ *  substring that matches the regex pattern.  There can be only one match.
+ *  This can be used as a more flexible alternative to strstr().
+ */
+std::string utils::strfind(const std::string &text, const std::string &pattern)
+{
+  int matchlen;
+  const int pos = re_find(text.c_str(),pattern.c_str(),&matchlen);
+  if ((pos >=0) && (matchlen > 0))
+    return text.substr(pos,matchlen);
+  else
+    return "";
+}
+
 /** This function simplifies the repetitive task of outputting some
  * message to both the screen and/or the log file. In combination
  * with using fmt::format(), which returns the formatted text

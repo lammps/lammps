@@ -70,7 +70,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <regex>
 
 extern "C" {
 #include "KIM_SimulatorHeaders.h"
@@ -494,10 +493,10 @@ void KimInit::write_log_cite(char *model_name)
   if (!lmp->citeme) return;
 
   std::string model_name_str(model_name);
-  std::regex re("[MOS]{2}_[0-9]{12}_[0-9]{3}");
-  std::smatch sm;
+  std::string re = "[MS][OM]_\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d";
+  std::string kim_id = utils::strfind(model_name_str, re);
 
-  if (!std::regex_search(model_name_str, sm, re)) return;
+  if (kim_id.empty()) return;
 
   KIM_Collections *collections;
   int err = KIM_Collections_Create(&collections);
@@ -524,10 +523,8 @@ void KimInit::write_log_cite(char *model_name)
     return;
   }
 
-  auto pos = sm.prefix().length();
-  auto cite_openkim_potential = fmt::format("OpenKIM potential: "
-    "https://openkim.org/cite/{}#item-citation\n\n",
-    model_name_str.substr(pos, 19));
+  auto cite_id = fmt::format("OpenKIM potential: https://openkim.org/cite/"
+                             "{}#item-citation\n\n",kim_id);
 
   for (int i = 0; i < extent; ++i) {
     char const *fileName;
@@ -539,10 +536,10 @@ void KimInit::write_log_cite(char *model_name)
     if (err) continue;
 
     if (utils::strmatch(fileName, "^kimcite") && availableAsString)
-      cite_openkim_potential += fileString;
+      cite_id += fileString;
   }
 
-  lmp->citeme->add(cite_openkim_potential.c_str());
+  lmp->citeme->add(cite_id);
 
   KIM_Collections_Destroy(&collections);
 }

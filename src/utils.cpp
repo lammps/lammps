@@ -1280,23 +1280,13 @@ extern "C" {
 
   /* Typedef'd pointer to get abstract datatype. */
   typedef struct regex_t *re_t;
+  typedef struct regex_context_t *re_ctx_t;
 
   /* Compile regex string pattern to a regex_t-array. */
-  static re_t re_compile(const char *pattern);
+  static re_t re_compile(re_ctx_t context, const char *pattern);
 
   /* Find matches of the compiled pattern inside text. */
   static int  re_matchp(const char *text, re_t pattern, int *matchlen);
-
-  int re_match(const char *text, const char *pattern)
-  {
-    int dummy;
-    return re_matchp(text, re_compile(pattern), &dummy);
-  }
-
-  int re_find(const char *text, const char *pattern, int *matchlen)
-  {
-    return re_matchp(text, re_compile(pattern), matchlen);
-  }
 
 /* Definitions: */
 
@@ -1316,6 +1306,26 @@ extern "C" {
       unsigned char *ccl;  /*  OR  a pointer to characters in class */
     } u;
   } regex_t;
+
+  typedef struct regex_context_t {
+    /* MAX_REGEXP_OBJECTS is the max number of symbols in the expression.
+       MAX_CHAR_CLASS_LEN determines the size of buffer for chars in all char-classes in the expression. */
+    regex_t re_compiled[MAX_REGEXP_OBJECTS];
+    unsigned char ccl_buf[MAX_CHAR_CLASS_LEN];
+  } regex_context_t;
+
+  int re_match(const char *text, const char *pattern)
+  {
+    regex_context_t context;
+    int dummy;
+    return re_matchp(text, re_compile(&context, pattern), &dummy);
+  }
+
+  int re_find(const char *text, const char *pattern, int *matchlen)
+  {
+    regex_context_t context;
+    return re_matchp(text, re_compile(&context, pattern), matchlen);
+  }
 
 /* Private function declarations: */
   static int matchpattern(regex_t *pattern, const char *text, int *matchlen);
@@ -1359,13 +1369,10 @@ extern "C" {
     return -1;
   }
 
-  re_t re_compile(const char *pattern)
+  re_t re_compile(re_ctx_t context, const char *pattern)
   {
-    /* The sizes of the two static arrays below substantiates the static RAM usage of this module.
-       MAX_REGEXP_OBJECTS is the max number of symbols in the expression.
-       MAX_CHAR_CLASS_LEN determines the size of buffer for chars in all char-classes in the expression. */
-    static regex_t re_compiled[MAX_REGEXP_OBJECTS];
-    static unsigned char ccl_buf[MAX_CHAR_CLASS_LEN];
+    regex_t * const re_compiled = context->re_compiled;
+    unsigned char * const ccl_buf = context->ccl_buf;
     int ccl_bufidx = 1;
 
     char c;     /* current char in pattern   */

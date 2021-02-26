@@ -34,7 +34,7 @@ class CiteMe : protected Pointers {
   int logfile_flag;            // determine whether verbose or terse output
   std::string scrbuffer;       // output buffer for screen
   std::string logbuffer;       // output buffer for logfile
-  typedef std::set<unsigned int> citeset;
+  typedef std::set<std::size_t> citeset;
   citeset *cs;                 // registered set of publications
 };
 }

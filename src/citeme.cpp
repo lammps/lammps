@@ -77,7 +77,7 @@ void CiteMe::add(const std::string &reference)
 {
   if (comm->me != 0) return;
 
-  unsigned int crc = get_hash(reference);
+  std::size_t crc = get_hash(reference);
   if (cs->find(crc) != cs->end()) return;
   cs->insert(crc);
 

@@ -130,7 +130,7 @@ void KimQuery::command(int narg, char **arg)
 
   // check the query_args format (a series of keyword=value pairs)
   for (int i = 2; i < narg; ++i) {
-    if (!strchr(arg[i], '=') || !strchr(arg[i], '[') || !strchr(arg[i], ']')) {
+    if (!utils::strmatch(arg[i], "[=][\\[].*[\\]]")) {
       auto msg = fmt::format("Illegal query format.\nInput argument "
         "of `{}` to 'kim query' is wrong. The query format is the "
         "keyword=[value], where value is always an array of one or "

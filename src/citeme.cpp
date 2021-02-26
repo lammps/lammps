@@ -15,6 +15,8 @@
 #include "comm.h"
 #include "universe.h"
 
+#include <functional>
+
 using namespace LAMMPS_NS;
 
 static const char cite_separator[] =
@@ -25,6 +27,9 @@ static const char cite_nagline[] =
 
 static const char cite_file[] = "The {} {} lists these citations in "
                                 "BibTeX format.\n\n";
+
+// define hash function
+static std::hash<std::string> get_hash;
 
 /* ---------------------------------------------------------------------- */
 
@@ -68,14 +73,16 @@ CiteMe::~CiteMe()
    process an added citation so it will be shown only once and as requested
 ------------------------------------------------------------------------- */
 
-void CiteMe::add(const char *ref)
+void CiteMe::add(const std::string &reference)
 {
   if (comm->me != 0) return;
-  if (cs->find(ref) != cs->end()) return;
-  cs->insert(ref);
+
+  std::size_t crc = get_hash(reference);
+  if (cs->find(crc) != cs->end()) return;
+  cs->insert(crc);
 
   if (fp) {
-    fputs(ref,fp);
+    fputs(reference.c_str(),fp);
     fflush(fp);
   }
 
@@ -93,7 +100,6 @@ void CiteMe::add(const char *ref)
     if (logfile_flag == VERBOSE) logbuffer += "\n";
   }
 
-  std::string reference = ref;
   std::size_t found = reference.find_first_of("\n");
   std::string header = reference.substr(0,found+1);
   if (screen_flag == VERBOSE) scrbuffer += "- " + reference;

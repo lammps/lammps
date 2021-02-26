@@ -367,7 +367,7 @@ KIM package
 
 **Contents:**
 
-This package contains a command with a set of subcommands that serve as a
+This package contains a command with a set of sub-commands that serve as a
 wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs) enabling compatible ones to be used in

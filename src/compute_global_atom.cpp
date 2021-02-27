@@ -50,7 +50,7 @@ ComputeGlobalAtom::ComputeGlobalAtom(LAMMPS *lmp, int narg, char **arg) :
   indexref = argi.get_index1();
   idref = argi.copy_name();
 
-  if ((whichref == ArgInfo::UNKNOWN) || (which[nvalues] == ArgInfo::NONE)
+  if ((whichref == ArgInfo::UNKNOWN) || (whichref == ArgInfo::NONE)
       || (argi.get_dim() > 1))
     error->all(FLERR,"Illegal compute global/atom command");
 

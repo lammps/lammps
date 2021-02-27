@@ -1368,11 +1368,11 @@ void FixBondReact::superimpose_algorithm()
         }
 
         // reaction site found successfully!
-        if (status == ACCEPT)
+        if (status == ACCEPT) {
           if (fraction[rxnID] < 1.0 &&
               random[rxnID]->uniform() >= fraction[rxnID]) status = REJECT;
           else glove_ghostcheck();
-
+        }
         hang_catch++;
         // let's go ahead and catch the simplest of hangs
         //if (hang_catch > onemol->natoms*4)

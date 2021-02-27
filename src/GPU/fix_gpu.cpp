@@ -270,7 +270,7 @@ void FixGPU::init()
 
   // give a warning if no pair style is defined
 
-  if (!force->pair)
+  if (!force->pair && (comm->me == 0))
     error->warning(FLERR,"Using package gpu without any pair style defined");
 
   // make sure fdotr virial is not accumulated multiple times
@@ -293,7 +293,7 @@ void FixGPU::init()
 void FixGPU::setup(int vflag)
 {
   if (_gpu_mode == GPU_NEIGH || _gpu_mode == GPU_HYB_NEIGH)
-    if (neighbor->exclude_setting()!=0)
+    if (neighbor->exclude_setting() != 0)
       error->all(FLERR,
                  "Cannot use neigh_modify exclude with GPU neighbor builds");
 

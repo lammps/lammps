@@ -13,6 +13,7 @@ together.
    Python_module
    Python_ext
    Python_call
+   Python_formats
    Python_examples
    Python_error
    Python_trouble

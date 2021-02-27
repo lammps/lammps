@@ -1,6 +1,6 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:33 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:22 2021
 epsilon: 2.5e-13
 prerequisites: ! |
   atom full
@@ -16,7 +16,7 @@ bond_coeff: ! |
   3 morse    7000.0 0.2 1.3
   4 harmonic  650.0 1.2
   5 harmonic  450.0 1.0
-equilibrium: 5 1.5 1.1 1.3 1.2 1.0
+equilibrium: 5 1.5 1.1 1.3 1.2 1
 extract: ! ""
 natoms: 29
 init_energy: 4.63957309438403

@@ -1,6 +1,6 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:40 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:53 2021
 epsilon: 2e-13
 prerequisites: ! |
   atom full
@@ -13,7 +13,7 @@ input_file: in.fourmol
 natoms: 29
 global_scalar: -0.0309186331146529
 global_vector: ! |-
-  3 0.0 -2.220446049250313e-16 2.220446049250313e-16
+  3 0 -2.220446049250313e-16 2.220446049250313e-16
 run_pos: ! |2
     1 -2.7045797446143222e-01  2.4912780824342802e+00 -1.6702148063946790e-01
     2  3.1004707684044314e-01  2.9610914097014920e+00 -8.5452223796947857e-01

@@ -814,10 +814,17 @@ TEST(PairStyle, omp)
 TEST(PairStyle, gpu)
 {
     if (!LAMMPS::is_installed_pkg("GPU")) GTEST_SKIP();
-    const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu"};
+    const char *args_neigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu"};
+    const char *args_noneigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu", "-pk", "gpu", "0", "neigh", "no"};
 
-    char **argv = (char **)args;
-    int argc    = sizeof(args) / sizeof(char *);
+    char **argv = (char **)args_neigh;
+    int argc    = sizeof(args_neigh) / sizeof(char *);
+
+    // cannot use GPU neighbor list with hybrid pair style (yet)
+    if (test_config.pair_style.substr(0, 6) == "hybrid") {
+        argv = (char **)args_noneigh;
+        argc    = sizeof(args_noneigh) / sizeof(char *);
+    }
 
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = init_lammps(argc, argv, test_config, false);

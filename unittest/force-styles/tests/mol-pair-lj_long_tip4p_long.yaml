@@ -12,6 +12,7 @@ pre_commands: ! |
 post_commands: ! |
   pair_modify mix arithmetic
   pair_modify table 0
+  pair_modify table/disp 0
   kspace_style pppm/disp/tip4p 1.0e-5
   kspace_modify gewald 0.3
   kspace_modify force/disp/real  0.001

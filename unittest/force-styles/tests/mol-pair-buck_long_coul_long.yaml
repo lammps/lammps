@@ -9,6 +9,7 @@ prerequisites: ! |
 pre_commands: ! ""
 post_commands: ! |
   pair_modify table 0
+  pair_modify table/disp 0
   kspace_style ewald/disp 1.0e-6
   kspace_modify gewald 0.3
   kspace_modify compute no

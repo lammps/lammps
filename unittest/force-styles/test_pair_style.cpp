@@ -123,6 +123,11 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     for (auto &pair_coeff : cfg.pair_coeff) {
         command("pair_coeff " + pair_coeff);
     }
+
+    // set this here explicitly to a setting different
+    // from the default, so we can spot YAML files for
+    // long-range interactions that do not include these
+    // settings. they will fail after restart or read data.
     command("pair_modify table 0");
     command("pair_modify table/disp 0");
 

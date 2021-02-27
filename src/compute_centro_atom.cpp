@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  distsq(NULL), nearest(NULL), centro(NULL)
+  distsq(nullptr), nearest(nullptr), centro(nullptr)
 {
   if (narg < 4 || narg > 6)
     error->all(FLERR,"Illegal compute centro/atom command");
@@ -88,7 +88,7 @@ ComputeCentroAtom::~ComputeCentroAtom()
 
 void ComputeCentroAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute centro/atom requires a pair style be defined");
 
   int count = 0;
@@ -436,7 +436,7 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
 
 double ComputeCentroAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
-  if (axes_flag) bytes += size_peratom_cols*nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
+  if (axes_flag) bytes += (double)size_peratom_cols*nmax * sizeof(double);
   return bytes;
 }

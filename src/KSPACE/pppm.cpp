@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -63,16 +63,16 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
-  factors(NULL), density_brick(NULL), vdx_brick(NULL), vdy_brick(NULL), vdz_brick(NULL),
-  u_brick(NULL), v0_brick(NULL), v1_brick(NULL), v2_brick(NULL), v3_brick(NULL),
-  v4_brick(NULL), v5_brick(NULL), greensfn(NULL), vg(NULL), fkx(NULL), fky(NULL),
-  fkz(NULL), density_fft(NULL), work1(NULL), work2(NULL), gf_b(NULL), rho1d(NULL),
-  rho_coeff(NULL), drho1d(NULL), drho_coeff(NULL),
-  sf_precoeff1(NULL), sf_precoeff2(NULL), sf_precoeff3(NULL),
-  sf_precoeff4(NULL), sf_precoeff5(NULL), sf_precoeff6(NULL),
-  acons(NULL), fft1(NULL), fft2(NULL), remap(NULL), gc(NULL),
-  gc_buf1(NULL), gc_buf2(NULL), density_A_brick(NULL), density_B_brick(NULL), density_A_fft(NULL),
-  density_B_fft(NULL), part2grid(NULL), boxlo(NULL)
+  factors(nullptr), density_brick(nullptr), vdx_brick(nullptr), vdy_brick(nullptr), vdz_brick(nullptr),
+  u_brick(nullptr), v0_brick(nullptr), v1_brick(nullptr), v2_brick(nullptr), v3_brick(nullptr),
+  v4_brick(nullptr), v5_brick(nullptr), greensfn(nullptr), vg(nullptr), fkx(nullptr), fky(nullptr),
+  fkz(nullptr), density_fft(nullptr), work1(nullptr), work2(nullptr), gf_b(nullptr), rho1d(nullptr),
+  rho_coeff(nullptr), drho1d(nullptr), drho_coeff(nullptr),
+  sf_precoeff1(nullptr), sf_precoeff2(nullptr), sf_precoeff3(nullptr),
+  sf_precoeff4(nullptr), sf_precoeff5(nullptr), sf_precoeff6(nullptr),
+  acons(nullptr), fft1(nullptr), fft2(nullptr), remap(nullptr), gc(nullptr),
+  gc_buf1(nullptr), gc_buf2(nullptr), density_A_brick(nullptr), density_B_brick(nullptr), density_A_fft(nullptr),
+  density_B_fft(nullptr), part2grid(nullptr), boxlo(nullptr)
 {
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
@@ -95,31 +95,31 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
 
-  density_brick = vdx_brick = vdy_brick = vdz_brick = NULL;
-  density_fft = NULL;
-  u_brick = NULL;
-  v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = NULL;
-  greensfn = NULL;
-  work1 = work2 = NULL;
-  vg = NULL;
-  fkx = fky = fkz = NULL;
+  density_brick = vdx_brick = vdy_brick = vdz_brick = nullptr;
+  density_fft = nullptr;
+  u_brick = nullptr;
+  v0_brick = v1_brick = v2_brick = v3_brick = v4_brick = v5_brick = nullptr;
+  greensfn = nullptr;
+  work1 = work2 = nullptr;
+  vg = nullptr;
+  fkx = fky = fkz = nullptr;
 
   sf_precoeff1 = sf_precoeff2 = sf_precoeff3 =
-    sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = NULL;
+    sf_precoeff4 = sf_precoeff5 = sf_precoeff6 = nullptr;
 
-  density_A_brick = density_B_brick = NULL;
-  density_A_fft = density_B_fft = NULL;
+  density_A_brick = density_B_brick = nullptr;
+  density_A_fft = density_B_fft = nullptr;
 
-  gf_b = NULL;
-  rho1d = rho_coeff = drho1d = drho_coeff = NULL;
+  gf_b = nullptr;
+  rho1d = rho_coeff = drho1d = drho_coeff = nullptr;
 
-  fft1 = fft2 = NULL;
-  remap = NULL;
-  gc = NULL;
-  gc_buf1 = gc_buf2 = NULL;
+  fft1 = fft2 = nullptr;
+  remap = nullptr;
+  gc = nullptr;
+  gc_buf1 = gc_buf2 = nullptr;
 
   nmax = 0;
-  part2grid = NULL;
+  part2grid = nullptr;
 
   // define acons coefficients for estimation of kspace errors
   // see JCP 109, pg 7698 for derivation of coefficients
@@ -229,7 +229,7 @@ void PPPM::init()
 
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -254,8 +254,8 @@ void PPPM::init()
     int typeA = *p_typeA;
     int typeB = *p_typeB;
 
-    if (force->angle == NULL || force->bond == NULL ||
-        force->angle->setflag == NULL || force->bond->setflag == NULL)
+    if (force->angle == nullptr || force->bond == nullptr ||
+        force->angle->setflag == nullptr || force->bond->setflag == nullptr)
       error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
     if (typeA < 1 || typeA > atom->nangletypes ||
         force->angle->setflag[typeA] == 0)
@@ -292,7 +292,7 @@ void PPPM::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  GridComm *gctmp = NULL;
+  GridComm *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -867,7 +867,7 @@ void PPPM::deallocate()
   }
 
   memory->destroy(gf_b);
-  if (stagger_flag) gf_b = NULL;
+  if (stagger_flag) gf_b = nullptr;
   memory->destroy2d_offset(rho1d,-order_allocated/2);
   memory->destroy2d_offset(drho1d,-order_allocated/2);
   memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);
@@ -1364,7 +1364,7 @@ void PPPM::set_grid_local()
   // nlo_out,nhi_out = lower/upper limits of the 3d sub-brick of
   //   global PPPM grid that my particles can contribute charge to
   // effectively nlo_in,nhi_in + ghost cells
-  // nlo,nhi = global coords of grid pt to "lower left" of smallest/largest
+  // nlo,nhi = index of global grid pt to "lower left" of smallest/largest
   //           position a particle in my box can be at
   // dist[3] = particle position bound = subbox + skin/2.0 + qdist
   //   qdist = offset due to TIP4P fictitious charge
@@ -1886,7 +1886,10 @@ void PPPM::particle_map()
 
   for (int i = 0; i < nlocal; i++) {
 
-    // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+    // order = even:
+    //   (nx,ny,nz) = global index of grid pt to "lower left" of charge
+    // order = odd:
+    //   (nx,ny,nz) = global index of grid pt closest to charge due to shift
     // current particle coord can be outside global and local box
     // add/subtract OFFSET to avoid int(-0.75) = 0 when want it to be -1
 
@@ -2010,7 +2013,7 @@ void PPPM::poisson_ik()
     work1[n++] = ZEROF;
   }
 
-  fft1->compute(work1,work1,1);
+  fft1->compute(work1,work1,FFT3d::FORWARD);
 
   // global energy and virial contribution
 
@@ -2056,7 +2059,7 @@ void PPPM::poisson_ik()
     return;
   }
 
-  // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
+  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
 
@@ -2066,12 +2069,12 @@ void PPPM::poisson_ik()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = fkx[i]*work1[n+1];
-        work2[n+1] = -fkx[i]*work1[n];
+        work2[n] = -fkx[i]*work1[n+1];
+        work2[n+1] = fkx[i]*work1[n];
         n += 2;
       }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2087,12 +2090,12 @@ void PPPM::poisson_ik()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = fky[j]*work1[n+1];
-        work2[n+1] = -fky[j]*work1[n];
+        work2[n] = -fky[j]*work1[n+1];
+        work2[n+1] = fky[j]*work1[n];
         n += 2;
       }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2108,12 +2111,12 @@ void PPPM::poisson_ik()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = fkz[k]*work1[n+1];
-        work2[n+1] = -fkz[k]*work1[n];
+        work2[n] = -fkz[k]*work1[n+1];
+        work2[n+1] = fkz[k]*work1[n];
         n += 2;
       }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2132,7 +2135,7 @@ void PPPM::poisson_ik_triclinic()
 {
   int i,j,k,n;
 
-  // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
+  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
 
@@ -2140,12 +2143,12 @@ void PPPM::poisson_ik_triclinic()
 
   n = 0;
   for (i = 0; i < nfft; i++) {
-    work2[n] = fkx[i]*work1[n+1];
-    work2[n+1] = -fkx[i]*work1[n];
+    work2[n] = -fkx[i]*work1[n+1];
+    work2[n+1] = fkx[i]*work1[n];
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2159,12 +2162,12 @@ void PPPM::poisson_ik_triclinic()
 
   n = 0;
   for (i = 0; i < nfft; i++) {
-    work2[n] = fky[i]*work1[n+1];
-    work2[n+1] = -fky[i]*work1[n];
+    work2[n] = -fky[i]*work1[n+1];
+    work2[n+1] = fky[i]*work1[n];
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2178,12 +2181,12 @@ void PPPM::poisson_ik_triclinic()
 
   n = 0;
   for (i = 0; i < nfft; i++) {
-    work2[n] = fkz[i]*work1[n+1];
-    work2[n+1] = -fkz[i]*work1[n];
+    work2[n] = -fkz[i]*work1[n+1];
+    work2[n+1] = fkz[i]*work1[n];
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2211,7 +2214,7 @@ void PPPM::poisson_ad()
     work1[n++] = ZEROF;
   }
 
-  fft1->compute(work1,work1,1);
+  fft1->compute(work1,work1,FFT3d::FORWARD);
 
   // global energy and virial contribution
 
@@ -2257,7 +2260,7 @@ void PPPM::poisson_ad()
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2286,7 +2289,7 @@ void PPPM::poisson_peratom()
       n += 2;
     }
 
-    fft2->compute(work2,work2,-1);
+    fft2->compute(work2,work2,FFT3d::BACKWARD);
 
     n = 0;
     for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2308,7 +2311,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2325,7 +2328,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2342,7 +2345,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2359,7 +2362,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2376,7 +2379,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -2393,7 +2396,7 @@ void PPPM::poisson_peratom()
     n += 2;
   }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -3002,11 +3005,11 @@ int PPPM::timing_1d(int n, double &time1d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->timing1d(work1,nfft_both,1);
-    fft2->timing1d(work1,nfft_both,-1);
+    fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
+    fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
     if (differentiation_flag != 1) {
-      fft2->timing1d(work1,nfft_both,-1);
-      fft2->timing1d(work1,nfft_both,-1);
+      fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
+      fft2->timing1d(work1,nfft_both,FFT3d::BACKWARD);
     }
   }
 
@@ -3032,11 +3035,11 @@ int PPPM::timing_3d(int n, double &time3d)
   time1 = MPI_Wtime();
 
   for (int i = 0; i < n; i++) {
-    fft1->compute(work1,work1,1);
-    fft2->compute(work1,work1,-1);
+    fft1->compute(work1,work1,FFT3d::FORWARD);
+    fft2->compute(work1,work1,FFT3d::BACKWARD);
     if (differentiation_flag != 1) {
-      fft2->compute(work1,work1,-1);
-      fft2->compute(work1,work1,-1);
+      fft2->compute(work1,work1,FFT3d::BACKWARD);
+      fft2->compute(work1,work1,FFT3d::BACKWARD);
     }
   }
 
@@ -3054,32 +3057,32 @@ int PPPM::timing_3d(int n, double &time3d)
 
 double PPPM::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
 
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   if (differentiation_flag == 1) {
-    bytes += 2 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)2 * nbrick * sizeof(FFT_SCALAR);
   } else {
-    bytes += 4 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)4 * nbrick * sizeof(FFT_SCALAR);
   }
 
-  if (triclinic) bytes += 3 * nfft_both * sizeof(double);
-  bytes += 6 * nfft_both * sizeof(double);
-  bytes += nfft_both * sizeof(double);
-  bytes += nfft_both*5 * sizeof(FFT_SCALAR);
+  if (triclinic) bytes += (double)3 * nfft_both * sizeof(double);
+  bytes += (double)6 * nfft_both * sizeof(double);
+  bytes += (double)nfft_both * sizeof(double);
+  bytes += (double)nfft_both*5 * sizeof(FFT_SCALAR);
 
   if (peratom_allocate_flag)
-    bytes += 6 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)6 * nbrick * sizeof(FFT_SCALAR);
 
   if (group_allocate_flag) {
-    bytes += 2 * nbrick * sizeof(FFT_SCALAR);
-    bytes += 2 * nfft_both * sizeof(FFT_SCALAR);;
+    bytes += (double)2 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)2 * nfft_both * sizeof(FFT_SCALAR);;
   }
 
   // two GridComm bufs
 
-  bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 
   return bytes;
 }
@@ -3313,7 +3316,7 @@ void PPPM::poisson_groups(int AA_flag)
     work_A[n++] = ZEROF;
   }
 
-  fft1->compute(work_A,work_A,1);
+  fft1->compute(work_A,work_A,FFT3d::FORWARD);
 
   // group B
 
@@ -3323,7 +3326,7 @@ void PPPM::poisson_groups(int AA_flag)
     work_B[n++] = ZEROF;
   }
 
-  fft1->compute(work_B,work_B,1);
+  fft1->compute(work_B,work_B,FFT3d::FORWARD);
 
   // group-group energy and force contribution,
   //  keep everything in reciprocal space so
@@ -3342,7 +3345,6 @@ void PPPM::poisson_groups(int AA_flag)
   }
 
   if (AA_flag) return;
-
 
   // multiply by Green's function and s2
   //  (only for work_A so it is not squared below)
@@ -3368,7 +3370,7 @@ void PPPM::poisson_groups(int AA_flag)
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+        partial_group = work_A[n]*work_B[n+1] - work_A[n+1]*work_B[n];
         f2group[0] += fkx[i] * partial_group;
         n += 2;
       }
@@ -3379,7 +3381,7 @@ void PPPM::poisson_groups(int AA_flag)
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+        partial_group = work_A[n]*work_B[n+1] - work_A[n+1]*work_B[n];
         f2group[1] += fky[j] * partial_group;
         n += 2;
       }
@@ -3390,7 +3392,7 @@ void PPPM::poisson_groups(int AA_flag)
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+        partial_group = work_A[n]*work_B[n+1] - work_A[n+1]*work_B[n];
         f2group[2] += fkz[k] * partial_group;
         n += 2;
       }
@@ -3416,7 +3418,7 @@ void PPPM::poisson_groups_triclinic()
 
   n = 0;
   for (i = 0; i < nfft; i++) {
-    partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+    partial_group = work_A[n]*work_B[n+1] - work_A[n+1]*work_B[n];
     f2group[0] += fkx[i] * partial_group;
     n += 2;
   }
@@ -3425,7 +3427,7 @@ void PPPM::poisson_groups_triclinic()
 
   n = 0;
   for (i = 0; i < nfft; i++) {
-    partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+    partial_group = work_A[n]*work_B[n+1] - work_A[n+1]*work_B[n];
     f2group[1] += fky[i] * partial_group;
     n += 2;
   }
@@ -3434,7 +3436,7 @@ void PPPM::poisson_groups_triclinic()
 
   n = 0;
   for (i = 0; i < nfft; i++) {
-    partial_group = work_A[n+1]*work_B[n] - work_A[n]*work_B[n+1];
+    partial_group = work_A[n]*work_B[n+1] - work_A[n+1]*work_B[n];
     f2group[2] += fkz[i] * partial_group;
     n += 2;
   }

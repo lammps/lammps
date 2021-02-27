@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -64,6 +64,7 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
 
   // disallow resetting the time step, while this fix is defined
   time_depend = 1;
@@ -74,10 +75,10 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 
   // Perform initial allocation of atom-based array
   // Register with Atom class
-  xoriginal = NULL;
+  xoriginal = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // xoriginal = initial unwrapped positions of atoms
 
@@ -117,8 +118,8 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 FixTISpring::~FixTISpring()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete locally stored array
   memory->destroy(xoriginal);
@@ -133,7 +134,6 @@ int FixTISpring::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -222,12 +222,12 @@ void FixTISpring::initial_integrate(int /*vflag*/)
   const bigint t = update->ntimestep - (t0+t_equil);
   const double r_switch = 1.0/t_switch;
 
-  if ( (t >= 0) && (t <= t_switch) ) {
+  if ((t >= 0) && (t <= t_switch)) {
     lambda  =  switch_func(t*r_switch);
     dlambda = dswitch_func(t*r_switch);
   }
 
-  if ( (t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch)) ) {
+  if ((t >= t_equil+t_switch) && (t <= (t_equil+2*t_switch))) {
     lambda  =    switch_func(1.0 - (t - t_switch - t_equil)*r_switch);
     dlambda = - dswitch_func(1.0 - (t - t_switch - t_equil)*r_switch);
   }
@@ -261,7 +261,7 @@ double FixTISpring::compute_vector(int n)
 
 double FixTISpring::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 
@@ -380,7 +380,7 @@ double FixTISpring::switch_func(double t)
 
 double FixTISpring::dswitch_func(double t)
 {
-  if(sf == 1) return 1.0/t_switch;
+  if (sf == 1) return 1.0/t_switch;
 
   double t2 = t*t;
   double t4 = t2*t2;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeMesoNT::ComputeMesoNT(LAMMPS *lmp, int narg, char **arg) :
- Compute(lmp, narg, arg), energy(NULL) {
+ Compute(lmp, narg, arg), energy(nullptr) {
   if (narg != 4) error->all(FLERR,"Illegal compute mesont command");
   std::string ctype = arg[3];
   if (ctype == "estretch") compute_type = ES;
@@ -62,7 +62,7 @@ double ComputeMesoNT::compute_scalar() {
     error->all(FLERR,"Energy was not tallied on needed timestep");
 
   int i;
-  double* ptr = NULL;
+  double* ptr = nullptr;
   if (compute_type == ES)
    ptr = static_cast<double*>(force->pair->extract("mesonttpm_Es_tot",i));
   else if (compute_type == EB)
@@ -104,7 +104,7 @@ void ComputeMesoNT::compute_peratom() {
   int i;
   // clear local energy array
   for (int i = 0; i < ntotal; i++) energy[i] = 0.0;
-  double* ptr = NULL;
+  double* ptr = nullptr;
   if (compute_type == ES)
    ptr = static_cast<double*>(force->pair->extract("mesonttpm_Es",i));
   else if (compute_type == EB)
@@ -151,6 +151,6 @@ void ComputeMesoNT::unpack_reverse_comm(int n, int *list, double *buf) {
 ------------------------------------------------------------------------- */
 
 double ComputeMesoNT::memory_usage() {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

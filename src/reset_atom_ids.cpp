@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -78,7 +78,7 @@ void ResetIDs::command(int narg, char **arg)
   // create an atom map if one doesn't exist already
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->nghost = 0;
     atom->map_init();
@@ -138,12 +138,12 @@ void ResetIDs::command(int narg, char **arg)
   comm->forward_comm_array(1,newIDs);
 
   // loop over bonds, angles, etc and reset IDs in stored topology arrays
-  // only necessary for molecular = 1, not molecular = 2
+  // only necessary for molecular = Atom::MOLECULAR, not molecular = Atom::TEMPLATE
   // badcount = atom IDs that could not be found
 
   int badcount = 0;
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     int j,m;
     tagint oldID;
 
@@ -266,7 +266,7 @@ void ResetIDs::command(int narg, char **arg)
 
   // need to update exclusions with new atom IDs
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     Special special(lmp);
     special.build();
   }
@@ -275,7 +275,7 @@ void ResetIDs::command(int narg, char **arg)
 
   if (mapflag) {
     atom->map_delete();
-    atom->map_style = 0;
+    atom->map_style = Atom::MAP_NONE;
   }
 
   // clean up
@@ -368,9 +368,9 @@ void ResetIDs::sort()
   // bins are numbered from 0 to Nbins-1
 
   bigint nbins = (bigint) nbinx*nbiny*nbinz;
-  int nlo = nbins / nprocs;
-  int nhi = nlo + 1;
-  int nplo = nprocs - (nbins % nprocs);
+  bigint nlo = nbins / nprocs;
+  bigint nhi = nlo + 1;
+  bigint nplo = nprocs - (nbins % nprocs);
   bigint nbinlo = nplo*nlo;
 
   if (me < nplo) {

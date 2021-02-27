@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,14 +53,15 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
-  eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
-  eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
-  etap_mass(NULL), id_store(NULL),init_store(NULL)
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
+  eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
+  etap_mass(nullptr), id_store(nullptr),init_store(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix npt/cauchy command");
 
   dynamic_group_allow = 1;
+  ecouple_flag = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;
@@ -583,10 +584,10 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   if (pre_exchange_flag) irregular = new Irregular(lmp);
-  else irregular = NULL;
+  else irregular = nullptr;
 
   // initialize vol0,t0 to zero to signal uninitialized
   // values then assigned in init(), if necessary
@@ -686,7 +687,6 @@ int FixNPTCauchy::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
@@ -794,7 +794,7 @@ void FixNPTCauchy::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;
@@ -821,7 +821,7 @@ void FixNPTCauchy::setup(int /*vflag*/)
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
 
-  if (tstat_flag && strstr(style,"nphug") == NULL) {
+  if (tstat_flag && strstr(style,"nphug") == nullptr) {
     compute_temp_target();
   } else if (pstat_flag) {
 
@@ -1812,7 +1812,7 @@ void *FixNPTCauchy::extract(const char *str, int &dim)
   } else if (pstat_flag && strcmp(str,"p_target") == 0) {
     return &p_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -2754,23 +2754,23 @@ void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
   uv(5,1)=1; uv(5,2)=3;
   uv(6,1)=1; uv(6,2)=2;
 
-  for(int ii = 1;ii <= 6;ii++) {
+  for (int ii = 1;ii <= 6;ii++) {
     i=uv(ii,1);
     j=uv(ii,2);
     deltastress(ii)=setcauchy(i,j)-cauchy(i,j);
-    if(ii>3) deltastress(ii)=deltastress(ii)*2.0;
+    if (ii>3) deltastress(ii)=deltastress(ii)*2.0;
     fdotvec(ii)=Fdot(i,j)*deltat;
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
+  for (int ii = 1;ii <= 6;ii++) {
     i=uv(ii,1);
     j=uv(ii,2);
-    for(int jj = 1;jj <= 6;jj++) {
+    for (int jj = 1;jj <= 6;jj++) {
       m=uv(jj,1);
       n=uv(jj,2);
       dsds(ii,jj) = Fi(i,m)*Fi(j,n) + Fi(i,n)*Fi(j,m) + Fi(j,m)*Fi(i,n) + Fi(j,n)*Fi(i,m);
-      for(int l = 1;l <= 3;l++) {
-        for(int k = 1;k <= 3;k++) {
+      for (int l = 1;l <= 3;l++) {
+        for (int k = 1;k <= 3;k++) {
           dsdf(ii,jj) = dsdf(ii,jj) + cauchy(k,l)*
             ( Fi(i,k)*Fi(j,l)*Fi(n,m) - Fi(i,m)*Fi(j,l)*Fi(n,k) - Fi(i,k)*Fi(j,m)*Fi(n,l) );
         }
@@ -2779,21 +2779,21 @@ void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
   }
 
   jac=volume/volume0;
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       dsds(ii,jj)=dsds(ii,jj)*jac/4.0;
       dsdf(ii,jj)=dsdf(ii,jj)*jac;
     }
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       deltaF(ii)=deltaF(ii)+dsdf(ii,jj)*fdotvec(jj);
     }
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       deltaPK(ii)=deltaPK(ii)+alpha*dsds(ii,jj)*deltastress(jj);
     }
     deltaPK(ii)=deltaPK(ii)+alpha*deltaF(ii);

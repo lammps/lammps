@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,20 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_temp_berendsen.h"
-#include <cstring>
 
-#include <cmath>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "group.h"
-#include "update.h"
-#include "modify.h"
 #include "compute.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -37,7 +37,7 @@ enum{CONSTANT,EQUAL};
 
 FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tstr(NULL), id_temp(NULL), tflag(0)
+  tstr(nullptr), id_temp(nullptr), tflag(0)
 {
   if (narg != 6) error->all(FLERR,"Illegal fix temp/berendsen command");
 
@@ -45,16 +45,15 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = 1;
   dynamic_group_allow = 1;
-  nevery = 1;
   scalar_flag = 1;
-  global_freq = nevery;
   extscalar = 1;
+  ecouple_flag = 1;
+  nevery = 1;
+  global_freq = nevery;
 
-  tstr = NULL;
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    tstr = new char[n];
-    strcpy(tstr,&arg[3][2]);
+  tstr = nullptr;
+  if (utils::strmatch(arg[3],"^v_")) {
+    tstr = utils::strdup(arg[3]+2);
     tstyle = EQUAL;
   } else {
     t_start = utils::numeric(FLERR,arg[3],false,lmp);
@@ -74,9 +73,7 @@ FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + temp, compute group = fix group
 
   std::string cmd = id + std::string("_temp");
-  id_temp = new char[cmd.size()+1];
-  strcpy(id_temp,cmd.c_str());
-
+  id_temp = utils::strdup(cmd);
   cmd += fmt::format(" {} temp",group->names[igroup]);
   modify->add_compute(cmd);
   tflag = 1;
@@ -102,7 +99,6 @@ int FixTempBerendsen::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -280,5 +276,5 @@ void *FixTempBerendsen::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

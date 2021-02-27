@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -56,9 +56,9 @@ PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
   ewaldflag = pppmflag = 1;
   single_enable = 0;
   writedata = 1;
-  ftable = NULL;
+  ftable = nullptr;
   qdist = 0.0;
-  fix_drude = NULL;
+  fix_drude = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -131,7 +131,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    if (drudetype[type[i]] != NOPOL_TYPE){
+    if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
       if (di < 0) error->all(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
@@ -187,9 +187,9 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
           }
 
           if (drudetype[type[i]] != NOPOL_TYPE &&
-              drudetype[type[j]] != NOPOL_TYPE){
-            if (j != di_closest){
-              if (drudetype[type[j]] == CORE_TYPE){
+              drudetype[type[j]] != NOPOL_TYPE) {
+            if (j != di_closest) {
+              if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
                 dqj = -q[dj];
               } else dqj = qj;
@@ -231,7 +231,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] != NOPOL_TYPE &&
-                drudetype[type[j]] != NOPOL_TYPE && j != di_closest){
+                drudetype[type[j]] != NOPOL_TYPE && j != di_closest) {
               ecoul += factor_e * dcoul;
             }
           } else ecoul = 0.0;
@@ -371,11 +371,11 @@ void PairLJCutTholeLong::init_style()
 
   // set rRESPA cutoffs
 
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
@@ -496,16 +496,16 @@ void PairLJCutTholeLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&polar[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&thole[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&polar[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&thole[i][j],sizeof(double),1,fp,nullptr,error);
           ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
-          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -541,15 +541,15 @@ void PairLJCutTholeLong::write_restart_settings(FILE *fp)
 void PairLJCutTholeLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&thole_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&thole_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -602,5 +602,5 @@ void *PairLJCutTholeLong::extract(const char *str, int &dim)
   if (strcmp(str,"polar") == 0) return (void *) polar;
   if (strcmp(str,"thole") == 0) return (void *) thole;
   if (strcmp(str,"ascreen") == 0) return (void *) ascreen;
-  return NULL;
+  return nullptr;
 }

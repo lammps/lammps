@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,8 +29,8 @@ using namespace LAMMPS_NS;
 
 ComputeGyrationChunk::ComputeGyrationChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL),
-  rg(NULL), rgall(NULL), rgt(NULL), rgtall(NULL)
+  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr), comall(nullptr),
+  rg(nullptr), rgall(nullptr), rgt(nullptr), rgtall(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute gyration/chunk command");
 
@@ -357,8 +357,8 @@ void ComputeGyrationChunk::allocate()
 double ComputeGyrationChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  if (tensor) bytes += (bigint) maxchunk * 2*6 * sizeof(double);
-  else bytes += (bigint) maxchunk * 2 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  if (tensor) bytes += (double) maxchunk * 2*6 * sizeof(double);
+  else bytes += (double) maxchunk * 2 * sizeof(double);
   return bytes;
 }

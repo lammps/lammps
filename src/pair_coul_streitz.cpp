@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -51,11 +51,11 @@ PairCoulStreitz::PairCoulStreitz(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   nelements = 0;
 
-  elements = NULL;
+  elements = nullptr;
   nparams = 0;
   maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -113,10 +113,10 @@ void PairCoulStreitz::settings(int narg, char **arg)
 
   cut_coul = utils::numeric(FLERR,arg[0],false,lmp);
 
-  if (strcmp(arg[1],"wolf") == 0){
+  if (strcmp(arg[1],"wolf") == 0) {
     kspacetype = 1;
     g_wolf = utils::numeric(FLERR,arg[2],false,lmp);
-  } else if (strcmp(arg[1],"ewald") == 0){
+  } else if (strcmp(arg[1],"ewald") == 0) {
     ewaldflag = pppmflag = 1;
     kspacetype = 2;
   } else {
@@ -143,7 +143,7 @@ void PairCoulStreitz::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -152,7 +152,7 @@ void PairCoulStreitz::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -215,7 +215,7 @@ void PairCoulStreitz::init_style()
   // insure use of KSpace long-range solver when ewald specified, set g_ewald
 
   if (ewaldflag) {
-    if (force->kspace == NULL)
+    if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
     g_ewald = force->kspace->g_ewald;
   }
@@ -247,7 +247,7 @@ void PairCoulStreitz::read_file(char *file)
     PotentialFileReader reader(lmp, file, "coul/streitz");
     char * line;
 
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -280,7 +280,7 @@ void PairCoulStreitz::read_file(char *file)
         params[nparams].zeta = values.next_double();
         params[nparams].zcore = values.next_double();
 
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR, e.what());
       }
 
@@ -297,7 +297,7 @@ void PairCoulStreitz::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 
@@ -318,7 +318,7 @@ void PairCoulStreitz::setup_params()
   for (i = 0; i < nelements; i++) {
     n = -1;
     for (m = 0; m < nparams; m++) {
-      if (i == params[m].ielement ) {
+      if (i == params[m].ielement) {
         if (n >= 0) error->all(FLERR,"Potential file has duplicate entry");
         n = m;
       }
@@ -736,10 +736,10 @@ void PairCoulStreitz::ewald_sum(double qi, double qj, double zj, double r,
 
 double PairCoulStreitz::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH * nmax * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)MAXNEIGH * nmax * sizeof(int);
   return bytes;
 }
 
@@ -799,5 +799,5 @@ void *PairCoulStreitz::extract(const char *str, int &dim)
     if (kspacetype == 1) return (void *) &g_wolf;
     if (kspacetype == 2) return (void *) &g_ewald;
   }
-  return NULL;
+  return nullptr;
 }

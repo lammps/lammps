@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,8 +43,8 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
         restart_peratom = 0;
         first = 1;
 
-        //atom->add_callback(0);
-        //atom->add_callback(1);
+        //atom->add_callback(Atom::GROW);
+        //atom->add_callback(Atom::RESTART);
 
         if (narg != 6)
                 error->all(FLERR, "Illegal number of arguments for fix smd/wall_surface");
@@ -69,11 +69,11 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
 
 FixSMDWallSurface::~FixSMDWallSurface() {
         free(filename);
-        filename = NULL;
+        filename = nullptr;
         // unregister this fix so atom class doesn't invoke it any more
 
-        //atom->delete_callback(id, 0);
-        //atom->delete_callback(id, 1);
+        //atom->delete_callback(id,Atom::GROW);
+        //atom->delete_callback(id,Atom::RESTART);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,12 +198,12 @@ int FixSMDWallSurface::count_words(const char *line) {
         if ((ptr = strchr(copy, '#')))
                 *ptr = '\0';
 
-        if (strtok(copy, " \t\n\r\f") == NULL) {
+        if (strtok(copy, " \t\n\r\f") == nullptr) {
                 memory->destroy(copy);
                 return 0;
         }
         n = 1;
-        while (strtok(NULL, " \t\n\r\f"))
+        while (strtok(nullptr, " \t\n\r\f"))
                 n++;
 
         memory->destroy(copy);
@@ -229,7 +229,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
   Vector3d normal, center;
 
   FILE *fp = fopen(filename, "r");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128, "Cannot open file %s", filename);
     error->one(FLERR, str);
@@ -261,7 +261,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
   // read STL solid name
   retpointer = fgets(line, sizeof(line), fp);
-  if (retpointer == NULL) {
+  if (retpointer == nullptr) {
     error->one(FLERR,"error reading number of triangle pairs");
   }
 
@@ -272,11 +272,11 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
 //      values = new char*[nwords];
 //      values[0] = strtok(line, " \t\n\r\f");
-//      if (values[0] == NULL)
+//      if (values[0] == nullptr)
 //              error->all(FLERR, "Incorrect atom format in data file");
 //      for (m = 1; m < nwords; m++) {
-//              values[m] = strtok(NULL, " \t\n\r\f");
-//              if (values[m] == NULL)
+//              values[m] = strtok(nullptr, " \t\n\r\f");
+//              if (values[m] == nullptr)
 //                      error->all(FLERR, "Incorrect atom format in data file");
 //      }
 //      delete[] values;
@@ -301,11 +301,11 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
     values = new char*[nwords];
     values[0] = strtok(line, " \t\n\r\f");
-    if (values[0] == NULL)
+    if (values[0] == nullptr)
       error->all(FLERR, "Incorrect atom format in data file");
     for (m = 1; m < nwords; m++) {
-      values[m] = strtok(NULL, " \t\n\r\f");
-      if (values[m] == NULL)
+      values[m] = strtok(nullptr, " \t\n\r\f");
+      if (values[m] == nullptr)
         error->all(FLERR, "Incorrect atom format in data file");
     }
 
@@ -318,7 +318,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
     // read outer loop line
     retpointer = fgets(line, sizeof(line), fp);
-    if (retpointer == NULL) {
+    if (retpointer == nullptr) {
       error->one(FLERR, "error reading outer loop");
     }
 
@@ -331,7 +331,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
     for (int k = 0; k < 3; k++) {
       retpointer = fgets(line, sizeof(line), fp);
-      if (retpointer == NULL) {
+      if (retpointer == nullptr) {
         error->one(FLERR,"error reading vertex line");
       }
 
@@ -342,11 +342,11 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
       values = new char*[nwords];
       values[0] = strtok(line, " \t\n\r\f");
-      if (values[0] == NULL)
+      if (values[0] == nullptr)
         error->all(FLERR,"Incorrect vertex line");
       for (m = 1; m < nwords; m++) {
-        values[m] = strtok(NULL, " \t\n\r\f");
-        if (values[m] == NULL)
+        values[m] = strtok(nullptr, " \t\n\r\f");
+        if (values[m] == nullptr)
           error->all(FLERR, "Incorrect vertex line");
       }
 
@@ -362,7 +362,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
     // read end loop line
     retpointer = fgets(line, sizeof(line), fp);
-    if (retpointer == NULL) {
+    if (retpointer == nullptr) {
       error->one(FLERR, "error reading endloop");
     }
 
@@ -373,7 +373,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
 
     // read end facet line
     retpointer = fgets(line, sizeof(line), fp);
-    if (retpointer == NULL) {
+    if (retpointer == nullptr) {
       error->one(FLERR,"error reading endfacet");
     }
 
@@ -465,7 +465,7 @@ void FixSMDWallSurface::read_triangles(int pass) {
 // create global mapping of atoms
 // zero nghost in case are adding new atoms to existing atoms
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();

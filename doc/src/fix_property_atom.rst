@@ -106,6 +106,7 @@ when ghost atoms are created (at every re-neighboring) to insure the
 new properties are also defined for the ghost atoms.
 
 .. admonition:: Properties on ghost atoms
+   :class: note
 
    If you use this command with the *mol*\ , *q* or *rmass* vectors,
    then you most likely want to set *ghost* yes, since these properties
@@ -116,6 +117,7 @@ new properties are also defined for the ghost atoms.
    those vectors but do not set *ghost* yes.
 
 .. admonition:: Limitations on ghost atom properties
+   :class: note
 
    The properties for ghost atoms are not updated every timestep,
    but only once every few steps when neighbor lists are re-built.  Thus

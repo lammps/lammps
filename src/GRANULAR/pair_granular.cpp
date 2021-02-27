@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -66,6 +66,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   single_extra = 12;
   svector = new double[single_extra];
@@ -73,14 +74,14 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   neighprev = 0;
 
   nmax = 0;
-  mass_rigid = NULL;
+  mass_rigid = nullptr;
 
-  onerad_dynamic = NULL;
-  onerad_frozen = NULL;
-  maxrad_dynamic = NULL;
-  maxrad_frozen = NULL;
+  onerad_dynamic = nullptr;
+  onerad_frozen = nullptr;
+  maxrad_dynamic = nullptr;
+  maxrad_frozen = nullptr;
 
-  history_transfer_factors = NULL;
+  history_transfer_factors = nullptr;
 
   dt = update->dt;
 
@@ -97,7 +98,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
 
-  fix_history = NULL;
+  fix_history = nullptr;
   modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
   fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
@@ -535,7 +536,7 @@ void PairGranular::compute(int eflag, int vflag)
         }
 
         if (roll_model[itype][jtype] != ROLL_NONE ||
-            twist_model[itype][jtype] != TWIST_NONE){
+            twist_model[itype][jtype] != TWIST_NONE) {
           relrot1 = omega[i][0] - omega[j][0];
           relrot2 = omega[i][1] - omega[j][1];
           relrot3 = omega[i][2] - omega[j][2];
@@ -1101,16 +1102,9 @@ void PairGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (use_history && fix_history == NULL) {
-    char dnumstr[16];
-    sprintf(dnumstr,"%d",size_history);
-    char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY_GRANULAR";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "NEIGH_HISTORY";
-    fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",4,fixarg,1);
-    delete [] fixarg;
+  if (use_history && fix_history == nullptr) {
+    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY","NEIGH_HISTORY_GRANULAR"
+                        " all NEIGH_HISTORY " + std::to_string(size_history),1);
     int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
@@ -1125,7 +1119,7 @@ void PairGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = NULL;
+  fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
@@ -1330,20 +1324,20 @@ void PairGranular::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&normal_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&damping_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,NULL,error);
-          utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,NULL,error);
-          utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,twist_coeffs[i][j],sizeof(double),3,fp,NULL,error);
-          utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&normal_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&damping_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,nullptr,error);
+          utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,twist_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
+          utils::sfread(FLERR,&cutoff_type[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&normal_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&damping_model[i][j],1,MPI_INT,0,world);
@@ -1405,11 +1399,15 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   int *jlist;
   double *history,*allhistory;
 
+  int nall = atom->nlocal + atom->nghost;
+  if ((i >= nall) || (j >= nall))
+    error->all(FLERR,"Not enough atoms for pair granular single function");
+
   double *radius = atom->radius;
   radi = radius[i];
   radj = radius[j];
   radsum = radi + radj;
-  Reff = radi*radj/radsum;
+  Reff = (radsum > 0.0) ? radi*radj/radsum : 0.0;
 
   bool touchflag;
   E = normal_coeffs[itype][jtype][0];
@@ -1536,6 +1534,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   jlist = list->firstneigh[i];
 
   if (use_history) {
+    if ((fix_history == nullptr) || (fix_history->firstvalue == nullptr))
+      error->one(FLERR,"Pair granular single computation needs history");
     allhistory = fix_history->firstvalue[i];
     for (int jj = 0; jj < jnum; jj++) {
       neighprev++;
@@ -1759,7 +1759,7 @@ void PairGranular::unpack_forward_comm(int n, int first, double *buf)
 
 double PairGranular::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }
 

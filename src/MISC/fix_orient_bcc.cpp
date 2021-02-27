@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -56,7 +56,7 @@ static const char cite_fix_orient_bcc[] =
 
 FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL), sort(NULL), list(NULL)
+  xifilename(nullptr), chifilename(nullptr), order(nullptr), nbr(nullptr), sort(nullptr), list(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_bcc);
 
@@ -67,7 +67,7 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-
+  energy_global_flag = 1;
   peratom_flag = 1;
   size_peratom_cols = 2;
   peratom_freq = 1;
@@ -114,7 +114,7 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
     int count;
 
     FILE *inpfile = fopen(xifilename,"r");
-    if (inpfile == NULL) error->one(FLERR,"Fix orient/bcc file open failed");
+    if (inpfile == nullptr) error->one(FLERR,"Fix orient/bcc file open failed");
     for (int i = 0; i < 4; i++) {
       result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
@@ -124,7 +124,7 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
     fclose(inpfile);
 
     inpfile = fopen(chifilename,"r");
-    if (inpfile == NULL) error->one(FLERR,"Fix orient/bcc file open failed");
+    if (inpfile == nullptr) error->one(FLERR,"Fix orient/bcc file open failed");
     for (int i = 0; i < 4; i++) {
       result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
@@ -202,7 +202,6 @@ int FixOrientBCC::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -596,7 +595,7 @@ int FixOrientBCC::compare(const void *pi, const void *pj)
 
 double FixOrientBCC::memory_usage()
 {
-  double bytes = nmax * sizeof(Nbr);
-  bytes += 2*nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(Nbr);
+  bytes += (double)2*nmax * sizeof(double);
   return bytes;
 }

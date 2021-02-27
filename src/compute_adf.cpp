@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,18 +43,18 @@ enum{DEGREE, RADIAN, COSINE};
 
 ComputeADF::ComputeADF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL), klo(NULL), khi(NULL),
-  hist(NULL), histall(NULL),
-  rcutinnerj(NULL), rcutinnerk(NULL),
-  rcutouterj(NULL), rcutouterk(NULL),
-  list(NULL),
-  iatomcount(NULL), iatomcountall(NULL), iatomflag(NULL),
-  maxjatom(NULL), maxkatom(NULL),
-  numjatom(NULL), numkatom(NULL),
-  neighjatom(NULL),neighkatom(NULL),
-  jatomflag(NULL), katomflag(NULL),
-  maxjkatom(NULL), numjkatom(NULL),
-  neighjkatom(NULL), bothjkatom(NULL), delrjkatom(NULL)
+  ilo(nullptr), ihi(nullptr), jlo(nullptr), jhi(nullptr), klo(nullptr), khi(nullptr),
+  hist(nullptr), histall(nullptr),
+  rcutinnerj(nullptr), rcutinnerk(nullptr),
+  rcutouterj(nullptr), rcutouterk(nullptr),
+  list(nullptr),
+  iatomcount(nullptr), iatomcountall(nullptr), iatomflag(nullptr),
+  maxjatom(nullptr), maxkatom(nullptr),
+  numjatom(nullptr), numkatom(nullptr),
+  neighjatom(nullptr),neighkatom(nullptr),
+  jatomflag(nullptr), katomflag(nullptr),
+  maxjkatom(nullptr), numjkatom(nullptr),
+  neighjkatom(nullptr), bothjkatom(nullptr), delrjkatom(nullptr)
 {
   int nargsperadf = 7;
 

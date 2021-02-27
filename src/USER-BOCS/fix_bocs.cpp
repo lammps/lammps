@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -64,21 +64,16 @@ enum{ISO,ANISO,TRICLINIC};
 
 const int NUM_INPUT_DATA_COLUMNS = 2;     // columns in the pressure correction file
 
-// NB:
-// - Keep error and warning messages less than 255 chars long.
-// - Allocate your char buffer to be 1 char longer than this
-const int MAX_MESSAGE_LENGTH = 255;
-
 /* ----------------------------------------------------------------------
    NVT,NPH,NPT integrators for improved Nose-Hoover equations of motion
  ---------------------------------------------------------------------- */
 
 FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(NULL), id_dilate(NULL), irregular(NULL), id_temp(NULL), id_press(NULL),
-  eta(NULL), eta_dot(NULL), eta_dotdot(NULL),
-  eta_mass(NULL), etap(NULL), etap_dot(NULL), etap_dotdot(NULL),
-  etap_mass(NULL)
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
+  eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
+  etap_mass(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_bocs_package);
 
@@ -92,13 +87,14 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
+  ecouple_flag = 1;
 
   // default values
 
   pcouple = NONE;
   drag = 0.0;
   allremap = 1;
-  id_dilate = NULL;
+  id_dilate = nullptr;
   mtchain = mpchain = 3;
   nc_tchain = nc_pchain = 1;
   mtk_flag = 1;
@@ -113,12 +109,12 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
 
   tcomputeflag = 0;
   pcomputeflag = 0;
-  id_temp = NULL;
-  id_press = NULL;
+  id_temp = nullptr;
+  id_press = nullptr;
 
-  p_match_coeffs = NULL;
+  p_match_coeffs = nullptr;
 
-  splines = NULL;
+  splines = nullptr;
   spline_length = 0;
 
   // turn on tilt factor scaling, whenever applicable
@@ -191,7 +187,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 4;
 
-      if ( strcmp(arg[iarg], "analytic") == 0  ) {
+      if (strcmp(arg[iarg], "analytic") == 0) {
         if (iarg + 4 > narg) {
           error->all(FLERR,"Illegal fix bocs command. Basis type analytic"
                     " must be followed by: avg_vol n_mol n_pmatch_coeff");
@@ -207,13 +203,13 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
         for (int pmatchi = 0; pmatchi < N_p_match; pmatchi++)
           p_match_coeffs[pmatchi] = utils::numeric(FLERR,arg[iarg+pmatchi],false,lmp);
         iarg += (N_p_match);
-      } else if (strcmp(arg[iarg], "linear_spline") == 0  ) {
+      } else if (strcmp(arg[iarg], "linear_spline") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                               "Supply a file name after linear_spline.");
         p_basis_type = BASIS_LINEAR_SPLINE;
         spline_length = read_F_table( arg[iarg+1], p_basis_type );
         iarg += 2;
-      } else if (strcmp(arg[iarg], "cubic_spline") == 0 ) {
+      } else if (strcmp(arg[iarg], "cubic_spline") == 0) {
         if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command. "
                                "Supply a file name after cubic_spline.");
         p_basis_type = BASIS_CUBIC_SPLINE;
@@ -385,10 +381,10 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   if (pre_exchange_flag) irregular = new Irregular(lmp);
-  else irregular = NULL;
+  else irregular = nullptr;
 
   // initialize vol0,t0 to zero to signal uninitialized
   // values then assigned in init(), if necessary
@@ -481,7 +477,7 @@ FixBocs::~FixBocs()
   if (p_match_coeffs) free(p_match_coeffs);
 
     // Free splines memory structure
-    if (splines != NULL) {
+    if (splines != nullptr) {
         memory->destroy(splines);
         spline_length = 0;
     }
@@ -494,7 +490,6 @@ int FixBocs::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
@@ -556,7 +551,7 @@ void FixBocs::init()
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                N_p_match, p_match_coeffs, N_mol, vavg);
         }
-        else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
+        else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
         {
           ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type,
                                                splines, spline_length);
@@ -629,7 +624,7 @@ void FixBocs::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;
@@ -693,7 +688,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     int numBadVolumeIntervals = 0; // count these for message
     float f1, f2;
     int test_sscanf;
-    for (int i = 0; i < inputLines.size(); ++i) {
+    for (int i = 0; i < (int)inputLines.size(); ++i) {
       lineNum++;  // count each line processed now so lineNum messages can be 1-based
       test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
       if (test_sscanf == 2)
@@ -809,7 +804,7 @@ int FixBocs::build_cubic_splines(double **data)
   double *a, *b, *d, *h, *alpha, *c, *l, *mu, *z;
   // 2020-07-17 ag:
   // valgrind says that we read/write a[n] down in the
-  // for(int j=n-1; j>=0; j--) loop below
+  // for (int j=n-1; j>=0; j--) loop below
   // and I agree.
   // So the size of a must be n+1, not n as was found
   // in the original code.
@@ -863,7 +858,7 @@ int FixBocs::build_cubic_splines(double **data)
   c[n] = 0.0;
   d[n] = 0.0;
 
-  for(int j=n-1; j>=0; j--)
+  for (int j=n-1; j>=0; j--)
   {
     c[j] = z[j] - mu[j]*c[j+1];
 
@@ -918,7 +913,7 @@ void FixBocs::setup(int /*vflag*/)
   // If no thermostat or using fix nphug,
   // t_target must be defined by other means.
 
-  if (tstat_flag && strstr(style,"nphug") == NULL) {
+  if (tstat_flag && strstr(style,"nphug") == nullptr) {
     compute_temp_target();
   } else if (pstat_flag) {
 
@@ -1597,12 +1592,12 @@ int FixBocs::modify_param(int narg, char **arg)
 
     if (p_match_flag) // NJD MRD
     {
-      if ( p_basis_type == BASIS_ANALYTIC )
+      if (p_basis_type == BASIS_ANALYTIC)
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, N_p_match,
                                                    p_match_coeffs, N_mol, vavg);
       }
-      else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE  )
+      else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
       {
         ((ComputePressureBocs *)pressure)->send_cg_info(p_basis_type, splines, spline_length );
       }
@@ -1924,7 +1919,7 @@ void *FixBocs::extract(const char *str, int &dim)
   } else if (pstat_flag && strcmp(str,"p_target") == 0) {
     return &p_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

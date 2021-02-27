@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,8 +52,8 @@ static const char cite_fix_bond_swap[] =
 
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tflag(0), alist(NULL), id_temp(NULL), type(NULL), x(NULL), list(NULL),
-  temperature(NULL), random(NULL)
+  tflag(0), alist(nullptr), id_temp(nullptr), type(nullptr), x(nullptr), list(nullptr),
+  temperature(nullptr), random(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_bond_swap);
 
@@ -96,7 +96,7 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   // initialize atom list
 
   nmax = 0;
-  alist = NULL;
+  alist = nullptr;
 
   naccept = foursome = 0;
 }
@@ -130,7 +130,7 @@ void FixBondSwap::init()
 {
   // require an atom style with molecule IDs
 
-  if (atom->molecule == NULL)
+  if (atom->molecule == nullptr)
     error->all(FLERR,
                "Must use atom style with molecule IDs with fix bond/swap");
 
@@ -143,13 +143,13 @@ void FixBondSwap::init()
   // no dihedral or improper potentials allowed
   // special bonds must be 0 1 1
 
-  if (force->pair == NULL || force->bond == NULL)
+  if (force->pair == nullptr || force->bond == nullptr)
     error->all(FLERR,"Fix bond/swap requires pair and bond styles");
 
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support fix bond/swap");
 
-  if (force->angle == NULL && atom->nangles > 0 && comm->me == 0)
+  if (force->angle == nullptr && atom->nangles > 0 && comm->me == 0)
     error->warning(FLERR,"Fix bond/swap will ignore defined angles");
 
   if (force->dihedral || force->improper)
@@ -727,6 +727,6 @@ double FixBondSwap::compute_vector(int n)
 
 double FixBondSwap::memory_usage()
 {
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   return bytes;
 }

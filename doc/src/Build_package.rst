@@ -7,7 +7,7 @@ rigid-body constraints are in packages.  In the src directory, each
 package is a sub-directory with the package name in capital letters.
 
 An overview of packages is given on the :doc:`Packages <Packages>` doc
-page.  Brief overviews of each package are on the :doc:`Packages details <Packages_details>` doc page.
+page.  Brief overviews of each package are on the :doc:`Packages details <Packages_details>` page.
 
 When building LAMMPS, you can choose to include or exclude each
 package.  In general there is no need to include a package if you
@@ -25,7 +25,7 @@ when building that executable.
 For the majority of packages, if you follow the single step below to
 include it, you can then build LAMMPS exactly the same as you would
 without any packages installed.  A few packages may require additional
-steps, as explained on the :doc:`Build extras <Build_extras>` doc page.
+steps, as explained on the :doc:`Build extras <Build_extras>` page.
 
 These links take you to the extra instructions for those select
 packages:
@@ -158,7 +158,9 @@ one of them as a starting point and customize it to your needs.
     cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake  # enable packages which download sources or potential files
     cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake  # disable packages that do require extra libraries or tools
     cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake  # change settings to use the Clang compilers by default
+    cmake -C ../cmake/presets/gcc.cmake      [OPTIONS] ../cmake  # change settings to use the GNU compilers by default
     cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake  # change settings to use the Intel compilers by default
+    cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake  # change settings to use the PGI compilers by default
     cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake  # enable all packages
     cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake  # disable all packages
     mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake  #  compile with MinGW cross compilers
@@ -166,9 +168,11 @@ one of them as a starting point and customize it to your needs.
 .. note::
 
    Running cmake this way manipulates the CMake settings cache in your
-   current build directory. You can combine multiple presets and options
+   current build directory.  You can combine multiple presets and options
    in a single cmake run, or change settings incrementally by running
-   cmake with new flags.
+   cmake with new flags.  If you use a present for selecting a set of
+   compilers, it will reset all settings from previous CMake runs.
+
 
 Example
 """""""
@@ -187,7 +191,7 @@ Example
 
    # to reset the package selection from above to the default of no packages
    # but leaving all other settings untouched. You can run:
-   cmake -C ../cmake/presets/no_all.cmake .
+   cmake -C ../cmake/presets/all_off.cmake .
 
 ----------
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,27 +39,28 @@ PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
-  setfl = NULL;
+  setfl = nullptr;
   nmax = 0;
-  rho = NULL;
-  fp = NULL;
-  map = NULL;
+  rho = nullptr;
+  fp = nullptr;
+  map = nullptr;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
 
-  negativity = NULL;
-  q0 = NULL;
-  cutforcesq = NULL;
-  Fij = NULL;
-  Gij = NULL;
-  phiij = NULL;
+  negativity = nullptr;
+  q0 = nullptr;
+  cutforcesq = nullptr;
+  Fij = nullptr;
+  Gij = nullptr;
+  phiij = nullptr;
 
-  Fij_spline = NULL;
-  Gij_spline = NULL;
-  phiij_spline = NULL;
+  Fij_spline = nullptr;
+  Gij_spline = nullptr;
+  phiij_spline = nullptr;
 
   // set comm size needed by this Pair
 
@@ -388,7 +389,7 @@ void PairEIM::coeff(int narg, char **arg)
   read_file(arg[2+nelements]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3 + nelements; i < narg; i++) {
     m = i - (3+nelements) + 1;
@@ -475,7 +476,7 @@ void PairEIM::read_file(char *filename)
   setfl->tp = new int[npair];
 
   // read potential file
-  if( comm->me == 0) {
+  if ( comm->me == 0) {
     EIMPotentialFileReader reader(lmp, filename, unit_convert_flag);
 
     reader.get_global(setfl);
@@ -1043,9 +1044,9 @@ void PairEIM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairEIM::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }
 
@@ -1062,7 +1063,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   FILE *fp = utils::open_potential(filename, lmp, &unit_convert);
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
-  if (fp == NULL) {
+  if (fp == nullptr) {
     error->one(FLERR, fmt::format("cannot open eim potential file {}", filename));
   }
 
@@ -1071,7 +1072,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   fclose(fp);
 }
 
-std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string & a, const std::string & b) {
+std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string &a, const std::string &b) {
   if (a < b) {
     return std::make_pair(a, b);
   }
@@ -1107,7 +1108,7 @@ char * EIMPotentialFileReader::next_line(FILE * fp) {
     n = strlen(line);
   }
 
-  while(n == 0 || concat) {
+  while (n == 0 || concat) {
     char *ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
@@ -1142,7 +1143,7 @@ void EIMPotentialFileReader::parse(FILE * fp)
   char * line = nullptr;
   bool found_global = false;
 
-  while((line = next_line(fp))) {
+  while ((line = next_line(fp))) {
     ValueTokenizer values(line);
     std::string type = values.next_string();
 

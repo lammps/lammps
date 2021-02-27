@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,42 +46,42 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
   n_initial_integrate = n_post_integrate = 0;
   n_pre_exchange = n_pre_neighbor = n_post_neighbor = 0;
   n_pre_force = n_pre_reverse = n_post_force = 0;
-  n_final_integrate = n_end_of_step = n_thermo_energy = 0;
-  n_thermo_energy_atom = 0;
+  n_final_integrate = n_end_of_step = 0;
+  n_energy_couple = n_energy_global = n_energy_atom = 0;
   n_initial_integrate_respa = n_post_integrate_respa = 0;
   n_pre_force_respa = n_post_force_respa = n_final_integrate_respa = 0;
   n_min_pre_exchange = n_min_pre_force = n_min_pre_reverse = 0;
   n_min_post_force = n_min_energy = 0;
   n_timeflag = -1;
 
-  fix = NULL;
-  fmask = NULL;
-  list_initial_integrate = list_post_integrate = NULL;
-  list_pre_exchange = list_pre_neighbor = list_post_neighbor = NULL;
-  list_pre_force = list_pre_reverse = list_post_force = NULL;
-  list_final_integrate = list_end_of_step = NULL;
-  list_thermo_energy = list_thermo_energy_atom = NULL;
-  list_initial_integrate_respa = list_post_integrate_respa = NULL;
-  list_pre_force_respa = list_post_force_respa = NULL;
-  list_final_integrate_respa = NULL;
-  list_min_pre_exchange = list_min_pre_neighbor = list_min_post_neighbor = NULL;
-  list_min_pre_force = list_min_pre_reverse = list_min_post_force = NULL;
-  list_min_energy = NULL;
+  fix = nullptr;
+  fmask = nullptr;
+  list_initial_integrate = list_post_integrate = nullptr;
+  list_pre_exchange = list_pre_neighbor = list_post_neighbor = nullptr;
+  list_pre_force = list_pre_reverse = list_post_force = nullptr;
+  list_final_integrate = list_end_of_step = nullptr;
+  list_energy_couple = list_energy_global = list_energy_atom = nullptr;
+  list_initial_integrate_respa = list_post_integrate_respa = nullptr;
+  list_pre_force_respa = list_post_force_respa = nullptr;
+  list_final_integrate_respa = nullptr;
+  list_min_pre_exchange = list_min_pre_neighbor = list_min_post_neighbor = nullptr;
+  list_min_pre_force = list_min_pre_reverse = list_min_post_force = nullptr;
+  list_min_energy = nullptr;
 
-  end_of_step_every = NULL;
+  end_of_step_every = nullptr;
 
-  list_timeflag = NULL;
+  list_timeflag = nullptr;
 
   nfix_restart_global = 0;
-  id_restart_global = style_restart_global = NULL;
-  state_restart_global = NULL;
-  used_restart_global = NULL;
+  id_restart_global = style_restart_global = nullptr;
+  state_restart_global = nullptr;
+  used_restart_global = nullptr;
   nfix_restart_peratom = 0;
-  id_restart_peratom = style_restart_peratom = NULL;
-  index_restart_peratom = used_restart_peratom = NULL;
+  id_restart_peratom = style_restart_peratom = nullptr;
+  index_restart_peratom = used_restart_peratom = nullptr;
 
   ncompute = maxcompute = 0;
-  compute = NULL;
+  compute = nullptr;
 
   create_factories();
 }
@@ -137,8 +137,9 @@ Modify::~Modify()
   delete [] list_post_force;
   delete [] list_final_integrate;
   delete [] list_end_of_step;
-  delete [] list_thermo_energy;
-  delete [] list_thermo_energy_atom;
+  delete [] list_energy_couple;
+  delete [] list_energy_global;
+  delete [] list_energy_atom;
   delete [] list_initial_integrate_respa;
   delete [] list_post_integrate_respa;
   delete [] list_pre_force_respa;
@@ -218,8 +219,9 @@ void Modify::init()
   list_init(POST_FORCE,n_post_force,list_post_force);
   list_init(FINAL_INTEGRATE,n_final_integrate,list_final_integrate);
   list_init_end_of_step(END_OF_STEP,n_end_of_step,list_end_of_step);
-  list_init_thermo_energy(THERMO_ENERGY,n_thermo_energy,list_thermo_energy);
-  list_init_thermo_energy_atom(n_thermo_energy_atom,list_thermo_energy_atom);
+  list_init_energy_couple(n_energy_couple,list_energy_couple);
+  list_init_energy_global(n_energy_global,list_energy_global);
+  list_init_energy_atom(n_energy_atom,list_energy_atom);
 
   list_init(INITIAL_INTEGRATE_RESPA,
             n_initial_integrate_respa,list_initial_integrate_respa);
@@ -486,31 +488,45 @@ void Modify::end_of_step()
 }
 
 /* ----------------------------------------------------------------------
-   thermo energy call, only for relevant fixes
-   called by Thermo class
-   compute_scalar() is fix call to return energy
+   coupling energy call, only for relevant fixes
+   each thermostsat fix returns this via compute_scalar()
+   ecouple = cumulative energy added to reservoir by thermostatting
 ------------------------------------------------------------------------- */
 
-double Modify::thermo_energy()
+double Modify::energy_couple()
 {
   double energy = 0.0;
-  for (int i = 0; i < n_thermo_energy; i++)
-    energy += fix[list_thermo_energy[i]]->compute_scalar();
+  for (int i = 0; i < n_energy_couple; i++)
+    energy += fix[list_energy_couple[i]]->compute_scalar();
   return energy;
 }
 
 /* ----------------------------------------------------------------------
-   per-atom thermo energy call, only for relevant fixes
+   global energy call, only for relevant fixes
+   they return energy via compute_scalar()
+   called by compute pe
+------------------------------------------------------------------------- */
+
+double Modify::energy_global()
+{
+  double energy = 0.0;
+  for (int i = 0; i < n_energy_global; i++)
+    energy += fix[list_energy_global[i]]->compute_scalar();
+  return energy;
+}
+
+/* ----------------------------------------------------------------------
+   peratom energy call, only for relevant fixes
    called by compute pe/atom
 ------------------------------------------------------------------------- */
 
-void Modify::thermo_energy_atom(int nlocal, double *energy)
+void Modify::energy_atom(int nlocal, double *energy)
 {
   int i,j;
   double *eatom;
 
-  for (i = 0; i < n_thermo_energy_atom; i++) {
-    eatom = fix[list_thermo_energy_atom[i]]->eatom;
+  for (i = 0; i < n_energy_atom; i++) {
+    eatom = fix[list_energy_atom[i]]->eatom;
     if (!eatom) continue;
     for (j = 0; j < nlocal; j++) energy[j] += eatom[j];
   }
@@ -795,17 +811,17 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   //   but can't think of better way
   // too late if instantiate fix, then check flag set in fix constructor,
   //   since some fixes access domain settings in their constructor
-  // NULL must be last entry in this list
+  // nullptr must be last entry in this list
 
   const char *exceptions[] =
     {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
-     "deprecated", "STORE/KIM", NULL};
+     "deprecated", "STORE/KIM", nullptr};
 
   if (domain->box_exist == 0) {
     int m;
-    for (m = 0; exceptions[m] != NULL; m++)
+    for (m = 0; exceptions[m] != nullptr; m++)
       if (strcmp(arg[2],exceptions[m]) == 0) break;
-    if (exceptions[m] == NULL)
+    if (exceptions[m] == nullptr)
       error->all(FLERR,"Fix command before simulation box is defined");
   }
 
@@ -821,7 +837,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   //   warn if new group != old group
   //   delete old fix, but do not call update_callback(),
   //     since will replace this fix and thus other fix locs will not change
-  //   set ptr to NULL in case new fix scans list of fixes,
+  //   set ptr to a null pointer in case new fix scans list of fixes,
   //     e.g. scan will occur in add_callback() if called by new fix
   // if fix ID does not exist:
   //   set newflag = 1 so create new fix
@@ -852,7 +868,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Replacing a fix, but new group != old group");
     delete fix[ifix];
-    fix[ifix] = NULL;
+    fix[ifix] = nullptr;
 
   } else {
     newflag = 1;
@@ -866,7 +882,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
   // create the Fix
   // try first with suffix appended
 
-  fix[ifix] = NULL;
+  fix[ifix] = nullptr;
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
@@ -879,7 +895,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         strcpy(fix[ifix]->style,estyle.c_str());
       }
     }
-    if (fix[ifix] == NULL && lmp->suffix2) {
+    if (fix[ifix] == nullptr && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (fix_map->find(estyle) != fix_map->end()) {
         FixCreator &fix_creator = (*fix_map)[estyle];
@@ -891,12 +907,12 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
     }
   }
 
-  if (fix[ifix] == NULL && fix_map->find(arg[2]) != fix_map->end()) {
+  if (fix[ifix] == nullptr && fix_map->find(arg[2]) != fix_map->end()) {
     FixCreator &fix_creator = (*fix_map)[arg[2]];
     fix[ifix] = fix_creator(lmp,narg,arg);
   }
 
-  if (fix[ifix] == NULL)
+  if (fix[ifix] == nullptr)
     error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp));
 
   // check if Fix is in restart_global list
@@ -996,6 +1012,23 @@ void Modify::replace_fix(const char *replaceID,
   // it will find and overwrite the replaceID fix
 
   add_fix(narg,arg,trysuffix);
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow replacing a fix from a single string
+------------------------------------------------------------------------- */
+
+void Modify::replace_fix(const std::string &oldfix,
+                         const std::string &fixcmd, int trysuffix)
+{
+  auto args = utils::split_words(fixcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  replace_fix(oldfix.c_str(),args.size(),newarg,trysuffix);
+  delete[] newarg;
 }
 
 /* ----------------------------------------------------------------------
@@ -1105,7 +1138,7 @@ int Modify::check_rigid_group_overlap(int groupbit)
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
-      if ((body == NULL) || (dim != 1)) break;
+      if ((body == nullptr) || (dim != 1)) break;
 
       for (int i=0; (i < nlocal) && (n == 0); ++i)
         if ((mask[i] & groupbit) && (body[i] >= 0)) ++n;
@@ -1137,7 +1170,7 @@ int Modify::check_rigid_region_overlap(int groupbit, Region *reg)
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (strncmp("rigid",fix[ifix]->style,5) == 0) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
-      if ((body == NULL) || (dim != 1)) break;
+      if ((body == nullptr) || (dim != 1)) break;
 
       for (int i=0; (i < nlocal) && (n == 0); ++i)
         if ((mask[i] & groupbit) && (body[i] >= 0)
@@ -1167,7 +1200,7 @@ int Modify::check_rigid_list_overlap(int *select)
   for (int ifix = 0; ifix < nfix; ifix++) {
     if (utils::strmatch(fix[ifix]->style,"^rigid")) {
       const int * const body = (const int *)fix[ifix]->extract("body",dim);
-      if ((body == NULL) || (dim != 1)) break;
+      if ((body == nullptr) || (dim != 1)) break;
 
       for (int i=0; (i < nlocal) && (n == 0); ++i)
         if ((body[i] >= 0) && select[i]) ++n;
@@ -1206,7 +1239,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
   // create the Compute
   // try first with suffix appended
 
-  compute[ncompute] = NULL;
+  compute[ncompute] = nullptr;
 
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->suffix) {
@@ -1219,7 +1252,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
         strcpy(compute[ncompute]->style,estyle.c_str());
       }
     }
-    if (compute[ncompute] == NULL && lmp->suffix2) {
+    if (compute[ncompute] == nullptr && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
       if (compute_map->find(estyle) != compute_map->end()) {
         ComputeCreator &compute_creator = (*compute_map)[estyle];
@@ -1231,13 +1264,13 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
     }
   }
 
-  if (compute[ncompute] == NULL &&
+  if (compute[ncompute] == nullptr &&
       compute_map->find(arg[2]) != compute_map->end()) {
     ComputeCreator &compute_creator = (*compute_map)[arg[2]];
     compute[ncompute] = compute_creator(lmp,narg,arg);
   }
 
-  if (compute[ncompute] == NULL)
+  if (compute[ncompute] == nullptr)
     error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp));
 
   ncompute++;
@@ -1312,7 +1345,7 @@ void Modify::delete_compute(const std::string &id)
 
 int Modify::find_compute(const std::string &id)
 {
-  if(id.empty()) return -1;
+  if (id.empty()) return -1;
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (id == compute[icompute]->id) return icompute;
   return -1;
@@ -1328,7 +1361,7 @@ int Modify::find_compute(const std::string &id)
 void Modify::clearstep_compute()
 {
   for (int icompute = 0; icompute < ncompute; icompute++)
-    compute[icompute]->invoked_flag = 0;
+    compute[icompute]->invoked_flag = Compute::INVOKED_NONE;
 }
 
 /* ----------------------------------------------------------------------
@@ -1428,7 +1461,7 @@ int Modify::read_restart(FILE *fp)
   // nfix_restart_global = # of restart entries with global state info
 
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nfix_restart_global,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nfix_restart_global,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nfix_restart_global,1,MPI_INT,0,world);
 
   // allocate space for each entry
@@ -1445,22 +1478,22 @@ int Modify::read_restart(FILE *fp)
 
   int n;
   for (int i = 0; i < nfix_restart_global; i++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     id_restart_global[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR,id_restart_global[i],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,id_restart_global[i],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(id_restart_global[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     style_restart_global[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR,style_restart_global[i],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,style_restart_global[i],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(style_restart_global[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     state_restart_global[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR,state_restart_global[i],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,state_restart_global[i],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(state_restart_global[i],n,MPI_CHAR,0,world);
 
     used_restart_global[i] = 0;
@@ -1470,7 +1503,7 @@ int Modify::read_restart(FILE *fp)
 
   int maxsize = 0;
 
-  if (me == 0) utils::sfread(FLERR,&nfix_restart_peratom,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&nfix_restart_peratom,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nfix_restart_peratom,1,MPI_INT,0,world);
 
   // allocate space for each entry
@@ -1487,19 +1520,19 @@ int Modify::read_restart(FILE *fp)
   // set index = which set of extra data this fix represents
 
   for (int i = 0; i < nfix_restart_peratom; i++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     id_restart_peratom[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR,id_restart_peratom[i],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,id_restart_peratom[i],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(id_restart_peratom[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     style_restart_peratom[i] = new char[n];
-    if (me == 0) utils::sfread(FLERR,style_restart_peratom[i],sizeof(char),n,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,style_restart_peratom[i],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(style_restart_peratom[i],n,MPI_CHAR,0,world);
 
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     maxsize += n;
 
@@ -1615,43 +1648,60 @@ void Modify::list_init_end_of_step(int mask, int &n, int *&list)
 }
 
 /* ----------------------------------------------------------------------
-   create list of fix indices for thermo energy fixes
-   only added to list if fix has THERMO_ENERGY mask set,
-   and its thermo_energy flag was set via fix_modify
+   create list of fix indices for fixes that compute reservoir coupling energy
+   only added to list if fix has ecouple_flag set
 ------------------------------------------------------------------------- */
 
-void Modify::list_init_thermo_energy(int mask, int &n, int *&list)
+void Modify::list_init_energy_couple(int &n, int *&list)
 {
   delete [] list;
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fmask[i] & mask && fix[i]->thermo_energy) n++;
+    if (fix[i]->ecouple_flag) n++;
   list = new int[n];
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fmask[i] & mask && fix[i]->thermo_energy) list[n++] = i;
+    if (fix[i]->ecouple_flag) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------
-   create list of fix indices for peratom thermo energy fixes
-   only added to list if fix has its peatom_flag set,
-   and its thermo_energy flag was set via fix_modify
+   create list of fix indices for fixes that compute global energy
+   only added to list if fix has energy_global_flag and thermo_energy set
 ------------------------------------------------------------------------- */
 
-void Modify::list_init_thermo_energy_atom(int &n, int *&list)
+void Modify::list_init_energy_global(int &n, int *&list)
 {
   delete [] list;
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->peatom_flag && fix[i]->thermo_energy) n++;
+    if (fix[i]->energy_global_flag && fix[i]->thermo_energy) n++;
   list = new int[n];
 
   n = 0;
   for (int i = 0; i < nfix; i++)
-    if (fix[i]->peatom_flag && fix[i]->thermo_energy) list[n++] = i;
+    if (fix[i]->energy_global_flag && fix[i]->thermo_energy) list[n++] = i;
+}
+
+/* ----------------------------------------------------------------------
+   create list of fix indices for fixes that compute peratom energy
+   only added to list if fix has energy_peratom_flag and thermo_energy set
+------------------------------------------------------------------------- */
+
+void Modify::list_init_energy_atom(int &n, int *&list)
+{
+  delete [] list;
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) n++;
+  list = new int[n];
+
+  n = 0;
+  for (int i = 0; i < nfix; i++)
+    if (fix[i]->energy_peratom_flag && fix[i]->thermo_energy) list[n++] = i;
 }
 
 /* ----------------------------------------------------------------------
@@ -1676,12 +1726,12 @@ void Modify::list_init_compute()
    return # of bytes of allocated memory from all fixes
 ------------------------------------------------------------------------- */
 
-bigint Modify::memory_usage()
+double Modify::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int i = 0; i < nfix; i++)
-    bytes += static_cast<bigint> (fix[i]->memory_usage());
+    bytes += fix[i]->memory_usage();
   for (int i = 0; i < ncompute; i++)
-    bytes += static_cast<bigint> (compute[i]->memory_usage());
+    bytes += compute[i]->memory_usage();
   return bytes;
 }

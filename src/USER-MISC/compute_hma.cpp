@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -73,7 +73,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_temp(NULL), deltaR(NULL)
+  Compute(lmp, narg, arg), id_temp(nullptr), deltaR(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute hma command");
   if (igroup) error->all(FLERR,"Compute hma must use group all");
@@ -199,7 +199,7 @@ ComputeHMA::~ComputeHMA()
 
 void ComputeHMA::init() {
   if (computeCv>-1) {
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"No pair style is defined for compute hma cv");
     if (force->pair->single_enable == 0)
       error->all(FLERR,"Pair style does not support compute hma cv");
@@ -222,7 +222,7 @@ void ComputeHMA::setup()
   int ifix = modify->find_fix(id_temp);
   if (ifix < 0) error->all(FLERR,"Could not find compute hma temperature ID");
   double * temperat = (double *) modify->fix[ifix]->extract("t_target",dummy);
-  if (temperat==NULL) error->all(FLERR,"Could not find compute hma temperature ID");
+  if (temperat==nullptr) error->all(FLERR,"Could not find compute hma temperature ID");
   finaltemp = * temperat;
 
   // set fix which stores original atom coords
@@ -497,6 +497,6 @@ void ComputeHMA::set_arrays(int i)
 
 double ComputeHMA::memory_usage()
 {
-  double bytes = nmax * 3 * sizeof(double);
+  double bytes = (double)nmax * 3 * sizeof(double);
   return bytes;
 }

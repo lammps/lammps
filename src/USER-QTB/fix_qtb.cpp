@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,8 +33,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -48,9 +46,6 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all(FLERR,"Illegal fix qtb command");
 
   // default parameters
-  global_freq = 1;
-  extscalar = 1;
-  nevery = 1;
 
   t_target = 300.0;
   t_period = 1.0;
@@ -94,16 +89,16 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   maxexchange = 6*N_f+3;
 
   // allocate qtb
-  gfactor1 = NULL;
-  gfactor3 = NULL;
-  omega_H = NULL;
-  time_H = NULL;
-  random_array_0 = NULL;
-  random_array_1 = NULL;
-  random_array_2 = NULL;
-  fran = NULL;
-  id_temp = NULL;
-  temperature = NULL;
+  gfactor1 = nullptr;
+  gfactor3 = nullptr;
+  omega_H = nullptr;
+  time_H = nullptr;
+  random_array_0 = nullptr;
+  random_array_1 = nullptr;
+  random_array_2 = nullptr;
+  fran = nullptr;
+  id_temp = nullptr;
+  temperature = nullptr;
 
   // initialize Marsaglia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -114,7 +109,7 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate random-arrays and fran
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qtb:omega_H");
@@ -136,7 +131,7 @@ FixQTB::~FixQTB()
   memory->destroy(random_array_2);
   memory->destroy(omega_H);
   memory->destroy(time_H);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 }
 
 /* ----------------------------------------------------------------------
@@ -147,7 +142,6 @@ int FixQTB::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -158,7 +152,7 @@ void FixQTB::init()
 {
   // copy parameters from other classes
   double dtv = update->dt;
-  if (atom->mass == NULL)
+  if (atom->mass == nullptr)
     error->all(FLERR,"Cannot use fix msst without per-type mass defined");
 
   //initiate the counter \mu
@@ -201,7 +195,7 @@ void FixQTB::init()
   // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
   for (int k = 0; k < 2*N_f; k++) {
     double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
-    if(k == N_f) {
+    if (k == N_f) {
       omega_H[k]=sqrt(force->boltz * t_target);
     } else {
       double energy_k= force->hplanck * fabs(f_k);
@@ -375,10 +369,10 @@ double FixQTB::memory_usage()
 {
   double bytes = 0.0;
   // random_arrays memory usage
-  bytes += (atom->nmax* 6*N_f * sizeof(double));
+  bytes += (double)(atom->nmax* 6*N_f * sizeof(double));
   // fran memory usage
-  bytes += (atom->nmax* 3 * sizeof(double));
-  bytes += (4*N_f * sizeof(double));
+  bytes += (double)(atom->nmax* 3 * sizeof(double));
+  bytes += (double)(4*N_f * sizeof(double));
   return bytes;
 }
 

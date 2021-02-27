@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,6 +20,7 @@
 #include "compute_chunk_atom.h"
 #include "domain.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "error.h"
 
@@ -31,8 +32,8 @@ using namespace LAMMPS_NS;
 
 ComputeOmegaChunk::ComputeOmegaChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL),massproc(NULL),masstotal(NULL),com(NULL),comall(NULL),
-  inertia(NULL),inertiaall(NULL),angmom(NULL),angmomall(NULL),omega(NULL)
+  idchunk(nullptr),massproc(nullptr),masstotal(nullptr),com(nullptr),comall(nullptr),
+  inertia(nullptr),inertiaall(nullptr),angmom(nullptr),angmomall(nullptr),omega(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute omega/chunk command");
 
@@ -250,10 +251,10 @@ void ComputeOmegaChunk::compute_array()
 
     // handle each (nearly) singular I matrix
     // due to 2-atom chunk or linear molecule
-    // use jacobi() and angmom_to_omega() to calculate valid omega
+    // use jacobi3() and angmom_to_omega() to calculate valid omega
 
     } else {
-      int ierror = MathExtra::jacobi(ione,idiag,evectors);
+      int ierror = MathEigen::jacobi3(ione,idiag,evectors);
       if (ierror) error->all(FLERR,
                              "Insufficient Jacobi rotations for omega/chunk");
 
@@ -381,9 +382,9 @@ void ComputeOmegaChunk::allocate()
 double ComputeOmegaChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*6 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 3 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2*6 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 3 * sizeof(double);
   return bytes;
 }

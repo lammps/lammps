@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -126,8 +126,8 @@ void PairLubricateUPoly::compute(int eflag, int vflag)
 
   // Store back the saved forces and torques in original arrays
 
-  for(i=0;i<nlocal+nghost;i++) {
-    for(j=0;j<3;j++) {
+  for (i=0;i<nlocal+nghost;i++) {
+    for (j=0;j<3;j++) {
       f[i][j] = fl[i][j];
       torque[i][j] = Tl[i][j];
     }
@@ -172,7 +172,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
   // Find the right hand side= -ve of all forces/torques
   // b = 6*Npart in overall size
 
-  for(ii = 0; ii < inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     for (j = 0; j < 3; j++) {
       bcg[6*ii+j] = -f[i][j];
@@ -351,20 +351,20 @@ void PairLubricateUPoly::compute_Fh(double **x)
 
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
       if (flagdeform && !flagwall)
         for (j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
          double wallhi[3], walllo[3];
-         for (int j = 0; j < 3; j++){
+         for (int j = 0; j < 3; j++) {
            wallhi[j] = domain->prd[j];
            walllo[j] = 0;
          }
-         for (int m = 0; m < wallfix->nwall; m++){
+         for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
+           if (wallfix->xstyle[m] == VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -626,20 +626,20 @@ void PairLubricateUPoly::compute_RU(double **x)
 
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
       if (flagdeform && !flagwall)
         for (j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
          double wallhi[3], walllo[3];
-         for (j = 0; j < 3; j++){
+         for (j = 0; j < 3; j++) {
            wallhi[j] = domain->prd[j];
            walllo[j] = 0;
          }
-         for (int m = 0; m < wallfix->nwall; m++){
+         for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
+           if (wallfix->xstyle[m] == VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -1155,10 +1155,10 @@ void PairLubricateUPoly::init_style()
   // are re-calculated at every step.
 
   flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++){
+  for (int i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
-    else if (strstr(modify->fix[i]->style,"wall") != NULL){
+    else if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       if (flagwall)
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with "
@@ -1176,14 +1176,14 @@ void PairLubricateUPoly::init_style()
     if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
   else {
     double wallhi[3], walllo[3];
-    for (int j = 0; j < 3; j++){
+    for (int j = 0; j < 3; j++) {
       wallhi[j] = domain->prd[j];
       walllo[j] = 0;
     }
-    for (int m = 0; m < wallfix->nwall; m++){
+    for (int m = 0; m < wallfix->nwall; m++) {
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->xstyle[m] == VARIABLE){
+      if (wallfix->xstyle[m] == VARIABLE) {
         wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         //Since fix->wall->init happens after pair->init_style
         wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
@@ -1214,7 +1214,7 @@ void PairLubricateUPoly::init_style()
   if (!flagVF) vol_f = 0;
 
   if (!comm->me) {
-    if(logfile)
+    if (logfile)
       fprintf(logfile, "lubricateU: vol_f = %g, vol_p = %g, vol_T = %g\n",
           vol_f,vol_P,vol_T);
     if (screen)

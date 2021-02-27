@@ -35,37 +35,37 @@ using std::pair;
 namespace ATC {
 
   ATC_Method::ATC_Method(string groupName, double ** & perAtomArray, LAMMPS_NS::Fix * thisFix) :
-    nodalAtomicVolume_(NULL),
+    nodalAtomicVolume_(nullptr),
     needReset_(true),
     lammpsInterface_(LammpsInterface::instance()),
     interscaleManager_(this),
     timeFilterManager_(this),
     integrateInternalAtoms_(false),
-    atomTimeIntegrator_(NULL),
+    atomTimeIntegrator_(nullptr),
     ghostManager_(this),
-    feEngine_(NULL),
+    feEngine_(nullptr),
     initialized_(false),
     meshDataInitialized_(false),
     localStep_(0),
     sizeComm_(8), // 3 positions + 1 material id * 2 for output
-    atomCoarseGrainingPositions_(NULL),
-    atomGhostCoarseGrainingPositions_(NULL),
-    atomProcGhostCoarseGrainingPositions_(NULL),
-    atomReferencePositions_(NULL),
+    atomCoarseGrainingPositions_(nullptr),
+    atomGhostCoarseGrainingPositions_(nullptr),
+    atomProcGhostCoarseGrainingPositions_(nullptr),
+    atomReferencePositions_(nullptr),
     nNodes_(0),
     nsd_(lammpsInterface_->dimension()),
-    xref_(NULL),
+    xref_(nullptr),
     readXref_(false),
     needXrefProcessorGhosts_(false),
     trackDisplacement_(false),
     needsAtomToElementMap_(true),
-    atomElement_(NULL),
-    atomGhostElement_(NULL),
+    atomElement_(nullptr),
+    atomGhostElement_(nullptr),
     internalElementSet_(""),
-    atomMasses_(NULL),
-    atomPositions_(NULL),
-    atomVelocities_(NULL),
-    atomForces_(NULL),
+    atomMasses_(nullptr),
+    atomPositions_(nullptr),
+    atomVelocities_(nullptr),
+    atomForces_(nullptr),
     parallelConsistency_(true),
     outputNow_(false),
     outputTime_(true),
@@ -79,13 +79,13 @@ namespace ATC {
     sizeVector_(0),
     scalarVectorFreq_(0),
     sizePerAtomCols_(4), 
-    perAtomOutput_(NULL),
+    perAtomOutput_(nullptr),
     perAtomArray_(perAtomArray),
     extScalar_(0),
     extVector_(0),
-    extList_(NULL),
+    extList_(nullptr),
     thermoEnergyFlag_(0),
-    atomVolume_(NULL),
+    atomVolume_(nullptr),
     atomicWeightsWriteFlag_(false),
     atomicWeightsWriteFrequency_(0),
     atomWeightType_(LATTICE),
@@ -103,12 +103,12 @@ namespace ATC {
     mdMassNormalization_(false),
     kernelBased_(false),
     kernelOnTheFly_(false),
-    kernelFunction_(NULL),
+    kernelFunction_(nullptr),
     bondOnTheFly_(false),
-    accumulant_(NULL),
-    accumulantMol_(NULL),
-    accumulantMolGrad_(NULL),
-    accumulantWeights_(NULL),
+    accumulant_(nullptr),
+    accumulantMol_(nullptr),
+    accumulantMolGrad_(nullptr),
+    accumulantWeights_(nullptr),
     accumulantInverseVolumes_(&invNodeVolumes_),
     accumulantBandwidth_(0),
     useRestart_(false),
@@ -117,7 +117,7 @@ namespace ATC {
     setRefPEvalue_(false),
     refPEvalue_(0.),
     readRefPE_(false),
-    nodalRefPotentialEnergy_(NULL),
+    nodalRefPotentialEnergy_(nullptr),
     simTime_(0.0),
     stepCounter_(0)
   {
@@ -1122,7 +1122,7 @@ pecified
                            FieldName & thisField, int & thisIndex)
   {
     string thisName = args[argIdx++];
-    if (args[argIdx] == NULL) {
+    if (args[argIdx] == nullptr) {
       throw ATC_Error("Need to give field '"+thisName+"' more args");
     }
     thisField = string_to_field(thisName);
@@ -1282,7 +1282,7 @@ pecified
     if (this->reset_methods()) {
       // clear memory manager
       interscaleManager_.clear_temporary_data();
-      atomVolume_ = NULL;
+      atomVolume_ = nullptr;
 
       // reference positions and energy
       if (!initialized_) {
@@ -1517,7 +1517,7 @@ pecified
     }
     else {
       // set variables to compute atomic weights
-      DENS_MAN * nodalVolume(NULL);
+      DENS_MAN * nodalVolume(nullptr);
       switch (atomWeightType_) {
       case USER:
         atomVolume_ = new AtomVolumeUser(this,Valpha_);

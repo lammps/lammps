@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +49,7 @@ WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
   noinit = 0;
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -231,7 +231,7 @@ void WriteRestart::write(std::string file)
     if (multiproc) base.replace(base.find("%"),1,"base");
 
     fp = fopen(base.c_str(),"wb");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
                                     base, utils::getsyserror()));
   }
@@ -286,7 +286,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
 
     std::string multiname = file;
@@ -294,7 +294,7 @@ void WriteRestart::write(std::string file)
 
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");
-      if (fp == NULL)
+      if (fp == nullptr)
         error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
                                       multiname, utils::getsyserror()));
       write_int(PROCSPERFILE,nclusterprocs);
@@ -363,7 +363,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
     mpiio->openForWrite(file.c_str());
     mpiio->write(headerOffset,send_size,buf);
@@ -393,7 +393,7 @@ void WriteRestart::write(std::string file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
 
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
@@ -424,7 +424,7 @@ void WriteRestart::write(std::string file)
 
 void WriteRestart::header()
 {
-  write_string(VERSION,universe->version);
+  write_string(VERSION,lmp->version);
   write_int(SMALLINT,sizeof(smallint));
   write_int(IMAGEINT,sizeof(imageint));
   write_int(TAGINT,sizeof(tagint));
@@ -631,7 +631,7 @@ void WriteRestart::version_numeric()
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and an int into restart file
+   write a flag and an int into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int(int flag, int value)
@@ -641,7 +641,7 @@ void WriteRestart::write_int(int flag, int value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a bigint into restart file
+   write a flag and a bigint into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_bigint(int flag, bigint value)
@@ -651,7 +651,7 @@ void WriteRestart::write_bigint(int flag, bigint value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a double into restart file
+   write a flag and a double into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double(int flag, double value)
@@ -661,7 +661,8 @@ void WriteRestart::write_double(int flag, double value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a char string (including NULL) into restart file
+   write a flag and a C-style char string (including the terminating null
+   byte) into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_string(int flag, const char *value)
@@ -673,7 +674,7 @@ void WriteRestart::write_string(int flag, const char *value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and vector of N ints into restart file
+   write a flag and vector of N ints into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int_vec(int flag, int n, int *vec)
@@ -684,7 +685,7 @@ void WriteRestart::write_int_vec(int flag, int n, int *vec)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and vector of N doubles into restart file
+   write a flag and vector of N doubles into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double_vec(int flag, int n, double *vec)

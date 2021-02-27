@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -167,9 +167,10 @@ void PairBuckCoulCutGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = buckc_gpu_init(atom->ntypes+1, cutsq, rhoinv, buck1, buck2,
                                a, c, offset, force->special_lj, atom->nlocal,
-                               atom->nlocal+atom->nghost, 300, maxspecial,
+                               atom->nlocal+atom->nghost, mnf, maxspecial,
                                cell_size, gpu_mode, screen, cut_ljsq,
                                cut_coulsq, force->special_coul, force->qqrd2e);
   GPU_EXTRA::check_flag(success,error,world);

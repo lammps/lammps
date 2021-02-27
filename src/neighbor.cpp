@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -76,7 +76,7 @@ static const char cite_neigh_multi[] =
 /* ---------------------------------------------------------------------- */
 
 Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp),
-pairclass(NULL), pairnames(NULL), pairmasks(NULL)
+pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -95,62 +95,62 @@ pairclass(NULL), pairnames(NULL), pairmasks(NULL)
   ago = -1;
 
   cutneighmax = 0.0;
-  cutneighsq = NULL;
-  cutneighghostsq = NULL;
-  cuttype = NULL;
-  cuttypesq = NULL;
-  fixchecklist = NULL;
+  cutneighsq = nullptr;
+  cutneighghostsq = nullptr;
+  cuttype = nullptr;
+  cuttypesq = nullptr;
+  fixchecklist = nullptr;
 
   // pairwise neighbor lists and associated data structs
 
   nlist = 0;
-  lists = NULL;
+  lists = nullptr;
 
   nbin = 0;
-  neigh_bin = NULL;
+  neigh_bin = nullptr;
 
   nstencil = 0;
-  neigh_stencil = NULL;
+  neigh_stencil = nullptr;
 
-  neigh_pair = NULL;
+  neigh_pair = nullptr;
 
   nstencil_perpetual = 0;
-  slist = NULL;
+  slist = nullptr;
 
   npair_perpetual = 0;
-  plist = NULL;
+  plist = nullptr;
 
   nrequest = maxrequest = 0;
-  requests = NULL;
+  requests = nullptr;
 
   old_nrequest = 0;
-  old_requests = NULL;
+  old_requests = nullptr;
 
   old_style = style;
   old_triclinic = 0;
   old_pgsize = pgsize;
   old_oneatom = oneatom;
 
-  binclass = NULL;
-  binnames = NULL;
-  binmasks = NULL;
-  stencilclass = NULL;
-  stencilnames = NULL;
-  stencilmasks = NULL;
+  binclass = nullptr;
+  binnames = nullptr;
+  binmasks = nullptr;
+  stencilclass = nullptr;
+  stencilnames = nullptr;
+  stencilmasks = nullptr;
 
   // topology lists
 
   bondwhich = anglewhich = dihedralwhich = improperwhich = NONE;
 
-  neigh_bond = NULL;
-  neigh_angle = NULL;
-  neigh_dihedral = NULL;
-  neigh_improper = NULL;
+  neigh_bond = nullptr;
+  neigh_angle = nullptr;
+  neigh_dihedral = nullptr;
+  neigh_improper = nullptr;
 
   // coords at last neighboring
 
   maxhold = 0;
-  xhold = NULL;
+  xhold = nullptr;
   lastcall = -1;
   last_setup_bins = -1;
 
@@ -159,14 +159,14 @@ pairclass(NULL), pairnames(NULL), pairmasks(NULL)
   includegroup = 0;
 
   nex_type = maxex_type = 0;
-  ex1_type = ex2_type = NULL;
-  ex_type = NULL;
+  ex1_type = ex2_type = nullptr;
+  ex_type = nullptr;
 
   nex_group = maxex_group = 0;
-  ex1_group = ex2_group = ex1_bit = ex2_bit = NULL;
+  ex1_group = ex2_group = ex1_bit = ex2_bit = nullptr;
 
   nex_mol = maxex_mol = 0;
-  ex_mol_group = ex_mol_bit = ex_mol_intra = NULL;
+  ex_mol_group = ex_mol_bit = ex_mol_intra = nullptr;
 
   // Kokkos setting
 
@@ -270,7 +270,7 @@ void Neighbor::init()
   // set neighbor cutoffs (force cutoff + skin)
   // trigger determines when atoms migrate and neighbor lists are rebuilt
   //   needs to be non-zero for migration distance check
-  //   even if pair = NULL and no neighbor lists are used
+  //   even if pair = nullptr and no neighbor lists are used
   // cutneigh = force cutoff + skin if cutforce > 0, else cutneigh = 0
   // cutneighghost = pair cutghost if it requests it, else same as cutneigh
 
@@ -281,7 +281,7 @@ void Neighbor::init()
       boxcheck = 1;
 
   n = atom->ntypes;
-  if (cutneighsq == NULL) {
+  if (cutneighsq == nullptr) {
     if (lmp->kokkos) init_cutneighsq_kokkos(n);
     else memory->create(cutneighsq,n+1,n+1,"neigh:cutneighsq");
     memory->create(cutneighghostsq,n+1,n+1,"neigh:cutneighghostsq");
@@ -338,7 +338,7 @@ void Neighbor::init()
   if (output->restart_flag) restart_check = 1;
 
   delete [] fixchecklist;
-  fixchecklist = NULL;
+  fixchecklist = nullptr;
   fixchecklist = new int[modify->nfix];
 
   fix_check = 0;
@@ -378,7 +378,7 @@ void Neighbor::init()
   // We cannot remove special neighbors with kspace or kspace-like pair styles
   // as the exclusion needs to remove the full coulomb and not the damped interaction.
   // Special treatment is required for hybrid pair styles since Force::pair_match()
-  // will only return a non-NULL pointer if there is only one substyle of the kind.
+  // will only return a non-null pointer if there is only one substyle of the kind.
 
   if (force->kspace) {
     special_flag[1] = special_flag[2] = special_flag[3] = 2;
@@ -410,7 +410,7 @@ void Neighbor::init()
   if (dist_check == 0) {
     memory->destroy(xhold);
     maxhold = 0;
-    xhold = NULL;
+    xhold = nullptr;
   }
 
   // first time allocation
@@ -515,7 +515,7 @@ void Neighbor::init()
 
   for (int i = 0; i < nrequest; i++) {
     delete requests[i];
-    requests[i] = NULL;
+    requests[i] = nullptr;
   }
   nrequest = 0;
 
@@ -720,11 +720,11 @@ int Neighbor::init_pair()
     lists[i]->index = i;
     lists[i]->requestor = requests[i]->requestor;
 
-    if(requests[i]->pair) {
+    if (requests[i]->pair) {
         lists[i]->requestor_type = NeighList::PAIR;
-    } else if(requests[i]->fix) {
+    } else if (requests[i]->fix) {
         lists[i]->requestor_type = NeighList::FIX;
-    } else if(requests[i]->compute) {
+    } else if (requests[i]->compute) {
         lists[i]->requestor_type = NeighList::COMPUTE;
     }
 
@@ -809,7 +809,7 @@ int Neighbor::init_pair()
 
     if (lists[i]->bin_method > 0) {
       neigh_stencil[nstencil]->nb = neigh_bin[requests[i]->index_bin];
-      if (neigh_stencil[nstencil]->nb == NULL)
+      if (neigh_stencil[nstencil]->nb == nullptr)
         error->all(FLERR,"Could not assign bin method to neighbor stencil");
     }
 
@@ -823,7 +823,7 @@ int Neighbor::init_pair()
     requests[i]->index_pair = -1;
     flag = lists[i]->pair_method;
     if (flag == 0) {
-      neigh_pair[i] = NULL;
+      neigh_pair[i] = nullptr;
       continue;
     }
 
@@ -834,12 +834,12 @@ int Neighbor::init_pair()
 
     if (lists[i]->bin_method > 0) {
       neigh_pair[i]->nb = neigh_bin[requests[i]->index_bin];
-      if (neigh_pair[i]->nb == NULL)
+      if (neigh_pair[i]->nb == nullptr)
         error->all(FLERR,"Could not assign bin method to neighbor pair");
     }
     if (lists[i]->stencil_method > 0) {
       neigh_pair[i]->ns = neigh_stencil[requests[i]->index_stencil];
-      if (neigh_pair[i]->ns == NULL)
+      if (neigh_pair[i]->ns == nullptr)
         error->all(FLERR,"Could not assign stencil method to neighbor pair");
     }
 
@@ -905,11 +905,11 @@ int Neighbor::init_pair()
     done = 1;
     for (i = 0; i < npair_perpetual; i++) {
       for (k = 0; k < 3; k++) {
-        ptr = NULL;
+        ptr = nullptr;
         if (k == 0) ptr = lists[plist[i]]->listcopy;
         if (k == 1) ptr = lists[plist[i]]->listskip;
         if (k == 2) ptr = lists[plist[i]]->listfull;
-        if (ptr == NULL) continue;
+        if (ptr == nullptr) continue;
         for (m = 0; m < nrequest; m++)
           if (ptr == lists[m]) break;
         for (j = 0; j < npair_perpetual; j++)
@@ -1296,11 +1296,11 @@ void Neighbor::init_topology()
 {
   int i,m;
 
-  if (!atom->molecular) return;
+  if (atom->molecular == Atom::ATOMIC) return;
 
   // set flags that determine which topology neighbor classes to use
   // these settings could change from run to run, depending on fixes defined
-  // bonds,etc can only be broken for atom->molecular = 1, not 2
+  // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
   // SHAKE sets bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
   // bond_quartic sets bonds to 0
@@ -1314,7 +1314,7 @@ void Neighbor::init_topology()
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
-  if (atom->avec->bonds_allow && atom->molecular == 1) {
+  if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (bond_off) break;
       for (m = 0; m < atom->num_bond[i]; m++)
@@ -1322,7 +1322,7 @@ void Neighbor::init_topology()
     }
   }
 
-  if (atom->avec->angles_allow && atom->molecular == 1) {
+  if (atom->avec->angles_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (angle_off) break;
       for (m = 0; m < atom->num_angle[i]; m++)
@@ -1331,7 +1331,7 @@ void Neighbor::init_topology()
   }
 
   int dihedral_off = 0;
-  if (atom->avec->dihedrals_allow && atom->molecular == 1) {
+  if (atom->avec->dihedrals_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (dihedral_off) break;
       for (m = 0; m < atom->num_dihedral[i]; m++)
@@ -1340,7 +1340,7 @@ void Neighbor::init_topology()
   }
 
   int improper_off = 0;
-  if (atom->avec->impropers_allow && atom->molecular == 1) {
+  if (atom->avec->impropers_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
       if (improper_off) break;
       for (m = 0; m < atom->num_improper[i]; m++)
@@ -1367,7 +1367,7 @@ void Neighbor::init_topology()
 
   if (atom->avec->bonds_allow) {
     int old_bondwhich = bondwhich;
-    if (atom->molecular == 2) bondwhich = TEMPLATE;
+    if (atom->molecular == Atom::TEMPLATE) bondwhich = TEMPLATE;
     else if (bond_off) bondwhich = PARTIAL;
     else bondwhich = ALL;
     if (!neigh_bond || bondwhich != old_bondwhich) {
@@ -1383,7 +1383,7 @@ void Neighbor::init_topology()
 
   if (atom->avec->angles_allow) {
     int old_anglewhich = anglewhich;
-    if (atom->molecular == 2) anglewhich = TEMPLATE;
+    if (atom->molecular == Atom::TEMPLATE) anglewhich = TEMPLATE;
     else if (angle_off) anglewhich = PARTIAL;
     else anglewhich = ALL;
     if (!neigh_angle || anglewhich != old_anglewhich) {
@@ -1399,7 +1399,7 @@ void Neighbor::init_topology()
 
   if (atom->avec->dihedrals_allow) {
     int old_dihedralwhich = dihedralwhich;
-    if (atom->molecular == 2) dihedralwhich = TEMPLATE;
+    if (atom->molecular == Atom::TEMPLATE) dihedralwhich = TEMPLATE;
     else if (dihedral_off) dihedralwhich = PARTIAL;
     else dihedralwhich = ALL;
     if (!neigh_dihedral || dihedralwhich != old_dihedralwhich) {
@@ -1415,7 +1415,7 @@ void Neighbor::init_topology()
 
   if (atom->avec->impropers_allow) {
     int old_improperwhich = improperwhich;
-    if (atom->molecular == 2) improperwhich = TEMPLATE;
+    if (atom->molecular == Atom::TEMPLATE) improperwhich = TEMPLATE;
     else if (improper_off) improperwhich = PARTIAL;
     else improperwhich = ALL;
     if (!neigh_improper || improperwhich != old_improperwhich) {
@@ -1575,17 +1575,17 @@ void Neighbor::requests_new2old()
 
 /* ----------------------------------------------------------------------
    find and return request made by classptr
-   if not found or classpt = NULL, return NULL
+   if not found or classpt = nullptr, return nullptr
 ------------------------------------------------------------------------- */
 
 NeighRequest *Neighbor::find_request(void *classptr)
 {
-  if (classptr == NULL) return NULL;
+  if (classptr == nullptr) return nullptr;
 
   for (int i = 0; i < nrequest; i++)
     if (requests[i]->requestor == classptr) return requests[i];
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1799,9 +1799,9 @@ int Neighbor::choose_pair(NeighRequest *rq)
     // if molecular on, do not match ATOMONLY (b/c a MOLONLY Npair exists)
     // if molecular off, do not match MOLONLY (b/c an ATOMONLY Npair exists)
 
-    if (molecular) {
+    if (molecular != Atom::ATOMIC) {
       if (mask & NP_ATOMONLY) continue;
-    } else if (!molecular) {
+    } else if (molecular == Atom::ATOMIC) {
       if (mask & NP_MOLONLY) continue;
     }
 
@@ -2097,7 +2097,7 @@ void Neighbor::build(int topoflag)
 
   // build topology lists for bonds/angles/etc
 
-  if (atom->molecular && topoflag) build_topology();
+  if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
 }
 
 /* ----------------------------------------------------------------------
@@ -2138,7 +2138,7 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 {
   // check if list structure is initialized
 
-  if (mylist == NULL)
+  if (mylist == nullptr)
     error->all(FLERR,"Trying to build an occasional neighbor list "
                "before initialization completed");
 
@@ -2162,12 +2162,15 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   // if this is copy list and parent is occasional list,
   // or this is halffull and parent is occasional list,
+  // or this is skip list and parent is occasional list,
   // insure parent is current
 
   if (mylist->listcopy && mylist->listcopy->occasional)
     build_one(mylist->listcopy,preflag);
   if (mylist->listfull && mylist->listfull->occasional)
     build_one(mylist->listfull,preflag);
+  if (mylist->listskip && mylist->listskip->occasional)
+    build_one(mylist->listskip,preflag);
 
   // create stencil if hasn't been created since last setup_bins() call
 
@@ -2283,7 +2286,7 @@ void Neighbor::modify_params(int narg, char **arg)
       includegroup = group->find(arg[iarg+1]);
       if (includegroup < 0)
         error->all(FLERR,"Invalid group ID in neigh_modify command");
-      if (includegroup && (atom->firstgroupname == NULL ||
+      if (includegroup && (atom->firstgroupname == nullptr ||
                             strcmp(arg[iarg+1],atom->firstgroupname) != 0))
         error->all(FLERR,
                    "Neigh_modify include group != atom_modify first group");
@@ -2390,9 +2393,9 @@ int Neighbor::exclude_setting()
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint Neighbor::memory_usage()
+double Neighbor::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   bytes += memory->usage(xhold,maxhold,3);
 
   for (int i = 0; i < nlist; i++)

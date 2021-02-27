@@ -806,7 +806,7 @@ class Random_XorShift64 {
       const double V = 2.0 * drand() - 1.0;
       S              = U * U + V * V;
     }
-    return U * std::sqrt(-2.0 * log(S) / S);
+    return U * std::sqrt(-2.0 * std::log(S) / S);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -1042,7 +1042,7 @@ class Random_XorShift1024 {
       const double V = 2.0 * drand() - 1.0;
       S              = U * U + V * V;
     }
-    return U * std::sqrt(-2.0 * log(S) / S);
+    return U * std::sqrt(-2.0 * std::log(S) / S);
   }
 
   KOKKOS_INLINE_FUNCTION

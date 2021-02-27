@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
+   https://lammps.sandia.gov/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -57,7 +57,7 @@ static const char cite_user_uef_package[] =
  * temp/pressure fixes
  ---------------------------------------------------------------------- */
 FixNHUef::FixNHUef(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), uefbox(NULL)
+  FixNH(lmp, narg, arg), uefbox(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_uef_package);
 

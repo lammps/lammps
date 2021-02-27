@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -77,12 +77,12 @@ static const char cite_fix_srd[] =
 /* ---------------------------------------------------------------------- */
 
 FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  wallfix(NULL), wallwhich(NULL), xwall(NULL), xwallhold(NULL),
-  vwall(NULL), fwall(NULL), avec_ellipsoid(NULL), avec_line(NULL),
-  avec_tri(NULL), random(NULL), randomshift(NULL), flocal(NULL),
-  tlocal(NULL), biglist(NULL), binhead(NULL), binnext(NULL), sbuf1(NULL),
-  sbuf2(NULL), rbuf1(NULL), rbuf2(NULL), nbinbig(NULL), binbig(NULL),
-  binsrd(NULL), stencil(NULL)
+  wallfix(nullptr), wallwhich(nullptr), xwall(nullptr), xwallhold(nullptr),
+  vwall(nullptr), fwall(nullptr), avec_ellipsoid(nullptr), avec_line(nullptr),
+  avec_tri(nullptr), random(nullptr), randomshift(nullptr), flocal(nullptr),
+  tlocal(nullptr), biglist(nullptr), binhead(nullptr), binnext(nullptr), sbuf1(nullptr),
+  sbuf2(nullptr), rbuf1(nullptr), rbuf2(nullptr), nbinbig(nullptr), binbig(nullptr),
+  binsrd(nullptr), stencil(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_srd);
 
@@ -232,7 +232,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   if (shiftuser == SHIFT_YES || shiftuser == SHIFT_POSSIBLE)
     randomshift = new RanPark(lmp,shiftseed);
-  else randomshift = NULL;
+  else randomshift = nullptr;
 
   // initialize data structs and flags
 
@@ -240,31 +240,31 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   else biggroupbit = 0;
 
   nmax = 0;
-  binhead = NULL;
+  binhead = nullptr;
   maxbin1 = 0;
-  binnext = NULL;
+  binnext = nullptr;
   maxbuf = 0;
-  sbuf1 = sbuf2 = rbuf1 = rbuf2 = NULL;
+  sbuf1 = sbuf2 = rbuf1 = rbuf2 = nullptr;
 
   shifts[0].maxvbin = shifts[1].maxvbin = 0;
-  shifts[0].vbin = shifts[1].vbin = NULL;
+  shifts[0].vbin = shifts[1].vbin = nullptr;
 
   shifts[0].maxbinsq = shifts[1].maxbinsq = 0;
   for (int ishift = 0; ishift < 2; ishift++)
     for (int iswap = 0; iswap < 6; iswap++)
       shifts[ishift].bcomm[iswap].sendlist =
-        shifts[ishift].bcomm[iswap].recvlist = NULL;
+        shifts[ishift].bcomm[iswap].recvlist = nullptr;
 
   maxbin2 = 0;
-  nbinbig = NULL;
-  binbig = NULL;
-  binsrd = NULL;
+  nbinbig = nullptr;
+  binbig = nullptr;
+  binsrd = nullptr;
 
   nstencil = maxstencil = 0;
-  stencil = NULL;
+  stencil = nullptr;
 
   maxbig = 0;
-  biglist = NULL;
+  biglist = nullptr;
 
   stats_flag = 1;
   for (int i = 0; i < size_vector; i++) stats_all[i] = 0.0;
@@ -993,7 +993,7 @@ void FixSRD::reset_velocities()
   if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
 
   if (tstat) {
-    for (i = 0; i < nbins; i++){
+    for (i = 0; i < nbins; i++) {
       n = vbin[i].n;
       if (n <= 1) continue;
 
@@ -1034,7 +1034,7 @@ void FixSRD::reset_velocities()
     if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
   }
 
-  for (i = 0; i < nbins; i++){
+  for (i = 0; i < nbins; i++) {
     if (vbin[i].owner) {
       if (vbin[i].n > 1) {
         srd_bin_temp += vbin[i].value[0]/(vbin[i].n-dof_temp);
@@ -1367,7 +1367,7 @@ void FixSRD::collisions_single()
             else slip_wall(v[i],j,norm,vsnew);
           } else {
             if (type != WALL) noslip(v[i],v[j],x[j],big,-1, xscoll,norm,vsnew);
-            else noslip(v[i],NULL,x[j],big,j,xscoll,norm,vsnew);
+            else noslip(v[i],nullptr,x[j],big,j,xscoll,norm,vsnew);
           }
 
           if (dimension == 2) vsnew[2] = 0.0;
@@ -1387,7 +1387,7 @@ void FixSRD::collisions_single()
           // BIG particle is not torqued if sphere and SLIP collision
 
           if (collidestyle == SLIP && type == SPHERE)
-            force_torque(v[i],vsnew,xscoll,xbcoll,f[j],NULL);
+            force_torque(v[i],vsnew,xscoll,xbcoll,f[j],nullptr);
           else if (type != WALL)
             force_torque(v[i],vsnew,xscoll,xbcoll,f[j],torque[j]);
           else if (type == WALL)
@@ -1557,7 +1557,7 @@ void FixSRD::collisions_multi()
         else slip_wall(v[i],j,norm,vsnew);
       } else {
         if (type != WALL) noslip(v[i],v[j],x[j],big,-1,xscoll,norm,vsnew);
-        else noslip(v[i],NULL,x[j],big,j,xscoll,norm,vsnew);
+        else noslip(v[i],nullptr,x[j],big,j,xscoll,norm,vsnew);
       }
 
       if (dimension == 2) vsnew[2] = 0.0;
@@ -1576,7 +1576,7 @@ void FixSRD::collisions_multi()
       // BIG particle is not torqued if sphere and SLIP collision
 
       if (collidestyle == SLIP && type == SPHERE)
-        force_torque(v[i],vsnew,xscoll,xbcoll,f[j],NULL);
+        force_torque(v[i],vsnew,xscoll,xbcoll,f[j],nullptr);
       else if (type != WALL)
         force_torque(v[i],vsnew,xscoll,xbcoll,f[j],torque[j]);
       else if (type == WALL)
@@ -3979,13 +3979,13 @@ void FixSRD::triside(double t, double &f, double &df)
 double FixSRD::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (shifts[0].nbins + shifts[1].nbins) * sizeof(BinAve);
-  bytes += nmax * sizeof(int);
+  bytes += (double)(shifts[0].nbins + shifts[1].nbins) * sizeof(BinAve);
+  bytes += (double)nmax * sizeof(int);
   if (bigexist) {
-    bytes += nbins2 * sizeof(int);
-    bytes += nbins2*ATOMPERBIN * sizeof(int);
+    bytes += (double)nbins2 * sizeof(int);
+    bytes += (double)nbins2*ATOMPERBIN * sizeof(int);
   }
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }
 

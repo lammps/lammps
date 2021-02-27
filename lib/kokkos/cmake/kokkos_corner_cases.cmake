@@ -1,4 +1,4 @@
-IF(KOKKOS_CXX_COMPILER_ID STREQUAL Clang AND KOKKOS_ENABLE_OPENMP AND NOT KOKKOS_CLANG_IS_CRAY AND NOT "x${CMAKE_CXX_SIMULATE_ID}" STREQUAL "xMSVC")
+IF(KOKKOS_CXX_COMPILER_ID STREQUAL Clang AND KOKKOS_ENABLE_OPENMP AND NOT KOKKOS_CLANG_IS_CRAY AND NOT KOKKOS_COMPILER_CLANG_MSVC)
   # The clang "version" doesn't actually tell you what runtimes and tools
   # were built into Clang. We should therefore make sure that libomp
   # was actually built into Clang. Otherwise the user will get nonsensical

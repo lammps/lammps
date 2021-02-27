@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,6 @@
 
 #include "pair_meamc.h"
 
-
 #include <cstring>
 
 #include "meam.h"
@@ -29,8 +28,6 @@
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-
-
 
 using namespace LAMMPS_NS;
 
@@ -52,14 +49,15 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   allocated = 0;
 
   nelements = 0;
-  elements = NULL;
-  mass = NULL;
+  elements = nullptr;
+  mass = nullptr;
   meam_inst = new MEAM(memory);
-  scale = NULL;
+  scale = nullptr;
 
   // set comm size needed by this Pair
 
@@ -161,7 +159,7 @@ void PairMEAMC::compute(int eflag, int vflag)
 
   double **vptr;
   if (vflag_atom) vptr = vatom;
-  else vptr = NULL;
+  else vptr = nullptr;
 
   for (ii = 0; ii < inum_half; ii++) {
     i = ilist_half[ii];
@@ -365,7 +363,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(globalfile,lmp,nullptr);
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open MEAM potential file {}",
                                    globalfile));
   }
@@ -408,7 +406,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
     while (1) {
       char *ptr;
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         fclose(fp);
         break;
       }
@@ -424,7 +422,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
       while (nwords < params_per_line) {
         int n = strlen(line);
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           fclose(fp);
           break;
         }
@@ -440,7 +438,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
 
       nwords = 0;
       words[nwords++] = strtok(line,"' \t\n\r\f");
-      while ((words[nwords++] = strtok(NULL,"' \t\n\r\f"))) continue;
+      while ((words[nwords++] = strtok(nullptr,"' \t\n\r\f"))) continue;
 
       // skip if element name isn't in element list
 
@@ -556,7 +554,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
   delete [] rozero;
   delete [] found;
 
-  // done if user param file is NULL
+  // done if user param file is "NULL"
 
   if (userfile == "NULL") return;
 
@@ -564,7 +562,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
 
   if (comm->me == 0) {
     fp = utils::open_potential(userfile,lmp,nullptr);
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open MEAM potential file {}",
                                    userfile));
   }
@@ -584,7 +582,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
     char *ptr;
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         fclose(fp);
         nline = -1;
       } else nline = strlen(line) + 1;
@@ -603,7 +601,7 @@ void PairMEAMC::read_files(const std::string &globalfile,
     int nparams = 0;
     params[nparams++] = strtok(line,"=(), '\t\n\r\f");
     while (nparams < maxparams &&
-           (params[nparams++] = strtok(NULL,"=(), '\t\n\r\f")))
+           (params[nparams++] = strtok(nullptr,"=(), '\t\n\r\f")))
       continue;
     nparams--;
 
@@ -805,8 +803,8 @@ void PairMEAMC::unpack_reverse_comm(int n, int *list, double *buf)
 double PairMEAMC::memory_usage()
 {
   double bytes = 11 * meam_inst->nmax * sizeof(double);
-  bytes += (3 + 6 + 10 + 3 + 3 + 3) * meam_inst->nmax * sizeof(double);
-  bytes += 3 * meam_inst->maxneigh * sizeof(double);
+  bytes += (double)(3 + 6 + 10 + 3 + 3 + 3) * meam_inst->nmax * sizeof(double);
+  bytes += (double)3 * meam_inst->maxneigh * sizeof(double);
   return bytes;
 }
 
@@ -837,5 +835,5 @@ void *PairMEAMC::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
-  return NULL;
+  return nullptr;
 }

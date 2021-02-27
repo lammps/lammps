@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -58,14 +58,14 @@ enum{EXCHATOM,EXCHMOL}; // exchmode
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), full_flag(0),
-  local_gas_list(NULL), molcoords(NULL), molq(NULL), molimage(NULL),
-  random_equal(NULL)
+  idregion(nullptr), full_flag(0),
+  local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
+  random_equal(nullptr)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix Widom command");
+  if (narg < 8) error->all(FLERR,"Illegal fix widom command");
 
-  if (atom->molecular == 2)
-    error->all(FLERR,"Fix Widom does not (yet) work with atom_style template");
+  if (atom->molecular == Atom::TEMPLATE)
+    error->all(FLERR,"Fix widom does not (yet) work with atom_style template");
 
   dynamic_group_allow = 1;
 
@@ -86,11 +86,11 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   seed = utils::inumeric(FLERR,arg[6],false,lmp);
   insertion_temperature = utils::numeric(FLERR,arg[7],false,lmp);
 
-  if (nevery <= 0) error->all(FLERR,"Illegal fix Widom command");
-  if (ninsertions < 0) error->all(FLERR,"Illegal fix Widom command");
-  if (seed <= 0) error->all(FLERR,"Illegal fix Widom command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix widom command");
+  if (ninsertions < 0) error->all(FLERR,"Illegal fix widom command");
+  if (seed <= 0) error->all(FLERR,"Illegal fix widom command");
   if (insertion_temperature < 0.0)
-    error->all(FLERR,"Illegal fix Widom command");
+    error->all(FLERR,"Illegal fix widom command");
 
   // read options from end of input line
 
@@ -106,9 +106,9 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     region_zlo = region_zhi = 0.0;
   if (regionflag) {
     if (domain->regions[iregion]->bboxflag == 0)
-      error->all(FLERR,"Fix Widom region does not support a bounding box");
+      error->all(FLERR,"Fix widom region does not support a bounding box");
     if (domain->regions[iregion]->dynamic_check())
-      error->all(FLERR,"Fix Widom region cannot be dynamic");
+      error->all(FLERR,"Fix widom region cannot be dynamic");
 
     region_xlo = domain->regions[iregion]->extent_xlo;
     region_xhi = domain->regions[iregion]->extent_xhi;
@@ -120,7 +120,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
     if (region_xlo < domain->boxlo[0] || region_xhi > domain->boxhi[0] ||
         region_ylo < domain->boxlo[1] || region_yhi > domain->boxhi[1] ||
         region_zlo < domain->boxlo[2] || region_zhi > domain->boxhi[2])
-      error->all(FLERR,"Fix Widom region extends outside simulation box");
+      error->all(FLERR,"Fix widom region extends outside simulation box");
 
     // estimate region volume using MC trials
 
@@ -146,21 +146,21 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   if (exchmode == EXCHMOL) {
     if (onemols[imol]->xflag == 0)
-      error->all(FLERR,"Fix Widom molecule must have coordinates");
+      error->all(FLERR,"Fix widom molecule must have coordinates");
     if (onemols[imol]->typeflag == 0)
-      error->all(FLERR,"Fix Widom molecule must have atom types");
+      error->all(FLERR,"Fix widom molecule must have atom types");
     if (nwidom_type != 0)
-      error->all(FLERR,"Atom type must be zero in fix Widom mol command");
-    if (onemols[imol]->qflag == 1 && atom->q == NULL)
-      error->all(FLERR,"Fix Widom molecule has charges, but atom style does not");
+      error->all(FLERR,"Atom type must be zero in fix widom mol command");
+    if (onemols[imol]->qflag == 1 && atom->q == nullptr)
+      error->all(FLERR,"Fix widom molecule has charges, but atom style does not");
 
-    if (atom->molecular == 2 && onemols != atom->avec->onemols)
-      error->all(FLERR,"Fix Widom molecule template ID must be same "
+    if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
+      error->all(FLERR,"Fix widom molecule template ID must be same "
                  "as atom_style template ID");
     onemols[imol]->check_attributes(0);
   }
 
-  if (charge_flag && atom->q == NULL)
+  if (charge_flag && atom->q == nullptr)
     error->all(FLERR,"Fix Widom atom has charge, but atom style does not");
 
   // setup of array of coordinates for molecule insertion
@@ -177,7 +177,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
   // zero out counters
   widom_nmax = 0;
-  local_gas_list = NULL;
+  local_gas_list = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -186,7 +186,7 @@ FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
 
 void FixWidom::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR,"Illegal fix Widom command");
+  if (narg < 0) error->all(FLERR,"Illegal fix widom command");
 
   // defaults
 
@@ -208,29 +208,29 @@ void FixWidom::options(int narg, char **arg)
   int iarg = 0;
   while (iarg < narg) {
   if (strcmp(arg[iarg],"mol") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix Widom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
       imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule template ID for fix Widom does not exist");
+        error->all(FLERR,"Molecule template ID for fix widom does not exist");
       if (atom->molecules[imol]->nset > 1 && comm->me == 0)
         error->warning(FLERR,"Molecule template for "
-                       "fix Widom has multiple molecules");
+                       "fix widom has multiple molecules");
       exchmode = EXCHMOL;
       onemols = atom->molecules;
       nmol = onemols[imol]->nset;
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix Widom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
-        error->all(FLERR,"Region ID for fix Widom does not exist");
+        error->all(FLERR,"Region ID for fix widom does not exist");
       int n = strlen(arg[iarg+1]) + 1;
       idregion = new char[n];
       strcpy(idregion,arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix Widom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
       charge = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       charge_flag = true;
       iarg += 2;
@@ -238,10 +238,10 @@ void FixWidom::options(int narg, char **arg)
       full_flag = true;
       iarg += 1;
     } else if (strcmp(arg[iarg],"intra_energy") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix Widom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix widom command");
       energy_intra = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal fix Widom command");
+    } else error->all(FLERR,"Illegal fix widom command");
   }
 }
 
@@ -283,15 +283,14 @@ void FixWidom::init()
   // decide whether to switch to the full_energy option
   if (!full_flag) {
     if ((force->kspace) ||
-        (force->pair == NULL) ||
+        (force->pair == nullptr) ||
         (force->pair->single_enable == 0) ||
         (force->pair_match("hybrid",0)) ||
         (force->pair_match("eam",0)) ||
-        (force->pair->tail_flag)
-        ) {
+        (force->pair->tail_flag)) {
       full_flag = true;
       if (comm->me == 0)
-        error->warning(FLERR,"Fix Widom using full_energy option");
+        error->warning(FLERR,"Fix widom using full_energy option");
     }
   }
 
@@ -299,7 +298,7 @@ void FixWidom::init()
 
   if (exchmode == EXCHATOM) {
     if (nwidom_type <= 0 || nwidom_type > atom->ntypes)
-      error->all(FLERR,"Invalid atom type in fix Widom command");
+      error->all(FLERR,"Invalid atom type in fix widom command");
   }
 
   // if molecules are exchanged or moved, check for unset mol IDs
@@ -314,17 +313,18 @@ void FixWidom::init()
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
       error->all(FLERR,
-       "All mol IDs should be set for fix Widom group atoms");
+       "All mol IDs should be set for fix widom group atoms");
   }
 
   if (exchmode == EXCHMOL)
-    if (atom->molecule_flag == 0 || !atom->tag_enable || !atom->map_style)
+    if (atom->molecule_flag == 0 || !atom->tag_enable
+        || (atom->map_style == Atom::MAP_NONE))
       error->all(FLERR,
-       "Fix Widom molecule command requires that "
+       "Fix widom molecule command requires that "
        "atoms have molecule attributes");
 
   if (domain->dimension == 2)
-    error->all(FLERR,"Cannot use fix Widom in a 2d simulation");
+    error->all(FLERR,"Cannot use fix widom in a 2d simulation");
 
   // create a new group for interaction exclusions
   // used for attempted atom or molecule deletions
@@ -387,7 +387,7 @@ void FixWidom::init()
   } else gas_mass = atom->mass[nwidom_type];
 
   if (gas_mass <= 0.0)
-    error->all(FLERR,"Illegal fix Widom gas mass <= 0");
+    error->all(FLERR,"Illegal fix widom gas mass <= 0");
 
   // check that no deletable atoms are in atom->firstgroup
   // deleting such an atom would not leave firstgroup atoms first
@@ -404,7 +404,7 @@ void FixWidom::init()
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
 
     if (flagall)
-      error->all(FLERR,"Cannot do Widom on atoms in atom_modify first group");
+      error->all(FLERR,"Cannot use fix widom on atoms in atom_modify first group");
   }
 
   // compute beta
@@ -417,7 +417,7 @@ void FixWidom::init()
   // full_flag on molecules on more than one processor.
   // Print error if this is the current mode
   if (full_flag && (exchmode == EXCHMOL) && comm->nprocs > 1)
-    error->all(FLERR,"fix Widom does currently not support full_energy option with molecules on more than 1 MPI process.");
+    error->all(FLERR,"fix widom does currently not support full_energy option with molecules on more than 1 MPI process.");
 
 }
 
@@ -535,7 +535,7 @@ void FixWidom::attempt_atomic_insertion()
     if (triclinic == 0) {
       domain->remap(coord);
       if (!domain->inside(coord))
-        error->one(FLERR,"Fix Widom put atom outside box");
+        error->one(FLERR,"Fix widom put atom outside box");
       if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
     coord[1] >= sublo[1] && coord[1] < subhi[1] &&
     coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
@@ -648,7 +648,7 @@ void FixWidom::attempt_molecule_insertion()
       xtmp[2] = molcoords[i][2];
       domain->remap(xtmp);
       if (!domain->inside(xtmp))
-        error->one(FLERR,"Fix Widom put atom outside box");
+        error->one(FLERR,"Fix widom put atom outside box");
 
       procflag[i] = false;
       if (triclinic == 0) {
@@ -737,7 +737,7 @@ void FixWidom::attempt_atomic_insertion_full()
     if (triclinic == 0) {
       domain->remap(coord);
       if (!domain->inside(coord))
-        error->one(FLERR,"Fix Widom put atom outside box");
+        error->one(FLERR,"Fix widom put atom outside box");
       if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
     coord[1] >= sublo[1] && coord[1] < subhi[1] &&
     coord[2] >= sublo[2] && coord[2] < subhi[2]) proc_flag = 1;
@@ -764,7 +764,7 @@ void FixWidom::attempt_atomic_insertion_full()
     atom->natoms++;
     if (atom->tag_enable) {
       atom->tag_extend();
-      if (atom->map_style) atom->map_init();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     }
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -803,7 +803,7 @@ void FixWidom::attempt_molecule_insertion_full()
   MPI_Allreduce(&maxmol,&maxmol_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
   maxmol_all++;
   if (maxmol_all >= MAXTAGINT)
-    error->all(FLERR,"Fix Widom ran out of available molecule IDs");
+    error->all(FLERR,"Fix widom ran out of available molecule IDs");
   int insertion_molecule = maxmol_all;
 
   tagint maxtag = 0;
@@ -883,7 +883,7 @@ void FixWidom::attempt_molecule_insertion_full()
       imageint imagetmp = imagezero;
       domain->remap(xtmp,imagetmp);
       if (!domain->inside(xtmp))
-        error->one(FLERR,"Fix Widom put atom outside box");
+        error->one(FLERR,"Fix widom put atom outside box");
 
       int proc_flag = 0;
       if (triclinic == 0) {
@@ -904,7 +904,7 @@ void FixWidom::attempt_molecule_insertion_full()
         atom->image[m] = imagetmp;
         atom->molecule[m] = insertion_molecule;
         if (maxtag_all+i+1 >= MAXTAGINT)
-    error->all(FLERR,"Fix Widom ran out of available atom IDs");
+    error->all(FLERR,"Fix widom ran out of available atom IDs");
         atom->tag[m] = maxtag_all + i + 1;
         atom->v[m][0] = 0;
         atom->v[m][1] = 0;
@@ -922,7 +922,7 @@ void FixWidom::attempt_molecule_insertion_full()
     atom->nangles += onemols[imol]->nangles;
     atom->ndihedrals += onemols[imol]->ndihedrals;
     atom->nimpropers += onemols[imol]->nimpropers;
-    if (atom->map_style) atom->map_init();
+    if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
     comm->borders();
@@ -1061,9 +1061,9 @@ double FixWidom::energy_full()
   if (modify->n_pre_force) modify->pre_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
 
-  // NOTE: all fixes with THERMO_ENERGY mask set and which
+  // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force() or end_of_step()
-  //   and which user has enable via fix_modify thermo yes,
+  //   and which user has enabled via fix_modify energy yes,
   //   will contribute to total MC energy via pe->compute_scalar()
 
   update->eflag_global = update->ntimestep;
@@ -1177,7 +1177,7 @@ double FixWidom::compute_vector(int n)
 
 double FixWidom::memory_usage()
 {
-  double bytes = widom_nmax * sizeof(int);
+  double bytes = (double)widom_nmax * sizeof(int);
   return bytes;
 }
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,7 +41,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeSpin::ComputeSpin(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), pair(NULL), spin_pairs(NULL)
+  Compute(lmp, narg, arg), pair(nullptr), spin_pairs(nullptr)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR,"Illegal compute compute/spin command");
 
@@ -176,6 +176,9 @@ void ComputeSpin::compute_vector()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->sp_flag) {
+
+        // compute first moment
+
         mag[0] += sp[i][0];
         mag[1] += sp[i][1];
         mag[2] += sp[i][2];
@@ -211,11 +214,16 @@ void ComputeSpin::compute_vector()
   MPI_Allreduce(&tempdenom,&tempdenomtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&countsp,&countsptot,1,MPI_INT,MPI_SUM,world);
 
+  // compute average magnetization
+
   double scale = 1.0/countsptot;
   magtot[0] *= scale;
   magtot[1] *= scale;
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
+
+  // compute spin temperature
+
   spintemperature = hbar*tempnumtot;
   spintemperature /= (2.0*kb*tempdenomtot);
 
@@ -225,7 +233,6 @@ void ComputeSpin::compute_vector()
   vector[3] = magtot[3];
   vector[4] = magenergytot;
   vector[5] = spintemperature;
-
 }
 
 /* ----------------------------------------------------------------------

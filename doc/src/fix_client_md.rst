@@ -47,14 +47,15 @@ for running *ab initio* MD with quantum forces.
 The group associated with this fix is ignored.
 
 The protocol and :doc:`units <units>` for message format and content
-that LAMMPS exchanges with the server code is defined on the :doc:`server md <server_md>` doc page.
+that LAMMPS exchanges with the server code is defined on the
+:doc:`server md <server_md>` doc page.
 
 Note that when using LAMMPS as an MD client, your LAMMPS input script
 should not normally contain force field commands, like a
 :doc:`pair_style <pair_style>`, :doc:`bond_style <bond_style>`, or
-:doc:`kspace_style <kspace_style>` command.  However it is possible for
-a server code to only compute a portion of the full force-field, while
-LAMMPS computes the remaining part.  Your LAMMPS script can also
+:doc:`kspace_style <kspace_style>` command.  However it is possible
+for a server code to only compute a portion of the full force-field,
+while LAMMPS computes the remaining part.  Your LAMMPS script can also
 specify boundary conditions or force constraints in the usual way,
 which will be added to the per-atom forces returned by the server
 code.
@@ -69,16 +70,21 @@ LAMMPS and another code in tandem to perform a coupled simulation.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential energy computed by the server application to
-the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential energy set by the server application to
+the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify energy yes <fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the server application's contribution to the system's
-virial as part of :doc:`thermodynamic output <thermo_style>`.  The
-default is *virial yes*
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution computed by the server application to
+the global pressure of the system via the :doc:`compute pressure
+<compute_pressure>` command.  This can be accessed by
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the potential
@@ -86,13 +92,16 @@ energy discussed above.  The scalar value calculated by this fix is
 "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.
+
+This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
 This fix is part of the MESSAGE package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
 A script that uses this command must also use the
 :doc:`message <message>` command to setup and shut down the messaging

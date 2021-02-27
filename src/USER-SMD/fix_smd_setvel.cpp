@@ -12,7 +12,7 @@
 /* ----------------------------------------------------------------------
 
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -57,7 +57,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
         global_freq = 1;
         extvector = 1;
 
-        xstr = ystr = zstr = NULL;
+        xstr = ystr = zstr = nullptr;
 
         if (strstr(arg[3], "v_") == arg[3]) {
                 int n = strlen(&arg[3][2]) + 1;
@@ -93,7 +93,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
         // optional args
 
         iregion = -1;
-        idregion = NULL;
+        idregion = nullptr;
 
         int iarg = 6;
         while (iarg < narg) {
@@ -241,7 +241,7 @@ void FixSMDSetVel::post_force(int /*vflag*/) {
 
         // update region if necessary
 
-        Region *region = NULL;
+        Region *region = nullptr;
         if (iregion >= 0) {
                 region = domain->regions[iregion];
                 region->prematch();

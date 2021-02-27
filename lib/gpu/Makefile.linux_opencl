@@ -1,25 +1,21 @@
 # /* ----------------------------------------------------------------------   
-#  Generic Linux Makefile for OpenCL 
+#  Generic Linux Makefile for OpenCL - Mixed precision
 # ------------------------------------------------------------------------- */
 
 # which file will be copied to Makefile.lammps
 
 EXTRAMAKE = Makefile.lammps.opencl
 
-# OCL_TUNE = -DFERMI_OCL       # -- Uncomment for NVIDIA Fermi
-# OCL_TUNE = -DKEPLER_OCL    # -- Uncomment for NVIDIA Kepler
-# OCL_TUNE = -DCYPRESS_OCL   # -- Uncomment for AMD Cypress
-OCL_TUNE = -DGENERIC_OCL   # -- Uncomment for generic device
-
 # this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
 
 LMP_INC = -DLAMMPS_SMALLBIG
 
-OCL_INC = -I/usr/local/cuda/include  # Path to CL directory
-OCL_CPP = mpic++ $(DEFAULT_DEVICE) -O3 -DMPI_GERYON -DUCL_NO_EXIT -DMPICH_IGNORE_CXX_SEEK $(LMP_INC) $(OCL_INC)
+OCL_INC = 
+OCL_CPP = mpic++ -std=c++11 -O3 -DMPICH_IGNORE_CXX_SEEK $(LMP_INC) $(OCL_INC)
 OCL_LINK = -lOpenCL
 OCL_PREC = -D_SINGLE_DOUBLE
+OCL_TUNE = -fopenmp -DMPI_GERYON -DGERYON_NUMA_FISSION -DUCL_NO_EXIT
 
 BIN_DIR = ./
 OBJ_DIR = ./
@@ -28,4 +24,3 @@ AR = ar
 BSH = /bin/sh
 
 include Opencl.makefile
-

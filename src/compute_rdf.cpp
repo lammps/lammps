@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,9 +41,9 @@ using namespace MathConst;
 
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  rdfpair(NULL), nrdfpair(NULL), ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL),
-  hist(NULL), histall(NULL), typecount(NULL), icount(NULL), jcount(NULL),
-  duplicates(NULL)
+  rdfpair(nullptr), nrdfpair(nullptr), ilo(nullptr), ihi(nullptr), jlo(nullptr), jhi(nullptr),
+  hist(nullptr), histall(nullptr), typecount(nullptr), icount(nullptr), jcount(nullptr),
+  duplicates(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute rdf command");
 

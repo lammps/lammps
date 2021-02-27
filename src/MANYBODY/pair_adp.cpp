@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,25 +41,25 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
 
   nmax = 0;
-  rho = NULL;
-  fp = NULL;
-  mu = NULL;
-  lambda = NULL;
-  map = NULL;
+  rho = nullptr;
+  fp = nullptr;
+  mu = nullptr;
+  lambda = nullptr;
+  map = nullptr;
 
-  setfl = NULL;
+  setfl = nullptr;
 
-  frho = NULL;
-  rhor = NULL;
-  z2r = NULL;
-  u2r = NULL;
-  w2r = NULL;
+  frho = nullptr;
+  rhor = nullptr;
+  z2r = nullptr;
+  u2r = nullptr;
+  w2r = nullptr;
 
-  frho_spline = NULL;
-  rhor_spline = NULL;
-  z2r_spline = NULL;
-  u2r_spline = NULL;
-  w2r_spline = NULL;
+  frho_spline = nullptr;
+  rhor_spline = nullptr;
+  z2r_spline = nullptr;
+  u2r_spline = nullptr;
+  w2r_spline = nullptr;
 
   // set comm size needed by this Pair
 
@@ -69,6 +69,7 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ----------------------------------------------------------------------
@@ -465,7 +466,7 @@ void PairADP::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -542,7 +543,7 @@ void PairADP::read_file(char *filename)
   Setfl *file = setfl;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "adp");
 
     try {
@@ -610,7 +611,7 @@ void PairADP::read_file(char *filename)
           reader.next_dvector(&file->w2r[i][j][1], file->nr);
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }
@@ -1025,6 +1026,6 @@ void PairADP::unpack_reverse_comm(int n, int *list, double *buf)
 double PairADP::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  bytes += 21 * nmax * sizeof(double);
+  bytes += (double)21 * nmax * sizeof(double);
   return bytes;
 }

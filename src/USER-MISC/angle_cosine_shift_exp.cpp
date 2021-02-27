@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,13 +37,13 @@ using namespace MathConst;
 
 AngleCosineShiftExp::AngleCosineShiftExp(LAMMPS *lmp) : Angle(lmp)
 {
-  doExpansion = NULL;
-  umin = NULL;
-  a = NULL;
-  opt1 = NULL;
-  theta0 = NULL;
-  sint = NULL;
-  cost = NULL;
+  doExpansion = nullptr;
+  umin = nullptr;
+  a = nullptr;
+  opt1 = nullptr;
+  theta0 = nullptr;
+  sint = nullptr;
+  cost = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -257,11 +257,11 @@ void AngleCosineShiftExp::read_restart(FILE *fp)
 
   if (comm->me == 0)
       {
-        utils::sfread(FLERR,&umin[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-        utils::sfread(FLERR,&a[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-        utils::sfread(FLERR,&cost[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-        utils::sfread(FLERR,&sint[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-        utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+        utils::sfread(FLERR,&umin[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+        utils::sfread(FLERR,&a[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+        utils::sfread(FLERR,&cost[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+        utils::sfread(FLERR,&sint[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+        utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
       }
   MPI_Bcast(&umin[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&a[1],atom->nangletypes,MPI_DOUBLE,0,world);

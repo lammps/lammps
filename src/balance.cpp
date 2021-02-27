@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,10 +20,11 @@
 
 #include "balance.h"
 
+#include "update.h"
 #include "atom.h"
+#include "neighbor.h"
 #include "comm.h"
 #include "domain.h"
-#include "error.h"
 #include "fix_store.h"
 #include "imbalance.h"
 #include "imbalance_group.h"
@@ -35,16 +36,19 @@
 #include "memory.h"
 #include "modify.h"
 #include "rcb.h"
-#include "update.h"
+#include "error.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
+double EPSNEIGH = 1.0e-3;
+
 enum{XYZ,SHIFT,BISECTION};
 enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
+
 /* ---------------------------------------------------------------------- */
 
 Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
@@ -52,17 +56,17 @@ Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  user_xsplit = user_ysplit = user_zsplit = NULL;
+  user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;
-  proccost = allproccost = NULL;
+  proccost = allproccost = nullptr;
 
-  rcb = NULL;
+  rcb = nullptr;
 
   nimbalance = 0;
-  imbalances = NULL;
-  fixstore = NULL;
+  imbalances = nullptr;
+  fixstore = nullptr;
 
-  fp = NULL;
+  fp = nullptr;
   firststep = 1;
 }
 
@@ -97,7 +101,7 @@ Balance::~Balance()
   // check nfix in case all fixes have already been deleted
 
   if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = NULL;
+  fixstore = nullptr;
 
   if (fp) fclose(fp);
 }
@@ -246,7 +250,7 @@ void Balance::command(int narg, char **arg)
   // process remaining optional args
 
   options(iarg,narg,arg);
-  if (wtflag) weight_storage(NULL);
+  if (wtflag) weight_storage(nullptr);
 
   // insure particles are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
@@ -263,7 +267,7 @@ void Balance::command(int narg, char **arg)
   domain->reset_box();
   comm->setup();
   comm->exchange();
-  if (atom->map_style) atom->map_set();
+  if (atom->map_style != Atom::MAP_NONE) atom->map_set();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // imbinit = initial imbalance
@@ -425,7 +429,7 @@ void Balance::options(int iarg, int narg, char **arg)
   oldrcb = 0;
   outflag = 0;
   int outarg = 0;
-  fp = NULL;
+  fp = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"weight") == 0) {
@@ -473,7 +477,7 @@ void Balance::options(int iarg, int narg, char **arg)
 
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
                                    arg[outarg], utils::getsyserror()));
   }
@@ -639,12 +643,12 @@ int *Balance::bisection(int sortflag)
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute_old(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute_old(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute_old(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   } else {
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   }
 
   if (triclinic) domain->lamda2x(nlocal);
@@ -770,7 +774,7 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 int Balance::shift()
 {
   int i,j,k,m,np;
-  double mycost,totalcost;
+  double mycost,totalcost,boxsize;
   double *split;
 
   // no balancing if no atoms
@@ -790,15 +794,23 @@ int Balance::shift()
 
   // loop over dimensions in balance string
 
+  double *prd = domain->prd;
+
   int niter = 0;
   for (int idim = 0; idim < ndim; idim++) {
 
     // split = ptr to xyz split in Comm
 
-    if (bdim[idim] == X) split = comm->xsplit;
-    else if (bdim[idim] == Y) split = comm->ysplit;
-    else if (bdim[idim] == Z) split = comm->zsplit;
-    else continue;
+    if (bdim[idim] == X) {
+      split = comm->xsplit;
+      boxsize = prd[0];
+    } else if (bdim[idim] == Y) {
+      split = comm->ysplit;
+      boxsize = prd[1];
+    } else if (bdim[idim] == Z) {
+      split = comm->zsplit;
+      boxsize = prd[2];
+    } else continue;
 
     // initial count and sum
 
@@ -903,6 +915,78 @@ int Balance::shift()
       }
     }
 
+    // adjust adjacent splits that are too close (within neigh skin)
+    // do this with minimal adjustment to splits
+
+    double close = (1.0+EPSNEIGH) * neighbor->skin / boxsize;
+    double delta,midpt,start,stop,lbound,ubound,spacing;
+
+    i = 0;
+    while (i < np) {
+      if (split[i+1] - split[i] < close) {
+        j = i+1;
+
+        // I,J = set of consecutive splits that are collectively too close
+        // if can expand set and not become too close to splits I-1 or J+1, do it
+        // else add split I-1 or J+1 to set and try again
+        // delta = size of expanded split set that will satisy criterion
+
+        while (1) {
+          delta = (j-i) * close;
+          midpt = 0.5 * (split[i]+split[j]);
+          start = midpt - 0.5*delta;
+          stop = midpt + 0.5*delta;
+
+          if (i > 0) lbound = split[i-1] + close;
+          else lbound = 0.0;
+          if (j < np) ubound = split[j+1] - close;
+          else ubound = 1.0;
+
+          // start/stop are within bounds, reset the splits
+
+          if (start >= lbound && stop <= ubound) break;
+
+          // try a shift to either bound, reset the splits if delta fits
+          // these tests change start/stop
+
+          if (start < lbound) {
+            start = lbound;
+            stop = start + delta;
+            if (stop <= ubound) break;
+          } else if (stop > ubound) {
+            stop = ubound;
+            start = stop - delta;
+            if (start >= lbound) break;
+          }
+
+          // delta does not fit between lbound and ubound
+          // exit if can't expand set, else expand set
+          // if can expand in either direction,
+          //   pick new split closest to current midpt of set
+
+          if (i == 0 && j == np) {
+            start = 0.0; stop = 1.0;
+            break;
+          }
+          if (i == 0) j++;
+          else if (j == np) i--;
+          else if (midpt-lbound < ubound-midpt) i--;
+          else j++;
+        }
+
+        // reset all splits between I,J inclusive to be equi-spaced
+
+        spacing = (stop-start) / (j-i);
+        for (m = i; m <= j; m++)
+          split[m] = start + (m-i)*spacing;
+        if (j == np) split[np] = 1.0;
+
+        // continue testing beyond the J split
+
+        i = j+1;
+      } else i++;
+    }
+
     // sanity check on bad duplicate or inverted splits
     // zero or negative width sub-domains will break Comm class
     // should never happen if recursive multisection algorithm is correct
@@ -911,14 +995,6 @@ int Balance::shift()
     for (i = 0; i < np; i++)
       if (split[i] >= split[i+1]) bad = 1;
     if (bad) error->all(FLERR,"Balance produced bad splits");
-    /*
-      if (me == 0) {
-      printf("BAD SPLITS %d %d %d\n",np+1,niter,delta);
-      for (i = 0; i < np+1; i++)
-      printf(" %g",split[i]);
-      printf("\n");
-      }
-    */
 
     // stop at this point in bstr if imbalance factor < threshold
     // this is a true 3d test of particle count per processor
@@ -1273,7 +1349,7 @@ void Balance::dumpout(bigint tstep)
 void Balance::debug_shift_output(int idim, int m, int np, double *split)
 {
   int i;
-  const char *dim = NULL;
+  const char *dim = nullptr;
 
   double *boxlo = domain->boxlo;
   double *prd = domain->prd;

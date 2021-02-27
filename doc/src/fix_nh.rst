@@ -1,8 +1,10 @@
 .. index:: fix nvt
+.. index:: fix nvt/gpu
 .. index:: fix nvt/intel
 .. index:: fix nvt/kk
 .. index:: fix nvt/omp
 .. index:: fix npt
+.. index:: fix npt/gpu
 .. index:: fix npt/intel
 .. index:: fix npt/kk
 .. index:: fix npt/omp
@@ -13,12 +15,12 @@
 fix nvt command
 ===============
 
-Accelerator Variants: *nvt/intel*, *nvt/kk*, *nvt/omp*
+Accelerator Variants: *nvt/gpu*, *nvt/intel*, *nvt/kk*, *nvt/omp*
 
 fix npt command
 ===============
 
-Accelerator Variants: *npt/intel*, *npt/kk*, *npt/omp*
+Accelerator Variants: *npt/gpu*, *npt/intel*, *npt/kk*, *npt/omp*
 
 fix nph command
 ===============
@@ -51,7 +53,7 @@ Syntax
        *couple* = *none* or *xyz* or *xy* or *yz* or *xz*
        *tchain* value = N
          N = length of thermostat chain (1 = single thermostat)
-       *pchain* values = N
+       *pchain* value = N
          N length of thermostat chain on barostat (0 = no thermostat)
        *mtk* value = *yes* or *no* = add in MTK adjustment term or not
        *tloop* value = M
@@ -594,17 +596,20 @@ compute temperature on a subset of atoms.
    specified by the *press* keyword will be unaffected by the *temp*
    setting.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by these
-fixes to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by these fixes, via
+either thermostatting and/or barostatting, is included in the
+:doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
+*econserve*.  See the :doc:`thermo_style <thermo_style>` doc page for
+details.
 
-These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar value calculated by these fixes is "extensive"; the vector
-values are "intensive".
+These fixes compute a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
-The scalar is the cumulative energy change due to the fix.
+These fixes compute also compute a global vector of quantities, which
+can be accessed by various :doc:`output commands <Howto_output>`.  The
+vector values are "intensive".
 
 The vector stores internal Nose/Hoover thermostat and barostat
 variables.  The number and meaning of the vector values depends on

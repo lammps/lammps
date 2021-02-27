@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,7 +35,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), idregion(NULL), sforce(NULL)
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), idregion(nullptr), sforce(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix setforce command");
 
@@ -46,32 +46,26 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   respa_level_support = 1;
   ilevel_respa = nlevels_respa = 0;
-  xstr = ystr = zstr = NULL;
+  xstr = ystr = zstr = nullptr;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    xstr = new char[n];
-    strcpy(xstr,&arg[3][2]);
+  if (utils::strmatch(arg[3],"^v_")) {
+    xstr = utils::strdup(arg[3]+2);
   } else if (strcmp(arg[3],"NULL") == 0) {
     xstyle = NONE;
   } else {
     xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(&arg[4][2]) + 1;
-    ystr = new char[n];
-    strcpy(ystr,&arg[4][2]);
+  if (utils::strmatch(arg[4],"^v_")) {
+    ystr = utils::strdup(arg[4]+2);
   } else if (strcmp(arg[4],"NULL") == 0) {
     ystyle = NONE;
   } else {
     yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
-  if (strstr(arg[5],"v_") == arg[5]) {
-    int n = strlen(&arg[5][2]) + 1;
-    zstr = new char[n];
-    strcpy(zstr,&arg[5][2]);
+  if (utils::strmatch(arg[5],"^v_")) {
+    zstr = utils::strdup(arg[5]+2);
   } else if (strcmp(arg[5],"NULL") == 0) {
     zstyle = NONE;
   } else {
@@ -82,7 +76,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   iregion = -1;
-  idregion = NULL;
+  idregion = nullptr;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -91,9 +85,7 @@ FixSetForce::FixSetForce(LAMMPS *lmp, int narg, char **arg) :
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix setforce does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix setforce command");
   }
@@ -228,7 +220,7 @@ void FixSetForce::post_force(int /*vflag*/)
 
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -305,7 +297,7 @@ void FixSetForce::post_force_respa(int vflag, int ilevel, int /*iloop*/)
     foriginal[1] += foriginal_saved[1];
     foriginal[2] += foriginal_saved[2];
   } else {
-    Region *region = NULL;
+    Region *region = nullptr;
     if (iregion >= 0) {
       region = domain->regions[iregion];
       region->prematch();

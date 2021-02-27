@@ -18,6 +18,7 @@
 .. index:: pair_style eam/fs/kk
 .. index:: pair_style eam/fs/omp
 .. index:: pair_style eam/fs/opt
+.. index:: pair_style eam/he
 
 pair_style eam command
 ======================
@@ -38,6 +39,9 @@ pair_style eam/cd/old command
 pair_style eam/fs command
 =========================
 
+pair_style eam/he command
+=========================
+
 Accelerator Variants: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *eam/fs/opt*
 
 Syntax
@@ -47,7 +51,7 @@ Syntax
 
    pair_style style
 
-* style = *eam* or *eam/alloy* or *eam/cd* or *eam/cd/old* or *eam/fs*
+* style = *eam* or *eam/alloy* or *eam/cd* or *eam/cd/old* or *eam/fs* or *eam/he*
 
 Examples
 """"""""
@@ -66,6 +70,9 @@ Examples
 
    pair_style eam/fs
    pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni
+
+   pair_style eam/he
+   pair_coeff * * PdHHe.eam.he Pd H He
 
 Description
 """""""""""
@@ -104,8 +111,8 @@ are parameterized in terms of LAMMPS :doc:`metal units <units>`.
    potentials, the same way that DYNAMO does.  Alternatively, a single
    DYNAMO *setfl* file or Finnis/Sinclair EAM file can be used by LAMMPS
    to model alloy systems by invoking the *eam/alloy* or *eam/cd* or
-   *eam/fs* styles as described below.  These files require no mixing
-   since they specify alloy interactions explicitly.
+   *eam/fs* or *eam/he* styles as described below.  These files require no
+   mixing since they specify alloy interactions explicitly.
 
 .. note::
 
@@ -134,7 +141,7 @@ interatomic potentials and file formats.
 The OpenKIM Project at
 `https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
 provides EAM potentials that can be used directly in LAMMPS with the
-:doc:`kim_commands <kim_commands>` interface.
+:doc:`kim command <kim_commands>` interface.
 
 ----------
 
@@ -142,10 +149,6 @@ For style *eam*\ , potential values are read from a file that is in the
 DYNAMO single-element *funcfl* format.  If the DYNAMO file was created
 by a Fortran program, it cannot have "D" values in it for exponents.
 C only recognizes "e" or "E" for scientific notation.
-
-Note that unlike for other potentials, cutoffs for EAM potentials are
-not set in the pair_style or pair_coeff command; they are specified in
-the EAM potential files themselves.
 
 For style *eam* a potential file must be assigned to each I,I pair of
 atom types by using one or more pair_coeff commands, each with a
@@ -336,8 +339,11 @@ distribution have a ".cdeam" suffix.
 
 Style *eam/fs* computes pairwise interactions for metals and metal
 alloys using a generalized form of EAM potentials due to Finnis and
-Sinclair :ref:`(Finnis) <Finnis1>`.  The total energy Ei of an atom I is
-given by
+Sinclair :ref:`(Finnis) <Finnis1>`.  Style *eam/he* is similar to
+*eam/fs* except that it allows for negative electron density in
+order to capture the behavior of helium in metals :ref:`(Zhou6) <Zhou6>`.
+
+The total energy Ei of an atom I is given by
 
 .. math::
 
@@ -345,43 +351,46 @@ given by
    \rho_{\alpha\beta} (r_{ij})\right) +
    \frac{1}{2} \sum_{j \neq i} \phi_{\alpha\beta} (r_{ij})
 
+where :math:`\rho_{\alpha\beta}` refers to the density contributed
+by a neighbor atom J of element :math:`\beta` at the site of atom I
+of element :math:`\alpha`.
 This has the same form as the EAM formula above, except that rho is
-now a functional specific to the atomic types of both atoms I and J,
+now a functional specific to the elements of both atoms I and J,
 so that different elements can contribute differently to the total
 electron density at an atomic site depending on the identity of the
 element at that atomic site.
 
 The associated :doc:`pair_coeff <pair_coeff>` command for style *eam/fs*
-reads a DYNAMO *setfl* file that has been extended to include
-additional rho_alpha_beta arrays of tabulated values.  A discussion of
-how FS EAM differs from conventional EAM alloy potentials is given in
-:ref:`(Ackland1) <Ackland1>`.  An example of such a potential is the same
-author's Fe-P FS potential :ref:`(Ackland2) <Ackland2>`.  Note that while FS
-potentials always specify the embedding energy with a square root
+or *eam/he* reads a DYNAMO *setfl* file that has been extended to include
+additional :math:`\rho_{\alpha\beta}` arrays of tabulated values.  A
+discussion of how FS EAM differs from conventional EAM alloy potentials is
+given in :ref:`(Ackland1) <Ackland1>`.  An example of such a potential is the
+same author's Fe-P FS potential :ref:`(Ackland2) <Ackland2>`.  Note that while
+FS potentials always specify the embedding energy with a square root
 dependence on the total density, the implementation in LAMMPS does not
 require that; the user can tabulate any functional form desired in the
 FS potential files.
 
-For style *eam/fs*\ , the form of the pair_coeff command is exactly the
-same as for style *eam/alloy*\ , e.g.
+For style *eam/fs* and *eam/he* the form of the pair_coeff command is exactly
+the same as for style *eam/alloy*\ , e.g.
 
 .. code-block:: LAMMPS
 
    pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al
 
-where there are N additional arguments after the filename, where N is
+with N additional arguments after the filename, where N is
 the number of LAMMPS atom types.  See the :doc:`pair_coeff <pair_coeff>`
 doc page for alternate ways to specify the path for the potential
 file.  The N values determine the mapping of LAMMPS atom types to EAM
 elements in the file, as described above for style *eam/alloy*\ .  As
 with *eam/alloy*\ , if a mapping value is NULL, the mapping is not
-performed.  This can be used when an *eam/fs* potential is used as
-part of the *hybrid* pair style.  The NULL values are used as
+performed.  This can be used when an *eam/fs* or *eam/he* potential is
+used as part of a *hybrid* pair style.  The NULL values are used as
 placeholders for atom types that will be used with other potentials.
 
-FS EAM files include more information than the DYNAMO *setfl* format
-files read by *eam/alloy*\ , in that i,j density functionals for all
-pairs of elements are included as needed by the Finnis/Sinclair
+FS EAM and HE EAM files include more information than the DYNAMO *setfl*
+format files read by *eam/alloy*\ , in that i,j density functionals for
+all pairs of elements are included as needed by the Finnis/Sinclair
 formulation of the EAM.
 
 FS EAM files in the *potentials* directory of the LAMMPS distribution
@@ -393,26 +402,45 @@ have an ".eam.fs" suffix.  They are formatted as follows:
 
 The 5-line header section is identical to an EAM *setfl* file.
 
-Following the header are Nelements sections, one for each element I,
+Following the header are Nelements sections, one for each element :math:`\beta`,
 each with the following format:
 
 * line 1 = atomic number, mass, lattice constant, lattice type (e.g. FCC)
 * embedding function F(rho) (Nrho values)
-* density function rho(r) for element I at element 1 (Nr values)
-* density function rho(r) for element I at element 2
+* density function :math:`\rho_{1\beta} (r)` for element :math:`\beta` at element 1 (Nr values)
+* density function :math:`\rho_{2\beta} (r)` for element :math:`\beta` at element 2
 * ...
-* density function rho(r) for element I at element Nelement
+* density function :math:`\rho_{N_{elem}\beta} (r)` for element :math:`\beta` at element :math:`N_{elem}`
 
 The units of these quantities in line 1 are the same as for *setfl*
 files.  Note that the rho(r) arrays in Finnis/Sinclair can be
-asymmetric (i,j != j,i) so there are Nelements\^2 of them listed in the
-file.
+asymmetric (:math:`\rho_{\alpha\beta} (r) \neq \rho_{\beta\alpha} (r)` )
+so there are Nelements\^2 of them listed in the file.
 
 Following the Nelements sections, Nr values for each pair potential
 phi(r) array are listed in the same manner (r\*phi, units of
 eV-Angstroms) as in EAM *setfl* files.  Note that in Finnis/Sinclair,
 the phi(r) arrays are still symmetric, so only phi arrays for i >= j
 are listed.
+
+HE EAM files in the *potentials* directory of the LAMMPS distribution
+have an ".eam.he" suffix.  They are formatted as follows:
+
+* lines 1,2,3 = comments (ignored)
+* line 4: Nelements Element1 Element2 ... ElementN
+* line 5: Nrho, drho, Nr, dr, cutoff, rhomax
+
+The 5-line header section is identical to an FS EAM file
+except that line 5 lists an additional value, rhomax. Unlike in FS EAM
+files where embedding energies F(rho) are always defined between rho = 0
+and rho = (Nrho -1)drho, F(rho) in HE EAM files are defined between
+rho = rhomin and rho = rhomax.  Since drho = (rhomax - rhomin)/(Nrho - 1),
+rhomin = rhomax - (Nrho - 1)drho.  The embedding energies F(rho) are
+listed for rho = rhomin, rhomin + drho, rhomin + 2drho, ..., rhomax.
+This gives users additional flexibility to define a negative rhomin and
+therefore an embedding energy function that works for both positive and
+negative electron densities.  The format and units of these sections are
+identical to the FS EAM files (see above).
 
 ----------
 
@@ -476,6 +504,10 @@ Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 .. _Finnis1:
 
 **(Finnis)** Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
+
+.. _Zhou6:
+
+**(Zhou6)** Zhou, Bartelt, Sills, Physical Review B, 103, 014108 (2021).
 
 .. _Stukowski:
 

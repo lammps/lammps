@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,13 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fmt/format.h"
+#include "lammps.h"
+
+#include "citeme.h"
+#include "force.h"
 #include "info.h"
 #include "input.h"
-#include "lammps.h"
 #include "output.h"
 #include "update.h"
 #include "utils.h"
+
+#include "fmt/format.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -159,6 +163,33 @@ TEST_F(SimpleCommandsTest, Log)
     remove("simple_command_test.log");
 
     TEST_FAILURE(".*ERROR: Illegal log command.*", lmp->input->one("log"););
+}
+
+TEST_F(SimpleCommandsTest, Newton)
+{
+    // default setting is "on" for both
+    ASSERT_EQ(lmp->force->newton_pair, 1);
+    ASSERT_EQ(lmp->force->newton_bond, 1);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("newton off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->force->newton_pair, 0);
+    ASSERT_EQ(lmp->force->newton_bond, 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("newton on off");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->force->newton_pair, 1);
+    ASSERT_EQ(lmp->force->newton_bond, 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("newton off on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->force->newton_pair, 0);
+    ASSERT_EQ(lmp->force->newton_bond, 1);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("newton on");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(lmp->force->newton_pair, 1);
+    ASSERT_EQ(lmp->force->newton_bond, 1);
 }
 
 TEST_F(SimpleCommandsTest, Quit)
@@ -311,6 +342,77 @@ TEST_F(SimpleCommandsTest, Units)
     ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
 
     TEST_FAILURE(".*ERROR: Illegal units command.*", lmp->input->one("units unknown"););
+}
+
+TEST_F(SimpleCommandsTest, Shell)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("shell putenv TEST_VARIABLE=simpletest");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    char *test_var = getenv("TEST_VARIABLE");
+    ASSERT_NE(test_var, nullptr);
+    ASSERT_THAT(test_var, StrEq("simpletest"));
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("shell putenv TEST_VARIABLE=simpletest");
+    lmp->input->one("shell putenv TEST_VARIABLE2=simpletest2 OTHER_VARIABLE=2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    char *test_var2 = getenv("TEST_VARIABLE2");
+    char *other_var = getenv("OTHER_VARIABLE");
+
+    ASSERT_NE(test_var2, nullptr);
+    ASSERT_THAT(test_var2, StrEq("simpletest2"));
+
+    ASSERT_NE(other_var, nullptr);
+    ASSERT_THAT(other_var, StrEq("2"));
+}
+
+TEST_F(SimpleCommandsTest, CiteMe)
+{
+    ASSERT_EQ(lmp->citeme, nullptr);
+
+    lmp->citeme = new LAMMPS_NS::CiteMe(lmp, CiteMe::TERSE, CiteMe::TERSE, nullptr);
+
+    ::testing::internal::CaptureStdout();
+    lmp->citeme->add("test citation one:\n 1\n");
+    lmp->citeme->add("test citation two:\n 2\n");
+    lmp->citeme->add("test citation one:\n 1\n");
+    lmp->citeme->flush();
+    std::string text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+
+    // find the two unique citations, but not the third
+    ASSERT_THAT(text, MatchesRegex(".*one.*two.*"));
+    ASSERT_THAT(text, Not(MatchesRegex(".*one.*two.*one.*")));
+
+    ::testing::internal::CaptureStdout();
+    lmp->citeme->add("test citation one:\n 0\n");
+    lmp->citeme->add("test citation two:\n 2\n");
+    lmp->citeme->add("test citation three:\n 3\n");
+    lmp->citeme->flush();
+
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+
+    // find the forth (only differs in long citation) and sixth added citation
+    ASSERT_THAT(text, MatchesRegex(".*one.*three.*"));
+    ASSERT_THAT(text, Not(MatchesRegex(".*two.*")));
+
+    ::testing::internal::CaptureStdout();
+    lmp->citeme->add("test citation one:\n 1\n");
+    lmp->citeme->add("test citation two:\n 2\n");
+    lmp->citeme->add("test citation one:\n 0\n");
+    lmp->citeme->add("test citation two:\n 2\n");
+    lmp->citeme->add("test citation three:\n 3\n");
+    lmp->citeme->flush();
+
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+
+    // no new citation. no CITE-CITE-CITE- lines
+    ASSERT_THAT(text, Not(MatchesRegex(".*CITE-CITE-CITE-CITE.*")));
 }
 } // namespace LAMMPS_NS
 

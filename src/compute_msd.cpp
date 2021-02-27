@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_fix(NULL)
+  id_fix(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute msd command");
 

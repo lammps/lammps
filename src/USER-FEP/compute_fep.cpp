@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,25 +16,25 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_fep.h"
-#include <cstring>
-#include <cmath>
 
-#include "comm.h"
-#include "update.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "fix.h"
 #include "force.h"
+#include "input.h"
+#include "kspace.h"
+#include "memory.h"
+#include "modify.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "kspace.h"
-#include "input.h"
-#include "fix.h"
-#include "modify.h"
-#include "variable.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -89,20 +89,14 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
       perturb[npert].which = PAIR;
-      int n = strlen(arg[iarg+1]) + 1;
-      perturb[npert].pstyle = new char[n];
-      strcpy(perturb[npert].pstyle,arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      perturb[npert].pparam = new char[n];
-      strcpy(perturb[npert].pparam,arg[iarg+2]);
+      perturb[npert].pstyle = utils::strdup(arg[iarg+1]);
+      perturb[npert].pparam = utils::strdup(arg[iarg+2]);
       utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
                     perturb[npert].ilo,perturb[npert].ihi,error);
       utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
                     perturb[npert].jlo,perturb[npert].jhi,error);
-      if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
-        n = strlen(&arg[iarg+5][2]) + 1;
-        perturb[npert].var = new char[n];
-        strcpy(perturb[npert].var,&arg[iarg+5][2]);
+      if (utils::strmatch(arg[iarg+5],"^v_")) {
+        perturb[npert].var = utils::strdup(arg[iarg+5]+2);
       } else error->all(FLERR,"Illegal variable in compute fep");
       npert++;
       iarg += 6;
@@ -114,10 +108,8 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
       } else error->all(FLERR,"Illegal atom argument in compute fep");
       utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,
                     perturb[npert].ilo,perturb[npert].ihi,error);
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        perturb[npert].var = new char[n];
-        strcpy(perturb[npert].var,&arg[iarg+3][2]);
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
+        perturb[npert].var = utils::strdup(arg[iarg+3]+2);
       } else error->all(FLERR,"Illegal variable in compute fep");
       npert++;
       iarg += 4;
@@ -158,14 +150,14 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate space for charge, force, energy, virial arrays
 
-  f_orig = NULL;
-  q_orig = NULL;
-  peatom_orig = keatom_orig = NULL;
-  pvatom_orig = kvatom_orig = NULL;
+  f_orig = nullptr;
+  q_orig = nullptr;
+  peatom_orig = keatom_orig = nullptr;
+  pvatom_orig = kvatom_orig = nullptr;
 
   allocate_storage();
 
-  fixgpu = NULL;
+  fixgpu = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -210,17 +202,17 @@ void ComputeFEP::init()
     if (!input->variable->equalstyle(pert->ivar))
       error->all(FLERR,"Variable for compute fep is of invalid style");
 
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"compute fep pair requires pair interactions");
 
     if (pert->which == PAIR) {
       pairflag = 1;
 
       Pair *pair = force->pair_match(pert->pstyle,1);
-      if (pair == NULL) error->all(FLERR,"compute fep pair style "
+      if (pair == nullptr) error->all(FLERR,"compute fep pair style "
                                    "does not exist");
       void *ptr = pair->extract(pert->pparam,pert->pdim);
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"compute fep pair style param not supported");
 
       pert->array = (double **) ptr;
@@ -497,10 +489,10 @@ void ComputeFEP::deallocate_storage()
   memory->destroy(keatom_orig);
   memory->destroy(kvatom_orig);
 
-  f_orig = NULL;
-  q_orig = NULL;
-  peatom_orig = keatom_orig = NULL;
-  pvatom_orig = kvatom_orig = NULL;
+  f_orig = nullptr;
+  q_orig = nullptr;
+  peatom_orig = keatom_orig = nullptr;
+  pvatom_orig = kvatom_orig = nullptr;
 }
 
 

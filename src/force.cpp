@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,12 +54,12 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   qqr2e_lammps_real = 332.06371;          // these constants are toggled
   qqr2e_charmm_real = 332.0716;           // by new CHARMM pair styles
 
-  pair = NULL;
-  bond = NULL;
-  angle = NULL;
-  dihedral = NULL;
-  improper = NULL;
-  kspace = NULL;
+  pair = nullptr;
+  bond = nullptr;
+  angle = nullptr;
+  dihedral = nullptr;
+  improper = nullptr;
+  kspace = nullptr;
 
   char *str = (char *) "none";
   int n = strlen(str) + 1;
@@ -76,7 +76,7 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   kspace_style = new char[n];
   strcpy(kspace_style,str);
 
-  pair_restart = NULL;
+  pair_restart = nullptr;
   create_factories();
 }
 
@@ -159,12 +159,12 @@ Force::~Force()
   if (improper) delete improper;
   if (kspace) delete kspace;
 
-  pair = NULL;
-  bond = NULL;
-  angle = NULL;
-  dihedral = NULL;
-  improper = NULL;
-  kspace = NULL;
+  pair = nullptr;
+  bond = nullptr;
+  angle = nullptr;
+  dihedral = nullptr;
+  improper = nullptr;
+  kspace = nullptr;
 
   delete pair_map;
   delete bond_map;
@@ -233,9 +233,9 @@ void Force::create_pair(const std::string &style, int trysuffix)
   delete [] pair_style;
   if (pair) delete pair;
   if (pair_restart) delete [] pair_restart;
-  pair_style = NULL;
-  pair = NULL;
-  pair_restart = NULL;
+  pair_style = nullptr;
+  pair = nullptr;
+  pair_restart = nullptr;
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);
@@ -245,13 +245,22 @@ void Force::create_pair(const std::string &style, int trysuffix)
 /* ----------------------------------------------------------------------
    generate a pair class
    if trysuffix = 1, try first with suffix1/2 appended
-   return sflag = 0 for no suffix added, 1 or 2 for suffix1/2 added
+   return sflag = 0 for no suffix added, 1 or 2 or 3 for suffix1/2/p added
+   special case: if suffixp exists only try suffixp, not suffix
 ------------------------------------------------------------------------- */
 
 Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
+    if (lmp->suffixp) {
+      sflag = 3;
+      std::string estyle = style + "/" + lmp->suffixp;
+      if (pair_map->find(estyle) != pair_map->end()) {
+        PairCreator &pair_creator = (*pair_map)[estyle];
+        return pair_creator(lmp);
+      }
+    }
+    if (lmp->suffix && !lmp->suffixp) {
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (pair_map->find(estyle) != pair_map->end()) {
@@ -270,7 +279,7 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (style == "none") return NULL;
+  if (style == "none") return nullptr;
   if (pair_map->find(style) != pair_map->end()) {
     PairCreator &pair_creator = (*pair_map)[style];
     return pair_creator(lmp);
@@ -278,7 +287,7 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
 
   error->all(FLERR,utils::check_packages_for_style("pair",style,lmp));
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -296,7 +305,7 @@ Pair *Force::pair_creator(LAMMPS *lmp)
    if exact, then style name must be exact match to word
    if not exact, style name must contain word
    if nsub > 0, match Nth hybrid sub-style
-   return NULL if no match or if nsub=0 and multiple sub-styles match
+   return nullptr if no match or if nsub=0 and multiple sub-styles match
 ------------------------------------------------------------------------- */
 
 Pair *Force::pair_match(const std::string &word, int exact, int nsub)
@@ -318,13 +327,13 @@ Pair *Force::pair_match(const std::string &word, int exact, int nsub)
     if (count == 1) return hybrid->styles[iwhich];
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
    return style name of Pair class that matches Pair ptr
    called by Neighbor::print_neigh_info()
-   return NULL if no match
+   return nullptr if no match
 ------------------------------------------------------------------------- */
 
 char *Force::pair_match_ptr(Pair *ptr)
@@ -337,7 +346,7 @@ char *Force::pair_match_ptr(Pair *ptr)
       if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -381,7 +390,7 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (style == "none") return NULL;
+  if (style == "none") return nullptr;
   if (bond_map->find(style) != bond_map->end()) {
     BondCreator &bond_creator = (*bond_map)[style];
     return bond_creator(lmp);
@@ -389,7 +398,7 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
 
   error->all(FLERR,utils::check_packages_for_style("bond",style,lmp));
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -414,7 +423,7 @@ Bond *Force::bond_match(const std::string &style)
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -458,7 +467,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (style == "none") return NULL;
+  if (style == "none") return nullptr;
   if (angle_map->find(style) != angle_map->end()) {
     AngleCreator &angle_creator = (*angle_map)[style];
     return angle_creator(lmp);
@@ -466,7 +475,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
 
   error->all(FLERR,utils::check_packages_for_style("angle",style,lmp));
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -491,7 +500,7 @@ Angle *Force::angle_match(const std::string &style)
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -535,7 +544,7 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
   }
 
   sflag = 0;
-  if (style == "none") return NULL;
+  if (style == "none") return nullptr;
   if (dihedral_map->find(style) != dihedral_map->end()) {
     DihedralCreator &dihedral_creator = (*dihedral_map)[style];
     return dihedral_creator(lmp);
@@ -543,7 +552,7 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
 
   error->all(FLERR,utils::check_packages_for_style("dihedral",style,lmp));
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -568,7 +577,7 @@ Dihedral *Force::dihedral_match(const std::string &style)
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -612,7 +621,7 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
   }
 
   sflag = 0;
-  if (style == "none") return NULL;
+  if (style == "none") return nullptr;
   if (improper_map->find(style) != improper_map->end()) {
     ImproperCreator &improper_creator = (*improper_map)[style];
     return improper_creator(lmp);
@@ -620,7 +629,7 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
 
   error->all(FLERR,utils::check_packages_for_style("improper",style,lmp));
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -645,7 +654,7 @@ Improper *Force::improper_match(const std::string &style)
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -689,7 +698,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
   }
 
   sflag = 0;
-  if (style == "none") return NULL;
+  if (style == "none") return nullptr;
   if (kspace_map->find(style) != kspace_map->end()) {
     KSpaceCreator &kspace_creator = (*kspace_map)[style];
     return kspace_creator(lmp);
@@ -697,7 +706,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
 
   error->all(FLERR,utils::check_packages_for_style("kspace",style,lmp));
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -714,20 +723,20 @@ KSpace *Force::kspace_creator(LAMMPS *lmp)
    return ptr to Kspace class if matches word
    if exact, then style name must be exact match to word
    if not exact, style name must contain word
-   return NULL if no match
+   return nullptr if no match
 ------------------------------------------------------------------------- */
 
 KSpace *Force::kspace_match(const std::string &word, int exact)
 {
   if (exact && (word == kspace_style)) return kspace;
   else if (!exact && utils::strmatch(kspace_style,word)) return kspace;
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
    store style name in str allocated here
    if sflag = 0, no suffix
-   if sflag = 1/2, append suffix or suffix2 to style
+   if sflag = 1/2/3, append suffix or suffix2 or suffixp to style
 ------------------------------------------------------------------------- */
 
 void Force::store_style(char *&str, const std::string &style, int sflag)
@@ -736,6 +745,7 @@ void Force::store_style(char *&str, const std::string &style, int sflag)
 
   if (sflag == 1) estyle += std::string("/") + lmp->suffix;
   else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
+  else if (sflag == 3) estyle += std::string("/") + lmp->suffixp;
 
   str = new char[estyle.size()+1];
   strcpy(str,estyle.c_str());
@@ -836,14 +846,14 @@ void Force::set_special(int narg, char **arg)
    memory usage of force classes
 ------------------------------------------------------------------------- */
 
-bigint Force::memory_usage()
+double Force::memory_usage()
 {
-  bigint bytes = 0;
-  if (pair) bytes += static_cast<bigint> (pair->memory_usage());
-  if (bond) bytes += static_cast<bigint> (bond->memory_usage());
-  if (angle) bytes += static_cast<bigint> (angle->memory_usage());
-  if (dihedral) bytes += static_cast<bigint> (dihedral->memory_usage());
-  if (improper) bytes += static_cast<bigint> (improper->memory_usage());
-  if (kspace) bytes += static_cast<bigint> (kspace->memory_usage());
+  double bytes = 0;
+  if (pair) bytes += pair->memory_usage();
+  if (bond) bytes += bond->memory_usage();
+  if (angle) bytes += angle->memory_usage();
+  if (dihedral) bytes += dihedral->memory_usage();
+  if (improper) bytes += improper->memory_usage();
+  if (kspace) bytes += kspace->memory_usage();
   return bytes;
 }

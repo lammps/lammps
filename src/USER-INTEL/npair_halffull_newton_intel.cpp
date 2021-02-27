@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -151,7 +151,7 @@ void NPairHalffullNewtonIntel::build_t3(NeighList *list, int *numhalf)
   if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;
 
   #if defined(_OPENMP)
-  #pragma omp parallel if(packthreads > 1)
+  #pragma omp parallel if (packthreads > 1)
   #endif
   {
     int tid, ifrom, ito;

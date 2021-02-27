@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -123,7 +123,7 @@ void PairTersoffIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -309,7 +309,7 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
   int *overflow = fix->get_off_overflow_flag();
   double *timer_compute = fix->off_watch_pair();
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(c_inner, c_outer :length(0) alloc_if(0) free_if(0)) \
     in(c_inner_cutoff :length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
@@ -566,7 +566,7 @@ template <class flt_t>
 void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            Memory *memory,
                                                            const int cop) {
-  if ( (ntypes != _ntypes) ) {
+  if ((ntypes != _ntypes)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       c_first_loop_t * oc_first_loop = c_first_loop[0];
@@ -576,8 +576,8 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       c_cutoff_t * oc_cutoff_outer = c_cutoff_outer[0];
       c_inner_t * oc_inner = c_inner[0][0];
       c_outer_t * oc_outer = c_outer[0];
-      if (c_first_loop != NULL && c_second_loop != NULL &&
-          c_inner_loop != NULL &&  _cop >= 0) {
+      if (c_first_loop != nullptr && c_second_loop != nullptr &&
+          c_inner_loop != nullptr &&  _cop >= 0) {
 
         #pragma offload_transfer target(mic:cop) \
           nocopy(oc_first_loop, oc_second_loop, oc_inner_loop: alloc_if(0) free_if(1)) \
@@ -615,8 +615,8 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       int tp1sq = ntypes * ntypes;
       int tp1cb = ntypes * ntypes * ntypes;
       int tp1cb_pad = ntypes * ntypes * ntypes_pad;
-      if (oc_first_loop != NULL && oc_second_loop != NULL &&
-          oc_inner_loop != NULL && cop >= 0) {
+      if (oc_first_loop != nullptr && oc_second_loop != nullptr &&
+          oc_inner_loop != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(oc_first_loop: length(tp1sq) alloc_if(1) free_if(0)) \
           nocopy(oc_second_loop: length(tp1sq) alloc_if(1) free_if(0)) \

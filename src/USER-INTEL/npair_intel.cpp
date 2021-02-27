@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -125,11 +125,11 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   const int e_nall = nall_t;
 
   const int molecular = atom->molecular;
-  int *ns = NULL;
-  tagint *s = NULL;
+  int *ns = nullptr;
+  tagint *s = nullptr;
   int tag_size = 0, special_size;
   if (buffers->need_tag()) tag_size = e_nall;
-  if (molecular) {
+  if (molecular != Atom::ATOMIC) {
     s = atom->special[0];
     ns = atom->nspecial[0];
     special_size = aend;
@@ -211,7 +211,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   const int * _noalias const bins = this->bins;
   const int cop = _fix->coprocessor_number();
   const int separate_buffers = _fix->separate_buffers();
-  #pragma offload target(mic:cop) if(offload) \
+  #pragma offload target(mic:cop) if (offload) \
     in(x:length(e_nall+1) alloc_if(0) free_if(0)) \
     in(tag:length(tag_size) alloc_if(0) free_if(0)) \
     in(special:length(special_size*maxspecial) alloc_if(0) free_if(0)) \
@@ -526,7 +526,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           }
         } // for u
 
-        if (molecular) {
+        if (molecular != Atom::ATOMIC) {
           if (!THREE) neighptr2 = neighptr;
           int alln = n;
 

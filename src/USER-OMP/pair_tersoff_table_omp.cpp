@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -43,8 +43,8 @@ PairTersoffTableOMP::PairTersoffTableOMP(LAMMPS *lmp) :
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
 
-  thrGtetaFunction = thrGtetaFunctionDerived = NULL;
-  thrCutoffFunction = thrCutoffFunctionDerived = NULL;
+  thrGtetaFunction = thrGtetaFunctionDerived = nullptr;
+  thrCutoffFunction = thrCutoffFunctionDerived = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,7 +76,7 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag)
       if (vflag_atom) eval<1,1>(ifrom, ito, thr);

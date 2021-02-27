@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -73,8 +73,6 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
   list->gnum = k_list_full->gnum;
 
   k_list->k_ilist.template modify<DeviceType>();
-  k_list->k_numneigh.template modify<DeviceType>();
-  k_list->k_neighbors.template modify<DeviceType>();
 }
 
 template<class DeviceType, int NEWTON>

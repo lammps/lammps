@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +34,7 @@ FixMinimizeKokkos::FixMinimizeKokkos(LAMMPS *lmp, int narg, char **arg) :
 FixMinimizeKokkos::~FixMinimizeKokkos()
 {
   memoryKK->destroy_kokkos(k_vectors,vectors);
-  vectors = NULL;
+  vectors = nullptr;
 }
 
 /* ----------------------------------------------------------------------

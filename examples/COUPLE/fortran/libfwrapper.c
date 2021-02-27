@@ -29,14 +29,7 @@
 
 void lammps_open_(MPI_Fint *comm, int64_t *ptr)
 {
-    void *obj;
-    MPI_Comm ccomm;
-
-    /* convert MPI communicator from fortran to c */
-    ccomm = MPI_Comm_f2c(*comm);
-
-    lammps_open(0,NULL,ccomm,&obj);
-    *ptr = (int64_t) obj;
+    *ptr = (int64_t) lammps_open_fortran(0,NULL,*comm);
 }
 
 /* no-MPI version of the wrapper from above. */
@@ -107,30 +100,3 @@ void lammps_get_natoms_(int64_t *ptr, MPI_Fint *natoms)
     *natoms = lammps_get_natoms(obj);
 }
 
-/* wrapper to copy coordinates from lammps to fortran */
-
-/* NOTE: this is now out-of-date, needs to be updated to lammps_gather_atoms()
-
-void lammps_get_coords_(int64_t *ptr, double *coords)
-{
-    void *obj;
-    obj = (void *) *ptr;
-
-    lammps_get_coords(obj,coords);
-}
-
-*/
-
-/* wrapper to copy coordinates from fortran to lammps */
-
-/* NOTE: this is now out-of-date, needs to be updated to lammps_scatter_atoms()
-
-void lammps_put_coords_(int64_t *ptr, double *coords)
-{
-    void *obj;
-    obj = (void *) *ptr;
-
-    lammps_put_coords(obj,coords);
-}
-
-*/

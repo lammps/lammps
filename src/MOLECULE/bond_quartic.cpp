@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -63,7 +63,7 @@ void BondQuartic::compute(int eflag, int vflag)
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (vflag_global == 2)
+  if (vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **cutsq = force->pair->cutsq;
@@ -229,12 +229,12 @@ void BondQuartic::coeff(int narg, char **arg)
 
 void BondQuartic::init_style()
 {
-  if (force->pair == NULL || force->pair->single_enable == 0)
+  if (force->pair == nullptr || force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support bond_style quartic");
   if (force->angle || force->dihedral || force->improper)
     error->all(FLERR,
                "Bond style quartic cannot be used with 3,4-body interactions");
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,
                "Bond style quartic cannot be used with atom style template");
 
@@ -276,11 +276,11 @@ void BondQuartic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&b1[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&b2[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&rc[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
-    utils::sfread(FLERR,&u0[1],sizeof(double),atom->nbondtypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&b1[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&b2[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&rc[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&u0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&b1[1],atom->nbondtypes,MPI_DOUBLE,0,world);

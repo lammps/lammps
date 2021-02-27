@@ -107,8 +107,8 @@ The computes in this package are not compatible with dynamic groups.
 Related commands
 """"""""""""""""
 
-*compute group/group*\ _compute_group_group.html, *compute
-heat/flux*\ _compute_heat_flux.html
+* :doc:`compute group/group <compute_group_group>`
+* :doc:`compute heat/flux <compute_heat_flux>`
 
 Default
 """""""

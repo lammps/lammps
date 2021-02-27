@@ -1,0 +1,188 @@
+LAMMPS (29 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+# pour two types of particles (cohesive and non-cohesive) on flat wall
+
+variable   	name string pour_two_types
+
+atom_style	sphere
+units		lj
+
+###############################################
+# Geometry-related parameters
+###############################################
+
+variable	boxx equal 20
+variable	boxy equal 20
+variable	boxz equal 30
+
+variable	xc1 equal 0.3*${boxx}
+variable	xc1 equal 0.3*20
+variable	xc2 equal 0.7*${boxx}
+variable	xc2 equal 0.7*20
+variable	yc equal 0.5*${boxy}
+variable	yc equal 0.5*20
+
+###############################################
+# Particle-related parameters
+###############################################
+variable	rlo equal 0.25
+variable	rhi equal 0.5
+variable	dlo equal 2.0*${rlo}
+variable	dlo equal 2.0*0.25
+variable	dhi equal 2.0*${rhi}
+variable	dhi equal 2.0*0.5
+
+variable	dens equal 1.0
+
+variable skin equal 0.3*${rhi}
+variable skin equal 0.3*0.5
+
+#############
+processors	* * 1
+region 		boxreg block 0 ${boxx} 0 ${boxy} 0 ${boxz}
+region 		boxreg block 0 20 0 ${boxy} 0 ${boxz}
+region 		boxreg block 0 20 0 20 0 ${boxz}
+region 		boxreg block 0 20 0 20 0 30
+create_box	2 boxreg
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (20.000000 20.000000 30.000000)
+  1 by 1 by 1 MPI processor grid
+change_box	all boundary p p f
+Changing box ...
+
+pair_style	granular
+pair_coeff 	1 * jkr 1000.0 50.0 0.3 10 tangential mindlin 800.0 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall
+pair_coeff 	2 2 hertz 200.0 20.0 tangential linear_history 300.0 1.0 0.1 rolling sds 200.0 100.0 0.1 twisting marshall
+
+comm_modify 	vel yes
+
+region		insreg1 cylinder z ${xc1} ${yc} 5 15 ${boxz}
+region		insreg1 cylinder z 6 ${yc} 5 15 ${boxz}
+region		insreg1 cylinder z 6 10 5 15 ${boxz}
+region		insreg1 cylinder z 6 10 5 15 30
+region		insreg2 cylinder z ${xc2} ${yc} 5 15 ${boxz}
+region		insreg2 cylinder z 14 ${yc} 5 15 ${boxz}
+region		insreg2 cylinder z 14 10 5 15 ${boxz}
+region		insreg2 cylinder z 14 10 5 15 30
+
+fix		1 all nve/sphere
+fix		grav all gravity 10.0 vector 0 0 -1
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range ${dlo} ${dhi} dens ${dens} ${dens}
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 ${dhi} dens ${dens} ${dens}
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens ${dens} ${dens}
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens 1 ${dens}
+fix		ins1 all pour 1500 1 3123 region insreg1 diam range 0.5 1 dens 1 1
+Particle insertion: 562 every 346 steps, 1500 by step 693
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range ${dlo} ${dhi} dens ${dens} ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 ${dhi} dens ${dens} ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens ${dens} ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens 1 ${dens}
+fix		ins2 all pour 1500 2 3123 region insreg2 diam range 0.5 1 dens 1 1
+Particle insertion: 562 every 346 steps, 1500 by step 693
+
+neighbor	${skin} bin
+neighbor	0.15 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		3 all wall/gran granular hertz/material 1e5 1e3 0.3 tangential mindlin NULL 1.0 0.5 zplane 0 NULL
+
+thermo_style	custom step atoms ke
+thermo_modify	lost warn
+thermo		100
+
+timestep	0.001
+
+#dump		1 all custom 100 ${name}.dump id type radius mass x y z
+
+run		5000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.15
+  ghost atom cutoff = 1.15
+  binsize = 0.575, bins = 35 35 53
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular, perpetual
+      attributes: half, newton on, size, history
+      pair build: half/size/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.22 | 12.22 | 12.22 Mbytes
+Step Atoms KinEng 
+       0        0           -0 
+     100      926           -0 
+     200      926           -0 
+     300      926           -0 
+     400     1498           -0 
+     500     1498           -0 
+     600     1498           -0 
+     700     2275           -0 
+     800     2275           -0 
+     900     2275           -0 
+    1000     2275           -0 
+    1100     2954           -0 
+    1200     2954           -0 
+    1300     2954           -0 
+    1400     3000           -0 
+    1500     3000           -0 
+    1600     3000           -0 
+    1700     3000           -0 
+    1800     3000           -0 
+    1900     3000           -0 
+    2000     3000           -0 
+    2100     3000           -0 
+    2200     3000           -0 
+    2300     3000           -0 
+    2400     3000           -0 
+    2500     3000           -0 
+    2600     3000           -0 
+    2700     3000           -0 
+    2800     3000           -0 
+    2900     3000           -0 
+    3000     3000           -0 
+    3100     3000           -0 
+    3200     3000           -0 
+    3300     3000           -0 
+    3400     3000           -0 
+    3500     3000           -0 
+    3600     3000           -0 
+    3700     3000           -0 
+    3800     3000           -0 
+    3900     3000           -0 
+    4000     3000           -0 
+    4100     3000           -0 
+    4200     3000           -0 
+    4300     3000           -0 
+    4400     3000           -0 
+    4500     3000           -0 
+    4600     3000           -0 
+    4700     3000           -0 
+    4800     3000           -0 
+    4900     3000           -0 
+    5000     3000           -0 
+Loop time of 24.3889 on 1 procs for 5000 steps with 3000 atoms
+
+Performance: 17713.003 tau/day, 205.012 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 14.362     | 14.362     | 14.362     |   0.0 | 58.89
+Neigh   | 3.3483     | 3.3483     | 3.3483     |   0.0 | 13.73
+Comm    | 0.42893    | 0.42893    | 0.42893    |   0.0 |  1.76
+Output  | 0.0025065  | 0.0025065  | 0.0025065  |   0.0 |  0.01
+Modify  | 6.059      | 6.059      | 6.059      |   0.0 | 24.84
+Other   |            | 0.1876     |            |       |  0.77
+
+Nlocal:        3000.00 ave        3000 max        3000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        462.000 ave         462 max         462 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        17694.0 ave       17694 max       17694 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 17694
+Ave neighs/atom = 5.8980000
+Neighbor list builds = 1133
+Dangerous builds = 0
+Total wall time: 0:00:24

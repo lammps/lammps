@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -65,7 +65,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
 #endif
     } else fp = fopen(arg[4],"w");
 
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open fix reax/c/bonds file %s",arg[4]);
       error->one(FLERR,str);
@@ -75,9 +75,9 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
   if (atom->tag_consecutive() == 0)
     error->all(FLERR,"Atom IDs must be consecutive for fix reax/c bonds");
 
-  abo = NULL;
-  neighid = NULL;
-  numneigh = NULL;
+  abo = nullptr;
+  neighid = nullptr;
+  numneigh = nullptr;
 
   allocate();
 }
@@ -114,7 +114,7 @@ void FixReaxCBonds::setup(int /*vflag*/)
 void FixReaxCBonds::init()
 {
   reaxc = (PairReaxC *) force->pair_match("reax/c",0);
-  if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/bonds without "
+  if (reaxc == nullptr) error->all(FLERR,"Cannot use fix reax/c/bonds without "
                                 "pair_style reax/c, reax/c/kk, or reax/c/omp");
 
 }
@@ -195,7 +195,7 @@ void FixReaxCBonds::FindBond(struct _reax_list * /*lists*/, int &numbonds)
     i = ilist[ii];
     nj = 0;
 
-    for( pj = Start_Index(i, reaxc->lists); pj < End_Index(i, reaxc->lists); ++pj ) {
+    for (pj = Start_Index(i, reaxc->lists); pj < End_Index(i, reaxc->lists); ++pj) {
       bo_ij = &( reaxc->lists->select.bond_list[pj] );
       j = bo_ij->nbr;
       jtag = tag[j];
@@ -235,7 +235,7 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
     }
     j += (5+numbonds);
 
-    if (atom->molecule == NULL ) buf[j] = 0.0;
+    if (atom->molecule == nullptr ) buf[j] = 0.0;
     else buf[j] = atom->molecule[i];
     j ++;
 
@@ -262,7 +262,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
   double cutof3 = reaxc->control->bg_cut;
   MPI_Request irequest, irequest2;
 
-  if (me == 0 ){
+  if (me == 0) {
     fprintf(fp,"# Timestep " BIGINT_FORMAT " \n",ntimestep);
     fprintf(fp,"# \n");
     fprintf(fp,"# Number of particles %d \n",natoms);
@@ -315,7 +315,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
     MPI_Isend(&buf[0],nbuf_local,MPI_DOUBLE,0,0,world,&irequest2);
     MPI_Wait(&irequest2,MPI_STATUS_IGNORE);
   }
-  if(me ==0) fprintf(fp,"# \n");
+  if (me ==0) fprintf(fp,"# \n");
 
 }
 
@@ -354,9 +354,9 @@ double FixReaxCBonds::memory_usage()
   double bytes;
 
   bytes = 3.0*nmax*sizeof(double);
-  bytes += nmax*sizeof(int);
-  bytes += 1.0*nmax*MAXREAXBOND*sizeof(double);
-  bytes += 1.0*nmax*MAXREAXBOND*sizeof(int);
+  bytes += (double)nmax*sizeof(int);
+  bytes += (double)1.0*nmax*MAXREAXBOND*sizeof(double);
+  bytes += (double)1.0*nmax*MAXREAXBOND*sizeof(int);
 
   return bytes;
 }

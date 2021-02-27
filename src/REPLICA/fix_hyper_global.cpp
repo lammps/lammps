@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,15 +41,16 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(NULL), xold(NULL), tagold(NULL)
+  FixHyper(lmp, narg, arg), blist(nullptr), xold(nullptr), tagold(nullptr)
 {
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix hyper/global command requires atom map");
 
   if (narg != 7) error->all(FLERR,"Illegal fix hyper/global command");
 
   hyperflag = 1;
   scalar_flag = 1;
+  energy_global_flag = 1;
   vector_flag = 1;
   size_vector = 12;
   global_freq = 1;
@@ -70,12 +71,12 @@ FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   maxbond = 0;
   nblocal = 0;
-  blist = NULL;
+  blist = nullptr;
 
   maxold = 0;
-  xold = NULL;
-  tagold = NULL;
-  old2now = NULL;
+  xold = nullptr;
+  tagold = nullptr;
+  old2now = nullptr;
 
   me = comm->me;
   firstflag = 1;
@@ -104,7 +105,6 @@ int FixHyperGlobal::setmask()
   int mask = 0;
   mask |= PRE_NEIGHBOR;
   mask |= PRE_REVERSE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -125,7 +125,7 @@ void FixHyperGlobal::init()
   if (force->newton_pair == 0)
     error->all(FLERR,"Hyper global requires newton pair on");
 
-  if (atom->molecular && me == 0)
+  if ((atom->molecular != Atom::ATOMIC) && (me == 0))
     error->warning(FLERR,"Hyper global for molecular systems "
                    "requires care in defining hyperdynamic bonds");
 
@@ -559,6 +559,6 @@ double FixHyperGlobal::query(int i)
 
 double FixHyperGlobal::memory_usage()
 {
-  double bytes = maxbond * sizeof(OneBond);    // blist
+  double bytes = (double)maxbond * sizeof(OneBond);    // blist
   return bytes;
 }

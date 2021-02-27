@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -48,10 +48,10 @@ enum{CONSTANT,EQUAL};    // same as FixGravity
 /* ---------------------------------------------------------------------- */
 
 FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), radius_poly(NULL), frac_poly(NULL),
-  idrigid(NULL), idshake(NULL), onemols(NULL), molfrac(NULL), coords(NULL),
-  imageflags(NULL), fixrigid(NULL), fixshake(NULL), recvcounts(NULL),
-  displs(NULL), random(NULL), random2(NULL)
+  Fix(lmp, narg, arg), radius_poly(nullptr), frac_poly(nullptr),
+  idrigid(nullptr), idshake(nullptr), onemols(nullptr), molfrac(nullptr), coords(nullptr),
+  imageflags(nullptr), fixrigid(nullptr), fixshake(nullptr), recvcounts(nullptr),
+  displs(nullptr), random(nullptr), random2(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix pour command");
 
@@ -135,7 +135,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
           ntype+onemols[i]->ntypes > atom->ntypes)
         error->all(FLERR,"Invalid atom type in fix pour mol command");
 
-      if (atom->molecular == 2 && onemols != atom->avec->onemols)
+      if (atom->molecular == Atom::TEMPLATE && onemols != atom->avec->onemols)
         error->all(FLERR,"Fix pour molecule template ID must be same "
                    "as atom style template ID");
       onemols[i]->check_attributes(0);
@@ -263,7 +263,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   nper = static_cast<int> (volfrac*volume/volume_one);
   if (nper == 0) error->all(FLERR,"Fix pour insertion count per timestep is 0");
-  int nfinal = update->ntimestep + 1 + (ninsert-1)/nper * nfreq;
+  int nfinal = update->ntimestep + 1 + ((bigint)ninsert-1)/nper * nfreq;
 
   // print stats
 
@@ -344,7 +344,7 @@ void FixPour::init()
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = NULL;
+  fixrigid = nullptr;
   if (rigidflag) {
     int ifix = modify->find_fix(idrigid);
     if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
@@ -359,7 +359,7 @@ void FixPour::init()
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = NULL;
+  fixshake = nullptr;
   if (shakeflag) {
     int ifix = modify->find_fix(idshake);
     if (ifix < 0) error->all(FLERR,"Fix pour shake fix does not exist");
@@ -456,7 +456,7 @@ void FixPour::pre_exchange()
 
   // perform allgatherv to acquire list of nearby particles on all procs
 
-  double *ptr = NULL;
+  double *ptr = nullptr;
   if (ncount) ptr = xmine[0];
   MPI_Allgatherv(ptr,4*ncount,MPI_DOUBLE,
                  xnear[0],recvcounts,displs,MPI_DOUBLE,world);
@@ -644,7 +644,7 @@ void FixPour::pre_exchange()
               atom->molecule[n] = maxmol_all+1;
             }
           }
-          if (atom->molecular == 2) {
+          if (atom->molecular == Atom::TEMPLATE) {
             atom->molindex[n] = 0;
             atom->molatom[n] = m;
           }
@@ -705,14 +705,14 @@ void FixPour::pre_exchange()
     if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
-      atom->nbonds += onemols[imol]->nbonds * ninserted_mols;
-      atom->nangles += onemols[imol]->nangles * ninserted_mols;
-      atom->ndihedrals += onemols[imol]->ndihedrals * ninserted_mols;
-      atom->nimpropers += onemols[imol]->nimpropers * ninserted_mols;
+      atom->nbonds += (bigint)onemols[imol]->nbonds * ninserted_mols;
+      atom->nangles += (bigint)onemols[imol]->nangles * ninserted_mols;
+      atom->ndihedrals += (bigint)onemols[imol]->ndihedrals * ninserted_mols;
+      atom->nimpropers += (bigint)onemols[imol]->nimpropers * ninserted_mols;
     }
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (atom->map_style) {
+    if (atom->map_style != Atom::MAP_NONE) {
       atom->map_init();
       atom->map_set();
     }
@@ -889,16 +889,16 @@ void FixPour::options(int narg, char **arg)
 
   iregion = -1;
   mode = ATOM;
-  molfrac = NULL;
+  molfrac = nullptr;
   rigidflag = 0;
-  idrigid = NULL;
+  idrigid = nullptr;
   shakeflag = 0;
-  idshake = NULL;
+  idshake = nullptr;
   idnext = 0;
   ignoreflag = ignoreline = ignoretri = 0;
   dstyle = ONE;
   radius_max = radius_one = 0.5;
-  radius_poly = frac_poly = NULL;
+  radius_poly = frac_poly = nullptr;
   density_lo = density_hi = 1.0;
   volfrac = 0.25;
   maxattempt = 50;
@@ -1091,5 +1091,5 @@ void *FixPour::extract(const char *str, int &itype)
     itype = 0;
     return &oneradius;
   }
-  return NULL;
+  return nullptr;
 }

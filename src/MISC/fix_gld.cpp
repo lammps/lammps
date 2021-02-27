@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,7 +41,7 @@ using namespace FixConst;
 
 FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  step_respa(NULL), prony_c(NULL), prony_tau(NULL), s_gld(NULL), random(NULL)
+  step_respa(nullptr), prony_c(nullptr), prony_tau(nullptr), s_gld(nullptr), random(nullptr)
 {
   int narg_min = 8;
   // Check to make sure we have the minimal number of inputs
@@ -67,7 +67,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   int seed    = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // 7 = series type
-  if(strcmp(arg[7],"pprony") == 0) {
+  if (strcmp(arg[7],"pprony") == 0) {
      series_type = 1;   // series type 1 is 'positive Prony series'
   } else {
      error->all(FLERR,"Fix gld series type must be pprony for now");
@@ -89,11 +89,11 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   // allocate memory for Prony series timescale coefficients
   memory->create(prony_tau, prony_terms, "gld:prony_tau");
   // allocate memory for Prony series extended variables
-  s_gld = NULL;
+  s_gld = nullptr;
   grow_arrays(atom->nmax);
   // add callbacks to enable restarts
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // read in the Prony series coefficients
   int iarg = narg_min;
@@ -179,8 +179,8 @@ FixGLD::~FixGLD()
   memory->destroy(s_gld);
 
   // remove callbacks to fix, so atom class stops calling it
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 }
 
 /* ----------------------------------------------------------------------
@@ -487,7 +487,7 @@ void FixGLD::reset_dt()
 
 double FixGLD::memory_usage()
 {
-  double bytes = atom->nmax*3*prony_terms*sizeof(double);
+  double bytes = (double)atom->nmax*3*prony_terms*sizeof(double);
   return bytes;
 }
 

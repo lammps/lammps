@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,26 +22,28 @@
    Richard Berger (JKU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-
-#include <cstring>
 #include "dump_vtk.h"
+
+#include "arg_info.h"
 #include "atom.h"
-#include "force.h"
+#include "compute.h"
 #include "domain.h"
-#include "region.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "fix.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
 
-#include <vector>
+#include <cmath>
+#include <cstring>
 #include <sstream>
+#include <vector>
+
 #include <vtkVersion.h>
 
 #ifndef VTK_MAJOR_VERSION
@@ -89,7 +91,6 @@ enum{X,Y,Z, // required for vtk, must come first
 enum{LT,LE,GT,GE,EQ,NEQ};
 enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 
-#define INVOKED_PERATOM 8
 #define ONEFIELD 32
 #define DELTA 1048576
 
@@ -128,11 +129,11 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   if (filewriter) reset_vtk_data_containers();
 
 
-  label = NULL;
+  label = nullptr;
 
   {
     // parallel vtp/vtu requires proc number to be preceded by underscore '_'
-    multiname_ex = NULL;
+    multiname_ex = nullptr;
     char *ptr = strchr(filename,'%');
     if (ptr) {
       multiname_ex = new char[strlen(filename) + 16];
@@ -160,12 +161,12 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
     nclusterprocs = nprocs;
   }
 
-  filecurrent = NULL;
-  domainfilecurrent = NULL;
-  parallelfilecurrent = NULL;
-  header_choice = NULL;
-  write_choice = NULL;
-  boxcorners = NULL;
+  filecurrent = nullptr;
+  domainfilecurrent = nullptr;
+  parallelfilecurrent = nullptr;
+  header_choice = nullptr;
+  write_choice = nullptr;
+  boxcorners = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,7 +186,7 @@ void DumpVTK::init_style()
 {
   // default for element names = C
 
-  if (typenames == NULL) {
+  if (typenames == nullptr) {
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
       typenames[itype] = new char[2];
@@ -302,9 +303,9 @@ int DumpVTK::count()
           error->all(FLERR,"Compute used in dump between runs is not current");
     } else {
       for (i = 0; i < ncompute; i++) {
-        if (!(compute[i]->invoked_flag & INVOKED_PERATOM)) {
+        if (!(compute[i]->invoked_flag & Compute::INVOKED_PERATOM)) {
           compute[i]->compute_peratom();
-          compute[i]->invoked_flag |= INVOKED_PERATOM;
+          compute[i]->invoked_flag |= Compute::INVOKED_PERATOM;
         }
       }
     }
@@ -880,7 +881,7 @@ void DumpVTK::write()
   // sort buf as needed
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // filewriter = 1 = this proc writes to file
@@ -939,13 +940,13 @@ void DumpVTK::write_data(int n, double *mybuf)
 
 void DumpVTK::setFileCurrent() {
   delete [] filecurrent;
-  filecurrent = NULL;
+  filecurrent = nullptr;
 
   char *filestar = filename;
   if (multiproc) {
     if (multiproc > 1) { // if dump_modify fileper or nfile was used
       delete [] multiname_ex;
-      multiname_ex = NULL;
+      multiname_ex = nullptr;
       char *ptr = strchr(filename,'%');
       if (ptr) {
         int id;
@@ -983,7 +984,7 @@ void DumpVTK::setFileCurrent() {
 
   // filename of domain box data file
   delete [] domainfilecurrent;
-  domainfilecurrent = NULL;
+  domainfilecurrent = nullptr;
   if (multiproc) {
     // remove '%' character
     char *ptr = strchr(filename,'%');
@@ -997,7 +998,7 @@ void DumpVTK::setFileCurrent() {
     *ptr = '\0';
     sprintf(filestar,"%s_boundingBox.%s",domainfilecurrent,ptr+1);
     delete [] domainfilecurrent;
-    domainfilecurrent = NULL;
+    domainfilecurrent = nullptr;
 
     if (multifile == 0) {
       domainfilecurrent = new char[strlen(filestar) + 1];
@@ -1018,7 +1019,7 @@ void DumpVTK::setFileCurrent() {
       *ptr = '*';
     }
     delete [] filestar;
-    filestar = NULL;
+    filestar = nullptr;
   } else {
     domainfilecurrent = new char[strlen(filecurrent) + 16];
     char *ptr = strrchr(filecurrent,'.');
@@ -1030,7 +1031,7 @@ void DumpVTK::setFileCurrent() {
   // filename of parallel file
   if (multiproc && me == 0) {
     delete [] parallelfilecurrent;
-    parallelfilecurrent = NULL;
+    parallelfilecurrent = nullptr;
 
     // remove '%' character and add 'p' to file extension
     // -> string length stays the same
@@ -1066,7 +1067,7 @@ void DumpVTK::setFileCurrent() {
       *ptr = '*';
     }
     delete [] filestar;
-    filestar = NULL;
+    filestar = nullptr;
   }
 }
 
@@ -1188,7 +1189,7 @@ void DumpVTK::write_domain_vtk()
 
   vtkSmartPointer<vtkRectilinearGridWriter> gwriter = vtkSmartPointer<vtkRectilinearGridWriter>::New();
 
-  if(label) gwriter->SetHeader(label);
+  if (label) gwriter->SetHeader(label);
   else      gwriter->SetHeader("Generated by LAMMPS");
 
   if (binary) gwriter->SetFileTypeToBinary();
@@ -1212,7 +1213,7 @@ void DumpVTK::write_domain_vtk_triclinic()
 
   vtkSmartPointer<vtkUnstructuredGridWriter> gwriter = vtkSmartPointer<vtkUnstructuredGridWriter>::New();
 
-  if(label) gwriter->SetHeader(label);
+  if (label) gwriter->SetHeader(label);
   else      gwriter->SetHeader("Generated by LAMMPS");
 
   if (binary) gwriter->SetFileTypeToBinary();
@@ -1305,7 +1306,7 @@ void DumpVTK::write_vtk(int n, double *mybuf)
     vtkSmartPointer<vtkPolyDataWriter> writer = vtkSmartPointer<vtkPolyDataWriter>::New();
 #endif
 
-    if(label) writer->SetHeader(label);
+    if (label) writer->SetHeader(label);
     else      writer->SetHeader("Generated by LAMMPS");
 
     if (binary) writer->SetFileTypeToBinary();
@@ -1732,146 +1733,123 @@ int DumpVTK::parse_fields(int narg, char **arg)
       vtype[TQZ] = Dump::DOUBLE;
       name[TQZ] = arg[iarg];
 
-    // compute value = c_ID
-    // if no trailing [], then arg is set to 0, else arg is int between []
+    } else {
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_compute;
-      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+      int n,tmp;
+      ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
+                   |ArgInfo::DNAME|ArgInfo::INAME);
+      argindex[ATTRIBUTES+i] = argi.get_index1();
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+      switch (argi.get_type()) {
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in dump vtk command");
-        argindex[ATTRIBUTES+i] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[ATTRIBUTES+i] = 0;
+      case ArgInfo::UNKNOWN:
+        error->all(FLERR,"Invalid attribute in dump vtk command");
+        break;
 
-      n = modify->find_compute(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump vtk compute ID");
-      if (modify->compute[n]->peratom_flag == 0)
-        error->all(FLERR,"Dump vtk compute does not compute per-atom info");
-      if (argindex[ATTRIBUTES+i] == 0 && modify->compute[n]->size_peratom_cols > 0)
-        error->all(FLERR,
-                   "Dump vtk compute does not calculate per-atom vector");
-      if (argindex[ATTRIBUTES+i] > 0 && modify->compute[n]->size_peratom_cols == 0)
-        error->all(FLERR,\
-                   "Dump vtk compute does not calculate per-atom array");
-      if (argindex[ATTRIBUTES+i] > 0 &&
-          argindex[ATTRIBUTES+i] > modify->compute[n]->size_peratom_cols)
-        error->all(FLERR,"Dump vtk compute vector is accessed out-of-range");
+        // compute value = c_ID
+        // if no trailing [], then arg is set to 0, else arg is int between []
 
-      field2index[ATTRIBUTES+i] = add_compute(suffix);
-      name[ATTRIBUTES+i] = arg[iarg];
-      delete [] suffix;
+      case ArgInfo::COMPUTE:
+        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_compute;
+        vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
-    // fix value = f_ID
-    // if no trailing [], then arg is set to 0, else arg is between []
+        n = modify->find_compute(argi.get_name());
+        if (n < 0) error->all(FLERR,"Could not find dump vtk compute ID");
+        if (modify->compute[n]->peratom_flag == 0)
+          error->all(FLERR,"Dump vtk compute does not compute per-atom info");
+        if (argi.get_dim() == 0 && modify->compute[n]->size_peratom_cols > 0)
+          error->all(FLERR,
+                     "Dump vtk compute does not calculate per-atom vector");
+        if (argi.get_dim() > 0 && modify->compute[n]->size_peratom_cols == 0)
+          error->all(FLERR,
+                     "Dump vtk compute does not calculate per-atom array");
+        if (argi.get_dim() > 0 &&
+            argi.get_index1() > modify->compute[n]->size_peratom_cols)
+          error->all(FLERR,"Dump vtk compute vector is accessed out-of-range");
 
-    } else if (strncmp(arg[iarg],"f_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_fix;
-      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+        field2index[ATTRIBUTES+i] = add_compute(argi.get_name());
+        name[ATTRIBUTES+i] = arg[iarg];
+        break;
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+        // fix value = f_ID
+        // if no trailing [], then arg is set to 0, else arg is between []
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Invalid attribute in dump vtk command");
-        argindex[ATTRIBUTES+i] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[ATTRIBUTES+i] = 0;
+      case ArgInfo::FIX:
+        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_fix;
+        vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
-      n = modify->find_fix(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump vtk fix ID");
-      if (modify->fix[n]->peratom_flag == 0)
-        error->all(FLERR,"Dump vtk fix does not compute per-atom info");
-      if (argindex[ATTRIBUTES+i] == 0 && modify->fix[n]->size_peratom_cols > 0)
-        error->all(FLERR,"Dump vtk fix does not compute per-atom vector");
-      if (argindex[ATTRIBUTES+i] > 0 && modify->fix[n]->size_peratom_cols == 0)
-        error->all(FLERR,"Dump vtk fix does not compute per-atom array");
-      if (argindex[ATTRIBUTES+i] > 0 &&
-          argindex[ATTRIBUTES+i] > modify->fix[n]->size_peratom_cols)
-        error->all(FLERR,"Dump vtk fix vector is accessed out-of-range");
+        n = modify->find_fix(argi.get_name());
+        if (n < 0) error->all(FLERR,"Could not find dump vtk fix ID");
+        if (modify->fix[n]->peratom_flag == 0)
+          error->all(FLERR,"Dump vtk fix does not compute per-atom info");
+        if (argi.get_dim() == 0 && modify->fix[n]->size_peratom_cols > 0)
+          error->all(FLERR,"Dump vtk fix does not compute per-atom vector");
+        if (argi.get_dim() > 0 && modify->fix[n]->size_peratom_cols == 0)
+          error->all(FLERR,"Dump vtk fix does not compute per-atom array");
+        if (argi.get_dim() > 0 &&
+            argi.get_index1() > modify->fix[n]->size_peratom_cols)
+          error->all(FLERR,"Dump vtk fix vector is accessed out-of-range");
 
-      field2index[ATTRIBUTES+i] = add_fix(suffix);
-      name[ATTRIBUTES+i] = arg[iarg];
-      delete [] suffix;
+        field2index[ATTRIBUTES+i] = add_fix(argi.get_name());
+        name[ATTRIBUTES+i] = arg[iarg];
+        break;
 
-    // variable value = v_name
+        // variable value = v_name
 
-    } else if (strncmp(arg[iarg],"v_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_variable;
-      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+      case ArgInfo::VARIABLE:
+        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_variable;
+        vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+        n = input->variable->find(argi.get_name());
+        if (n < 0) error->all(FLERR,"Could not find dump vtk variable name");
+        if (input->variable->atomstyle(n) == 0)
+          error->all(FLERR,"Dump vtk variable is not atom-style variable");
 
-      argindex[ATTRIBUTES+i] = 0;
+        field2index[ATTRIBUTES+i] = add_variable(argi.get_name());
+        name[ATTRIBUTES+i] = arg[iarg];
+        break;
 
-      n = input->variable->find(suffix);
-      if (n < 0) error->all(FLERR,"Could not find dump vtk variable name");
-      if (input->variable->atomstyle(n) == 0)
-        error->all(FLERR,"Dump vtk variable is not atom-style variable");
+        // custom per-atom floating point value = d_ID
 
-      field2index[ATTRIBUTES+i] = add_variable(suffix);
-      name[ATTRIBUTES+i] = suffix;
-      delete [] suffix;
+      case ArgInfo::DNAME:
+        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
+        vtype[ATTRIBUTES+i] = Dump::DOUBLE;
 
-    // custom per-atom floating point value = d_ID
+        tmp = -1;
+        n = atom->find_custom(argi.get_name(),tmp);
+        if (n < 0)
+          error->all(FLERR,"Could not find custom per-atom property ID");
 
-    } else if (strncmp(arg[iarg],"d_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-      vtype[ATTRIBUTES+i] = Dump::DOUBLE;
+        if (tmp != 1)
+          error->all(FLERR,"Custom per-atom property ID is not floating point");
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
-      argindex[ATTRIBUTES+i] = 0;
+        field2index[ATTRIBUTES+i] = add_custom(argi.get_name(),1);
+        name[ATTRIBUTES+i] = arg[iarg];
+        break;
 
-      int tmp = -1;
-      n = atom->find_custom(suffix,tmp);
-      if (n < 0)
-        error->all(FLERR,"Could not find custom per-atom property ID");
+        // custom per-atom integer value = i_ID
 
-      if (tmp != 1)
-        error->all(FLERR,"Custom per-atom property ID is not floating point");
+      case ArgInfo::INAME:
+        pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
+        vtype[ATTRIBUTES+i] = Dump::INT;
 
-      field2index[ATTRIBUTES+i] = add_custom(suffix,1);
-      name[ATTRIBUTES+i] = suffix;
-      delete [] suffix;
+        tmp = -1;
+        n = atom->find_custom(argi.get_name(),tmp);
+        if (n < 0)
+          error->all(FLERR,"Could not find custom per-atom property ID");
 
-    // custom per-atom integer value = i_ID
+        if (tmp != 0)
+          error->all(FLERR,"Custom per-atom property ID is not integer");
 
-    } else if (strncmp(arg[iarg],"i_",2) == 0) {
-      pack_choice[ATTRIBUTES+i] = &DumpVTK::pack_custom;
-      vtype[ATTRIBUTES+i] = Dump::INT;
+        field2index[ATTRIBUTES+i] = add_custom(argi.get_name(),0);
+        name[ATTRIBUTES+i] = arg[iarg];
+        break;
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
-      argindex[ATTRIBUTES+i] = 0;
-
-      int tmp = -1;
-      n = atom->find_custom(suffix,tmp);
-      if (n < 0)
-        error->all(FLERR,"Could not find custom per-atom property ID");
-
-      if (tmp != 0)
-        error->all(FLERR,"Custom per-atom property ID is not integer");
-
-      field2index[ATTRIBUTES+i] = add_custom(suffix,0);
-      name[ATTRIBUTES+i] = suffix;
-      delete [] suffix;
-
-    } else return iarg;
+      default:
+        return iarg;
+        break;
+      }
+    }
   }
 
   identify_vectors();
@@ -1890,7 +1868,7 @@ void DumpVTK::identify_vectors()
   int num_vector3_starts = sizeof(vector3_starts) / sizeof(int);
 
   for (int v3s = 0; v3s < num_vector3_starts; v3s++) {
-    if(name.count(vector3_starts[v3s]  ) &&
+    if (name.count(vector3_starts[v3s]  ) &&
        name.count(vector3_starts[v3s]+1) &&
        name.count(vector3_starts[v3s]+2) )
     {
@@ -1906,12 +1884,12 @@ void DumpVTK::identify_vectors()
     if (it->first < ATTRIBUTES) // neither fix nor compute
       continue;
 
-    if(argindex[it->first] == 0) // single value
+    if (argindex[it->first] == 0) // single value
       continue;
 
     // assume components are grouped together and in correct order
-    if(name.count(it->first + 1) && name.count(it->first + 2) ) { // more attributes?
-      if(it->second.compare(0,it->second.length()-3,name[it->first + 1],0,it->second.length()-3) == 0  && // same attributes?
+    if (name.count(it->first + 1) && name.count(it->first + 2)) { // more attributes?
+      if (it->second.compare(0,it->second.length()-3,name[it->first + 1],0,it->second.length()-3) == 0  && // same attributes?
          it->second.compare(0,it->second.length()-3,name[it->first + 2],0,it->second.length()-3) == 0 )
       {
         it->second.erase(it->second.length()-1);
@@ -1931,7 +1909,7 @@ void DumpVTK::identify_vectors()
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_compute(char *id)
+int DumpVTK::add_compute(const char *id)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
@@ -1956,7 +1934,7 @@ int DumpVTK::add_compute(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_fix(char *id)
+int DumpVTK::add_fix(const char *id)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
@@ -1981,7 +1959,7 @@ int DumpVTK::add_fix(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_variable(char *id)
+int DumpVTK::add_variable(const char *id)
 {
   int ivariable;
   for (ivariable = 0; ivariable < nvariable; ivariable++)
@@ -1995,7 +1973,7 @@ int DumpVTK::add_variable(char *id)
   variable = new int[nvariable+1];
   delete [] vbuf;
   vbuf = new double*[nvariable+1];
-  for (int i = 0; i <= nvariable; i++) vbuf[i] = NULL;
+  for (int i = 0; i <= nvariable; i++) vbuf[i] = nullptr;
 
   int n = strlen(id) + 1;
   id_variable[nvariable] = new char[n];
@@ -2010,7 +1988,7 @@ int DumpVTK::add_variable(char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_custom(char *id, int flag)
+int DumpVTK::add_custom(const char *id, int flag)
 {
   int icustom;
   for (icustom = 0; icustom < ncustom; icustom++)
@@ -2075,7 +2053,7 @@ int DumpVTK::modify_param(int narg, char **arg)
     if (typenames) {
       for (int i = 1; i <= ntypes; i++) delete [] typenames[i];
       delete [] typenames;
-      typenames = NULL;
+      typenames = nullptr;
     }
 
     typenames = new char*[ntypes+1];
@@ -2094,9 +2072,9 @@ int DumpVTK::modify_param(int narg, char **arg)
         memory->destroy(thresh_array);
         memory->destroy(thresh_op);
         memory->destroy(thresh_value);
-        thresh_array = NULL;
-        thresh_op = NULL;
-        thresh_value = NULL;
+        thresh_array = nullptr;
+        thresh_op = nullptr;
+        thresh_value = nullptr;
       }
       nthresh = 0;
       return 2;
@@ -2309,9 +2287,9 @@ int DumpVTK::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf, choose, variable arrays
 ------------------------------------------------------------------------- */
 
-bigint DumpVTK::memory_usage()
+double DumpVTK::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(choose,maxlocal);
   bytes += memory->usage(dchoose,maxlocal);
   bytes += memory->usage(clist,maxlocal);

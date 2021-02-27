@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -160,9 +160,9 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // if using LRT mode, create the integrate style
   if (_lrt) {
-    char *str;
-    str = (char *) "verlet/lrt/intel";
-    update->create_integrate(1,&str,0);
+    char *cmd[1];
+    cmd[0] = (char *) "verlet/lrt/intel";
+    update->create_integrate(1,cmd,0);
   }
 
   // error check
@@ -303,7 +303,7 @@ void FixIntel::init()
   #endif
 
   const int nstyles = _pair_intel_count;
-  if (force->pair_match("^hybrid", 0) != NULL) {
+  if (force->pair_match("^hybrid", 0) != nullptr) {
     _pair_hybrid_flag = 1;
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
       error->all(FLERR,
@@ -318,8 +318,7 @@ void FixIntel::init()
   _zero_master = 0;
 
   if (_pair_hybrid_flag && _hybrid_nonpair)
-    if (_pair_hybrid_flag > 1 || force->newton_pair == 0)
-      _pair_hybrid_zero = 1;
+    _pair_hybrid_zero = 1;
   _hybrid_nonpair = 0;
 
   _pair_intel_count = 0;
@@ -441,7 +440,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
   }
 
   #ifndef LMP_INTEL_NBOR_COMPAT
-  if (force->pair->manybody_flag && atom->molecular) {
+  if (force->pair->manybody_flag && (atom->molecular != Atom::ATOMIC)) {
     int flag = 0;
     if (atom->nbonds > 0 && force->special_lj[1] == 0.0 &&
         force->special_coul[1] == 0.0) flag = 1;
@@ -456,7 +455,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
   #endif
 
   int need_tag = 0;
-  if (atom->molecular) need_tag = 1;
+  if (atom->molecular != Atom::ATOMIC) need_tag = 1;
 
   // Clear buffers used for pair style
   char kmode[80];
@@ -507,15 +506,15 @@ void FixIntel::pair_init_check(const bool cdmessage)
 
 void FixIntel::bond_init_check()
 {
-  if (_offload_balance != 0.0 && atom->molecular &&
-      force->newton_pair != force->newton_bond)
+  if ((_offload_balance != 0.0) && (atom->molecular != Atom::ATOMIC)
+      && (force->newton_pair != force->newton_bond))
     error->all(FLERR,
       "USER-INTEL package requires same setting for newton bond and non-bond.");
 
   int intel_pair = 0;
-  if (force->pair_match("/intel$", 0) != NULL)
+  if (force->pair_match("/intel$", 0) != nullptr)
     intel_pair = 1;
-  else if (force->pair_match("^hybrid", 0) != NULL) {
+  else if (force->pair_match("^hybrid", 0) != nullptr) {
     _hybrid_nonpair = 1;
     if (pair_hybrid_check()) intel_pair = 1;
   }
@@ -530,9 +529,9 @@ void FixIntel::bond_init_check()
 void FixIntel::kspace_init_check()
 {
   int intel_pair = 0;
-  if (force->pair_match("/intel$", 0) != NULL)
+  if (force->pair_match("/intel$", 0) != nullptr)
     intel_pair = 1;
-  else if (force->pair_match("^hybrid", 0) != NULL) {
+  else if (force->pair_match("^hybrid", 0) != nullptr) {
     _hybrid_nonpair = 1;
     if (pair_hybrid_check()) intel_pair = 1;
   }
@@ -783,7 +782,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
   if (_nthreads > INTEL_HTHREADS) packthreads = _nthreads;
   else packthreads = 1;
   #if defined(_OPENMP)
-  #pragma omp parallel if(packthreads > 1)
+  #pragma omp parallel if (packthreads > 1)
   #endif
   {
     #if defined(_OPENMP)
@@ -855,7 +854,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
     }
   }
 
-  if (ev_global != NULL) {
+  if (ev_global != nullptr) {
     force->pair->eng_vdwl += ev_global[0];
     force->pair->eng_coul += ev_global[1];
     force->pair->virial[0] += ev_global[2];
@@ -1168,9 +1167,9 @@ int FixIntel::set_host_affinity(const int nomp)
   sprintf(cmd, "lscpu -p | grep -v '#' |"
           "sort -t, -k 3,3n -k 2,2n | awk -F, '{print $1}'");
   p = popen(cmd, "r");
-  if (p == NULL) return -1;
+  if (p == nullptr) return -1;
   ncores = 0;
-  while(fgets(readbuf, 512, p)) {
+  while (fgets(readbuf, 512, p)) {
     proc_list[ncores] = atoi(readbuf);
     ncores++;
   }
@@ -1190,7 +1189,7 @@ int FixIntel::set_host_affinity(const int nomp)
   int nthreads = nomp;
   if (nthreads == 0) {
     estring = getenv("OMP_NUM_THREADS");
-    if (estring != NULL) {
+    if (estring != nullptr) {
       nthreads = atoi(estring);
       if (nthreads < 2) nthreads = 1;
     } else
@@ -1222,9 +1221,9 @@ int FixIntel::set_host_affinity(const int nomp)
   if (coi_cores) {
     sprintf(cmd, "ps -Lp %d -o lwp | awk ' (NR > 2) {print}'", pid);
     p = popen(cmd, "r");
-    if (p == NULL) return -1;
+    if (p == nullptr) return -1;
 
-    while(fgets(readbuf, 512, p)) {
+    while (fgets(readbuf, 512, p)) {
       lwp = atoi(readbuf);
       int first = coi_cores + node_rank * mpi_cores;
       CPU_ZERO(&cpuset);
@@ -1258,15 +1257,15 @@ int FixIntel::set_host_affinity(const int nomp)
     free(buf1);
 
     p = popen(cmd, "r");
-    if (p == NULL) return -1;
+    if (p == nullptr) return -1;
 
-    while(fgets(readbuf, 512, p)) {
+    while (fgets(readbuf, 512, p)) {
       lwp = atoi(readbuf);
       nlwp++;
       if (nlwp <= plwp) continue;
 
       CPU_ZERO(&cpuset);
-      for(int i=0; i<coi_cores; i++)
+      for (int i=0; i<coi_cores; i++)
         CPU_SET(proc_list[i], &cpuset);
 
       if (sched_setaffinity(lwp, sizeof(cpu_set_t), &cpuset)) {

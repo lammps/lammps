@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  displace(NULL), id_fix(NULL)
+  displace(nullptr), id_fix(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute displace/atom command");
 
@@ -44,7 +44,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   refreshflag = 0;
-  rvar = NULL;
+  rvar = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -102,7 +102,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // per-atom displacement array
 
   nmax = nvmax = 0;
-  varatom = NULL;
+  varatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,7 +247,7 @@ void ComputeDisplaceAtom::refresh()
 
 double ComputeDisplaceAtom::memory_usage()
 {
-  double bytes = nmax*4 * sizeof(double);
-  bytes += nvmax * sizeof(double);
+  double bytes = (double)nmax*4 * sizeof(double);
+  bytes += (double)nvmax * sizeof(double);
   return bytes;
 }

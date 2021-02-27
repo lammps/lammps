@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,8 +24,8 @@
 
 using namespace LAMMPS_NS;
 
-TokenizerException::TokenizerException(const std::string & msg, const std::string & token){
-    if(token.empty()) {
+TokenizerException::TokenizerException(const std::string &msg, const std::string &token) {
+    if (token.empty()) {
         message = msg;
     } else {
         message = fmt::format("{}: '{}'", msg, token);
@@ -37,18 +37,23 @@ TokenizerException::TokenizerException(const std::string & msg, const std::strin
  * This tokenizer will break down a string into sub-strings (i.e words)
  * separated by the given separator characters.
  *
- * \param str         string to be processed
- * \param separators  string with separator characters (default: " \t\r\n\f")
- *
- * \sa ValueTokenizer TokenizerException */
+\verbatim embed:rst
 
-Tokenizer::Tokenizer(const std::string & str, const std::string & separators) :
+*See also*
+   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`
+
+\endverbatim
+ *
+ * \param str         string to be processed
+ * \param separators  string with separator characters (default: " \t\r\n\f") */
+
+Tokenizer::Tokenizer(const std::string &str, const std::string &separators) :
     text(str), separators(separators), start(0), ntokens(std::string::npos)
 {
     reset();
 }
 
-Tokenizer::Tokenizer(const Tokenizer & rhs) :
+Tokenizer::Tokenizer(const Tokenizer &rhs) :
     text(rhs.text), separators(rhs.separators), ntokens(rhs.ntokens)
 {
     reset();
@@ -70,7 +75,7 @@ void Tokenizer::reset() {
  *
  * \param  str  string to be searched for
  * \return      true if string was found, false if not */
-bool Tokenizer::contains(const std::string & str) const {
+bool Tokenizer::contains(const std::string &str) const {
     return text.find(str) != std::string::npos;
 }
 
@@ -78,12 +83,12 @@ bool Tokenizer::contains(const std::string & str) const {
  *
  * \param  n  number of tokens to skip over */
 void Tokenizer::skip(int n) {
-    for(int i = 0; i < n; ++i) {
-        if(!has_next()) throw TokenizerException("No more tokens", "");
+    for (int i = 0; i < n; ++i) {
+        if (!has_next()) throw TokenizerException("No more tokens", "");
 
         size_t end = text.find_first_of(separators, start);
 
-        if(end == std::string::npos) {
+        if (end == std::string::npos) {
             start = end;
         } else {
             start = text.find_first_not_of(separators, end+1);
@@ -102,11 +107,11 @@ bool Tokenizer::has_next() const {
  *
  * \return   string with the next token */
 std::string Tokenizer::next() {
-    if(!has_next()) throw TokenizerException("No more tokens", "");
+    if (!has_next()) throw TokenizerException("No more tokens", "");
 
     size_t end = text.find_first_of(separators, start);
 
-    if(end == std::string::npos) {
+    if (end == std::string::npos) {
         std::string token = text.substr(start);
         start = end;
         return token;
@@ -140,7 +145,7 @@ std::vector<std::string> Tokenizer::as_vector() {
   // generate vector
   std::vector<std::string> tokens;
 
-  while(has_next()) {
+  while (has_next()) {
     tokens.emplace_back(next());
   }
 
@@ -152,18 +157,25 @@ std::vector<std::string> Tokenizer::as_vector() {
 
 /*! Class for reading text with numbers
  *
+\verbatim embed:rst
+
+*See also*
+   :cpp:class:`Tokenizer`
+
+\endverbatim
+ *
  * \param str         String to be processed
  * \param separators  String with separator characters (default: " \t\r\n\f")
  *
- * \sa Tokenizer InvalidIntegerException InvalidFloatException */
+ * \see Tokenizer InvalidIntegerException InvalidFloatException */
 
-ValueTokenizer::ValueTokenizer(const std::string & str, const std::string & separators) : tokens(str, separators) {
+ValueTokenizer::ValueTokenizer(const std::string &str, const std::string &separators) : tokens(str, separators) {
 }
 
-ValueTokenizer::ValueTokenizer(const ValueTokenizer & rhs) : tokens(rhs.tokens) {
+ValueTokenizer::ValueTokenizer(const ValueTokenizer &rhs) : tokens(rhs.tokens) {
 }
 
-ValueTokenizer::ValueTokenizer(ValueTokenizer && rhs) : tokens(std::move(rhs.tokens)) {
+ValueTokenizer::ValueTokenizer(ValueTokenizer &&rhs) : tokens(std::move(rhs.tokens)) {
 }
 
 /*! Indicate whether more tokens are available
@@ -177,7 +189,7 @@ bool ValueTokenizer::has_next() const {
  *
  * \param  value  string with value to be searched for
  * \return        true if string was found, false if not */
-bool ValueTokenizer::contains(const std::string & value) const {
+bool ValueTokenizer::contains(const std::string &value) const {
     return tokens.contains(value);
 }
 
@@ -198,7 +210,8 @@ std::string ValueTokenizer::next_string() {
 int ValueTokenizer::next_int() {
     if (has_next()) {
         std::string current = tokens.next();
-        if(!utils::is_integer(current)) {
+        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
+        if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
         int value = atoi(current.c_str());
@@ -213,7 +226,8 @@ int ValueTokenizer::next_int() {
 bigint ValueTokenizer::next_bigint() {
     if (has_next()) {
         std::string current = tokens.next();
-        if(!utils::is_integer(current)) {
+        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
+        if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
         bigint value = ATOBIGINT(current.c_str());
@@ -228,7 +242,8 @@ bigint ValueTokenizer::next_bigint() {
 tagint ValueTokenizer::next_tagint() {
     if (has_next()) {
         std::string current = tokens.next();
-        if(!utils::is_integer(current)) {
+        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
+        if (!utils::is_integer(current)) {
             throw InvalidIntegerException(current);
         }
         tagint value = ATOTAGINT(current.c_str());
@@ -243,7 +258,8 @@ tagint ValueTokenizer::next_tagint() {
 double ValueTokenizer::next_double() {
     if (has_next()) {
         std::string current = tokens.next();
-        if(!utils::is_double(current)) {
+        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
+        if (!utils::is_double(current)) {
             throw InvalidFloatException(current);
         }
         double value = atof(current.c_str());

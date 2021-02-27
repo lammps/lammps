@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -89,7 +89,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
   // hybrid settings are MAX or MIN of sub-style settings
   // hybrid sizes are minimal values plus extra values for each sub-style
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   comm_x_only = comm_f_only = 1;
 
   size_forward = 3;
@@ -100,8 +100,8 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
   xcol_data = 3;
 
   for (int k = 0; k < nstyles; k++) {
-    if ((styles[k]->molecular == 1 && molecular == 2) ||
-        (styles[k]->molecular == 2 && molecular == 1))
+    if ((styles[k]->molecular == Atom::MOLECULAR && molecular == Atom::TEMPLATE) ||
+        (styles[k]->molecular == Atom::TEMPLATE && molecular == Atom::MOLECULAR))
       error->all(FLERR,"Cannot mix molecular and molecule template "
                  "atom styles");
     molecular = MAX(molecular,styles[k]->molecular);
@@ -114,7 +114,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
     forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
 
-    if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
+    if (styles[k]->molecular == Atom::TEMPLATE) onemols = styles[k]->onemols;
 
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
     comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);
@@ -732,8 +732,9 @@ void AtomVecHybridKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -765,8 +766,9 @@ void AtomVecHybridKokkos::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1198,9 +1200,9 @@ int AtomVecHybridKokkos::known_style(char *str)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecHybridKokkos::memory_usage()
+double AtomVecHybridKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int k = 0; k < nstyles; k++) bytes += styles[k]->memory_usage();
   return bytes;
 }

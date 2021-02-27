@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,21 +39,22 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
-                 int **host_type2rhor, int **host_type2z2r,
-                 int *host_type2frho, double ***host_rhor_spline,
-                 double ***host_z2r_spline, double ***host_frho_spline,
-                 double rdr, double rdrho, double rhomax,
-                 int nrhor, int nrho, int nz2r, int nfrho, int nr,
-                 const int nlocal, const int nall, const int max_nbors,
-                 const int maxspecial, const double cell_size, int &gpu_mode,
-                 FILE *screen, int &fp_size);
+                       int **host_type2rhor, int **host_type2z2r,
+                       int *host_type2frho, double ***host_rhor_spline,
+                       double ***host_z2r_spline, double ***host_frho_spline,
+                       double rdr, double rdrho, double rhomax,
+                       int nrhor, int nrho, int nz2r, int nfrho, int nr,
+                       const int nlocal, const int nall, const int max_nbors,
+                       const int maxspecial, const double cell_size,
+                       int &gpu_mode, FILE *screen, int &fp_size);
 void eam_alloy_gpu_clear();
-int** eam_alloy_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                        double **host_x, int *host_type, double *sublo,
-                        double *subhi, tagint *tag, int **nspecial, tagint **special,
-                        const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist,
-                        int **jnum,  const double cpu_time, bool &success,
+int** eam_alloy_gpu_compute_n(const int ago, const int inum_full,
+                        const int nall, double **host_x, int *host_type,
+                        double *sublo, double *subhi, tagint *tag,
+                        int **nspecial, tagint **special, const bool eflag,
+                        const bool vflag, const bool eatom, const bool vatom,
+                        int &host_start, int **ilist, int **jnum,
+                        const double cpu_time, bool &success,
                         int &inum, void **fp_ptr);
 void eam_alloy_gpu_compute(const int ago, const int inum_full, const int nlocal,
                      const int nall,double **host_x, int *host_type,
@@ -143,7 +144,7 @@ void PairEAMAlloyGPU::compute(int eflag, int vflag)
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
-    eam_alloy_gpu_compute_force(NULL, eflag, vflag, eflag_atom, vflag_atom);
+    eam_alloy_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_alloy_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
 }
@@ -183,10 +184,11 @@ void PairEAMAlloyGPU::init_style()
   if (atom->molecular)
     maxspecial=atom->maxspecial;
   int fp_size;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = eam_alloy_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
                              type2frho, rhor_spline, z2r_spline, frho_spline,
                              rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
-                             atom->nlocal, atom->nlocal+atom->nghost, 300,
+                             atom->nlocal, atom->nlocal+atom->nghost, mnf,
                              maxspecial, cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -195,7 +197,6 @@ void PairEAMAlloyGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
-
   if (fp_size == sizeof(double))
     fp_single = false;
   else
@@ -324,7 +325,7 @@ void PairEAMAlloyGPU::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -370,7 +371,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
   Setfl *file = setfl;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(PairEAM::lmp, filename,
                                "eam/alloy", unit_convert_flag);
 
@@ -438,7 +439,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

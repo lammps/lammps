@@ -26,7 +26,7 @@ class Bond : protected Pointers {
   int *setflag;
   int writedata;                  // 1 if writes coeffs to data file
   double energy;                  // accumulated energies
-  double virial[6];               // accumulated virial
+  double virial[6];               // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;          // accumulated per-atom energy/virial
 
   int reinitflag;                // 1 if compatible with fix adapt and alike
@@ -52,7 +52,7 @@ class Bond : protected Pointers {
   virtual void write_data(FILE *) {}
   virtual double single(int, double, int, int, double &) = 0;
   virtual double memory_usage();
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
   virtual void reinit();
 
   void write_file(int, char**);

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,7 +40,7 @@ using namespace MathConst;
 ComputeEntropyAtom::
 ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pair_entropy(NULL), pair_entropy_avg(NULL)
+  pair_entropy(nullptr), pair_entropy_avg(nullptr)
 {
   if (narg < 5 || narg > 10)
     error->all(FLERR,"Illegal compute entropy/atom command; wrong number"
@@ -118,11 +118,11 @@ ComputeEntropyAtom::~ComputeEntropyAtom()
 
 void ComputeEntropyAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute entropy/atom requires a pair style be"
                " defined");
 
-  if ( (cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin) )
+  if ((cutoff+cutoff2) > (force->pair->cutforce  + neighbor->skin))
     {
         error->all(FLERR,"Compute entropy/atom cutoff is longer than the"
                    " pairwise cutoff. Increase the neighbor list skin"
@@ -247,7 +247,7 @@ void ComputeEntropyAtom::compute_peratom()
       // loop over list of all neighbors within force cutoff
 
       // initialize gofr
-      for(int k=0;k<nbin;++k) gofr[k]=0.;
+      for (int k=0;k<nbin;++k) gofr[k]=0.;
 
       for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
@@ -267,7 +267,7 @@ void ComputeEntropyAtom::compute_peratom()
           if (minbin > (nbin-1)) minbin=nbin-1;
           maxbin=bin +  deltabin;
           if (maxbin > (nbin-1)) maxbin=nbin-1;
-          for(int k=minbin;k<maxbin+1;k++) {
+          for (int k=minbin;k<maxbin+1;k++) {
             double invNormKernel=invNormConstantBase/rbinsq[k];
             double distance = r - rbin[k];
             gofr[k] += invNormKernel*exp(-distance*distance/sigmasq2);
@@ -276,7 +276,7 @@ void ComputeEntropyAtom::compute_peratom()
       }
 
       // Calculate integrand
-      for(int k=0;k<nbin;++k){
+      for (int k=0;k<nbin;++k) {
         if (gofr[k]<1.e-10) {
           integrand[k] = rbinsq[k];
         } else {
@@ -286,7 +286,7 @@ void ComputeEntropyAtom::compute_peratom()
 
       // Integrate with trapezoid rule
       double value = 0.;
-      for(int k=1;k<nbin-1;++k){
+      for (int k=1;k<nbin-1;++k) {
         value += integrand[k];
       }
       value += 0.5*integrand[0];

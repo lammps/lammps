@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -373,19 +373,19 @@ void AngleClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
 
-    utils::sfread(FLERR,&bb_k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&bb_r1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&bb_r2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&bb_k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&bb_r1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&bb_r2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
 
-    utils::sfread(FLERR,&ba_k1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&ba_k2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&ba_r1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&ba_r2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&ba_k1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_k2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_r1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_r2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
@@ -446,10 +446,6 @@ double AngleClass2::single(int type, int i1, int i2, int i3)
   c /= r1*r2;
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
-
-  double s = sqrt(1.0 - c*c);
-  if (s < SMALL) s = SMALL;
-  s = 1.0/s;
 
   double dtheta = acos(c) - theta0[type];
   double dtheta2 = dtheta*dtheta;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -386,21 +386,21 @@ void AngleClass2P6::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k5[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&k6[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k4[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k5[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k6[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
 
-    utils::sfread(FLERR,&bb_k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&bb_r1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&bb_r2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&bb_k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&bb_r1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&bb_r2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
 
-    utils::sfread(FLERR,&ba_k1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&ba_k2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&ba_r1[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&ba_r2[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&ba_k1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_k2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_r1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_r2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);

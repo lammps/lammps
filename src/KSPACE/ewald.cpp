@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,11 +39,11 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 Ewald::Ewald(LAMMPS *lmp) : KSpace(lmp),
-  kxvecs(NULL), kyvecs(NULL), kzvecs(NULL), ug(NULL), eg(NULL), vg(NULL),
-  ek(NULL), sfacrl(NULL), sfacim(NULL), sfacrl_all(NULL), sfacim_all(NULL),
-  cs(NULL), sn(NULL), sfacrl_A(NULL), sfacim_A(NULL), sfacrl_A_all(NULL),
-  sfacim_A_all(NULL), sfacrl_B(NULL), sfacim_B(NULL), sfacrl_B_all(NULL),
-  sfacim_B_all(NULL)
+  kxvecs(nullptr), kyvecs(nullptr), kzvecs(nullptr), ug(nullptr), eg(nullptr), vg(nullptr),
+  ek(nullptr), sfacrl(nullptr), sfacim(nullptr), sfacrl_all(nullptr), sfacim_all(nullptr),
+  cs(nullptr), sn(nullptr), sfacrl_A(nullptr), sfacim_A(nullptr), sfacrl_A_all(nullptr),
+  sfacim_A_all(nullptr), sfacrl_B(nullptr), sfacim_B(nullptr), sfacrl_B_all(nullptr),
+  sfacim_B_all(nullptr)
 {
   group_allocate_flag = 0;
   kmax_created = 0;
@@ -53,14 +53,14 @@ Ewald::Ewald(LAMMPS *lmp) : KSpace(lmp),
   accuracy_relative = 0.0;
 
   kmax = 0;
-  kxvecs = kyvecs = kzvecs = NULL;
-  ug = NULL;
-  eg = vg = NULL;
-  sfacrl = sfacim = sfacrl_all = sfacim_all = NULL;
+  kxvecs = kyvecs = kzvecs = nullptr;
+  ug = nullptr;
+  eg = vg = nullptr;
+  sfacrl = sfacim = sfacrl_all = sfacim_all = nullptr;
 
   nmax = 0;
-  ek = NULL;
-  cs = sn = NULL;
+  ek = nullptr;
+  cs = sn = nullptr;
 
   kcount = 0;
 }
@@ -121,7 +121,7 @@ void Ewald::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 
@@ -1228,10 +1228,10 @@ void Ewald::slabcorr()
 double Ewald::memory_usage()
 {
   double bytes = 3 * kmax3d * sizeof(int);
-  bytes += (1 + 3 + 6) * kmax3d * sizeof(double);
-  bytes += 4 * kmax3d * sizeof(double);
-  bytes += nmax*3 * sizeof(double);
-  bytes += 2 * (2*kmax+1)*3*nmax * sizeof(double);
+  bytes += (double)(1 + 3 + 6) * kmax3d * sizeof(double);
+  bytes += (double)4 * kmax3d * sizeof(double);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)2 * (2*kmax+1)*3*nmax * sizeof(double);
   return bytes;
 }
 

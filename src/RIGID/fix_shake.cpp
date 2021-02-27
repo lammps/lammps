@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,8 +33,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -47,21 +45,21 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), bond_flag(NULL), angle_flag(NULL),
-  type_flag(NULL), mass_list(NULL), bond_distance(NULL), angle_distance(NULL),
-  loop_respa(NULL), step_respa(NULL), x(NULL), v(NULL), f(NULL), ftmp(NULL),
-  vtmp(NULL), mass(NULL), rmass(NULL), type(NULL), shake_flag(NULL),
-  shake_atom(NULL), shake_type(NULL), xshake(NULL), nshake(NULL),
-  list(NULL), b_count(NULL), b_count_all(NULL), b_ave(NULL), b_max(NULL),
-  b_min(NULL), b_ave_all(NULL), b_max_all(NULL), b_min_all(NULL),
-  a_count(NULL), a_count_all(NULL), a_ave(NULL), a_max(NULL), a_min(NULL),
-  a_ave_all(NULL), a_max_all(NULL), a_min_all(NULL), atommols(NULL),
-  onemols(NULL)
+  Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr),
+  type_flag(nullptr), mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
+  loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
+  vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
+  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr),
+  list(nullptr), b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr),
+  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
+  a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
+  a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr),
+  onemols(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
@@ -70,22 +68,22 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // error check
 
   molecular = atom->molecular;
-  if (molecular == 0)
+  if (molecular == Atom::ATOMIC)
     error->all(FLERR,"Cannot use fix shake with non-molecular system");
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  shake_flag = NULL;
-  shake_atom = NULL;
-  shake_type = NULL;
-  xshake = NULL;
+  shake_flag = nullptr;
+  shake_atom = nullptr;
+  shake_type = nullptr;
+  xshake = nullptr;
 
-  ftmp = NULL;
-  vtmp = NULL;
+  ftmp = nullptr;
+  vtmp = nullptr;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // set comm size needed by this fix
 
@@ -161,7 +159,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  onemols = NULL;
+  onemols = nullptr;
 
   int iarg = next;
   while (iarg < narg) {
@@ -233,39 +231,42 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // initialize list of SHAKE clusters to constrain
 
   maxlist = 0;
-  list = NULL;
+  list = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixShake::~FixShake()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // set bond_type and angle_type back to positive for SHAKE clusters
   // must set for all SHAKE bonds and angles stored by each atom
 
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (shake_flag[i] == 0) continue;
-    else if (shake_flag[i] == 1) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-      angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
-    } else if (shake_flag[i] == 2) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-    } else if (shake_flag[i] == 3) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-    } else if (shake_flag[i] == 4) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+  if (shake_flag)
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i] == 0) continue;
+      else if (shake_flag[i] == 1) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+        angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
+      } else if (shake_flag[i] == 2) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+      } else if (shake_flag[i] == 3) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+      } else if (shake_flag[i] == 4) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+      }
     }
-  }
 
   // delete locally stored arrays
 
@@ -367,7 +368,7 @@ void FixShake::init()
 
   // set equilibrium bond distances
 
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Bond potential must be defined for SHAKE");
   for (i = 1; i <= atom->nbondtypes; i++)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -378,7 +379,7 @@ void FixShake::init()
 
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
-    if (force->angle == NULL)
+    if (force->angle == nullptr)
       error->all(FLERR,"Angle potential must be defined for SHAKE");
 
     // scan all atoms for a SHAKE angle cluster
@@ -568,8 +569,7 @@ void FixShake::post_force(int vflag)
 
   // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // loop over clusters to add constraint forces
 
@@ -615,7 +615,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   //   and if pressure is requested
   // virial accumulation happens via evflag at last iteration of each level
 
-  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_setup(vflag);
+  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_init(vflag);
   if (iloop == loop_respa[ilevel]-1) evflag = 1;
   else evflag = 0;
 
@@ -715,7 +715,7 @@ void FixShake::find_clusters()
   // -----------------------------------------------------
 
   int max = 0;
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][0]);
   } else {
     for (i = 0; i < nlocal; i++) {
@@ -749,7 +749,7 @@ void FixShake::find_clusters()
   // set npartner and partner_tag from special arrays
   // -----------------------------------------------------
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     for (i = 0; i < nlocal; i++) {
       npartner[i] = nspecial[i][0];
       for (j = 0; j < npartner[i]; j++)
@@ -2536,16 +2536,16 @@ void FixShake::stats()
     auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n",
                             update->ntimestep);
     for (i = 1; i < nb; i++) {
-      const auto bcnt = b_count_all[i];
+      const auto bcnt = b_count_all[i]/2;
       if (bcnt)
         mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
-                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+                            b_ave_all[i]/bcnt/2.0,b_max_all[i]-b_min_all[i],bcnt);
     }
     for (i = 1; i < na; i++) {
-      const auto acnt = a_count_all[i];
+      const auto acnt = a_count_all[i]/3;
       if (acnt)
         mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
-                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt);
+                            a_ave_all[i]/acnt/3.0,a_max_all[i]-a_min_all[i],acnt);
     }
     utils::logmesg(lmp,mesg);
   }
@@ -2568,7 +2568,7 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
   int m,nbonds;
   int *btype;
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     tagint *tag = atom->tag;
     tagint **bond_atom = atom->bond_atom;
     nbonds = atom->num_bond[i];
@@ -2595,10 +2595,10 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
 
   if (m < nbonds) {
     if (setflag == 0) {
-      if (molecular == 1) return atom->bond_type[i][m];
+      if (molecular == Atom::MOLECULAR) return atom->bond_type[i][m];
       else return btype[m];
     }
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       if ((setflag < 0 && atom->bond_type[i][m] > 0) ||
           (setflag > 0 && atom->bond_type[i][m] < 0))
         atom->bond_type[i][m] = -atom->bond_type[i][m];
@@ -2624,7 +2624,7 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
   int m,nangles;
   int *atype;
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     tagint **angle_atom1 = atom->angle_atom1;
     tagint **angle_atom3 = atom->angle_atom3;
     nangles = atom->num_angle[i];
@@ -2652,10 +2652,10 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 
   if (m < nangles) {
     if (setflag == 0) {
-      if (molecular == 1) return atom->angle_type[i][m];
+      if (molecular == Atom::MOLECULAR) return atom->angle_type[i][m];
       else return atype[m];
     }
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       if ((setflag < 0 && atom->angle_type[i][m] > 0) ||
           (setflag > 0 && atom->angle_type[i][m] < 0))
         atom->angle_type[i][m] = -atom->angle_type[i][m];
@@ -2675,11 +2675,11 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 double FixShake::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax*4 * sizeof(int);
-  bytes += nmax*3 * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax*4 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
   return bytes;
 }
 
@@ -2976,7 +2976,7 @@ void *FixShake::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"onemol") == 0) return onemols;
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------

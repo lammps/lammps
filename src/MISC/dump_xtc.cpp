@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
                          open-source XDR routines from
-                           Frans van Hoesel (http://md.chem.rug.nl/hoesel)
+                           Frans van Hoesel (https://www.rug.nl/staff/f.h.j.van.hoesel/)
                            are included in this file
                          Axel Kohlmeyer (Temple U)
                            port to platforms without XDR support
@@ -53,7 +53,7 @@ int xdr3dfcoord(XDR *, float *, int *, float *);
 /* ---------------------------------------------------------------------- */
 
 DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
-  coords(NULL)
+  coords(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump xtc command");
   if (binary || compressed || multifile || multiproc)
@@ -62,7 +62,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   size_one = 3;
   sort_flag = 1;
   sortcol = 0;
-  format_default = NULL;
+  format_default = nullptr;
   flush_flag = 0;
   unwrap_flag = 0;
   precision = 1000.0;
@@ -137,9 +137,9 @@ void DumpXTC::init_style()
 void DumpXTC::openfile()
 {
   // XTC maintains it's own XDR file ptr
-  // set fp to NULL so parent dump class will not use it
+  // set fp to a null pointer so parent dump class will not use it
 
-  fp = NULL;
+  fp = nullptr;
   if (me == 0)
     if (xdropen(&xd,filename,"w") == 0) error->one(FLERR,"Cannot open dump file");
 }
@@ -310,9 +310,9 @@ int DumpXTC::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-bigint DumpXTC::memory_usage()
+double DumpXTC::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(coords,natoms*3);
   return bytes;
 }
@@ -364,8 +364,8 @@ void DumpXTC::write_frame()
 static FILE *xdrfiles[MAXID];
 static XDR *xdridptr[MAXID];
 static char xdrmodes[MAXID];
-static int *ip = NULL;
-static int *buf = NULL;
+static int *ip = nullptr;
+static int *buf = nullptr;
 
 /*___________________________________________________________________________
  |
@@ -414,12 +414,12 @@ int xdropen(XDR *xdrs, const char *filename, const char *type)
 
   if (init_done == 0) {
     for (xdrid = 1; xdrid < MAXID; xdrid++) {
-      xdridptr[xdrid] = NULL;
+      xdridptr[xdrid] = nullptr;
     }
     init_done = 1;
   }
   xdrid = 1;
-  while (xdrid < MAXID && xdridptr[xdrid] != NULL) {
+  while (xdrid < MAXID && xdridptr[xdrid] != nullptr) {
     xdrid++;
   }
   if (xdrid == MAXID) {
@@ -433,8 +433,8 @@ int xdropen(XDR *xdrs, const char *filename, const char *type)
     lmode = XDR_DECODE;
   }
   xdrfiles[xdrid] = fopen(filename, type);
-  if (xdrfiles[xdrid] == NULL) {
-    xdrs = NULL;
+  if (xdrfiles[xdrid] == nullptr) {
+    xdrs = nullptr;
     return 0;
   }
   xdrmodes[xdrid] = *type;
@@ -444,7 +444,7 @@ int xdropen(XDR *xdrs, const char *filename, const char *type)
    * (C users are expected to pass the address of an already allocated
    * XDR staructure)
    */
-  if (xdrs == NULL) {
+  if (xdrs == nullptr) {
     xdridptr[xdrid] = (XDR *) malloc(sizeof(XDR));
     xdrstdio_create(xdridptr[xdrid], xdrfiles[xdrid], lmode);
   } else {
@@ -468,7 +468,7 @@ int xdrclose(XDR *xdrs)
 {
   int xdrid;
 
-  if (xdrs == NULL) {
+  if (xdrs == nullptr) {
     fprintf(stderr, "xdrclose: passed a NULL pointer\n");
     exit(1);
   }
@@ -477,7 +477,7 @@ int xdrclose(XDR *xdrs)
 
       xdr_destroy(xdrs);
       fclose(xdrfiles[xdrid]);
-      xdridptr[xdrid] = NULL;
+      xdridptr[xdrid] = nullptr;
       return 1;
     }
   }
@@ -495,8 +495,8 @@ void xdrfreebuf()
 {
   if (ip) free(ip);
   if (buf) free(buf);
-  ip = NULL;
-  buf = NULL;
+  ip = nullptr;
+  buf = nullptr;
 }
 
 
@@ -809,34 +809,34 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     /* when the number of coordinates is small, don't try to compress; just
      * write them as floats using xdr_vector
      */
-    if (*size <= 9 ) {
+    if (*size <= 9) {
       return (xdr_vector(xdrs, (char *) fp, size3, sizeof(*fp),
                          (xdrproc_t)xdr_float));
     }
 
     xdr_float(xdrs, precision);
-    if (ip == NULL) {
+    if (ip == nullptr) {
       ip = (int *) malloc(size3 * sizeof(*ip));
-      if (ip == NULL) {
+      if (ip == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       bufsize = (int) (size3 * 1.2);
       buf = (int *) malloc(bufsize * sizeof(*buf));
-      if (buf == NULL) {
+      if (buf == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       oldsize = *size;
     } else if (*size > oldsize) {
       ip = (int *) realloc(ip, size3 * sizeof(*ip));
-      if (ip == NULL) {
+      if (ip == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       bufsize = (int) (size3 * 1.2);
       buf = (int *) realloc(buf, bufsize * sizeof(*buf));
-      if (buf == NULL) {
+      if (buf == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
@@ -851,7 +851,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     lip = ip;
     mindiff = INT_MAX;
     oldlint1 = oldlint2 = oldlint3 = 0;
-    while(lfp < fp + size3 ) {
+    while (lfp < fp + size3) {
       /* find nearest integer */
       if (*lfp >= 0.0)
         lf = *lfp * *precision + 0.5;
@@ -1059,28 +1059,28 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
                          (xdrproc_t)xdr_float));
     }
     xdr_float(xdrs, precision);
-    if (ip == NULL) {
+    if (ip == nullptr) {
       ip = (int *) malloc(size3 * sizeof(*ip));
-      if (ip == NULL) {
+      if (ip == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       bufsize = (int) (size3 * 1.2);
       buf = (int *) malloc(bufsize * sizeof(*buf));
-      if (buf == NULL) {
+      if (buf == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       oldsize = *size;
     } else if (*size > oldsize) {
       ip = (int *)realloc(ip, size3 * sizeof(*ip));
-      if (ip == NULL) {
+      if (ip == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       bufsize = (int) (size3 * 1.2);
       buf = (int *)realloc(buf, bufsize * sizeof(*buf));
-      if (buf == NULL) {
+      if (buf == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
@@ -1131,7 +1131,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     run = 0;
     i = 0;
     lip = ip;
-    while ( i < lsize ) {
+    while (i < lsize) {
       thiscoord = (int *)(lip) + i * 3;
 
       if (bitsize == 0) {

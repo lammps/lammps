@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,7 +37,7 @@ using namespace FixConst;
 
 FixViscosity::FixViscosity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pos_index(NULL), neg_index(NULL), pos_delta(NULL), neg_delta(NULL)
+  pos_index(nullptr), neg_index(nullptr), pos_delta(nullptr), neg_delta(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix viscosity command");
 

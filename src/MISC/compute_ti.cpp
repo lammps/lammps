@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,8 +36,8 @@ enum{PAIR,TAIL,KSPACE};
 /* ---------------------------------------------------------------------- */
 
 ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), nterms(0), which(NULL), ivar1(NULL), ivar2(NULL),
-  ilo(NULL), ihi(NULL), var1(NULL), var2(NULL), pptr(NULL), pstyle(NULL)
+  Compute(lmp, narg, arg), nterms(0), which(nullptr), ivar1(nullptr), ivar2(nullptr),
+  ilo(nullptr), ihi(nullptr), var1(nullptr), var2(nullptr), pptr(nullptr), pstyle(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute ti command");
 
@@ -64,7 +64,7 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
   pptr = new Pair*[nterms];
   pstyle = new char*[nterms];
 
-  for (int m = 0; m < nterms; m++) pstyle[m] = NULL;
+  for (int m = 0; m < nterms; m++) pstyle[m] = nullptr;
 
   // parse keywords
 
@@ -136,16 +136,16 @@ void ComputeTI::init()
 
     if (which[m] == PAIR) {
       pptr[m] = force->pair_match(pstyle[m],1);
-      if (pptr[m] == NULL)
+      if (pptr[m] == nullptr)
         error->all(FLERR,"Compute ti pair style does not exist");
 
     } else if (which[m] == TAIL) {
-      if (force->pair == NULL || force->pair->tail_flag == 0)
+      if (force->pair == nullptr || force->pair->tail_flag == 0)
         error->all(FLERR,"Compute ti tail when pair style does not "
                    "compute tail corrections");
 
     } else if (which[m] == KSPACE) {
-      if (force->kspace == NULL)
+      if (force->kspace == nullptr)
         error->all(FLERR,"Compute ti kspace style does not exist");
     }
   }
@@ -216,7 +216,7 @@ double ComputeTI::compute_scalar()
         eng = force->kspace->energy;
       else {
         double *eatom = force->kspace->eatom;
-        for(int i = 0; i < nlocal; i++)
+        for (int i = 0; i < nlocal; i++)
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i]))
             eng += eatom[i];
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);

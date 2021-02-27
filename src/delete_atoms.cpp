@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -116,7 +116,7 @@ void DeleteAtoms::command(int narg, char **arg)
   // set all atom IDs to 0, call tag_extend()
 
   if (compress_flag) {
-    if (atom->molecular == 0) {
+    if (atom->molecular == Atom::ATOMIC) {
       tagint *tag = atom->tag;
       int nlocal = atom->nlocal;
       for (int i = 0; i < nlocal; i++) tag[i] = 0;
@@ -159,7 +159,7 @@ void DeleteAtoms::command(int narg, char **arg)
   // reset atom->map if it exists
   // set nghost to 0 so old ghosts of deleted atoms won't be mapped
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();
@@ -299,7 +299,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   // error check on cutoff
   // if no pair style, neighbor list will be empty
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Delete_atoms requires a pair style be defined");
   if (cut > neighbor->cutneighmax)
     error->all(FLERR,"Delete_atoms cutoff > max neighbor cutoff");
@@ -476,7 +476,7 @@ void DeleteAtoms::delete_bond()
   for (int i = 0; i < nlocal; i++)
     if (dlist[i]) list[n++] = tag[i];
 
-  comm->ring(n,sizeof(tagint),list,1,bondring,NULL,(void *)this);
+  comm->ring(n,sizeof(tagint),list,1,bondring,nullptr,(void *)this);
 
   delete hash;
   memory->destroy(list);
@@ -514,7 +514,7 @@ void DeleteAtoms::delete_molecule()
   std::map<tagint,int>::iterator pos;
   for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
 
-  comm->ring(n,sizeof(tagint),list,1,molring,NULL,(void *)this);
+  comm->ring(n,sizeof(tagint),list,1,molring,nullptr,(void *)this);
 
   delete hash;
   memory->destroy(list);
@@ -522,7 +522,7 @@ void DeleteAtoms::delete_molecule()
 
 /* ----------------------------------------------------------------------
    update bond,angle,etc counts
-   different for atom->molecular = 1 or 2
+   different for atom->molecular = Atom::MOLECULAR or Atom::TEMPLATE
 ------------------------------------------------------------------------- */
 
 void DeleteAtoms::recount_topology()
@@ -532,7 +532,7 @@ void DeleteAtoms::recount_topology()
   bigint ndihedrals = 0;
   bigint nimpropers = 0;
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     int *num_bond = atom->num_bond;
     int *num_angle = atom->num_angle;
     int *num_dihedral = atom->num_dihedral;
@@ -546,7 +546,7 @@ void DeleteAtoms::recount_topology()
       if (num_improper) nimpropers += num_improper[i];
     }
 
-  } else if (atom->molecular == 2) {
+  } else if (atom->molecular == Atom::TEMPLATE) {
     Molecule **onemols = atom->avec->onemols;
     int *molindex = atom->molindex;
     int *molatom = atom->molatom;
@@ -557,6 +557,7 @@ void DeleteAtoms::recount_topology()
     for (int i = 0; i < nlocal; i++) {
       imol = molindex[i];
       iatom = molatom[i];
+      if (imol < 0) continue;
       nbonds += onemols[imol]->num_bond[iatom];
       nangles += onemols[imol]->num_angle[iatom];
       ndihedrals += onemols[imol]->num_dihedral[iatom];
@@ -742,10 +743,10 @@ void DeleteAtoms::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
-      if (atom->molecular == 0)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"Cannot delete_atoms bond yes for "
                    "non-molecular systems");
-      if (atom->molecular == 2)
+      if (atom->molecular == Atom::TEMPLATE)
         error->all(FLERR,"Cannot use delete_atoms bond yes with "
                    "atom_style template");
       if (strcmp(arg[iarg+1],"yes") == 0) bond_flag = 1;

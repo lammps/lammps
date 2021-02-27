@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,16 +53,16 @@ enum {INVALID=0,NONE=1,VERTEXI=2,VERTEXJ=3,EDGE=4};
 PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) : Pair(lmp)
 {
   dmax = nmax = 0;
-  discrete = NULL;
-  dnum = dfirst = NULL;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
 
   edmax = ednummax = 0;
-  edge = NULL;
-  ednum = edfirst = NULL;
+  edge = nullptr;
+  ednum = edfirst = nullptr;
 
-  enclosing_radius = NULL;
-  rounded_radius = NULL;
-  maxerad = NULL;
+  enclosing_radius = nullptr;
+  rounded_radius = nullptr;
+  maxerad = nullptr;
 
   single_enable = 0;
   restartinfo = 0;
@@ -458,7 +458,7 @@ void PairBodyRoundedPolygon::init_style()
   for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = 0;
 
-  double *merad = NULL;
+  double *merad = nullptr;
   memory->create(merad,ntypes+1,"pair:merad");
   for (i = 1; i <= ntypes; i++)
     maxerad[i] = merad[i] = 0;
@@ -568,6 +568,10 @@ void PairBodyRoundedPolygon::body2space(int i)
     edmax += DELTA;
     memory->grow(edge,edmax,5,"pair:edge");
   }
+
+  if ((body_num_edges > 0) && (edge_ends == nullptr))
+    error->one(FLERR,fmt::format("Inconsistent edge data for body of atom {}",
+                                 atom->tag[i]));
 
   for (int m = 0; m < body_num_edges; m++) {
     edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);

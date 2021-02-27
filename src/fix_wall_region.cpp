@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +34,7 @@ enum{LJ93,LJ126,LJ1043,COLLOID,HARMONIC,MORSE};
 
 FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL)
+  idregion(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix wall/region command");
 
@@ -44,9 +44,10 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
 
   // parse args
 
@@ -104,7 +105,6 @@ int FixWallRegion::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -234,11 +234,9 @@ void FixWallRegion::post_force(int vflag)
 
   int onflag = 0;
 
-  // energy and virial setup
+  // virial setup
 
-  eflag = 0;
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // region->match() insures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error

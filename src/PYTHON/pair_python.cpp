@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,10 +41,10 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   one_coeff = 1;
   reinitflag = 0;
   cut_global = 0.0;
-  centroidstressflag = 1;
+  centroidstressflag = CENTROID_SAME;
 
-  py_potential = NULL;
-  skip_types = NULL;
+  py_potential = nullptr;
+  skip_types = nullptr;
 
   python->init();
 
@@ -54,7 +54,7 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
 
   // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
   const char * potentials_path = getenv("LAMMPS_POTENTIALS");
-  if (potentials_path != NULL) {
+  if (potentials_path != nullptr) {
     PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
   }
 }
@@ -259,7 +259,7 @@ void PairPython::coeff(int narg, char **arg)
   char * full_cls_name = arg[2];
   char * lastpos = strrchr(full_cls_name, '.');
 
-  if (lastpos == NULL) {
+  if (lastpos == nullptr) {
     error->all(FLERR,"Python pair style requires fully qualified class name");
   }
 
@@ -297,7 +297,7 @@ void PairPython::coeff(int narg, char **arg)
   delete [] module_name;
   delete [] cls_name;
 
-  PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, NULL);
+  PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, nullptr);
   if (!py_pair_instance) {
     PyErr_Print();
     PyErr_Clear();

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,6 +18,7 @@
 #include "thermo.h"
 
 #include "angle.h"
+#include "arg_info.h"
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
@@ -54,13 +55,14 @@ using namespace MathConst;
 
 // step, elapsed, elaplong, dt, time, cpu, tpcpu, spcpu, cpuremain,
 // part, timeremain
-// atoms, temp, press, pe, ke, etotal, enthalpy
+// atoms, temp, press, pe, ke, etotal
 // evdwl, ecoul, epair, ebond, eangle, edihed, eimp, emol, elong, etail
-// vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz,
+// enthalpy, ecouple, econserve
+// vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi, xy, xz, yz
 // xlat, ylat, zlat
-// bonds, angles, dihedrals, impropers,
+// bonds, angles, dihedrals, impropers
 // pxx, pyy, pzz, pxy, pxz, pyz
-// fmax, fnorm, nbuild, ndanger,
+// fmax, fnorm, nbuild, ndanger
 // cella, cellb, cellc, cellalpha, cellbeta, cellgamma
 
 // customize a new thermo style by adding a DEFINE to this list
@@ -73,9 +75,6 @@ enum{ONELINE,MULTILINE};
 enum{INT,FLOAT,BIGINT};
 enum{SCALAR,VECTOR,ARRAY};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
 
 #define DELTA 8
 
@@ -147,9 +146,9 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // ptrs, flags, IDs for compute objects thermo may use or create
 
-  temperature = NULL;
-  pressure = NULL;
-  pe = NULL;
+  temperature = nullptr;
+  pressure = nullptr;
+  pe = nullptr;
 
   index_temp = index_press_scalar = index_press_vector = index_pe = -1;
 
@@ -179,10 +178,10 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   sprintf(format_bigint_one_def,"%%8%s",&bigint_format[1]);
   sprintf(format_bigint_multi_def,"%%14%s",&bigint_format[1]);
 
-  format_line_user = NULL;
-  format_float_user = NULL;
-  format_int_user = NULL;
-  format_bigint_user = NULL;
+  format_line_user = nullptr;
+  format_float_user = nullptr;
+  format_int_user = nullptr;
+  format_bigint_user = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -339,19 +338,19 @@ void Thermo::compute(int flag)
 
   for (i = 0; i < ncompute; i++)
     if (compute_which[i] == SCALAR) {
-      if (!(computes[i]->invoked_flag & INVOKED_SCALAR)) {
+      if (!(computes[i]->invoked_flag & Compute::INVOKED_SCALAR)) {
         computes[i]->compute_scalar();
-        computes[i]->invoked_flag |= INVOKED_SCALAR;
+        computes[i]->invoked_flag |= Compute::INVOKED_SCALAR;
       }
     } else if (compute_which[i] == VECTOR) {
-      if (!(computes[i]->invoked_flag & INVOKED_VECTOR)) {
+      if (!(computes[i]->invoked_flag & Compute::INVOKED_VECTOR)) {
         computes[i]->compute_vector();
-        computes[i]->invoked_flag |= INVOKED_VECTOR;
+        computes[i]->invoked_flag |= Compute::INVOKED_VECTOR;
       }
     } else if (compute_which[i] == ARRAY) {
-      if (!(computes[i]->invoked_flag & INVOKED_ARRAY)) {
+      if (!(computes[i]->invoked_flag & Compute::INVOKED_ARRAY)) {
         computes[i]->compute_array();
-        computes[i]->invoked_flag |= INVOKED_ARRAY;
+        computes[i]->invoked_flag |= Compute::INVOKED_ARRAY;
       }
     }
 
@@ -381,6 +380,7 @@ void Thermo::compute(int flag)
 
   if (me == 0) {
     utils::logmesg(lmp,line);
+    if (screen && flushflag) fflush(screen);
     if (logfile && flushflag) fflush(logfile);
   }
 
@@ -563,13 +563,13 @@ void Thermo::modify_params(int narg, char **arg)
         delete [] format_int_user;
         delete [] format_bigint_user;
         delete [] format_float_user;
-        format_line_user = NULL;
-        format_int_user = NULL;
-        format_bigint_user = NULL;
-        format_float_user = NULL;
+        format_line_user = nullptr;
+        format_int_user = nullptr;
+        format_bigint_user = nullptr;
+        format_float_user = nullptr;
         for (int i = 0; i < nfield_initial+1; i++) {
           delete [] format_column_user[i];
-          format_column_user[i] = NULL;
+          format_column_user[i] = nullptr;
         }
         iarg += 2;
         continue;
@@ -593,7 +593,7 @@ void Thermo::modify_params(int narg, char **arg)
         // replace "d" in format_int_user with bigint format specifier
         // use of &str[1] removes leading '%' from BIGINT_FORMAT string
         char *ptr = strchr(format_int_user,'d');
-        if (ptr == NULL)
+        if (ptr == nullptr)
           error->all(FLERR,
                      "Thermo_modify int format does not contain d character");
         char str[8];
@@ -632,14 +632,14 @@ void Thermo::allocate()
   int n = nfield_initial + 1;
 
   keyword = new char*[n];
-  for (int i = 0; i < n; i++) keyword[i] = NULL;
+  for (int i = 0; i < n; i++) keyword[i] = nullptr;
   vfunc = new FnPtr[n];
   vtype = new int[n];
 
   format = new char*[n];
   for (int i = 0; i < n; i++) format[i] = new char[32];
   format_column_user = new char*[n];
-  for (int i = 0; i < n; i++) format_column_user[i] = NULL;
+  for (int i = 0; i < n; i++) format_column_user[i] = nullptr;
 
   field2index = new int[n];
   argindex1 = new int[n];
@@ -753,11 +753,6 @@ void Thermo::parse_fields(char *str)
       addfield("TotEng",&Thermo::compute_etotal,FLOAT);
       index_temp = add_compute(id_temp,SCALAR);
       index_pe = add_compute(id_pe,SCALAR);
-    } else if (word == "enthalpy") {
-      addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
-      index_temp = add_compute(id_temp,SCALAR);
-      index_press_scalar = add_compute(id_press,SCALAR);
-      index_pe = add_compute(id_pe,SCALAR);
 
     } else if (word == "evdwl") {
       addfield("E_vdwl",&Thermo::compute_evdwl,FLOAT);
@@ -788,6 +783,19 @@ void Thermo::parse_fields(char *str)
       index_pe = add_compute(id_pe,SCALAR);
     } else if (word == "etail") {
       addfield("E_tail",&Thermo::compute_etail,FLOAT);
+      index_pe = add_compute(id_pe,SCALAR);
+
+    } else if (word == "enthalpy") {
+      addfield("Enthalpy",&Thermo::compute_enthalpy,FLOAT);
+      index_temp = add_compute(id_temp,SCALAR);
+      index_press_scalar = add_compute(id_press,SCALAR);
+      index_pe = add_compute(id_pe,SCALAR);
+    } else if (word == "ecouple") {
+      addfield("Ecouple",&Thermo::compute_ecouple,FLOAT);
+      index_pe = add_compute(id_pe,SCALAR);
+    } else if (word == "econserve") {
+      addfield("Econserve",&Thermo::compute_econserve,FLOAT);
+      index_temp = add_compute(id_temp,SCALAR);
       index_pe = add_compute(id_pe,SCALAR);
 
     } else if (word == "vol") {
@@ -879,35 +887,25 @@ void Thermo::parse_fields(char *str)
     } else if (word == "cellgamma") {
       addfield("CellGamma",&Thermo::compute_cellgamma,FLOAT);
 
-    // compute value = c_ID, fix value = f_ID, variable value = v_ID
-    // count trailing [] and store int arguments
+      // compute value = c_ID, fix value = f_ID, variable value = v_ID
+      // count trailing [] and store int arguments
 
-    } else if ((word.substr(0, 2) == "c_") || (word.substr(0, 2) == "f_") ||
-               (word.substr(0, 2) == "v_")) {
+    } else {
+      ArgInfo argi(word);
 
-      int n =  word.length() - 1;
-      char *id = new char[n];
-      strcpy(id, &word.c_str()[2]);
+      if ((argi.get_type() == ArgInfo::UNKNOWN)
+          || (argi.get_type() == ArgInfo::NONE)
+          || (argi.get_dim() > 2))
+        error->all(FLERR,"Unknown keyword in thermo_style custom command");
 
-      // parse zero or one or two trailing brackets from ID
+      // process zero or one or two trailing brackets
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket
 
-      char *ptr = strchr(id,'[');
-      if (ptr == NULL) argindex1[nfield] = argindex2[nfield] = 0;
-      else {
-        *ptr = '\0';
-        argindex1[nfield] =
-          (int) input->variable->int_between_brackets(ptr,0);
-        ptr++;
-        if (*ptr == '[') {
-          argindex2[nfield] =
-            (int) input->variable->int_between_brackets(ptr,0);
-          ptr++;
-        } else argindex2[nfield] = 0;
-      }
+      argindex1[nfield] = argi.get_index1();
+      argindex2[nfield] = (argi.get_dim() > 1) ? argi.get_index2() : 0;
 
-      if (word[0] == 'c') {
-        n = modify->find_compute(id);
+      if (argi.get_type() == ArgInfo::COMPUTE) {
+        int n = modify->find_compute(argi.get_name());
         if (n < 0) error->all(FLERR,"Could not find thermo custom compute ID");
         if (argindex1[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
           error->all(FLERR,"Thermo compute does not compute scalar");
@@ -929,15 +927,15 @@ void Thermo::parse_fields(char *str)
         }
 
         if (argindex1[nfield] == 0)
-          field2index[nfield] = add_compute(id, SCALAR);
+          field2index[nfield] = add_compute(argi.get_name(), SCALAR);
         else if (argindex2[nfield] == 0)
-          field2index[nfield] = add_compute(id, VECTOR);
+          field2index[nfield] = add_compute(argi.get_name(), VECTOR);
         else
-          field2index[nfield] = add_compute(id, ARRAY);
+          field2index[nfield] = add_compute(argi.get_name(), ARRAY);
         addfield(word.c_str(), &Thermo::compute_compute, FLOAT);
 
-      } else if (word[0] == 'f') {
-        n = modify->find_fix(id);
+      } else if (argi.get_type() == ArgInfo::FIX) {
+        int n = modify->find_fix(argi.get_name());
         if (n < 0) error->all(FLERR,"Could not find thermo custom fix ID");
         if (argindex1[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
           error->all(FLERR,"Thermo fix does not compute scalar");
@@ -958,11 +956,11 @@ void Thermo::parse_fields(char *str)
             error->all(FLERR,"Thermo fix array is accessed out-of-range");
         }
 
-        field2index[nfield] = add_fix(id);
+        field2index[nfield] = add_fix(argi.get_name());
         addfield(word.c_str(), &Thermo::compute_fix, FLOAT);
 
-      } else if (word[0] == 'v') {
-        n = input->variable->find(id);
+      } else if (argi.get_type() == ArgInfo::VARIABLE) {
+        int n = input->variable->find(argi.get_name());
         if (n < 0)
           error->all(FLERR,"Could not find thermo custom variable name");
         if (argindex1[nfield] == 0 && input->variable->equalstyle(n) == 0)
@@ -974,14 +972,10 @@ void Thermo::parse_fields(char *str)
         if (argindex2[nfield])
           error->all(FLERR,"Thermo custom variable cannot have two indices");
 
-        field2index[nfield] = add_variable(id);
+        field2index[nfield] = add_variable(argi.get_name());
         addfield(word.c_str(), &Thermo::compute_variable, FLOAT);
       }
-
-      delete [] id;
-
-    } else error->all(FLERR,"Unknown keyword in thermo_style custom command");
-
+    }
   }
 }
 
@@ -1161,9 +1155,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (temperature->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
       temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_temp();
 
@@ -1175,9 +1169,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
       pressure->compute_scalar();
-      pressure->invoked_flag |= INVOKED_SCALAR;
+      pressure->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_press();
 
@@ -1191,7 +1185,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
                    "is not current");
     } else {
       pe->compute_scalar();
-      pe->invoked_flag |= INVOKED_SCALAR;
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_pe();
 
@@ -1203,9 +1197,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (temperature->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
       temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_ke();
 
@@ -1219,7 +1213,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
                    "is not current");
     } else {
       pe->compute_scalar();
-      pe->invoked_flag |= INVOKED_SCALAR;
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
@@ -1228,11 +1222,97 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (temperature->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
       temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_etotal();
+
+  } else if (strcmp(word,"evdwl") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_evdwl();
+
+  } else if (strcmp(word,"ecoul") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_ecoul();
+
+  } else if (strcmp(word,"epair") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_epair();
+
+  } else if (strcmp(word,"ebond") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_ebond();
+
+  } else if (strcmp(word,"eangle") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_eangle();
+
+  } else if (strcmp(word,"edihed") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_edihed();
+
+  } else if (strcmp(word,"eimp") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_eimp();
+
+  } else if (strcmp(word,"emol") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_emol();
+
+  } else if (strcmp(word,"elong") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    if (!pe)
+      error->all(FLERR,
+                 "Thermo keyword in variable requires thermo to use/init pe");
+    pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    compute_elong();
+
+  } else if (strcmp(word,"etail") == 0) {
+    if (update->eflag_global != update->ntimestep)
+      error->all(FLERR,"Energy was not tallied on needed timestep");
+    compute_etail();
 
   } else if (strcmp(word,"enthalpy") == 0) {
     if (!pe)
@@ -1244,7 +1324,7 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
                    "is not current");
     } else {
       pe->compute_scalar();
-      pe->invoked_flag |= INVOKED_SCALAR;
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     if (!temperature)
       error->all(FLERR,"Thermo keyword in variable requires "
@@ -1253,9 +1333,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (temperature->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(temperature->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
       temperature->compute_scalar();
-      temperature->invoked_flag |= INVOKED_SCALAR;
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     if (!pressure)
       error->all(FLERR,"Thermo keyword in variable requires "
@@ -1264,97 +1344,38 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_scalar != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_SCALAR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
       pressure->compute_scalar();
-      pressure->invoked_flag |= INVOKED_SCALAR;
+      pressure->invoked_flag |= Compute::INVOKED_SCALAR;
     }
     compute_enthalpy();
 
-  } else if (strcmp(word,"evdwl") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
+  } else if (strcmp(word,"ecouple") == 0) compute_ecouple();
+
+  else if (strcmp(word,"econserve") == 0) {
     if (!pe)
       error->all(FLERR,
                  "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_evdwl();
-
-  } else if (strcmp(word,"ecoul") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_ecoul();
-
-  } else if (strcmp(word,"epair") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_epair();
-
-  } else if (strcmp(word,"ebond") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_ebond();
-
-  } else if (strcmp(word,"eangle") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_eangle();
-
-  } else if (strcmp(word,"edihed") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_edihed();
-
-  } else if (strcmp(word,"eimp") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_eimp();
-
-  } else if (strcmp(word,"emol") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_emol();
-
-  } else if (strcmp(word,"elong") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    if (!pe)
-      error->all(FLERR,
-                 "Thermo keyword in variable requires thermo to use/init pe");
-    pe->invoked_flag |= INVOKED_SCALAR;
-    compute_elong();
-
-  } else if (strcmp(word,"etail") == 0) {
-    if (update->eflag_global != update->ntimestep)
-      error->all(FLERR,"Energy was not tallied on needed timestep");
-    compute_etail();
+    if (update->whichflag == 0) {
+      if (pe->invoked_scalar != update->ntimestep)
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
+    } else {
+      pe->compute_scalar();
+      pe->invoked_flag |= Compute::INVOKED_SCALAR;
+    }
+    if (!temperature)
+      error->all(FLERR,"Thermo keyword in variable requires "
+                 "thermo to use/init temp");
+    if (update->whichflag == 0) {
+      if (temperature->invoked_scalar != update->ntimestep)
+        error->all(FLERR,"Compute used in variable thermo keyword between runs "
+                   "is not current");
+    } else if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
+      temperature->compute_scalar();
+      temperature->invoked_flag |= Compute::INVOKED_SCALAR;
+    }
+    compute_econserve();
 
   } else if (strcmp(word,"vol") == 0) compute_vol();
   else if (strcmp(word,"density") == 0) compute_density();
@@ -1385,9 +1406,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pxx();
 
@@ -1399,9 +1420,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pyy();
 
@@ -1413,9 +1434,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pzz();
 
@@ -1427,9 +1448,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pxy();
 
@@ -1441,9 +1462,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pxz();
 
@@ -1455,9 +1476,9 @@ int Thermo::evaluate_keyword(const char *word, double *answer)
       if (pressure->invoked_vector != update->ntimestep)
         error->all(FLERR,"Compute used in variable thermo keyword between runs "
                    "is not current");
-    } else if (!(pressure->invoked_flag & INVOKED_VECTOR)) {
+    } else if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
       pressure->compute_vector();
-      pressure->invoked_flag |= INVOKED_VECTOR;
+      pressure->invoked_flag |= Compute::INVOKED_VECTOR;
     }
     compute_pyz();
   }
@@ -1721,27 +1742,26 @@ void Thermo::compute_ke()
 void Thermo::compute_etotal()
 {
   compute_pe();
-  double ke = temperature->scalar;
-  ke *= 0.5 * temperature->dof * force->boltz;
-  if (normflag) ke /= natoms;
-  dvalue += ke;
+  double dvalue_pe = dvalue;
+  compute_ke();
+  dvalue += dvalue_pe;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void Thermo::compute_enthalpy()
+void Thermo::compute_ecouple()
+{
+  dvalue = modify->energy_couple();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_econserve()
 {
   compute_etotal();
-  double etmp = dvalue;
-
-  compute_vol();
-  double vtmp = dvalue;
-  if (normflag) vtmp /= natoms;
-
-  compute_press();
-  double ptmp = dvalue;
-
-  dvalue = etmp + ptmp*vtmp/(force->nktv2p);
+  double dvalue_etotal = dvalue;
+  compute_ecouple();
+  dvalue += dvalue_etotal;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1866,6 +1886,24 @@ void Thermo::compute_etail()
     if (normflag) dvalue /= natoms;
   } else dvalue = 0.0;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void Thermo::compute_enthalpy()
+{
+  compute_etotal();
+  double etmp = dvalue;
+
+  compute_vol();
+  double vtmp = dvalue;
+  if (normflag) vtmp /= natoms;
+
+  compute_press();
+  double ptmp = dvalue;
+
+  dvalue = etmp + ptmp*vtmp/(force->nktv2p);
+}
+
 
 /* ---------------------------------------------------------------------- */
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -156,7 +156,7 @@ void *PairSpinNeel::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut") == 0) return (void *) &cut_spin_neel_global;
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,31 +246,33 @@ void PairSpinNeel::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_neel(i,j,rsq,eij,fmi,spi,spj);
-        if (lattice_flag) {
+        if (lattice_flag)
           compute_neel_mech(i,j,rsq,eij,fi,spi,spj);
+
+        f[i][0] += fi[0];
+        f[i][1] += fi[1];
+        f[i][2] += fi[2];
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
         }
+        fm[i][0] += fmi[0];
+        fm[i][1] += fmi[1];
+        fm[i][2] += fmi[2];
+
+        if (eflag) {
+          evdwl -= compute_neel_energy(i,j,rsq,eij,spi,spj);
+          emag[i] += evdwl;
+        } else evdwl = 0.0;
+
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+            evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
       }
-
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
-      f[i][2] += fi[2];
-      fm[i][0] += fmi[0];
-      fm[i][1] += fmi[1];
-      fm[i][2] += fmi[2];
-
-      if (eflag) {
-        evdwl = compute_neel_energy(i,j,rsq,eij,spi,spj);
-        evdwl *= 0.5*hbar;
-        emag[i] += evdwl;
-      } else evdwl = 0.0;
-
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
     }
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -563,9 +565,9 @@ void PairSpinNeel::compute_neel_mech(int i, int j, double rsq, double eij[3], do
 
   // adding three contributions
 
-  fi[0] = pdx + pq1x + pq2x;
-  fi[1] = pdy + pq1y + pq2y;
-  fi[2] = pdz + pq1z + pq2z;
+  fi[0] = 0.5*(pdx + pq1x + pq2x);
+  fi[1] = 0.5*(pdy + pq1y + pq2y);
+  fi[2] = 0.5*(pdz + pq1z + pq2z);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -585,12 +587,12 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3]
   // compute Neel's functions
 
   ra = rsq/g3[itype][jtype]/g3[itype][jtype];
-  gr = 4.0*g1[itype][jtype]*ra;
+  gr = 4.0*g1_mech[itype][jtype]*ra;
   gr *= (1.0-g2[itype][jtype]*ra);
   gr *= exp(-ra);
 
   ra = rsq/q3[itype][jtype]/q3[itype][jtype];
-  qr = 4.0*q1[itype][jtype]*ra;
+  qr = 4.0*q1_mech[itype][jtype]*ra;
   qr *= (1.0-q2[itype][jtype]*ra);
   qr *= exp(-ra);
 
@@ -609,7 +611,7 @@ double PairSpinNeel::compute_neel_energy(int i, int j, double rsq, double eij[3]
   eij_sj_3 = eij_sj*eij_sj_2;
   epq2 = q2r*(eij_si*eij_sj_3+eij_sj*eij_si_3);
 
-  return (epd+epq1+epq2);
+  return 0.5*(epd+epq1+epq2);
 }
 
 /* ----------------------------------------------------------------------
@@ -681,19 +683,19 @@ void PairSpinNeel::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&g1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&g1_mech[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&g2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&g3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&q1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&q1_mech[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&q2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&q3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_spin_neel[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&g1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&g1_mech[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&g2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&g3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&q1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&q1_mech[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&q2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&q3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_spin_neel[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&g1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&g1_mech[i][j],1,MPI_DOUBLE,0,world);
@@ -727,9 +729,9 @@ void PairSpinNeel::write_restart_settings(FILE *fp)
 void PairSpinNeel::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_spin_neel_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_spin_neel_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_spin_neel_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

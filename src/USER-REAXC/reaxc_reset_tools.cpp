@@ -21,11 +21,10 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_reset_tools.h"
-#include <cstring>
 #include "reaxc_defs.h"
 #include "reaxc_list.h"
 #include "reaxc_tool_box.h"
@@ -33,6 +32,8 @@
 
 #include "error.h"
 
+#include <mpi.h>
+#include <cstring>
 
 void Reset_Atoms( reax_system* system, control_params *control )
 {
@@ -41,7 +42,7 @@ void Reset_Atoms( reax_system* system, control_params *control )
 
   system->numH = 0;
   if (control->hbond_cut > 0)
-    for( i = 0; i < system->n; ++i ) {
+    for (i = 0; i < system->n; ++i) {
       atom = &(system->my_atoms[i]);
       if (atom->type < 0) continue;
       if (system->reax_param.sbp[ atom->type ].p_hbond == 1)
@@ -102,7 +103,7 @@ void Reset_Simulation_Data( simulation_data* data, int /*virial*/ )
 
 void Reset_Timing( reax_timing *rt )
 {
-  rt->total = Get_Time();
+  rt->total = MPI_Wtime();
   rt->comm = 0;
   rt->nbrs = 0;
   rt->init_forces = 0;
@@ -135,7 +136,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     total_bonds = 0;
 
     /* reset start-end indexes */
-    for( i = 0; i < system->N; ++i ) {
+    for (i = 0; i < system->N; ++i) {
       Set_Start_Index( i, total_bonds, bonds );
       Set_End_Index( i, total_bonds, bonds );
       total_bonds += system->my_atoms[i].num_bonds;
@@ -158,7 +159,7 @@ void Reset_Neighbor_Lists( reax_system *system, control_params *control,
     total_hbonds = 0;
 
     /* reset start-end indexes */
-    for( i = 0; i < system->n; ++i ) {
+    for (i = 0; i < system->n; ++i) {
       Hindex = system->my_atoms[i].Hindex;
       if (Hindex > -1) {
         Set_Start_Index( Hindex, total_hbonds, hbonds );

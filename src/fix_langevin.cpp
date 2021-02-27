@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,24 +21,24 @@
 
 #include "fix_langevin.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "respa.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "random_mars.h"
-#include "memory.h"
+#include "compute.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
+#include "input.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,8 +53,9 @@ enum{CONSTANT,EQUAL,ATOM};
 
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  gjfflag(0), gfactor1(NULL), gfactor2(NULL), ratio(NULL), tstr(NULL),
-  flangevin(NULL), tforce(NULL), franprev(NULL), lv(NULL), id_temp(NULL), random(NULL)
+  gjfflag(0), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), tstr(nullptr),
+  flangevin(nullptr), tforce(nullptr), franprev(nullptr),
+  lv(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
@@ -62,12 +63,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  ecouple_flag = 1;
   nevery = 1;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    tstr = new char[n];
-    strcpy(tstr,&arg[3][2]);
+  if (utils::strmatch(arg[3],"^v_")) {
+    tstr = utils::strdup(arg[3]+2);
   } else {
     t_start = utils::numeric(FLERR,arg[3],false,lmp);
     t_target = t_start;
@@ -154,10 +154,10 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix langevin command");
   }
 
-  // set temperature = NULL, user can override via fix_modify if wants bias
+  // set temperature = nullptr, user can override via fix_modify if wants bias
 
-  id_temp = NULL;
-  temperature = NULL;
+  id_temp = nullptr;
+  temperature = nullptr;
 
   energy = 0.0;
 
@@ -165,11 +165,11 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   // compute_scalar checks for this and returns 0.0
   // if flangevin_allocated is not set
 
-  flangevin = NULL;
+  flangevin = nullptr;
   flangevin_allocated = 0;
-  franprev = NULL;
-  lv = NULL;
-  tforce = NULL;
+  franprev = nullptr;
+  lv = nullptr;
+  tforce = nullptr;
   maxatom1 = maxatom2 = 0;
 
   // setup atom-based array for franprev
@@ -178,7 +178,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
 
   if (gjfflag) {
     grow_arrays(atom->nmax);
-    atom->add_callback(0);
+    atom->add_callback(Atom::GROW);
 
   // initialize franprev to zero
 
@@ -192,7 +192,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       lv[i][2] = 0.0;
     }
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -211,7 +210,7 @@ FixLangevin::~FixLangevin()
   if (gjfflag) {
     memory->destroy(franprev);
     memory->destroy(lv);
-    atom->delete_callback(id,0);
+    atom->delete_callback(id,Atom::GROW);
   }
 }
 
@@ -224,7 +223,6 @@ int FixLangevin::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -1032,9 +1030,7 @@ int FixLangevin::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -1104,7 +1100,7 @@ void *FixLangevin::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1114,9 +1110,9 @@ void *FixLangevin::extract(const char *str, int &dim)
 double FixLangevin::memory_usage()
 {
   double bytes = 0.0;
-  if (gjfflag) bytes += atom->nmax*6 * sizeof(double);
-  if (tallyflag || osflag) bytes += atom->nmax*3 * sizeof(double);
-  if (tforce) bytes += atom->nmax * sizeof(double);
+  if (gjfflag) bytes += (double)atom->nmax*6 * sizeof(double);
+  if (tallyflag || osflag) bytes += (double)atom->nmax*3 * sizeof(double);
+  if (tforce) bytes += (double)atom->nmax * sizeof(double);
   return bytes;
 }
 

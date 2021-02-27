@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +15,19 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "dihedral_class2_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-
-#include "force.h"
-#include "update.h"
 #include "error.h"
-
+#include "force.h"
+#include "neighbor.h"
 #include "suffix.h"
+#include "update.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 #define TOLERANCE 0.05
@@ -83,7 +84,6 @@ void DihedralClass2OMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 {
-
   int i1,i2,i3,i4,i,j,k,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double edihedral;
@@ -188,21 +188,14 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
       int me = comm->me;
 
       if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d/%d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,thr->get_tid(),update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1].x,x[i1].y,x[i1].z);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2].x,x[i2].y,x[i2].z);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3].x,x[i3].y,x[i3].z);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4].x,x[i4].y,x[i4].z);
+        error->warning(FLERR,fmt::format("Dihedral problem: {} {} {} {} {} {}",
+                                         me,update->ntimestep,
+                                         atom->tag[i1],atom->tag[i2],
+                                         atom->tag[i3],atom->tag[i4]));
+        fmt::print(screen,"  1st atom: {} {} {} {}\n",me,x[i1].x,x[i1].y,x[i1].z);
+        fmt::print(screen,"  2nd atom: {} {} {} {}\n",me,x[i2].x,x[i2].y,x[i2].z);
+        fmt::print(screen,"  3rd atom: {} {} {} {}\n",me,x[i3].x,x[i3].y,x[i3].z);
+        fmt::print(screen,"  4th atom: {} {} {} {}\n",me,x[i4].x,x[i4].y,x[i4].z);
       }
     }
 
@@ -213,6 +206,17 @@ void DihedralClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     sinphi = sqrt(1.0 - c*c);
     sinphi = MAX(sinphi,SMALL);
+
+    // n123 = vb1 x vb2
+
+    double n123x = vb1y*vb2z - vb1z*vb2y;
+    double n123y = vb1z*vb2x - vb1x*vb2z;
+    double n123z = vb1x*vb2y - vb1y*vb2x;
+    double n123_dot_vb3 = n123x*vb3x + n123y*vb3y + n123z*vb3z;
+    if (n123_dot_vb3 > 0.0) {
+      phi = -phi;
+      sinphi = -sinphi;
+    }
 
     a11 = -c*sb1*s1;
     a22 = sb2 * (2.0*costh13*s12 - c*(s1+s2));

@@ -16,7 +16,7 @@ if len(argv) != 1:
   print("Syntax: demo.py")
   sys.exit()
 
-from lammps import lammps
+from lammps import lammps, LAMMPS_INT, LMP_STYLE_GLOBAL, LMP_VAR_EQUAL, LMP_VAR_ATOM
 lmp = lammps()
 
 # test out various library functions after running in.demo
@@ -25,18 +25,18 @@ lmp.file("in.demo")
 
 print("\nPython output:")
 
-natoms = lmp.extract_global("natoms",0)
-mass = lmp.extract_atom("mass",2)
-x = lmp.extract_atom("x",3)
+natoms = lmp.extract_global("natoms")
+mass = lmp.extract_atom("mass")
+x = lmp.extract_atom("x")
 print("Natoms, mass, x[0][0] coord =",natoms,mass[1],x[0][0])
 
-temp = lmp.extract_compute("thermo_temp",0,0)
+temp = lmp.extract_compute("thermo_temp", LMP_STYLE_GLOBAL, LAMMPS_INT)
 print("Temperature from compute =",temp)
 
-eng = lmp.extract_variable("eng",None,0)
+eng = lmp.extract_variable("eng",None, LMP_VAR_EQUAL)
 print("Energy from equal-style variable =",eng)
 
-vy = lmp.extract_variable("vy","all",1)
+vy = lmp.extract_variable("vy","all", LMP_VAR_ATOM)
 print("Velocity component from atom-style variable =",vy[1])
 
 vol = lmp.get_thermo("vol")

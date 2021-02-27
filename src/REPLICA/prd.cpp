@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -61,7 +61,7 @@ void PRD::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"PRD command before simulation box is defined");
   if (universe->nworlds != universe->nprocs &&
-      atom->map_style == 0)
+      atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use PRD with multi-processor replicas "
                "unless atom map exists");
   if (universe->nworlds == 1 && comm->me == 0)
@@ -117,9 +117,9 @@ void PRD::command(int narg, char **arg)
 
   natoms = atom->natoms;
 
-  tagall = NULL;
-  xall = NULL;
-  imageall = NULL;
+  tagall = nullptr;
+  xall = nullptr;
+  imageall = nullptr;
 
   if (cmode != SINGLE_PROC_DIRECT) {
     memory->create(tagall,natoms,"prd:tagall");
@@ -127,8 +127,8 @@ void PRD::command(int narg, char **arg)
     memory->create(imageall,natoms,"prd:imageall");
   }
 
-  counts = NULL;
-  displacements = NULL;
+  counts = nullptr;
+  displacements = nullptr;
 
   if (cmode == MULTI_PROC) {
     memory->create(counts,nprocs,"prd:counts");
@@ -310,7 +310,7 @@ void PRD::command(int narg, char **arg)
       dynamics(t_event,time_dynamics);
       fix_event->store_state_quench();
       quench();
-      clock = clock + t_event*universe->nworlds;
+      clock += (bigint)t_event*universe->nworlds;
       ireplica = check_event();
       if (ireplica >= 0) break;
       fix_event->restore_state_quench();
@@ -465,7 +465,7 @@ void PRD::command(int narg, char **arg)
   modify->delete_compute("prd_temp");
   modify->delete_fix("prd_event");
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -908,16 +908,16 @@ void PRD::options(int narg, char **arg)
       delete [] loop_setting;
       delete [] dist_setting;
 
-      if (strcmp(arg[iarg+1],"all") == 0) loop_setting = NULL;
-      else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = NULL;
-      else if (strcmp(arg[iarg+1],"geom") == 0) loop_setting = NULL;
+      if (strcmp(arg[iarg+1],"all") == 0) loop_setting = nullptr;
+      else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = nullptr;
+      else if (strcmp(arg[iarg+1],"geom") == 0) loop_setting = nullptr;
       else error->all(FLERR,"Illegal prd command");
       int n = strlen(arg[iarg+1]) + 1;
       loop_setting = new char[n];
       strcpy(loop_setting,arg[iarg+1]);
 
-      if (strcmp(arg[iarg+2],"uniform") == 0) dist_setting = NULL;
-      else if (strcmp(arg[iarg+2],"gaussian") == 0) dist_setting = NULL;
+      if (strcmp(arg[iarg+2],"uniform") == 0) dist_setting = nullptr;
+      else if (strcmp(arg[iarg+2],"gaussian") == 0) dist_setting = nullptr;
       else error->all(FLERR,"Illegal prd command");
       n = strlen(arg[iarg+2]) + 1;
       dist_setting = new char[n];

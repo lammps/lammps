@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -16,11 +16,13 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "math_extra.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
@@ -50,33 +52,48 @@ void PairTersoffMODCOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
-    if (evflag) {
-      if (eflag) {
-        if (vflag_atom) eval<1,1,1>(ifrom, ito, thr);
-        else eval<1,1,0>(ifrom, ito, thr);
-      } else {
-        if (vflag_atom) eval<1,0,1>(ifrom, ito, thr);
-        else eval<1,0,0>(ifrom, ito, thr);
-      }
-    } else eval<0,0,0>(ifrom, ito, thr);
+    if (shift_flag) {
+      if (evflag) {
+        if (eflag) {
+          if (vflag_atom) eval<1,1,1,1>(ifrom, ito, thr);
+          else eval<1,1,1,0>(ifrom, ito, thr);
+        } else {
+          if (vflag_atom) eval<1,1,0,1>(ifrom, ito, thr);
+          else eval<1,1,0,0>(ifrom, ito, thr);
+        }
+      } else eval<1,0,0,0>(ifrom, ito, thr);
+    } else {
+      if (evflag) {
+        if (eflag) {
+          if (vflag_atom) eval<0,1,1,1>(ifrom, ito, thr);
+          else eval<0,1,1,0>(ifrom, ito, thr);
+        } else {
+          if (vflag_atom) eval<0,1,0,1>(ifrom, ito, thr);
+          else eval<0,1,0,0>(ifrom, ito, thr);
+        }
+      } else eval<0,0,0,0>(ifrom, ito, thr);
+    }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 
-template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
+template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
 void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,kk,jnum;
   tagint itag,jtag;
   int itype,jtype,ktype,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double fforce;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
+  double r1_hat[3],r2_hat[3];
   double zeta_ij,prefactor;
+  double forceshiftfac;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -132,10 +149,22 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
       delz = ztmp - x[j].z;
       rsq = delx*delx + dely*dely + delz*delz;
 
+      // shift rsq and store correction for force
+
+      if (shift_flag) {
+        double rsqtmp = rsq + shift*shift + 2*sqrt(rsq)*shift;
+        forceshiftfac = sqrt(rsqtmp/rsq);
+        rsq = rsqtmp;
+      }
+
       iparam_ij = elem2param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
+
+      // correct force for shift in rsq
+
+      if (shift_flag) fpair *= forceshiftfac;
 
       fxtmp += delx*fpair;
       fytmp += dely*fpair;
@@ -162,7 +191,14 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
       delr1[1] = x[j].y - ytmp;
       delr1[2] = x[j].z - ztmp;
       rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+
+      if (shift_flag)
+        rsq1 += shift*shift + 2*sqrt(rsq1)*shift;
+
       if (rsq1 > params[iparam_ij].cutsq) continue;
+
+      const double r1inv = 1.0/sqrt(dot3(delr1, delr1));
+      scale3(r1inv, delr1, r1_hat);
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
@@ -180,14 +216,23 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[1] = x[k].y - ytmp;
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+
+        if (shift_flag)
+          rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
+
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
-        zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
+        const double r2inv = 1.0/sqrt(dot3(delr2, delr2));
+        scale3(r2inv, delr2, r2_hat);
+
+        zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,r1_hat,r2_hat);
       }
 
       // pairwise force due to zeta
 
-      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fpair,prefactor,EFLAG,evdwl);
+      force_zeta(&params[iparam_ij],rsq1,zeta_ij,fforce,prefactor,EFLAG,evdwl);
+
+      fpair = fforce*r1inv;
 
       fxtmp += delr1[0]*fpair;
       fytmp += delr1[1]*fpair;
@@ -212,10 +257,17 @@ void PairTersoffMODCOMP::eval(int iifrom, int iito, ThrData * const thr)
         delr2[1] = x[k].y - ytmp;
         delr2[2] = x[k].z - ztmp;
         rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+
+        if (shift_flag)
+          rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
+
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
+        const double r2inv = 1.0/sqrt(dot3(delr2, delr2));
+        scale3(r2inv, delr2, r2_hat);
+
         attractive(&params[iparam_ijk],prefactor,
-                   rsq1,rsq2,delr1,delr2,fi,fj,fk);
+                   rsq1,rsq2,r1_hat,r2_hat,fi,fj,fk);
 
         fxtmp += fi[0];
         fytmp += fi[1];

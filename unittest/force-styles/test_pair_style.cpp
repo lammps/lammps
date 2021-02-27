@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -240,7 +240,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     YamlWriter writer(outfile);
 
     // lammps_version
-    writer.emit("lammps_version", lmp->universe->version);
+    writer.emit("lammps_version", lmp->version);
 
     // date_generated
     std::time_t now = time(NULL);
@@ -944,7 +944,9 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
-    if ((test_config.pair_style == "rebo") || utils::strmatch(test_config.pair_style, "^dpd")) {
+    if ((test_config.pair_style == "rebo")
+        || utils::strmatch(test_config.pair_style, "^dpd")
+        || utils::strmatch(test_config.pair_style, "^tersoff.* shift ")) {
         std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
@@ -1195,7 +1197,7 @@ TEST(PairStyle, single)
     // gather some information and skip if unsupported
     int ntypes    = lmp->atom->ntypes;
     int molecular = lmp->atom->molecular;
-    if (molecular > 1) {
+    if (molecular > Atom::MOLECULAR) {
         std::cerr << "Only atomic and simple molecular atom styles are supported\n";
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);
@@ -1259,7 +1261,7 @@ TEST(PairStyle, single)
     command("boundary p p p");
     command("newton ${newton_pair} ${newton_bond}");
 
-    if (molecular) {
+    if (molecular == Atom::MOLECULAR) {
         command("special_bonds lj/coul "
                 "${bond_factor} ${angle_factor} ${dihedral_factor}");
     }
@@ -1268,7 +1270,7 @@ TEST(PairStyle, single)
     command("region box block -10.0 10.0 -10.0 10.0 -10.0 10.0 units box");
 
     auto cmd = fmt::format("create_box {} box", ntypes);
-    if (molecular) {
+    if (molecular == Atom::MOLECULAR) {
         cmd += " bond/types 1"
                " extra/bond/per/atom 1"
                " extra/special/per/atom 1";
@@ -1294,7 +1296,7 @@ TEST(PairStyle, single)
     command("set atom 2 mol 2");
     command("special_bonds lj/coul 1.0 1.0 1.0");
 
-    if (molecular) {
+    if (molecular == Atom::MOLECULAR) {
         command("create_bonds single/bond 1 1 2");
         command("bond_style zero");
         command("bond_coeff 1 2.0");

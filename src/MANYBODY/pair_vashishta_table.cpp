@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,8 +30,8 @@ using namespace LAMMPS_NS;
 
 PairVashishtaTable::PairVashishtaTable(LAMMPS *lmp) : PairVashishta(lmp)
 {
-  forceTable = NULL;
-  potentialTable = NULL;
+  forceTable = nullptr;
+  potentialTable = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -252,8 +252,8 @@ void PairVashishtaTable::create_tables()
 {
   memory->destroy(forceTable);
   memory->destroy(potentialTable);
-  forceTable = NULL;
-  potentialTable = NULL;
+  forceTable = nullptr;
+  potentialTable = nullptr;
 
   tabinnersq = tabinner*tabinner;
 
@@ -289,6 +289,5 @@ void PairVashishtaTable::create_tables()
 
 double PairVashishtaTable::memory_usage()
 {
-  double bytes = 2*nelements*nelements*sizeof(double)*ntable;
-  return bytes;
+  return (double)2*nelements*nelements*sizeof(double)*ntable;
 }

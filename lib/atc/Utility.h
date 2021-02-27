@@ -226,7 +226,7 @@ namespace ATC_Utility
   {
     char *endptr;
     strtod(s.c_str(), &endptr);
-    if(endptr != NULL && *endptr == '\0') return true;
+    if(endptr != nullptr && *endptr == '\0') return true;
     return false;
   }
 

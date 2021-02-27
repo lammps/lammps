@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,13 +45,13 @@ PairPeriLPS::PairPeriLPS(LAMMPS *lmp) : Pair(lmp)
   ifix_peri = -1;
 
   nmax = 0;
-  s0_new = NULL;
-  theta = NULL;
+  s0_new = nullptr;
+  theta = nullptr;
 
-  bulkmodulus = NULL;
-  shearmodulus = NULL;
-  s00 = alpha = NULL;
-  cut = NULL;
+  bulkmodulus = nullptr;
+  shearmodulus = nullptr;
+  s00 = alpha = nullptr;
+  cut = nullptr;
 
   // set comm size needed by this Pair
   // comm_reverse not needed
@@ -427,7 +427,7 @@ void PairPeriLPS::init_style()
 
   if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
   if (domain->lattice->xlattice != domain->lattice->ylattice ||
@@ -481,15 +481,15 @@ void PairPeriLPS::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&bulkmodulus[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&shearmodulus[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&bulkmodulus[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&shearmodulus[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&bulkmodulus[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&shearmodulus[i][j],1,MPI_DOUBLE,0,world);

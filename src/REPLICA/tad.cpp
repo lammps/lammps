@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,7 +50,7 @@ TAD::TAD(LAMMPS *lmp) : Pointers(lmp) {}
 TAD::~TAD()
 {
   memory->sfree(fix_event_list);
-  if (neb_logfilename != NULL) delete [] neb_logfilename;
+  if (neb_logfilename != nullptr) delete [] neb_logfilename;
   delete [] min_style;
   delete [] min_style_neb;
 }
@@ -62,7 +62,7 @@ TAD::~TAD()
 
 void TAD::command(int narg, char **arg)
 {
-  fix_event_list = NULL;
+  fix_event_list = nullptr;
   n_event_list = 0;
   nmax_event_list = 0;
   nmin_event_list = 10;
@@ -77,7 +77,7 @@ void TAD::command(int narg, char **arg)
     error->all(FLERR,"Can only use TAD with 1-processor replicas for NEB");
   if (atom->sortfreq > 0)
     error->all(FLERR,"Cannot use TAD with atom_modify sort enabled for NEB");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use TAD unless atom map exists for NEB");
 
   if (narg < 7) error->universe_all(FLERR,"Illegal tad command");
@@ -226,8 +226,8 @@ void TAD::command(int narg, char **arg)
 
   ulogfile_lammps = universe->ulogfile;
   uscreen_lammps = universe->uscreen;
-  ulogfile_neb = NULL;
-  uscreen_neb = NULL;
+  ulogfile_neb = nullptr;
+  uscreen_neb = nullptr;
   if (me_universe == 0 && neb_logfilename)
     ulogfile_neb = fopen(neb_logfilename,"w");
 
@@ -421,7 +421,7 @@ void TAD::command(int narg, char **arg)
   modify->delete_fix("tad_revert");
   delete_event_list();
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -554,7 +554,10 @@ void TAD::log_event(int ievent)
     timer->barrier_start();
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
+    // must reset whichflag so that computes won't fail.
+    update->whichflag = 1;
     output->write_dump(update->ntimestep);
+    update->whichflag = 0;
     timer->barrier_stop();
     time_output += timer->get_wall(Timer::TOTAL);
   }
@@ -586,7 +589,7 @@ void TAD::options(int narg, char **arg)
   min_style_neb = new char[n];
   strcpy(min_style_neb,"quickmin");
   dt_neb = update->dt;
-  neb_logfilename = NULL;
+  neb_logfilename = nullptr;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -630,7 +633,7 @@ void TAD::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"neb_log") == 0) {
       delete [] neb_logfilename;
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = NULL;
+      if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = nullptr;
       else {
         int n = strlen(arg[iarg+1]) + 1;
         neb_logfilename = new char[n];
@@ -885,7 +888,7 @@ void TAD::delete_event_list() {
     modify->delete_fix(str);
   }
   memory->sfree(fix_event_list);
-  fix_event_list = NULL;
+  fix_event_list = nullptr;
   n_event_list = 0;
   nmax_event_list = 0;
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -48,13 +48,13 @@ int soft_gpu_init(const int ntypes, double **cutsq, double **prefactor,
 void soft_gpu_reinit(const int ntypes, double **cutsq, double **host_prefactor,
                      double **host_cut);
 void soft_gpu_clear();
-int ** soft_gpu_compute_n(const int ago, const int inum,
-                           const int nall, double **host_x, int *host_type,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum,
-                           const double cpu_time, bool &success);
+int ** soft_gpu_compute_n(const int ago, const int inum, const int nall,
+                          double **host_x, int *host_type, double *sublo,
+                          double *subhi, tagint *tag, int **nspecial,
+                          tagint **special, const bool eflag, const bool vflag,
+                          const bool eatom, const bool vatom, int &host_start,
+                          int **ilist, int **jnum,
+                          const double cpu_time, bool &success);
 void soft_gpu_compute(const int ago, const int inum, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,
@@ -162,9 +162,10 @@ void PairSoftGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = soft_gpu_init(atom->ntypes+1, cutsq, prefactor, cut,
                               force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              atom->nlocal+atom->nghost, mnf, maxspecial,
                               cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

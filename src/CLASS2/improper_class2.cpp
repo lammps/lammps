@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -598,15 +598,15 @@ void ImproperClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&chi0[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&k0[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&chi0[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
 
-    utils::sfread(FLERR,&aa_k1[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_k2[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_k3[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_theta0_1[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_theta0_2[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
-    utils::sfread(FLERR,&aa_theta0_3[1],sizeof(double),atom->nimpropertypes,fp,NULL,error);
+    utils::sfread(FLERR,&aa_k1[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_k2[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_k3[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_theta0_1[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_theta0_2[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aa_theta0_3[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
   }
   MPI_Bcast(&k0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&chi0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
@@ -845,7 +845,7 @@ double ImproperClass2::dot(double *a, double *b)
 void ImproperClass2::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nimpropertypes; i++)
-    fprintf(fp,"%d %g %g\n",i,k0[i],chi0[i]);
+    fprintf(fp,"%d %g %g\n",i,k0[i],chi0[i]*180.0/MY_PI);
 
   fprintf(fp,"\nAngleAngle Coeffs\n\n");
   for (int i = 1; i <= atom->nimpropertypes; i++)

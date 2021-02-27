@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -415,16 +415,16 @@ void PairBuck6dCoulGaussDSF::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&buck6d1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&buck6d2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&buck6d3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&buck6d4[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&alpha_ij[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&buck6d1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&buck6d2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&buck6d3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&buck6d4[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&alpha_ij[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&buck6d1[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&buck6d2[i][j],1,MPI_DOUBLE,0,world);
@@ -457,12 +457,12 @@ void PairBuck6dCoulGaussDSF::write_restart_settings(FILE *fp)
 void PairBuck6dCoulGaussDSF::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&vdwl_smooth,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&vdwl_smooth,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&vdwl_smooth,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
@@ -584,5 +584,5 @@ void *PairBuck6dCoulGaussDSF::extract(const char *str, int &dim)
     dim = 0;
     return (void *) &cut_coul;
   }
-  return NULL;
+  return nullptr;
 }

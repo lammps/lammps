@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,8 +40,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(NULL), numdiff_forces(NULL),
-  temp_x(NULL), temp_f(NULL)
+  Fix(lmp, narg, arg), id_pe(nullptr), numdiff_forces(nullptr),
+  temp_x(nullptr), temp_f(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix numdiff command");
 
@@ -64,7 +64,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = 0;
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix numdiff requires an atom map, see atom_modify");
 
   // perform initial allocation of atom-based arrays
@@ -338,7 +338,7 @@ void FixNumDiff::reallocate()
 
 double FixNumDiff::memory_usage()
 {
-  bigint bytes = 0.0;
-  bytes += 3 * maxatom*3 * sizeof(double);
+  double bytes = 0.0;
+  bytes += (double)3 * maxatom*3 * sizeof(double);
   return bytes;
 }

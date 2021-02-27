@@ -12,7 +12,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,7 +52,7 @@ ComputeSMDTLSPHstrain::ComputeSMDTLSPHstrain(LAMMPS *lmp, int narg, char **arg) 
         size_peratom_cols = 6;
 
         nmax = 0;
-        strainVector = NULL;
+        strainVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,7 +92,7 @@ void ComputeSMDTLSPHstrain::compute_peratom() {
         // copy data to output array
         int itmp = 0;
         Matrix3d *Fincr = (Matrix3d *) force->pair->extract("smd/tlsph/Fincr_ptr", itmp);
-        if (Fincr == NULL) {
+        if (Fincr == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_strain failed to access Fincr array");
         }
 
@@ -139,6 +139,6 @@ void ComputeSMDTLSPHstrain::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTLSPHstrain::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

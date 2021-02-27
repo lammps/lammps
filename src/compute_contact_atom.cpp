@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  contact(NULL)
+  contact(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute contact/atom command");
 
@@ -57,7 +57,7 @@ ComputeContactAtom::~ComputeContactAtom()
 
 void ComputeContactAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute contact/atom requires a pair style be defined");
 
   int count = 0;
@@ -188,6 +188,6 @@ void ComputeContactAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputeContactAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

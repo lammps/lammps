@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -120,7 +120,7 @@ void EwaldOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, nlocal, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, 0, NULL, NULL, NULL, thr);
+    ev_setup_thr(eflag, vflag, 0, nullptr, nullptr, nullptr, thr);
 
     for (i = ifrom; i < ito; i++) {
       ek[i][0] = 0.0;

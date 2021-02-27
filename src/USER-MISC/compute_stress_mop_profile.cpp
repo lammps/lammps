@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -112,8 +112,8 @@ ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **a
   // initialize some variables
 
   nbins = 0;
-  coord = coordp = NULL;
-  values_local = values_global = array = NULL;
+  coord = coordp = nullptr;
+  values_local = values_global = array = nullptr;
 
   // bin setup
 
@@ -173,27 +173,27 @@ void ComputeStressMopProfile::init()
 
   //This compute requires a pair style with pair_single method implemented
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"No pair style is defined for compute stress/mop/profile");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute stress/mop/profile");
 
   // Warnings
 
-  if (me==0){
+  if (me==0) {
 
     //Compute stress/mop/profile only accounts for pair interactions.
     // issue a warning if any intramolecular potential or Kspace is defined.
 
-    if (force->bond!=NULL)
+    if (force->bond!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for bond potentials");
-    if (force->angle!=NULL)
+    if (force->angle!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for angle potentials");
-    if (force->dihedral!=NULL)
+    if (force->dihedral!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for dihedral potentials");
-    if (force->improper!=NULL)
+    if (force->improper!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for improper potentials");
-    if (force->kspace!=NULL)
+    if (force->kspace!=nullptr)
       error->warning(FLERR,"compute stress/mop/profile does not account for kspace contributions");
   }
 
@@ -336,7 +336,7 @@ void ComputeStressMopProfile::compute_pairs()
               //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
-                   || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+                   || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -345,7 +345,7 @@ void ComputeStressMopProfile::compute_pairs()
                 values_local[ibin][m+2] += fpair*(xi[2]-xj[2])/area*nktv2p;
 
               } else if ( ((xi[dir]<pos) && (xj[dir]>pos))
-                          || ((xi[dir]<pos1) && (xj[dir]>pos1)) ) {
+                          || ((xi[dir]<pos1) && (xj[dir]>pos1))) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -363,7 +363,7 @@ void ComputeStressMopProfile::compute_pairs()
               //check if ij pair is across plane, add contribution to pressure
 
               if ( ((xi[dir]>pos) && (xj[dir]<pos))
-                   || ((xi[dir]>pos1) && (xj[dir]<pos1)) ) {
+                   || ((xi[dir]>pos1) && (xj[dir]<pos1))) {
 
                 pair->single(i,j,itype,jtype,rsq,factor_coul,factor_lj,fpair);
 
@@ -380,15 +380,15 @@ void ComputeStressMopProfile::compute_pairs()
     // compute kinetic contribution to pressure
     // counts local particles transfers across the plane
 
-    if (which[m] == KIN || which[m] == TOTAL){
+    if (which[m] == KIN || which[m] == TOTAL) {
 
       double sgn;
 
-      for (int i = 0; i < nlocal; i++){
+      for (int i = 0; i < nlocal; i++) {
 
         // skip if I is not in group
 
-        if (mask[i] & groupbit){
+        if (mask[i] & groupbit) {
 
           itype = type[i];
 
@@ -422,7 +422,7 @@ void ComputeStressMopProfile::compute_pairs()
             pos = coord[ibin][0];
             pos1 = coordp[ibin][0];
 
-            if (((xi[dir]-pos)*(xj[dir]-pos)*(xi[dir]-pos1)*(xj[dir]-pos1)<0)){
+            if (((xi[dir]-pos)*(xj[dir]-pos)*(xi[dir]-pos1)*(xj[dir]-pos1)<0)) {
 
               sgn = copysign(1.0,vi[dir]);
 
@@ -499,7 +499,7 @@ void ComputeStressMopProfile::setup_bins()
   // set bin coordinates
   for (i = 0; i < nbins; i++) {
     coord[i][0] = offset + i*delta;
-    if ( coord[i][0] < (domain->boxlo[dir]+domain->prd_half[dir]) ) {
+    if (coord[i][0] < (domain->boxlo[dir]+domain->prd_half[dir])) {
       coordp[i][0] = coord[i][0] + domain->prd[dir];
     } else {
       coordp[i][0] = coord[i][0] - domain->prd[dir];

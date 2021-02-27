@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -204,7 +204,7 @@ static int cyc_spline(double const *xa,
   // The for loop sets up the equations we need to solve.
   // Later we invoke the GSL tridiagonal matrix solver to solve them.
 
-  for(int i=0; i < n; i++) {
+  for (int i=0; i < n; i++) {
 
     // I have to lookup xa[i+1] and xa[i-1].  This gets tricky because of
     // periodic boundary conditions.  We handle that now.
@@ -675,7 +675,7 @@ void DihedralTable::compute(int eflag, int vflag)
     //          d U          d U      d phi
     // -f  =   -----   =    -----  *  -----
     //          d x         d phi      d x
-    for(int d=0; d < g_dim; ++d) {
+    for (int d=0; d < g_dim; ++d) {
       f1[d] = m_du_dphi * dphi_dx1[d];
       f2[d] = m_du_dphi * dphi_dx2[d];
       f3[d] = m_du_dphi * dphi_dx3[d];
@@ -788,7 +788,7 @@ void DihedralTable::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 
@@ -1014,8 +1014,8 @@ void DihedralTable::write_restart_settings(FILE *fp)
 void DihedralTable::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
   }
 
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
@@ -1027,10 +1027,10 @@ void DihedralTable::read_restart_settings(FILE *fp)
 
 void DihedralTable::null_table(Table *tb)
 {
-  tb->phifile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->phi = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->phifile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->phi = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1091,7 +1091,7 @@ void DihedralTable::read_table(Table *tb, char *file, char *keyword)
         tb->efile[i] = values.next_double();
         tb->ffile[i] = values.next_double();
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   } //for (int i = 0; (i < tb->ninput) && fp; i++) {
@@ -1316,7 +1316,7 @@ void DihedralTable::param_extract(Table *tb, char *line)
       else error->one(FLERR,fmt::format("Invalid keyword in dihedral angle "
                                         "table parameters ({})", word));
     }
-  } catch (TokenizerException & e) {
+  } catch (TokenizerException &e) {
     error->one(FLERR, e.what());
   }
 

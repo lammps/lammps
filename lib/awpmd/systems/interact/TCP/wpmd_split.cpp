@@ -312,7 +312,7 @@ void AWPMD_split::clear_forces(int flag,Vector_3P fi, Vector_3P fe_x,
 void AWPMD_split::get_el_forces(int flag, Vector_3P fe_x,
                                Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c){
   if(flag&0x4) //need to replace the forces
-    clear_forces(0x4,NULL,fe_x,fe_p,fe_w,fe_pw,fe_c);
+    clear_forces(0x4,nullptr,fe_x,fe_p,fe_w,fe_pw,fe_c);
 
   // recalculating derivatives
   if(flag&(0x8|0x4)){ //electron forces needed
@@ -622,7 +622,7 @@ void AWPMD_split::y_deriv(cdouble v,int s,int c2, int c1){
 /// 0x4   -- calculate electronic forces  \n
 /// 0x8   -- add electronic forces to the existing arrays \n
 /// 0x10  -- calculate internal electronic derivatives only: \n
-///          will not update electronic force arrays, which may be NULL, \n
+///          will not update electronic force arrays, which may be null pointers, \n
 ///          the forces may be obtained then using \ref get_el_forces() for all WPs \n
 ///          or separately for each WP using \ref get_wp_force()
 /// if PBCs are used the coords must be within a range [0, cell)

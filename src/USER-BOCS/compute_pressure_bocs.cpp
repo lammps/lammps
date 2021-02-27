@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 
 ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vptr(NULL), id_temp(NULL)
+  vptr(nullptr), id_temp(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pressure/bocs command");
   if (igroup) error->all(FLERR,"Compute pressure/bocs must use group all");
@@ -52,12 +52,12 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   timeflag = 1;
 
   p_match_flag = 0;
-  phi_coeff = NULL;
+  phi_coeff = nullptr;
 
   // store temperature ID used by pressure computation
   // insure it is valid for temperature computation
 
-  if (strcmp(arg[3],"NULL") == 0) id_temp = NULL;
+  if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
     int n = strlen(arg[3]) + 1;
     id_temp = new char[n];
@@ -104,15 +104,15 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (keflag && id_temp == NULL)
+  if (keflag && id_temp == nullptr)
     error->all(FLERR,"Compute pressure/bocs requires temperature ID "
                "to include kinetic energy");
 
   vector = new double[size_vector];
   nvirial = 0;
-  vptr = NULL;
+  vptr = nullptr;
 
-  splines = NULL;
+  splines = nullptr;
   spline_length = 0;
 }
 
@@ -149,16 +149,21 @@ void ComputePressureBocs::init()
 
   delete [] vptr;
   nvirial = 0;
-  vptr = NULL;
+  vptr = nullptr;
 
   if (pairflag && force->pair) nvirial++;
-  if (bondflag && atom->molecular && force->bond) nvirial++;
-  if (angleflag && atom->molecular && force->angle) nvirial++;
-  if (dihedralflag && atom->molecular && force->dihedral) nvirial++;
-  if (improperflag && atom->molecular && force->improper) nvirial++;
-  if (fixflag)
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->virial_flag) nvirial++;
+  if (atom->molecular != Atom::ATOMIC) {
+    if (bondflag && force->bond) nvirial++;
+    if (angleflag && force->angle) nvirial++;
+    if (dihedralflag && force->dihedral) nvirial++;
+    if (improperflag && force->improper) nvirial++;
+  }
+  if (fixflag) {
+    Fix **fix = modify->fix;
+    int nfix = modify->nfix;
+    for (int i = 0; i < nfix; i++)
+      if (fix[i]->thermo_virial) nvirial++;
+  }
 
   if (nvirial) {
     vptr = new double*[nvirial];
@@ -172,36 +177,34 @@ void ComputePressureBocs::init()
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
       for (int i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->virial_flag)
+        if (modify->fix[i]->virial_global_flag && modify->fix[i]->thermo_virial)
           vptr[nvirial++] = modify->fix[i]->virial;
   }
 
   // flag Kspace contribution separately, since not summed across procs
 
   if (kspaceflag && force->kspace) kspace_virial = force->kspace->virial;
-  else kspace_virial = NULL;
+  else kspace_virial = nullptr;
 }
-
-/* Extra functions added for BOCS */
 
 /* ----------------------------------------------------------------------
    Compute the pressure correction for the analytical basis set
 ------------------------------------------------------------------------- */
+
 double ComputePressureBocs::get_cg_p_corr(int N_basis, double *phi_coeff,
                                       int N_mol, double vavg, double vCG)
 {
   double correction = 0.0;
   for (int i = 1; i <= N_basis; ++i)
-  {
     correction -= phi_coeff[i-1] * ( N_mol * i / vavg ) *
-                                   pow( ( 1 / vavg ) * ( vCG - vavg ),i-1);
-  }
+      pow( ( 1 / vavg ) * ( vCG - vavg ),i-1);
   return correction;
 }
 
 /* ----------------------------------------------------------------------
    Find the relevant index position if using a spline basis set
 ------------------------------------------------------------------------- */
+
 double ComputePressureBocs::find_index(double * grid, double value)
 {
   int i;
@@ -228,7 +231,7 @@ double ComputePressureBocs::find_index(double * grid, double value)
 ------------------------------------------------------------------------- */
 
 double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
-                                                               double vCG)
+                                          double vCG)
 {
   int i = find_index(grid[0],vCG);
   double correction, deltax = vCG - grid[0][i];
@@ -254,8 +257,10 @@ double ComputePressureBocs::get_cg_p_corr(double ** grid, int basis_type,
    send cg info from fix_bocs to compute_pressure_bocs for the analytical
    basis set
 ------------------------------------------------------------------------- */
+
 void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
-                double *sent_phi_coeff, int sent_N_mol, double sent_vavg)
+                                       double *sent_phi_coeff, int sent_N_mol,
+                                       double sent_vavg)
 {
   if (basis_type == BASIS_ANALYTIC) { p_basis_type = BASIS_ANALYTIC; }
   else
@@ -278,8 +283,9 @@ void ComputePressureBocs::send_cg_info(int basis_type, int sent_N_basis,
    send cg info from fix_bocs to compute_pressure_bocs for a spline basis
    set
 ------------------------------------------------------------------------- */
+
 void ComputePressureBocs::send_cg_info(int basis_type,
-                                         double ** in_splines, int gridsize)
+                                       double ** in_splines, int gridsize)
 {
   if (basis_type == BASIS_LINEAR_SPLINE) { p_basis_type = BASIS_LINEAR_SPLINE; }
   else if (basis_type == BASIS_CUBIC_SPLINE) { p_basis_type = BASIS_CUBIC_SPLINE; }
@@ -297,6 +303,7 @@ void ComputePressureBocs::send_cg_info(int basis_type,
 /* ----------------------------------------------------------------------
    compute total pressure, averaged over Pxx, Pyy, Pzz
 ------------------------------------------------------------------------- */
+
 double ComputePressureBocs::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
@@ -318,11 +325,11 @@ double ComputePressureBocs::compute_scalar()
     volume = (domain->xprd * domain->yprd * domain->zprd);
 
     /* MRD NJD if block */
-    if ( p_basis_type == BASIS_ANALYTIC )
+    if (p_basis_type == BASIS_ANALYTIC)
     {
       correction = get_cg_p_corr(N_basis,phi_coeff,N_mol,vavg,volume);
     }
-    else if ( p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE )
+    else if (p_basis_type == BASIS_LINEAR_SPLINE || p_basis_type == BASIS_CUBIC_SPLINE)
     {
       correction = get_cg_p_corr(splines, p_basis_type, volume);
     }

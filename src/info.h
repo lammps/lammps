@@ -35,15 +35,18 @@ class Info : protected Pointers {
   bool is_defined(const char *, const char *);
   bool is_available(const char *, const char *);
 
-  bool has_style(const std::string & category, const std::string & name);
-  std::vector<std::string> get_available_styles(const std::string & category);
+  bool has_style(const std::string &category, const std::string &name);
+  std::vector<std::string> get_available_styles(const std::string &category);
 
   static bool has_gzip_support();
   static bool has_png_support();
   static bool has_jpeg_support();
   static bool has_ffmpeg_support();
   static bool has_exceptions();
-  static bool has_package(const char * package_name);
+  static bool has_package(const std::string &);
+  static bool has_accelerator_feature(const std::string &,
+                                      const std::string &,
+                                      const std::string &);
 
   static std::string get_os_info();
   static std::string get_compiler_info();
@@ -52,6 +55,7 @@ class Info : protected Pointers {
   static std::string get_mpi_info(int &, int &);
   static std::string get_cxx_info();
 
+  void get_memory_info(double *);
   char **get_variable_names(int &num);
 
 private:

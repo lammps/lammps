@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,13 +47,13 @@ int ljl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  const double cell_size, int &gpu_mode, FILE *screen);
 
 void ljl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
-                   double **host_lj2, double **host_lj3, double **host_lj4,
-                   double **offset);
+                    double **host_lj2, double **host_lj3, double **host_lj4,
+                    double **offset);
 
 void ljl_gpu_clear();
-int ** ljl_gpu_compute_n(const int ago, const int inum,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** ljl_gpu_compute_n(const int ago, const int inum, const int nall,
+                         double **host_x, int *host_type, double *sublo,
+                         double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,
@@ -139,7 +139,7 @@ void PairLJCutGPU::compute(int eflag, int vflag)
 
 void PairLJCutGPU::init_style()
 {
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with lj/cut/gpu pair style");
@@ -164,9 +164,10 @@ void PairLJCutGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = ljl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                              offset, force->special_lj, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

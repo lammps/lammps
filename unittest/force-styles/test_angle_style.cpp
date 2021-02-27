@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -236,7 +236,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     YamlWriter writer(outfile);
 
     // lammps_version
-    writer.emit("lammps_version", lmp->universe->version);
+    writer.emit("lammps_version", lmp->version);
 
     // date_generated
     std::time_t now = time(NULL);
@@ -763,7 +763,7 @@ TEST(AngleStyle, single)
     // gather some information and skip if unsupported
     int nangletypes = lmp->atom->nangletypes;
     int molecular   = lmp->atom->molecular;
-    if (molecular != 1) {
+    if (molecular != Atom::MOLECULAR) {
         std::cerr << "Only simple molecular atom styles are supported\n";
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

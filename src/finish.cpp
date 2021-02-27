@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -134,7 +134,7 @@ void Finish::end(int flag)
             (strcmp(update->unit_style,"micro") == 0) ||
             (strcmp(update->unit_style,"nano") == 0) ||
             (strcmp(update->unit_style,"electron") == 0) ||
-            (strcmp(update->unit_style,"real") == 0)) ) {
+            (strcmp(update->unit_style,"real") == 0))) {
         double one_fs = force->femtosecond;
         double t_step = ((double) time_loop) / ((double) update->nsteps);
         double step_t = 1.0/t_step;
@@ -202,12 +202,12 @@ void Finish::end(int flag)
                           update->minimize->einitial,
                           update->minimize->eprevious,
                           update->minimize->efinal);
-      mesg += fmt::format("  Force two-norm initial, final = {} {}\n",
+      mesg += fmt::format("  Force two-norm initial, final = {:.8} {:.8}\n",
                           update->minimize->fnorm2_init,update->minimize->fnorm2_final);
-      mesg += fmt::format("  Force max component initial, final = {} {}\n",
+      mesg += fmt::format("  Force max component initial, final = {:.8} {:.8}\n",
                           update->minimize->fnorminf_init,
                           update->minimize->fnorminf_final);
-      mesg += fmt::format("  Final line search alpha, max atom move = {} {}\n",
+      mesg += fmt::format("  Final line search alpha, max atom move = {:.8} {:.8}\n",
                           update->minimize->alpha_final,
                           update->minimize->alpha_final*
                           update->minimize->fnorminf_final);
@@ -332,7 +332,7 @@ void Finish::end(int flag)
     mpi_timings("Pair",timer,Timer::PAIR, world,nprocs,
                 nthreads,me,time_loop,screen,logfile);
 
-    if (atom->molecular)
+    if (atom->molecular != Atom::ATOMIC)
       mpi_timings("Bond",timer,Timer::BOND,world,nprocs,
                   nthreads,me,time_loop,screen,logfile);
 
@@ -391,7 +391,7 @@ void Finish::end(int flag)
       utils::logmesg(lmp,fmt::format(thr_fmt,me,thr_total,thr_total/time_loop*100.0));
 
       omp_times(fixomp,"Pair",Timer::PAIR,nthreads,screen,logfile);
-      if (atom->molecular)
+      if (atom->molecular != Atom::ATOMIC)
         omp_times(fixomp,"Bond",Timer::BOND,nthreads,screen,logfile);
       if (force->kspace)
         omp_times(fixomp,"Kspace",Timer::KSPACE,nthreads,screen,logfile);
@@ -555,14 +555,14 @@ void Finish::end(int flag)
 
     int nspec;
     double nspec_all = 0;
-    if (atom->molecular == 1) {
+    if (atom->molecular == Atom::MOLECULAR) {
       int **nspecial = atom->nspecial;
       int nlocal = atom->nlocal;
       nspec = 0;
       for (i = 0; i < nlocal; i++) nspec += nspecial[i][2];
       tmp = nspec;
       MPI_Allreduce(&tmp,&nspec_all,1,MPI_DOUBLE,MPI_SUM,world);
-    } else if (atom->molecular == 2) {
+    } else if (atom->molecular == Atom::TEMPLATE) {
       Molecule **onemols = atom->avec->onemols;
       int *molindex = atom->molindex;
       int *molatom = atom->molatom;
@@ -585,7 +585,7 @@ void Finish::end(int flag)
       mesg += fmt::format("Total # of neighbors = {:.8g}\n",nall);
       if (atom->natoms > 0)
         mesg += fmt::format("Ave neighs/atom = {:.8}\n",nall/atom->natoms);
-      if (atom->molecular && atom->natoms > 0)
+      if ((atom->molecular != Atom::ATOMIC) && (atom->natoms > 0))
         mesg += fmt::format("Ave special neighs/atom = {:.8}\n",
                             nspec_all/atom->natoms);
       mesg += fmt::format("Neighbor list builds = {}\n",neighbor->ncalls);

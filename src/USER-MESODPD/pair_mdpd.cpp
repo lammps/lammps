@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,7 +54,7 @@ PairMDPD::PairMDPD(LAMMPS *lmp) : Pair(lmp)
   if (lmp->citeme) lmp->citeme->add(cite_pair_mdpd);
 
   writedata = 1;
-  random = NULL;
+  random = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,7 +217,7 @@ void PairMDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0 ) {
+  if (seed <= 0) {
     struct timespec time;
     clock_gettime( CLOCK_REALTIME, &time );
     seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed
@@ -241,7 +241,7 @@ void PairMDPD::settings(int narg, char **arg)
 
 void PairMDPD::coeff(int narg, char **arg)
 {
-  if(narg != 7 ) error->all(FLERR,"Incorrect args for pair coefficients\n itype jtype A B gamma cutA cutB");
+  if (narg != 7 ) error->all(FLERR,"Incorrect args for pair coefficients\n itype jtype A B gamma cutA cutB");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -254,7 +254,7 @@ void PairMDPD::coeff(int narg, char **arg)
   double cut_one = utils::numeric(FLERR,arg[5],false,lmp);
   double cut_two = utils::numeric(FLERR,arg[6],false,lmp);
 
-  if(cut_one < cut_two) error->all(FLERR,"Incorrect args for pair coefficients\n cutA should be larger than cutB.");
+  if (cut_one < cut_two) error->all(FLERR,"Incorrect args for pair coefficients\n cutA should be larger than cutB.");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -348,15 +348,15 @@ void PairMDPD::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&A_att[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&B_rep[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_r[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&A_att[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&B_rep[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_r[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&A_att[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&B_rep[i][j],1,MPI_DOUBLE,0,world);
@@ -386,10 +386,10 @@ void PairMDPD::write_restart_settings(FILE *fp)
 void PairMDPD::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&temperature,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&temperature,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&temperature,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,9 +29,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 16384
-#define DELTA_BONUS 8192
-
 /* ---------------------------------------------------------------------- */
 
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
@@ -39,9 +36,9 @@ AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
   nmax = 0;
   ngrow = 0;
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 0;
-  mass_type = dipole_type = 0;
+  mass_type = dipole_type = PER_ATOM;
   forceclearflag = 0;
   maxexchange = 0;
   bonus_flag = 0;
@@ -188,6 +185,8 @@ void AtomVec::init()
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }
 
+static constexpr bigint DELTA=16384;
+
 /* ----------------------------------------------------------------------
    roundup N so it is a multiple of DELTA
    error if N exceeds 32-bit int, since will be used as arg to grow()
@@ -210,6 +209,8 @@ void AtomVec::grow_nmax()
   nmax = nmax/DELTA * DELTA;
   nmax += DELTA;
 }
+
+static constexpr bigint DELTA_BONUS=8192;
 
 /* ----------------------------------------------------------------------
    grow nmax_bonus so it is a multiple of DELTA_BONUS
@@ -2060,7 +2061,7 @@ void AtomVec::write_vel(FILE *fp, int n, double **buf)
 }
 
 /* ----------------------------------------------------------------------
-   pack bond info for data file into buf if non-NULL
+   pack bond info for data file into buf if non-nullptr
    return count of bonds from this proc
    do not count/pack bonds with bondtype = 0
    if bondtype is negative, flip back to positive
@@ -2118,7 +2119,7 @@ void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 }
 
 /* ----------------------------------------------------------------------
-   pack angle info for data file into buf if non-NULL
+   pack angle info for data file into buf if non-nullptr
    return count of angles from this proc
    do not count/pack angles with angletype = 0
    if angletype is negative, flip back to positive
@@ -2306,12 +2307,12 @@ void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVec::memory_usage()
+double AtomVec::memory_usage()
 {
   int datatype,cols,maxcols;
   void *pdata;
 
-  bigint bytes = 0;
+  double bytes = 0;
 
   bytes += memory->usage(tag,nmax);
   bytes += memory->usage(type,nmax);

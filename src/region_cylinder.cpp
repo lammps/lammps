@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +30,7 @@ enum{CONSTANT,VARIABLE};
 /* ---------------------------------------------------------------------- */
 
 RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
-  Region(lmp, narg, arg), c1str(NULL), c2str(NULL), rstr(NULL)
+  Region(lmp, narg, arg), c1str(nullptr), c2str(nullptr), rstr(nullptr)
 {
   options(narg-8,&arg[8]);
 
@@ -44,10 +44,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
   axis = arg[2][0];
 
   if (axis == 'x') {
-    if (strstr(arg[3],"v_") == arg[3]) {
-      int n = strlen(arg[3]+2) + 1;
-      c1str = new char[n];
-      strcpy(c1str,arg[3]+2);
+    if (utils::strmatch(arg[3],"^v_")) {
+      c1str = utils::strdup(arg[3]+2);
       c1 = 0.0;
       c1style = VARIABLE;
       varshape = 1;
@@ -55,10 +53,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1 = yscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
-    if (strstr(arg[4],"v_") == arg[4]) {
-      int n = strlen(arg[4]+2) + 1;
-      c2str = new char[n];
-      strcpy(c2str,arg[4]+2);
+    if (utils::strmatch(arg[4],"^v_")) {
+      c2str = utils::strdup(arg[4]+2);
       c2 = 0.0;
       c2style = VARIABLE;
       varshape = 1;
@@ -67,10 +63,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c2style = CONSTANT;
     }
   } else if (axis == 'y') {
-    if (strstr(arg[3],"v_") == arg[3]) {
-      int n = strlen(arg[3]+2) + 1;
-      c1str = new char[n];
-      strcpy(c1str,arg[3]+2);
+    if (utils::strmatch(arg[3],"^v_")) {
+      c1str = utils::strdup(arg[3]+2);
       c1 = 0.0;
       c1style = VARIABLE;
       varshape = 1;
@@ -78,10 +72,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1 = xscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
-    if (strstr(arg[4],"v_") == arg[4]) {
-      int n = strlen(arg[4]+2) + 1;
-      c2str = new char[n];
-      strcpy(c2str,arg[4]+2);
+    if (utils::strmatch(arg[4],"^v_")) {
+      c2str = utils::strdup(arg[4]+2);
       c2 = 0.0;
       c2style = VARIABLE;
       varshape = 1;
@@ -90,10 +82,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c2style = CONSTANT;
     }
   } else if (axis == 'z') {
-    if (strstr(arg[3],"v_") == arg[3]) {
-      int n = strlen(arg[3]+2) + 1;
-      c1str = new char[n];
-      strcpy(c1str,arg[3]+2);
+    if (utils::strmatch(arg[3],"^v_")) {
+      c1str = utils::strdup(arg[3]+2);
       c1 = 0.0;
       c1style = VARIABLE;
       varshape = 1;
@@ -101,10 +91,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
       c1 = xscale*utils::numeric(FLERR,arg[3],false,lmp);
       c1style = CONSTANT;
     }
-    if (strstr(arg[4],"v_") == arg[4]) {
-      int n = strlen(arg[4]+2) + 1;
-      c2str = new char[n];
-      strcpy(c2str,arg[4]+2);
+    if (utils::strmatch(arg[4],"^v_")) {
+      c2str = utils::strdup(arg[4]+2);
       c2 = 0.0;
       c2style = VARIABLE;
       varshape = 1;
@@ -114,10 +102,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  if (strstr(arg[5],"v_") == arg[5]) {
-    int n = strlen(&arg[5][2]) + 1;
-    rstr = new char[n];
-    strcpy(rstr,&arg[5][2]);
+  if (utils::strmatch(arg[5],"^v_")) {
+    rstr = utils::strdup(arg[5]+2);
     radius = 0.0;
     rstyle = VARIABLE;
     varshape = 1;
@@ -520,7 +506,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
         else d2 = dr2 + dx*dx;
         if (d2 < d2prev) {
           xp = hi;
-          if (r < radius){
+          if (r < radius) {
             yp = x[1];
             zp = x[2];
           }
@@ -572,7 +558,7 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
 
       dr = r - radius;
       dr2 = dr*dr;
-      if (!open_faces[2]){
+      if (!open_faces[2]) {
         xp = c1 + del1*radius/r;
         zp = c2 + del2*radius/r;
         if (x[1] < lo) {

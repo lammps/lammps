@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,15 +41,16 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
-                   double **b, double **offset, double *special_lj, const int nlocal,
-                   const int nall, const int max_nbors, const int maxspecial,
-                   const double cell_size, int &gpu_mode, FILE *screen);
+                   double **b, double **offset, double *special_lj,
+                   const int nlocal, const int nall, const int max_nbors,
+                   const int maxspecial, const double cell_size,
+                   int &gpu_mode, FILE *screen);
 void gauss_gpu_reinit(const int ntypes, double **cutsq, double **host_a,
-                   double **b, double **offset);
+                      double **b, double **offset);
 void gauss_gpu_clear();
-int ** gauss_gpu_compute_n(const int ago, const int inum,
-                           const int nall, double **host_x, int *host_type,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** gauss_gpu_compute_n(const int ago, const int inum, const int nall,
+                           double **host_x, int *host_type, double *sublo,
+                           double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum,
@@ -158,9 +159,10 @@ void PairGaussGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = gauss_gpu_init(atom->ntypes+1, cutsq, a, b,
                                offset, force->special_lj, atom->nlocal,
-                               atom->nlocal+atom->nghost, 300, maxspecial,
+                               atom->nlocal+atom->nghost, mnf, maxspecial,
                                cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

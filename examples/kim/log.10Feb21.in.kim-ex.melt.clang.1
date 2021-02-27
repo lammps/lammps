@@ -1,0 +1,127 @@
+LAMMPS (10 Feb 2021)
+# 3d Lennard-Jones melt
+#
+# This example requires that the example models provided with
+# the kim-api package are installed.  see the `./lib/kim/README` or
+# `./lib/kim/Install.py` files for details on how to install these
+# example models.
+#
+
+variable     x index 1
+variable     y index 1
+variable     z index 1
+
+variable     xx equal 20*$x
+variable     xx equal 20*1
+variable     yy equal 20*$y
+variable     yy equal 20*1
+variable     zz equal 20*$z
+variable     zz equal 20*1
+
+kim          init LennardJones_Ar real
+#=== BEGIN kim init ==========================================
+units real
+neighbor 2.0 bin   # Angstroms
+timestep 1.0       # femtoseconds
+
+This model has No mutable parameters.
+#=== END kim init ============================================
+
+
+lattice      fcc 4.4300
+Lattice spacing in x,y,z = 4.4300000 4.4300000 4.4300000
+region       box block 0 ${xx} 0 ${yy} 0 ${zz}
+region       box block 0 20 0 ${yy} 0 ${zz}
+region       box block 0 20 0 20 0 ${zz}
+region       box block 0 20 0 20 0 20
+create_box   1 box
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (88.600000 88.600000 88.600000)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 box
+Created 32000 atoms
+  create_atoms CPU = 0.003 seconds
+
+kim          interactions Ar
+#=== BEGIN kim interactions ==================================
+pair_style kim LennardJones_Ar
+WARNING: KIM Model does not provide 'partialParticleEnergy'; energy per atom will be zero (src/KIM/pair_kim.cpp:1153)
+WARNING: KIM Model does not provide 'partialParticleVirial'; virial per atom will be zero (src/KIM/pair_kim.cpp:1159)
+pair_coeff * * Ar
+#=== END kim interactions ====================================
+
+
+mass         1 39.95
+velocity     all create 200.0 232345 loop geom
+
+neighbor     0.3 bin
+neigh_modify delay 0 every 1 check yes
+
+fix          1 all nve
+#fix         1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
+
+run          100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.45
+  ghost atom cutoff = 8.45
+  binsize = 4.225, bins = 21 21 21
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair kim, perpetual
+      attributes: full, newton off, cut 8.450000000000001
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 28.12 | 28.12 | 28.12 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          200    145069.63            0    164146.22    128015.94 
+     100    95.179703    154939.42            0    164017.94    131602.75 
+Loop time of 2.85673 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 3.024 ns/day, 7.935 hours/ns, 35.005 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.4805     | 2.4805     | 2.4805     |   0.0 | 86.83
+Neigh   | 0.32948    | 0.32948    | 0.32948    |   0.0 | 11.53
+Comm    | 0.012038   | 0.012038   | 0.012038   |   0.0 |  0.42
+Output  | 7.4e-05    | 7.4e-05    | 7.4e-05    |   0.0 |  0.00
+Modify  | 0.023745   | 0.023745   | 0.023745   |   0.0 |  0.83
+Other   |            | 0.01084    |            |       |  0.38
+
+Nlocal:        32000.0 ave       32000 max       32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        19911.0 ave       19911 max       19911 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  4.25375e+06 ave 4.25375e+06 max 4.25375e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4253750
+Ave neighs/atom = 132.92969
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:02

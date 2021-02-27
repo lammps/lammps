@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -56,22 +56,22 @@ PairULSPH::PairULSPH(LAMMPS *lmp) :
                 Pair(lmp) {
 
         // per-type arrays
-        Q1 = NULL;
-        eos = viscosity = strength = NULL;
-        c0_type = NULL;
-        c0 = NULL;
-        Lookup = NULL;
-        artificial_stress = NULL;
-        artificial_pressure = NULL;
+        Q1 = nullptr;
+        eos = viscosity = strength = nullptr;
+        c0_type = nullptr;
+        c0 = nullptr;
+        Lookup = nullptr;
+        artificial_stress = nullptr;
+        artificial_pressure = nullptr;
 
         nmax = 0; // make sure no atom on this proc such that initial memory allocation is correct
-        stressTensor = L = K = NULL;
-        shepardWeight = NULL;
-        smoothVel = NULL;
-        numNeighs = NULL;
-        F = NULL;
-        rho = NULL;
-        effm = NULL;
+        stressTensor = L = K = nullptr;
+        shepardWeight = nullptr;
+        smoothVel = nullptr;
+        numNeighs = nullptr;
+        F = nullptr;
+        rho = nullptr;
+        effm = nullptr;
 
         velocity_gradient_required = false; // turn off computation of velocity gradient by default
         density_summation = velocity_gradient = false;
@@ -1575,7 +1575,7 @@ void *PairULSPH::extract(const char *str, int &/*i*/) {
                 return (void *) K;
         }
 
-        return NULL;
+        return nullptr;
 }
 
 /* ----------------------------------------------------------------------

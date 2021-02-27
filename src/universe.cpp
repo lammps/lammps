@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,22 +30,17 @@ using namespace LAMMPS_NS;
 
 Universe::Universe(LAMMPS *lmp, MPI_Comm communicator) : Pointers(lmp)
 {
-  version = (const char *) LAMMPS_VERSION;
-  auto tmp_ver = new char[10];
-  snprintf(tmp_ver,10,"%08d",utils::date2num(version));
-  num_ver = tmp_ver;
-
   uworld = uorig = communicator;
   MPI_Comm_rank(uworld,&me);
   MPI_Comm_size(uworld,&nprocs);
 
   uscreen = stdout;
-  ulogfile = NULL;
+  ulogfile = nullptr;
 
   existflag = 0;
   nworlds = 0;
-  procs_per_world = NULL;
-  root_proc = NULL;
+  procs_per_world = nullptr;
+  root_proc = nullptr;
 
   memory->create(uni2orig,nprocs,"universe:uni2orig");
   for (int i = 0; i < nprocs; i++) uni2orig[i] = i;
@@ -59,7 +54,6 @@ Universe::~Universe()
   memory->destroy(procs_per_world);
   memory->destroy(root_proc);
   memory->destroy(uni2orig);
-  delete [] num_ver;
 }
 
 /* ----------------------------------------------------------------------
@@ -95,7 +89,7 @@ void Universe::reorder(char *style, char *arg)
 
     if (me == 0) {
       FILE *fp = fopen(arg,"r");
-      if (fp == NULL)
+      if (fp == nullptr)
         error->universe_one(FLERR,fmt::format("Cannot open -reorder "
                                               "file {}: {}",arg,
                                               utils::getsyserror()));
@@ -156,7 +150,7 @@ void Universe::reorder(char *style, char *arg)
 
 /* ----------------------------------------------------------------------
    add 1 or more worlds to universe
-   str == NULL -> add 1 world with all procs in universe
+   str == nullptr -> add 1 world with all procs in universe
    str = NxM -> add N worlds, each with M procs
    str = P -> add 1 world with P procs
 ------------------------------------------------------------------------- */
@@ -164,12 +158,11 @@ void Universe::reorder(char *style, char *arg)
 void Universe::add_world(char *str)
 {
   int n,nper;
-  char *ptr;
 
   n = 1;
   nper = 0;
 
-  if (str != NULL) {
+  if (str != nullptr) {
 
     // check for valid partition argument
 
@@ -177,28 +170,23 @@ void Universe::add_world(char *str)
 
     // str may not be empty and may only consist of digits or 'x'
 
-    size_t len = strlen(str);
-    if (len < 1) valid = false;
-    for (size_t i=0; i < len; ++i)
-      if (isdigit(str[i]) || str[i] == 'x') continue;
-      else valid = false;
+    std::string part(str);
+    if (part.size() == 0) valid = false;
+    if (part.find_first_not_of("0123456789x") != std::string::npos) valid = false;
 
     if (valid) {
-      if ((ptr = strchr(str,'x')) != NULL) {
+      std::size_t found = part.find_first_of("x");
 
-        // 'x' may not be the first or last character
+      // 'x' may not be the first or last character
 
-        if (ptr == str) {
-          valid = false;
-        } else if (strlen(str) == len-1) {
-          valid = false;
-        } else {
-          *ptr = '\0';
-          n = atoi(str);
-          nper = atoi(ptr+1);
-          *ptr = 'x';
-        }
-      } else nper = atoi(str);
+      if ((found == 0) || (found == (part.size() - 1))) {
+        valid = false;
+      } else if (found == std::string::npos) {
+        nper = atoi(part.c_str());
+      } else {
+        n = atoi(part.substr(0,found).c_str());
+        nper = atoi(part.substr(found+1).c_str());
+      }
     }
 
     // require minimum of 1 partition with 1 processor

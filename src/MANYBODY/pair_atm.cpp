@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,6 +52,7 @@ PairATM::PairATM(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 1;
   one_coeff = 0;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ----------------------------------------------------------------------
@@ -311,10 +312,10 @@ void PairATM::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) for (k = j; k <= atom->ntypes; k++) {
-          if (me == 0) utils::sfread(FLERR,&nu[i][j][k],sizeof(double),1,fp,NULL,error);
+          if (me == 0) utils::sfread(FLERR,&nu[i][j][k],sizeof(double),1,fp,nullptr,error);
         MPI_Bcast(&nu[i][j][k],1,MPI_DOUBLE,0,world);
       }
     }
@@ -339,8 +340,8 @@ void PairATM::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_triple,sizeof(double),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_triple,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_triple,1,MPI_DOUBLE,0,world);

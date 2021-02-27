@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,12 +44,12 @@ PairPeriPMB::PairPeriPMB(LAMMPS *lmp) : Pair(lmp)
   ifix_peri = -1;
 
   nmax = 0;
-  s0_new = NULL;
+  s0_new = nullptr;
 
-  kspring = NULL;
-  s00 = NULL;
-  alpha = NULL;
-  cut = NULL;
+  kspring = nullptr;
+  s00 = nullptr;
+  alpha = nullptr;
+  cut = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -357,7 +357,7 @@ void PairPeriPMB::init_style()
 
   if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
   if (domain->lattice->xlattice != domain->lattice->ylattice ||
@@ -410,14 +410,14 @@ void PairPeriPMB::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&kspring[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&kspring[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&kspring[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&s00[i][j],1,MPI_DOUBLE,0,world);
@@ -493,6 +493,6 @@ double PairPeriPMB::single(int i, int j, int itype, int jtype, double rsq,
 
 double PairPeriPMB::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

@@ -100,6 +100,5 @@
 
 // TODO: No longer options in Kokkos.  Need to be removed.
 #cmakedefine KOKKOS_USING_DEPRECATED_VIEW
-#cmakedefine KOKKOS_ENABLE_CXX11
 
 #endif  // !defined(KOKKOS_FOR_SIERRA)

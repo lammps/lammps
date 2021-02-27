@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,7 +28,7 @@ enum{EPAIR,EVDWL,ECOUL};
 
 ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pstyle(NULL), pair(NULL), one(NULL)
+  pstyle(nullptr), pair(nullptr), one(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pair command");
 
@@ -82,7 +82,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     extvector = 1;
     one = new double[npair];
     vector = new double[npair];
-  } else one = vector = NULL;
+  } else one = vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

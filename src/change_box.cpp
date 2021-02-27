@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -176,7 +176,7 @@ void ChangeBox::command(int narg, char **arg)
 
   int move_atoms = 0;
   for (int m = 0; m < nops; m++) {
-    if (ops[m].style != ORTHO || ops[m].style != TRICLINIC) move_atoms = 1;
+    if (ops[m].style != ORTHO && ops[m].style != TRICLINIC) move_atoms = 1;
   }
 
   // error if moving atoms and there is stored per-atom restart state

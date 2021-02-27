@@ -77,14 +77,14 @@ class DumpVTK : public DumpCustom {
   int count();
   void pack(tagint *);
   virtual void write_data(int, double *);
-  bigint memory_usage();
+  double memory_usage();
 
   int parse_fields(int, char **);
   void identify_vectors();
-  int add_compute(char *);
-  int add_fix(char *);
-  int add_variable(char *);
-  int add_custom(char *, int);
+  int add_compute(const char *);
+  int add_fix(const char *);
+  int add_variable(const char *);
+  int add_custom(const char *, int);
   virtual int modify_param(int, char **);
 
   typedef void (DumpVTK::*FnPtrHeader)(bigint);

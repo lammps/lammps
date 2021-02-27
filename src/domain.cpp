@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -89,7 +89,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxlo_lamda[0] = boxlo_lamda[1] = boxlo_lamda[2] = 0.0;
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
-  lattice = NULL;
+  lattice = nullptr;
   char **args = new char*[2];
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
@@ -97,7 +97,7 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   delete [] args;
 
   nregion = maxregion = 0;
-  regions = NULL;
+  regions = nullptr;
 
   copymode = 0;
 
@@ -727,7 +727,7 @@ void Domain::image_check()
   // if running verlet/split, don't check on KSpace partition since
   //    it has no ghost atoms and thus bond partners won't exist
 
-  if (!atom->molecular) return;
+  if (atom->molecular == Atom::ATOMIC) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
   if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
@@ -768,7 +768,7 @@ void Domain::image_check()
 
   int flag = 0;
   for (i = 0; i < nlocal; i++) {
-    if (molecular == 1) n = num_bond[i];
+    if (molecular == Atom::MOLECULAR) n = num_bond[i];
     else {
       if (molindex[i] < 0) continue;
       imol = molindex[i];
@@ -777,7 +777,7 @@ void Domain::image_check()
     }
 
     for (j = 0; j < n; j++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (bond_type[i][j] <= 0) continue;
         k = atom->map(bond_atom[i][j]);
       } else {
@@ -837,7 +837,7 @@ void Domain::box_too_small_check()
   // if running verlet/split, don't check on KSpace partition since
   //    it has no ghost atoms and thus bond partners won't exist
 
-  if (!atom->molecular) return;
+  if (atom->molecular == Atom::ATOMIC) return;
   if (!xperiodic && !yperiodic && (dimension == 2 || !zperiodic)) return;
   if (strncmp(update->integrate_style,"verlet/split",12) == 0 &&
       universe->iworld != 0) return;
@@ -867,7 +867,7 @@ void Domain::box_too_small_check()
   int nmissing = 0;
 
   for (i = 0; i < nlocal; i++) {
-    if (molecular == 1) n = num_bond[i];
+    if (molecular == Atom::MOLECULAR) n = num_bond[i];
     else {
       if (molindex[i] < 0) continue;
       imol = molindex[i];
@@ -876,7 +876,7 @@ void Domain::box_too_small_check()
     }
 
     for (j = 0; j < n; j++) {
-      if (molecular == 1) {
+      if (molecular == Atom::MOLECULAR) {
         if (bond_type[i][j] <= 0) continue;
         k = atom->map(bond_atom[i][j]);
       } else {
@@ -1640,7 +1640,7 @@ void Domain::image_flip(int m, int n, int p)
    return 1 if this proc owns atom with coords x, else return 0
    x is returned remapped into periodic box
    if image flag is passed, flag is updated via remap(x,image)
-   if image = NULL is passed, no update with remap(x)
+   if image = nullptr is passed, no update with remap(x)
    if shrinkexceed, atom can be outside shrinkwrap boundaries
    called from create_atoms() in library.cpp
 ------------------------------------------------------------------------- */
@@ -1727,7 +1727,7 @@ int Domain::ownatom(int /*id*/, double *x, imageint *image, int shrinkexceed)
 void Domain::set_lattice(int narg, char **arg)
 {
   if (lattice) delete lattice;
-  lattice = NULL;
+  lattice = nullptr;
   lattice = new Lattice(lmp,narg,arg);
 }
 
@@ -1873,6 +1873,7 @@ void Domain::set_boundary(int narg, char **arg, int flag)
   else zperiodic = 0;
 
   // record if we changed a periodic boundary to a non-periodic one
+
   int pflag=0;
   if ((periodicity[0] && !xperiodic)
       || (periodicity[1] && !yperiodic)
@@ -1889,23 +1890,27 @@ void Domain::set_boundary(int narg, char **arg, int flag)
         boundary[1][0] >= 2 || boundary[1][1] >= 2 ||
         boundary[2][0] >= 2 || boundary[2][1] >= 2) nonperiodic = 2;
   }
+
+  // force non-zero image flags to zero for non-periodic dimensions
+  // keep track if a change was made, so we can print a warning message
+
   if (pflag) {
     pflag = 0;
     for (int i=0; i < atom->nlocal; ++i) {
       int xbox = (atom->image[i] & IMGMASK) - IMGMAX;
       int ybox = (atom->image[i] >> IMGBITS & IMGMASK) - IMGMAX;
       int zbox = (atom->image[i] >> IMG2BITS) - IMGMAX;
-      if (!xperiodic) { xbox = 0; pflag = 1; }
-      if (!yperiodic) { ybox = 0; pflag = 1; }
-      if (!zperiodic) { zbox = 0; pflag = 1; }
+      if ((!xperiodic) && (xbox != 0)) { xbox = 0; pflag = 1; }
+      if ((!yperiodic) && (ybox != 0)) { ybox = 0; pflag = 1; }
+      if ((!zperiodic) && (zbox != 0)) { zbox = 0; pflag = 1; }
       atom->image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
         (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
     }
     int flag_all;
-    MPI_Allreduce(&flag,&flag_all, 1, MPI_INT, MPI_SUM, world);
+    MPI_Allreduce(&pflag,&flag_all, 1, MPI_INT, MPI_SUM, world);
     if ((flag_all > 0) && (comm->me == 0))
-      error->warning(FLERR,"Reset image flags for non-periodic boundary");
+      error->warning(FLERR,"Resetting image flags for non-periodic dimensions");
   }
 }
 

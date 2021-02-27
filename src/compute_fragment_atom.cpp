@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  fragmentID(NULL)
+  fragmentID(nullptr)
 {
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Compute fragment/atom used when bonds are not allowed");
@@ -61,9 +61,9 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   nmax = 0;
-  stack = NULL;
-  clist = NULL;
-  markflag = NULL;
+  stack = nullptr;
+  clist = nullptr;
+  markflag = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -285,7 +285,7 @@ void ComputeFragmentAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeFragmentAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
-  bytes += 3*nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(double);
+  bytes += (double)3*nmax * sizeof(int);
   return bytes;
 }

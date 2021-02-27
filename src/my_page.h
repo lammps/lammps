@@ -53,7 +53,7 @@ class MyPage {
     ipage++;
     if (ipage == npage) {
       allocate();
-      if (errorflag) return NULL;
+      if (errorflag) return nullptr;
     }
     page = pages[ipage];
     index = 0;

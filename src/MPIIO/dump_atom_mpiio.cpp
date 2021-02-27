@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -186,7 +186,7 @@ void DumpAtomMPIIO::write()
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // determine how much data needs to be written for setting the file size and prepocess it prior to writing

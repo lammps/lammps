@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,8 +36,6 @@ FixNVEAwpmd::FixNVEAwpmd(LAMMPS *lmp, int narg, char **arg) :
 {
   if (!atom->wavepacket_flag)
     error->all(FLERR,"Fix nve/awpmd requires atom style wavepacket");
-  //if (!atom->mass_type != 1)
-   // error->all(FLERR,"Fix nve/awpmd requires per type mass");
 
   time_integrate = 1;
 }
@@ -98,7 +96,7 @@ void FixNVEAwpmd::initial_integrate(int /* vflag */)
     if (mask[i] & groupbit) {
       double dtfm = dtf / mass[type[i]];
       double dtfmr=dtfm;
-      for(int j=0;j<3;j++){
+      for (int j=0;j<3;j++) {
         x[i][j] += dtv*vforce[i][j];
         v[i][j] += dtfm*f[i][j];
       }
@@ -111,7 +109,7 @@ void FixNVEAwpmd::initial_integrate(int /* vflag */)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::final_integrate(){}
+void FixNVEAwpmd::final_integrate() {}
 
 /* ---------------------------------------------------------------------- */
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,8 +29,8 @@ using namespace MathConst;
 
 AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
 {
-  mass_type = 0;
-  molecular = 0;
+  mass_type = PER_ATOM;
+  molecular = Atom::ATOMIC;
 
   atom->sphere_flag = 1;
   atom->radius_flag = atom->rmass_flag = atom->omega_flag =

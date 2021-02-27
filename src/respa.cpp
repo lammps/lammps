@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,8 +46,8 @@ using namespace LAMMPS_NS;
 
 Respa::Respa(LAMMPS *lmp, int narg, char **arg) :
   Integrate(lmp, narg, arg),
-  step(NULL), loop(NULL), hybrid_level(NULL), hybrid_compute(NULL),
-  newton(NULL), fix_respa(NULL)
+  step(nullptr), loop(nullptr), hybrid_level(nullptr), hybrid_compute(nullptr),
+  newton(nullptr), fix_respa(nullptr)
 {
   nhybrid_styles = 0;
   if (narg < 1) error->all(FLERR,"Illegal run_style respa command");
@@ -311,9 +311,10 @@ void Respa::init()
     if (force->pair && force->pair->respa_enable == 0)
       error->all(FLERR,"Pair style does not support rRESPA inner/middle/outer");
 
-  // virial_style = 1 (explicit) since never computed implicitly like Verlet
+  // virial_style = VIRIAL_PAIR (explicit)
+  //   since never computed implicitly with virial_fdotr_compute() like Verlet
 
-  virial_style = 1;
+  virial_style = VIRIAL_PAIR;
 
   // setup lists of computes for global and per-atom PE and pressure
 

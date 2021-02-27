@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,19 +45,19 @@ enum{FORWARD_RHO,FORWARD_AD,FORWARD_AD_PERATOM};
 
 MSM::MSM(LAMMPS *lmp)
   : KSpace(lmp),
-    factors(NULL), delxinv(NULL), delyinv(NULL), delzinv(NULL), nx_msm(NULL),
-    ny_msm(NULL), nz_msm(NULL), nxlo_in(NULL), nylo_in(NULL), nzlo_in(NULL),
-    nxhi_in(NULL), nyhi_in(NULL), nzhi_in(NULL), nxlo_out(NULL), nylo_out(NULL),
-    nzlo_out(NULL), nxhi_out(NULL), nyhi_out(NULL), nzhi_out(NULL), ngrid(NULL),
-    active_flag(NULL), alpha(NULL), betax(NULL), betay(NULL), betaz(NULL),
-    peratom_allocate_flag(0),levels(0),world_levels(NULL),qgrid(NULL),egrid(NULL),
-    v0grid(NULL), v1grid(NULL),v2grid(NULL),v3grid(NULL),v4grid(NULL),v5grid(NULL),
-    g_direct(NULL),v0_direct(NULL),v1_direct(NULL),v2_direct(NULL),v3_direct(NULL),
-    v4_direct(NULL),v5_direct(NULL),g_direct_top(NULL),v0_direct_top(NULL),
-    v1_direct_top(NULL),v2_direct_top(NULL),v3_direct_top(NULL),v4_direct_top(NULL),
-    v5_direct_top(NULL),phi1d(NULL),dphi1d(NULL),procneigh_levels(NULL),gcall(NULL),
-    gc(NULL),gcall_buf1(NULL),gcall_buf2(NULL),gc_buf1(NULL),gc_buf2(NULL),
-    ngc_buf1(NULL),ngc_buf2(NULL),part2grid(NULL),boxlo(NULL)
+    factors(nullptr), delxinv(nullptr), delyinv(nullptr), delzinv(nullptr), nx_msm(nullptr),
+    ny_msm(nullptr), nz_msm(nullptr), nxlo_in(nullptr), nylo_in(nullptr), nzlo_in(nullptr),
+    nxhi_in(nullptr), nyhi_in(nullptr), nzhi_in(nullptr), nxlo_out(nullptr), nylo_out(nullptr),
+    nzlo_out(nullptr), nxhi_out(nullptr), nyhi_out(nullptr), nzhi_out(nullptr), ngrid(nullptr),
+    active_flag(nullptr), alpha(nullptr), betax(nullptr), betay(nullptr), betaz(nullptr),
+    peratom_allocate_flag(0),levels(0),world_levels(nullptr),qgrid(nullptr),egrid(nullptr),
+    v0grid(nullptr), v1grid(nullptr),v2grid(nullptr),v3grid(nullptr),v4grid(nullptr),v5grid(nullptr),
+    g_direct(nullptr),v0_direct(nullptr),v1_direct(nullptr),v2_direct(nullptr),v3_direct(nullptr),
+    v4_direct(nullptr),v5_direct(nullptr),g_direct_top(nullptr),v0_direct_top(nullptr),
+    v1_direct_top(nullptr),v2_direct_top(nullptr),v3_direct_top(nullptr),v4_direct_top(nullptr),
+    v5_direct_top(nullptr),phi1d(nullptr),dphi1d(nullptr),procneigh_levels(nullptr),gcall(nullptr),
+    gc(nullptr),gcall_buf1(nullptr),gcall_buf2(nullptr),gc_buf1(nullptr),gc_buf2(nullptr),
+    ngc_buf1(nullptr),ngc_buf2(nullptr),part2grid(nullptr),boxlo(nullptr)
 {
   msmflag = 1;
 
@@ -67,32 +67,32 @@ MSM::MSM(LAMMPS *lmp)
 
   MPI_Comm_rank(world,&me);
 
-  phi1d = dphi1d = NULL;
+  phi1d = dphi1d = nullptr;
 
   nmax = 0;
-  part2grid = NULL;
+  part2grid = nullptr;
 
-  g_direct = NULL;
-  g_direct_top = NULL;
+  g_direct = nullptr;
+  g_direct_top = nullptr;
 
-  v0_direct = v1_direct = v2_direct = NULL;
-  v3_direct = v4_direct = v5_direct = NULL;
+  v0_direct = v1_direct = v2_direct = nullptr;
+  v3_direct = v4_direct = v5_direct = nullptr;
 
-  v0_direct_top = v1_direct_top = v2_direct_top = NULL;
-  v3_direct_top = v4_direct_top = v5_direct_top = NULL;
+  v0_direct_top = v1_direct_top = v2_direct_top = nullptr;
+  v3_direct_top = v4_direct_top = v5_direct_top = nullptr;
 
-  ngrid = NULL;
+  ngrid = nullptr;
 
-  alpha = betax = betay = betaz = NULL;
-  nx_msm = ny_msm = nz_msm = NULL;
-  nxlo_in = nylo_in = nzlo_in = NULL;
-  nxhi_in = nyhi_in = nzhi_in = NULL;
-  nxlo_out = nylo_out = nzlo_out = NULL;
-  nxhi_out = nyhi_out = nzhi_out = NULL;
-  delxinv = delyinv = delzinv = NULL;
-  qgrid = NULL;
-  egrid = NULL;
-  v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = NULL;
+  alpha = betax = betay = betaz = nullptr;
+  nx_msm = ny_msm = nz_msm = nullptr;
+  nxlo_in = nylo_in = nzlo_in = nullptr;
+  nxhi_in = nyhi_in = nzhi_in = nullptr;
+  nxlo_out = nylo_out = nzlo_out = nullptr;
+  nxhi_out = nyhi_out = nzhi_out = nullptr;
+  delxinv = delyinv = delzinv = nullptr;
+  qgrid = nullptr;
+  egrid = nullptr;
+  v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = nullptr;
 
   peratom_allocate_flag = 0;
   scalar_pressure_flag = 1;
@@ -176,7 +176,7 @@ void MSM::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -206,9 +206,9 @@ void MSM::init()
 
   if (me == 0) {
     std::string mesg = fmt::format("  3d grid size/proc = {}\n", ngrid_max);
-    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8}\n",
                         estimated_error);
-    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+    mesg += fmt::format("  estimated relative force accuracy = {:.8}\n",
                         estimated_error/two_charge_force);
     mesg += fmt::format("  grid = {} {} {}\n",nx_msm[0],ny_msm[0],nz_msm[0]);
     mesg += fmt::format("  order = {}\n",order);
@@ -640,6 +640,7 @@ void MSM::allocate()
     // create commgrid object for rho and electric field communication
 
     if (active_flag[n]) {
+      delete gc[n];
       int **procneigh = procneigh_levels[n];
       gc[n] = new GridComm(lmp,world_levels[n],2,nx_msm[n],ny_msm[n],nz_msm[n],
                            nxlo_in[n],nxhi_in[n],nylo_in[n],nyhi_in[n],
@@ -653,8 +654,10 @@ void MSM::allocate()
       npergrid = 1;
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
-
     } else {
+      delete gc[n];
+      memory->destroy(gc_buf1[n]);
+      memory->destroy(gc_buf2[n]);
       gc[n] = nullptr;
       gc_buf1[n] = gc_buf2[n] = nullptr;
     }
@@ -675,28 +678,6 @@ void MSM::deallocate()
   memory->destroy(gcall_buf2);
   gcall = nullptr;
   gcall_buf1 = gcall_buf2 = nullptr;
-
-  for (int n=0; n<levels; n++) {
-    if (qgrid[n])
-      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-    if (egrid[n])
-      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-
-    if (world_levels)
-      if (world_levels[n] != MPI_COMM_NULL)
-          MPI_Comm_free(&world_levels[n]);
-
-    if (gc) {
-      if (gc[n]) {
-        delete gc[n];
-        memory->destroy(gc_buf1[n]);
-        memory->destroy(gc_buf2[n]);
-        gc[n] = nullptr;
-        gc_buf1[n] = gc_buf2[n] = nullptr;
-      }
-    }
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -825,18 +806,22 @@ void MSM::allocate_levels()
   v5grid = new double***[levels];
 
   for (int n=0; n<levels; n++) {
-    gc[n] = NULL;
+    gc[n] = nullptr;
+
+    gc_buf1[n] = nullptr;
+    gc_buf2[n] = nullptr;
+
     world_levels[n] = MPI_COMM_NULL;
 
-    qgrid[n] = NULL;
-    egrid[n] = NULL;
+    qgrid[n] = nullptr;
+    egrid[n] = nullptr;
 
-    v0grid[n] = NULL;
-    v1grid[n] = NULL;
-    v2grid[n] = NULL;
-    v3grid[n] = NULL;
-    v4grid[n] = NULL;
-    v5grid[n] = NULL;
+    v0grid[n] = nullptr;
+    v1grid[n] = nullptr;
+    v2grid[n] = nullptr;
+    v3grid[n] = nullptr;
+    v4grid[n] = nullptr;
+    v5grid[n] = nullptr;
   }
 }
 
@@ -846,6 +831,30 @@ void MSM::allocate_levels()
 
 void MSM::deallocate_levels()
 {
+  if (world_levels) {
+    for (int n=0; n < levels; ++n) {
+      if (qgrid[n])
+        memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+
+      if (egrid[n])
+        memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+
+      if (gc) {
+        if (gc[n]) {
+          delete gc[n];
+          memory->destroy(gc_buf1[n]);
+          memory->destroy(gc_buf2[n]);
+          gc[n] = nullptr;
+          gc_buf1[n] = gc_buf2[n] = nullptr;
+        }
+      }
+
+      if (world_levels[n] != MPI_COMM_NULL) {
+        MPI_Comm_free(&world_levels[n]);
+      }
+    }
+  }
+
   delete [] ngrid;
   ngrid = nullptr;
 
@@ -1077,7 +1086,7 @@ void MSM::set_grid_global()
 
     if (me == 0)
       error->warning(FLERR,fmt::format("Adjusting Coulombic cutoff for "
-                                       "MSM, new cutoff = {}", cutoff));
+                                       "MSM, new cutoff = {:.8}", cutoff));
   }
 
   if (triclinic == 0) {
@@ -1432,16 +1441,16 @@ void MSM::setup_grid()
    return 1 if yes, 0 if no
 ------------------------------------------------------------------------- */
 
-int MSM::factorable(int n, int &flag, int &levels)
+int MSM::factorable(int n, int &flag, int &nlevels)
 {
   int i;
-  levels = 1;
+  nlevels = 1;
 
   while (n > 1) {
     for (i = 0; i < nfactors; i++) {
       if (n % factors[i] == 0) {
         n /= factors[i];
-        levels++;
+        nlevels++;
         break;
       }
     }
@@ -3433,11 +3442,11 @@ double MSM::memory_usage()
 
   // all GridComm bufs
 
-  bytes += (ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
+  bytes += (double)(ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
 
   for (int n=0; n<levels; n++)
     if (active_flag[n])
-      bytes += (ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
+      bytes += (double)(ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
 
   return bytes;
 }

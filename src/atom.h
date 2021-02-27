@@ -30,6 +30,9 @@ class Atom : protected Pointers {
   char *atom_style;
   AtomVec *avec;
   enum{DOUBLE,INT,BIGINT};
+  enum{GROW=0,RESTART=1,BORDER=2};
+  enum{ATOMIC=0,MOLECULAR=1,TEMPLATE=2};
+  enum{MAP_NONE=0,MAP_ARRAY=1,MAP_HASH=2,MAP_YES=3};
 
   // atom counts
 
@@ -55,7 +58,7 @@ class Atom : protected Pointers {
 
   int firstgroup;               // store atoms in this group first, -1 if unset
   int nfirst;                   // # of atoms in first group on this proc
-  char *firstgroupname;         // group-ID to store first, NULL if unset
+  char *firstgroupname;         // group-ID to store first, null pointer if unset
 
   // --------------------------------------------------------------------
   // 1st customization section: customize by adding new per-atom variable
@@ -331,7 +334,8 @@ class Atom : protected Pointers {
 
   virtual void sync_modify(ExecutionSpace, unsigned int, unsigned int) {}
 
-  void *extract(char *);
+  void *extract(const char *);
+  int extract_datatype(const char *);
 
   inline int* get_map_array() {return map_array;};
   inline int get_map_size() {return map_tag_max+1;};
@@ -341,7 +345,7 @@ class Atom : protected Pointers {
   // NOTE: placeholder method until KOKKOS/AtomVec is refactored
   int memcheck(const char *) {return 1;}
 
-  bigint memory_usage();
+  double memory_usage();
 
   // functions for global to local ID mapping
   // map lookup function inlined for efficiency

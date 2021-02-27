@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -32,14 +32,13 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  typelo(NULL), typehi(NULL), cvec(NULL), carray(NULL),
-  group2(NULL), id_orientorder(NULL), normv(NULL)
+  typelo(nullptr), typehi(nullptr), cvec(nullptr), carray(nullptr),
+  group2(nullptr), id_orientorder(nullptr), normv(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute coord/atom command");
 
@@ -54,9 +53,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
     int iarg = 5;
     if ((narg > 6) && (strcmp(arg[5],"group") == 0)) {
-      int len = strlen(arg[6])+1;
-      group2 = new char[len];
-      strcpy(group2,arg[6]);
+      group2 = utils::strdup(arg[6]);
       iarg += 2;
       jgroup = group->find(group2);
       if (jgroup == -1)
@@ -147,7 +144,7 @@ void ComputeCoordAtom::init()
                  "option in compute orientorder/atom");
   }
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute coord/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,
@@ -198,9 +195,9 @@ void ComputeCoordAtom::compute_peratom()
   }
 
   if (cstyle == ORIENT) {
-    if (!(c_orientorder->invoked_flag & INVOKED_PERATOM)) {
+    if (!(c_orientorder->invoked_flag & Compute::INVOKED_PERATOM)) {
       c_orientorder->compute_peratom();
-      c_orientorder->invoked_flag |= INVOKED_PERATOM;
+      c_orientorder->invoked_flag |= Compute::INVOKED_PERATOM;
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;
@@ -356,6 +353,6 @@ void ComputeCoordAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeCoordAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
+  double bytes = (double)ncol*nmax * sizeof(double);
   return bytes;
 }

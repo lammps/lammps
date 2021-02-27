@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,7 +21,6 @@
 #include <cmath>
 #include <cstring>
 
-
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -35,8 +34,6 @@
 #include "kspace.h"
 #include "math_const.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -44,28 +41,29 @@ using namespace MathConst;
 /* ----------------------------------------------------------------------
    read parameters
 ------------------------------------------------------------------------- */
-FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+
+FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qbmsst command");
 
-  if ( strcmp(arg[3],"x") == 0 ) {
+  if (strcmp(arg[3],"x") == 0) {
     direction = 0;
     box_change |= BOX_CHANGE_X;
-  } else if ( strcmp(arg[3],"y") == 0 ) {
+  } else if (strcmp(arg[3],"y") == 0) {
     direction = 1;
     box_change |= BOX_CHANGE_Y;
-  } else if ( strcmp(arg[3],"z") == 0 ) {
+  } else if (strcmp(arg[3],"z") == 0) {
     direction = 2;
     box_change |= BOX_CHANGE_Z;
   } else {
     error->all(FLERR,"Illegal fix qbmsst command");
   }
   velocity = atof(arg[4]);
-  if ( velocity < 0 )
+  if (velocity < 0)
     error->all(FLERR,"Illegal fix qbmsst command");
 
   // default parameters
+
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
@@ -75,6 +73,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 5;
+  ecouple_flag = 1;
 
   qmass = 1.0e1;
   mu = 0.0;
@@ -96,6 +95,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   qtb_set = 0;
 
   // reading parameters
+
   int iarg = 5;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"q") == 0) {
@@ -246,19 +246,19 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;
 
   // allocate qbmsst
-  temperature = NULL;
-  pressure = NULL;
-  pe = NULL;
-  old_velocity = NULL;
-  rfix = NULL;
-  gfactor = NULL;
-  random = NULL;
-  omega_H = NULL;
-  time_H = NULL;
-  random_array_0 = NULL;
-  random_array_1 = NULL;
-  random_array_2 = NULL;
-  fran = NULL;
+  temperature = nullptr;
+  pressure = nullptr;
+  pe = nullptr;
+  old_velocity = nullptr;
+  rfix = nullptr;
+  gfactor = nullptr;
+  random = nullptr;
+  omega_H = nullptr;
+  time_H = nullptr;
+  random_array_0 = nullptr;
+  random_array_1 = nullptr;
+  random_array_2 = nullptr;
+  fran = nullptr;
 
   // initialize Marsagxlia RNG with processor-unique seed
   random = new RanMars(lmp,seed + comm->me);
@@ -268,7 +268,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate random-arrays and fran
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qbmsst:omega_H");
@@ -282,6 +282,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) :
 /* ----------------------------------------------------------------------
    release memories
 ------------------------------------------------------------------------- */
+
 FixQBMSST::~FixQBMSST()
 {
   delete [] rfix;
@@ -303,24 +304,25 @@ FixQBMSST::~FixQBMSST()
   memory->destroy(random_array_2);
   memory->destroy(omega_H);
   memory->destroy(time_H);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 }
 
 /* ----------------------------------------------------------------------
    setmask
 ------------------------------------------------------------------------- */
+
 int FixQBMSST::setmask()
 {
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
 /* ----------------------------------------------------------------------
    fix initiation
 ------------------------------------------------------------------------- */
+
 void FixQBMSST::init()
 {
   // copy parameters from other classes
@@ -331,7 +333,7 @@ void FixQBMSST::init()
   boltz = force->boltz;
   nktv2p = force->nktv2p;
   mvv2e = force->mvv2e;
-  if (atom->mass == NULL)
+  if (atom->mass == nullptr)
     error->all(FLERR,"Cannot use fix qbmsst without per-type mass defined");
 
   // set compute ptrs
@@ -431,34 +433,34 @@ void FixQBMSST::setup(int /*vflag*/)
   couple();
   velocity_sum = compute_vsum();
 
-  if ( v0_set == 0 ) {
+  if (v0_set == 0) {
     v0 = compute_vol();
     v0_set = 1;
     if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix QBMSST v0 = {:12.5e}\n", v0));
   }
 
-  if ( p0_set == 0 ) {
+  if (p0_set == 0) {
     p0 = p_current[direction];
     p0_set = 1;
 
-    if ( comm->me == 0 )
+    if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix QBMSST p0 = {:12.5e}\n", p0));
   }
 
-  if ( e0_set == 0 ) {
+  if (e0_set == 0) {
     e0 = compute_etotal();
     e0_set = 1;
     old_eavg = e0;
 
-    if ( comm->me == 0 )
+    if (comm->me == 0)
       utils::logmesg(lmp,fmt::format("Fix QBMSST e0 = to be {:12.5e}\n",e0));
   }
 
   temperature->compute_vector();
   double *ke_tensor = temperature->vector;
   double ke_temp = ke_tensor[0]+ke_tensor[1]+ke_tensor[2];
-  if (ke_temp > 0.0 && tscale > 0.0 ) {
+  if (ke_temp > 0.0 && tscale > 0.0) {
 
     // transfer energy from atom velocities to cell volume motion
     // to bias initial compression
@@ -477,7 +479,7 @@ void FixQBMSST::setup(int /*vflag*/)
                                  "factor of {:12.5e}\n",fac2,tscale));
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
-        for (int k = 0; k < 3; k++ ) {
+        for (int k = 0; k < 3; k++) {
           v[i][k]*=sqrt_initial_temperature_scaling;
         }
       }
@@ -526,7 +528,7 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
       // load omega_H with calculated spectrum at a specific temperature (corrected spectrum), omega_H is the Fourier transformation of time_H
       for (int k = 0; k < 2*N_f; k++) {
         double f_k=(k-N_f)/(2*N_f*h_timestep);  //\omega_k=\frac{2\pi}{\delta{}h}\frac{k}{2N_f} for k from -N_f to N_f-1
-        if(k == N_f) {
+        if (k == N_f) {
           omega_H[k]=sqrt(force->boltz * t_current);
         } else {
           double energy_k= force->hplanck * fabs(f_k);
@@ -596,12 +598,12 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
   double B = total_mass * mu / ( qmass * vol );
 
   // prevent blow-up of the volume.
-  if ( vol > v0 && A > 0.0 ) {
+  if (vol > v0 && A > 0.0) {
     A = -A;
   }
 
   // use taylor expansion to avoid singularity at B == 0.
-  if ( B * dthalf > 1.0e-06 ) {
+  if (B * dthalf > 1.0e-06) {
     omega[sd] = ( omega[sd] + A * ( exp(B * dthalf) - 1.0 ) / B )
       * exp(-B * dthalf);
   } else {
@@ -614,15 +616,15 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
   velocity_sum = compute_vsum();
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      for ( k = 0; k < 3; k++ ) {
+      for (k = 0; k < 3; k++) {
         double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
         double D = mu * omega[sd] * omega[sd] /
           (velocity_sum * mass[type[i]] * vol ) - fric_coef;
         old_velocity[i][k] = v[i][k];
-        if ( k == direction ) {
+        if (k == direction) {
           D = D - 2.0 * omega[sd] / vol;
         }
-        if ( fabs(dthalf * D) > 1.0e-06 ) {
+        if (fabs(dthalf * D) > 1.0e-06) {
           double expd = exp(D * dthalf);
           v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
         } else {
@@ -638,7 +640,7 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
   // reset the velocities.
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      for ( k = 0; k < 3; k++ ) {
+      for (k = 0; k < 3; k++) {
         v[i][k] = old_velocity[i][k];
       }
     }
@@ -647,15 +649,15 @@ void FixQBMSST::initial_integrate(int /*vflag*/)
   // propagate velocities 1/2 step using the new velocity sum.
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      for ( k = 0; k < 3; k++ ) {
+      for (k = 0; k < 3; k++) {
         double C = (f[i][k] + fran[i][k])* force->ftm2v / mass[type[i]];//  this term now has a random force part
         double D = mu * omega[sd] * omega[sd] /
           (velocity_sum * mass[type[i]] * vol ) - fric_coef;
 
-        if ( k == direction ) {
+        if (k == direction) {
           D = D - 2.0 * omega[sd] / vol;
         }
-        if ( fabs(dthalf * D) > 1.0e-06 ) {
+        if (fabs(dthalf * D) > 1.0e-06) {
           double expd = exp(D * dthalf);
           v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
         } else {
@@ -715,15 +717,15 @@ void FixQBMSST::final_integrate()
 
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      for ( int k = 0; k < 3; k++ ) {
+      for (int k = 0; k < 3; k++) {
         double C = (f[i][k] + fran[i][k]) * force->ftm2v / mass[type[i]];//  this term now has a random force part
         double D = mu * omega[sd] * omega[sd] /
           (velocity_sum * mass[type[i]] * vol ) - fric_coef;
 
-        if ( k == direction ) {
+        if (k == direction) {
           D = D - 2.0 * omega[sd] / vol;
         }
-        if ( fabs(dthalf * D) > 1.0e-06 ) {
+        if (fabs(dthalf * D) > 1.0e-06) {
           double expd = exp(D * dthalf);
           v[i][k] = expd * ( C + D * v[i][k] - C / expd ) / D;
         } else {
@@ -753,13 +755,13 @@ void FixQBMSST::final_integrate()
 
   // prevent blow-up of the volume.
 
-  if ( vol > v0 && A > 0.0 ) {
+  if (vol > v0 && A > 0.0) {
     A = -A;
   }
 
   // use taylor expansion to avoid singularity at B == 0.
 
-  if ( B * dthalf > 1.0e-06 ) {
+  if (B * dthalf > 1.0e-06) {
     omega[sd] = ( omega[sd] + A *
                   ( exp(B * dthalf) - 1.0 ) / B ) * exp(-B * dthalf);
   } else {
@@ -814,7 +816,7 @@ void FixQBMSST::remap(int flag)
   // reset global and local box to new size/shape
 
   for (i = 0; i < 3; i++) {
-    if ( direction == i ) {
+    if (direction == i) {
       oldlo = domain->boxlo[i];
       oldhi = domain->boxhi[i];
       ctr = 0.5 * (oldlo + oldhi);
@@ -929,6 +931,7 @@ int FixQBMSST::modify_param(int narg, char **arg)
 /* ----------------------------------------------------------------------
    compute scalar
 ------------------------------------------------------------------------- */
+
 double FixQBMSST::compute_scalar()
 {
   // compute new pressure and volume.
@@ -1045,7 +1048,6 @@ double FixQBMSST::compute_etotal()
 {
   double epot,ekin,etot;
   epot = pe->compute_scalar();
-  if (thermo_energy) epot -= compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * temperature->dof * force->boltz;
   etot = epot+ekin;
@@ -1057,12 +1059,12 @@ double FixQBMSST::compute_etotal()
 ------------------------------------------------------------------------- */
 double FixQBMSST::compute_egrand()
 {
-  double epot,ekin,etot;
+  double epot,ekin,ecouple,etot;
   epot = pe->compute_scalar();
-  if (!thermo_energy) epot += compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * temperature->dof * force->boltz;
-  etot = epot+ekin;
+  ecouple = compute_scalar();
+  etot = epot + ekin + ecouple;
   return etot;
 }
 
@@ -1084,7 +1086,7 @@ double FixQBMSST::compute_vol()
 ------------------------------------------------------------------------- */
 void FixQBMSST::check_alloc(int n)
 {
-  if ( atoms_allocated < n ) {
+  if (atoms_allocated < n) {
     memory->destroy(old_velocity);
     memory->create(old_velocity,n,3,"qbmsst:old_velocity");
     atoms_allocated = n;
@@ -1122,10 +1124,10 @@ double FixQBMSST::memory_usage()
 {
   double bytes = 0.0;
   // random_arrays memory usage
-  bytes += (atom->nmax* 6*N_f * sizeof(double));
+  bytes += (double)(atom->nmax* 6*N_f * sizeof(double));
   // fran memory usage
-  bytes += (atom->nmax* 3 * sizeof(double));
-  bytes += (4*N_f * sizeof(double));
+  bytes += (double)(atom->nmax* 3 * sizeof(double));
+  bytes += (double)(4*N_f * sizeof(double));
   return bytes;
 }
 

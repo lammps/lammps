@@ -20,8 +20,8 @@ Creating a LAMMPS instance can be done by using C++ code directly or
 through a C-style interface library to LAMMPS that is provided in the
 files ``src/library.cpp`` and ``library.h``.  This
 :ref:`C language API <lammps_c_api>`, can be used from C and C++,
-and is also the basis for the :doc:`Python <pg_python>` and
-:doc:`Fortran <pg_fortran>` interfaces or wrappers included in the
+and is also the basis for the :doc:`Python <Python_module>` and
+:doc:`Fortran <Fortran>` interfaces or wrappers included in the
 LAMMPS source code.
 
 The ``examples/COUPLE`` and ``python/examples`` directories contain some
@@ -32,6 +32,6 @@ concurrently), grab data from LAMMPS, change it, and send it back into
 LAMMPS.
 
 A detailed documentation of the available APIs and examples of how to
-use them can be found in the :doc:`Programmer Documentation
-<pg_library>` section of this manual.
+use them can be found in the :ref:`Programmer Guide <programmer_documentation>`
+section of this manual.
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,7 +37,7 @@ using namespace FixConst;
 
 FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xd(NULL), rotflag(0), random_num(NULL)
+  xd(nullptr), rotflag(0), random_num(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix tfmc command");
 
@@ -56,6 +56,7 @@ FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
 
   comflag = 0;
   rotflag = 0;
+  xflag = yflag = zflag = 0;
 
   int iarg = 6;
   while (iarg < narg) {
@@ -83,7 +84,7 @@ FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
     comflag = 0;
 
   if (rotflag) {
-    xd = NULL;
+    xd = nullptr;
     nmax = -1;
   }
 
@@ -97,7 +98,7 @@ FixTFMC::~FixTFMC()
   delete random_num;
   if (rotflag) {
     memory->destroy(xd);
-    xd = NULL;
+    xd = nullptr;
     nmax = -1;
   }
 }

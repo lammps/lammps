@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +34,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-idregion(NULL), idvar(NULL), idprop(NULL)
+idregion(nullptr), idvar(nullptr), idprop(nullptr)
 {
   // dgroupbit = bitmask of dynamic group
   // group ID is last part of fix ID
@@ -210,9 +210,9 @@ void FixGroup::set_group()
   //   operate differently due to invocation this early in timestep
   // e.g. perform ghost comm update due to atoms having just moved
 
-  double *var = NULL;
-  int *ivector = NULL;
-  double *dvector = NULL;
+  double *var = nullptr;
+  int *ivector = nullptr;
+  double *dvector = nullptr;
 
   if (varflag) {
     update->post_integrate = 1;
@@ -265,5 +265,5 @@ void *FixGroup::extract(const char *str, int &/*unused*/)
   if (strcmp(str,"property") == 0 && propflag) return (void *) idprop;
   if (strcmp(str,"variable") == 0 && varflag) return (void *) idvar;
   if (strcmp(str,"region") == 0 && regionflag) return (void *) idregion;
-  return NULL;
+  return nullptr;
 }

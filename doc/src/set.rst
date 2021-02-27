@@ -13,7 +13,16 @@ Syntax
 * style = *atom* or *type* or *mol* or *group* or *region*
 * ID = atom ID range or type range or mol ID range or group ID or region ID
 * one or more keyword/value pairs may be appended
-* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol* or *x* or *y* or *z* or           *charge* or *dipole* or *dipole/random* or *quat* or           *spin* or *spin/random* or *quat* or           *quat/random* or *diameter* or *shape* or           *length* or *tri* or *theta* or *theta/random* or           *angmom* or *omega* or           *mass* or *density* or *density/disc* or *volume* or *image* or           *bond* or *angle* or *dihedral* or *improper* or           *sph/e* or *sph/cv* or *sph/rho* or           *smd/contact/radius* or *smd/mass/density* or *dpd/theta* or           *edpd/temp* or *edpd/cv* or *cc* or *i_name* or *d_name*
+* keyword = *type* or *type/fraction* or *type/ratio* or *type/subset* or *mol*
+  or *x* or *y* or *z* or *vx* or *vy* or *vz*
+  or *charge* or *dipole* or *dipole/random* or *spin* or *spin/random*
+  or *quat* *quat/random* or *diameter* or *shape* or *length* or *tri*
+  or *theta* or *theta/random* or *angmom* or *omega* or *mass*
+  or *density* or *density/disc* or *volume* or *image*
+  or *bond* or *angle* or *dihedral* or *improper*
+  or *sph/e* or *sph/cv* or *sph/rho* or *smd/contact/radius* or *smd/mass/density*
+  or *dpd/theta* or *edpd/temp* or *edpd/cv* or *cc*
+  or *i_name* or *d_name*
 
   .. parsed-literal::
 

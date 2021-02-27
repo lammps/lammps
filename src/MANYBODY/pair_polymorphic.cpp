@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -33,6 +34,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -44,6 +46,8 @@ PairPolymorphic::PairPolymorphic(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   nelements = 0;
   elements = nullptr;
@@ -479,7 +483,7 @@ void PairPolymorphic::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -612,7 +616,7 @@ void PairPolymorphic::read_file(char *file)
 
         if ((ng == 0) || (nr == 0) || (nx == 0))
           error->one(FLERR,"Error reading potential file header");
-      } catch (TokenizerException & e) {
+      } catch (TokenizerException &e) {
         error->one(FLERR,"Potential file incompatible with this pair style version");
       }
 
@@ -631,7 +635,7 @@ void PairPolymorphic::read_file(char *file)
         p.cutsq = p.cut*p.cut;
         p.xi = values.next_double();
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }
@@ -644,7 +648,7 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(&npair, 1, MPI_INT, 0, world);
   MPI_Bcast(&ntriple, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     delete [] match;
     match = new int[nelements];
     delete [] pairParameters;
@@ -835,10 +839,10 @@ void PairPolymorphic::attractive(PairParameters *p, PairParameters *q,
   double rijinv,rikinv;
 
   rijinv = 1.0/rij;
-  vec3_scale(rijinv,delrij,rij_hat);
+  scale3(rijinv,delrij,rij_hat);
 
   rikinv = 1.0/rik;
-  vec3_scale(rikinv,delrik,rik_hat);
+  scale3(rikinv,delrik,rik_hat);
 
   ters_zetaterm_d(prefactor,rij_hat,rij,rik_hat,rik,fi,fj,fk,p,q,trip);
 }
@@ -855,7 +859,7 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
   double gijk,gijk_d,ex_delr,ex_delr_d,fc,dfc,cos_theta;
   double dcosdri[3],dcosdrj[3],dcosdrk[3];
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
 
   (q->W)->value(rik,fc,1,dfc,1);
   (trip->P)->value(rij-(p->xi)*rik,ex_delr,1,ex_delr_d,1);
@@ -865,24 +869,24 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
 
   // compute the derivative wrt Ri
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d*(p->xi),rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
-  vec3_scale(prefactor,dri,dri);
+  scale3(-dfc*gijk*ex_delr,rik_hat,dri);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdri,dri,dri);
+  scaleadd3(fc*gijk*ex_delr_d*(p->xi),rik_hat,dri,dri);
+  scaleadd3(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  scale3(prefactor,dri);
 
   // compute the derivative wrt Rj
 
-  vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
-  vec3_scale(prefactor,drj,drj);
+  scale3(fc*gijk_d*ex_delr,dcosdrj,drj);
+  scaleadd3(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  scale3(prefactor,drj);
 
   // compute the derivative wrt Rk
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d*(p->xi),rik_hat,drk,drk);
-  vec3_scale(prefactor,drk,drk);
+  scale3(dfc*gijk*ex_delr,rik_hat,drk);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
+  scaleadd3(-fc*gijk*ex_delr_d*(p->xi),rik_hat,drk,drk);
+  scale3(prefactor,drk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -893,14 +897,14 @@ void PairPolymorphic::costheta_d(double *rij_hat, double rij,
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 
-  double cos_theta = vec3_dot(rij_hat,rik_hat);
+  double cos_theta = dot3(rij_hat,rik_hat);
 
-  vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
-  vec3_scale(1.0/rij,drj,drj);
-  vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
-  vec3_scale(1.0/rik,drk,drk);
-  vec3_add(drj,drk,dri);
-  vec3_scale(-1.0,dri,dri);
+  scaleadd3(-cos_theta,rij_hat,rik_hat,drj);
+  scale3(1.0/rij,drj);
+  scaleadd3(-cos_theta,rik_hat,rij_hat,drk);
+  scale3(1.0/rik,drk);
+  add3(drj,drk,dri);
+  scale3(-1.0,dri);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -909,7 +913,7 @@ void PairPolymorphic::write_tables(int npts)
 {
   char tag[6] = "";
   if (comm->me != 0) sprintf(tag,"%d",comm->me);
-  FILE* fp =  NULL;
+  FILE* fp =  nullptr;
   double  xmin,xmax,x,uf,vf,wf,pf,gf,ff,ufp,vfp,wfp,pfp,gfp,ffp;
   char line[MAXLINE];
   for (int i = 0; i < nelements; i++) {

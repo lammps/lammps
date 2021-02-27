@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,11 +17,14 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_cfg.h"
-#include <cstring>
+
+#include "arg_info.h"
 #include "atom.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -32,7 +35,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg), auxname(NULL)
+  DumpCustom(lmp, narg, arg), auxname(nullptr)
 {
   multifile_override = 0;
 
@@ -63,22 +66,19 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
   // convert 'X_ID[m]' (X=c,f,v) to 'X_ID_m'
 
   if (nfield > 5) auxname = new char*[nfield];
-  else auxname = NULL;
+  else auxname = nullptr;
 
   int i = 0;
   for (int iarg = 5; iarg < nfield; iarg++, i++) {
-    if ((strncmp(earg[iarg],"c_",2) == 0 ||
-         strncmp(earg[iarg],"f_",2) == 0 ||
-         strncmp(earg[iarg],"v_",2) == 0) && strchr(earg[iarg],'[')) {
-      char *ptr = strchr(earg[iarg],'[');
-      char *ptr2 = strchr(ptr,']');
-      auxname[i] = new char[strlen(earg[iarg])];
-      *ptr = '\0';
-      *ptr2 = '\0';
-      strcpy(auxname[i],earg[iarg]);
-      strcat(auxname[i],"_");
-      strcat(auxname[i],ptr+1);
+    ArgInfo argi(earg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
+                 |ArgInfo::DNAME|ArgInfo::INAME);
 
+    if (argi.get_dim() == 1) {
+      std::string newarg(std::to_string(earg[iarg][0]));
+      newarg += std::string("_") + argi.get_name();
+      newarg += std::string("_") + std::to_string(argi.get_index1());
+      auxname[i] = new char[newarg.size()+1];
+      strcpy(auxname[i],newarg.c_str());
     } else {
       auxname[i] = new char[strlen(earg[iarg]) + 1];
       strcpy(auxname[i],earg[iarg]);
@@ -203,7 +203,7 @@ int DumpCFG::convert_string(int n, double *mybuf)
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
-        } else if (j >= 5 ) {
+        } else if (j >= 5) {
           if (vtype[j] == Dump::INT)
             offset +=
               sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
@@ -279,7 +279,7 @@ void DumpCFG::write_lines(int n, double *mybuf)
         } else if (j >= 2 && j <= 4) {
           unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
           fprintf(fp,vformat[j],unwrap_coord);
-        } else if (j >= 5 ) {
+        } else if (j >= 5) {
           if (vtype[j] == Dump::INT)
             fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,9 +41,10 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
 
   // parse args
 
@@ -51,7 +52,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   fldflag = 0;
   int pbcflag = 0;
 
-  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = NULL;
+  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -79,20 +80,16 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         int side = wallwhich[nwall] % 2;
         if (side == 0) coord0[nwall] = domain->boxlo[dim];
         else coord0[nwall] = domain->boxhi[dim];
-      } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      } else if (utils::strmatch(arg[iarg+1],"^v_")) {
         xstyle[nwall] = VARIABLE;
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        xstr[nwall] = new char[n];
-        strcpy(xstr[nwall],&arg[iarg+1][2]);
+        xstr[nwall] = utils::strdup(arg[iarg+1]+2);
       } else {
         xstyle[nwall] = CONSTANT;
         coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        estr[nwall] = new char[n];
-        strcpy(estr[nwall],&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        estr[nwall] = utils::strdup(arg[iarg+2]+2);
         estyle[nwall] = VARIABLE;
       } else {
         epsilon[nwall] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -100,10 +97,8 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       }
 
       if (utils::strmatch(style,"^wall/morse")) {
-        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-          int n = strlen(&arg[iarg+3][2]) + 1;
-          astr[nwall] = new char[n];
-          strcpy(astr[nwall],&arg[iarg+3][2]);
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
+          astr[nwall] = utils::strdup(arg[iarg+3]+2);
           astyle[nwall] = VARIABLE;
         } else {
           alpha[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -112,10 +107,8 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         ++iarg;
       }
 
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        sstr[nwall] = new char[n];
-        strcpy(sstr[nwall],&arg[iarg+3][2]);
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
+        sstr[nwall] = utils::strdup(arg[iarg+3]+2);
         sstyle[nwall] = VARIABLE;
       } else {
         sigma[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -233,7 +226,6 @@ int FixWall::setmask()
   if (fldflag) mask |= PRE_FORCE;
   else mask |= POST_FORCE;
 
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -310,12 +302,12 @@ void FixWall::pre_force(int vflag)
 
 void FixWall::post_force(int vflag)
 {
+  // virial setup
 
-  // energy and virial setup
+  v_init(vflag);
 
-  eflag = 0;
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  // energy intialize
+
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
   // coord = current position of wall

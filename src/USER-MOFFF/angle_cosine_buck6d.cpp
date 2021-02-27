@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -72,7 +72,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
 
   // insure pair->ev_tally() will use 1-3 virial contribution
 
-  if (vflag_global == 2)
+  if (vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **x = atom->x;
@@ -281,7 +281,7 @@ void AngleCosineBuck6d::init_style()
 {
   // set local ptrs to buck6d 13 arrays setup by Pair
   int itmp;
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Angle cosine/buck6d is incompatible with Pair style");
   cut_ljsq = (double **) force->pair->extract("cut_ljsq",itmp);
   buck6d1 = (double **) force->pair->extract("buck6d1",itmp);
@@ -332,9 +332,9 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&th0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&th0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);

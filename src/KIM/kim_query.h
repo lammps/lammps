@@ -13,7 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
+                         Ryan S. Elliott (UMN),
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -54,12 +55,6 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_query,KimQuery)
-
-#else
-
 #ifndef LMP_KIM_QUERY_H
 #define LMP_KIM_QUERY_H
 
@@ -71,14 +66,10 @@ class KimQuery : protected Pointers {
  public:
   KimQuery(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
- private:
-  void echo_var_assign(const std::string &name, const std::string &value)
-  const;
 };
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -48,7 +48,7 @@ PairBrownianOMP::PairBrownianOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
-  random_thr = NULL;
+  random_thr = nullptr;
   nthreads = 0;
 }
 
@@ -61,7 +61,7 @@ PairBrownianOMP::~PairBrownianOMP()
       delete random_thr[i];
 
     delete[] random_thr;
-    random_thr = NULL;
+    random_thr = nullptr;
   }
 }
 
@@ -79,20 +79,20 @@ void PairBrownianOMP::compute(int eflag, int vflag)
 
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
       if (flagdeform && !flagwall)
         for (int j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
         double wallhi[3], walllo[3];
-        for (int j = 0; j < 3; j++){
+        for (int j = 0; j < 3; j++) {
           wallhi[j] = domain->prd[j];
           walllo[j] = 0;
         }
-        for (int m = 0; m < wallfix->nwall; m++){
+        for (int m = 0; m < wallfix->nwall; m++) {
           int dim = wallfix->wallwhich[m] / 2;
           int side = wallfix->wallwhich[m] % 2;
-          if (wallfix->xstyle[m] == VARIABLE){
+          if (wallfix->xstyle[m] == VARIABLE) {
             wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
           }
           else wallcoord = wallfix->coord0[m];
@@ -127,7 +127,7 @@ void PairBrownianOMP::compute(int eflag, int vflag)
     nthreads = comm->nthreads;
     random_thr = new RanMars*[nthreads];
     for (int i=1; i < nthreads; ++i)
-      random_thr[i] = NULL;
+      random_thr[i] = nullptr;
 
     // to ensure full compatibility with the serial Brownian style
     // we use is random number generator instance for thread 0
@@ -143,11 +143,11 @@ void PairBrownianOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, NULL, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.
-    if ((tid > 0) && (random_thr[tid] == NULL))
+    if ((tid > 0) && (random_thr[tid] == nullptr))
       random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me
                                     + comm->nprocs*tid);
 
@@ -406,8 +406,8 @@ double PairBrownianOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairBrownian::memory_usage();
-  bytes += nthreads * sizeof(RanMars*);
-  bytes += nthreads * sizeof(RanMars);
+  bytes += (double)nthreads * sizeof(RanMars*);
+  bytes += (double)nthreads * sizeof(RanMars);
 
   return bytes;
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -58,7 +58,7 @@ FixReaxCSpeciesKokkos::~FixReaxCSpeciesKokkos()
 void FixReaxCSpeciesKokkos::init()
 {
   Pair* pair_kk = force->pair_match("reax/c/kk",0);
-  if (pair_kk == NULL) error->all(FLERR,"Cannot use fix reax/c/species/kk without "
+  if (pair_kk == nullptr) error->all(FLERR,"Cannot use fix reax/c/species/kk without "
                   "pair_style reax/c/kk");
 
   FixReaxCSpecies::init();

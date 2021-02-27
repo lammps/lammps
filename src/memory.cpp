@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,7 +45,7 @@ Memory::Memory(LAMMPS *lmp) : Pointers(lmp) {}
 
 void *Memory::smalloc(bigint nbytes, const char *name)
 {
-  if (nbytes == 0) return NULL;
+  if (nbytes == 0) return nullptr;
 
 #if defined(LAMMPS_MEMALIGN)
   void *ptr;
@@ -54,13 +54,13 @@ void *Memory::smalloc(bigint nbytes, const char *name)
   ptr = scalable_aligned_malloc(nbytes, LAMMPS_MEMALIGN);
 #else
   int retval = posix_memalign(&ptr, LAMMPS_MEMALIGN, nbytes);
-  if (retval) ptr = NULL;
+  if (retval) ptr = nullptr;
 #endif
 
 #else
   void *ptr = malloc(nbytes);
 #endif
-  if (ptr == NULL)
+  if (ptr == nullptr)
     error->one(FLERR,fmt::format("Failed to allocate {} bytes for array {}",
                                  nbytes,name));
   return ptr;
@@ -74,7 +74,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 {
   if (nbytes == 0) {
     destroy(ptr);
-    return NULL;
+    return nullptr;
   }
 
 #if defined(LMP_USE_TBB_ALLOCATOR)
@@ -99,7 +99,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 #else
   ptr = realloc(ptr,nbytes);
 #endif
-  if (ptr == NULL)
+  if (ptr == nullptr)
     error->one(FLERR,fmt::format("Failed to reallocate {} bytes for array {}",
                                  nbytes,name));
   return ptr;
@@ -111,7 +111,7 @@ void *Memory::srealloc(void *ptr, bigint nbytes, const char *name)
 
 void Memory::sfree(void *ptr)
 {
-  if (ptr == NULL) return;
+  if (ptr == nullptr) return;
   #if defined(LMP_USE_TBB_ALLOCATOR)
   scalable_aligned_free(ptr);
   #else

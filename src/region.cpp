@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,8 +30,8 @@ using namespace LAMMPS_NS;
 
 Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL), contact(NULL), list(NULL),
-  xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
+  id(nullptr), style(nullptr), contact(nullptr), list(nullptr),
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), tstr(nullptr)
 {
   int n = strlen(arg[0]) + 1;
   id = new char[n];
@@ -42,13 +42,13 @@ Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   strcpy(style,arg[1]);
 
   varshape = 0;
-  xstr = ystr = zstr = tstr = NULL;
+  xstr = ystr = zstr = tstr = nullptr;
   dx = dy = dz = 0.0;
 
   size_restart = 5;
   reset_vel();
   copymode = 0;
-  list = NULL;
+  list = nullptr;
   nregion = 1;
 }
 
@@ -496,7 +496,7 @@ void Region::set_velocity()
     prev[3] = theta;
   }
 
-  if (varshape){
+  if (varshape) {
     set_velocity_shape();
   }
 }
@@ -514,12 +514,12 @@ void Region::velocity_contact(double *vwall, double *x, int ic)
 
   vwall[0] = vwall[1] = vwall[2] = 0.0;
 
-  if (moveflag){
+  if (moveflag) {
     vwall[0] = v[0];
     vwall[1] = v[1];
     vwall[2] = v[2];
   }
-  if (rotateflag){
+  if (rotateflag) {
     xc[0] = x[0] - contact[ic].delx;
     xc[1] = x[1] - contact[ic].dely;
     xc[2] = x[2] - contact[ic].delz;

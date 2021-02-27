@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,6 +21,7 @@
 #include "atom_vec_body.h"
 #include "error.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "my_pool_chunk.h"
 
@@ -122,7 +123,7 @@ int BodyRoundedPolyhedron::nfaces(AtomVecBody::Bonus *bonus)
 double *BodyRoundedPolyhedron::faces(AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
-  if (nvertices == 1 || nvertices == 2) return NULL;
+  if (nvertices == 1 || nvertices == 2) return nullptr;
   return bonus->dvalue+3*nsub(bonus)+2*nedges(bonus);
 }
 
@@ -242,7 +243,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
-  int ierror = MathExtra::jacobi(tensor,inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
   if (ierror) error->one(FLERR,
                          "Insufficient Jacobi rotations for body nparticle");
 
@@ -373,7 +374,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
 /* ----------------------------------------------------------------------
    pack data struct for one body into buf for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is a null pointer, just return buffer size
 ------------------------------------------------------------------------- */
 
 int BodyRoundedPolyhedron::pack_data_body(tagint atomID, int ibonus, double *buf)

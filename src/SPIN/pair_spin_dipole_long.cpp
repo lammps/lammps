@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   www.cs.sandia.gov/~sjplimp/lammps.html
+   https://lammps.sandia.gov/
    Steve Plimpton, sjplimp@sandia.gov, Sandia National Laboratories
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +49,7 @@ PairSpinDipoleLong::PairSpinDipoleLong(LAMMPS *lmp) : PairSpin(lmp)
 
   hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)
   mub = 9.274e-4;                               // in A.Ang^2
-  mu_0 = 785.15;                                // in eV/Ang/A^2
+  mu_0 = 784.15;                                // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
   //mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);   // in eV
   mub2mu0hbinv = mub2mu0 / hbar;                // in rad.THz
@@ -133,7 +133,7 @@ void PairSpinDipoleLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
 
   g_ewald = force->kspace->g_ewald;
@@ -174,7 +174,7 @@ void *PairSpinDipoleLong::extract(const char *str, int &dim)
     dim = 0;
     return (void *) &mix_flag;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -281,32 +281,37 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
         bij[3] = (5.0*bij[2] + pre3*expm2) * r2inv;
 
         compute_long(i,j,eij,bij,fmi,spi,spj);
-        compute_long_mech(i,j,eij,bij,fmi,spi,spj);
-      }
+        if (lattice_flag)
+          compute_long_mech(i,j,eij,bij,fmi,spi,spj);
 
-      // force accumulation
+        if (eflag) {
+          if (rsq <= local_cut2) {
+            evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+            evdwl *= 0.5*hbar;
+            emag[i] += evdwl;
+          }
+        } else evdwl = 0.0;
 
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
-      f[i][2] += fi[2];
-      fm[i][0] += fmi[0];
-      fm[i][1] += fmi[1];
-      fm[i][2] += fmi[2];
-
-      if (eflag) {
-        if (rsq <= local_cut2) {
-          evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-          evdwl *= 0.5*hbar;
-          emag[i] += evdwl;
+        f[i][0] += fi[0];
+        f[i][1] += fi[1];
+        f[i][2] += fi[2];
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
         }
-      } else evdwl = 0.0;
+        fm[i][0] += fmi[0];
+        fm[i][1] += fmi[1];
+        fm[i][2] += fmi[2];
 
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+            evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
 
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],rij[0],rij[1],rij[2]);
-
+      }
     }
   }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------
@@ -373,7 +378,6 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
     spi[3] = sp[ii][3];
     jlist = firstneigh[ii];
     jnum = numneigh[ii];
-    //itype = type[i];
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -453,13 +457,13 @@ void PairSpinDipoleLong::compute_long(int /* i */, int /* j */, double eij[3],
 ------------------------------------------------------------------------- */
 
 void PairSpinDipoleLong::compute_long_mech(int /* i */, int /* j */, double eij[3],
-    double bij[4], double fi[3], double spi[3], double spj[3])
+    double bij[4], double fi[3], double spi[4], double spj[4])
 {
   double sisj,sieij,sjeij,b2,b3;
   double g1,g2,g1b2_g2b3,gigj,pre;
 
   gigj = spi[3] * spj[3];
-  pre = gigj*mub2mu0;
+  pre = 0.5 * gigj*mub2mu0;
   sisj = spi[0]*spj[0] + spi[1]*spj[1] + spi[2]*spj[2];
   sieij = spi[0]*eij[0] + spi[1]*eij[1] + spi[2]*eij[2];
   sjeij = spj[0]*eij[0] + spj[1]*eij[1] + spj[2]*eij[2];
@@ -527,11 +531,11 @@ void PairSpinDipoleLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,NULL,error);
+          utils::sfread(FLERR,&cut_spin_long[i][j],sizeof(int),1,fp,nullptr,error);
         }
         MPI_Bcast(&cut_spin_long[i][j],1,MPI_INT,0,world);
       }
@@ -556,8 +560,8 @@ void PairSpinDipoleLong::write_restart_settings(FILE *fp)
 void PairSpinDipoleLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_spin_long_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_spin_long_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_spin_long_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);

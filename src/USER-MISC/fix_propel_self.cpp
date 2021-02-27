@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,7 +39,7 @@ using namespace MathConst;
 
 FixPropelSelf::FixPropelSelf( LAMMPS *lmp, int narg, char **argv )
   : Fix(lmp, narg, argv), magnitude(0.0),
-    mode(VELOCITY), n_types_filter(0), apply_to_type(NULL)
+    mode(VELOCITY), n_types_filter(0), apply_to_type(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix propel/self command");
 
@@ -130,8 +130,8 @@ int FixPropelSelf::setmask()
 double FixPropelSelf::memory_usage()
 {
   // magnitude + thermostat_orient + mode + n_types_filter + apply_to_type
-  double bytes = sizeof(double) + 3*sizeof(int) + sizeof(int*);
-  bytes += sizeof(int)*atom->ntypes*n_types_filter;
+  double bytes = (double)sizeof(double) + 3*sizeof(int) + sizeof(int*);
+  bytes += (double)sizeof(int)*atom->ntypes*n_types_filter;
 
   return bytes;
 }
@@ -160,19 +160,19 @@ template <int filter_by_type>
 void FixPropelSelf::post_force_quaternion(int /* vflag */ )
 {
   double **f = atom->f;
-  AtomVecEllipsoid *av = static_cast<AtomVecEllipsoid*>(atom->avec);
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int *type = atom->type;
   int* ellipsoid = atom->ellipsoid;
 
+  AtomVecEllipsoid *av = static_cast<AtomVecEllipsoid*>(atom->style_match("ellipsoid"));
   AtomVecEllipsoid::Bonus *bonus = av->bonus;
 
   // Add the active force to the atom force:
 
-  for( int i = 0; i < nlocal; ++i ){
-    if( mask[i] & groupbit ){
+  for (int i = 0; i < nlocal; ++i) {
+    if (mask[i] & groupbit) {
       if (filter_by_type && !apply_to_type[type[i]]) {
         continue;
       }
@@ -206,8 +206,8 @@ void FixPropelSelf::post_force_velocity(int /*vflag*/)
 
   // Add the active force to the atom force:
 
-  for(int i = 0; i < nlocal; ++i) {
-    if( mask[i] & groupbit ){
+  for (int i = 0; i < nlocal; ++i) {
+    if (mask[i] & groupbit) {
       if (filter_by_type && !apply_to_type[type[i]]) {
         continue;
       }

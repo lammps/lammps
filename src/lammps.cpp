@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -105,34 +105,37 @@ using namespace LAMMPS_NS;
  * \param communicator MPI communicator used by this LAMMPS instance
  */
 LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
-  memory(NULL), error(NULL), universe(NULL), input(NULL), atom(NULL),
-  update(NULL), neighbor(NULL), comm(NULL), domain(NULL), force(NULL),
-  modify(NULL), group(NULL), output(NULL), timer(NULL), kokkos(NULL),
-  atomKK(NULL), memoryKK(NULL), python(NULL), citeme(NULL)
+  memory(nullptr), error(nullptr), universe(nullptr), input(nullptr), atom(nullptr),
+  update(nullptr), neighbor(nullptr), comm(nullptr), domain(nullptr), force(nullptr),
+  modify(nullptr), group(nullptr), output(nullptr), timer(nullptr), kokkos(nullptr),
+  atomKK(nullptr), memoryKK(nullptr), python(nullptr), citeme(nullptr)
 {
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);
 
+  version = (const char *) LAMMPS_VERSION;
+  num_ver = utils::date2num(version);
+
   clientserver = 0;
-  cslib = NULL;
+  cslib = nullptr;
   cscomm = 0;
 
-  screen = NULL;
-  logfile = NULL;
-  infile = NULL;
+  screen = nullptr;
+  logfile = nullptr;
+  infile = nullptr;
 
   initclock = MPI_Wtime();
 
   init_pkg_lists();
 
-  // check if -mpi is first arg
+  // check if -mpicolor is first arg
   // if so, then 2 apps were launched with one mpirun command
   //   this means passed communicator (e.g. MPI_COMM_WORLD) is bigger than LAMMPS
   //     e.g. for client/server coupling with another code
   //     in the future LAMMPS might leverage this in other ways
   //   universe communicator needs to shrink to be just LAMMPS
-  // syntax: -mpi color
+  // syntax: -mpicolor color
   //   color = integer for this app, different than other app(s)
   // do the following:
   //   perform an MPI_Comm_split() to create a new LAMMPS-only subcomm
@@ -142,7 +145,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   //   cscomm is used by CSLIB package to exchange messages w/ other app
 
   int iarg = 1;
-  if (narg-iarg >= 2 && (strcmp(arg[iarg],"-mpi") == 0 ||
+  if (narg-iarg >= 2 && (strcmp(arg[iarg],"-mpicolor") == 0 ||
                          strcmp(arg[iarg],"-m") == 0)) {
     int me,nprocs;
     MPI_Comm_rank(communicator,&me);
@@ -168,26 +171,57 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int restart2dump = 0;
   int restartremap = 0;
   int citeflag = 1;
+  int citescreen = CiteMe::TERSE;
+  int citelogfile = CiteMe::VERBOSE;
+  char *citefile = nullptr;
   int helpflag = 0;
 
-  suffix = suffix2 = NULL;
+  suffix = suffix2 = suffixp = nullptr;
   suffix_enable = 0;
   if (arg) exename = arg[0];
-  else exename = NULL;
-  packargs = NULL;
+  else exename = nullptr;
+  packargs = nullptr;
   num_package = 0;
-  char *restartfile = NULL;
+  char *restartfile = nullptr;
   int wfirst,wlast;
   int kkfirst,kklast;
 
   int npack = 0;
-  int *pfirst = NULL;
-  int *plast = NULL;
+  int *pfirst = nullptr;
+  int *plast = nullptr;
 
   iarg = 1;
   while (iarg < narg) {
 
-    if (strcmp(arg[iarg],"-echo") == 0 ||
+    if (strcmp(arg[iarg],"-cite") == 0 ||
+               strcmp(arg[iarg],"-c") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+
+      if (strcmp(arg[iarg+1],"both") == 0) {
+        citescreen = CiteMe::VERBOSE;
+        citelogfile = CiteMe::VERBOSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"none") == 0) {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"screen") == 0) {
+        citescreen = CiteMe::VERBOSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"log") == 0) {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::VERBOSE;
+        citefile = nullptr;
+      } else {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = arg[iarg+1];
+      }
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"-echo") == 0 ||
                strcmp(arg[iarg],"-e") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
@@ -348,7 +382,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         error->universe_all(FLERR,"Invalid command-line argument");
       delete [] suffix;
       delete [] suffix2;
-      suffix = suffix2 = NULL;
+      suffix = suffix2 = nullptr;
       suffix_enable = 1;
       // hybrid option to set fall-back for suffix2
       if (strcmp(arg[iarg+1],"hybrid") == 0) {
@@ -380,7 +414,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   // if no partition command-line switch, universe is one world with all procs
 
-  if (universe->existflag == 0) universe->add_world(NULL);
+  if (universe->existflag == 0) universe->add_world(nullptr);
 
   // sum of procs in all worlds must equal total # of procs
 
@@ -409,10 +443,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if (screenflag == 0)
       universe->uscreen = stdout;
     else if (strcmp(arg[screenflag],"none") == 0)
-      universe->uscreen = NULL;
+      universe->uscreen = nullptr;
     else {
       universe->uscreen = fopen(arg[screenflag],"w");
-      if (universe->uscreen == NULL)
+      if (universe->uscreen == nullptr)
         error->universe_one(FLERR,fmt::format("Cannot open universe screen "
                                               "file {}: {}",arg[screenflag],
                                               utils::getsyserror()));
@@ -420,15 +454,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if (logflag == 0) {
       if (helpflag == 0) {
         universe->ulogfile = fopen("log.lammps","w");
-        if (universe->ulogfile == NULL)
+        if (universe->ulogfile == nullptr)
           error->universe_warn(FLERR,"Cannot open log.lammps for writing: "
                                + utils::getsyserror());
       }
     } else if (strcmp(arg[logflag],"none") == 0)
-      universe->ulogfile = NULL;
+      universe->ulogfile = nullptr;
     else {
       universe->ulogfile = fopen(arg[logflag],"w");
-      if (universe->ulogfile == NULL)
+      if (universe->ulogfile == nullptr)
         error->universe_one(FLERR,fmt::format("Cannot open universe log "
                                               "file {}: {}",arg[logflag],
                                               utils::getsyserror()));
@@ -437,8 +471,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   if (universe->me > 0) {
     if (screenflag == 0) universe->uscreen = stdout;
-    else universe->uscreen = NULL;
-    universe->ulogfile = NULL;
+    else universe->uscreen = nullptr;
+    universe->ulogfile = nullptr;
   }
 
   // make universe and single world the same, since no partition switch
@@ -453,14 +487,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
     if (universe->me == 0) {
       if (inflag == 0) infile = stdin;
+      else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
-      if (infile == NULL)
+      if (infile == nullptr)
         error->one(FLERR,fmt::format("Cannot open input script {}: {}",
                                      arg[inflag], utils::getsyserror()));
     }
 
     if ((universe->me == 0) && !helpflag)
-      utils::logmesg(this,fmt::format("LAMMPS ({})\n",universe->version));
+      utils::logmesg(this,fmt::format("LAMMPS ({})\n",version));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -472,31 +507,31 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     MPI_Comm_split(universe->uworld,universe->iworld,0,&world);
     MPI_Comm_rank(world,&me);
 
-    screen = logfile = infile = NULL;
+    screen = logfile = infile = nullptr;
     if (me == 0) {
       std::string str;
       if (partscreenflag == 0) {
         if (screenflag == 0) {
           str = fmt::format("screen.{}",universe->iworld);
           screen = fopen(str.c_str(),"w");
-          if (screen == NULL)
+          if (screen == nullptr)
             error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
                                          str,utils::getsyserror()));
         } else if (strcmp(arg[screenflag],"none") == 0) {
-          screen = NULL;
+          screen = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[screenflag],universe->iworld);
           screen = fopen(str.c_str(),"w");
-          if (screen == NULL)
+          if (screen == nullptr)
             error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
                                          arg[screenflag],utils::getsyserror()));
         }
       } else if (strcmp(arg[partscreenflag],"none") == 0) {
-        screen = NULL;
+        screen = nullptr;
       } else {
         str = fmt::format("{}.{}",arg[partscreenflag],universe->iworld);
         screen = fopen(str.c_str(),"w");
-        if (screen == NULL)
+        if (screen == nullptr)
           error->one(FLERR,fmt::format("Cannot open screen file {}: {}",
                                        str,utils::getsyserror()));
       }
@@ -505,32 +540,34 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         if (logflag == 0) {
           str = fmt::format("log.lammps.{}",universe->iworld);
           logfile = fopen(str.c_str(),"w");
-          if (logfile == NULL)
+          if (logfile == nullptr)
             error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
                                          str, utils::getsyserror()));
         } else if (strcmp(arg[logflag],"none") == 0) {
-          logfile = NULL;
+          logfile = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[logflag],universe->iworld);
           logfile = fopen(str.c_str(),"w");
-          if (logfile == NULL)
+          if (logfile == nullptr)
             error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
                                          str, utils::getsyserror()));
         }
       } else if (strcmp(arg[partlogflag],"none") == 0) {
-        logfile = NULL;
+        logfile = nullptr;
       } else {
         str = fmt::format("{}.{}",arg[partlogflag],universe->iworld);
         logfile = fopen(str.c_str(),"w");
-        if (logfile == NULL)
+        if (logfile == nullptr)
           error->one(FLERR,fmt::format("Cannot open logfile {}: {}",
                                        str, utils::getsyserror()));
       }
 
-      infile = fopen(arg[inflag],"r");
-      if (infile == NULL)
-        error->one(FLERR,fmt::format("Cannot open input script {}: {}",
-                                     arg[inflag], utils::getsyserror()));
+      if (strcmp(arg[inflag], "none") != 0) {
+        infile = fopen(arg[inflag],"r");
+        if (infile == nullptr)
+          error->one(FLERR,fmt::format("Cannot open input script {}: {}",
+                                       arg[inflag], utils::getsyserror()));
+      }
     }
 
     // screen and logfile messages for universe and world
@@ -538,15 +575,15 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     if ((universe->me == 0) && (!helpflag)) {
       const char fmt[] = "LAMMPS ({})\nRunning on {} partitions of processors\n";
       if (universe->uscreen)
-        fmt::print(universe->uscreen,fmt,universe->version,universe->nworlds);
+        fmt::print(universe->uscreen,fmt,version,universe->nworlds);
 
       if (universe->ulogfile)
-        fmt::print(universe->ulogfile,fmt,universe->version,universe->nworlds);
+        fmt::print(universe->ulogfile,fmt,version,universe->nworlds);
     }
 
     if ((me == 0) && (!helpflag))
       utils::logmesg(this,fmt::format("LAMMPS ({})\nProcessor partition = {}\n",
-                                      universe->version, universe->iworld));
+                                      version, universe->iworld));
   }
 
   // check consistency of datatype settings in lmptype.h
@@ -590,7 +627,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // instantiation creates dummy Kokkos class if KOKKOS is not installed
   // add args between kkfirst and kklast to Kokkos instantiation
 
-  kokkos = NULL;
+  kokkos = nullptr;
   if (kokkosflag == 1) {
     kokkos = new KokkosLMP(this,kklast-kkfirst,&arg[kkfirst]);
     if (!kokkos->kokkos_exists)
@@ -599,8 +636,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   // allocate CiteMe class if enabled
 
-  if (citeflag) citeme = new CiteMe(this);
-  else citeme = NULL;
+  if (citeflag) citeme = new CiteMe(this,citescreen,citelogfile,citefile);
+  else citeme = nullptr;
 
   // allocate input class now that MPI is fully setup
 
@@ -616,7 +653,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       packargs[i] = new char*[n+1];
       for (int j=0; j < n; ++j)
         packargs[i][j] = strdup(arg[pfirst[i]+j]);
-      packargs[i][n] = NULL;
+      packargs[i][n] = nullptr;
     }
     memory->destroy(pfirst);
     memory->destroy(plast);
@@ -663,19 +700,19 @@ LAMMPS::~LAMMPS()
 {
   const int me = comm->me;
 
-  destroy();
   delete citeme;
+  destroy();
 
   if (num_package) {
     for (int i = 0; i < num_package; i++) {
-      for (char **ptr = packargs[i]; *ptr != NULL; ++ptr)
+      for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr)
         free(*ptr);
       delete[] packargs[i];
     }
     delete[] packargs;
   }
   num_package = 0;
-  packargs = NULL;
+  packargs = nullptr;
 
   double totalclock = MPI_Wtime() - initclock;
   if ((me == 0) && (screen || logfile)) {
@@ -690,14 +727,14 @@ LAMMPS::~LAMMPS()
   if (universe->nworlds == 1) {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
-    logfile = NULL;
-    if (screen != stdout) screen = NULL;
+    logfile = nullptr;
+    if (screen != stdout) screen = nullptr;
   } else {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
     if (universe->ulogfile) fclose(universe->ulogfile);
-    logfile = NULL;
-    if (screen != stdout) screen = NULL;
+    logfile = nullptr;
+    if (screen != stdout) screen = nullptr;
   }
 
   if (infile && infile != stdin) fclose(infile);
@@ -708,6 +745,7 @@ LAMMPS::~LAMMPS()
   delete kokkos;
   delete [] suffix;
   delete [] suffix2;
+  delete [] suffixp;
 
   // free the MPI comm created by -mpi command-line arg processed in constructor
   // it was passed to universe as if original universe world
@@ -733,7 +771,7 @@ LAMMPS::~LAMMPS()
 
 void LAMMPS::create()
 {
-  force = NULL;         // Domain->Lattice checks if Force exists
+  force = nullptr;         // Domain->Lattice checks if Force exists
 
   // Comm class must be created before Atom class
   // so that nthreads is defined when create_avec invokes grow()
@@ -755,9 +793,9 @@ void LAMMPS::create()
   else atom = new Atom(this);
 
   if (kokkos)
-    atom->create_avec("atomic/kk",0,NULL,1);
+    atom->create_avec("atomic/kk",0,nullptr,1);
   else
-    atom->create_avec("atomic",0,NULL,1);
+    atom->create_avec("atomic",0,nullptr,1);
 
   group = new Group(this);
   force = new Force(this);    // must be after group, to create temperature
@@ -799,17 +837,17 @@ void LAMMPS::post_create()
     if (strcmp(suffix,"intel") == 0 && !modify->check_package("INTEL"))
       error->all(FLERR,"Using suffix intel without USER-INTEL package installed");
     if (strcmp(suffix,"kk") == 0 &&
-        (kokkos == NULL || kokkos->kokkos_exists == 0))
+        (kokkos == nullptr || kokkos->kokkos_exists == 0))
       error->all(FLERR,"Using suffix kk without KOKKOS package enabled");
     if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
       error->all(FLERR,"Using suffix omp without USER-OMP package installed");
 
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
+    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
     if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
     if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
 
     if (suffix2) {
-      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
+      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 0");
       if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
       if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
     }
@@ -821,7 +859,7 @@ void LAMMPS::post_create()
     char str[256];
     for (int i = 0; i < num_package; i++) {
       strcpy(str,"package");
-      for (char **ptr = packargs[i]; *ptr != NULL; ++ptr) {
+      for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr) {
         if (strlen(str) + strlen(*ptr) + 2 > 256)
           error->all(FLERR,"Too many -pk arguments in command line");
         strcat(str," ");
@@ -861,41 +899,41 @@ void LAMMPS::init()
 void LAMMPS::destroy()
 {
   delete update;
-  update = NULL;
+  update = nullptr;
 
   delete neighbor;
-  neighbor = NULL;
+  neighbor = nullptr;
 
   delete force;
-  force = NULL;
+  force = nullptr;
 
   delete group;
-  group = NULL;
+  group = nullptr;
 
   delete output;
-  output = NULL;
+  output = nullptr;
 
   delete modify;          // modify must come after output, force, update
                           //   since they delete fixes
-  modify = NULL;
+  modify = nullptr;
 
   delete comm;            // comm must come after modify
                           //   since fix destructors may access comm
-  comm = NULL;
+  comm = nullptr;
 
   delete domain;          // domain must come after modify
                           //   since fix destructors access domain
-  domain = NULL;
+  domain = nullptr;
 
   delete atom;            // atom must come after modify, neighbor
                           //   since fixes delete callbacks in atom
-  atom = NULL;
+  atom = nullptr;
 
   delete timer;
-  timer = NULL;
+  timer = nullptr;
 
   delete python;
-  python = NULL;
+  python = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1011,7 +1049,7 @@ void _noopt LAMMPS::init_pkg_lists()
  */
 bool LAMMPS::is_installed_pkg(const char *pkg)
 {
-  for (int i=0; installed_packages[i] != NULL; ++i)
+  for (int i=0; installed_packages[i] != nullptr; ++i)
     if (strcmp(installed_packages[i],pkg) == 0) return true;
 
   return false;
@@ -1053,7 +1091,7 @@ const char *LAMMPS::match_style(const char *style, const char *name)
   check_for_match(pair,style,name);
   check_for_match(reader,style,name);
   check_for_match(region,style,name);
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1063,7 +1101,7 @@ const char *LAMMPS::match_style(const char *style, const char *name)
 void _noopt LAMMPS::help()
 {
   FILE *fp = screen;
-  const char *pager = NULL;
+  const char *pager = nullptr;
 
   // if output is "stdout", use a pipe to a pager for paged output.
   // this will avoid the most important help text to rush past the
@@ -1072,7 +1110,7 @@ void _noopt LAMMPS::help()
 
   if (fp == stdout) {
     pager = getenv("PAGER");
-    if (pager == NULL) pager = "more";
+    if (pager == nullptr) pager = "more";
 #if defined(_WIN32)
     fp = _popen(pager,"w");
 #else
@@ -1080,9 +1118,9 @@ void _noopt LAMMPS::help()
 #endif
 
     // reset to original state, if pipe command failed
-    if (fp == NULL) {
+    if (fp == nullptr) {
       fp = stdout;
-      pager = NULL;
+      pager = nullptr;
     }
   }
 
@@ -1100,11 +1138,12 @@ void _noopt LAMMPS::help()
           "List of command line options supported by this LAMMPS executable:\n\n"
           "-echo none/screen/log/both  : echoing of input script (-e)\n"
           "-help                       : print this help message (-h)\n"
-          "-in filename                : read input from file, not stdin (-i)\n"
+          "-in none/filename           : read input from file or stdin (default) (-i)\n"
           "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
           "-log none/filename          : where to send log output (-l)\n"
           "-mpicolor color             : which exe in a multi-exe mpirun cmd (-m)\n"
-          "-nocite                     : disable writing log.cite file (-nc)\n"
+          "-cite                       : select citation reminder style (-c)\n"
+          "-nocite                     : disable citation reminder (-nc)\n"
           "-package style ...          : invoke package command (-pk)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"
@@ -1236,7 +1275,7 @@ void _noopt LAMMPS::help()
 
   // close pipe to pager, if active
 
-  if (pager != NULL) pclose(fp);
+  if (pager != nullptr) pclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1309,7 +1348,7 @@ void LAMMPS::print_config(FILE *fp)
              sizeof(tagint)*8, sizeof(bigint)*8);
 
   fputs("\nInstalled packages:\n\n",fp);
-  for (int i = 0; NULL != (pkg = installed_packages[i]); ++i) {
+  for (int i = 0; nullptr != (pkg = installed_packages[i]); ++i) {
     ncword = strlen(pkg);
     if (ncline + ncword > 78) {
       ncline = 0;

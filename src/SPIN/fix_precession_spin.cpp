@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,7 +44,8 @@ enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(NULL)
+FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg), emag(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
 
@@ -56,10 +57,11 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  energy_global_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  magstr = NULL;
+  magstr = nullptr;
   magfieldstyle = CONSTANT;
 
   H_field = 0.0;
@@ -165,11 +167,9 @@ int FixPrecessionSpin::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -245,7 +245,6 @@ void FixPrecessionSpin::min_setup(int vflag)
 
 void FixPrecessionSpin::post_force(int /* vflag */)
 {
-
   // update mag field with time (potential improvement)
 
   if (varflag != CONSTANT) {

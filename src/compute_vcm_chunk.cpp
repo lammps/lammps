@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,7 +29,7 @@ enum{ONCE,NFREQ,EVERY};
 
 ComputeVCMChunk::ComputeVCMChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), vcm(NULL), vcmall(NULL)
+  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), vcm(nullptr), vcmall(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute vcm/chunk command");
 
@@ -234,6 +234,6 @@ void ComputeVCMChunk::allocate()
 double ComputeVCMChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
   return bytes;
 }

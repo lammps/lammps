@@ -179,16 +179,19 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
-  acctyp energy=(acctyp)0;
+  int n_stride;
+  local_allocate_store_pair();
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -249,14 +252,14 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           // unshifted eng of conservative term:
           // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
           // eng shifted to 0.0 at cutoff
           numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
           energy+=factor_dpd*e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -267,9 +270,9 @@ __kernel void k_dpd(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 
 __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
@@ -289,6 +292,7 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
+  #ifndef ONETYPE
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
   if (tid<4)
@@ -296,25 +300,36 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
   }
+  __syncthreads();
+  #else
+  const numtyp coeffx=coeff_in[ONETYPE].x;
+  const numtyp coeffy=coeff_in[ONETYPE].y;
+  const numtyp coeffz=coeff_in[ONETYPE].z;
+  const numtyp coeffw=coeff_in[ONETYPE].w;
+  const numtyp cutsq_p=cutsq[ONETYPE];
+  #endif
 
-  acctyp energy=(acctyp)0;
+  int n_stride;
+  local_allocate_store_pair();
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
-
-  __syncthreads();
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    #ifndef ONETYPE
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
+    #endif
     numtyp4 iv; fetch4(iv,i,vel_tex); //v_[i];
     int itag=iv.w;
 
@@ -322,11 +337,16 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int j=dev_packed[nbor];
+      #ifndef ONETYPE
       factor_dpd = sp_lj[sbmask(j)];
       j &= NEIGHMASK;
+      #endif
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      #ifndef ONETYPE
       int mtype=itype+jx.w;
+      const numtyp cutsq_p=cutsq[mtype];
+      #endif
       numtyp4 jv; fetch4(jv,j,vel_tex); //v_[j];
       int jtag=jv.w;
 
@@ -336,7 +356,7 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
-      if (rsq<cutsq[mtype]) {
+      if (rsq<cutsq_p) {
         numtyp r=ucl_sqrt(rsq);
         if (r < EPSILON) continue;
 
@@ -345,7 +365,10 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
         numtyp delvy = iv.y - jv.y;
         numtyp delvz = iv.z - jv.z;
         numtyp dot = delx*delvx + dely*delvy + delz*delvz;
-        numtyp wd = (numtyp)1.0 - r/coeff[mtype].w;
+        #ifndef ONETYPE
+        const numtyp coeffw=coeff[mtype].w;
+        #endif
+        numtyp wd = (numtyp)1.0 - r/coeffw;
 
         unsigned int tag1=itag, tag2=jtag;
         if (tag1 > tag2) {
@@ -359,24 +382,37 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
         // drag force = -gamma * wd^2 * (delx dot delv) / r
         // random force = sigma * wd * rnd * dtinvsqrt;
 
+        #ifndef ONETYPE
+        const numtyp coeffx=coeff[mtype].x;
+        const numtyp coeffy=coeff[mtype].y;
+        const numtyp coeffz=coeff[mtype].z;
+        #endif
         numtyp force = (numtyp)0.0;
-        if (!tstat_only) force = coeff[mtype].x*wd;
-        force -= coeff[mtype].y*wd*wd*dot*rinv;
-        force += coeff[mtype].z*wd*randnum*dtinvsqrt;
+        if (!tstat_only) force = coeffx*wd;
+        force -= coeffy*wd*wd*dot*rinv;
+        force += coeffz*wd*randnum*dtinvsqrt;
+        #ifndef ONETYPE
         force*=factor_dpd*rinv;
+        #else
+        force*=rinv;
+        #endif
 
         f.x+=delx*force;
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           // unshifted eng of conservative term:
           // evdwl = -a0[itype][jtype]*r * (1.0-0.5*r/cut[itype][jtype]);
           // eng shifted to 0.0 at cutoff
-          numtyp e = (numtyp)0.5*coeff[mtype].x*coeff[mtype].w * wd*wd;
+          numtyp e = (numtyp)0.5*coeffx*coeffw * wd*wd;
+          #ifndef ONETYPE
           energy+=factor_dpd*e;
+          #else
+          energy+=e;
+          #endif
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -387,8 +423,8 @@ __kernel void k_dpd_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 

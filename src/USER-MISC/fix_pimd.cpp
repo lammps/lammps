@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,34 +52,34 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   nhc_nchain = 2;
   sp         = 1.0;
 
-  for(int i=3; i<narg-1; i+=2)
+  for (int i=3; i<narg-1; i+=2)
   {
-    if(strcmp(arg[i],"method")==0)
+    if (strcmp(arg[i],"method")==0)
     {
-      if(strcmp(arg[i+1],"pimd")==0) method=PIMD;
-      else if(strcmp(arg[i+1],"nmpimd")==0) method=NMPIMD;
-      else if(strcmp(arg[i+1],"cmd")==0) method=CMD;
+      if (strcmp(arg[i+1],"pimd")==0) method=PIMD;
+      else if (strcmp(arg[i+1],"nmpimd")==0) method=NMPIMD;
+      else if (strcmp(arg[i+1],"cmd")==0) method=CMD;
       else error->universe_all(FLERR,"Unknown method parameter for fix pimd");
     }
-    else if(strcmp(arg[i],"fmass")==0)
+    else if (strcmp(arg[i],"fmass")==0)
     {
       fmass = atof(arg[i+1]);
-      if(fmass<0.0 || fmass>1.0) error->universe_all(FLERR,"Invalid fmass value for fix pimd");
+      if (fmass<0.0 || fmass>1.0) error->universe_all(FLERR,"Invalid fmass value for fix pimd");
     }
-    else if(strcmp(arg[i],"sp")==0)
+    else if (strcmp(arg[i],"sp")==0)
     {
       sp = atof(arg[i+1]);
-      if(fmass<0.0) error->universe_all(FLERR,"Invalid sp value for fix pimd");
+      if (fmass<0.0) error->universe_all(FLERR,"Invalid sp value for fix pimd");
     }
-    else if(strcmp(arg[i],"temp")==0)
+    else if (strcmp(arg[i],"temp")==0)
     {
       nhc_temp = atof(arg[i+1]);
-      if(nhc_temp<0.0) error->universe_all(FLERR,"Invalid temp value for fix pimd");
+      if (nhc_temp<0.0) error->universe_all(FLERR,"Invalid temp value for fix pimd");
     }
-    else if(strcmp(arg[i],"nhc")==0)
+    else if (strcmp(arg[i],"nhc")==0)
     {
       nhc_nchain = atoi(arg[i+1]);
-      if(nhc_nchain<2) error->universe_all(FLERR,"Invalid nhc value for fix pimd");
+      if (nhc_nchain<2) error->universe_all(FLERR,"Invalid nhc value for fix pimd");
     }
     else error->universe_all(arg[i],i+1,"Unknown keyword for fix pimd");
   }
@@ -87,27 +87,27 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   /* Initiation */
 
   max_nsend = 0;
-  tag_send = NULL;
-  buf_send = NULL;
+  tag_send = nullptr;
+  buf_send = nullptr;
 
   max_nlocal = 0;
-  buf_recv = NULL;
-  buf_beads = NULL;
+  buf_recv = nullptr;
+  buf_beads = nullptr;
 
   size_plan = 0;
-  plan_send = plan_recv = NULL;
+  plan_send = plan_recv = nullptr;
 
-  M_x2xp = M_xp2x = M_f2fp = M_fp2f = NULL;
-  lam = NULL;
-  mode_index = NULL;
+  M_x2xp = M_xp2x = M_f2fp = M_fp2f = nullptr;
+  lam = nullptr;
+  mode_index = nullptr;
 
-  mass = NULL;
+  mass = nullptr;
 
-  array_atom = NULL;
-  nhc_eta = NULL;
-  nhc_eta_dot = NULL;
-  nhc_eta_dotdot = NULL;
-  nhc_eta_mass = NULL;
+  array_atom = nullptr;
+  nhc_eta = nullptr;
+  nhc_eta_dot = nullptr;
+  nhc_eta_dotdot = nullptr;
+  nhc_eta_mass = nullptr;
 
   size_peratom_cols = 12 * nhc_nchain + 3;
 
@@ -121,14 +121,13 @@ FixPIMD::FixPIMD(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   peratom_freq    = 1;
 
   global_freq = 1;
-  thermo_energy = 1;
   vector_flag = 1;
   size_vector = 2;
   extvector   = 1;
   comm_forward = 3;
 
-  atom->add_callback(0); // Call LAMMPS to allocate memory for per-atom array
-  atom->add_callback(1); // Call LAMMPS to re-assign restart-data for per-atom array
+  atom->add_callback(Atom::GROW); // Call LAMMPS to allocate memory for per-atom array
+  atom->add_callback(Atom::RESTART); // Call LAMMPS to re-assign restart-data for per-atom array
 
   grow_arrays(atom->nmax);
 
@@ -152,10 +151,10 @@ int FixPIMD::setmask()
 
 void FixPIMD::init()
 {
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix pimd requires an atom map, see atom_modify");
 
-  if(universe->me==0 && screen) fprintf(screen,"Fix pimd initializing Path-Integral ...\n");
+  if (universe->me==0 && screen) fprintf(screen,"Fix pimd initializing Path-Integral ...\n");
 
   // prepare the constants
 
@@ -190,7 +189,7 @@ void FixPIMD::init()
   omega_np = sqrt(np) / (hbar * beta) * sqrt(force->mvv2e);
   fbond = - _fbond * force->mvv2e;
 
-  if(universe->me==0)
+  if (universe->me==0)
     printf("Fix pimd -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
 
   dtv = update->dt;
@@ -200,17 +199,17 @@ void FixPIMD::init()
 
   mass = new double [atom->ntypes+1];
 
-  if(method==CMD || method==NMPIMD) nmpimd_init();
-  else for(int i=1; i<=atom->ntypes; i++) mass[i] = atom->mass[i] / np * fmass;
+  if (method==CMD || method==NMPIMD) nmpimd_init();
+  else for (int i=1; i<=atom->ntypes; i++) mass[i] = atom->mass[i] / np * fmass;
 
-  if(!nhc_ready) nhc_init();
+  if (!nhc_ready) nhc_init();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD::setup(int vflag)
 {
-  if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
+  if (universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
 
   post_force(vflag);
 }
@@ -234,12 +233,12 @@ void FixPIMD::final_integrate()
 
 void FixPIMD::post_force(int /*flag*/)
 {
-  for(int i=0; i<atom->nlocal; i++) for(int j=0; j<3; j++) atom->f[i][j] /= np;
+  for (int i=0; i<atom->nlocal; i++) for(int j=0; j<3; j++) atom->f[i][j] /= np;
 
   comm_exec(atom->x);
   spring_force();
 
-  if(method==CMD || method==NMPIMD)
+  if (method==CMD || method==NMPIMD)
   {
     /* forward comm for the force on ghost atoms */
 
@@ -267,29 +266,29 @@ void FixPIMD::nhc_init()
   double mass0 = KT * tau * tau;
   int max = 3 * atom->nlocal;
 
-  for(int i=0; i<max; i++)
+  for (int i=0; i<max; i++)
   {
-    for(int ichain=0; ichain<nhc_nchain; ichain++)
+    for (int ichain=0; ichain<nhc_nchain; ichain++)
     {
       nhc_eta[i][ichain]        = 0.0;
       nhc_eta_dot[i][ichain]    = 0.0;
       nhc_eta_dot[i][ichain]    = 0.0;
       nhc_eta_dotdot[i][ichain] = 0.0;
       nhc_eta_mass[i][ichain]   = mass0;
-      if((method==CMD || method==NMPIMD) && universe->iworld==0) ; else nhc_eta_mass[i][ichain]  *= fmass;
+      if ((method==CMD || method==NMPIMD) && universe->iworld==0) ; else nhc_eta_mass[i][ichain]  *= fmass;
     }
 
     nhc_eta_dot[i][nhc_nchain]    = 0.0;
 
-    for(int ichain=1; ichain<nhc_nchain; ichain++)
+    for (int ichain=1; ichain<nhc_nchain; ichain++)
       nhc_eta_dotdot[i][ichain] = (nhc_eta_mass[i][ichain-1] * nhc_eta_dot[i][ichain-1]
         * nhc_eta_dot[i][ichain-1] * force->mvv2e - KT) / nhc_eta_mass[i][ichain];
   }
 
   // Zero NH acceleration for CMD
 
-  if(method==CMD && universe->iworld==0) for(int i=0; i<max; i++)
-    for(int ichain=0; ichain<nhc_nchain; ichain++) nhc_eta_dotdot[i][ichain] = 0.0;
+  if (method==CMD && universe->iworld==0) for (int i=0; i<max; i++)
+    for (int ichain=0; ichain<nhc_nchain; ichain++) nhc_eta_dotdot[i][ichain] = 0.0;
 
   nhc_ready = true;
 }
@@ -302,7 +301,7 @@ void FixPIMD::nhc_update_x()
   double **x = atom->x;
   double **v = atom->v;
 
-  if(method==CMD || method==NMPIMD)
+  if (method==CMD || method==NMPIMD)
   {
     nmpimd_fill(atom->v);
     comm_exec(atom->v);
@@ -313,7 +312,7 @@ void FixPIMD::nhc_update_x()
     nmpimd_transform(buf_beads, v, M_xp2x[universe->iworld]);
   }
 
-  for(int i=0; i<n; i++)
+  for (int i=0; i<n; i++)
   {
     x[i][0] += dtv * v[i][0];
     x[i][1] += dtv * v[i][1];
@@ -330,7 +329,7 @@ void FixPIMD::nhc_update_v()
   double **v = atom->v;
   double **f = atom->f;
 
-  for(int i=0; i<n; i++)
+  for (int i=0; i<n; i++)
   {
     double dtfm = dtf / mass[type[i]];
     v[i][0] += dtfm * f[i][0];
@@ -339,7 +338,7 @@ void FixPIMD::nhc_update_v()
   }
 
   t_sys = 0.0;
-  if(method==CMD && universe->iworld==0) return;
+  if (method==CMD && universe->iworld==0) return;
 
   double expfac;
   int nmax = 3 * atom->nlocal;
@@ -350,7 +349,7 @@ void FixPIMD::nhc_update_v()
   double dt4    = 0.25  * update->dt;
   double dt8    = 0.125 * update->dt;
 
-  for(int i=0; i<nmax; i++)
+  for (int i=0; i<nmax; i++)
   {
     int iatm = i/3;
     int idim = i%3;
@@ -366,7 +365,7 @@ void FixPIMD::nhc_update_v()
 
     eta_dotdot[0] = (kecurrent - KT) / nhc_eta_mass[i][0];
 
-    for(int ichain=nhc_nchain-1; ichain>0; ichain--)
+    for (int ichain=nhc_nchain-1; ichain>0; ichain--)
     {
       expfac = exp(-dt8 * eta_dot[ichain+1]);
       eta_dot[ichain] *= expfac;
@@ -388,14 +387,14 @@ void FixPIMD::nhc_update_v()
     kecurrent = force->boltz * t_current;
     eta_dotdot[0] = (kecurrent - KT) / nhc_eta_mass[i][0];
 
-    for(int ichain=0; ichain<nhc_nchain; ichain++)
+    for (int ichain=0; ichain<nhc_nchain; ichain++)
       eta[ichain] += dthalf * eta_dot[ichain];
 
     eta_dot[0] *= expfac;
     eta_dot[0] += eta_dotdot[0] * dt4;
     eta_dot[0] *= expfac;
 
-    for(int ichain=1; ichain<nhc_nchain; ichain++)
+    for (int ichain=1; ichain<nhc_nchain; ichain++)
     {
       expfac = exp(-dt8 * eta_dot[ichain+1]);
       eta_dot[ichain] *= expfac;
@@ -427,24 +426,24 @@ void FixPIMD::nmpimd_init()
   // Set up  eigenvalues
 
   lam[0] = 0.0;
-  if(np%2==0) lam[np-1] = 4.0 * np;
+  if (np%2==0) lam[np-1] = 4.0 * np;
 
-  for(int i=2; i<=np/2; i++)
+  for (int i=2; i<=np/2; i++)
   {
     lam[2*i-3] = lam[2*i-2] = 2.0 * np * (1.0 - 1.0 *cos(2.0*MY_PI*(i-1)/np));
   }
 
   // Set up eigenvectors for non-degenerated modes
 
-  for(int i=0; i<np; i++)
+  for (int i=0; i<np; i++)
   {
     M_x2xp[0][i] = 1.0 / np;
-    if(np%2==0) M_x2xp[np-1][i] = 1.0 / np * pow(-1.0, i);
+    if (np%2==0) M_x2xp[np-1][i] = 1.0 / np * pow(-1.0, i);
   }
 
   // Set up eigenvectors for degenerated modes
 
-  for(int i=0; i<(np-1)/2; i++) for(int j=0; j<np; j++)
+  for (int i=0; i<(np-1)/2; i++) for(int j=0; j<np; j++)
   {
     M_x2xp[2*i+1][j] =   sqrt(2.0) * cos ( 2.0 * MY_PI * (i+1) * j / np) / np;
     M_x2xp[2*i+2][j] = - sqrt(2.0) * sin ( 2.0 * MY_PI * (i+1) * j / np) / np;
@@ -452,8 +451,8 @@ void FixPIMD::nmpimd_init()
 
   // Set up Ut
 
-  for(int i=0; i<np; i++)
-    for(int j=0; j<np; j++)
+  for (int i=0; i<np; i++)
+    for (int j=0; j<np; j++)
     {
       M_xp2x[i][j] = M_x2xp[j][i] * np;
       M_f2fp[i][j] = M_x2xp[i][j] * np;
@@ -464,11 +463,11 @@ void FixPIMD::nmpimd_init()
 
   int iworld = universe->iworld;
 
-  for(int i=1; i<=atom->ntypes; i++)
+  for (int i=1; i<=atom->ntypes; i++)
   {
     mass[i] = atom->mass[i];
 
-    if(iworld)
+    if (iworld)
     {
       mass[i] *= lam[iworld];
       mass[i] *= fmass;
@@ -491,10 +490,10 @@ void FixPIMD::nmpimd_transform(double** src, double** des, double *vector)
   int n = atom->nlocal;
   int m = 0;
 
-  for(int i=0; i<n; i++) for(int d=0; d<3; d++)
+  for (int i=0; i<n; i++) for(int d=0; d<3; d++)
   {
     des[i][d] = 0.0;
-    for(int j=0; j<np; j++) { des[i][d] += (src[j][m] * vector[j]); }
+    for (int j=0; j<np; j++) { des[i][d] += (src[j][m] * vector[j]); }
     m++;
   }
 }
@@ -514,7 +513,7 @@ void FixPIMD::spring_force()
   double* xlast = buf_beads[x_last];
   double* xnext = buf_beads[x_next];
 
-  for(int i=0; i<nlocal; i++)
+  for (int i=0; i<nlocal; i++)
   {
     double delx1 = xlast[0] - x[i][0];
     double dely1 = xlast[1] - x[i][1];
@@ -548,13 +547,13 @@ void FixPIMD::spring_force()
 
 void FixPIMD::comm_init()
 {
-  if(size_plan)
+  if (size_plan)
   {
     delete [] plan_send;
     delete [] plan_recv;
   }
 
-  if(method == PIMD)
+  if (method == PIMD)
   {
     size_plan = 2;
     plan_send = new int [2];
@@ -563,8 +562,8 @@ void FixPIMD::comm_init()
 
     int rank_last = universe->me - comm->nprocs;
     int rank_next = universe->me + comm->nprocs;
-    if(rank_last<0) rank_last += universe->nprocs;
-    if(rank_next>=universe->nprocs) rank_next -= universe->nprocs;
+    if (rank_last<0) rank_last += universe->nprocs;
+    if (rank_next>=universe->nprocs) rank_next -= universe->nprocs;
 
     plan_send[0] = rank_next; plan_send[1] = rank_last;
     plan_recv[0] = rank_last; plan_recv[1] = rank_next;
@@ -579,13 +578,13 @@ void FixPIMD::comm_init()
     plan_recv = new int [size_plan];
     mode_index = new int [size_plan];
 
-    for(int i=0; i<size_plan; i++)
+    for (int i=0; i<size_plan; i++)
     {
       plan_send[i] = universe->me + comm->nprocs * (i+1);
-      if(plan_send[i]>=universe->nprocs) plan_send[i] -= universe->nprocs;
+      if (plan_send[i]>=universe->nprocs) plan_send[i] -= universe->nprocs;
 
       plan_recv[i] = universe->me - comm->nprocs * (i+1);
-      if(plan_recv[i]<0) plan_recv[i] += universe->nprocs;
+      if (plan_recv[i]<0) plan_recv[i] += universe->nprocs;
 
       mode_index[i]=(universe->iworld+i+1)%(universe->nworlds);
     }
@@ -594,14 +593,14 @@ void FixPIMD::comm_init()
     x_last = (universe->iworld-1+universe->nworlds)%(universe->nworlds);
   }
 
-  if(buf_beads)
+  if (buf_beads)
   {
-    for(int i=0; i<np; i++) if(buf_beads[i]) delete [] buf_beads[i];
+    for (int i=0; i<np; i++) if (buf_beads[i]) delete [] buf_beads[i];
     delete [] buf_beads;
   }
 
   buf_beads = new double* [np];
-  for(int i=0; i<np; i++) buf_beads[i] = NULL;
+  for (int i=0; i<np; i++) buf_beads[i] = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -610,13 +609,13 @@ void FixPIMD::comm_exec(double **ptr)
 {
   int nlocal = atom->nlocal;
 
-  if(nlocal > max_nlocal)
+  if (nlocal > max_nlocal)
   {
     max_nlocal = nlocal+200;
     int size = sizeof(double) * max_nlocal * 3;
     buf_recv = (double*) memory->srealloc(buf_recv, size, "FixPIMD:x_recv");
 
-    for(int i=0; i<np; i++)
+    for (int i=0; i<np; i++)
       buf_beads[i] = (double*) memory->srealloc(buf_beads[i], size, "FixPIMD:x_beads[i]");
   }
 
@@ -626,7 +625,7 @@ void FixPIMD::comm_exec(double **ptr)
 
   // go over comm plans
 
-  for(int iplan = 0; iplan<size_plan; iplan++)
+  for (int iplan = 0; iplan<size_plan; iplan++)
   {
     // sendrecv nlocal
 
@@ -637,7 +636,7 @@ void FixPIMD::comm_exec(double **ptr)
 
     // allocate arrays
 
-    if(nsend > max_nsend)
+    if (nsend > max_nsend)
     {
       max_nsend = nsend+200;
       tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixPIMD:tag_send");
@@ -654,11 +653,11 @@ void FixPIMD::comm_exec(double **ptr)
     double *wrap_ptr = buf_send;
     int ncpy = sizeof(double)*3;
 
-    for(int i=0; i<nsend; i++)
+    for (int i=0; i<nsend; i++)
     {
       int index = atom->map(tag_send[i]);
 
-      if(index<0)
+      if (index<0)
       {
         char error_line[256];
 
@@ -726,9 +725,7 @@ void FixPIMD::unpack_forward_comm(int n, int first, double *buf)
 
 double FixPIMD::memory_usage()
 {
-  double bytes = 0;
-  bytes = atom->nmax * size_peratom_cols * sizeof(double);
-  return bytes;
+  return (double)atom->nmax * size_peratom_cols * sizeof(double);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -846,7 +843,7 @@ int FixPIMD::size_restart(int /*nlocal*/)
 
 double FixPIMD::compute_vector(int n)
 {
-  if(n==0) { return spring_energy; }
-  if(n==1) { return t_sys; }
+  if (n==0) { return spring_energy; }
+  if (n==1) { return t_sys; }
   return 0.0;
 }

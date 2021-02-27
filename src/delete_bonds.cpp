@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -75,7 +75,7 @@ void DeleteBonds::command(int narg, char **arg)
   // use utils::bounds(FLERR,) to allow setting of range of types
   // range can be 0 to ntypes inclusive
 
-  int *tlist = NULL;
+  int *tlist = nullptr;
 
   int iarg = 2;
   if (style != MULTI && style != STATS) {

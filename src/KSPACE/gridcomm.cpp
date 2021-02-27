@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -211,13 +211,13 @@ void GridComm::initialize(MPI_Comm gcomm,
   // internal data initializations
 
   nswap = maxswap = 0;
-  swap = NULL;
+  swap = nullptr;
 
   nsend = nrecv = ncopy = 0;
-  send = NULL;
-  recv = NULL;
-  copy = NULL;
-  requests = NULL;
+  send = nullptr;
+  recv = nullptr;
+  copy = nullptr;
+  requests = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -575,7 +575,7 @@ void GridComm::setup_tiled(int &nbuf1, int &nbuf2)
 
   memory->create(overlap_procs,nprocs,"GridComm:overlap_procs");
   noverlap = maxoverlap = 0;
-  overlap = NULL;
+  overlap = nullptr;
 
   ghost_box_drop(ghostbox,pbc);
 

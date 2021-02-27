@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -290,7 +290,7 @@ void AngleSDK::init_style()
 
   if (repflag) {
     int itmp;
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"Angle style SDK requires use of a compatible with Pair style");
 
     lj1 = (double **) force->pair->extract("lj1",itmp);
@@ -333,9 +333,9 @@ void AngleSDK::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,NULL,error);
-    utils::sfread(FLERR,&repscale[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&repscale[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);

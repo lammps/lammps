@@ -32,7 +32,7 @@ enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Pointers(lmp), fp(NULL)
+DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Pointers(lmp), fp(nullptr)
 {
     external_force_clear = 1;
 }
@@ -43,7 +43,7 @@ DynamicalMatrix::~DynamicalMatrix()
 {
     if (fp && me == 0) fclose(fp);
     memory->destroy(groupmap);
-    fp = NULL;
+    fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -134,7 +134,7 @@ void DynamicalMatrix::command(int narg, char **arg)
     else if (style == ESKM) options(narg-3,&arg[3]); //COME BACK
     else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
 
-    if (atom->map_style == 0)
+    if (atom->map_style == Atom::MAP_NONE)
       error->all(FLERR,"Dynamical_matrix command requires an atom map, see atom_modify");
 
     // move atoms by 3-vector or specified variable(s)
@@ -223,7 +223,7 @@ void DynamicalMatrix::openfile(const char* filename)
         fp = fopen(filename,"w");
     }
 
-    if (fp == NULL) error->one(FLERR,"Cannot open dump file");
+    if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
 
     file_opened = 1;
 }
@@ -266,29 +266,29 @@ void DynamicalMatrix::calculateMatrix()
 
     update->nsteps = 0;
     int prog = 0;
-    for (bigint i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++) {
         local_idx = atom->map(i);
         if (gm[i-1] < 0)
             continue;
-        for (int alpha=0; alpha<3; alpha++){
+        for (int alpha=0; alpha<3; alpha++) {
             displace_atom(local_idx, alpha, 1);
             update_force();
-            for (bigint j=1; j<=natoms; j++){
+            for (bigint j=1; j<=natoms; j++) {
                 local_jdx = atom->map(j);
                 if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
-                    && gm[j-1] >= 0){
-                    for (int beta=0; beta<3; beta++){
+                    && gm[j-1] >= 0) {
+                    for (int beta=0; beta<3; beta++) {
                         dynmat[alpha][gm[j-1]*3+beta] -= f[local_jdx][beta];
                     }
                 }
             }
             displace_atom(local_idx,alpha,-2);
             update_force();
-            for (bigint j=1; j<=natoms; j++){
+            for (bigint j=1; j<=natoms; j++) {
                 local_jdx = atom->map(j);
                 if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
-                    && gm[j-1] >= 0){
-                    for (int beta=0; beta<3; beta++){
+                    && gm[j-1] >= 0) {
+                    for (int beta=0; beta<3; beta++) {
                         if (atom->rmass_flag == 1)
                             imass = sqrt(m[local_idx] * m[local_jdx]);
                         else
@@ -369,7 +369,7 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
 
     x[local_idx][direction] += del*magnitude;
 
-    while (sametag[j] >= 0){
+    while (sametag[j] >= 0) {
         j = sametag[j];
         x[j][direction] += del*magnitude;
     }
@@ -393,7 +393,7 @@ void DynamicalMatrix::update_force()
         force->pair->compute(eflag,vflag);
         timer->stamp(Timer::PAIR);
     }
-    if (atom->molecular) {
+    if (atom->molecular != Atom::ATOMIC) {
         if (force->bond) force->bond->compute(eflag,vflag);
         if (force->angle) force->angle->compute(eflag,vflag);
         if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -457,7 +457,7 @@ void DynamicalMatrix::dynmat_clear(double **dynmat)
 void DynamicalMatrix::convert_units(const char *style)
 {
     // physical constants from:
-    // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
+    // https://physics.nist.gov/cuu/Constants/Table/allascii.txt
     // using thermochemical calorie = 4.184 J
 
     if (strcmp(style,"lj") == 0) {
@@ -524,7 +524,7 @@ void DynamicalMatrix::create_groupmap()
     bigint *temp_groupmap = new bigint[natoms];
 
     //find number of local atoms in the group (final_gid)
-    for (bigint i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++) {
         local_idx = atom->map(i);
         if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit)
             gid += 1; // gid at the end of loop is final_Gid
@@ -534,21 +534,21 @@ void DynamicalMatrix::create_groupmap()
 
     gid = 0;
     //create a map between global atom id and group atom id for each proc
-    for (bigint i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++) {
         local_idx = atom->map(i);
-        if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit){
+        if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit) {
             sub_groupmap[gid] = i;
             gid += 1;
         }
     }
 
     //populate arrays for Allgatherv
-    for (int i=0; i<comm->nprocs; i++){
+    for (int i=0; i<comm->nprocs; i++) {
         recv[i] = 0;
     }
     recv[comm->me] = gid;
     MPI_Allreduce(recv,displs,comm->nprocs,MPI_INT,MPI_SUM,world);
-    for (int i=0; i<comm->nprocs; i++){
+    for (int i=0; i<comm->nprocs; i++) {
         recv[i]=displs[i];
         if (i>0) displs[i] = displs[i-1]+recv[i-1];
         else displs[i] = 0;
@@ -560,7 +560,7 @@ void DynamicalMatrix::create_groupmap()
 
     //populate member groupmap based on temp groupmap
     bigint j = 0;
-    for (bigint i=1; i<=natoms; i++){
+    for (bigint i=1; i<=natoms; i++) {
         // flag groupmap contents that are in temp_groupmap
         if (j < gcount && i == temp_groupmap[j])
             groupmap[i-1] = j++;

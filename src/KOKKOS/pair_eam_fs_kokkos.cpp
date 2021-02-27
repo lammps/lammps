@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,6 +46,7 @@ PairEAMFSKokkos<DeviceType>::PairEAMFSKokkos(LAMMPS *lmp) : PairEAM(lmp)
   manybody_flag = 1;
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -170,9 +171,7 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (newton_pair) {
       k_rho.template modify<DeviceType>();
-      k_rho.template sync<LMPHostType>();
       comm->reverse_comm_pair(this);
-      k_rho.template modify<LMPHostType>();
       k_rho.template sync<DeviceType>();
     }
 
@@ -200,7 +199,9 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // communicate derivative of embedding function (on the device)
 
+  k_fp.template sync<DeviceType>();
   comm->forward_comm_pair(this);
+  k_fp.template modify<DeviceType>();
 
   // compute kernel C
 
@@ -328,13 +329,13 @@ void PairEAMFSKokkos<DeviceType>::file2array()
   int i,j;
   int n = atom->ntypes;
 
-  DAT::tdual_int_1d k_type2frho = DAT::tdual_int_1d("pair:type2frho",n+1);
-  DAT::tdual_int_2d k_type2rhor = DAT::tdual_int_2d("pair:type2rhor",n+1,n+1);
-  DAT::tdual_int_2d k_type2z2r = DAT::tdual_int_2d("pair:type2z2r",n+1,n+1);
+  auto k_type2frho = DAT::tdual_int_1d("pair:type2frho",n+1);
+  auto k_type2rhor = DAT::tdual_int_2d_dl("pair:type2rhor",n+1,n+1);
+  auto k_type2z2r = DAT::tdual_int_2d_dl("pair:type2z2r",n+1,n+1);
 
-  HAT::t_int_1d h_type2frho =  k_type2frho.h_view;
-  HAT::t_int_2d h_type2rhor = k_type2rhor.h_view;
-  HAT::t_int_2d h_type2z2r = k_type2z2r.h_view;
+  auto h_type2frho =  k_type2frho.h_view;
+  auto h_type2rhor = k_type2rhor.h_view;
+  auto h_type2z2r = k_type2z2r.h_view;
 
   for (i = 1; i <= n; i++) {
     h_type2frho[i] = type2frho[i];
@@ -467,6 +468,8 @@ template<class DeviceType>
 int PairEAMFSKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
                                                    int /*pbc_flag*/, int * /*pbc*/)
 {
+  k_fp.sync_host();
+
   int i,j;
 
   for (i = 0; i < n; i++) {
@@ -481,9 +484,13 @@ int PairEAMFSKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf
 template<class DeviceType>
 void PairEAMFSKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
+  k_fp.sync_host();
+
   for (int i = 0; i < n; i++) {
     h_fp[i + first] = buf[i];
   }
+
+  k_fp.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -491,6 +498,8 @@ void PairEAMFSKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *
 template<class DeviceType>
 int PairEAMFSKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
+  k_rho.sync_host();
+
   int i,m,last;
 
   m = 0;
@@ -504,6 +513,8 @@ int PairEAMFSKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf
 template<class DeviceType>
 void PairEAMFSKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
+  k_rho.sync_host();
+
   int i,j,m;
 
   m = 0;
@@ -511,6 +522,8 @@ void PairEAMFSKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *
     j = list[i];
     h_rho[j] += buf[m++];
   }
+
+  k_rho.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -543,13 +556,11 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelA<NEIGHFLAG,NEWTO
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT rhotmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);
@@ -636,13 +647,11 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelAB<EFLAG>, const 
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT rhotmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);
@@ -714,7 +723,6 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
   const X_FLOAT ztmp = x(i,2);
   const int itype = type(i);
 
-  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
   const int jnum = d_numneigh[i];
 
   F_FLOAT fxtmp = 0.0;
@@ -722,7 +730,6 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
   F_FLOAT fztmp = 0.0;
 
   for (int jj = 0; jj < jnum; jj++) {
-    //int j = d_neighbors_i[jj];
     int j = d_neighbors(i,jj);
     j &= NEIGHMASK;
     const X_FLOAT delx = xtmp - x(j,0);
@@ -731,7 +738,7 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
     const int jtype = type(j);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if(rsq < cutforcesq) {
+    if (rsq < cutforcesq) {
       const F_FLOAT r = sqrt(rsq);
       F_FLOAT p = r*rdr + 1.0;
       int m = static_cast<int> (p);
@@ -756,10 +763,16 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelC<NEIGHFLAG,NEWTO
       const F_FLOAT rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p +
                              d_rhor_spline(d_type2rhor_ji,m,2);
       const int d_type2z2r_ij = d_type2z2r(itype,jtype);
-      const F_FLOAT z2p = (d_z2r_spline(d_type2z2r_ij,m,0)*p + d_z2r_spline(d_type2z2r_ij,m,1))*p +
-                           d_z2r_spline(d_type2z2r_ij,m,2);
-      const F_FLOAT z2 = ((d_z2r_spline(d_type2z2r_ij,m,3)*p + d_z2r_spline(d_type2z2r_ij,m,4))*p +
-                           d_z2r_spline(d_type2z2r_ij,m,5))*p + d_z2r_spline(d_type2z2r_ij,m,6);
+
+      const auto z2r_spline_3 = d_z2r_spline(d_type2z2r_ij,m,3);
+      const auto z2r_spline_4 = d_z2r_spline(d_type2z2r_ij,m,4);
+      const auto z2r_spline_5 = d_z2r_spline(d_type2z2r_ij,m,5);
+      const auto z2r_spline_6 = d_z2r_spline(d_type2z2r_ij,m,6);
+
+      const F_FLOAT z2p = (3.0*rdr*z2r_spline_3*p + 2.0*rdr*z2r_spline_4)*p +
+                           rdr*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
+      const F_FLOAT z2 = ((z2r_spline_3*p + z2r_spline_4)*p +
+                           z2r_spline_5)*p + z2r_spline_6;
 
       const F_FLOAT recip = 1.0/r;
       const F_FLOAT phi = z2*recip;
@@ -938,7 +951,7 @@ void PairEAMFSKokkos<DeviceType>::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -985,7 +998,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
   Fs *file = fs;
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "eam/fs", unit_convert_flag);
 
     // transparently convert units for supported conversions
@@ -1012,8 +1025,6 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
         file->elements[i] = new char[n];
         strcpy(file->elements[i], word.c_str());
       }
-
-      //
 
       values = reader.next_values(5);
       file->nrho = values.next_int();
@@ -1055,7 +1066,7 @@ void PairEAMFSKokkos<DeviceType>::read_file(char *filename)
           }
         }
       }
-    } catch (TokenizerException & e) {
+    } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }

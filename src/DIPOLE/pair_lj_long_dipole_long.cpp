@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,23 +17,24 @@
 
 #include "pair_lj_long_dipole_long.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_const.h"
-#include "math_vector.h"
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -58,7 +59,7 @@ PairLJLongDipoleLong::PairLJLongDipoleLong(LAMMPS *lmp) : Pair(lmp)
 
 void PairLJLongDipoleLong::options(char **arg, int order)
 {
-  const char *option[] = {"long", "cut", "off", NULL};
+  const char *option[] = {"long", "cut", "off", nullptr};
   int i;
 
   if (!*arg) error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
@@ -168,10 +169,10 @@ void *PairLJLongDipoleLong::extract(const char *id, int &dim)
 {
   const char *ids[] = {
     "B", "sigma", "epsilon", "ewald_order", "ewald_cut", "ewald_mix",
-    "cut_coul", "cut_vdwl", NULL};
+    "cut_coul", "cut_vdwl", nullptr};
   void *ptrs[] = {
     lj4, sigma, epsilon, &ewald_order, &cut_coul, &mix_flag, &cut_coul,
-    &cut_lj_global, NULL};
+    &cut_lj_global, nullptr};
   int i;
 
   for (i=0; ids[i]&&strcmp(ids[i], id); ++i);
@@ -220,8 +221,8 @@ void PairLJLongDipoleLong::coeff(int narg, char **arg)
 
 void PairLJLongDipoleLong::init_style()
 {
-  const char *style3[] = {"ewald/disp", NULL};
-  const char *style6[] = {"ewald/disp", NULL};
+  const char *style3[] = {"ewald/disp", nullptr};
+  const char *style6[] = {"ewald/disp", nullptr};
   int i;
 
   if (strcmp(update->unit_style,"electron") == 0)
@@ -242,14 +243,14 @@ void PairLJLongDipoleLong::init_style()
   // ensure use of KSpace long-range solver, set g_ewald
 
   if (ewald_order&(1<<3)) {                             // r^-1 kspace
-    if (force->kspace == NULL)
+    if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
     for (i=0; style3[i]&&strcmp(force->kspace_style, style3[i]); ++i);
     if (!style3[i])
       error->all(FLERR,"Pair style requires use of kspace_style ewald/disp");
   }
   if (ewald_order&(1<<6)) {                             // r^-6 kspace
-    if (force->kspace == NULL)
+    if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
     for (i=0; style6[i]&&strcmp(force->kspace_style, style6[i]); ++i);
     if (!style6[i])
@@ -343,13 +344,13 @@ void PairLJLongDipoleLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&epsilon_read[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&sigma_read[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_lj_read[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&epsilon_read[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma_read[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_lj_read[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon_read[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma_read[i][j],1,MPI_DOUBLE,0,world);
@@ -378,11 +379,11 @@ void PairLJLongDipoleLong::write_restart_settings(FILE *fp)
 void PairLJLongDipoleLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -421,8 +422,8 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
   double B0, B1, B2, B3, G0, G1, G2, mudi, mudj, muij;
-  vector force_d = VECTOR_NULL, ti = VECTOR_NULL, tj = VECTOR_NULL;
-  vector mui, muj, xi, d;
+  double force_d[3] = {0.0,0.0,0.0}, ti[3] = {0.0,0.0,0.0}, tj[3] = {0.0,0.0,0.0};
+  double mui[3], muj[3], xi[3], d[3];
 
   double C1 = 2.0 * g_ewald / MY_PIS;
   double C2 = 2.0 * g2 * C1;
@@ -436,8 +437,8 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
     offseti = offset[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    memcpy(mui, imu = mu0+(i<<2), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
+    memcpy(mui, imu = mu0+(i<<2), 3*sizeof(double));
 
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
@@ -451,11 +452,11 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
       if (order3 && (rsq < cut_coulsq)) {               // dipole
-        memcpy(muj, jmu = mu0+(j<<2), sizeof(vector));
+        memcpy(muj, jmu = mu0+(j<<2), 3*sizeof(double));
         {                                               // series real space
           double r = sqrt(rsq);
           double x = g_ewald*r;

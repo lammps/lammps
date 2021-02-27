@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,9 +43,9 @@ ComputeTempDrude::ComputeTempDrude(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 0; // because does not compute a single temperature (scalar and vector)
 
   vector = new double[size_vector];
-  fix_drude = NULL;
-  id_temp = NULL;
-  temperature = NULL;
+  fix_drude = nullptr;
+  id_temp = nullptr;
+  temperature = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -155,8 +155,8 @@ void ComputeTempDrude::compute_vector()
     double ecore, edrude;
     double *vcore, *vdrude;
     double kineng_core_loc = 0., kineng_drude_loc = 0.;
-    for (int i=0; i<nlocal; i++){
-        if (groupbit & mask[i] && drudetype[type[i]] != DRUDE_TYPE){
+    for (int i=0; i<nlocal; i++) {
+        if (groupbit & mask[i] && drudetype[type[i]] != DRUDE_TYPE) {
             if (drudetype[type[i]] == NOPOL_TYPE) {
                 ecore = 0.;
                 vcore = v[i];
@@ -213,7 +213,7 @@ void ComputeTempDrude::compute_vector()
     vector[5] = kineng_drude;
 }
 
-double ComputeTempDrude::compute_scalar(){
+double ComputeTempDrude::compute_scalar() {
     compute_vector();
     scalar = vector[0];
     return scalar;

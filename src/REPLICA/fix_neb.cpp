@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,12 +45,12 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 FixNEB::FixNEB(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  id_pe(NULL), pe(NULL), nlenall(NULL), xprev(NULL), xnext(NULL),
-  fnext(NULL), springF(NULL), tangent(NULL), xsend(NULL), xrecv(NULL),
-  fsend(NULL), frecv(NULL), tagsend(NULL), tagrecv(NULL),
-  xsendall(NULL), xrecvall(NULL), fsendall(NULL), frecvall(NULL),
-  tagsendall(NULL), tagrecvall(NULL), counts(NULL),
-  displacements(NULL)
+  id_pe(nullptr), pe(nullptr), nlenall(nullptr), xprev(nullptr), xnext(nullptr),
+  fnext(nullptr), springF(nullptr), tangent(nullptr), xsend(nullptr), xrecv(nullptr),
+  fsend(nullptr), frecv(nullptr), tagsend(nullptr), tagrecv(nullptr),
+  xsendall(nullptr), xrecvall(nullptr), fsendall(nullptr), frecvall(nullptr),
+  tagsendall(nullptr), tagrecvall(nullptr), counts(nullptr),
+  displacements(nullptr)
 {
 
   if (narg < 4) error->all(FLERR,"Illegal fix neb command");
@@ -237,7 +237,7 @@ void FixNEB::init()
 
   if (atom->nmax > maxlocal) reallocate();
 
-  if ((cmode == MULTI_PROC) && (counts == NULL)) {
+  if ((cmode == MULTI_PROC) && (counts == nullptr)) {
     memory->create(xsendall,ntotal,3,"neb:xsendall");
     memory->create(xrecvall,ntotal,3,"neb:xrecvall");
     memory->create(fsendall,ntotal,3,"neb:fsendall");
@@ -785,9 +785,9 @@ void FixNEB::inter_replica_comm()
     MPI_Gatherv(fsend[0],3*m,MPI_DOUBLE,
                 fsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   } else {
-    MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
+    MPI_Gatherv(nullptr,3*m,MPI_DOUBLE,
                 xsendall[0],counts,displacements,MPI_DOUBLE,0,world);
-    MPI_Gatherv(NULL,3*m,MPI_DOUBLE,
+    MPI_Gatherv(nullptr,3*m,MPI_DOUBLE,
                 fsendall[0],counts,displacements,MPI_DOUBLE,0,world);
   }
 

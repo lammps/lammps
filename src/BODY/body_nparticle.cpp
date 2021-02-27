@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,6 +17,7 @@
 #include "atom_vec_body.h"
 #include "error.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
 #include "my_pool_chunk.h"
 
@@ -30,7 +31,7 @@ enum{SPHERE,LINE,TRI};           // also in DumpImage
 /* ---------------------------------------------------------------------- */
 
 BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
-  Body(lmp, narg, arg), imflag(NULL), imdata(NULL)
+  Body(lmp, narg, arg), imflag(nullptr), imdata(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Invalid body nparticle command");
 
@@ -136,7 +137,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
-  int ierror = MathExtra::jacobi(tensor,inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
   if (ierror) error->one(FLERR,
                          "Insufficient Jacobi rotations for body nparticle");
 
@@ -194,7 +195,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
 
 /* ----------------------------------------------------------------------
    pack data struct for one body into buf for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int BodyNparticle::pack_data_body(tagint atomID, int ibonus, double *buf)

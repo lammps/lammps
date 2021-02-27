@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -65,8 +65,8 @@ PairEDPD::PairEDPD(LAMMPS *lmp) : Pair(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edpd);
   writedata = 1;
-  random = NULL;
-  randomT = NULL;
+  random = nullptr;
+  randomT = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -162,9 +162,9 @@ void PairEDPD::compute(int eflag, int vflag)
         T_pow[3] = T_pow[0]*T_pow[2];
 
         double power_d = power[itype][jtype];
-        if(power_flag){
+        if (power_flag) {
           double factor = 1.0;
-          for(int k = 0; k < 4; k++)
+          for (int k = 0; k < 4; k++)
             factor += sc[itype][jtype][k]*T_pow[k];
           power_d *= factor;
         }
@@ -197,9 +197,9 @@ void PairEDPD::compute(int eflag, int vflag)
           randnumT = MAX(-5.0,MIN(randnum,5.0));
 
           double kappaT = kappa[itype][jtype];
-          if(kappa_flag) {
+          if (kappa_flag) {
             double factor = 1.0;
-            for(int k = 0; k < 4; k++)
+            for (int k = 0; k < 4; k++)
               factor += kc[itype][jtype][k]*T_pow[k];
             kappaT *= factor;
           }
@@ -275,7 +275,7 @@ void PairEDPD::settings(int narg, char **arg)
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if (seed <= 0 ) {
+  if (seed <= 0) {
     struct timespec time;
     clock_gettime( CLOCK_REALTIME, &time );
     seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed
@@ -350,11 +350,11 @@ void PairEDPD::coeff(int narg, char **arg)
     powerT[i][j]= powerT_one;
     cutT[i][j]  = cutT_one;
 
-    if(power_flag)
+    if (power_flag)
     for (int k = 0; k < 4; k++)
       sc[i][j][k] = sc_one[k];
 
-    if(kappa_flag)
+    if (kappa_flag)
     for (int k = 0; k < 4; k++)
       kc[i][j][k] = kc_one[k];
 
@@ -399,11 +399,11 @@ double PairEDPD::init_one(int i, int j)
   kappa[j][i] = kappa[i][j];
   powerT[j][i]= powerT[i][j];
 
-  if(power_flag)
+  if (power_flag)
   for (int k = 0; k < 4; k++)
     sc[j][i][k] = sc[i][j][k];
 
-  if(kappa_flag)
+  if (kappa_flag)
   for (int k = 0; k < 4; k++)
     kc[j][i][k] = kc[i][j][k];
 
@@ -429,11 +429,11 @@ void PairEDPD::write_restart(FILE *fp)
       fwrite(&kappa[i][j],sizeof(double),1,fp);
       fwrite(&powerT[i][j],sizeof(double),1,fp);
       fwrite(&cutT[i][j],sizeof(double),1,fp);
-      if(power_flag)
+      if (power_flag)
       for (int k = 0; k < 4; k++)
         fwrite(&sc[i][j][k],sizeof(double),1,fp);
 
-      if(kappa_flag)
+      if (kappa_flag)
       for (int k = 0; k < 4; k++)
         fwrite(&kc[i][j][k],sizeof(double),1,fp);
     }
@@ -453,24 +453,24 @@ void PairEDPD::read_restart(FILE *fp)
   int me = comm->me;
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&power[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&powerT[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cutT[i][j],sizeof(double),1,fp,NULL,error);
-          if(power_flag)
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&gamma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&power[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&powerT[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cutT[i][j],sizeof(double),1,fp,nullptr,error);
+          if (power_flag)
           for (int k = 0; k < 4; k++)
-            utils::sfread(FLERR,&sc[i][j][k],sizeof(double),1,fp,NULL,error);
+            utils::sfread(FLERR,&sc[i][j][k],sizeof(double),1,fp,nullptr,error);
 
-          if(kappa_flag)
+          if (kappa_flag)
           for (int k = 0; k < 4; k++)
-            utils::sfread(FLERR,&kc[i][j][k],sizeof(double),1,fp,NULL,error);
+            utils::sfread(FLERR,&kc[i][j][k],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&gamma[i][j],1,MPI_DOUBLE,0,world);
@@ -479,11 +479,11 @@ void PairEDPD::read_restart(FILE *fp)
         MPI_Bcast(&kappa[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&powerT[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cutT[i][j],1,MPI_DOUBLE,0,world);
-        if(power_flag)
+        if (power_flag)
         for (int k = 0; k < 4; k++)
           MPI_Bcast(&sc[i][j][k],1,MPI_DOUBLE,0,world);
 
-        if(kappa_flag)
+        if (kappa_flag)
         for (int k = 0; k < 4; k++)
           MPI_Bcast(&kc[i][j][k],1,MPI_DOUBLE,0,world);
       }
@@ -508,9 +508,9 @@ void PairEDPD::write_restart_settings(FILE *fp)
 void PairEDPD::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);

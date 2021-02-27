@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,9 +43,10 @@ int tersoff_mod_gpu_init(const int ntypes, const int inum, const int nall,
   int* host_map, const int nelements, int*** host_elem2param, const int nparams,
   const double* ts_lam1, const double* ts_lam2, const double* ts_lam3,
   const double* ts_powermint, const double* ts_biga, const double* ts_bigb,
-  const double* ts_bigr, const double* ts_bigd, const double* ts_c1, const double* ts_c2,
-  const double* ts_c3, const double* ts_c4, const double* ts_c5, const double* ts_h,
-  const double* ts_beta, const double* ts_powern, const double* ts_powern_del,
+  const double* ts_bigr, const double* ts_bigd, const double* ts_c1,
+  const double* ts_c2, const double* ts_c3, const double* ts_c4,
+  const double* ts_c5, const double* ts_h, const double* ts_beta,
+  const double* ts_powern, const double* ts_powern_del,
   const double* ts_ca1, const double* ts_cutsq);
 void tersoff_mod_gpu_clear();
 int ** tersoff_mod_gpu_compute_n(const int ago, const int inum_full,
@@ -61,8 +62,6 @@ void tersoff_mod_gpu_compute(const int ago, const int nlocal, const int nall,
                     const bool vflag, const bool eatom, const bool vatom,
                     int &host_start, const double cpu_time, bool &success);
 double tersoff_mod_gpu_bytes();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                             double **vatom, double *virial, double &ecoul);
 
 /* ---------------------------------------------------------------------- */
 
@@ -73,7 +72,7 @@ PairTersoffMODGPU::PairTersoffMODGPU(LAMMPS *lmp) : PairTersoffMOD(lmp),
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
-  cutghost = NULL;
+  cutghost = nullptr;
   ghostneigh = 1;
 }
 
@@ -160,11 +159,11 @@ void PairTersoffMODGPU::init_style()
   double *biga, *bigb, *bigr, *bigd;
   double *c1, *c2, *c3, *c4, *c5, *h;
   double *beta, *powern, *ca1, *powern_del, *_cutsq;
-  lam1 = lam2 = lam3 = powermint = NULL;
-  biga = bigb = bigr = bigd = NULL;
-  powern_del = ca1 = NULL;
-  c1 = c2 = c3 = c4 = c5 = h = NULL;
-  beta = powern = _cutsq = NULL;
+  lam1 = lam2 = lam3 = powermint = nullptr;
+  biga = bigb = bigr = bigd = nullptr;
+  powern_del = ca1 = nullptr;
+  c1 = c2 = c3 = c4 = c5 = h = nullptr;
+  beta = powern = _cutsq = nullptr;
 
   memory->create(lam1,nparams,"pair:lam1");
   memory->create(lam2,nparams,"pair:lam2");
@@ -208,8 +207,9 @@ void PairTersoffMODGPU::init_style()
     _cutsq[i] = params[i].cutsq;
   }
 
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = tersoff_mod_gpu_init(atom->ntypes+1, atom->nlocal,
-                                 atom->nlocal+atom->nghost, 300,
+                                 atom->nlocal+atom->nghost, mnf,
                                  cell_size, gpu_mode, screen, map, nelements,
                                  elem2param, nparams, lam1, lam2, lam3,
                                  powermint, biga, bigb, bigr, bigd,
@@ -244,7 +244,6 @@ void PairTersoffMODGPU::init_style()
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->ghost = 1;
   }
-
   if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser = 2.0*cutmax + neighbor->skin;
     if (comm->me == 0)

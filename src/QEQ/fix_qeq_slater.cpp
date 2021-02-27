@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -88,15 +88,15 @@ void FixQEqSlater::init()
 void FixQEqSlater::extract_streitz()
 {
   Pair *pair = force->pair_match("coul/streitz",1);
-  if (pair == NULL) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
+  if (pair == nullptr) error->all(FLERR,"No pair coul/streitz for fix qeq/slater");
   int tmp;
   chi = (double *) pair->extract("chi",tmp);
   eta = (double *) pair->extract("eta",tmp);
   gamma = (double *) pair->extract("gamma",tmp);
   zeta = (double *) pair->extract("zeta",tmp);
   zcore = (double *) pair->extract("zcore",tmp);
-  if (chi == NULL || eta == NULL || gamma == NULL
-                  || zeta == NULL || zcore == NULL)
+  if (chi == nullptr || eta == nullptr || gamma == nullptr
+                  || zeta == nullptr || zcore == nullptr)
     error->all(FLERR,
         "Fix qeq/slater could not extract params from pair coul/streitz");
 
@@ -136,7 +136,7 @@ void FixQEqSlater::init_matvec()
   inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -353,17 +353,17 @@ void FixQEqSlater::sparse_matvec( sparse_matrix *A, double *x, double *b )
   double r = cutoff;
   double woself = 0.50*erfc(alpha*r)/r + alpha/MY_PIS;
 
-  for( i = 0; i < nlocal; ++i ) {
+  for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = (eta[atom->type[i]] - 2.0*force->qqr2e*woself) * x[i];
   }
 
-  for( i = nlocal; i < nall; ++i ) {
+  for (i = nlocal; i < nall; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = 0;
   }
 
-  for( i = 0; i < nlocal; ++i ) {
+  for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit) {
       for( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];

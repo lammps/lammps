@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,7 +50,7 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
 
   nparams = maxparam = 0;
-  params = NULL;
+  params = nullptr;
 
   nextra = 2;
   pvector = new double[2];
@@ -118,7 +118,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
     i = ilist[ii];
     itype = type[i];
     if (!donor[itype]) continue;
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       klist = special[i];
       knum = nspecial[i][0];
     } else {
@@ -146,7 +146,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
-        if (molecular == 1) k = atom->map(klist[kk]);
+        if (molecular == Atom::MOLECULAR) k = atom->map(klist[kk]);
         else k = atom->map(klist[kk]+tagprev);
         if (k < 0) continue;
         ktype = type[k];
@@ -394,11 +394,11 @@ void PairHbondDreidingLJ::init_style()
   // pair newton on required since are looping over D atoms
   //   and computing forces on A,H which may be on different procs
 
-  if (atom->molecular == 0)
+  if (atom->molecular == Atom::ATOMIC)
     error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
                "see atom_modify");
   if (force->newton_pair == 0)
@@ -494,7 +494,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
   if (!acceptor[jtype]) return 0.0;
 
   int molecular = atom->molecular;
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     klist = atom->special[i];
     knum = atom->nspecial[i][0];
   } else {
@@ -510,7 +510,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
   factor_hb = special_lj[sbmask(j)];
 
   for (kk = 0; kk < knum; kk++) {
-    if (molecular == 1) k = atom->map(klist[kk]);
+    if (molecular == Atom::MOLECULAR) k = atom->map(klist[kk]);
     else k = atom->map(klist[kk]+tagprev);
 
     if (k < 0) continue;

@@ -38,8 +38,11 @@ class UCL_Texture {
   inline UCL_Texture(UCL_Program &prog, const char *texture_name)
     { get_texture(prog,texture_name); }
   /// Set the texture reference for this object
-  inline void get_texture(UCL_Program &prog, const char *texture_name)
-    { CU_SAFE_CALL(cuModuleGetTexRef(&_tex, prog._module, texture_name)); }
+  inline void get_texture(UCL_Program &prog, const char *texture_name) {
+    #if (CUDA_VERSION < 11000)
+    CU_SAFE_CALL(cuModuleGetTexRef(&_tex, prog._module, texture_name));
+    #endif
+  }
 
   /// Bind a float array where each fetch grabs a vector of length numel
   template<class numtyp>
@@ -72,15 +75,18 @@ class UCL_Texture {
   }
 
  private:
+  #if (CUDA_VERSION < 11000)
   CUtexref _tex;
+  #endif
   friend class UCL_Kernel;
 
   template<class mat_typ>
   inline void _bind_float(mat_typ &vec, const unsigned numel) {
+    #if (CUDA_VERSION < 11000)
     #ifdef UCL_DEBUG
     assert(numel!=0 && numel<5);
     #endif
-    CU_SAFE_CALL(cuTexRefSetAddress(NULL, _tex, vec.cbegin(),
+    CU_SAFE_CALL(cuTexRefSetAddress(nullptr, _tex, vec.cbegin(),
                  vec.numel()*vec.element_size()));
     if (vec.element_size()==sizeof(float))
       CU_SAFE_CALL(cuTexRefSetFormat(_tex, CU_AD_FORMAT_FLOAT, numel));
@@ -90,8 +96,40 @@ class UCL_Texture {
       else
         CU_SAFE_CALL(cuTexRefSetFormat(_tex,CU_AD_FORMAT_SIGNED_INT32,numel*2));
     }
+    #endif
   }
 
+};
+
+/// Class storing a const global memory reference
+class UCL_Const {
+ public:
+  UCL_Const() {}
+  ~UCL_Const() {}
+  /// Construct with a specified global reference
+  inline UCL_Const(UCL_Program &prog, const char *global_name)
+    { get_global(prog,global_name); }
+  /// Set the global reference for this object
+  inline void get_global(UCL_Program &prog, const char *global_name) {
+    _cq=prog.cq();
+    CU_SAFE_CALL(cuModuleGetGlobal(&_global, &_global_bytes, prog._module,
+				   global_name)); 
+  }
+  /// Copy from array on host to const memory
+  template <class numtyp>
+  inline void update_device(UCL_H_Vec<numtyp> &src, const int numel) {
+    CU_SAFE_CALL(cuMemcpyHtoDAsync(_global, src.begin(), numel*sizeof(numtyp),
+				   _cq));
+  }
+  /// Get device ptr associated with object
+  inline const CUdeviceptr * begin() const { return &_global; }
+  inline void clear() {}
+
+ private:
+  CUstream _cq;
+  CUdeviceptr _global;
+  size_t _global_bytes;
+  friend class UCL_Kernel;
 };
 
 } // namespace

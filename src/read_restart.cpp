@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -108,7 +108,7 @@ void ReadRestart::command(int narg, char **arg)
       hfile.replace(hfile.find("%"),1,"base");
     }
     fp = fopen(hfile.c_str(),"rb");
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                    hfile, utils::getsyserror()));
   }
@@ -166,7 +166,7 @@ void ReadRestart::command(int narg, char **arg)
 
   if (multiproc && me == 0) {
     fclose(fp);
-    fp = NULL;
+    fp = nullptr;
   }
 
   // read per-proc info
@@ -174,7 +174,7 @@ void ReadRestart::command(int narg, char **arg)
   AtomVec *avec = atom->avec;
 
   int maxbuf = 0;
-  double *buf = NULL;
+  double *buf = nullptr;
   int m,flag;
 
   // MPI-IO input from single file
@@ -255,7 +255,7 @@ void ReadRestart::command(int narg, char **arg)
 
     if (me == 0) {
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
   }
 
@@ -270,34 +270,34 @@ void ReadRestart::command(int narg, char **arg)
       std::string procfile = file;
       procfile.replace(procfile.find("%"),1,fmt::format("{}",iproc));
       fp = fopen(procfile.c_str(),"rb");
-      if (fp == NULL)
+      if (fp == nullptr)
         error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                      procfile, utils::getsyserror()));
-      utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
+      utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
       int procsperfile;
-      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,NULL,error);
+      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,nullptr,error);
 
       for (int i = 0; i < procsperfile; i++) {
-        utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
+        utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
         if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
-        utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+        utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
           memory->create(buf,maxbuf,"read_restart:buf");
         }
-        utils::sfread(FLERR,buf,sizeof(double),n,fp,NULL,error);
+        utils::sfread(FLERR,buf,sizeof(double),n,fp,nullptr,error);
 
         m = 0;
         while (m < n) m += avec->unpack_restart(&buf[m]);
       }
 
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
   }
 
@@ -334,7 +334,7 @@ void ReadRestart::command(int narg, char **arg)
       std::string procfile = file;
       procfile.replace(procfile.find("%"),1,fmt::format("{}",icluster));
       fp = fopen(procfile.c_str(),"rb");
-      if (fp == NULL)
+      if (fp == nullptr)
         error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
                                      procfile, utils::getsyserror()));
     }
@@ -342,10 +342,10 @@ void ReadRestart::command(int narg, char **arg)
     int flag,procsperfile;
 
     if (filereader) {
-      utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
+      utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
-      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,NULL,error);
+      utils::sfread(FLERR,&procsperfile,sizeof(int),1,fp,nullptr,error);
     }
     MPI_Bcast(&procsperfile,1,MPI_INT,0,clustercomm);
 
@@ -354,17 +354,17 @@ void ReadRestart::command(int narg, char **arg)
 
     for (int i = 0; i < procsperfile; i++) {
       if (filereader) {
-        utils::sfread(FLERR,&flag,sizeof(int),1,fp,NULL,error);
+        utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
         if (flag != PERPROC)
           error->one(FLERR,"Invalid flag in peratom section of restart file");
 
-        utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+        utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
         if (n > maxbuf) {
           maxbuf = n;
           memory->destroy(buf);
           memory->create(buf,maxbuf,"read_restart:buf");
         }
-        utils::sfread(FLERR,buf,sizeof(double),n,fp,NULL,error);
+        utils::sfread(FLERR,buf,sizeof(double),n,fp,nullptr,error);
 
         if (i % nclusterprocs) {
           iproc = me + (i % nclusterprocs);
@@ -391,9 +391,9 @@ void ReadRestart::command(int narg, char **arg)
       }
     }
 
-    if (filereader && fp != NULL) {
+    if (filereader && fp != nullptr) {
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
     MPI_Comm_free(&clustercomm);
   }
@@ -431,7 +431,7 @@ void ReadRestart::command(int narg, char **arg)
     // in case read by different proc than wrote restart file
     // first do map_init() since irregular->migrate_atoms() will do map_clear()
 
-    if (atom->map_style) {
+    if (atom->map_style != Atom::MAP_NONE) {
       atom->map_init();
       atom->map_set();
     }
@@ -472,19 +472,33 @@ void ReadRestart::command(int narg, char **arg)
   if (natoms != atom->natoms)
     error->all(FLERR,"Did not assign all restart atoms correctly");
 
-  if (me == 0) {
-    if (atom->nbonds) {
-      utils::logmesg(lmp,fmt::format("  {} bonds\n",atom->nbonds));
-    }
-    if (atom->nangles) {
-      utils::logmesg(lmp,fmt::format("  {} angles\n",atom->nangles));
-    }
-    if (atom->ndihedrals) {
-      utils::logmesg(lmp,fmt::format("  {} dihedrals\n",atom->ndihedrals));
-    }
-    if (atom->nimpropers) {
-      utils::logmesg(lmp,fmt::format("  {} impropers\n",atom->nimpropers));
-    }
+  if ((atom->molecular == Atom::TEMPLATE) && (me == 0)) {
+    std::string mesg;
+
+    if (atom->nbonds)
+      mesg += fmt::format("  {} template bonds\n",atom->nbonds);
+    if (atom->nangles)
+      mesg += fmt::format("  {} template angles\n",atom->nangles);
+    if (atom->ndihedrals)
+      mesg += fmt::format("  {} template dihedrals\n",atom->ndihedrals);
+    if (atom->nimpropers)
+      mesg += fmt::format("  {} template impropers\n",atom->nimpropers);
+
+    utils::logmesg(lmp,mesg);
+  }
+
+  if ((atom->molecular == Atom::MOLECULAR) && (me == 0)) {
+    std::string mesg;
+    if (atom->nbonds)
+      mesg += fmt::format("  {} bonds\n",atom->nbonds);
+    if (atom->nangles)
+      mesg += fmt::format("  {} angles\n",atom->nangles);
+    if (atom->ndihedrals)
+      mesg += fmt::format("  {} dihedrals\n",atom->ndihedrals);
+    if (atom->nimpropers)
+      mesg += fmt::format("  {} impropers\n",atom->nimpropers);
+
+    utils::logmesg(lmp,mesg);
   }
 
   // check that atom IDs are valid
@@ -493,14 +507,14 @@ void ReadRestart::command(int narg, char **arg)
 
   // create global mapping of atoms
 
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->map_init();
     atom->map_set();
   }
 
   // create special bond lists for molecular systems
 
-  if (atom->molecular == 1) {
+  if (atom->molecular == Atom::MOLECULAR) {
     Special special(lmp);
     special.build();
   }
@@ -570,11 +584,11 @@ void ReadRestart::file_search(char *inpfile, char *outfile)
 
   struct dirent *ep;
   DIR *dp = opendir(dirname);
-  if (dp == NULL)
+  if (dp == nullptr)
     error->one(FLERR,"Cannot open dir to search for restart file");
   while ((ep = readdir(dp))) {
     if (strstr(ep->d_name,begin) != ep->d_name) continue;
-    if ((ptr = strstr(&ep->d_name[nbegin],end)) == NULL) continue;
+    if ((ptr = strstr(&ep->d_name[nbegin],end)) == nullptr) continue;
     if (strlen(end) == 0) ptr = ep->d_name + strlen(ep->d_name);
     *ptr = '\0';
     if ((int)strlen(&ep->d_name[nbegin]) < n) {
@@ -621,7 +635,7 @@ void ReadRestart::header()
       char *version = read_string();
       if (me == 0)
         utils::logmesg(lmp,fmt::format("  restart file = {}, LAMMPS = {}\n",
-                                       version,universe->version));
+                                       version,lmp->version));
       delete [] version;
 
       // we have no forward compatibility, thus exit with error
@@ -1034,7 +1048,7 @@ void ReadRestart::file_layout()
           memory->create(nproc_chunk_number,nprocs,
                          "write_restart:nproc_chunk_number");
 
-          utils::sfread(FLERR,all_written_send_sizes,sizeof(int),nprocs_file,fp,NULL,error);
+          utils::sfread(FLERR,all_written_send_sizes,sizeof(int),nprocs_file,fp,nullptr,error);
 
           if ((nprocs != nprocs_file) && !(atom->nextra_store)) {
             // nprocs differ, but atom sizes are fixed length, yeah!
@@ -1232,7 +1246,7 @@ double ReadRestart::read_double()
 }
 
 /* ----------------------------------------------------------------------
-   read a char string (including NULL) and bcast it
+   read a char string (including nullptr) and bcast it
    str is allocated here, ptr is returned, caller must deallocate
 ------------------------------------------------------------------------- */
 
@@ -1241,7 +1255,7 @@ char *ReadRestart::read_string()
   int n = read_int();
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
-  if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
   return value;
 }
@@ -1253,7 +1267,7 @@ char *ReadRestart::read_string()
 void ReadRestart::read_int_vec(int n, int *vec)
 {
   if (n < 0) error->all(FLERR,"Illegal size integer vector read requested");
-  if (me == 0) utils::sfread(FLERR,vec,sizeof(int),n,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,vec,sizeof(int),n,fp,nullptr,error);
   MPI_Bcast(vec,n,MPI_INT,0,world);
 }
 
@@ -1264,6 +1278,6 @@ void ReadRestart::read_int_vec(int n, int *vec)
 void ReadRestart::read_double_vec(int n, double *vec)
 {
   if (n < 0) error->all(FLERR,"Illegal size double vector read requested");
-  if (me == 0) utils::sfread(FLERR,vec,sizeof(double),n,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,vec,sizeof(double),n,fp,nullptr,error);
   MPI_Bcast(vec,n,MPI_DOUBLE,0,world);
 }

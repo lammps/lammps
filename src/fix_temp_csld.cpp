@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,22 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_temp_csld.h"
-#include <cstring>
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "update.h"
+#include "variable.h"
 
 #include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "memory.h"
-#include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "group.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "random_mars.h"
-#include "error.h"
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -43,7 +43,7 @@ enum{CONSTANT,EQUAL};
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  vhold(NULL), tstr(NULL), id_temp(NULL), random(NULL)
+  vhold(nullptr), tstr(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csld command");
 
@@ -52,15 +52,14 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   restart_global = 1;
   nevery = 1;
   scalar_flag = 1;
+  ecouple_flag = 1;
   global_freq = nevery;
   dynamic_group_allow = 1;
   extscalar = 1;
 
-  tstr = NULL;
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    tstr = new char[n];
-    strcpy(tstr,&arg[3][2]);
+  tstr = nullptr;
+  if (utils::strmatch(arg[3],"^v_")) {
+    tstr = utils::strdup(arg[3]+2);
     tstyle = EQUAL;
   } else {
     t_start = utils::numeric(FLERR,arg[3],false,lmp);
@@ -83,14 +82,12 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + temp, compute group = fix group
 
   std::string cmd = id + std::string("_temp");
-  id_temp = new char[cmd.size()+1];
-  strcpy(id_temp,cmd.c_str());
-
+  id_temp = utils::strdup(cmd);
   cmd += fmt::format(" {} temp",group->names[igroup]);
   modify->add_compute(cmd);
   tflag = 1;
 
-  vhold = NULL;
+  vhold = nullptr;
   nmax = -1;
   energy = 0.0;
 }
@@ -108,7 +105,7 @@ FixTempCSLD::~FixTempCSLD()
 
   delete random;
   memory->destroy(vhold);
-  vhold = NULL;
+  vhold = nullptr;
   nmax = -1;
 }
 
@@ -118,7 +115,6 @@ int FixTempCSLD::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -298,23 +294,23 @@ double FixTempCSLD::compute_scalar()
   return energy;
 }
 
-
 /* ----------------------------------------------------------------------
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
 void FixTempCSLD::write_restart(FILE *fp)
 {
-  int nsize = (98+2+3)*comm->nprocs+2; // pRNG state per proc + nprocs + energy
+  const int PRNGSIZE = 98+2+3;
+  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
   double *list = nullptr;
   if (comm->me == 0) {
     list = new double[nsize];
     list[0] = energy;
     list[1] = comm->nprocs;
   }
-  double state[103];
+  double state[PRNGSIZE];
   random->get_state(state);
-  MPI_Gather(state,103,MPI_DOUBLE,list+2,103*comm->nprocs,MPI_DOUBLE,0,world);
+  MPI_Gather(state,PRNGSIZE,MPI_DOUBLE,list+2,PRNGSIZE,MPI_DOUBLE,0,world);
 
   if (comm->me == 0) {
     int size = nsize * sizeof(double);
@@ -350,5 +346,5 @@ void *FixTempCSLD::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

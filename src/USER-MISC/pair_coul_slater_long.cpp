@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 PairCoulSlaterLong::PairCoulSlaterLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
-  //ftable = NULL;
+  //ftable = nullptr;
   qdist = 0.0;
 }
 
@@ -59,7 +59,6 @@ PairCoulSlaterLong::~PairCoulSlaterLong()
 
       memory->destroy(scale);
     }
-    //if (ftable) free_tables();
   }
 }
 
@@ -69,17 +68,14 @@ void PairCoulSlaterLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,ecoul,fpair;
-//  double fraction,table;
   double r,r2inv,forcecoul,factor_coul;
   double grij,expm2,prefactor,t,erfc;
   int *ilist,*jlist,*numneigh,**firstneigh;
   double rsq;
   double slater_term;
-//  int itable;
 
+  ev_init(eflag,vflag);
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;
@@ -250,13 +246,13 @@ void PairCoulSlaterLong::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
- if (force->kspace == NULL)
+ if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
 
-  // if (ncoultablebits) init_tables(cut_coul,NULL);
+  // if (ncoultablebits) init_tables(cut_coul,nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -415,5 +411,5 @@ void *PairCoulSlaterLong::extract(const char *str, int &dim)
     dim = 2;
     return (void *) scale;
   }
-  return NULL;
+  return nullptr;
 }

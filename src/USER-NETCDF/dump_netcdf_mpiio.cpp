@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,8 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #if defined(LMP_HAS_PNETCDF)
-
-#include <unistd.h>
 
 #include <cstring>
 #include <pnetcdf.h>
@@ -69,7 +67,7 @@ const int THIS_IS_A_BIGINT   = -4;
 
 /* ---------------------------------------------------------------------- */
 
-#define NCERR(x) ncerr(x, NULL, __LINE__)
+#define NCERR(x) ncerr(x, nullptr, __LINE__)
 #define NCERRX(x, descr) ncerr(x, descr, __LINE__)
 #if !defined(NC_64BIT_DATA)
 #define NC_64BIT_DATA NC_64BIT_OFFSET
@@ -190,13 +188,13 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
   }
 
   n_buffer = 0;
-  int_buffer = NULL;
-  double_buffer = NULL;
+  int_buffer = nullptr;
+  double_buffer = nullptr;
 
   double_precision = false;
 
   thermo = false;
-  thermovar = NULL;
+  thermovar = nullptr;
 
   framei = 0;
 }
@@ -282,9 +280,12 @@ void DumpNetCDFMPIIO::openfile()
     vector_dim[i] = -1;
   }
 
-  if (append_flag && !multifile && access(filecurrent, F_OK) != -1) {
+  if (append_flag && !multifile) {
     // Fixme! Perform checks if dimensions and variables conform with
     // data structure standard.
+    if (not utils::file_is_readable(filecurrent))
+      error->all(FLERR, fmt::format("cannot append to non-existent file {}",
+                                    filecurrent));
 
     MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
     double d[1];
@@ -292,7 +293,7 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_open(MPI_COMM_WORLD, filecurrent, NC_WRITE, MPI_INFO_NULL,
+    NCERRX( ncmpi_open(world, filecurrent, NC_WRITE, MPI_INFO_NULL,
                        &ncid), filecurrent );
 
     // dimensions
@@ -372,7 +373,7 @@ void DumpNetCDFMPIIO::openfile()
     if (singlefile_opened) return;
     singlefile_opened = 1;
 
-    NCERRX( ncmpi_create(MPI_COMM_WORLD, filecurrent, NC_64BIT_DATA,
+    NCERRX( ncmpi_create(world, filecurrent, NC_64BIT_DATA,
                          MPI_INFO_NULL, &ncid), filecurrent );
 
     // dimensions
@@ -497,7 +498,7 @@ void DumpNetCDFMPIIO::openfile()
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "program",
                               6, "LAMMPS") );
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "programVersion",
-                              strlen(universe->version), universe->version) );
+                              strlen(lmp->version), lmp->version) );
 
     // units
     if (!strcmp(update->unit_style, "lj")) {
@@ -748,7 +749,7 @@ void DumpNetCDFMPIIO::write()
 
   nme = count();
   int *block_sizes = new int[comm->nprocs];
-  MPI_Allgather(&nme, 1, MPI_INT, block_sizes, 1, MPI_INT, MPI_COMM_WORLD);
+  MPI_Allgather(&nme, 1, MPI_INT, block_sizes, 1, MPI_INT, world);
   blocki = 0;
   for (int i = 0; i < comm->me; i++)  blocki += block_sizes[i];
   delete [] block_sizes;
@@ -767,7 +768,7 @@ void DumpNetCDFMPIIO::write()
 
   // pack my data into buf
 
-  pack(NULL);
+  pack(nullptr);
 
   // each process writes its data
 

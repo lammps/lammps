@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,25 +19,25 @@
 
 #include "pair_edip_multi.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "citeme.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define MAXLINE 1024
 #define DELTA 4
-
 
 static const char cite_pair_edip[] =
   "@article{cjiang2012\n"
@@ -56,11 +56,23 @@ static const char cite_pair_edip[] =
   " year      = {2010},\n"
   "}\n\n";
 
+// max number of interaction per atom for f(Z) environment potential
 
+static constexpr int leadDimInteractionList = 64;
+
+static inline void costheta_d(const double *dr_ij, const double r_ij,
+                              const double *dr_ik, const double r_ik,
+                              double *dri, double *drj, double *drk)
+{
+  const double costheta = dot3(dr_ij, dr_ik) / r_ij / r_ik;
+  scaleadd3(1 / r_ij / r_ik, dr_ik, -costheta / r_ij / r_ij, dr_ij, drj);
+  scaleadd3(1 / r_ij / r_ik, dr_ij, -costheta / r_ik / r_ik, dr_ik, drk);
+  scaleadd3(-1, drj, -1, drk, dri);
+}
 
 /* ---------------------------------------------------------------------- */
 
-PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp)
+PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp), preForceCoord(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edip);
 
@@ -68,12 +80,13 @@ PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   nelements = 0;
-  elements = NULL;
+  elements = nullptr;
   nparams = maxparam = 0;
-  params = NULL;
-  elem2param = NULL;
+  params = nullptr;
+  elem2param = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -92,10 +105,8 @@ PairEDIPMulti::~PairEDIPMulti()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] map;
-
-//XXX    deallocateGrids();
-    deallocatePreLoops();
   }
+  deallocatePreLoops();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,7 +258,7 @@ void PairEDIPMulti::compute(int eflag, int vflag)
 
           r_ik = sqrt(r_ik);
 
-          costheta=vec3_dot(dr_ij, dr_ik) / r_ij / r_ik;
+          costheta=dot3(dr_ij, dr_ik) / r_ij / r_ik;
 
           double v1, v2, v3, v4, v5, v6, v7;
 
@@ -365,14 +376,14 @@ void PairEDIPMulti::edip_fc(double r, Param *param, double &f, double &fdr)
   double x;
   double v1, v2;
 
-  if(r < c + 1E-6)
+  if (r < c + 1E-6)
   {
     f=1.0;
     fdr=0.0;
     return;
   }
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;
@@ -394,7 +405,7 @@ void PairEDIPMulti::edip_fcut2(double r, Param *param, double &f, double &fdr)
   double a = param->cutoffA;
   double v1;
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;
@@ -466,7 +477,7 @@ void PairEDIPMulti::edip_fcut3(double r, Param *param, double &f, double &fdr)
   double a = param->cutoffA;
   double v1;
 
-  if(r > a - 1E-6)
+  if (r > a - 1E-6)
   {
     f=0.0;
     fdr=0.0;
@@ -539,7 +550,7 @@ void PairEDIPMulti::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
   // nelements = # of unique elements
   // elements = list of element names
 
@@ -548,7 +559,7 @@ void PairEDIPMulti::coeff(int narg, char **arg)
     delete [] elements;
   }
   elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = NULL;
+  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
 
   nelements = 0;
   for (i = 3; i < narg; i++) {
@@ -591,8 +602,9 @@ void PairEDIPMulti::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // allocate tables and internal structures
+  // (re-)allocate tables and internal structures
 
+  deallocatePreLoops();
   allocatePreLoops();
 }
 
@@ -633,7 +645,7 @@ void PairEDIPMulti::read_file(char *file)
   char **words = new char*[params_per_line+1];
 
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
@@ -641,7 +653,7 @@ void PairEDIPMulti::read_file(char *file)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open EDIP potential file %s",file);
       error->one(FLERR,str);
@@ -659,7 +671,7 @@ void PairEDIPMulti::read_file(char *file)
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
+      if (ptr == nullptr) {
         eof = 1;
         fclose(fp);
       } else n = strlen(line) + 1;
@@ -681,7 +693,7 @@ void PairEDIPMulti::read_file(char *file)
       n = strlen(line);
       if (comm->me == 0) {
         ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
+        if (ptr == nullptr) {
           eof = 1;
           fclose(fp);
         } else n = strlen(line) + 1;
@@ -701,7 +713,7 @@ void PairEDIPMulti::read_file(char *file)
 
     nwords = 0;
     words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line

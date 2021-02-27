@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,7 +33,7 @@ NTopo::NTopo(LAMMPS *lmp) : Pointers(lmp)
 
   nbondlist = nanglelist = ndihedrallist = nimproperlist = 0;
   maxbond = maxangle = maxdihedral = maximproper = 0;
-  bondlist = anglelist = dihedrallist = improperlist = NULL;
+  bondlist = anglelist = dihedrallist = improperlist = nullptr;
 
   cluster_check = neighbor->cluster_check;
 }
@@ -206,13 +206,13 @@ void NTopo::dihedral_check(int nlist, int **list)
 
 /* ---------------------------------------------------------------------- */
 
-bigint NTopo::memory_usage()
+double NTopo::memory_usage()
 {
-  bigint bytes = 0;
-  bytes += 3*maxbond * sizeof(int);
-  bytes += 4*maxangle * sizeof(int);
-  bytes += 5*maxdihedral * sizeof(int);
-  bytes += 5*maximproper * sizeof(int);
+  double bytes = 0;
+  bytes += (double)3*maxbond * sizeof(int);
+  bytes += (double)4*maxangle * sizeof(int);
+  bytes += (double)5*maxdihedral * sizeof(int);
+  bytes += (double)5*maximproper * sizeof(int);
   return bytes;
 }
 

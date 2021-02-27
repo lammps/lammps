@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   nbasis = 0;
-  basis = NULL;
+  basis = nullptr;
 
   // parse style arg
 
@@ -164,7 +164,7 @@ Lattice::Lattice(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       else if (strcmp(arg[iarg+1],"y") == 0) dim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) dim = 2;
       else error->all(FLERR,"Illegal lattice command");
-      int *orient = NULL;
+      int *orient = nullptr;
       if (dim == 0) orient = orientx;
       else if (dim == 1) orient = orienty;
       else if (dim == 2) orient = orientz;

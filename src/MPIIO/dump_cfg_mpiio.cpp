@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -207,7 +207,7 @@ void DumpCFGMPIIO::write()
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // determine how much data needs to be written for setting the file size and prepocess it prior to writing
@@ -416,7 +416,7 @@ int DumpCFGMPIIO::convert_string_omp(int n, double *mybuf)
             unwrap_coord = (mybuf[bufOffset[tid]+m] - 0.5)/UNWRAPEXPAND + 0.5;
           //offset += sprintf(&sbuf[offset],vformat[j],unwrap_coord);
             mpifhStringCountPerThread[tid] += sprintf(&(mpifh_buffer_line_per_thread[tid][mpifhStringCountPerThread[tid]]),vformat[j],unwrap_coord);
-          } else if (j >= 5 ) {
+          } else if (j >= 5) {
             if (vtype[j] == Dump::INT)
             //offset +=
             //  sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,7 +24,7 @@ using namespace LAMMPS_NS;
 DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpXYZ(lmp, narg, arg)
 {
-  gzFp = NULL;
+  gzFp = nullptr;
 
   compression_level = Z_BEST_COMPRESSION;
 
@@ -38,8 +38,8 @@ DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) :
 DumpXYZGZ::~DumpXYZGZ()
 {
   if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
+  gzFp = nullptr;
+  fp = nullptr;
 }
 
 
@@ -103,8 +103,8 @@ void DumpXYZGZ::openfile()
 
     gzFp = gzopen(filecurrent, mode.c_str());
 
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+    if (gzFp == nullptr) error->one(FLERR,"Cannot open dump file");
+  } else gzFp = nullptr;
 
   // delete string with timestep replaced
 
@@ -134,7 +134,7 @@ void DumpXYZGZ::write()
   if (filewriter) {
     if (multifile) {
       gzclose(gzFp);
-      gzFp = NULL;
+      gzFp = nullptr;
     } else {
       if (flush_flag)
         gzflush(gzFp,Z_SYNC_FLUSH);
@@ -147,7 +147,7 @@ void DumpXYZGZ::write()
 int DumpXYZGZ::modify_param(int narg, char **arg)
 {
   int consumed = DumpXYZ::modify_param(narg, arg);
-  if(consumed == 0) {
+  if (consumed == 0) {
     if (strcmp(arg[0],"compression_level") == 0) {
       if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
       int min_level = Z_DEFAULT_COMPRESSION;

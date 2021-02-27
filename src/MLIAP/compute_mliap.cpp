@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,12 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include <cstring>
 
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
+#ifdef MLIAP_PYTHON
+#include "mliap_model_python.h"
+#endif
+
 #include "compute_mliap.h"
 #include "atom.h"
 #include "update.h"
@@ -34,8 +42,8 @@ using namespace LAMMPS_NS;
 enum{SCALAR,VECTOR,ARRAY};
 
 ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), mliaparray(NULL),
-  mliaparrayall(NULL), map(NULL)
+  Compute(lmp, narg, arg), mliaparray(nullptr),
+  mliaparrayall(nullptr), map(nullptr)
 {
   array_flag = 1;
   extarray = 0;
@@ -65,7 +73,14 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
         model = new MLIAPModelQuadratic(lmp);
         iarg += 2;
-      } else error->all(FLERR,"Illegal compute mliap command");
+      }
+#ifdef MLIAP_PYTHON
+      else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+      model = new MLIAPModelPython(lmp);
+      iarg += 2;
+      }
+#endif
+      else error->all(FLERR,"Illegal compute mliap command");
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute mliap command");
@@ -127,7 +142,7 @@ ComputeMLIAP::~ComputeMLIAP()
 
 void ComputeMLIAP::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute mliap requires a pair style be defined");
 
   if (descriptor->cutmax > force->pair->cutforce)
@@ -342,12 +357,12 @@ void ComputeMLIAP::compute_array()
 double ComputeMLIAP::memory_usage()
 {
 
-  double bytes = size_array_rows*size_array_cols *
+  double bytes = (double)size_array_rows*size_array_cols *
     sizeof(double);                                   // mliaparray
-  bytes += size_array_rows*size_array_cols *
+  bytes += (double)size_array_rows*size_array_cols *
     sizeof(double);                                   // mliaparrayall
   int n = atom->ntypes+1;
-  bytes += n*sizeof(int);                             // map
+  bytes += (double)n*sizeof(int);                             // map
 
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object

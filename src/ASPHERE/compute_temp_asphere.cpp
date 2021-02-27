@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,7 +38,7 @@ enum{ROTATE,ALL};
 
 ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_bias(NULL), tbias(NULL), avec(NULL)
+  id_bias(nullptr), tbias(nullptr), avec(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute temp/asphere command");
 
@@ -49,7 +49,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 1;
 
   tempbias = 0;
-  id_bias = NULL;
+  id_bias = nullptr;
   mode = ALL;
 
   int iarg = 3;

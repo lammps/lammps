@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeDpdAtom::ComputeDpdAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), dpdAtom(NULL)
+  Compute(lmp, narg, arg), dpdAtom(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute dpd/atom command");
 
@@ -81,8 +81,8 @@ void ComputeDpdAtom::compute_peratom()
     array_atom = dpdAtom;
   }
 
-  for (int i = 0; i < nlocal; i++){
-    if (mask[i] & groupbit){
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
       dpdAtom[i][0] =  uCond[i];
       dpdAtom[i][1] =  uMech[i];
       dpdAtom[i][2] =  uChem[i];
@@ -97,6 +97,6 @@ void ComputeDpdAtom::compute_peratom()
 
 double ComputeDpdAtom::memory_usage()
 {
-  double bytes = size_peratom_cols * nmax * sizeof(double);
+  double bytes = (double)size_peratom_cols * nmax * sizeof(double);
   return bytes;
 }

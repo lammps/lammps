@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,9 +54,9 @@ using namespace Eigen;
 PairTriSurf::PairTriSurf(LAMMPS *lmp) :
                 Pair(lmp) {
 
-        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = NULL;
-        bulkmodulus = NULL;
-        kn = NULL;
+        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
+        bulkmodulus = nullptr;
+        kn = nullptr;
         scale = 1.0;
 }
 
@@ -517,7 +517,7 @@ double PairTriSurf::memory_usage() {
  % The algorithm is based on
  % "David Eberly, 'Distance Between Point and Triangle in 3D',
  % Geometric Tools, LLC, (1999)"
- % http:\\www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
+ % https://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
  %
  %        ^t
  %  \     |
@@ -739,7 +739,7 @@ double PairTriSurf::memory_usage() {
  * % The algorithm is based on
  % "David Eberly, 'Distance Between Point and Triangle in 3D',
  % Geometric Tools, LLC, (1999)"
- % http:\\www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
+ % https://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
  */
 
 void PairTriSurf::PointTriangleDistance(const Vector3d sourcePosition, const Vector3d TRI0, const Vector3d TRI1,
@@ -833,6 +833,6 @@ void *PairTriSurf::extract(const char *str, int &/*i*/) {
                 return (void *) &stable_time_increment;
         }
 
-        return NULL;
+        return nullptr;
 
 }

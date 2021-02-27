@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -135,6 +135,7 @@ void PairOxrna2Xstk::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 
@@ -156,7 +157,7 @@ void PairOxrna2Xstk::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
 
     ra_chb[0] = d_chb*ax[0];
@@ -174,7 +175,7 @@ void PairOxrna2Xstk::compute(int eflag, int vflag)
 
       btype = type[b];
 
-      qb=bonus[b].quat;
+      qb=bonus[ellipsoid[b]].quat;
       MathExtra::q_to_exyz(qb,bx,by,bz);
 
       rb_chb[0] = d_chb*bx[0];
@@ -855,50 +856,50 @@ void PairOxrna2Xstk::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
 
-          utils::sfread(FLERR,&k_xst[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_xst_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_xst_c[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_xst_lo[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_xst_hi[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_xst_lc[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_xst_hc[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_xst_lo[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_xst_hi[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&k_xst[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_xst_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_xst_c[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_xst_lo[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_xst_hi[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_xst_lc[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_xst_hc[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_xst_lo[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_xst_hi[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_xst1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_xst1_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst1_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_xst1[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst1_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_xst1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_xst1_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst1_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_xst1[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst1_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_xst2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_xst2_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst2_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_xst2[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst2_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_xst2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_xst2_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst2_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_xst2[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst2_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_xst3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_xst3_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst3_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_xst3[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst3_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_xst3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_xst3_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst3_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_xst3[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst3_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_xst7[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_xst7_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst7_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_xst7[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst7_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_xst7[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_xst7_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst7_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_xst7[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst7_c[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_xst8[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&theta_xst8_0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst8_ast[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&b_xst8[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&dtheta_xst8_c[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&a_xst8[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&theta_xst8_0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst8_ast[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&b_xst8[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&dtheta_xst8_c[i][j],sizeof(double),1,fp,nullptr,error);
 
         }
 
@@ -965,9 +966,9 @@ void PairOxrna2Xstk::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
@@ -1073,5 +1074,5 @@ void *PairOxrna2Xstk::extract(const char *str, int &dim)
   if (strcmp(str,"b_xst8") == 0) return (void *) b_xst8;
   if (strcmp(str,"dtheta_xst8_c") == 0) return (void *) dtheta_xst8_c;
 
-  return NULL;
+  return nullptr;
 }

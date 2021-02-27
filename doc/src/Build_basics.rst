@@ -8,7 +8,6 @@ CMake and make:
 * :ref:`Choice of compiler and compile/link options <compile>`
 * :ref:`Build the LAMMPS executable and library <exe>`
 * :ref:`Including and removing debug support <debug>`
-* :ref:`Build the LAMMPS documentation <doc>`
 * :ref:`Install LAMMPS after a build <install>`
 
 ----------
@@ -96,7 +95,7 @@ standard. A more detailed discussion of that is below.
 
       .. note::
 
-         The file ``src/STUBS/mpi.c`` provides a CPU timer function
+         The file ``src/STUBS/mpi.cpp`` provides a CPU timer function
          called ``MPI_Wtime()`` that calls ``gettimeofday()``.  If your
          operating system does not support ``gettimeofday()``, you will
          need to insert code to call another timer.  Note that the
@@ -134,8 +133,8 @@ support included as well.  These are commands in the ``MPIIO``,
 ``SNAP``, ``USER-DIFFRACTION``, and ``USER-DPD`` packages.  In addition
 some packages support OpenMP threading indirectly through the libraries
 they interface to: e.g. ``LATTE``, ``KSPACE``, and ``USER-COLVARS``.
-See the :doc:`Packages details <Packages_details>` doc page for more
-info on these packages and the doc pages for their respective commands
+See the :doc:`Packages details <Packages_details>` page for more
+info on these packages and the pages for their respective commands
 for OpenMP threading info.
 
 For CMake, if you use ``BUILD_OMP=yes``, you can use these packages
@@ -159,11 +158,11 @@ others (e.g. GCC version 9 and beyond, Clang version 10 and later) may
 implement strict OpenMP 4.0 and later semantics, which are incompatible
 with the OpenMP 3.1 semantics used in LAMMPS for maximal compatibility
 with compiler versions in use.  If compilation with OpenMP enabled fails
-because of your compiler requiring strict OpenMP 4.0 semantic, you can
+because of your compiler requiring strict OpenMP 4.0 semantics, you can
 change the behavior by adding ``-D LAMMPS_OMP_COMPAT=4`` to the
 ``LMP_INC`` variable in your makefile, or add it to the command line
-while configuring with CMake. CMake will detect the suitable setting for
-the GNU, Clang, and Intel compilers.
+while configuring with CMake.  LAMMPS will auto-detect a suitable setting
+for most GNU, Clang, and Intel compilers.
 
 ----------
 
@@ -237,12 +236,15 @@ LAMMPS.
          cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
          # Building with LLVM/Clang Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
+         # Building with PGI/Nvidia Compilers:
+         cmake ../cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_CXX_COMPILER=pgc++ -DCMAKE_Fortran_COMPILER=pgfortran
 
       For compiling with the Clang/LLVM compilers a CMake preset is
       provided that can be loaded with
       `-C ../cmake/presets/clang.cmake`.  Similarly,
       `-C ../cmake/presets/intel.cmake` should switch the compiler
-      toolchain to the Intel compilers.
+      toolchain to the Intel compilers and `-C ../cmake/presets/pgi.cmake`
+      should switch the compiler to the PGI compilers.
 
       In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
       compiler flags to tune for optimal performance on given hosts. By
@@ -300,17 +302,18 @@ LAMMPS.
 
          then you have either an unsupported (old) compiler or you have
          to turn on C++11 mode.  The latter applies to GCC 4.8.x shipped
-         with RHEL 7.x and CentOS 7.x.  For those compilers, you need to
-         add the ``-std=c++11`` flag.  Otherwise, you would have to
-         install a newer compiler that supports C++11; either as a
-         binary package or through compiling from source.
+         with RHEL 7.x and CentOS 7.x or GCC 5.4.x shipped with Ubuntu16.04.
+         For those compilers, you need to add the ``-std=c++11`` flag.
+         If there is no compiler that supports this flag (or equivalent),
+         you would have to install a newer compiler that supports C++11;
+         either as a binary package or through compiling from source.
 
          If you build LAMMPS with any :doc:`Speed_packages` included,
          there may be specific compiler or linker flags that are either
          required or recommended to enable required features and to
          achieve optimal performance.  You need to include these in the
          CCFLAGS and LINKFLAGS settings above.  For details, see the
-         individual package doc pages listed on the
+         documentation for the individual packages listed on the
          :doc:`Speed_packages` page.  Or examine these files in the
          src/MAKE/OPTIONS directory.  They correspond to each of the 5
          accelerator packages and their hardware variants:
@@ -329,6 +332,7 @@ LAMMPS.
 ----------
 
 .. _exe:
+.. _library:
 
 Build the LAMMPS executable and library
 ---------------------------------------
@@ -340,7 +344,7 @@ will then process commands provided via a file or from the console
 input.  The LAMMPS library can also be called from another application
 or a scripting language.  See the :doc:`Howto couple <Howto_couple>` doc
 page for more info on coupling LAMMPS to other codes.  See the
-:doc:`Python <Python_head>` doc page for more info on wrapping and
+:doc:`Python <Python_head>` page for more info on wrapping and
 running LAMMPS from Python via its library interface.
 
 .. tabs::
@@ -465,68 +469,6 @@ the debug information from the LAMMPS executable:
 
 ----------
 
-.. _doc:
-
-Build the LAMMPS documentation
-----------------------------------------
-
-The LAMMPS manual is written in `reStructuredText <rst_>`_ format which
-can be translated to different output format using the `Sphinx <sphinx_>`_
-document generator tool.  Currently the translation to HTML and PDF (via
-LaTeX) are supported.  For that to work a Python 3 interpreter and
-internet access is required.  For the documentation build a python
-based virtual environment is set up in the folder doc/docenv and various
-python packages are installed into that virtual environment via the pip
-tool.  The actual translation is then done via make commands.
-
-.. _rst: https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html
-.. _sphinx: https://www.sphinx-doc.org
-
-Documentation makefile options
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The following make commands can be issued in the doc folder of the
-LAMMPS source distribution.
-
-.. code-block:: bash
-
-  make html          # create HTML doc pages in html directory
-  make pdf           # create Manual.pdf in this directory
-  make fetch         # fetch HTML and PDF files from LAMMPS web site
-  make clean         # remove all intermediate files
-  make clean-all     # reset the entire doc build environment
-  make anchor_check  # scan for duplicate anchor labels
-  make style_check   # check for complete and consistent style lists
-  make package_check # check for complete and consistent package lists
-  make spelling      # spell-check the manual
-
-Thus "make html" will create a "doc/html" directory with the HTML format
-manual pages so that you can browse them with a web browser locally on
-your system.
-
-.. note::
-
-   You can also download a tarball of the documentation for the
-   current LAMMPS version (HTML and PDF files), from the website
-   `download page <https://lammps.sandia.gov/download.html>`_.
-
-CMake build options
-^^^^^^^^^^^^^^^^^^^
-
-It is also possible to create the HTML version (and only the HTML
-version) of the manual within the :doc:`CMake build directory
-<Build_cmake>`.  The reason for this option is to include the
-installation of the HTML manual pages into the "install" step when
-installing LAMMPS after the CMake build via ``make install``.  The
-documentation build is included in the default build target, but can
-also be requested independently with ``make doc``.
-
-.. code-block:: bash
-
-   -D BUILD_DOC=value       # yes or no (default)
-
-----------
-
 .. _tools:
 
 Build LAMMPS tools
@@ -541,7 +483,8 @@ using CMake or Make.
 
       .. code-block:: bash
 
-         -D BUILD_TOOLS=value       # yes or no (default)
+         -D BUILD_TOOLS=value         # yes or no (default)
+         -D BUILD_LAMMPS_SHELL=value  # yes or no (default)
 
       The generated binaries will also become part of the LAMMPS installation
       (see below).
@@ -556,6 +499,9 @@ using CMake or Make.
          make chain            # build only chain tool
          make micelle2d        # build only micelle2d tool
          make thermo_extract   # build only thermo_extract tool
+
+         cd lammps/tools/lammps-shell
+         make                  # build LAMMPS shell
 
 ----------
 

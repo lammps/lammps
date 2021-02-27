@@ -122,7 +122,7 @@ communication can be costly).  A breakdown of these timings is printed
 to the screen at the end of a run when using the
 :doc:`kspace_style pppm <kspace_style>` command. The
 :doc:`Screen and logfile output <Run_output>`
-doc page gives more details.  A more detailed (and time consuming)
+page gives more details.  A more detailed (and time consuming)
 report of the FFT performance is generated with the
 :doc:`kspace_modify fftbench yes <kspace_modify>` command.
 
@@ -228,9 +228,9 @@ LAMMPS system size restrictions
      - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
      - :math:`2^{31}` steps (= :math:`2.147 \cdot 10^9`)
    * - Atom ID values
-     - :math:`1 \le i \le 2^{31} (= 2.147 \dot 10^9)`
+     - :math:`1 \le i \le 2^{31} (= 2.147 \cdot 10^9)`
      - :math:`1 \le i \le 2^{63} (= 9.223 \cdot 10^{18})`
-     - :math:`1 \le i \le 2^{31} (= 2.147 \dot 10^9)`
+     - :math:`1 \le i \le 2^{31} (= 2.147 \cdot 10^9)`
    * - Image flag values
      - :math:`-512 \le i \le 511`
      - :math:`- 1\,048\,576 \le i \le 1\,048\,575`
@@ -266,12 +266,11 @@ in neighbor lists for storing special bonds info).
 
 Image flags store 3 values per atom in a single integer which count the
 number of times an atom has moved through the periodic box in each
-dimension.  See the :doc:`dump <dump>` doc page for a discussion.  If an
-atom moves through the periodic box more than this limit, the value will
-"roll over", e.g. from 511 to -512, which can cause diagnostics like the
-mean-squared displacement, as calculated by the :doc:`compute msd
-<compute_msd>` command, to be faulty.
-
+dimension.  See the :doc:`dump <dump>` manual page for a discussion.  If
+an atom moves through the periodic box more than this limit, the value
+will "roll over", e.g. from 511 to -512, which can cause diagnostics
+like the mean-squared displacement, as calculated by the :doc:`compute
+msd <compute_msd>` command, to be faulty.
 
 Also note that the GPU package requires its lib/gpu library to be
 compiled with the same size setting, or the link will fail.  A CMake
@@ -487,3 +486,41 @@ e.g. to Python. Of course, the calling code has to be set up to
    cleanly recover from an exception since not all parallel ranks may
    throw an exception and thus other MPI ranks may get stuck waiting for
    messages from the ones with errors.
+
+----------
+
+.. _trap_fpe:
+
+Trigger selected floating-point exceptions
+------------------------------------------
+
+Many kinds of CPUs have the capability to detect when a calculation
+results in an invalid math operation like a division by zero or calling
+the square root with a negative argument.  The default behavior on
+most operating systems is to continue and have values for ``NaN`` (= not
+a number) or ``Inf`` (= infinity).  This allows software to detect and
+recover from such conditions.  This behavior can be changed, however,
+often through use of compiler flags.  On Linux systems (or more general
+on systems using the GNU C library), these so-called floating-point traps
+can also be selectively enabled through library calls.  LAMMPS supports
+that by setting the ``-DLAMMPS_TRAP_FPE`` pre-processor define.  As it is
+done in the ``main()`` function, this applies only to the standalone
+executable, not the library.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D CMAKE_TUNE_FLAGS=-DLAMMPS_TRAP_FPE
+
+   .. tab:: Traditional make
+
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_TRAP_FPE
+
+After compilation with this flag set, the LAMMPS executable will stop
+and produce a core dump when a division by zero, overflow, illegal math
+function argument or other invalid floating point operation is encountered.

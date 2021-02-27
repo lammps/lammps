@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,13 +30,13 @@ enum{ELLIPSOID,LINE,TRIANGLE,BODY};   // also in WriteData
 AtomVecHybrid::AtomVecHybrid(LAMMPS *lmp) : AtomVec(lmp)
 {
   nstyles = 0;
-  styles = NULL;
-  keywords = NULL;
-  fieldstrings = NULL;
+  styles = nullptr;
+  keywords = nullptr;
+  fieldstrings = nullptr;
 
   bonus_flag = 0;
   nstyles_bonus = 0;
-  styles_bonus = NULL;
+  styles_bonus = nullptr;
 
   // these strings will be concatenated from sub-style strings
   // fields_data_atom & fields_data_vel start with fields common to all styles
@@ -121,12 +121,12 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // hybrid settings are MAX or MIN of sub-style settings
   // check for both mass_type = 0 and 1, so can warn
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   maxexchange = 0;
 
   for (int k = 0; k < nstyles; k++) {
-    if ((styles[k]->molecular == 1 && molecular == 2) ||
-        (styles[k]->molecular == 2 && molecular == 1))
+    if ((styles[k]->molecular == Atom::MOLECULAR && molecular == Atom::TEMPLATE) ||
+        (styles[k]->molecular == Atom::TEMPLATE && molecular == Atom::MOLECULAR))
       error->all(FLERR,
                  "Cannot mix molecular and molecule template atom styles");
     molecular = MAX(molecular,styles[k]->molecular);
@@ -140,7 +140,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
     maxexchange += styles[k]->maxexchange;
 
-    if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
+    if (styles[k]->molecular == Atom::TEMPLATE) onemols = styles[k]->onemols;
   }
 
   // issue a warning if both per-type mass and per-atom rmass are defined
@@ -154,9 +154,9 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   }
 
   if (mass_pertype && mass_peratom && comm->me == 0)
-    error->warning(FLERR,
-                   "Atom_style hybrid defines both pertype and peratom masses "
-                   "- both must be set, only peratom masses will be used");
+    error->warning(FLERR, "Atom style hybrid defines both, per-type "
+                   "and per-atom masses; both must be set, but only "
+                   "per-atom masses will be used");
 
   // free allstyles created by build_styles()
 
@@ -187,7 +187,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   // save concat_grow to check for duplicates of special-case fields
 
   char *concat_grow;;
-  char *null = NULL;
+  char *null = nullptr;
 
   fields_grow = merge_fields(0,fields_grow,1,concat_grow);
   fields_copy = merge_fields(1,fields_copy,0,null);
@@ -216,8 +216,8 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     char *dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
     if ((ptr && strstr(ptr+1,dup)) && (comm->me == 0))
-      error->warning(FLERR,fmt::format("Peratom {} is in multiple sub-styles "
-                                       "- must be used consistently",dup));
+      error->warning(FLERR,fmt::format("Per-atom {} is used in multiple sub-"
+                                       "styles; must be used consistently",dup));
   }
 
   delete [] concat_grow;
@@ -379,9 +379,9 @@ int AtomVecHybrid::unpack_restart_bonus(int ilocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-bigint AtomVecHybrid::memory_usage_bonus()
+double AtomVecHybrid::memory_usage_bonus()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int k = 0; k < nstyles_bonus; k++)
     bytes += styles_bonus[k]->memory_usage_bonus();
   return bytes;

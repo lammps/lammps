@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +30,7 @@ enum{TENSOR,BIN};
 
 ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  bin(NULL), vbin(NULL), binave(NULL), tbin(NULL), tbinall(NULL)
+  bin(nullptr), vbin(nullptr), binave(nullptr), tbin(nullptr), tbinall(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal compute temp/profile command");
 
@@ -577,7 +577,7 @@ void ComputeTempProfile::bin_assign()
 
 double ComputeTempProfile::memory_usage()
 {
-  double bytes = maxatom * sizeof(int);
-  bytes += nbins*ncount * sizeof(double);
+  double bytes = (double)maxatom * sizeof(int);
+  bytes += (double)nbins*ncount * sizeof(double);
   return bytes;
 }

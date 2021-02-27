@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,7 +23,6 @@
 
 #include <cstring>
 
-
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -33,9 +32,6 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-
-
-
 #include "math_const.h"
 #include "math_extra.h"
 
@@ -58,6 +54,7 @@ PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
   respa_enable = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   no_virial_fdotr_compute = 0;
   writedata = 0;
   ghostneigh = 0;
@@ -244,7 +241,7 @@ void PairMesoCNT::compute(int eflag, int vflag)
       // infinite CNT case
 
       if (endflag == 0) {
-        geometry(r1,r2,p1,p2,NULL,p,m,param,basis);
+        geometry(r1,r2,p1,p2,nullptr,p,m,param,basis);
         if (param[0] > cutoff) continue;
         finf(param,evdwl,flocal);
 
@@ -549,7 +546,7 @@ void PairMesoCNT::bond_neigh()
     if (i2 > nlocal-1 && false) numneigh2 = 0;
     else numneigh2 = numneigh[i2];
 
-    int numneigh_max_local = numneigh1 + numneigh1;
+    int numneigh_max_local = numneigh1 + numneigh2;
     if (numneigh_max_local > numneigh_max) numneigh_max = numneigh_max_local;
   }
   if (numneigh_max > reduced_neigh_size) {
@@ -760,7 +757,7 @@ void PairMesoCNT::read_file()
     // open file
 
     fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == NULL)
+    if (fp == nullptr)
       error->one(FLERR,fmt::format("Cannot open mesocnt file: {}",file));
 
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
@@ -846,7 +843,7 @@ void PairMesoCNT::read_data(FILE *fp, double *data,
   double x,xtemp,dxtemp;
 
   for (int i = 0; i < ninput; i++) {
-    if (NULL == fgets(line,MAXLINE,fp))
+    if (nullptr == fgets(line,MAXLINE,fp))
       error->one(FLERR,fmt::format("Premature end of file in pair table: {}",file));
 
     if (i > 0) xtemp = x;
@@ -899,7 +896,7 @@ void PairMesoCNT::read_data(FILE *fp, double **data,
   for (int i = 0; i < ninput; i++) {
     if (i > 0) xtemp = x;
     for (int j = 0; j < ninput; j++) {
-      if (NULL == fgets(line,MAXLINE,fp))
+      if (nullptr == fgets(line,MAXLINE,fp))
         error->one(FLERR,fmt::format("Premature end of file in pair table: {}",file));
 
       if (j > 0) ytemp = y;

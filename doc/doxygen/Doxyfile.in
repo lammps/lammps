@@ -416,6 +416,7 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/library.h                 \
                          @LAMMPS_SOURCE_DIR@/lammps.cpp                \
                          @LAMMPS_SOURCE_DIR@/lammps.h                  \
+                         @LAMMPS_SOURCE_DIR@/pointers.h                \
                          @LAMMPS_SOURCE_DIR@/lmptype.h                 \
                          @LAMMPS_SOURCE_DIR@/atom.cpp                  \
                          @LAMMPS_SOURCE_DIR@/atom.h                    \
@@ -423,6 +424,8 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/input.h                   \
                          @LAMMPS_SOURCE_DIR@/tokenizer.cpp             \
                          @LAMMPS_SOURCE_DIR@/tokenizer.h               \
+                         @LAMMPS_SOURCE_DIR@/arg_info.cpp              \
+                         @LAMMPS_SOURCE_DIR@/arg_info.h                \
                          @LAMMPS_SOURCE_DIR@/text_file_reader.cpp      \
                          @LAMMPS_SOURCE_DIR@/text_file_reader.h        \
                          @LAMMPS_SOURCE_DIR@/potential_file_reader.cpp \
@@ -431,6 +434,7 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/my_page.h                 \
                          @LAMMPS_SOURCE_DIR@/my_pool_chunk.cpp         \
                          @LAMMPS_SOURCE_DIR@/my_pool_chunk.h           \
+                         @LAMMPS_SOURCE_DIR@/math_eigen.h              \
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,13 +55,13 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // initial allocation of atom-based array
   // register with Atom class
-  array = NULL;
+  array = nullptr;
   grow_arrays(atom->nmax);
 
   // extends pack_exchange()
-  atom->add_callback(0);
-  atom->add_callback(1); // restart
-  atom->add_callback(2);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART); // restart
+  atom->add_callback(Atom::BORDER);
 
   // initialize to illegal values so we capture
   btype = -1;
@@ -78,9 +78,9 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 FixSRP::~FixSRP()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
-  atom->delete_callback(id,2);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(id,Atom::BORDER);
   memory->destroy(array);
 }
 
@@ -100,7 +100,7 @@ int FixSRP::setmask()
 
 void FixSRP::init()
 {
-  if (force->pair_match("hybrid",1) == NULL && force->pair_match("hybrid/overlay",1) == NULL)
+  if (force->pair_match("hybrid",1) == nullptr && force->pair_match("hybrid/overlay",1) == nullptr)
     error->all(FLERR,"Cannot use pair srp without pair_style hybrid");
 
   int has_rigid = 0;
@@ -134,8 +134,8 @@ void FixSRP::init()
   char c0[20];
   char c1[20];
 
-  for(int z = 1; z < atom->ntypes; z++) {
-    if(z == bptype)
+  for (int z = 1; z < atom->ntypes; z++) {
+    if (z == bptype)
       continue;
     sprintf(c0, "%d", z);
     arg1[2] = c0;
@@ -175,7 +175,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
   memory->create(tagold,nall,"fix_srp:tagold");
   memory->create(dlist,nall,"fix_srp:dlist");
 
-  for (i = 0; i < nall; i++){
+  for (i = 0; i < nall; i++) {
     xold[i][0] = x[i][0];
     xold[i][1] = x[i][1];
     xold[i][2] = x[i][2];
@@ -209,7 +209,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
 
     // consider only the user defined bond type
     // btype of zero considers all bonds
-    if(btype > 0 && bondlist[n][2] != btype)
+    if (btype > 0 && bondlist[n][2] != btype)
       continue;
 
     i = bondlist[n][0];
@@ -226,7 +226,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
     dely = xold[j][1] - xold[i][1];
     delz = xold[j][2] - xold[i][2];
     rsq = delx*delx + dely*dely + delz*delz;
-    if(rsq > rsqold) rsqold = rsq;
+    if (rsq > rsqold) rsqold = rsq;
 
     // make one particle for each bond
     // i is local
@@ -255,7 +255,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
   int nadd_all = 0, ndel_all = 0;
   MPI_Allreduce(&ndel,&ndel_all,1,MPI_INT,MPI_SUM,world);
   MPI_Allreduce(&nadd,&nadd_all,1,MPI_INT,MPI_SUM,world);
-  if(comm->me == 0){
+  if (comm->me == 0) {
     sprintf(str, "Removed/inserted %d/%d bond particles.", ndel_all,nadd_all);
     error->message(FLERR,str);
   }
@@ -285,7 +285,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
     cutghostmin = comm->cutghost[2]/length2;
 
   // stop if cutghost is insufficient
-  if (cutneighmax_srp > cutghostmin){
+  if (cutneighmax_srp > cutghostmin) {
     sprintf(str, "Communication cutoff too small for fix srp. "
             "Need %f, current %f.", cutneighmax_srp, cutghostmin);
     error->all(FLERR,str);
@@ -293,7 +293,7 @@ void FixSRP::setup_pre_force(int /*zz*/)
 
   // assign tags for new atoms, update map
   atom->tag_extend();
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();
@@ -327,14 +327,14 @@ void FixSRP::setup_pre_force(int /*zz*/)
 
   // zero all forces
 
-  for(i = 0; i < nall; i++)
+  for (i = 0; i < nall; i++)
     atom->f[i][0] = atom->f[i][1] = atom->f[i][2] = 0.0;
 
   // do not include bond particles in thermo output
   // remove them from all groups. set their velocity to zero.
 
-  for(i=0; i< nlocal; i++)
-    if(atom->type[i] == bptype) {
+  for (i=0; i< nlocal; i++)
+    if (atom->type[i] == bptype) {
       atom->mask[i] = 0;
       atom->v[i][0] = atom->v[i][1] = atom->v[i][2] = 0.0;
     }
@@ -355,15 +355,15 @@ void FixSRP::pre_exchange()
   int i,j;
   int nlocal = atom->nlocal;
 
-  for(int ii = 0; ii < nlocal; ii++){
-    if(atom->type[ii] != bptype) continue;
+  for (int ii = 0; ii < nlocal; ii++) {
+    if (atom->type[ii] != bptype) continue;
 
     i = atom->map(static_cast<tagint>(array[ii][0]));
-    if(i < 0) error->all(FLERR,"Fix SRP failed to map atom");
+    if (i < 0) error->all(FLERR,"Fix SRP failed to map atom");
     i = domain->closest_image(ii,i);
 
     j = atom->map(static_cast<tagint>(array[ii][1]));
-    if(j < 0) error->all(FLERR,"Fix SRP failed to map atom");
+    if (j < 0) error->all(FLERR,"Fix SRP failed to map atom");
     j = domain->closest_image(ii,j);
 
     // position of bond particle ii
@@ -379,7 +379,7 @@ void FixSRP::pre_exchange()
 
 double FixSRP::memory_usage()
 {
-  double bytes = atom->nmax*2 * sizeof(double);
+  double bytes = (double)atom->nmax*2 * sizeof(double);
   return bytes;
 }
 
@@ -462,7 +462,7 @@ int FixSRP::unpack_border(int n, int first, double *buf)
   int m = 0;
   last = first + n;
 
-      for (i = first; i < last; i++){
+      for (i = first; i < last; i++) {
         array[i][0] = buf[m++];
         array[i][1] = buf[m++];
       }
@@ -484,8 +484,8 @@ void FixSRP::post_run()
   int* dlist;
   memory->create(dlist,nlocal,"fix_srp:dlist");
 
-  for (int i = 0; i < nlocal; i++){
-    if(atom->type[i] == bptype)
+  for (int i = 0; i < nlocal; i++) {
+    if (atom->type[i] == bptype)
       dlist[i] = 1;
     else
       dlist[i] = 0;
@@ -514,7 +514,7 @@ void FixSRP::post_run()
 
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&atom->natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (atom->map_style) {
+  if (atom->map_style != Atom::MAP_NONE) {
     atom->nghost = 0;
     atom->map_init();
     atom->map_set();
@@ -574,7 +574,7 @@ void FixSRP::unpack_restart(int nlocal, int nth)
   // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
-  for (int i = 0; i < nth; i++){
+  for (int i = 0; i < nth; i++) {
     m += static_cast<int> (extra[nlocal][m]);
   }
 

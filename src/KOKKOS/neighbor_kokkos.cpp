@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,10 +41,10 @@ NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp),
   neighbond_host(lmp),neighbond_device(lmp)
 {
   device_flag = 0;
-  bondlist = NULL;
-  anglelist = NULL;
-  dihedrallist = NULL;
-  improperlist = NULL;
+  bondlist = nullptr;
+  anglelist = nullptr;
+  dihedrallist = nullptr;
+  improperlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,7 +53,7 @@ NeighborKokkos::~NeighborKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
-    cutneighsq = NULL;
+    cutneighsq = nullptr;
 
     memoryKK->destroy_kokkos(k_ex_type,ex_type);
     memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
@@ -316,7 +316,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   // build topology lists for bonds/angles/etc
 
-  if (atom->molecular && topoflag) build_topology();
+  if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
 }
 
 template<class DeviceType>
@@ -329,7 +329,7 @@ void NeighborKokkos::operator()(TagNeighborXhold<DeviceType>, const int &i) cons
 
 /* ---------------------------------------------------------------------- */
 
-void NeighborKokkos::modify_ex_type_grow_kokkos(){
+void NeighborKokkos::modify_ex_type_grow_kokkos() {
   memoryKK->grow_kokkos(k_ex1_type,ex1_type,maxex_type,"neigh:ex1_type");
   k_ex1_type.modify<LMPHostType>();
   memoryKK->grow_kokkos(k_ex2_type,ex2_type,maxex_type,"neigh:ex2_type");
@@ -337,7 +337,7 @@ void NeighborKokkos::modify_ex_type_grow_kokkos(){
 }
 
 /* ---------------------------------------------------------------------- */
-void NeighborKokkos::modify_ex_group_grow_kokkos(){
+void NeighborKokkos::modify_ex_group_grow_kokkos() {
   memoryKK->grow_kokkos(k_ex1_group,ex1_group,maxex_group,"neigh:ex1_group");
   k_ex1_group.modify<LMPHostType>();
   memoryKK->grow_kokkos(k_ex2_group,ex2_group,maxex_group,"neigh:ex2_group");
@@ -345,13 +345,13 @@ void NeighborKokkos::modify_ex_group_grow_kokkos(){
 }
 
 /* ---------------------------------------------------------------------- */
-void NeighborKokkos::modify_mol_group_grow_kokkos(){
+void NeighborKokkos::modify_mol_group_grow_kokkos() {
   memoryKK->grow_kokkos(k_ex_mol_group,ex_mol_group,maxex_mol,"neigh:ex_mol_group");
   k_ex_mol_group.modify<LMPHostType>();
 }
 
 /* ---------------------------------------------------------------------- */
-void NeighborKokkos::modify_mol_intra_grow_kokkos(){
+void NeighborKokkos::modify_mol_intra_grow_kokkos() {
   memoryKK->grow_kokkos(k_ex_mol_intra,ex_mol_intra,maxex_mol,"neigh:ex_mol_intra");
   k_ex_mol_intra.modify<LMPHostType>();
 }

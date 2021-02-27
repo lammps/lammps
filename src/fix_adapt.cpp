@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,26 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_adapt.h"
-#include <cstring>
+
 #include "atom.h"
 #include "bond.h"
 #include "domain.h"
-#include "update.h"
-#include "group.h"
-#include "modify.h"
-#include "force.h"
-#include "pair.h"
-#include "pair_hybrid.h"
-#include "kspace.h"
+#include "error.h"
 #include "fix_store.h"
+#include "force.h"
+#include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "respa.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "pair_hybrid.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
 
-
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -43,7 +43,7 @@ enum{DIAMETER,CHARGE};
 /* ---------------------------------------------------------------------- */
 
 FixAdapt::FixAdapt(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
+nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix adapt command");
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
@@ -70,7 +70,7 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"bond") == 0 ){
+    } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 5;
@@ -91,41 +91,29 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
     if (strcmp(arg[iarg],"pair") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = PAIR;
-      int n = strlen(arg[iarg+1]) + 1;
-      adapt[nadapt].pstyle = new char[n];
-      strcpy(adapt[nadapt].pstyle,arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      adapt[nadapt].pparam = new char[n];
-      adapt[nadapt].pair = NULL;
-      strcpy(adapt[nadapt].pparam,arg[iarg+2]);
+      adapt[nadapt].pair = nullptr;
+      adapt[nadapt].pstyle = utils::strdup(arg[iarg+1]);
+      adapt[nadapt].pparam = utils::strdup(arg[iarg+2]);
       utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
       utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
                     adapt[nadapt].jlo,adapt[nadapt].jhi,error);
-      if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
-        n = strlen(&arg[iarg+5][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
+      if (utils::strmatch(arg[iarg+5],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+5]+2);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 6;
 
-    } else if (strcmp(arg[iarg],"bond") == 0 ){
+    } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+5 > narg) error->all(FLERR, "Illegal fix adapt command");
       adapt[nadapt].which = BOND;
-      int n = strlen(arg[iarg+1]) + 1;
-      adapt[nadapt].bstyle = new char[n];
-      strcpy(adapt[nadapt].bstyle,arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      adapt[nadapt].bparam = new char[n];
-      adapt[nadapt].bond = NULL;
-      strcpy(adapt[nadapt].bparam,arg[iarg+2]);
+      adapt[nadapt].bond = nullptr;
+      adapt[nadapt].bstyle = utils::strdup(arg[iarg+1]);
+      adapt[nadapt].bparam = utils::strdup(arg[iarg+2]);
       utils::bounds(FLERR,arg[iarg+3],1,atom->nbondtypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
-      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
-        n = strlen(&arg[iarg+4][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+4][2]);
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+4]+2);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 5;
@@ -133,10 +121,8 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
       adapt[nadapt].which = KSPACE;
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+1]+2);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 2;
@@ -154,10 +140,8 @@ nadapt(0), id_fix_diam(NULL), id_fix_chg(NULL), adapt(NULL)
         adapt[nadapt].aparam = CHARGE;
         chgflag = 1;
       } else error->all(FLERR,"Illegal fix adapt command");
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+2]+2);
       } else error->all(FLERR,"Illegal fix adapt command");
       nadapt++;
       iarg += 3;
@@ -263,13 +247,12 @@ void FixAdapt::post_constructor()
   // new id = fix-ID + FIX_STORE_ATTRIBUTE
   // new fix group = group for this fix
 
-  id_fix_diam = NULL;
-  id_fix_chg = NULL;
+  id_fix_diam = nullptr;
+  id_fix_chg = nullptr;
 
   if (diamflag && atom->radius_flag) {
     std::string fixcmd = id + std::string("_FIX_STORE_DIAM");
-    id_fix_diam = new char[fixcmd.size()+1];
-    strcpy(id_fix_diam,fixcmd.c_str());
+    id_fix_diam = utils::strdup(fixcmd);
     fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
     modify->add_fix(fixcmd);
     fix_diam = (FixStore *) modify->fix[modify->nfix-1];
@@ -290,8 +273,7 @@ void FixAdapt::post_constructor()
 
   if (chgflag && atom->q_flag) {
     std::string fixcmd = id + std::string("_FIX_STORE_CHG");
-    id_fix_chg = new char[fixcmd.size()+1];
-    strcpy(id_fix_chg,fixcmd.c_str());
+    id_fix_chg = utils::strdup(fixcmd);
     fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
     modify->add_fix(fixcmd);
     fix_chg = (FixStore *) modify->fix[modify->nfix-1];
@@ -340,16 +322,13 @@ void FixAdapt::init()
 
     if (ad->which == PAIR) {
       anypair = 1;
-      ad->pair = NULL;
+      ad->pair = nullptr;
 
       // if ad->pstyle has trailing sub-style annotation ":N",
       //   strip it for pstyle arg to pair_match() and set nsub = N
       // this should work for appended suffixes as well
 
-      int n = strlen(ad->pstyle) + 1;
-      char *pstyle = new char[n];
-      strcpy(pstyle,ad->pstyle);
-
+      char *pstyle = utils::strdup(ad->pstyle);
       char *cptr;
       int nsub = 0;
       if ((cptr = strchr(pstyle,':'))) {
@@ -366,12 +345,12 @@ void FixAdapt::init()
         ad->pair = force->pair_match(psuffix,1,nsub);
         delete[] psuffix;
       }
-      if (ad->pair == NULL) ad->pair = force->pair_match(pstyle,1,nsub);
-      if (ad->pair == NULL)
+      if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
+      if (ad->pair == nullptr)
         error->all(FLERR,"Fix adapt pair style does not exist");
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"Fix adapt pair style param not supported");
 
       // for pair styles only parameters that are 2-d arrays in atom types or
@@ -395,14 +374,11 @@ void FixAdapt::init()
       }
 
       delete [] pstyle;
-    } else if (ad->which == BOND){
-      ad->bond = NULL;
+    } else if (ad->which == BOND) {
+      ad->bond = nullptr;
       anybond = 1;
 
-      int n = strlen(ad->bstyle) + 1;
-      char *bstyle = new char[n];
-      strcpy(bstyle,ad->bstyle);
-
+      char *bstyle = utils::strdup(ad->bstyle);
       if (lmp->suffix_enable) {
         int len = 2 + strlen(bstyle) + strlen(lmp->suffix);
         char *bsuffix = new char[len];
@@ -412,13 +388,13 @@ void FixAdapt::init()
         ad->bond = force->bond_match(bsuffix);
         delete [] bsuffix;
       }
-      if (ad->bond == NULL) ad->bond = force->bond_match(bstyle);
-      if (ad->bond == NULL )
+      if (ad->bond == nullptr) ad->bond = force->bond_match(bstyle);
+      if (ad->bond == nullptr )
         error->all(FLERR,"Fix adapt bond style does not exist");
 
       void *ptr = ad->bond->extract(ad->bparam,ad->bdim);
 
-      if (ptr == NULL)
+      if (ptr == nullptr)
         error->all(FLERR,"Fix adapt bond style param not supported");
 
       // for bond styles, use a vector
@@ -431,7 +407,7 @@ void FixAdapt::init()
       delete [] bstyle;
 
     } else if (ad->which == KSPACE) {
-      if (force->kspace == NULL)
+      if (force->kspace == nullptr)
         error->all(FLERR,"Fix adapt kspace style does not exist");
       kspace_scale = (double *) force->kspace->extract("scale");
 
@@ -463,10 +439,10 @@ void FixAdapt::init()
       for (i = ad->ilo; i <= ad->ihi; i++)
         for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)
           ad->array_orig[i][j] = ad->array[i][j];
-    } else if (ad->which == PAIR && ad->pdim == 0){
+    } else if (ad->which == PAIR && ad->pdim == 0) {
       ad->scalar_orig = *ad->scalar;
 
-    } else if (ad->which == BOND && ad->bdim == 1){
+    } else if (ad->which == BOND && ad->bdim == 1) {
       for (i = ad->ilo; i <= ad->ihi; ++i )
         ad->vector_orig[i] = ad->vector[i];
     }
@@ -565,7 +541,7 @@ void FixAdapt::change_settings()
     // set bond type array values:
 
     } else if (ad->which == BOND) {
-      if (ad->bdim == 1){
+      if (ad->bdim == 1) {
         if (scaleflag)
           for (i = ad->ilo; i <= ad->ihi; ++i )
             ad->vector[i] = value*ad->vector_orig[i];
@@ -651,7 +627,7 @@ void FixAdapt::change_settings()
     }
   }
   if (anybond) {
-    for (int m = 0; m < nadapt; ++m ) {
+    for (int m = 0; m < nadapt; ++m) {
       Adapt *ad = &adapt[m];
       if (ad->which == BOND) {
         ad->bond->reinit();

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -149,7 +149,7 @@ void *PairSpinMagelec::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut") == 0) return (void *) &cut_spin_magelec_global;
-  return NULL;
+  return nullptr;
 }
 
 
@@ -237,31 +237,35 @@ void PairSpinMagelec::compute(int eflag, int vflag)
 
       if (rsq <= local_cut2) {
         compute_magelec(i,j,eij,fmi,spj);
-        if (lattice_flag) {
+
+        if (lattice_flag)
           compute_magelec_mech(i,j,fi,spi,spj);
+
+        if (eflag) {
+          evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
+          evdwl *= 0.5*hbar;
+          emag[i] += evdwl;
+        } else evdwl = 0.0;
+
+        f[i][0] += fi[0];
+        f[i][1] += fi[1];
+        f[i][2] += fi[2];
+        if (newton_pair || j < nlocal) {
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
         }
+        fm[i][0] += fmi[0];
+        fm[i][1] += fmi[1];
+        fm[i][2] += fmi[2];
+
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
+            evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
       }
-
-      f[i][0] += fi[0];
-      f[i][1] += fi[1];
-      f[i][2] += fi[2];
-      fm[i][0] += fmi[0];
-      fm[i][1] += fmi[1];
-      fm[i][2] += fmi[2];
-
-      if (eflag) {
-        evdwl -= (spi[0]*fmi[0] + spi[1]*fmi[1] + spi[2]*fmi[2]);
-        evdwl *= 0.5*hbar;
-        emag[i] += evdwl;
-      } else evdwl = 0.0;
-
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,
-          evdwl,ecoul,fi[0],fi[1],fi[2],delx,dely,delz);
     }
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -400,9 +404,9 @@ void PairSpinMagelec::compute_magelec_mech(int i, int j, double fi[3], double sp
   meiy *= ME_mech[itype][jtype];
   meiz *= ME_mech[itype][jtype];
 
-  fi[0] += (meiy*vz - meiz*vy);
-  fi[1] += (meiz*vx - meix*vz);
-  fi[2] += (meix*vy - meiy*vx);
+  fi[0] += 0.5*(meiy*vz - meiz*vy);
+  fi[1] += 0.5*(meiz*vx - meix*vz);
+  fi[2] += 0.5*(meix*vy - meiy*vx);
 
 }
 
@@ -465,15 +469,15 @@ void PairSpinMagelec::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&ME[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&v_mex[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&v_mey[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&v_mez[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut_spin_magelec[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&ME[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&v_mex[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&v_mey[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&v_mez[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_spin_magelec[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&ME[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&v_mex[i][j],1,MPI_DOUBLE,0,world);
@@ -503,9 +507,9 @@ void PairSpinMagelec::write_restart_settings(FILE *fp)
 void PairSpinMagelec::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_spin_magelec_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_spin_magelec_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_spin_magelec_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);

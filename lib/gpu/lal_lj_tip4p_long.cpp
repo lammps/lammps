@@ -65,6 +65,12 @@ int LJTIP4PLongT::init(const int ntypes,
   k_pair_distrib.set_function(*this->pair_program,"k_lj_tip4p_long_distrib");
   k_pair_reneigh.set_function(*this->pair_program,"k_lj_tip4p_reneigh");
   k_pair_newsite.set_function(*this->pair_program,"k_lj_tip4p_newsite");
+  #if defined(LAL_OCL_EV_JIT)
+  k_pair_distrib_noev.set_function(*this->pair_program_noev,
+                                   "k_lj_tip4p_long_distrib");
+  #else
+  k_pair_dt_sel = &k_pair_distrib;
+  #endif
 
   TypeH = tH;
   TypeO = tO;
@@ -151,6 +157,9 @@ void LJTIP4PLongT::clear() {
   k_pair_distrib.clear();
   k_pair_reneigh.clear();
   k_pair_newsite.clear();
+  #if defined(LAL_OCL_EV_JIT)
+  k_pair_distrib_noev.clear();
+  #endif
 
   this->clear_atomic();
 }
@@ -164,19 +173,9 @@ double LJTIP4PLongT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
+int LJTIP4PLongT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
 
   int ainum=this->ans->inum();
   const int nall = this->atom->nall();
@@ -210,8 +209,8 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
   this->ansO.zero();
   this->device->gpu->sync();
   if(shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
+    this->k_pair_sel->set_size(GX,BX);
+    this->k_pair_sel->run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
           &this->ans->force, &this->ans->engv, &eflag, &vflag,
           &ainum, &nbor_pitch, &this->_threads_per_atom,
@@ -228,12 +227,19 @@ void LJTIP4PLongT::loop(const bool _eflag, const bool _vflag) {
           &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
           &cut_coulsq, &cut_coulsqplus, &this->ansO);
   }
+  #if defined(LAL_OCL_EV_JIT)
+  if (eflag || vflag) k_pair_dt_sel = &k_pair_distrib;
+  else k_pair_dt_sel = &k_pair_distrib_noev;
+  #endif
+
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
-  this->k_pair_distrib.set_size(GX,BX);
-  this->k_pair_distrib.run(&this->atom->x, &this->ans->force, &this->ans->engv,
-      &eflag, &vflag, &ainum, &nbor_pitch, &this->_threads_per_atom,
-      &hneight, &m, &TypeO, &TypeH, &alpha,&this->atom->q,  &this->ansO);
+  k_pair_dt_sel->set_size(GX,BX);
+  k_pair_dt_sel->run(&this->atom->x, &this->ans->force, &this->ans->engv,
+                     &eflag, &vflag, &ainum, &nbor_pitch,
+                     &this->_threads_per_atom, &hneight, &m, &TypeO, &TypeH,
+                     &alpha,&this->atom->q,  &this->ansO);
   this->time_pair.stop();
+  return GX;
 }
 
 
@@ -269,22 +275,26 @@ void LJTIP4PLongT::copy_relations_data(int n, tagint *tag, int *map_array,
   }
 }
 
-
-
-
 // ---------------------------------------------------------------------------
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void LJTIP4PLongT::compute(const int f_ago, const int inum_full,
-                               const int nall, double **host_x, int *host_type,
-                               int *ilist, int *numj, int **firstneigh,
-                               const bool eflag, const bool vflag,
-                               const bool eatom, const bool vatom,
-                               int &host_start, const double cpu_time,
-                               bool &success, double *host_q,
-                               const int nlocal, double *boxlo, double *prd) {
+                           const int nall, double **host_x, int *host_type,
+                           int *ilist, int *numj, int **firstneigh,
+                           const bool eflag_in, const bool vflag_in,
+                           const bool eatom, const bool vatom,
+                           int &host_start, const double cpu_time,
+                           bool &success, double *host_q,
+                           const int nlocal, double *boxlo, double *prd) {
   this->acc_timers();
+  int eflag, vflag;
+  if (eflag_in) eflag=2;
+  else eflag=0;
+  if (vflag_in) vflag=2;
+  else vflag=0;
+
+  this->set_kernel(eflag,vflag);
   if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
@@ -315,7 +325,7 @@ void LJTIP4PLongT::compute(const int f_ago, const int inum_full,
 
   t_ago = ago;
   loop(eflag,vflag);
-  this->ans->copy_answers(eflag,vflag,eatom,vatom,ilist);
+  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,inum);
   this->device->add_ans_object(this->ans);
   this->hd_balancer.stop_timer();
 }
@@ -325,22 +335,29 @@ void LJTIP4PLongT::compute(const int f_ago, const int inum_full,
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int** LJTIP4PLongT::compute(const int ago, const int inum_full,
-                                const int nall, double **host_x, int *host_type,
-                                double *sublo, double *subhi, tagint *tag,
-                                int *map_array, int map_size, int *sametag, int max_same,
-                                int **nspecial, tagint **special, const bool eflag,
-                                const bool vflag, const bool eatom,
-                                const bool vatom, int &host_start,
-                                int **ilist, int **jnum,
-                                const double cpu_time, bool &success,
-                                double *host_q, double *boxlo, double *prd) {
+                            const int nall, double **host_x, int *host_type,
+                            double *sublo, double *subhi, tagint *tag,
+                            int *map_array, int map_size, int *sametag,
+                            int max_same, int **nspecial, tagint **special,
+                            const bool eflag_in, const bool vflag_in,
+                            const bool eatom, const bool vatom,
+                            int &host_start, int **ilist, int **jnum,
+                            const double cpu_time, bool &success,
+                            double *host_q, double *boxlo, double *prd) {
   this->acc_timers();
+  int eflag, vflag;
+  if (eflag_in) eflag=2;
+  else eflag=0;
+  if (vflag_in) vflag=2;
+  else vflag=0;
+
+  this->set_kernel(eflag,vflag);
   if (inum_full==0) {
     host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
-    return NULL;
+    return nullptr;
   }
 
   this->hd_balancer.balance(cpu_time);
@@ -353,7 +370,7 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
     this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
-      return NULL;
+      return nullptr;
     this->atom->cast_q_data(host_q);
     this->hd_balancer.start_timer();
   } else {
@@ -373,7 +390,7 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
 
   t_ago = ago;
   loop(eflag,vflag);
-  this->ans->copy_answers(eflag,vflag,eatom,vatom);
+  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,inum);
   this->device->add_ans_object(this->ans);
   this->hd_balancer.stop_timer();
 

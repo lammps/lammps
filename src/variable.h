@@ -49,11 +49,13 @@ class Variable : protected Pointers {
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
+ public:
+  int nvar;                // # of defined variables
+  char **names;            // name of each variable
+
  private:
   int me;
-  int nvar;                // # of defined variables
   int maxvar;              // max # of variables following lists can hold
-  char **names;            // name of each variable
   int *style;              // style of each variable
   int *num;                // # of values for each variable
   int *which;              // next available value for each variable
@@ -93,9 +95,9 @@ class Variable : protected Pointers {
     Tree **extra;          // ptrs further down tree for nextra args
 
     Tree() :
-      array(NULL), iarray(NULL), barray(NULL),
+      array(nullptr), iarray(nullptr), barray(nullptr),
       selfalloc(0), ivalue1(0), ivalue2(0), nextra(0),
-      first(NULL), second(NULL), extra(NULL) {}
+      first(nullptr), second(nullptr), extra(nullptr) {}
   };
 
   int compute_python(int);

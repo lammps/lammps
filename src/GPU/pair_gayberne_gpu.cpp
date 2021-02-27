@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,12 +49,12 @@ int gb_gpu_init(const int ntypes, const double gamma, const double upsilon,
                 double **host_lj3, double **host_lj4, double **offset,
                 double *special_lj, const int nlocal, const int nall,
                 const int max_nbors, const int maxspecial,
-                const double cell_size,        int &gpu_mode, FILE *screen);
+                const double cell_size, int &gpu_mode, FILE *screen);
 void gb_gpu_clear();
 int ** gb_gpu_compute_n(const int ago, const int inum, const int nall,
                         double **host_x, int *host_type, double *sublo,
-                        double *subhi, tagint *tag, int **nspecial, tagint **special,
-                        const bool eflag, const bool vflag,
+                        double *subhi, tagint *tag, int **nspecial,
+                        tagint **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum, const double cpu_time,
                         bool &success, double **host_quat);
@@ -74,7 +74,7 @@ PairGayBerneGPU::PairGayBerneGPU(LAMMPS *lmp) : PairGayBerne(lmp),
 {
   quat_nmax = 0;
   reinitflag = 0;
-  quat = NULL;
+  quat = nullptr;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -207,10 +207,11 @@ void PairGayBerneGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = gb_gpu_init(atom->ntypes+1, gamma, upsilon, mu,
                             shape2, well, cutsq, sigma, epsilon, lshape, form,
                             lj1, lj2, lj3, lj4, offset, force->special_lj,
-                            atom->nlocal, atom->nlocal+atom->nghost, 300,
+                            atom->nlocal, atom->nlocal+atom->nghost, mnf,
                             maxspecial, cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

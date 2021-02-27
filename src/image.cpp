@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -74,8 +74,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
   // colors
 
   ncolors = 0;
-  username = NULL;
-  userrgb = NULL;
+  username = nullptr;
+  userrgb = nullptr;
 
   boxcolor = color2rgb("yellow");
   background[0] = background[1] = background[2] = 0;
@@ -112,7 +112,12 @@ Image::Image(LAMMPS *lmp, int nmap_caller) : Pointers(lmp)
   backLightColor[1] = 0.9;
   backLightColor[2] = 0.9;
 
-  random = NULL;
+  random = nullptr;
+
+  // MPI_Gatherv vectors
+
+  recvcounts = nullptr;
+  displs = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,6 +139,9 @@ Image::~Image()
   memory->destroy(rgbcopy);
 
   if (random) delete random;
+
+  memory->destroy(recvcounts);
+  memory->destroy(displs);
 }
 
 /* ----------------------------------------------------------------------
@@ -334,16 +342,37 @@ void Image::merge()
   // extra SSAO enhancement
   // bcast full image to all procs
   // each works on subset of pixels
-  // gather result back to proc 0
+  // MPI_Gather() result back to proc 0
+  // use Gatherv() if subset of pixels is not the same size on every proc
 
   if (ssao) {
     MPI_Bcast(imageBuffer,npixels*3,MPI_BYTE,0,world);
     MPI_Bcast(surfaceBuffer,npixels*2,MPI_DOUBLE,0,world);
     MPI_Bcast(depthBuffer,npixels,MPI_DOUBLE,0,world);
     compute_SSAO();
-    int pixelPart = height/nprocs * width*3;
-    MPI_Gather(imageBuffer+me*pixelPart,pixelPart,MPI_BYTE,
-               rgbcopy,pixelPart,MPI_BYTE,0,world);
+
+    int pixelstart = 3 * static_cast<int> (1.0*me/nprocs * npixels);
+    int pixelstop = 3 * static_cast<int> (1.0*(me+1)/nprocs * npixels);
+    int mypixels = pixelstop - pixelstart;
+
+    if (npixels % nprocs == 0) {
+      MPI_Gather(imageBuffer+pixelstart,mypixels,MPI_BYTE,
+                 rgbcopy,mypixels,MPI_BYTE,0,world);
+
+    } else {
+      if (recvcounts == nullptr) {
+        memory->create(recvcounts,nprocs,"image:recvcounts");
+        memory->create(displs,nprocs,"image:displs");
+        MPI_Allgather(&mypixels,1,MPI_INT,recvcounts,1,MPI_INT,world);
+        displs[0] = 0;
+        for (int i = 1; i < nprocs; i++)
+          displs[i] = displs[i-1] + recvcounts[i-1];
+      }
+
+      MPI_Gatherv(imageBuffer+pixelstart,mypixels,MPI_BYTE,
+                  rgbcopy,recvcounts,displs,MPI_BYTE,0,world);
+    }
+
     writeBuffer = rgbcopy;
   } else {
     writeBuffer = imageBuffer;
@@ -880,110 +909,117 @@ void Image::compute_SSAO()
         -tanPerPixel / zoom;
   int pixelRadius = (int) trunc (SSAORadius / pixelWidth + 0.5);
 
-  int x,y,s;
-  int hPart = height / nprocs;
-  int index = me * hPart * width;
-  for (y = me * hPart; y < (me + 1) * hPart; y ++) {
-    for (x = 0; x < width; x ++, index ++) {
-      double cdepth = depthBuffer[index];
-      if (cdepth < 0) { continue; }
+  // each proc is assigned a subset of contiguous pixels from the full image
+  // pixels are contiguous in x (columns within a row), then by row
+  // index = pixels from 0 to npixel-1
+  // x = column # from 0 to width-1
+  // y = row # from 0 to height-1
 
-      double sx = surfaceBuffer[index * 2 + 0];
-      double sy = surfaceBuffer[index * 2 + 1];
-      double sin_t = -sqrt(sx*sx + sy*sy);
+  int pixelstart = static_cast<int> (1.0*me/nprocs * npixels);
+  int pixelstop = static_cast<int> (1.0*(me+1)/nprocs * npixels);
 
-      double mytheta = random->uniform() * SSAOJitter;
-      double ao = 0.0;
+  for (int index = pixelstart; index < pixelstop; index++) {
+    int x = index % width;
+    int y = index / width;
 
-      for (s = 0; s < SSAOSamples; s ++) {
-        double hx = cos(mytheta);
-        double hy = sin(mytheta);
-        mytheta += delTheta;
+    double cdepth = depthBuffer[index];
+    if (cdepth < 0) { continue; }
 
-        // multiply by z cross surface tangent
-        // so that dot (aka cos) works here
+    double sx = surfaceBuffer[index * 2 + 0];
+    double sy = surfaceBuffer[index * 2 + 1];
+    double sin_t = -sqrt(sx*sx + sy*sy);
 
-        double scaled_sin_t = sin_t * (hx*sy + hy*sx);
+    double mytheta = random->uniform() * SSAOJitter;
+    double ao = 0.0;
 
-        // Bresenham's line algorithm to march over depthBuffer
+    for (int s = 0; s < SSAOSamples; s ++) {
+      double hx = cos(mytheta);
+      double hy = sin(mytheta);
+      mytheta += delTheta;
 
-        int dx = static_cast<int> (hx * pixelRadius);
-        int dy = static_cast<int> (hy * pixelRadius);
-        int ex = x + dx;
-        if (ex < 0) { ex = 0; } if (ex >= width) { ex = width - 1; }
-        int ey = y + dy;
-        if (ey < 0) { ey = 0; } if (ey >= height) { ey = height - 1; }
-        double delta;
-        int small, large;
-        double lenIncr;
-        if (fabs(hx) > fabs(hy)) {
-          small = (hx > 0) ? 1 : -1;
-          large = (hy > 0) ? width : -width;
-          delta = fabs(hy / hx);
-        } else {
-          small = (hy > 0) ? width : -width;
-          large = (hx > 0) ? 1 : -1;
-          delta = fabs(hx / hy);
+      // multiply by z cross surface tangent
+      // so that dot (aka cos) works here
+
+      double scaled_sin_t = sin_t * (hx*sy + hy*sx);
+
+      // Bresenham's line algorithm to march over depthBuffer
+
+      int dx = static_cast<int> (hx * pixelRadius);
+      int dy = static_cast<int> (hy * pixelRadius);
+      int ex = x + dx;
+      if (ex < 0) { ex = 0; } if (ex >= width) { ex = width - 1; }
+      int ey = y + dy;
+      if (ey < 0) { ey = 0; } if (ey >= height) { ey = height - 1; }
+      double delta;
+      int small, large;
+      double lenIncr;
+      if (fabs(hx) > fabs(hy)) {
+        small = (hx > 0) ? 1 : -1;
+        large = (hy > 0) ? width : -width;
+        delta = fabs(hy / hx);
+      } else {
+        small = (hy > 0) ? width : -width;
+        large = (hx > 0) ? 1 : -1;
+        delta = fabs(hx / hy);
+      }
+      lenIncr = sqrt (1 + delta * delta) * pixelWidth;
+
+      // initialize with one step
+      // because the center point doesn't need testing
+
+      int end = ex + ey * width;
+      int ind = index + small;
+      double len = lenIncr;
+      double err = delta;
+      if (err >= 1.0) {
+        ind += large;
+        err -= 1.0;
+      }
+
+      double minPeak = -1;
+      double peakLen = 0.0;
+      int stepsTaken = 1;
+      while ((small > 0 && ind <= end) || (small < 0 && ind >= end)) {
+        if (ind < 0 || ind >= (width*height)) {
+          break;
         }
-        lenIncr = sqrt (1 + delta * delta) * pixelWidth;
 
-        // initialize with one step
-        // because the center point doesn't need testing
+        // cdepth - depthBuffer B/C we want it in the negative z direction
 
-        int end = ex + ey * width;
-        int ind = index + small;
-        double len = lenIncr;
-        double err = delta;
+        if (minPeak < 0 || (depthBuffer[ind] >= 0 &&
+                            depthBuffer[ind] < minPeak)) {
+          minPeak = depthBuffer[ind];
+          peakLen = len;
+        }
+        ind += small;
+        len += lenIncr;
+        err += delta;
         if (err >= 1.0) {
           ind += large;
           err -= 1.0;
         }
-
-        double minPeak = -1;
-        double peakLen = 0.0;
-        int stepsTaken = 1;
-        while ((small > 0 && ind <= end) || (small < 0 && ind >= end)) {
-          if (ind < 0 || ind >= (width*height)) {
-            break;
-          }
-
-          // cdepth - depthBuffer B/C we want it in the negative z direction
-
-          if (minPeak < 0 || (depthBuffer[ind] >= 0 &&
-                              depthBuffer[ind] < minPeak)) {
-            minPeak = depthBuffer[ind];
-            peakLen = len;
-          }
-          ind += small;
-          len += lenIncr;
-          err += delta;
-          if (err >= 1.0) {
-            ind += large;
-            err -= 1.0;
-          }
-          stepsTaken ++;
-        }
-
-        if (peakLen > 0) {
-          double h = atan ((cdepth - minPeak) / peakLen);
-          ao += saturate(sin (h) - scaled_sin_t);
-        } else {
-          ao += saturate(-scaled_sin_t);
-        }
+        stepsTaken ++;
       }
-      ao /= (double)SSAOSamples;
 
-      double c[3];
-      c[0] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 0]);
-      c[1] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 1]);
-      c[2] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 2]);
-      c[0] *= (1.0 - ao);
-      c[1] *= (1.0 - ao);
-      c[2] *= (1.0 - ao);
-      imageBuffer[index * 3 + 0] = (int) c[0];
-      imageBuffer[index * 3 + 1] = (int) c[1];
-      imageBuffer[index * 3 + 2] = (int) c[2];
+      if (peakLen > 0) {
+        double h = atan ((cdepth - minPeak) / peakLen);
+        ao += saturate(sin (h) - scaled_sin_t);
+      } else {
+        ao += saturate(-scaled_sin_t);
+      }
     }
+    ao /= (double)SSAOSamples;
+
+    double c[3];
+    c[0] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 0]);
+    c[1] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 1]);
+    c[2] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 2]);
+    c[0] *= (1.0 - ao);
+    c[1] *= (1.0 - ao);
+    c[2] *= (1.0 - ao);
+    imageBuffer[index * 3 + 0] = (int) c[0];
+    imageBuffer[index * 3 + 1] = (int) c[1];
+    imageBuffer[index * 3 + 2] = (int) c[2];
   }
 }
 
@@ -1029,13 +1065,13 @@ void Image::write_PNG(FILE *fp)
   png_structp png_ptr;
   png_infop info_ptr;
 
-  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+  png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
 
   if (!png_ptr) return;
 
   info_ptr = png_create_info_struct(png_ptr);
   if (!info_ptr) {
-    png_destroy_write_struct(&png_ptr, NULL);
+    png_destroy_write_struct(&png_ptr, nullptr);
     return;
   }
 
@@ -1166,7 +1202,7 @@ int Image::addcolor(char *name, double r, double g, double b)
    if index < 0, return ptr to -index-1 color from userrgb
    if index = 0, search the 2 lists of color names for the string color
    search user-defined color names first, then the list of NCOLORS names
-   return a pointer to the 3 floating point RGB values or NULL if didn't find
+   return a pointer to the 3 floating point RGB values or nullptr if didn't find
 ------------------------------------------------------------------------- */
 
 double *Image::color2rgb(const char *color, int index)
@@ -1458,11 +1494,11 @@ double *Image::color2rgb(const char *color, int index)
   };
 
   if (index > 0) {
-    if (index > NCOLORS) return NULL;
+    if (index > NCOLORS) return nullptr;
     return rgb[index-1];
   }
   if (index < 0) {
-    if (-index > ncolors) return NULL;
+    if (-index > ncolors) return nullptr;
     return userrgb[-index-1];
   }
 
@@ -1472,7 +1508,7 @@ double *Image::color2rgb(const char *color, int index)
     for (int i = 0; i < NCOLORS; i++)
       if (strcmp(color,name[i]) == 0) return rgb[i];
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1620,7 +1656,7 @@ double *Image::element2color(char *element)
 
   for (int i = 0; i < NELEMENTS; i++)
     if (strcmp(element,name[i]) == 0) return rgb[i];
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1791,13 +1827,13 @@ int ColorMap::reset(int narg, char **arg)
         if (n+1 > narg) return 1;
         mentry[i].color = image->color2rgb(arg[n]);
       } else if (expandflag == 1) {
-        mentry[i].color = image->color2rgb(NULL,i+1);
+        mentry[i].color = image->color2rgb(nullptr,i+1);
       } else if (expandflag == 2) {
-        mentry[i].color = image->color2rgb(NULL,-(i+1));
+        mentry[i].color = image->color2rgb(nullptr,-(i+1));
       }
       n += 1;
     }
-    if (mentry[i].color == NULL) return 1;
+    if (mentry[i].color == nullptr) return 1;
   }
 
   if (mstyle == CONTINUOUS) {
@@ -1915,5 +1951,5 @@ double *ColorMap::value2color(double value)
     return mentry[ibin%nentry].color;
   }
 
-  return NULL;
+  return nullptr;
 }

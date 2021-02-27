@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,7 +35,7 @@ using namespace MathSpecial;
 
 PairMorseSoft::~PairMorseSoft()
 {
-  if(allocated){
+  if (allocated) {
     memory->destroy(lambda);
   }
 }
@@ -108,7 +108,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
         V0 = D * dexp * ( dexp - 2.0 );
         B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
-        if (l >= shift_range){
+        if (l >= shift_range) {
           s1  = (l - 1.0) / (shift_range - 1.0);
           phi = V0 + B*dexp3 * s1;
 
@@ -121,7 +121,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
           phi *= llf;
 
           // Force computation:
-          if (r == 0.0){
+          if (r == 0.0) {
             fpair = 0.0;
           } else {
             fpair = 3.0*a*B*dexp3 + 2.0*a*D*(dexp2 - dexp);
@@ -256,7 +256,7 @@ double PairMorseSoft::init_one(int i, int j)
     V0 = D * dexp * ( dexp - 2.0 );
     B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
-    if (l >= shift_range){
+    if (l >= shift_range) {
       s1  = (l - 1.0) / (shift_range - 1.0);
       offset[i][j] = V0 + B*dexp3 * s1;
     } else {
@@ -313,15 +313,15 @@ void PairMorseSoft::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&d0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&r0[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&d0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&r0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&d0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&alpha[i][j],1,MPI_DOUBLE,0,world);
@@ -353,10 +353,10 @@ void PairMorseSoft::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&shift_range,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&shift_range,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&shift_range,1,MPI_DOUBLE,0,world);
@@ -415,7 +415,7 @@ double PairMorseSoft::single(int /*i*/, int /*j*/, int itype, int jtype, double 
   V0 = D * dexp * ( dexp - 2.0 );
   B = -2.0 * D * iea2 * ( ea - 1.0 ) / 3.0;
 
-  if (l >= shift_range){
+  if (l >= shift_range) {
     s1  = (l - 1.0) / (shift_range - 1.0);
     phi = V0 + B*dexp3 * s1;
 
@@ -428,7 +428,7 @@ double PairMorseSoft::single(int /*i*/, int /*j*/, int itype, int jtype, double 
     phi *= llf;
 
     // Force computation:
-    if (r == 0.0){
+    if (r == 0.0) {
       fforce = 0.0;
     } else {
       fforce = 3.0*a*B*dexp3 + 2.0*a*D*(dexp2 - dexp);
@@ -450,5 +450,5 @@ void *PairMorseSoft::extract(const char *str, int &dim)
   if (strcmp(str,"r0") == 0) return (void *) r0;
   if (strcmp(str,"alpha") == 0) return (void *) alpha;
   if (strcmp(str,"lambda") == 0) return (void *) lambda;
-  return NULL;
+  return nullptr;
 }

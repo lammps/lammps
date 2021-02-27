@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,8 +31,8 @@ using namespace LAMMPS_NS;
 PairLineLJ::PairLineLJ(LAMMPS *lmp) : Pair(lmp)
 {
   dmax = nmax = 0;
-  discrete = NULL;
-  dnum = dfirst = NULL;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
 
   single_enable = 0;
   restartinfo = 0;
@@ -74,7 +74,6 @@ void PairLineLJ::compute(int eflag, int vflag)
   double xi[2],xj[2],fi[2],dxi,dxj,dyi,dyj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
-  evdwl = 0.0;
   ev_init(eflag,vflag);
 
   double **x = atom->x;

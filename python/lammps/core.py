@@ -121,18 +121,16 @@ class lammps(object):
         lib_ext = ".so"
 
     if not self.lib:
-      try:
-        if not name:
-          self.lib = CDLL(join(modpath,"liblammps" + lib_ext),RTLD_GLOBAL)
+      if name:
+        libpath = join(modpath,"liblammps_%s" % name + lib_ext)
+      else:
+        libpath = join(modpath,"liblammps" + lib_ext)
+      if not os.path.isfile(libpath):
+        if name:
+          libpath = "liblammps_%s" % name + lib_ext
         else:
-          self.lib = CDLL(join(modpath,"liblammps_%s" % name + lib_ext),
-                          RTLD_GLOBAL)
-      except:
-        if not name:
-          self.lib = CDLL("liblammps" + lib_ext,RTLD_GLOBAL)
-        else:
-          self.lib = CDLL("liblammps_%s" % name + lib_ext,RTLD_GLOBAL)
-
+          libpath = "liblammps" + lib_ext
+      self.lib = CDLL(libpath,RTLD_GLOBAL)
 
     # declare all argument and return types for all library methods here.
     # exceptions are where the arguments depend on certain conditions and

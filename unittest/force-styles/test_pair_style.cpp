@@ -244,8 +244,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // date_generated
     std::time_t now = time(NULL);
-    block           = ctime(&now);
-    block           = block.substr(0, block.find("\n") - 1);
+    block           = utils::trim(ctime(&now));
     writer.emit("date_generated", block);
 
     // epsilon

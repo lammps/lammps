@@ -212,6 +212,14 @@ FixIPI::FixIPI(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(5,newarg);
   delete [] newarg;
 
+  // creates a pe compute to compute potential energy
+  newarg = new char*[3];
+  newarg[0] = (char *) "IPI_PE";
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pe";
+  modify->add_compute(3, newarg);
+  delete [] newarg;
+
   // create instance of Irregular class
   irregular = new Irregular(lmp);
 
@@ -227,6 +235,7 @@ FixIPI::~FixIPI()
   free(host);
   modify->delete_compute("IPI_TEMP");
   modify->delete_compute("IPI_PRESS");
+  modify->delete_compute("IPI_PE");
   delete irregular;
 }
 
@@ -254,7 +263,7 @@ void FixIPI::init()
   socketflag = 1;
 
   // asks for evaluation of PE at first step
-  modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
+  modify->compute[modify->find_compute("IPI_PE")]->invoked_scalar = -1;
   modify->addstep_compute_all(update->ntimestep + 1);
 
   kspace_flag = (force->kspace) ? 1 : 0;
@@ -391,7 +400,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
   }
 
   // compute PE. makes sure that it will be evaluated at next step
-  modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
+  modify->compute[modify->find_compute("IPI_PE")]->invoked_scalar = -1;
   modify->addstep_compute_all(update->ntimestep+1);
 
   hasdata=1;
@@ -414,7 +423,12 @@ void FixIPI::final_integrate()
   pressconv=1/force->nktv2p*potconv*posconv3;
 
   // compute for potential energy
-  pot=modify->compute[modify->find_compute("thermo_pe")]->compute_scalar();
+  //fprintf(stdout, "x[0] = %.6f.\n", atom->x[0][0]);
+  //fprintf(stdout, "f[0] = %.6f.\n", atom->f[0][0]);
+  pot=modify->compute[modify->find_compute("IPI_PE")]->compute_scalar();
+  //double pot2 = modify->compute[modify->find_compute("pimd_pe")]->scalar;
+  //fprintf(stdout, "pe1=%.6e pe2=%.6e.\n",pot,pot2);
+  //fprintf(stdout, "pe1=%.6e\n", pot);
   pot*=potconv;
 
   // probably useless check

@@ -284,7 +284,7 @@ void FixPIMD4::end_of_step()
   {
   if(universe->me==0) printf("This is the end of step %ld.\n", update->ntimestep);
   }
-  // if(universe->iworld==0) printf("This is the end of step %ld.\n\n\n", update->ntimestep);
+  //if(universe->iworld==0) printf("This is the end of step %ld.\n\n\n", update->ntimestep);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -325,9 +325,9 @@ void FixPIMD4::init()
 
   double hbar   = Plank / ( 2.0 * MY_PI );
   double beta   = 1.0 / (Boltzmann * temp);
-  double _fbond = 1.0 * np / (beta*beta*hbar*hbar) ;
+  double _fbond = 1.0 * np*np / (beta*beta*hbar*hbar) ;
 
-  omega_np = sqrt(np) / (hbar * beta) * sqrt(force->mvv2e);
+  omega_np = np / (hbar * beta) * sqrt(force->mvv2e);
   fbond = - _fbond * force->mvv2e;
 
   if(universe->me==0)
@@ -373,9 +373,9 @@ void FixPIMD4::init()
 void FixPIMD4::setup_pre_force(int vflag)
 //void FixPIMD4::setup_pre_exchange()
 {
-  atom->x[0][0] = 0.0;
-  atom->x[0][1] = 0.0;
-  atom->x[0][2] = 0.0;
+  //atom->x[0][0] = 0.0;
+  //atom->x[0][1] = 0.0;
+  //atom->x[0][2] = 0.0;
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
   //fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
@@ -433,14 +433,14 @@ void FixPIMD4::setup(int vflag)
 {
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
-  // post_force(vflag);
-  // end_of_step();
+  post_force(vflag);
+  end_of_step();
   c_pe->addstep(update->ntimestep+1); 
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
   //fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
 
-  
+  //fprintf(stdout, "x=%.4e.\n", atom->x[0][0]);  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -540,7 +540,7 @@ void FixPIMD4::post_integrate()
       comm_exec(atom->x);
       nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
     }
-  // if(universe->iworld==0) printf("after xp2x, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], mass[atom->type[0]], dtf, dtv, dtf, _omega_np, baoab_c, baoab_s);
+  //printf("after xp2x, x=%.6e, v=%.6e, f=%.6e, dtf=%.6e, dtv=%.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], dtf, dtv);
 
   char x_tmp[8];
   int nlocal = atom->nlocal;
@@ -610,13 +610,13 @@ void FixPIMD4::post_force(int /*flag*/)
   // fprintf(stdout, "Coming into post_force!\n");
   
   // divide the force by np 
-  for(int i=0; i<atom->nlocal; i++) 
-  {
-    for(int j=0; j<3; j++) 
-    {
-      atom->f[i][j] = atom->f[i][j] * 1.0 / np;
-    }
-  }
+  // for(int i=0; i<atom->nlocal; i++) 
+  // {
+  //   for(int j=0; j<3; j++) 
+  //   {
+  //     atom->f[i][j] = atom->f[i][j] * 1.0 / np;
+  //   }
+  // }
   // fprintf(stdout, "Successfully computed t_prim!\n");
 
   // transform the force into normal mode representation
@@ -636,13 +636,24 @@ void FixPIMD4::post_force(int /*flag*/)
 
 void FixPIMD4::baoab_init()
 {
+  //fprintf(stdout, "baoab_temp=%.2f.\n", baoab_temp);
   double KT = force->boltz * baoab_temp;
   double beta = 1.0 / KT;
   double hbar = force->hplanck / (2.0 * MY_PI);
-  _omega_np = sqrt(np) / beta / hbar;
+  _omega_np = np / beta / hbar;
   double _omega_np_dt_half = _omega_np * update->dt * 0.5;
-  baoab_c = cos(_omega_np_dt_half);
-  baoab_s = sin(_omega_np_dt_half);
+
+  _omega_k = new double[np];
+  baoab_c = new double[np];
+  baoab_s = new double[np];
+  for (int i=0; i<np; i++)
+  {
+    _omega_k[i] = _omega_np * sqrt(lam[i]); 
+    baoab_c[i] = cos(sqrt(lam[i])*_omega_np_dt_half);
+    baoab_s[i] = sin(sqrt(lam[i])*_omega_np_dt_half);
+  }
+  // baoab_c = cos(_omega_np_dt_half);
+  // baoab_s = sin(_omega_np_dt_half);
   // printf("initializing baoab, c = %.6f, s = %.6f.\n", baoab_c, baoab_s);
   if(tau > 0) gamma = 0.5 / tau;
   else gamma = sqrt(np) / beta / hbar;
@@ -664,6 +675,7 @@ void FixPIMD4::baoab_init()
 void FixPIMD4::b_step()
 {
   // if(universe->iworld==0) printf("start of b_step, %.6e.\n", atom->x[0][0]);
+  //fprintf(stdout, "step=%ld, starting b_step, x=%.8e, v=%.8e, f=%.8e, dtf=%.6e.\n", update->ntimestep, atom->x[0][0], atom->v[0][0], atom->f[0][0],dtf);
   int n = atom->nlocal;
   int *type = atom->type;
   double **v = atom->v;
@@ -678,7 +690,7 @@ void FixPIMD4::b_step()
   }
 
   double dtfm = dtf / mass[type[0]];
-  // if(universe->iworld==0) printf("end of b_step, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], mass[atom->type[0]], dtf, dtv, dtfm, _omega_np, baoab_c, baoab_s);
+  //printf("end of b_step, x=%.8e, v=%.6e, f=%.6e, dtf=%.6e, mass=%.6e, dtfm=%.6e, o_np=%.6e, c=%.6e, s=%.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], dtf, mass[type[0]], dtfm, _omega_np, baoab_c[1], baoab_s[1]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -689,6 +701,7 @@ void FixPIMD4::a_step(){
   double **v = atom->v;
   double x0, x1, x2, v0, v1, v2; // three components of x[i] and v[i]
 
+  //fprintf(stdout, "step=%ld, starting a_step, x=%.8e, v=%.8e, dtv=%.6e.\n", update->ntimestep, x[0][0], v[0][0], dtv);
   if(universe->iworld == 0)
   {
 
@@ -705,15 +718,16 @@ void FixPIMD4::a_step(){
     {
       x0 = x[i][0]; x1 = x[i][1]; x2 = x[i][2];
       v0 = v[i][0]; v1 = v[i][1]; v2 = v[i][2];
-      x[i][0] = baoab_c * x0 + 1./_omega_np * baoab_s * v0;
-      x[i][1] = baoab_c * x1 + 1./_omega_np * baoab_s * v1;
-      x[i][2] = baoab_c * x2 + 1./_omega_np * baoab_s * v2;
-      v[i][0] = -1.*_omega_np * baoab_s * x0 + baoab_c * v0;
-      v[i][1] = -1.*_omega_np * baoab_s * x1 + baoab_c * v1;
-      v[i][2] = -1.*_omega_np * baoab_s * x2 + baoab_c * v2;
+      x[i][0] = baoab_c[universe->iworld] * x0 + 1./_omega_k[universe->iworld] * baoab_s[universe->iworld] * v0;
+      x[i][1] = baoab_c[universe->iworld] * x1 + 1./_omega_k[universe->iworld] * baoab_s[universe->iworld] * v1;
+      x[i][2] = baoab_c[universe->iworld] * x2 + 1./_omega_k[universe->iworld] * baoab_s[universe->iworld] * v2;
+      v[i][0] = -1.*_omega_k[universe->iworld] * baoab_s[universe->iworld] * x0 + baoab_c[universe->iworld] * v0;
+      v[i][1] = -1.*_omega_k[universe->iworld] * baoab_s[universe->iworld] * x1 + baoab_c[universe->iworld] * v1;
+      v[i][2] = -1.*_omega_k[universe->iworld] * baoab_s[universe->iworld] * x2 + baoab_c[universe->iworld] * v2;
     }
   }
 
+  //fprintf(stdout, "step=%ld, end_a_step, x=%.8e, v=%.8e, dtv=%.6e.\n", update->ntimestep, x[0][0], v[0][0], dtv);
   // if(universe->iworld==0) printf("end of a_step, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], mass[atom->type[0]], dtf, dtv, dtf, _omega_np, baoab_c, baoab_s);
 }
 
@@ -722,7 +736,7 @@ void FixPIMD4::svr_step()
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
-  double beta = 1.0 / force->boltz / baoab_temp * force->mvv2e;
+  double beta_np = 1.0 / force->boltz / baoab_temp / np * force->mvv2e;
 
   // compute centroid kinetic energy
   double ke_0 = 0.0;
@@ -741,8 +755,8 @@ void FixPIMD4::svr_step()
     }
   }
   
-  alpha2 = c1 + (1.0 - c1) * (noise_) / 2 / beta / ke_centroid + 2 * ksi0_ * sqrt(c1 * (1.0 - c1) / 2 / beta / ke_centroid);
-  sgn_ = ksi0_ + sqrt(2 * beta * ke_centroid * c1 / (1.0 - c1));
+  alpha2 = c1 + (1.0 - c1) * (noise_) / 2 / beta_np / ke_centroid + 2 * ksi0_ * sqrt(c1 * (1.0 - c1) / 2 / beta_np / ke_centroid);
+  sgn_ = ksi0_ + sqrt(2 * beta_np * ke_centroid * c1 / (1.0 - c1));
   // sgn = sgn_ / abs(sgn_);
   if(sgn_<0) sgn = -1.0;
   else sgn = 1.0;
@@ -768,7 +782,7 @@ void FixPIMD4::o_step()
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
-  double beta = 1.0 / force->boltz / baoab_temp * force->mvv2e;
+  double beta_np = 1.0 / force->boltz / baoab_temp / np * force->mvv2e;
   if(thermostat == PILE_L)
   {
     for(int i=0; i<nlocal; i++)
@@ -776,9 +790,9 @@ void FixPIMD4::o_step()
       r1 = random->gaussian();
       r2 = random->gaussian();
       r3 = random->gaussian();
-      atom->v[i][0] = c1 * atom->v[i][0] + c2 * sqrt(1.0 / mass[type[i]] / beta) * r1; 
-      atom->v[i][1] = c1 * atom->v[i][1] + c2 * sqrt(1.0 / mass[type[i]] / beta) * r2;
-      atom->v[i][2] = c1 * atom->v[i][2] + c2 * sqrt(1.0 / mass[type[i]] / beta) * r3;
+      atom->v[i][0] = c1 * atom->v[i][0] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
+      atom->v[i][1] = c1 * atom->v[i][1] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
+      atom->v[i][2] = c1 * atom->v[i][2] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
     }
   }
   else if(thermostat == SVR)
@@ -836,9 +850,9 @@ void FixPIMD4::o_step()
         r1 = random->gaussian();
         r2 = random->gaussian();
         r3 = random->gaussian();
-        atom->v[i][0] = c1 * atom->v[i][0] + c2 * sqrt(1.0 / mass[type[i]] / beta) * r1; 
-        atom->v[i][1] = c1 * atom->v[i][1] + c2 * sqrt(1.0 / mass[type[i]] / beta) * r2;
-        atom->v[i][2] = c1 * atom->v[i][2] + c2 * sqrt(1.0 / mass[type[i]] / beta) * r3;
+        atom->v[i][0] = c1 * atom->v[i][0] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r1; 
+        atom->v[i][1] = c1 * atom->v[i][1] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r2;
+        atom->v[i][2] = c1 * atom->v[i][2] + c2 * sqrt(1.0 / mass[type[i]] / beta_np) * r3;
       }
     }
   }
@@ -899,7 +913,7 @@ void FixPIMD4::nmpimd_init()
 
     if(iworld)
     {
-      mass[i] *= lam[iworld];
+//      mass[i] *= lam[iworld];
       mass[i] *= fmass;
     }
   }
@@ -1358,19 +1372,20 @@ void FixPIMD4::compute_totke()
   totke = 0.0;
   int nlocal = atom->nlocal;
   int *type = atom->type;
+  double *_mass = atom->mass;
   for(int i=0; i<nlocal; i++)
   {
     for(int j=0; j<3; j++)
     {
-      kine += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j];
+      kine += 0.5 * _mass[type[i]] * atom->v[i][j] * atom->v[i][j];
     }
   }
   // if(universe->iworld==0) printf("kine = %.6e.\n", kine);
-  // printf("iworld = %d, m = %.6e, _m = %.6e, kine = %.6e.\n", universe->iworld, mass[type[0]], atom->mass[type[0]], kine);
+  //printf("iworld = %d, m = %.6e, _m = %.6e, kine = %.6e.\n", universe->iworld, mass[type[0]], atom->mass[type[0]], kine*force->mvv2e);
   MPI_Allreduce(&kine, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   // printf("iworld = %d, totke = %.6e.\n", universe->iworld, totke);
   // if(universe->iworld==0) printf("mvv2e = %.6e.\n", force->mvv2e);
-  totke *= force->mvv2e;
+  totke *= force->mvv2e / np;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1426,6 +1441,7 @@ void FixPIMD4::compute_spring_energy()
   }
   MPI_Allreduce(&spring_energy, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   total_spring_energy *= 0.25;
+  total_spring_energy /= np;
 }
 
 /* ---------------------------------------------------------------------- */

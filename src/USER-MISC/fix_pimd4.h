@@ -139,7 +139,7 @@ class FixPIMD4 : public Fix {
   double **eta;
   double ke_centroid, alpha2, sgn_, sgn, alpha;
 
-  double _omega_np, baoab_s, baoab_c; // sin(omega_np*dt*0.5), cos(omega_np*dt*0.5)
+  double _omega_np, *_omega_k, *baoab_s, *baoab_c; // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
   
   /* harmonic oscillator model system */
   int harmonicflag;

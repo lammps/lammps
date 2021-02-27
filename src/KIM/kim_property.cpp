@@ -85,11 +85,10 @@ void KimProperty::command(int narg, char **arg)
 #if LMP_PYTHON
 #if PY_MAJOR_VERSION >= 3
   if (narg < 2) error->all(FLERR, "Invalid 'kim property' command");
-  if (!(strcmp(arg[0], "create") == 0) &&
-      !(strcmp(arg[0], "destroy") == 0) &&
-      !(strcmp(arg[0], "modify") == 0) &&
-      !(strcmp(arg[0], "remove") == 0) &&
-      !(strcmp(arg[0], "dump") == 0)) {
+
+  const std::string subcmd(arg[0]);
+  if ((subcmd != "create") && (subcmd != "destroy") && (subcmd != "modify") &&
+      (subcmd != "remove") && (subcmd != "dump")) {
     std::string msg("Incorrect arguments in 'kim property' command.\n");
     msg += "'kim property create/destroy/modify/remove/dump' is mandatory";
     error->all(FLERR, msg);
@@ -130,7 +129,7 @@ void KimProperty::command(int narg, char **arg)
   }
 
   // kim_property create 1 cohesive-potential-energy-cubic-crystal
-  if (strcmp(arg[0], "create") == 0) {
+  if (subcmd == "create") {
     if (narg != 3) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Invalid 'kim property create' command");
@@ -196,7 +195,7 @@ void KimProperty::command(int narg, char **arg)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  } else if (strcmp(arg[0], "destroy") == 0) {
+  } else if (subcmd == "destroy") {
     if (narg != 2) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Invalid 'kim property destroy' command");
@@ -256,7 +255,7 @@ void KimProperty::command(int narg, char **arg)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  } else if (strcmp(arg[0], "modify") == 0) {
+  } else if (subcmd == "modify") {
     if (narg < 6) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Invalid 'kim property modify' command");
@@ -321,7 +320,7 @@ void KimProperty::command(int narg, char **arg)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  } else if (strcmp(arg[0], "remove") == 0) {
+  } else if (subcmd == "remove") {
     if (narg < 4) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Invalid 'kim property remove' command");
@@ -386,7 +385,7 @@ void KimProperty::command(int narg, char **arg)
     Py_XDECREF(pArgs);
     Py_XDECREF(pFunc);
     Py_XDECREF(pValue);
-  } else if (strcmp(arg[0], "dump") == 0) {
+  } else if (subcmd == "dump") {
     if (narg != 2) {
       PyGILState_Release(gstate);
       error->all(FLERR, "Invalid 'kim property dump' command");

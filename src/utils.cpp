@@ -1655,7 +1655,7 @@ extern "C" {
         (*matchlen)++;
         return 1;
       }
-    }     
+    }
     return 0;
   }
 

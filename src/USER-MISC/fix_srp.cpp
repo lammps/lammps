@@ -379,7 +379,7 @@ void FixSRP::pre_exchange()
 
 double FixSRP::memory_usage()
 {
-  double bytes = atom->nmax*2 * sizeof(double);
+  double bytes = (double)atom->nmax*2 * sizeof(double);
   return bytes;
 }
 

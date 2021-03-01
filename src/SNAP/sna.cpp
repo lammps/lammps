@@ -1282,33 +1282,33 @@ double SNA::memory_usage()
 
   bytes = 0;
 
-  bytes += jdimpq*jdimpq * sizeof(double);               // pqarray
-  bytes += idxcg_max * sizeof(double);                   // cglist
+  bytes += (double)jdimpq*jdimpq * sizeof(double);               // pqarray
+  bytes += (double)idxcg_max * sizeof(double);                   // cglist
 
-  bytes += nmax * idxu_max * sizeof(double) * 2;         // ulist_ij
-  bytes += idxu_max * nelements * sizeof(double) * 2;    // ulisttot
-  bytes += idxu_max * 3 * sizeof(double) * 2;            // dulist
+  bytes += (double)nmax * idxu_max * sizeof(double) * 2;         // ulist_ij
+  bytes += (double)idxu_max * nelements * sizeof(double) * 2;    // ulisttot
+  bytes += (double)idxu_max * 3 * sizeof(double) * 2;            // dulist
 
-  bytes += idxz_max * ndoubles * sizeof(double) * 2;     // zlist
-  bytes += idxb_max * ntriples * sizeof(double);         // blist
-  bytes += idxb_max * ntriples * 3 * sizeof(double);     // dblist
-  bytes += idxu_max * nelements * sizeof(double) * 2;    // ylist
+  bytes += (double)idxz_max * ndoubles * sizeof(double) * 2;     // zlist
+  bytes += (double)idxb_max * ntriples * sizeof(double);         // blist
+  bytes += (double)idxb_max * ntriples * 3 * sizeof(double);     // dblist
+  bytes += (double)idxu_max * nelements * sizeof(double) * 2;    // ylist
 
-  bytes += jdim * jdim * jdim * sizeof(int);             // idxcg_block
-  bytes += jdim * sizeof(int);                           // idxu_block
-  bytes += jdim * jdim * jdim * sizeof(int);             // idxz_block
-  bytes += jdim * jdim * jdim * sizeof(int);             // idxb_block
+  bytes += (double)jdim * jdim * jdim * sizeof(int);             // idxcg_block
+  bytes += (double)jdim * sizeof(int);                           // idxu_block
+  bytes += (double)jdim * jdim * jdim * sizeof(int);             // idxz_block
+  bytes += (double)jdim * jdim * jdim * sizeof(int);             // idxb_block
 
-  bytes += idxz_max * sizeof(SNA_ZINDICES);              // idxz
-  bytes += idxb_max * sizeof(SNA_BINDICES);              // idxb
+  bytes += (double)idxz_max * sizeof(SNA_ZINDICES);              // idxz
+  bytes += (double)idxb_max * sizeof(SNA_BINDICES);              // idxb
 
   if (bzero_flag)
-  bytes += jdim * sizeof(double);                        // bzero
+  bytes += (double)jdim * sizeof(double);                        // bzero
 
-  bytes += nmax * 3 * sizeof(double);                    // rij
-  bytes += nmax * sizeof(int);                           // inside
-  bytes += nmax * sizeof(double);                        // wj
-  bytes += nmax * sizeof(double);                        // rcutij
+  bytes += (double)nmax * 3 * sizeof(double);                    // rij
+  bytes += (double)nmax * sizeof(int);                           // inside
+  bytes += (double)nmax * sizeof(double);                        // wj
+  bytes += (double)nmax * sizeof(double);                        // rcutij
 
   return bytes;
 }

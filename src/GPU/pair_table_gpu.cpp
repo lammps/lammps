@@ -231,9 +231,10 @@ void PairTableGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = table_gpu_init(atom->ntypes+1, cutsq, table_coeffs, table_data,
                                force->special_lj, atom->nlocal,
-                               atom->nlocal+atom->nghost, 300, maxspecial,
+                               atom->nlocal+atom->nghost, mnf, maxspecial,
                                cell_size, gpu_mode, screen, tabstyle, ntables,
                                tablength);
   GPU_EXTRA::check_flag(success,error,world);
@@ -243,7 +244,6 @@ void PairTableGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
-
   memory->destroy(table_coeffs);
   memory->destroy(table_data);
 }

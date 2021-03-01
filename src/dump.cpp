@@ -1182,11 +1182,11 @@ double Dump::memory_usage()
     if (sortcol == 0) bytes += memory->usage(idsort,maxsort);
     bytes += memory->usage(index,maxsort);
     bytes += memory->usage(proclist,maxproc);
-    if (irregular) bytes += irregular->memory_usage();
+    if (irregular) bytes += (double)irregular->memory_usage();
   }
   if (pbcflag) {
-    bytes += 6*maxpbc * sizeof(double);
-    bytes += maxpbc * sizeof(imageint);
+    bytes += (double)6*maxpbc * sizeof(double);
+    bytes += (double)maxpbc * sizeof(imageint);
   }
   return bytes;
 }

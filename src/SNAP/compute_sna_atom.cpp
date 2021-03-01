@@ -306,7 +306,7 @@ void ComputeSNAAtom::compute_peratom()
 
 double ComputeSNAAtom::memory_usage()
 {
-  double bytes = nmax*size_peratom_cols * sizeof(double); // sna
+  double bytes = (double)nmax*size_peratom_cols * sizeof(double); // sna
   bytes += snaptr->memory_usage();                        // SNA object
 
   return bytes;

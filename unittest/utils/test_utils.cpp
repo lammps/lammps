@@ -30,6 +30,21 @@ using ::testing::StrEq;
 #define FLERR __FILE__, __LINE__
 #endif
 
+TEST(Utils, strdup)
+{
+    std::string original("some_text");
+    const char *copy = utils::strdup(original);
+    ASSERT_THAT(original, StrEq(copy));
+    ASSERT_NE(copy, original.c_str());
+
+    const char *copy2 = utils::strdup(copy);
+    ASSERT_THAT(original, StrEq(copy2));
+    ASSERT_NE(copy, copy2);
+
+    delete[] copy;
+    delete[] copy2;
+}
+
 TEST(Utils, trim)
 {
     auto trimmed = utils::trim("\t some text");
@@ -57,7 +72,7 @@ TEST(Utils, trim_comment)
 TEST(Utils, has_utf8)
 {
     const char ascii_string[] = " -2";
-    const char utf8_string[] = " −2";
+    const char utf8_string[]  = " −2";
     ASSERT_FALSE(utils::has_utf8(ascii_string));
     ASSERT_TRUE(utils::has_utf8(utf8_string));
 }
@@ -65,9 +80,9 @@ TEST(Utils, has_utf8)
 TEST(Utils, utf8_subst)
 {
     const char ascii_string[] = " -2";
-    const char utf8_string[] = " −2";
-    auto ascii = utils::utf8_subst(ascii_string);
-    auto utf8  = utils::utf8_subst(utf8_string);
+    const char utf8_string[]  = " −2";
+    auto ascii                = utils::utf8_subst(ascii_string);
+    auto utf8                 = utils::utf8_subst(utf8_string);
     ASSERT_TRUE(ascii == utf8);
 }
 
@@ -382,6 +397,91 @@ TEST(Utils, strmatch_float_nonfloat)
 TEST(Utils, strmatch_whitespace_nonwhitespace)
 {
     ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
+}
+
+TEST(Utils, strfind_beg)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "^rigid"), StrEq("rigid"));
+}
+
+TEST(Utils, strfind_mid1)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", ".small."), StrEq("/small/"));
+}
+
+TEST(Utils, strfind_mid2)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/ompXXX", "omp"), StrEq("omp"));
+}
+
+TEST(Utils, strfind_end)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "/omp$"), StrEq("/omp"));
+}
+
+TEST(Utils, no_strfind_beg)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "^small"), StrEq(""));
+}
+
+TEST(Utils, no_strfind_mid)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "none"), StrEq(""));
+}
+
+TEST(Utils, no_strfind_end)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "/opt$"), StrEq(""));
+}
+
+TEST(Utils, strfind_whole_line)
+{
+    ASSERT_THAT(utils::strfind("ITEM: UNITS\n", "^\\s*ITEM: UNITS\\s*$"), StrEq("ITEM: UNITS\n"));
+}
+
+TEST(Utils, no_strfind_whole_line)
+{
+    ASSERT_THAT(utils::strfind("ITEM: UNITS\n", "^\\s*ITEM: UNIT\\s*$"), StrEq(""));
+}
+
+TEST(Utils, strfind_char_range)
+{
+    ASSERT_THAT(utils::strfind("rigidXXX", "^[ip-s]+gid"), StrEq("rigid"));
+}
+
+TEST(Utils, strfind_notchar_range)
+{
+    ASSERT_THAT(utils::strfind("rigidYYY", "^[^a-g]+gid"), StrEq("rigid"));
+}
+
+TEST(Utils, strfind_backslash)
+{
+    ASSERT_THAT(utils::strfind("\\rigidZZZ", "^\\W\\w+gid"), StrEq("\\rigid"));
+}
+
+TEST(Utils, strfind_opt_range)
+{
+    ASSERT_THAT(utils::strfind("rigidAAA", "^[0-9]*[\\Wp-s]igid"), StrEq("rigid"));
+}
+
+TEST(Utils, strfind_opt_char)
+{
+    ASSERT_THAT(utils::strfind("rigid111", "^r?igid"), StrEq("rigid"));
+    ASSERT_THAT(utils::strfind("igid222", "^r?igid"), StrEq("igid"));
+}
+
+TEST(Utils, strfind_dot)
+{
+    ASSERT_THAT(utils::strfind("AAArigidBBB", ".igid"), StrEq("rigid"));
+    ASSERT_THAT(utils::strfind("000Rigid111", ".igid"), StrEq("Rigid"));
+}
+
+TEST(Utils, strfind_kim)
+{
+    ASSERT_THAT(utils::strfind("n3409jfse MO_004835508849_000 aslfjiaf",
+                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"), StrEq("MO_004835508849_000"));
+    ASSERT_THAT(utils::strfind("VanDuinChakraborty_2003_CHNO__SM_107643900657_000",
+                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"), StrEq("SM_107643900657_000"));
 }
 
 TEST(Utils, bounds_case1)

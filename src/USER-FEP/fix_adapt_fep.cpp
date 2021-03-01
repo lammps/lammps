@@ -16,23 +16,24 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_adapt_fep.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "modify.h"
-#include "force.h"
-#include "pair.h"
-#include "pair_hybrid.h"
-#include "kspace.h"
+#include "error.h"
 #include "fix_store.h"
+#include "force.h"
+#include "group.h"
 #include "input.h"
-#include "variable.h"
-#include "respa.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "pair_hybrid.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -88,30 +89,22 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"pair") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
       adapt[nadapt].which = PAIR;
-      int n = strlen(arg[iarg+1]) + 1;
-      adapt[nadapt].pstyle = new char[n];
-      strcpy(adapt[nadapt].pstyle,arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      adapt[nadapt].pparam = new char[n];
-      strcpy(adapt[nadapt].pparam,arg[iarg+2]);
+      adapt[nadapt].pstyle = utils::strdup(arg[iarg+1]);
+      adapt[nadapt].pparam = utils::strdup(arg[iarg+2]);
       utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
       utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
                     adapt[nadapt].jlo,adapt[nadapt].jhi,error);
-      if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
-        n = strlen(&arg[iarg+5][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+5][2]);
+      if (utils::strmatch(arg[iarg+5],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+5]+2);
       } else error->all(FLERR,"Illegal fix adapt/fep command");
       nadapt++;
       iarg += 6;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
       adapt[nadapt].which = KSPACE;
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+1][2]);
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+1]+2);
       } else error->all(FLERR,"Illegal fix adapt/fep command");
       nadapt++;
       iarg += 2;
@@ -127,10 +120,8 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
       } else error->all(FLERR,"Illegal fix adapt/fep command");
       utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,
                     adapt[nadapt].ilo,adapt[nadapt].ihi,error);
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        adapt[nadapt].var = new char[n];
-        strcpy(adapt[nadapt].var,&arg[iarg+3][2]);
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
+        adapt[nadapt].var = utils::strdup(arg[iarg+3]+2);
       } else error->all(FLERR,"Illegal fix adapt/fep command");
       nadapt++;
       iarg += 4;
@@ -223,20 +214,10 @@ void FixAdaptFEP::post_constructor()
   id_fix_diam = nullptr;
   id_fix_chg = nullptr;
 
-  char **newarg = new char*[6];
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "peratom";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "1";
-
   if (diamflag) {
-    int n = strlen(id) + strlen("_FIX_STORE_DIAM") + 1;
-    id_fix_diam = new char[n];
-    strcpy(id_fix_diam,id);
-    strcat(id_fix_diam,"_FIX_STORE_DIAM");
-    newarg[0] = id_fix_diam;
-    modify->add_fix(6,newarg);
+    auto cmd = fmt::format("{}_FIX_STORE_DIAM {} STORE peratom 1 1",
+                           group->names[igroup]);
+    modify->add_fix(cmd);
     fix_diam = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
@@ -254,12 +235,9 @@ void FixAdaptFEP::post_constructor()
   }
 
   if (chgflag) {
-    int n = strlen(id) + strlen("_FIX_STORE_CHG") + 1;
-    id_fix_chg = new char[n];
-    strcpy(id_fix_chg,id);
-    strcat(id_fix_chg,"_FIX_STORE_CHG");
-    newarg[0] = id_fix_chg;
-    modify->add_fix(6,newarg);
+    auto cmd = fmt::format("{}_FIX_STORE_CHG {} STORE peratom 1 1",
+                           group->names[igroup]);
+    modify->add_fix(cmd);
     fix_chg = (FixStore *) modify->fix[modify->nfix-1];
 
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
@@ -275,8 +253,6 @@ void FixAdaptFEP::post_constructor()
       }
     }
   }
-
-  delete [] newarg;
 }
 
 /* ---------------------------------------------------------------------- */

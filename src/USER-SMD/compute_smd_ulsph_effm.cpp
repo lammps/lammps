@@ -110,6 +110,6 @@ void ComputeSMD_Ulsph_Effm::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMD_Ulsph_Effm::memory_usage() {
-        double bytes = nmax * sizeof(double);
+        double bytes = (double)nmax * sizeof(double);
         return bytes;
 }

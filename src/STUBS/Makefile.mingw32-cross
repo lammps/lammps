@@ -5,17 +5,17 @@ SHELL = /bin/sh
 
 # Files
 
-SRC =		mpi.c
+SRC =		mpi.cpp
 INC =		mpi.h
 
 # Definitions
 
 EXE =		libmpi_mingw32.a
-OBJ = 		$(SRC:%.c=%_mingw32.o)
+OBJ = 		$(SRC:%.cpp=%_mingw32.o)
 
 # System-specific settings
 
-CC =	        i686-w64-mingw32-gcc
+CC =	        i686-w64-mingw32-g++
 CCFLAGS =	-O2 -Wall -march=i686 -mtune=generic -mfpmath=387 -mpc64 -I.
 ARCHIVE =	i686-w64-mingw32-ar
 ARCHFLAG =	rs

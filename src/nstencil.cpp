@@ -229,8 +229,8 @@ double NStencil::memory_usage()
     bytes += memory->usage(stencil,maxstencil);
     bytes += memory->usage(stencilxyz,maxstencil,3);
   } else if (neighstyle == Neighbor::MULTI) {
-    bytes += atom->ntypes*maxstencil_multi * sizeof(int);
-    bytes += atom->ntypes*maxstencil_multi * sizeof(double);
+    bytes += (double)atom->ntypes*maxstencil_multi * sizeof(int);
+    bytes += (double)atom->ntypes*maxstencil_multi * sizeof(double);
   }
   return bytes;
 }

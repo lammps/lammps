@@ -582,6 +582,6 @@ void VerletSplit::k2r_comm()
 
 double VerletSplit::memory_usage()
 {
-  double bytes = maxatom*3 * sizeof(double);
+  double bytes = (double)maxatom*3 * sizeof(double);
   return bytes;
 }

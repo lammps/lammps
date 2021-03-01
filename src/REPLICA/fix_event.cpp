@@ -208,7 +208,7 @@ void FixEvent::restore_state_dephase()
 double FixEvent::memory_usage()
 {
   double bytes = 12*atom->nmax * sizeof(double);
-  bytes += atom->nmax*sizeof(int);
+  bytes += (double)atom->nmax*sizeof(int);
   return bytes;
 }
 

@@ -184,9 +184,7 @@ void PythonImpl::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
-      int n = strlen(arg[iarg+1]) + 1;
-      format = new char[n];
-      strcpy(format,arg[iarg+1]);
+      format = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"length") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
@@ -196,9 +194,7 @@ void PythonImpl::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
       delete[] pyfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      pyfile = new char[n];
-      strcpy(pyfile,arg[iarg+1]);
+      pyfile = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"here") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Invalid python command");
@@ -424,9 +420,7 @@ int PythonImpl::create_entry(char *name)
     nfunc++;
     pfuncs = (PyFunc *)
       memory->srealloc(pfuncs,nfunc*sizeof(struct PyFunc),"python:pfuncs");
-    int n = strlen(name) + 1;
-    pfuncs[ifunc].name = new char[n];
-    strcpy(pfuncs[ifunc].name,name);
+    pfuncs[ifunc].name = utils::strdup(name);
   } else deallocate(ifunc);
 
   pfuncs[ifunc].ninput = ninput;
@@ -450,38 +444,30 @@ int PythonImpl::create_entry(char *name)
     char type = format[i];
     if (type == 'i') {
       pfuncs[ifunc].itype[i] = INT;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
         pfuncs[ifunc].ivalue[i] = utils::inumeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 'f') {
       pfuncs[ifunc].itype[i] = DOUBLE;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
         pfuncs[ifunc].dvalue[i] = utils::numeric(FLERR,istr[i],false,lmp);
       }
     } else if (type == 's') {
       pfuncs[ifunc].itype[i] = STRING;
-      if (strstr(istr[i],"v_") == istr[i]) {
+      if (utils::strmatch(istr[i],"^v_")) {
         pfuncs[ifunc].ivarflag[i] = 1;
-        int n = strlen(&istr[i][2]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],&istr[i][2]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]+2);
       } else {
         pfuncs[ifunc].ivarflag[i] = 0;
-        int n = strlen(istr[i]) + 1;
-        pfuncs[ifunc].svalue[i] = new char[n];
-        strcpy(pfuncs[ifunc].svalue[i],istr[i]);
+        pfuncs[ifunc].svalue[i] = utils::strdup(istr[i]);
       }
     } else if (type == 'p') {
       pfuncs[ifunc].ivarflag[i] = 0;
@@ -513,9 +499,7 @@ int PythonImpl::create_entry(char *name)
   }
 
   if (strstr(ostr,"v_") != ostr) error->all(FLERR,"Invalid python command");
-  int n = strlen(&ostr[2]) + 1;
-  pfuncs[ifunc].ovarname = new char[n];
-  strcpy(pfuncs[ifunc].ovarname,&ostr[2]);
+  pfuncs[ifunc].ovarname = utils::strdup(ostr+2);
 
   return ifunc;
 }

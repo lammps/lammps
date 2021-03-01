@@ -370,15 +370,17 @@ Restart, fix_modify, output, run start/stop, minimize info
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy of the bias potential to the system's potential
-energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy of the bias potential to the global
+potential energy of the system as part of :doc:`thermodynamic output
+<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
+energy no <fix_modify>`.
 
 This fix computes a global scalar and global vector of length 28,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar is the magnitude of the bias potential (energy units)
-applied on the current timestep, summed over all biased bonds.  The
-vector stores the following quantities:
+which can be accessed by various :doc:`output commands
+<Howto_output>`.  The scalar is the magnitude of the bias potential
+(energy units) applied on the current timestep, summed over all biased
+bonds.  The vector stores the following quantities:
 
 * 1 = average boost for all bonds on this step (unitless)
 * 2 = # of biased bonds on this step
@@ -510,8 +512,8 @@ Value 27 computes the average boost for biased bonds only on this step.
 Value 28 is the count of bonds with an absolute value of strain >= q
 on this step.
 
-The scalar and vector values calculated by this fix are all
-"intensive".
+The scalar value is an "extensive" quantity since it grows with the
+system size; the vector values are all "intensive".
 
 This fix also computes a local vector of length the number of bonds
 currently in the system.  The value for each bond is its :math:`C_{ij}`
@@ -524,7 +526,8 @@ close to 1.0, which indicates a good choice of :math:`V^{max}`.
 The local values calculated by this fix are unitless.
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

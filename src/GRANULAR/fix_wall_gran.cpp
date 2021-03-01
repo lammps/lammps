@@ -1446,10 +1446,10 @@ double FixWallGran::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 0.0;
-  if (use_history) bytes += nmax*size_history * sizeof(double);  // shear history
-  if (fix_rigid) bytes += nmax * sizeof(int);                    // mass_rigid
+  if (use_history) bytes += (double)nmax*size_history * sizeof(double);  // shear history
+  if (fix_rigid) bytes += (double)nmax * sizeof(int);                    // mass_rigid
   // store contacts
-  if (peratom_flag) bytes += nmax*size_peratom_cols*sizeof(double);
+  if (peratom_flag) bytes += (double)nmax*size_peratom_cols*sizeof(double);
   return bytes;
 }
 

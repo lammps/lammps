@@ -57,6 +57,7 @@
 #include "pair_kim.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -72,6 +73,21 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
+
+static constexpr const char *const cite_openkim =
+  "OpenKIM: https://doi.org/10.1007/s11837-011-0102-6\n\n"
+  "@Article{tadmor:elliott:2011,\n"
+  " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
+  "and C. A. Becker},\n"
+  " title = {The potential of atomistic simulations and the {K}nowledgebase of "
+  "{I}nteratomic {M}odels},\n"
+  " journal = {{JOM}},\n"
+  " year =    2011,\n"
+  " volume =  63,\n"
+  " number =  17,\n"
+  " pages =   {17},\n"
+  " doi =     {10.1007/s11837-011-0102-6}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -120,6 +136,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   // (used by kim_free(), etc.)
   kim_init_ok = false;
   kim_particle_codes_ok = false;
+
+  if (lmp->citeme) lmp->citeme->add(cite_openkim);
   // END
 }
 
@@ -291,10 +309,11 @@ void PairKIM::settings(int narg, char **arg)
   init_style_call_count = 0;
 
   if (narg != 1) {
-    if ((narg > 0) && ((0 == strcmp("KIMvirial", arg[0])) ||
-                       (0 == strcmp("LAMMPSvirial", arg[0])))) {
-      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not "
-                       "supported with kim-api");
+    const std::string arg_str(arg[0]);
+    if ((narg > 0) &&
+        ((arg_str == "KIMvirial") || (arg_str == "LAMMPSvirial"))) {
+      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported "
+                       "with kim-api");
     } else error->all(FLERR,"Illegal pair_style command");
   }
   // arg[0] is the KIM Model name
@@ -309,13 +328,11 @@ void PairKIM::settings(int narg, char **arg)
   set_lmps_flags();
 
   // set KIM Model name
-  int nmlen = strlen(arg[0]);
   if (kim_modelname != 0) {
     delete [] kim_modelname;
     kim_modelname = 0;
   }
-  kim_modelname = new char[nmlen+1];
-  strcpy(kim_modelname, arg[0]);
+  kim_modelname = utils::strdup(arg[0]);
 
   // initialize KIM Model
   kim_init();
@@ -330,7 +347,7 @@ void PairKIM::coeff(int narg, char **arg)
   // This is called when "pair_coeff ..." is read from input
   // may be called multiple times
 
-  int i,j,n;
+  int i,j;
 
   if (!allocated) allocate();
 
@@ -339,14 +356,16 @@ void PairKIM::coeff(int narg, char **arg)
 
   // insure I,J args are * *
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+  const std::string arg_0_str(arg[0]);
+  const std::string arg_1_str(arg[1]);
+  if ((arg_0_str != "*") || (arg_1_str != "*"))
     error->all(FLERR,"Incorrect args for pair coefficients.\nThe first two "
                      "arguments of pair_coeff command must be * * to span "
                      "all LAMMPS atom types");
 
   int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg_0_str,1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg_1_str,1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
@@ -373,9 +392,7 @@ void PairKIM::coeff(int narg, char **arg)
       if (strcmp(arg[i],lmps_unique_elements[j]) == 0) break;
     lmps_map_species_to_unique[i-1] = j;
     if (j == lmps_num_unique_elements) {
-      n = strlen(arg[i]) + 1;
-      lmps_unique_elements[j] = new char[n];
-      strcpy(lmps_unique_elements[j],arg[i]);
+      lmps_unique_elements[j] = utils::strdup(arg[i]);
       lmps_num_unique_elements++;
     }
   }
@@ -430,12 +447,12 @@ void PairKIM::coeff(int narg, char **arg)
     int kimerror;
 
     // Parameter name
-    char *paramname = nullptr;
+    std::string paramname;
 
     for (int i = 2 + atom->ntypes; i < narg;) {
       // Parameter name
       if (i < narg)
-        paramname = arg[i++];
+        paramname = std::string(arg[i++]);
       else
         break;
 
@@ -452,7 +469,8 @@ void PairKIM::coeff(int narg, char **arg)
         if (kimerror)
           error->all(FLERR,"KIM GetParameterMetadata returned error");
 
-        if (strcmp(paramname, str_name) == 0) break;
+        const std::string str_name_str(str_name);
+        if (paramname == str_name_str) break;
       }
 
       if (param_index >= numberOfParameters) {
@@ -540,6 +558,19 @@ void PairKIM::coeff(int narg, char **arg)
     kimerror = KIM_Model_ClearThenRefresh(pkim);
     if (kimerror)
       error->all(FLERR,"KIM KIM_Model_ClearThenRefresh returned error");
+
+    // Update cached quantities that may have changed due to Refresh
+    KIM_Model_GetInfluenceDistance(pkim, &kim_global_influence_distance);
+    KIM_Model_GetNeighborListPointers(
+        pkim,
+        &kim_number_of_neighbor_lists,
+        &kim_cutoff_values,
+        &modelWillNotRequestNeighborsOfNoncontributingParticles);
+    if (neighborLists) {
+      delete [] neighborLists;
+      neighborLists = nullptr;
+    }
+    neighborLists = new NeighList*[kim_number_of_neighbor_lists];
   }
 }
 
@@ -588,9 +619,14 @@ void PairKIM::init_style()
 
     // set cutoff
     neighbor->requests[irequest]->cut = 1;
+    if (kim_cutoff_values[i] <= neighbor->skin)
+      error->all(FLERR,"Illegal neighbor request (force cutoff <= skin)");
     neighbor->requests[irequest]->cutoff
       = kim_cutoff_values[i] + neighbor->skin;
   }
+  // increment instance_me in case of need to change the neighbor list
+  // request settings
+  instance_me += 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -809,6 +845,8 @@ void PairKIM::kim_free()
       error->all(FLERR,"Unable to destroy Compute Arguments Object");
 
     KIM_Model_Destroy(&pkim);
+
+    lmps_maxalloc = 0;  // reinitialize member variable
   }
   kim_init_ok = false;
 }
@@ -859,7 +897,7 @@ void PairKIM::kim_init()
     &modelWillNotRequestNeighborsOfNoncontributingParticles);
   if (neighborLists) {
     delete [] neighborLists;
-    neighborLists = 0;
+    neighborLists = nullptr;
   }
   neighborLists = new NeighList*[kim_number_of_neighbor_lists];
 
@@ -978,47 +1016,49 @@ void PairKIM::set_lmps_flags()
   if (force->pair_match("hybrid",0))
     error->all(FLERR,"pair_kim does not support hybrid");
 
+  const std::string unit_style_str(update->unit_style);
+
   // determine unit system and set lmps_units flag
-  if (strcmp(update->unit_style,"real") == 0) {
+  if (unit_style_str == "real") {
     lmps_units = REAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_kcal_mol;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if (strcmp(update->unit_style,"metal") == 0) {
+  } else if (unit_style_str == "metal") {
     lmps_units = METAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_eV;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_ps;
-  } else if (strcmp(update->unit_style,"si") == 0) {
+  } else if (unit_style_str == "si") {
     lmps_units = SI;
     lengthUnit = KIM_LENGTH_UNIT_m;
     energyUnit = KIM_ENERGY_UNIT_J;
     chargeUnit = KIM_CHARGE_UNIT_C;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if (strcmp(update->unit_style,"cgs") == 0) {
+  } else if (unit_style_str == "cgs") {
     lmps_units = CGS;
     lengthUnit = KIM_LENGTH_UNIT_cm;
     energyUnit = KIM_ENERGY_UNIT_erg;
     chargeUnit = KIM_CHARGE_UNIT_statC;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if (strcmp(update->unit_style,"electron") == 0) {
+  } else if (unit_style_str == "electron") {
     lmps_units = ELECTRON;
     lengthUnit = KIM_LENGTH_UNIT_Bohr;
     energyUnit = KIM_ENERGY_UNIT_Hartree;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if (strcmp(update->unit_style,"lj") == 0 ||
-             strcmp(update->unit_style,"micro") == 0 ||
-             strcmp(update->unit_style,"nano") == 0) {
+  } else if ((unit_style_str == "lj") ||
+             (unit_style_str == "micro") ||
+             (unit_style_str == "nano")) {
     error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
-                                 "by KIM models", update->unit_style));
+                                 "by KIM models", unit_style_str));
   } else {
     error->all(FLERR,"Unknown unit_style");
   }
@@ -1143,6 +1183,6 @@ void PairKIM::set_kim_model_has_flags()
   }
 }
 
-KIM_Model *PairKIM::get_KIM_Model() { return pkim; }
+KIM_Model *PairKIM::get_kim_model() { return pkim; }
 
 std::string PairKIM::get_atom_type_list() { return atom_type_list; }

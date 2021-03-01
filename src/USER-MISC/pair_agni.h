@@ -40,7 +40,7 @@ class PairAGNI : public Pair {
     double *eta,**xU,*alpha;
     double sigma,lambda,b,gwidth;
     int numeta,numtrain,ielement;
- 
+
   };
 
  protected:
@@ -50,7 +50,7 @@ class PairAGNI : public Pair {
   int *elem2param;              // mapping from element pairs to parameters
   int *map;                     // mapping from atom types to elements
   int nparams;                  // # of stored parameter sets
-  int atomic_feature_version;			// version of fingerprint
+  int atomic_feature_version;   // version of fingerprint
   Param *params;                // parameter set for an I-J interaction
   virtual void allocate();
   void read_file(char *);

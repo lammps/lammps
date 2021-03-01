@@ -40,11 +40,11 @@ class Vashishta : public BaseThree<numtyp, acctyp> {
   int init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
            const double cell_size, const double gpu_split, FILE *screen,
            int* host_map, const int nelements, int*** host_elem2param, const int nparams,
-           const double* cutsq, const double* r0, 
+           const double* cutsq, const double* r0,
            const double* gamma, const double* eta,
            const double* lam1inv, const double* lam4inv,
            const double* zizj, const double* mbigd,
-           const double* dvrc, const double* big6w, 
+           const double* dvrc, const double* big6w,
            const double* heta, const double* bigh,
            const double* bigw, const double* c0,
            const double* costheta, const double* bigb,
@@ -82,13 +82,12 @@ class Vashishta : public BaseThree<numtyp, acctyp> {
   UCL_D_Vec<int> elem2param;
   UCL_D_Vec<int> map;
   int _nparams,_nelements;
-  numtyp _cutshortsq;
 
   UCL_Texture param1_tex, param2_tex, param3_tex, param4_tex, param5_tex;
 
  private:
   bool _allocated;
-  void loop(const bool _eflag, const bool _vflag, const int evatom);
+  int loop(const int eflag, const int vflag, const int evatom, bool &success);
 
 };
 

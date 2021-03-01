@@ -979,7 +979,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     offsets[0] = 0;
     for (int i = 1; i < nprocs; i++)
-      offsets[i] = offsets[i-1] + insize*procs_a2a[i-1];
+      offsets[i] = offsets[i-1] + (bigint)insize*procs_a2a[i-1];
 
     bigint offset = 0;
     for (int i = 0; i < n; i++) {
@@ -989,7 +989,8 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
       offset += insize;
     }
 
-    all2all1_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) + n*insize;
+    all2all1_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint)
+                     + (bigint)n*insize;
 
   } else {
     procs_a2a = procs;
@@ -1085,7 +1086,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     offsets[0] = 0;
     for (int i = 1; i < nprocs; i++)
-      offsets[i] = offsets[i-1] + outsize*procs_a2a[i-1];
+      offsets[i] = offsets[i-1] + (bigint)outsize*procs_a2a[i-1];
 
     bigint offset = 0;
     for (int i = 0; i < nrvous_out; i++) {
@@ -1096,7 +1097,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     }
 
     all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) +
-      nrvous_out*outsize;
+      (bigint)nrvous_out*outsize;
 
   } else {
     procs_a2a = procs_rvous;

@@ -149,7 +149,7 @@ void ComputeCentroidStressAtom::init()
 
   if (fixflag) {
     for (int ifix = 0; ifix < modify->nfix; ifix++)
-      if (modify->fix[ifix]->virial_flag &&
+      if (modify->fix[ifix]->virial_peratom_flag &&
           modify->fix[ifix]->centroidstressflag == CENTROID_NOTAVAIL)
         error->all(FLERR, "Fix style does not support compute centroid/stress/atom");
   }
@@ -273,9 +273,11 @@ void ComputeCentroidStressAtom::compute_peratom()
   // fix styles are CENTROID_SAME or CENTROID_NOTAVAIL
 
   if (fixflag) {
-    for (int ifix = 0; ifix < modify->nfix; ifix++)
-      if (modify->fix[ifix]->virial_flag) {
-        double **vatom = modify->fix[ifix]->vatom;
+    Fix **fix = modify->fix;
+    int nfix = modify->nfix;
+    for (int ifix = 0; ifix < nfix; ifix++)
+      if (fix[ifix]->virial_peratom_flag && fix[ifix]->thermo_virial) {
+        double **vatom = fix[ifix]->vatom;
         if (vatom)
           for (i = 0; i < nlocal; i++) {
             for (j = 0; j < 6; j++)
@@ -464,6 +466,6 @@ void ComputeCentroidStressAtom::unpack_reverse_comm(int n, int *list, double *bu
 
 double ComputeCentroidStressAtom::memory_usage()
 {
-  double bytes = nmax*9 * sizeof(double);
+  double bytes = (double)nmax*9 * sizeof(double);
   return bytes;
 }

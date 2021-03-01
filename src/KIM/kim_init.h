@@ -56,12 +56,6 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_init,KimInit)
-
-#else
-
 #ifndef LMP_KIM_INIT_H
 #define LMP_KIM_INIT_H
 
@@ -89,7 +83,6 @@ class KimInit : protected Pointers {
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

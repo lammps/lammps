@@ -84,7 +84,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   invoked_scalar = invoked_vector = invoked_array = -1;
   invoked_peratom = invoked_local = -1;
-  invoked_flag = 0;
+  invoked_flag = INVOKED_NONE;
 
   // set modify defaults
 

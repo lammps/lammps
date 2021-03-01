@@ -289,6 +289,5 @@ void PairVashishtaTable::create_tables()
 
 double PairVashishtaTable::memory_usage()
 {
-  double bytes = 2*nelements*nelements*sizeof(double)*ntable;
-  return bytes;
+  return (double)2*nelements*nelements*sizeof(double)*ntable;
 }

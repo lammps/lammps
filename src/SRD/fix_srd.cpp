@@ -3979,13 +3979,13 @@ void FixSRD::triside(double t, double &f, double &df)
 double FixSRD::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (shifts[0].nbins + shifts[1].nbins) * sizeof(BinAve);
-  bytes += nmax * sizeof(int);
+  bytes += (double)(shifts[0].nbins + shifts[1].nbins) * sizeof(BinAve);
+  bytes += (double)nmax * sizeof(int);
   if (bigexist) {
-    bytes += nbins2 * sizeof(int);
-    bytes += nbins2*ATOMPERBIN * sizeof(int);
+    bytes += (double)nbins2 * sizeof(int);
+    bytes += (double)nbins2*ATOMPERBIN * sizeof(int);
   }
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }
 

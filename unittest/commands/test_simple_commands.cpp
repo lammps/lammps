@@ -13,6 +13,7 @@
 
 #include "lammps.h"
 
+#include "citeme.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
@@ -368,6 +369,51 @@ TEST_F(SimpleCommandsTest, Shell)
     ASSERT_THAT(other_var, StrEq("2"));
 }
 
+TEST_F(SimpleCommandsTest, CiteMe)
+{
+    ASSERT_EQ(lmp->citeme, nullptr);
+
+    lmp->citeme = new LAMMPS_NS::CiteMe(lmp, CiteMe::TERSE, CiteMe::TERSE, nullptr);
+
+    ::testing::internal::CaptureStdout();
+    lmp->citeme->add("test citation one:\n 1\n");
+    lmp->citeme->add("test citation two:\n 2\n");
+    lmp->citeme->add("test citation one:\n 1\n");
+    lmp->citeme->flush();
+    std::string text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+
+    // find the two unique citations, but not the third
+    ASSERT_THAT(text, MatchesRegex(".*one.*two.*"));
+    ASSERT_THAT(text, Not(MatchesRegex(".*one.*two.*one.*")));
+
+    ::testing::internal::CaptureStdout();
+    lmp->citeme->add("test citation one:\n 0\n");
+    lmp->citeme->add("test citation two:\n 2\n");
+    lmp->citeme->add("test citation three:\n 3\n");
+    lmp->citeme->flush();
+
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+
+    // find the forth (only differs in long citation) and sixth added citation
+    ASSERT_THAT(text, MatchesRegex(".*one.*three.*"));
+    ASSERT_THAT(text, Not(MatchesRegex(".*two.*")));
+
+    ::testing::internal::CaptureStdout();
+    lmp->citeme->add("test citation one:\n 1\n");
+    lmp->citeme->add("test citation two:\n 2\n");
+    lmp->citeme->add("test citation one:\n 0\n");
+    lmp->citeme->add("test citation two:\n 2\n");
+    lmp->citeme->add("test citation three:\n 3\n");
+    lmp->citeme->flush();
+
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+
+    // no new citation. no CITE-CITE-CITE- lines
+    ASSERT_THAT(text, Not(MatchesRegex(".*CITE-CITE-CITE-CITE.*")));
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

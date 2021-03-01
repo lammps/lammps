@@ -497,6 +497,6 @@ void ComputeHMA::set_arrays(int i)
 
 double ComputeHMA::memory_usage()
 {
-  double bytes = nmax * 3 * sizeof(double);
+  double bytes = (double)nmax * 3 * sizeof(double);
   return bytes;
 }

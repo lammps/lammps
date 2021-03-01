@@ -32,7 +32,7 @@ class KSpace : protected Pointers {
  public:
   double energy;                 // accumulated energies
   double energy_1,energy_6;
-  double virial[6];              // accumulated virial
+  double virial[6];              // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;         // accumulated per-atom energy/virial
   double e2group;                // accumulated group-group energy
   double f2group[3];             // accumulated group-group force

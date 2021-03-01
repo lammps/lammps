@@ -331,23 +331,33 @@ perturbation on the particles:
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy of interaction between atoms and each wall to
-the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy of interaction between atoms and all the
+specified walls to the global potential energy of the system as part
+of :doc:`thermodynamic output <thermo_style>`.  The default setting
+for this fix is :doc:`fix_modify energy no <fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to the interaction between
-atoms and each wall to the system's virial as part of :doc:`thermodynamic output <thermo_style>`. The default is *virial no*
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the interaction between atoms
+and all the specified walls to both the global pressure and per-atom
+stress of the system via the :doc:`compute pressure
+<compute_pressure>` and :doc:`compute stress/atom
+<compute_stress_atom>` commands.  The former can be accessed by
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify virial no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
-fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
-integrator the fix is adding its forces. Default is the outermost level.
+fix. This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator the fix is adding its forces. Default is the
+outermost level.
 
 This fix computes a global scalar energy and a global vector of
-forces, which can be accessed by various :doc:`output commands <Howto_output>`.  Note that the scalar energy is the sum
-of interactions with all defined walls.  If you want the energy on a
+forces, which can be accessed by various :doc:`output commands
+<Howto_output>`.  Note that the scalar energy is the sum of
+interactions with all defined walls.  If you want the energy on a
 per-wall basis, you need to use multiple fix wall commands.  The
 length of the vector is equal to the number of walls defined by the
 fix.  Each vector value is the normal force on a specific wall.  Note

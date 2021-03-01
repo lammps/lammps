@@ -99,7 +99,8 @@ double ComputePE::compute_scalar()
     scalar += force->pair->etail / volume;
   }
 
-  if (fixflag && modify->n_thermo_energy) scalar += modify->thermo_energy();
+  if (fixflag && modify->n_energy_global)
+    scalar += modify->energy_global();
 
   return scalar;
 }

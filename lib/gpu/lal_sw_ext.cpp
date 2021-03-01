@@ -27,15 +27,13 @@ static SW<PRECISION,ACC_PRECISION> SWMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
-                const double cell_size, int &gpu_mode, FILE *screen,
-                int* host_map, const int nelements, int*** host_elem2param, const int nparams,
-                const double* sw_epsilon, const double* sw_sigma,
-                const double* sw_lambda, const double* sw_gamma,
-                const double* sw_costheta, const double* sw_biga,
-                const double* sw_bigb, const double* sw_powerp,
-                const double* sw_powerq, const double* sw_cut,
-                const double* sw_cutsq) {
+int sw_gpu_init(const int ntypes, const int inum, const int nall,
+                const int max_nbors, const double cell_size, int &gpu_mode,
+                FILE *screen, double **ncutsq, double **ncut, double **sigma,
+                double **powerp, double **powerq, double **sigma_gamma,
+                double **c1, double **c2, double **c3, double **c4,
+                double **c5, double **c6, double ***lambda_epsilon,
+                double ***costheta, const int *map, int ***e2param) {
   SWMF.clear();
   gpu_mode=SWMF.device->gpu_mode();
   double gpu_split=SWMF.device->particle_split();
@@ -62,10 +60,10 @@ int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=SWMF.init(ntypes, inum, nall, 300, cell_size, gpu_split, screen,
-                      host_map, nelements, host_elem2param, nparams,
-                      sw_epsilon, sw_sigma, sw_lambda, sw_gamma, sw_costheta,
-                      sw_biga, sw_bigb, sw_powerp, sw_powerq, sw_cut, sw_cutsq);
+    init_ok=SWMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split,
+                      screen, ncutsq, ncut, sigma, powerp, powerq,
+                      sigma_gamma, c1, c2, c3, c4, c5, c6, lambda_epsilon,
+                      costheta, map, e2param);
 
   SWMF.device->world_barrier();
   if (message)
@@ -81,11 +79,10 @@ int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=SWMF.init(ntypes, inum, nall, 300, cell_size, gpu_split, screen,
-                        host_map, nelements, host_elem2param, nparams,
-                        sw_epsilon, sw_sigma, sw_lambda, sw_gamma, sw_costheta,
-                        sw_biga, sw_bigb, sw_powerp, sw_powerq, sw_cut,
-                        sw_cutsq);
+      init_ok=SWMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split,
+                        screen, ncutsq, ncut, sigma, powerp, powerq,
+                        sigma_gamma, c1, c2, c3, c4, c5, c6, lambda_epsilon,
+                        costheta, map, e2param);
 
     SWMF.device->gpu_barrier();
     if (message)
@@ -127,5 +124,3 @@ void sw_gpu_compute(const int ago, const int nlocal, const int nall,
 double sw_gpu_bytes() {
   return SWMF.host_memory_usage();
 }
-
-

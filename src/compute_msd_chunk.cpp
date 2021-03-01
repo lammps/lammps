@@ -296,7 +296,7 @@ void ComputeMSDChunk::allocate()
 double ComputeMSDChunk::memory_usage()
 {
   double bytes = (bigint) nchunk * 2 * sizeof(double);
-  bytes += (bigint) nchunk * 2*3 * sizeof(double);
-  bytes += (bigint) nchunk * 4 * sizeof(double);
+  bytes += (double) nchunk * 2*3 * sizeof(double);
+  bytes += (double) nchunk * 4 * sizeof(double);
   return bytes;
 }

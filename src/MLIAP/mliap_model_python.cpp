@@ -87,7 +87,7 @@ int MLIAPModelPython::get_nparams()
   return nparams;
 }
 
-void MLIAPModelPython::read_coeffs(char * fname)
+void MLIAPModelPython::read_coeffs(char *fname)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
 
@@ -134,7 +134,7 @@ void MLIAPModelPython::connect_param_counts()
    for each atom beta_i = dE(B_i)/dB_i
    ---------------------------------------------------------------------- */
 
-void MLIAPModelPython::compute_gradients(MLIAPData* data)
+void MLIAPModelPython::compute_gradients(MLIAPData *data)
 {
   if (not model_loaded) {
     error->all(FLERR,"Model not loaded.");
@@ -167,7 +167,7 @@ void MLIAPModelPython::compute_gradients(MLIAPData* data)
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelPython::compute_gradgrads(class MLIAPData* data)
+void MLIAPModelPython::compute_gradgrads(class MLIAPData *)
 {
   error->all(FLERR,"compute_gradgrads not implemented");
 }
@@ -177,7 +177,7 @@ void MLIAPModelPython::compute_gradgrads(class MLIAPData* data)
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelPython::compute_force_gradients(class MLIAPData* data)
+void MLIAPModelPython::compute_force_gradients(class MLIAPData *)
 {
   error->all(FLERR,"compute_force_gradients not implemented");
 }
@@ -186,7 +186,7 @@ void MLIAPModelPython::compute_force_gradients(class MLIAPData* data)
    count the number of non-zero entries in gamma matrix
    ---------------------------------------------------------------------- */
 
-int MLIAPModelPython::get_gamma_nnz(class MLIAPData* data)
+int MLIAPModelPython::get_gamma_nnz(class MLIAPData *)
 {
   // todo: get_gamma_nnz
   return 0;

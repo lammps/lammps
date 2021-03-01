@@ -37,6 +37,14 @@ namespace LAMMPS_NS {
 
     bool strmatch(const std::string &text, const std::string &pattern);
 
+    /** Find sub-string that matches a simplified regex pattern
+     *
+     *  \param text the text to be matched against the pattern
+     *  \param pattern the search pattern, which may contain regexp markers
+     *  \return the string that matches the patters or an empty one */
+
+    std::string strfind(const std::string &text, const std::string &pattern);
+
     /** Send message to screen and logfile, if available
      *
      *  \param lmp   pointer to LAMMPS class instance
@@ -195,6 +203,17 @@ namespace LAMMPS_NS {
     int expand_args(const char *file, int line, int narg, char **arg,
                     int mode, char **&earg, LAMMPS *lmp);
 
+    /** Make C-style copy of string in new storage
+     *
+     * This allocates a storage buffer and copies the C-style or
+     * C++ style string into it.  The buffer is allocated with "new"
+     * and thus needs to be deallocated with "delete[]".
+     *
+     * \param text  string that should be copied
+     * \return new buffer with copy of string */
+
+    char *strdup(const std::string &text);
+
     /** Trim leading and trailing whitespace. Like TRIM() in Fortran.
      *
      * \param line  string that should be trimmed
@@ -235,8 +254,7 @@ namespace LAMMPS_NS {
 
     inline bool has_utf8(const std::string &line)
     {
-      const unsigned char * const in = (const unsigned char *)line.c_str();
-      for (int i=0; i < line.size(); ++i) if (in[i] & 0x80U) return true;
+      for (auto c : line) if (c & 0x80U) return true;
       return false;
     }
 
@@ -287,9 +305,9 @@ namespace LAMMPS_NS {
      *
      * This can handle strings with single and double quotes, escaped quotes,
      * and escaped codes within quotes, but due to using an STL container and
-     * STL strings is rather slow because of making copies. Designed for parsing
-     * command lines and similar text and not for time critical processing.
-     * Use a tokenizer class for that.
+     * STL strings is rather slow because of making copies. Designed for
+     * parsing command lines and similar text and not for time critical
+     * processing.  Use a tokenizer class if performance matters.
      *
 \verbatim embed:rst
 

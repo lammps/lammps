@@ -58,6 +58,10 @@ int main(int argc, char **argv)
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     exit(1);
+  } catch(fmt::format_error &fe) {
+    fprintf(stderr,"fmt::format_error: %s\n", fe.what());
+    MPI_Abort(MPI_COMM_WORLD, 1);
+    exit(1);
   }
 #else
   LAMMPS *lammps = new LAMMPS(argc,argv,MPI_COMM_WORLD);

@@ -852,11 +852,11 @@ void ComputeTempChunk::allocate()
 double ComputeTempChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2 * sizeof(int);
-  bytes += (bigint) maxchunk * nvalues * sizeof(double);
+  bytes += (double) maxchunk * 2 * sizeof(int);
+  bytes += (double) maxchunk * nvalues * sizeof(double);
   if (comflag || nvalues) {
-    bytes += (bigint) maxchunk * 2 * sizeof(double);
-    bytes += (bigint) maxchunk * 2*3 * sizeof(double);
+    bytes += (double) maxchunk * 2 * sizeof(double);
+    bytes += (double) maxchunk * 2*3 * sizeof(double);
   }
   return bytes;
 }

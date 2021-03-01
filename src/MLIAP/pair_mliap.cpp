@@ -336,9 +336,9 @@ double PairMLIAP::memory_usage()
   double bytes = Pair::memory_usage();
 
   int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);            // setflag
-  bytes += n*n*sizeof(int);            // cutsq
-  bytes += n*sizeof(int);              // map
+  bytes += (double)n*n*sizeof(int);            // setflag
+  bytes += (double)n*n*sizeof(int);            // cutsq
+  bytes += (double)n*sizeof(int);              // map
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object
   bytes += data->memory_usage();       // Data object

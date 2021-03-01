@@ -62,8 +62,8 @@ class DumpLocal : public Dump {
   virtual void write_data(int, double *);
 
   void parse_fields(int, char **);
-  int add_compute(char *);
-  int add_fix(char *);
+  int add_compute(const char *);
+  int add_fix(const char *);
 
   typedef void (DumpLocal::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;             // ptr to write data functions

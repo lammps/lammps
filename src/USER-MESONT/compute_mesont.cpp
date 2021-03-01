@@ -151,6 +151,6 @@ void ComputeMesoNT::unpack_reverse_comm(int n, int *list, double *buf) {
 ------------------------------------------------------------------------- */
 
 double ComputeMesoNT::memory_usage() {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

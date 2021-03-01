@@ -1754,13 +1754,13 @@ void *FixNH::extract(const char *str, int &dim)
   } else if (tstat_flag && strcmp(str,"mtchain") == 0) {
     return &mtchain;
   } else if (pstat_flag && strcmp(str,"mpchain") == 0) {
-    return &mtchain;
+    return &mpchain;
   }
   dim=1;
   if (tstat_flag && strcmp(str,"eta") == 0) {
     return &eta;
   } else if (pstat_flag && strcmp(str,"etap") == 0) {
-    return &eta;
+    return &etap;
   } else if (pstat_flag && strcmp(str,"p_flag") == 0) {
     return &p_flag;
   } else if (pstat_flag && strcmp(str,"p_start") == 0) {

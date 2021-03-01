@@ -1,6 +1,6 @@
 ---
-lammps_version: 24 Dec 2020
-date_generated: Tue Feb  9 09:46:34 202
+lammps_version: 10 Feb 2021
+date_generated: Sun Feb 28 23:32:03 2021
 epsilon: 5e-13
 prerequisites: ! |
   pair born

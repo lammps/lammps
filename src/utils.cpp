@@ -414,6 +414,9 @@ void utils::bounds(const char *file, int line, const std::string &str,
   }
 
   if (error) {
+    if ((nlo <= 0) || (nhi <=0))
+      error->all(file,line,fmt::format("Invalid range string: {}",str));
+
     if (nlo < nmin)
       error->all(file,line,fmt::format("Numeric index {} is out of bounds"
                                        "({}-{})",nlo,nmin,nmax));

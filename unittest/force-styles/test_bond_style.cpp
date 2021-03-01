@@ -246,6 +246,14 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // epsilon
     writer.emit("epsilon", config.epsilon);
 
+    // skip tests
+    block.clear();
+    for (auto &skip_tests : config.skip_tests) {
+        if (block.empty()) block = skip_tests;
+        else block += " " + skip_tests;
+    }
+    writer.emit("skip_tests", block);
+
     // prerequisites
     block.clear();
     for (auto &prerequisite : config.prerequisites) {
@@ -341,6 +349,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
 TEST(BondStyle, plain)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
@@ -567,6 +577,8 @@ TEST(BondStyle, plain)
 TEST(BondStyle, omp)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",       "omp",  "4",    "-sf",   "omp"};
 
@@ -739,6 +751,8 @@ TEST(BondStyle, omp)
 
 TEST(BondStyle, single)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
@@ -995,6 +1009,8 @@ TEST(BondStyle, single)
 
 TEST(BondStyle, extract)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"BondStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;

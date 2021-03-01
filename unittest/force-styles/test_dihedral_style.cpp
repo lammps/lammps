@@ -344,6 +344,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
 TEST(DihedralStyle, plain)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
@@ -570,6 +572,8 @@ TEST(DihedralStyle, plain)
 TEST(DihedralStyle, omp)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",           "omp",  "4",    "-sf",   "omp"};
 

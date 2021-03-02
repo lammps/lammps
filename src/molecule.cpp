@@ -604,10 +604,17 @@ void Molecule::read(int flag)
                    "but no setting for them");
       dbodyflag = 1;
       body(flag,1,line);
+    } else {
 
-    } else error->one(FLERR,fmt::format("Unknown section '{}' in molecule "
-                                        "file", keyword));
+      // Error: Either a too long/short section or a typo in the keyword
 
+      if (utils::strmatch(keyword,"^[A-Za-z ]+$"))
+        error->one(FLERR,fmt::format("Unknown section '{}' in molecule "
+                                     "file\n",keyword));
+      else error->one(FLERR,fmt::format("Unexpected line in molecule file "
+                                        "while looking for the next "
+                                        "section:\n{}",line));
+    }
     keyword = parse_keyword(1,line);
   }
 

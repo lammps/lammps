@@ -21,7 +21,6 @@
 
 #include <cstdio>
 #include <mpi.h>
-#include <fstream>
 #include <string>
 
 using namespace LAMMPS_NS;
@@ -54,6 +53,45 @@ const bool have_openmpi = false;
         }                                                         \
     }
 
+static void create_molecule_files()
+{
+    // create molecule files
+    const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
+                            "Coords\n\n1 1.12456 0.09298 1.27452\n"
+                            "2 1.53683 0.75606 1.89928\n3 0.49482 0.56390 0.65678\n\n"
+                            "Types\n\n1 1\n2 2\n3 2\n\n"
+                            "Charges\n\n1 -0.8472\n2 0.4236\n3 0.4236\n\n"
+                            "Bonds\n\n1 1 1 2\n2 1 1 3\n\n"
+                            "Angles\n\n1 1 2 1 3\n\n"
+                            "Shake Flags\n\n1 1\n2 1\n3 1\n\n"
+                            "Shake Atoms\n\n1 1 2 3\n2 1 2 3\n3 1 2 3\n\n"
+                            "Shake Bond Types\n\n1 1 1 1\n2 1 1 1\n3 1 1 1\n\n"
+                            "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
+                            "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
+    const char co2_file[] = "# CO2 molecule file. TraPPE model.\n\n"
+                            "3 atoms\n2 bonds\n1 angles\n\n"
+                            "Coords\n\n1 0.0 0.0 0.0\n2 -1.16 0.0 0.0\n3 1.16 0.0 0.0\n\n"
+                            "Types\n\n1 1\n2 2\n3 2\n\n"
+                            "Charges\n\n1 0.7\n2 -0.35\n3 -0.35\n\n"
+                            "Bonds\n\n1 1 1 2\n2 1 1 3\n\n"
+                            "Angles\n\n1 1 2 1 3\n\n"
+                            "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
+                            "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
+
+    FILE *fp = fopen("tmp.h2o.mol", "w");
+    if (fp) {
+        fputs(h2o_file, fp);
+        fclose(fp);
+    }
+    rename("tmp.h2o.mol", "h2o.mol");
+    fp = fopen("tmp.co2.mol", "w");
+    if (fp) {
+        fputs(co2_file, fp);
+        fclose(fp);
+    }
+    rename("tmp.co2.mol", "co2.mol");
+}
+
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
@@ -82,9 +120,9 @@ protected:
     void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)
     {
         std::string file = name + ".mol";
-        std::ofstream mol(file, std::ofstream::trunc);
-        mol << content << std::endl;
-        mol.close();
+        FILE *fp = fopen(file.c_str(), "w");
+        fputs(content.c_str(),fp);
+        fclose(fp);
 
         lmp->input->one(fmt::format("molecule {} {} {}",name,file,args));
         remove(file.c_str());

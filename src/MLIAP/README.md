@@ -28,7 +28,7 @@ force, and stress contributions from a user-specified
 reference potential.
 
 ## Generating the model files from the third-party packages
-- To train the `linear` and `quardratic` model with the SNAP descritptors, see the examples in [FitSNAP](https://github.com/FitSNAP/FitSNAP).
+- To train the `linear` and `quadratic` models with the SNAP descriptors, see the examples in [FitSNAP](https://github.com/FitSNAP/FitSNAP).
 - To train the `nn` model with the SNAP descriptors, check the examples in [PyXtal\_FF](https://github.com/qzhu2017/PyXtal_FF).
 
 ## Building MLIAP with Python support

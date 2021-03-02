@@ -411,15 +411,14 @@ void Molecule::read(int flag)
 
     readline(line);
 
-    // trim anything from '#' onward
-    // if line is blank, continue
+    // trim comments. if line is blank, continue
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    if (strspn(line," \t\n\r") == strlen(line)) continue;
+    auto text = utils::trim(utils::trim_comment(line));
+    if (text.empty()) continue;
 
     // search line for header keywords and set corresponding variable
     try {
-      ValueTokenizer values(line);
+      ValueTokenizer values(text);
 
       int nmatch = values.count();
       int nwant = 0;

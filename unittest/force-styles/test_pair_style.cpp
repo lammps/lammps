@@ -816,14 +816,6 @@ TEST(PairStyle, gpu)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    // skip over tests using tabulated coulomb
-    if ((lmp->force->pair->ncoultablebits > 0) || (lmp->force->pair->ndisptablebits > 0)) {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        GTEST_SKIP();
-    }
-
     // relax error a bit for GPU package
     double epsilon = 7.5 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs

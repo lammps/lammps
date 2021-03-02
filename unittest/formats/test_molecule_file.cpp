@@ -140,6 +140,7 @@ TEST_F(MoleculeFileTest, noatom)
     TEST_FAILURE(".*ERROR: No or invalid atom count in molecule file.*",
                  run_mol_cmd(test_name,"","Comment\n0 atoms\n1 bonds\n\n"
                                     " Coords\n\nBonds\n\n 1 1 2\n"););
+    remove("noatom.mol");
 }
 
 TEST_F(MoleculeFileTest, minimal)
@@ -149,6 +150,35 @@ TEST_F(MoleculeFileTest, minimal)
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
+}
+
+TEST_F(MoleculeFileTest, twomols)
+{
+    ::testing::internal::CaptureStdout();
+    run_mol_cmd(test_name,"","Comment\n2 atoms\n\n"
+                " Coords\n\n 1 0.0 0.0 0.0\n 2 0.0 0.0 1.0\n"
+                " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
+    auto output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*2 molecules.*2 atoms "
+                                    "with max type 2.*0 bonds.*"));
+}
+
+TEST_F(MoleculeFileTest, twofiles)
+{
+    ::testing::internal::CaptureStdout();
+    create_molecule_files();
+    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    auto output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output,MatchesRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
+                                    "with max type 2.*2 bonds with max type 1.*"
+                                    "1 angles with max type 1.*0 dihedrals.*"
+                                    ".*Read molecule template twomols:.*1 molecules.*3 atoms "
+                                    "with max type 4.*2 bonds with max type 2.*"
+                                    "1 angles with max type 2.*0 dihedrals.*"));
+    remove("h2o.mol");
+    remove("co2.mol");
 }
 
 int main(int argc, char **argv)

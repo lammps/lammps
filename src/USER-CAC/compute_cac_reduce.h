@@ -55,6 +55,7 @@ class ComputeCACReduce : public Compute {
   virtual double compute_one(int, int);
   virtual bigint count(int);
   void combine(double &, double, int);
+  void copy_arrays();
 };
 
 }

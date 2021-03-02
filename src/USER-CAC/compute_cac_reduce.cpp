@@ -16,6 +16,7 @@
 #include <cstring>
 #include <cstdlib>
 #include "atom.h"
+#include "force.h"
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
@@ -464,11 +465,8 @@ double ComputeCACReduce::compute_one(int m, int flag)
 {
   int i;
   
-  // CAC array info
-  int *poly_count = atom->poly_count;
-  int *nodes_count_list = atom->nodes_per_element_list;
-  int *element_type = atom->element_type;
-  int nodes_per_element;
+  // CAC array consolidation, in case it hasn't been done after min
+  copy_arrays();
   // invoke the appropriate attribute,compute,fix,variable
   // for flag = -1, compute scalar quantity by scanning over atom properties
   // only include atoms in group for atom properties and per-atom quantities
@@ -500,22 +498,15 @@ double ComputeCACReduce::compute_one(int m, int flag)
     } else one = x[flag][aidx];
   } else if (which[m] == V) {
     double **v = atom->v;
-    double ****nodal_velocities = atom->nodal_velocities;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) combine(one,v[i][aidx],i);
     } else one = v[flag][aidx];
   } else if (which[m] == F) {
     double **f = atom->f;
-    double ****node_f = atom->nodal_forces;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          nodes_per_element = nodes_count_list[element_type[i]];
-          for (int ipoly = 0; ipoly < poly_count[i]; ipoly++)
-            for (int n = 0; n < nodes_per_element; n++)
-              combine(one,node_f[i][ipoly][n][aidx],i);
-        }
+        if (mask[i] & groupbit) combine(one,f[i][aidx],i);
     } else one = f[flag][aidx];
 
   // invoke compute if not previously invoked
@@ -698,4 +689,100 @@ double ComputeCACReduce::memory_usage()
 {
   double bytes = maxatom * sizeof(double);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   copy CAC arrays to atom->vec arrays (may be redundant in atom->x,v)
+------------------------------------------------------------------------- */
+void ComputeCACReduce::copy_arrays()
+{
+  double dtfm;
+  double dtf = 0.5 * update->dt * force->ftm2v;
+
+  double **v = atom->v;
+  double **f = atom->f;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  double ****nodal_positions = atom->nodal_positions;
+  double ****nodal_velocities = atom->nodal_velocities;
+  double ****nodal_forces = atom->nodal_forces;
+
+  int *element_type = atom->element_type;
+  int *poly_count = atom->poly_count;
+  int **node_types = atom->node_types;
+  int *nodes_count_list = atom->nodes_per_element_list;	
+
+  int nodes_per_element;
+
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++){
+      nodes_per_element = nodes_count_list[element_type[i]];
+      if (mask[i] & groupbit) {
+        v[i][0] = 0;
+        v[i][1] = 0;
+        v[i][2] = 0;
+        f[i][0] = 0;
+        f[i][1] = 0;
+        f[i][2] = 0;
+        for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
+          for(int k=0; k<nodes_per_element; k++){	
+              dtfm = dtf / rmass[i];
+              nodal_velocities[i][poly_counter][k][0] += dtfm * nodal_forces[i][poly_counter][k][0];
+              nodal_velocities[i][poly_counter][k][1] += dtfm * nodal_forces[i][poly_counter][k][1];
+              nodal_velocities[i][poly_counter][k][2] += dtfm * nodal_forces[i][poly_counter][k][2];
+
+              v[i][0] += nodal_velocities[i][poly_counter][k][0];
+              v[i][1] += nodal_velocities[i][poly_counter][k][1];
+              v[i][2] += nodal_velocities[i][poly_counter][k][2];
+              f[i][0] += nodal_forces[i][poly_counter][k][0];
+              f[i][1] += nodal_forces[i][poly_counter][k][1];
+              f[i][2] += nodal_forces[i][poly_counter][k][2];
+          }
+        }
+        v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+        v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+        v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+        f[i][0] = f[i][0] / nodes_per_element / poly_count[i];
+        f[i][1] = f[i][1] / nodes_per_element / poly_count[i];
+        f[i][2] = f[i][2] / nodes_per_element / poly_count[i];
+      }
+    }
+  } 
+  else {
+    for (int i = 0; i < nlocal; i++){
+      nodes_per_element = nodes_count_list[element_type[i]];
+      if (mask[i] & groupbit) {
+        v[i][0] = 0;
+        v[i][1] = 0;
+        v[i][2] = 0;
+        f[i][0] = 0;
+        f[i][1] = 0;
+        f[i][2] = 0;
+        for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
+          for(int k=0; k<nodes_per_element; k++){	
+            dtfm = dtf / mass[node_types[i][poly_counter]];
+            nodal_velocities[i][poly_counter][k][0] += dtfm * nodal_forces[i][poly_counter][k][0];
+            nodal_velocities[i][poly_counter][k][1] += dtfm * nodal_forces[i][poly_counter][k][1];
+            nodal_velocities[i][poly_counter][k][2] += dtfm * nodal_forces[i][poly_counter][k][2];
+
+            v[i][0] += nodal_velocities[i][poly_counter][k][0];
+            v[i][1] += nodal_velocities[i][poly_counter][k][1];
+            v[i][2] += nodal_velocities[i][poly_counter][k][2];
+            f[i][0] += nodal_forces[i][poly_counter][k][0];
+            f[i][1] += nodal_forces[i][poly_counter][k][1];
+            f[i][2] += nodal_forces[i][poly_counter][k][2];
+          }
+        }
+        v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+        v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+        v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+        f[i][0] = f[i][0] / nodes_per_element / poly_count[i];
+        f[i][1] = f[i][1] / nodes_per_element / poly_count[i];
+        f[i][2] = f[i][2] / nodes_per_element / poly_count[i];
+      }
+    }
+  }
 }

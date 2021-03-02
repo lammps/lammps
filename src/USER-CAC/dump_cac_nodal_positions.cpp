@@ -186,20 +186,6 @@ void DumpCACNodalPositions::write_header(bigint n)
     fprintf(fp, " t= " BIGINT_FORMAT " n= " BIGINT_FORMAT
     " e= " BIGINT_FORMAT " Q4 " "\n",
     update->ntimestep, (bigint)total_node_count, total_element_count);
-    
-    fprintf(fp, "%d cac elements\n", total_element_count);
-    fprintf(fp,"%d atom types\n\n",atom->ntypes);
-
-    fprintf(fp,"%-1.16e %-1.16e xlo xhi\n",domain->boxlo[0],domain->boxhi[0]);
-    fprintf(fp,"%-1.16e %-1.16e ylo yhi\n",domain->boxlo[1],domain->boxhi[1]);
-    fprintf(fp,"%-1.16e %-1.16e zlo zhi\n",domain->boxlo[2],domain->boxhi[2]);
-
-    if (atom->mass) {
-      double *mass = atom->mass;
-      fprintf(fp,"\nMasses\n\n");
-      for (int i = 1; i <= atom->ntypes; i++) fprintf(fp,"%d %g\n",i,mass[i]);
-      fprintf(fp,"\n\n");
-    }
   }
 }
 

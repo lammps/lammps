@@ -224,8 +224,8 @@ void PairCAC::compute(int eflag, int vflag) {
             for (mi = 0; mi < nodes_per_element; mi++){
                 for( int dim = 0; dim < 6; dim ++) v[dim] = nodal_virial[i][poly_counter][mi][dim];
                 // For elements we have to multiply by the number of atoms assigned to node. Just assume that all the elements are rhombohedral for right now
-                if(element_scale[i][0] > 1){
-                    for(int dim = 0; dim < 6; dim ++) v[dim] *= (element_scale[i][0]*element_scale[i][1]*element_scale[i][2])/8.0;
+                if(element_type[i] != 0){
+                    for(int dim = 0; dim < 6; dim ++) v[dim] *= (element_scale[i][0]*element_scale[i][1]*element_scale[i][2])/nodes_count_list[element_type[i]];
                 }
                 v_tally_tensor(0,0,1,0,v[0],v[1],v[2],v[3],v[4],v[5]);
             }

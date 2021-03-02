@@ -163,8 +163,8 @@ class Molecule : protected Pointers {
 
   void open(char *);
   void readline(char *);
-  void parse_keyword(int, char *, char *);
-  void skip_lines(int, char *);
+  std::string parse_keyword(int, char *);
+  void skip_lines(int, char *, const std::string &);
 
   // void print();
 };

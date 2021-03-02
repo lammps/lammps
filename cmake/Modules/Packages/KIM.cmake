@@ -71,7 +71,11 @@ if(DOWNLOAD_KIM)
 else()
   if(KIM-API_FOUND AND KIM-API_VERSION VERSION_GREATER_EQUAL 2.2.0)
     # For kim-api >= 2.2.0
+    set_target_properties(lammps PROPERTIES INSTALL_RPATH_USE_LINK_PATH True)
+    set_target_properties(lmp    PROPERTIES INSTALL_RPATH_USE_LINK_PATH True)
     find_package(KIM-API 2.2.0 CONFIG REQUIRED)
+    get_target_property(_kim_loc KIM-API::kim-api IMPORT_LOCATION)        # Determine found message
+    find_package_message(KIM-API "Found KIM-API: ${_kim_loc}" "KIM-API")  # since package does not for <=2.2.1; can be removed once 2.2.2 or above is available
     target_link_libraries(lammps PRIVATE KIM-API::kim-api)
   else()
     # For kim-api 2.1.3 (consistent with previous version of this file)

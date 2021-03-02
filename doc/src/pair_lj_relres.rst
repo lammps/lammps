@@ -13,10 +13,10 @@ Syntax
 
    pair_style lj/relres Rsi Rso Rci Rco
 
-* Rsi = inner cutoff for switching between the fine-grained and coarse-grained potentials (distance units)
-* Rso = outer cutoff for switching between the fine-grained and coarse-grained potentials (distance units)
+* Rsi = inner switching distance between the fine-grained and coarse-grained potentials (distance units)
+* Rso = outer switching distance between the fine-grained and coarse-grained potentials (distance units)
 * Rci = inner cutoff beyond which the force smoothing for all interactions is applied (distance units)
-* Rco = outer cutoff distance for all interactions (distance units)
+* Rco = outer cutoff for all interactions (distance units)
 
 Examples
 """"""""
@@ -97,20 +97,27 @@ arguments must be specified.
 
 Here are some guidelines for using the pair_style *lj/relres* command.
 
-At the most basic level in the RelRes framework, groups of atoms must be
-defined (even before utilizing the *lj/relres* pair style):
-The atoms within each group must be bonded to each other, and
-preferably, no two of these atoms are separated by more than two bonds.
-One of the atoms in a group (typically the central one) is the "hybrid" site:
-It embodies both FG and CG models.  Conversely, all other atoms in a group
-(typically the peripheral ones) are the "ordinary" sites: They embody just FG
-characteristics with no CG features.
+In general, RelRes focuses on the speedup of pairwise interactions between
+all LJ sites. Importantly, it does not at all effect any other settings,
+flags, etc. that would be used in a molecular simulation with the
+conventional LJ potential. In particular, all intramolecular topology
+with its energetics (i.e., bonds, angles, etc.) remains unaltered.  
 
-The computational efficiency of RelRes substantially depends on the
-mapping ratio (the number of sites grouped together).  For a mapping
-ratio of 3, the efficiency factor is around 4, and for a mapping ratio
-of 5, the efficiency factor is around 5 :ref:`(Chaimovich2)
-<Chaimovich2>`.
+At the most basic level in the RelRes framework, all sites are mapped into
+clusters. Each cluster is just a collection of sites bonded together (the
+bonds themselves are not part of the cluster). In general, a molecule may
+be comprised of several clusters, and preferably, no two sites in a cluster
+are separated by more than two bonds. There are two categories of sites in
+RelRes: "hybrid" sites embody both FG and CG models, while "ordinary" sites
+embody just FG characteristics with no CG features. A given cluster has
+a single hybrid site (typically its central site) and several ordinary sites
+(typically its peripheral sites). Notice that while clusters are necessary
+for the RelRes parameterization (discussed below), they are not actually
+defined in LAMMPS. Besides, the total number of sites in the cluster are
+called the "mapping ratio", and this substantially impacts the computational
+efficiency of RelRes: For a mapping ratio of 3, the efficiency factor is
+around 4, and for a mapping ratio of 5, the efficiency factor is around 5
+:ref:`(Chaimovich2) <Chaimovich2>`.
 
 The flexibility of LAMMPS allows placing any values for the LJ
 parameters in the input script. However, here are the optimal
@@ -131,31 +138,31 @@ following equations:
    \quad\mathrm{and}\quad
    \epsilon_I^{CG}=\frac{\left((\sum_{\alpha\in A}\sqrt{\epsilon_\alpha^{FG}\left(\sigma_\alpha^{FG}\right)^6}\right)^4}{\left((\sum_{\alpha\in A}\sqrt{\epsilon_\alpha^{FG}\left(\sigma_\alpha^{FG}\right)^{12}}\right)^2}
 
-where :math:`I` is an atom type of a hybrid site of a particular group
-:math:`A`, and corresponding with this group, the summation proceeds over
-all of its atoms :math:`\alpha`.  This equation is the monopole term in the
-underlying Taylor series, and it is indeed relevant only if
-geometric mixing is applicable for the FG model; if this is not the case,
-Ref. :ref:`(Chaimovich2) <Chaimovich2>` discusses alternative options,
-and in such situations the pair_coeff command should be explicitly used
-for all combinations of atom types :math:`I\;!=J`.
+where :math:`I` is an atom type of a hybrid site of a particular cluster
+:math:`A`, and corresponding with this cluster, the summation proceeds over
+all of its sites :math:`\alpha`.  These equations are derived from the
+monopole term in the underlying Taylor series, and they are indeed relevant
+only if geometric mixing is applicable for the FG model; if this is not the
+case, Ref. :ref:`(Chaimovich2) <Chaimovich2>` discusses the alternative
+formula, and in such a situation, the pair_coeff command should be explicitly
+used for all combinations of atom types :math:`I\;!=J`.
 
 The switching distance is another crucial parameter in RelRes:
 decreasing it improves the computational efficiency, yet if it is too
 small, the molecular simulations may not capture the system behavior
 correctly.  As a rule of thumb, the switching distance should be
-approximately :math:`\,\sim\! 1.5\sigma` :ref:`(Chaimovich1)
-<Chaimovich1>`;  recommendations can be found in Ref. :ref:`(Chaimovich2)
-<Chaimovich2>`.  Regarding the smoothing zone itself, :math:`\,\sim\!
-0.1\sigma` is recommended; if desired, switching can be eliminated by setting
-the inner switching cutoff, :math:`r_{si}`, equal to the outer
-switching cutoff, :math:`r_{so}` (the same is true for the other cutoffs
+approximately :math:`\,\sim\! 1.5\sigma` :ref:`(Chaimovich1) <Chaimovich1>`;
+recommendations can be found in Ref. :ref:`(Chaimovich2) <Chaimovich2>`.
+Regarding the smoothing zone itself, :math:`\,\sim\!0.1\sigma` is
+recommended; if desired, smoothing can be eliminated by setting
+the inner switching distance, :math:`r_{si}`, equal to the outer
+switching distance, :math:`r_{so}` (the same is true for the cutoffs
 :math:`r_{ci}` and :math:`r_{co}`).
 
 ----------
 
 As an example, imagine that in your system, a molecule is comprised just
-of one group such that one atom type (#1) is associated with
+of one cluster such that one atom type (#1) is associated with
 its hybrid site, and another atom type (#2) is associated with its ordinary
 sites (in total, there are 2 atom types). If geometric mixing is applicable,
 the following commands should be used:
@@ -167,10 +174,10 @@ the following commands should be used:
    pair_coeff 2 2 epsilon_FG2 sigma_FG2 0.0         0.0
    pair_modify shift yes
 
-In a more complex situation, there may be two distinct groups in a system
-(these two groups may be on same molecule or on different molecules),
+In a more complex situation, there may be two distinct clusters in a system
+(these two clusters may be on same molecule or on different molecules),
 each with its own switching distance.  If there are still two atom types
-in each group as in the earlier example, the commands should be:
+in each cluster as in the earlier example, the commands should be:
 
 .. code-block:: LAMMPS
 
@@ -181,12 +188,12 @@ in each group as in the earlier example, the commands should be:
    pair_coeff 4 4 epsilon_FG4 sigma_FG4 0.0         0.0
    pair_modify shift yes
 
-In this example, the switching distance for the first group (atom types 1
+In this example, the switching distance for the first cluster (atom types 1
 and 2) is defined explicitly in the pair_coeff command which overrides the
-global values, while the second group (atom types 3 and 4) uses the global
+global values, while the second cluster (atom types 3 and 4) uses the global
 definition from the pair_style command. The emphasis here is that the atom
-types that belong to a specific group should have the same switching/cutting
-distances.
+types that belong to a specific cluster should have the same switching/cutoff
+arguments.
 
 In the case that geometric mixing is not applicable, for simulating the
 system from the previous example, we recommend using the following commands:
@@ -208,7 +215,7 @@ system from the previous example, we recommend using the following commands:
 
 Notice that the CG parameters are mixed only for interactions between atom
 types associated with hybrid sites, and that the switching distances are
-mixed on the group basis.
+mixed on the cluster basis.
 
 More examples can be found in the *examples/relres* folder.
 
@@ -232,7 +239,7 @@ and it is recommended to use with this *lj/relres* style.  See the
 
 This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the pair interaction. It is recommended to set
-this option to *yes*\ .  Otherwise, the shifting constant :math:`\Gamma_{c}`
+this option to *yes*\ .  Otherwise, the offset :math:`\Gamma_{c}`
 is set to zero. Constants :math:`\Gamma_{si}` and :math:`\Gamma_{so}` are
 not impacted by this option.
 
@@ -272,11 +279,11 @@ none
 
 .. _Chaimovich1:
 
-**(Chaimovich1)** A.Chaimovich, C. Peter and K. Kremer, J. Chem. Phys. 143,
+**(Chaimovich1)** A. Chaimovich, C. Peter and K. Kremer, J. Chem. Phys. 143,
 243107 (2015).
 
 .. _Chaimovich2:
 
-**(Chaimovich2)** M.Chaimovich and A. Chaimovich, J. Chem. Theory Comput. 17,
+**(Chaimovich2)** M. Chaimovich and A. Chaimovich, J. Chem. Theory Comput. 17,
 1045-1059 (2021).
 

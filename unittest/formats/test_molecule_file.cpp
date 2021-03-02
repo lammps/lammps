@@ -31,6 +31,8 @@ using testing::StrEq;
 
 using utils::split_words;
 
+#define test_name test_info_->name()
+
 #if defined(OMPI_MAJOR_VERSION)
 const bool have_openmpi = true;
 #else
@@ -89,13 +91,23 @@ protected:
     }       
 };
 
+TEST_F(MoleculeFileTest, nofile)
+{
+    TEST_FAILURE(".*Cannot open molecule file nofile.mol.*",
+                 lmp->input->one("molecule 1 nofile.mol"););
+}
+
+TEST_F(MoleculeFileTest, noatom)
+{
+    TEST_FAILURE(".*ERROR: No or invalid atom count in molecule file.*",
+                 run_mol_cmd(test_name,"","Comment\n0 atoms\n1 bonds\n\n"
+                                    " Coords\n\nBonds\n\n 1 1 2\n"););
+}
+
 TEST_F(MoleculeFileTest, minimal)
 {
     ::testing::internal::CaptureStdout();
-    run_mol_cmd(test_info_->name(),"","Comment\n"
-                "1 atoms\n\n"
-                " Coords\n\n"
-                " 1 0.0 0.0 0.0\n");
+    run_mol_cmd(test_name,"","Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));

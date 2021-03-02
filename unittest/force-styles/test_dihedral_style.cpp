@@ -38,7 +38,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <mpi.h>
 
 #include <map>
@@ -244,40 +243,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     YamlWriter writer(outfile);
 
-    // lammps_version
-    writer.emit("lammps_version", lmp->version);
-
-    // date_generated
-    std::time_t now = time(NULL);
-    block           = utils::trim(ctime(&now));
-    writer.emit("date_generated", block);
-
-    // epsilon
-    writer.emit("epsilon", config.epsilon);
-
-    // prerequisites
-    block.clear();
-    for (auto &prerequisite : config.prerequisites) {
-        block += prerequisite.first + " " + prerequisite.second + "\n";
-    }
-    writer.emit_block("prerequisites", block);
-
-    // pre_commands
-    block.clear();
-    for (auto &command : config.pre_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("pre_commands", block);
-
-    // post_commands
-    block.clear();
-    for (auto &command : config.post_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("post_commands", block);
-
-    // input_file
-    writer.emit("input_file", config.input_file);
+    // write yaml header
+    write_yaml_header(&writer, &test_config, lmp->version);
 
     // dihedral_style
     writer.emit("dihedral_style", config.dihedral_style);

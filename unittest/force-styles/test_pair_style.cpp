@@ -627,14 +627,6 @@ TEST(PairStyle, omp)
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     EXPECT_THAT(output, HasSubstr("Loop time"));
 
-    if (utils::strmatch(test_config.pair_style, "^dpd")) {
-        std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        GTEST_SKIP();
-    }
-
     // abort if running in parallel and not all atoms are local
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
@@ -927,24 +919,6 @@ TEST(PairStyle, intel)
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
-        GTEST_SKIP();
-    }
-
-    if ((test_config.pair_style == "rebo")
-        || utils::strmatch(test_config.pair_style, "^dpd")
-        || utils::strmatch(test_config.pair_style, "^tersoff.* shift ")) {
-        std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        GTEST_SKIP();
-    }
-
-    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm/disp/intel")) {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        std::cerr << "Skipping kspace style pppm/disp/intel\n";
         GTEST_SKIP();
     }
 

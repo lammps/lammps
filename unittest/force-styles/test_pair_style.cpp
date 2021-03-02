@@ -606,6 +606,9 @@ TEST(PairStyle, omp)
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",       "omp",  "4",    "-sf",   "omp"};
 
+    // cannot run dpd styles with more than 1 thread due to using multiple pRNGs
+    if (utils::strmatch(test_config.pair_style, "^dpd")) args[8] = "1";
+
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);
 
@@ -903,6 +906,9 @@ TEST(PairStyle, intel)
     const char *args[] = {"PairStyle", "-log",  "none", "-echo", "screen", "-nocite",
                           "-pk",       "intel", "0",    "mode",  "double", "omp",
                           "4",         "lrt",   "no",   "-sf",   "intel"};
+
+    // cannot use more than 1 thread for dpd styles due to pRNG
+    if (utils::strmatch(test_config.pair_style, "^dpd")) args[12] = "1";
 
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);

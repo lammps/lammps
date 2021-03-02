@@ -18,6 +18,7 @@
 #include "error.h"
 #include "memory.h"
 #include "update.h"
+#include "domain.h"
 
 using namespace LAMMPS_NS;
 
@@ -181,11 +182,10 @@ int DumpCACNodalPositions::count()
 
 void DumpCACNodalPositions::write_header(bigint n)
 {
-
   if (me == 0) {
-  fprintf(fp, " t= " BIGINT_FORMAT " n= " BIGINT_FORMAT
-  " e= " BIGINT_FORMAT " Q4 " "\n",
-  update->ntimestep, (bigint)total_node_count, total_element_count);
+    fprintf(fp, " t= " BIGINT_FORMAT " n= " BIGINT_FORMAT
+    " e= " BIGINT_FORMAT " Q4 " "\n",
+    update->ntimestep, (bigint)total_node_count, total_element_count);
   }
 }
 

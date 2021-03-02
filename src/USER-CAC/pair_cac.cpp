@@ -114,15 +114,17 @@ PairCAC::~PairCAC() {
 
 void PairCAC::compute(int eflag, int vflag) {
   int i;
-  double delx,dely,delz,fpair;
+  double delx,dely,delz,fpair, v[6];
   int mi;
   int mj;
   int singular;
   ev_init(eflag,vflag);
+  v[0]=0;v[1]=0;v[2]=0;v[3]=0;v[4]=0;v[5]=0;
 
   double **x = atom->x;
   double ****nodal_positions= atom->nodal_positions;
   double ****nodal_forces= atom->nodal_forces;
+  double ****nodal_virial= atom->nodal_virial;
   int *element_type = atom->element_type;
   int *poly_count = atom->poly_count;
   int **node_types = atom->node_types;
@@ -213,8 +215,23 @@ void PairCAC::compute(int eflag, int vflag) {
         }
       }
     }
+    //Tally energy
     if (evflag) ev_tally_full(i,
           2 * element_energy, 0.0, fpair, delx, dely, delz);
+
+    //Tally virial, this requires looping over all nodes and atoms
+    if(vflag){
+      for (poly_counter = 0; poly_counter < current_poly_count; poly_counter++) {
+            for (mi = 0; mi < nodes_per_element; mi++){
+                for( int dim = 0; dim < 6; dim ++) v[dim] = nodal_virial[i][poly_counter][mi][dim];
+                // For elements we have to multiply by the number of atoms assigned to node. Just assume that all the elements are rhombohedral for right now
+                if(element_type[i] != 0){
+                    for(int dim = 0; dim < 6; dim ++) v[dim] *= (element_scale[i][0]*element_scale[i][1]*element_scale[i][2])/nodes_count_list[element_type[i]];
+                }
+                v_tally_tensor(0,0,1,0,v[0],v[1],v[2],v[3],v[4],v[5]);
+            }
+      }
+    }
   }
 }
 
@@ -263,25 +280,26 @@ void PairCAC::init_style()
   // create fix needed for storing nodal flux vector if needed
   // deleted at the end of run by modify
   if(atom->cac_flux_flag){
-  char **fixarg = new char*[4];
-  fixarg[0] = (char *) "CACNODALFLUX";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "CAC/ALLOCVECTOR";
-  fixarg[3] = (char *) "3";
-  modify->add_fix(4,fixarg);
-  
-  
-  fix_cac_alloc_vector = (FixCACAllocVector *) modify->fix[modify->nfix-1];
+    char **fixarg = new char*[4];
+    fixarg[0] = (char *) "CACNODALFLUX";
+    fixarg[1] = (char *) "all";
+    fixarg[2] = (char *) "CAC/ALLOCVECTOR";
+    fixarg[3] = (char *) "3";
+    modify->add_fix(4,fixarg);
+    
+    
+    fix_cac_alloc_vector = (FixCACAllocVector *) modify->fix[modify->nfix-1];
 
-  fix_cac_alloc_vector->add_vector(24);
-  atom->nodal_fluxes = fix_cac_alloc_vector->request_vector(0);
+    fix_cac_alloc_vector->add_vector(24);
+    atom->nodal_fluxes = fix_cac_alloc_vector->request_vector(0);
 
-  fixarg[0] = (char *) "CACFLUXCHECK";
-  fixarg[1] = (char *) "all";
-  fixarg[2] = (char *) "CAC/FLUXCHECK";
-  modify->add_fix(3,fixarg);
-  delete [] fixarg;
+    fixarg[0] = (char *) "CACFLUXCHECK";
+    fixarg[1] = (char *) "all";
+    fixarg[2] = (char *) "CAC/FLUXCHECK";
+    modify->add_fix(3,fixarg);
+    delete [] fixarg;
   }
+
   
 }
 
@@ -437,12 +455,13 @@ void PairCAC::compute_forcev(int iii){
     force_density[1] = 0;
     force_density[2] = 0;
     if(atom->CAC_virial){
-    virial_density[0] = 0;
-    virial_density[1] = 0;
-    virial_density[2] = 0;
-    virial_density[3] = 0;
-    virial_density[4] = 0;
-    virial_density[5] = 0;
+      virial_density[0] = 0;
+      virial_density[1] = 0;
+      virial_density[2] = 0;
+      virial_density[3] = 0;
+      virial_density[4] = 0;
+      virial_density[5] = 0;
+      
     }
     if(quad_flux_flag)
       for(int init = 0; init < 24; init++)
@@ -469,8 +488,9 @@ void PairCAC::compute_forcev(int iii){
       force_column[js][jj] += coefficients*force_density[jj] * shape_func;
     }
     if(atom->CAC_virial){
-    for (int jj = 0; jj < 6; jj++)
-      nodal_virial[iii][poly_counter][js][jj] += coefficients*virial_density[jj] * shape_func;
+      for (int jj = 0; jj < 6; jj++){
+          nodal_virial[iii][poly_counter][js][jj] += coefficients*virial_density[jj] * shape_func;
+        }
     }
     if(quad_flux_flag&&atom->cac_flux_flag==2){
     for (int jj = 0; jj < 24; jj++)

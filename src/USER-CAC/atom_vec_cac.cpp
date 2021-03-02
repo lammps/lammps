@@ -146,6 +146,10 @@ void AtomVecCAC::init()
 
   if (strcmp(comm->comm_style, "cac") != 0)
     error->all(FLERR," cac atom styles require a CAC comm style");
+
+  //Now lets overwrite the default thermo compute with the cac nodal temp one
+  modify->delete_compute("thermo_temp");
+  modify->add_compute("thermo_temp all cac/nodal/temp");
 }
 
 /* ----------------------------------------------------------------------

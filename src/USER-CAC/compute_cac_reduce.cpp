@@ -1,0 +1,788 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   http://lammps.sandia.gov, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "compute_cac_reduce.h"
+#include <mpi.h>
+#include <cstring>
+#include <cstdlib>
+#include "atom.h"
+#include "force.h"
+#include "update.h"
+#include "domain.h"
+#include "modify.h"
+#include "fix.h"
+#include "group.h"
+#include "input.h"
+#include "variable.h"
+#include "memory.h"
+#include "error.h"
+
+using namespace LAMMPS_NS;
+
+enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ComputeCACReduceRegion
+enum{UNKNOWN=-1,X,V,F,COMPUTE,FIX,VARIABLE};
+enum{PERATOM,LOCAL};
+
+#define INVOKED_VECTOR 2
+#define INVOKED_ARRAY 4
+#define INVOKED_PERATOM 8
+#define INVOKED_LOCAL 16
+
+#define BIG 1.0e20
+
+/* ---------------------------------------------------------------------- */
+
+ComputeCACReduce::ComputeCACReduce(LAMMPS *lmp, int narg, char **arg) :
+  Compute(lmp, narg, arg),
+  nvalues(0), which(NULL), argindex(NULL), flavor(NULL),
+  value2index(NULL), ids(NULL), onevec(NULL), replace(NULL), indices(NULL),
+  owner(NULL), idregion(NULL), varatom(NULL)
+{
+  int iarg = 0;
+  if (strcmp(style,"cac/reduce") == 0) {
+    if (narg < 5) error->all(FLERR,"Illegal compute cac/reduce command");
+    idregion = NULL;
+    iarg = 3;
+  } else if (strcmp(style,"cac/reduce/region") == 0) {
+    if (narg < 6) error->all(FLERR,"Illegal compute cac/reduce/region command");
+    iregion = domain->find_region(arg[3]);
+    if (iregion == -1)
+      error->all(FLERR,"Region ID for compute cac/reduce/region does not exist");
+    int n = strlen(arg[3]) + 1;
+    idregion = new char[n];
+    strcpy(idregion,arg[3]);
+    iarg = 4;
+  }
+
+  if (strcmp(arg[iarg],"sum") == 0) mode = SUM;
+  else if (strcmp(arg[iarg],"sumsq") == 0) mode = SUMSQ;
+  else if (strcmp(arg[iarg],"min") == 0) mode = MINN;
+  else if (strcmp(arg[iarg],"max") == 0) mode = MAXX;
+  else if (strcmp(arg[iarg],"ave") == 0) mode = AVE;
+  else if (strcmp(arg[iarg],"avesq") == 0) mode = AVESQ;
+  else error->all(FLERR,"Illegal compute cac/reduce command");
+  iarg++;
+
+  MPI_Comm_rank(world,&me);
+
+  // expand args if any have wildcard character "*"
+
+  int expand = 0;
+  char **earg;
+  int nargnew = input->expand_args(narg-iarg,&arg[iarg],1,earg);
+
+  if (earg != &arg[iarg]) expand = 1;
+  arg = earg;
+
+  // parse values until one isn't recognized
+
+  which = new int[nargnew];
+  argindex = new int[nargnew];
+  flavor = new int[nargnew];
+  ids = new char*[nargnew];
+  value2index = new int[nargnew];
+  for (int i=0; i < nargnew; ++i) {
+    which[i] = argindex[i] = flavor[i] = value2index[i] = UNKNOWN;
+    ids[i] = NULL;
+  }
+  nvalues = 0;
+
+  iarg = 0;
+  while (iarg < nargnew) {
+    ids[nvalues] = NULL;
+
+    if (strcmp(arg[iarg],"x") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"y") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"z") == 0) {
+      which[nvalues] = X;
+      argindex[nvalues++] = 2;
+
+    } else if (strcmp(arg[iarg],"vx") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"vy") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"vz") == 0) {
+      which[nvalues] = V;
+      argindex[nvalues++] = 2;
+
+    } else if (strcmp(arg[iarg],"fx") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 0;
+    } else if (strcmp(arg[iarg],"fy") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 1;
+    } else if (strcmp(arg[iarg],"fz") == 0) {
+      which[nvalues] = F;
+      argindex[nvalues++] = 2;
+
+    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
+               strncmp(arg[iarg],"f_",2) == 0 ||
+               strncmp(arg[iarg],"v_",2) == 0) {
+      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
+      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
+      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+
+      int n = strlen(arg[iarg]);
+      char *suffix = new char[n];
+      strcpy(suffix,&arg[iarg][2]);
+
+      char *ptr = strchr(suffix,'[');
+      if (ptr) {
+        if (suffix[strlen(suffix)-1] != ']')
+          error->all(FLERR,"Illegal compute cac/reduce command");
+        argindex[nvalues] = atoi(ptr+1);
+        *ptr = '\0';
+      } else argindex[nvalues] = 0;
+
+      n = strlen(suffix) + 1;
+      ids[nvalues] = new char[n];
+      strcpy(ids[nvalues],suffix);
+      nvalues++;
+      delete [] suffix;
+
+    } else break;
+
+    iarg++;
+  }
+
+  // optional args
+
+  replace = new int[nvalues];
+  for (int i = 0; i < nvalues; i++) replace[i] = -1;
+
+  while (iarg < nargnew) {
+    if (strcmp(arg[iarg],"replace") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal compute cac/reduce command");
+      if (mode != MINN && mode != MAXX)
+        error->all(FLERR,"compute cac/reduce replace requires min or max mode");
+      int col1 = atoi(arg[iarg+1]) - 1;
+      int col2 = atoi(arg[iarg+2]) - 1;
+      if (col1 < 0 || col1 >= nvalues || col2 < 0 || col2 >= nvalues)
+        error->all(FLERR,"Illegal compute cac/reduce command");
+      if (col1 == col2) error->all(FLERR,"Illegal compute cac/reduce command");
+      if (replace[col1] >= 0 || replace[col2] >= 0)
+        error->all(FLERR,"Invalid replace values in compute cac/reduce");
+      replace[col1] = col2;
+      iarg += 3;
+    } else error->all(FLERR,"Illegal compute cac/reduce command");
+  }
+
+  // delete replace if not set
+
+  int flag = 0;
+  for (int i = 0; i < nvalues; i++)
+    if (replace[i] >= 0) flag = 1;
+  if (!flag) {
+    delete [] replace;
+    replace = NULL;
+  }
+
+  // if wildcard expansion occurred, free earg memory from expand_args()
+
+  if (expand) {
+    for (int i = 0; i < nargnew; i++) delete [] earg[i];
+    memory->sfree(earg);
+  }
+
+  // setup and error check
+
+  for (int i = 0; i < nvalues; i++) {
+    if (which[i] == X || which[i] == V || which[i] == F)
+      flavor[i] = PERATOM;
+
+    else if (which[i] == COMPUTE) {
+      int icompute = modify->find_compute(ids[i]);
+      if (icompute < 0)
+        error->all(FLERR,"Compute ID for compute cac/reduce does not exist");
+      if (modify->compute[icompute]->peratom_flag) {
+        flavor[i] = PERATOM;
+        if (argindex[i] == 0 &&
+            modify->compute[icompute]->size_peratom_cols != 0)
+          error->all(FLERR,"compute cac/reduce compute does not "
+                     "calculate a per-atom vector");
+        if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
+          error->all(FLERR,"compute cac/reduce compute does not "
+                     "calculate a per-atom array");
+        if (argindex[i] &&
+            argindex[i] > modify->compute[icompute]->size_peratom_cols)
+          error->all(FLERR,
+                     "compute cac/reduce compute array is accessed out-of-range");
+      } else if (modify->compute[icompute]->local_flag) {
+        flavor[i] = LOCAL;
+        if (argindex[i] == 0 &&
+            modify->compute[icompute]->size_local_cols != 0)
+          error->all(FLERR,"compute cac/reduce compute does not "
+                     "calculate a local vector");
+        if (argindex[i] && modify->compute[icompute]->size_local_cols == 0)
+          error->all(FLERR,"compute cac/reduce compute does not "
+                     "calculate a local array");
+        if (argindex[i] &&
+            argindex[i] > modify->compute[icompute]->size_local_cols)
+          error->all(FLERR,
+                     "compute cac/reduce compute array is accessed out-of-range");
+      } else error->all(FLERR,
+                        "compute cac/reduce compute calculates global values");
+
+    } else if (which[i] == FIX) {
+      int ifix = modify->find_fix(ids[i]);
+      if (ifix < 0)
+        error->all(FLERR,"Fix ID for compute cac/reduce does not exist");
+      if (modify->fix[ifix]->peratom_flag) {
+        flavor[i] = PERATOM;
+        if (argindex[i] == 0 &&
+            modify->fix[ifix]->size_peratom_cols != 0)
+          error->all(FLERR,"compute cac/reduce fix does not "
+                     "calculate a per-atom vector");
+        if (argindex[i] && modify->fix[ifix]->size_peratom_cols == 0)
+          error->all(FLERR,"compute cac/reduce fix does not "
+                     "calculate a per-atom array");
+        if (argindex[i] &&
+            argindex[i] > modify->fix[ifix]->size_peratom_cols)
+          error->all(FLERR,"compute cac/reduce fix array is accessed out-of-range");
+      } else if (modify->fix[ifix]->local_flag) {
+        flavor[i] = LOCAL;
+        if (argindex[i] == 0 &&
+            modify->fix[ifix]->size_local_cols != 0)
+          error->all(FLERR,"compute cac/reduce fix does not "
+                     "calculate a local vector");
+        if (argindex[i] && modify->fix[ifix]->size_local_cols == 0)
+          error->all(FLERR,"compute cac/reduce fix does not "
+                     "calculate a local array");
+        if (argindex[i] &&
+            argindex[i] > modify->fix[ifix]->size_local_cols)
+          error->all(FLERR,"compute cac/reduce fix array is accessed out-of-range");
+      } else error->all(FLERR,"compute cac/reduce fix calculates global values");
+
+    } else if (which[i] == VARIABLE) {
+      int ivariable = input->variable->find(ids[i]);
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for compute cac/reduce does not exist");
+      if (input->variable->atomstyle(ivariable) == 0)
+        error->all(FLERR,"compute cac/reduce variable is not atom-style variable");
+      flavor[i] = PERATOM;
+    }
+  }
+
+  // this compute produces either a scalar or vector
+
+  if (nvalues == 1) {
+    scalar_flag = 1;
+    if (mode == SUM || mode == SUMSQ) extscalar = 1;
+    else extscalar = 0;
+    vector = onevec = NULL;
+    indices = owner = NULL;
+  } else {
+    vector_flag = 1;
+    size_vector = nvalues;
+    if (mode == SUM || mode == SUMSQ) extvector = 1;
+    else extvector = 0;
+    vector = new double[size_vector];
+    onevec = new double[size_vector];
+    indices = new int[size_vector];
+    owner = new int[size_vector];
+  }
+
+  maxatom = 0;
+  varatom = NULL;
+}
+
+/* ---------------------------------------------------------------------- */
+
+ComputeCACReduce::~ComputeCACReduce()
+{
+  delete [] which;
+  delete [] argindex;
+  delete [] flavor;
+  for (int m = 0; m < nvalues; m++) delete [] ids[m];
+  delete [] ids;
+  delete [] value2index;
+  delete [] replace;
+  delete [] idregion;
+
+  delete [] vector;
+  delete [] onevec;
+  delete [] indices;
+  delete [] owner;
+
+  memory->destroy(varatom);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeCACReduce::init()
+{
+  // set indices of all computes,fixes,variables
+
+  for (int m = 0; m < nvalues; m++) {
+    if (which[m] == COMPUTE) {
+      int icompute = modify->find_compute(ids[m]);
+      if (icompute < 0)
+        error->all(FLERR,"Compute ID for compute cac/reduce does not exist");
+      value2index[m] = icompute;
+
+    } else if (which[m] == FIX) {
+      int ifix = modify->find_fix(ids[m]);
+      if (ifix < 0)
+        error->all(FLERR,"Fix ID for compute cac/reduce does not exist");
+      value2index[m] = ifix;
+
+    } else if (which[m] == VARIABLE) {
+      int ivariable = input->variable->find(ids[m]);
+      if (ivariable < 0)
+        error->all(FLERR,"Variable name for compute cac/reduce does not exist");
+      value2index[m] = ivariable;
+
+    } else value2index[m] = UNKNOWN;
+  }
+
+  // set index and check validity of region
+
+  if (idregion) {
+    iregion = domain->find_region(idregion);
+    if (iregion == -1)
+      error->all(FLERR,"Region ID for compute cac/reduce/region does not exist");
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeCACReduce::compute_scalar()
+{
+  invoked_scalar = update->ntimestep;
+
+  double one = compute_one(0,-1);
+
+  if (mode == SUM || mode == SUMSQ) {
+    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  } else if (mode == MINN) {
+    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MIN,world);
+  } else if (mode == MAXX) {
+    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_MAX,world);
+  } else if (mode == AVE || mode == AVESQ) {
+    MPI_Allreduce(&one,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+    bigint n = count(0);
+    if (n) scalar /= n;
+  }
+
+  return scalar;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeCACReduce::compute_vector()
+{
+  invoked_vector = update->ntimestep;
+
+  for (int m = 0; m < nvalues; m++)
+    if (!replace || replace[m] < 0) {
+      onevec[m] = compute_one(m,-1);
+      indices[m] = index;
+    }
+
+  if (mode == SUM || mode == SUMSQ) {
+    for (int m = 0; m < nvalues; m++)
+      MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
+
+  } else if (mode == MINN) {
+    if (!replace) {
+      for (int m = 0; m < nvalues; m++)
+        MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MIN,world);
+
+    } else {
+      for (int m = 0; m < nvalues; m++)
+        if (replace[m] < 0) {
+          pairme.value = onevec[m];
+          pairme.proc = me;
+          MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MINLOC,world);
+          vector[m] = pairall.value;
+          owner[m] = pairall.proc;
+        }
+      for (int m = 0; m < nvalues; m++)
+        if (replace[m] >= 0) {
+          if (me == owner[replace[m]])
+            vector[m] = compute_one(m,indices[replace[m]]);
+          MPI_Bcast(&vector[m],1,MPI_DOUBLE,owner[replace[m]],world);
+        }
+    }
+
+  } else if (mode == MAXX) {
+    if (!replace) {
+      for (int m = 0; m < nvalues; m++)
+        MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_MAX,world);
+
+    } else {
+      for (int m = 0; m < nvalues; m++)
+        if (replace[m] < 0) {
+          pairme.value = onevec[m];
+          pairme.proc = me;
+          MPI_Allreduce(&pairme,&pairall,1,MPI_DOUBLE_INT,MPI_MAXLOC,world);
+          vector[m] = pairall.value;
+          owner[m] = pairall.proc;
+        }
+      for (int m = 0; m < nvalues; m++)
+        if (replace[m] >= 0) {
+          if (me == owner[replace[m]])
+            vector[m] = compute_one(m,indices[replace[m]]);
+          MPI_Bcast(&vector[m],1,MPI_DOUBLE,owner[replace[m]],world);
+        }
+    }
+
+  } else if (mode == AVE || mode == AVESQ) {
+    for (int m = 0; m < nvalues; m++) {
+      MPI_Allreduce(&onevec[m],&vector[m],1,MPI_DOUBLE,MPI_SUM,world);
+      bigint n = count(m);
+      if (n) vector[m] /= n;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   calculate reduced value for one input M and return it
+   if flag = -1:
+     sum/min/max/ave all values in vector
+     for per-atom quantities, limit to atoms in group
+     if mode = MIN or MAX, also set index to which vector value wins
+   if flag >= 0: simply return vector[flag]
+------------------------------------------------------------------------- */
+
+double ComputeCACReduce::compute_one(int m, int flag)
+{
+  int i;
+  
+  // CAC array consolidation, in case it hasn't been done after min
+  copy_arrays();
+  // invoke the appropriate attribute,compute,fix,variable
+  // for flag = -1, compute scalar quantity by scanning over atom properties
+  // only include atoms in group for atom properties and per-atom quantities
+
+  index = -1;
+  int vidx = value2index[m];
+
+  // initialization in case it has not yet been run, e.g. when
+  // the compute was invoked right after it has been created
+
+  if (vidx == UNKNOWN) {
+    init();
+    vidx = value2index[m];
+  }
+
+  int aidx = argindex[m];
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+
+  double one = 0.0;
+  if (mode == MINN) one = BIG;
+  if (mode == MAXX) one = -BIG;
+
+  if (which[m] == X) {
+    double **x = atom->x;
+    if (flag < 0) {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) combine(one,x[i][aidx],i);
+    } else one = x[flag][aidx];
+  } else if (which[m] == V) {
+    double **v = atom->v;
+    if (flag < 0) {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) combine(one,v[i][aidx],i);
+    } else one = v[flag][aidx];
+  } else if (which[m] == F) {
+    double **f = atom->f;
+    if (flag < 0) {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) combine(one,f[i][aidx],i);
+    } else one = f[flag][aidx];
+
+  // invoke compute if not previously invoked
+
+  } else if (which[m] == COMPUTE) {
+    Compute *compute = modify->compute[vidx];
+
+    if (flavor[m] == PERATOM) {
+      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+        compute->compute_peratom();
+        compute->invoked_flag |= INVOKED_PERATOM;
+      }
+
+      if (aidx == 0) {
+        double *comp_vec = compute->vector_atom;
+        int n = nlocal;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit) combine(one,comp_vec[i],i);
+        } else one = comp_vec[flag];
+      } else {
+        double **carray_atom = compute->array_atom;
+        int n = nlocal;
+        int aidxm1 = aidx - 1;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit) combine(one,carray_atom[i][aidxm1],i);
+        } else one = carray_atom[flag][aidxm1];
+      }
+
+    } else if (flavor[m] == LOCAL) {
+      if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+        compute->compute_local();
+        compute->invoked_flag |= INVOKED_LOCAL;
+      }
+
+      if (aidx == 0) {
+        double *comp_vec = compute->vector_local;
+        int n = compute->size_local_rows;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,comp_vec[i],i);
+        else one = comp_vec[flag];
+      } else {
+        double **carray_local = compute->array_local;
+        int n = compute->size_local_rows;
+        int aidxm1 = aidx - 1;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,carray_local[i][aidxm1],i);
+        else one = carray_local[flag][aidxm1];
+      }
+    }
+
+  // access fix fields, check if fix frequency is a match
+
+  } else if (which[m] == FIX) {
+    if (update->ntimestep % modify->fix[vidx]->peratom_freq)
+      error->all(FLERR,"Fix used in compute cac/reduce not "
+                 "computed at compatible time");
+    Fix *fix = modify->fix[vidx];
+
+    if (flavor[m] == PERATOM) {
+      if (aidx == 0) {
+        double *fix_vector = fix->vector_atom;
+        int n = nlocal;
+        if (flag < 0) {
+          for (i = 0; i < n; i++)
+            if (mask[i] & groupbit) combine(one,fix_vector[i],i);
+        } else one = fix_vector[flag];
+      } else {
+        double **fix_array = fix->array_atom;
+        int aidxm1 = aidx - 1;
+        if (flag < 0) {
+          for (i = 0; i < nlocal; i++)
+            if (mask[i] & groupbit) combine(one,fix_array[i][aidxm1],i);
+        } else one = fix_array[flag][aidxm1];
+      }
+
+    } else if (flavor[m] == LOCAL) {
+      if (aidx == 0) {
+        double *fix_vector = fix->vector_local;
+        int n = fix->size_local_rows;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,fix_vector[i],i);
+        else one = fix_vector[flag];
+      } else {
+        double **fix_array = fix->array_local;
+        int n = fix->size_local_rows;
+        int aidxm1 = aidx - 1;
+        if (flag < 0)
+          for (i = 0; i < n; i++)
+            combine(one,fix_array[i][aidxm1],i);
+        else one = fix_array[flag][aidxm1];
+      }
+    }
+
+  // evaluate atom-style variable
+
+  } else if (which[m] == VARIABLE) {
+    if (atom->nmax > maxatom) {
+      maxatom = atom->nmax;
+      memory->destroy(varatom);
+      memory->create(varatom,maxatom,"reduce:varatom");
+    }
+
+    input->variable->compute_atom(vidx,igroup,varatom,1,0);
+    if (flag < 0) {
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & groupbit) combine(one,varatom[i],i);
+    } else one = varatom[flag];
+  }
+
+  return one;
+}
+
+/* ---------------------------------------------------------------------- */
+
+bigint ComputeCACReduce::count(int m)
+{
+  int vidx = value2index[m];
+
+  if (which[m] == X || which[m] == V || which[m] == F)
+    return group->count(igroup);
+  else if (which[m] == COMPUTE) {
+    Compute *compute = modify->compute[vidx];
+    if (flavor[m] == PERATOM) {
+      return group->count(igroup);
+    } else if (flavor[m] == LOCAL) {
+      bigint ncount = compute->size_local_rows;
+      bigint ncountall;
+      MPI_Allreduce(&ncount,&ncountall,1,MPI_LMP_BIGINT,MPI_SUM,world);
+      return ncountall;
+    }
+  } else if (which[m] == FIX) {
+    Fix *fix = modify->fix[vidx];
+    if (flavor[m] == PERATOM) {
+      return group->count(igroup);
+    } else if (flavor[m] == LOCAL) {
+      bigint ncount = fix->size_local_rows;
+      bigint ncountall;
+      MPI_Allreduce(&ncount,&ncountall,1,MPI_LMP_BIGINT,MPI_SUM,world);
+      return ncountall;
+    }
+  } else if (which[m] == VARIABLE)
+    return group->count(igroup);
+
+  bigint dummy = 0;
+  return dummy;
+}
+
+/* ----------------------------------------------------------------------
+   combine two values according to reduction mode
+   for MIN/MAX, also update index with winner
+------------------------------------------------------------------------- */
+
+void ComputeCACReduce::combine(double &one, double two, int i)
+{
+  if (mode == SUM || mode == AVE) one += two;
+  else if (mode == SUMSQ || mode == AVESQ) one += two*two;
+  else if (mode == MINN) {
+    if (two < one) {
+      one = two;
+      index = i;
+    }
+  } else if (mode == MAXX) {
+    if (two > one) {
+      one = two;
+      index = i;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of varatom
+------------------------------------------------------------------------- */
+
+double ComputeCACReduce::memory_usage()
+{
+  double bytes = maxatom * sizeof(double);
+  return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   copy CAC arrays to atom->vec arrays (may be redundant in atom->x,v)
+------------------------------------------------------------------------- */
+void ComputeCACReduce::copy_arrays()
+{
+  double dtfm;
+  double dtf = 0.5 * update->dt * force->ftm2v;
+
+  double **v = atom->v;
+  double **f = atom->f;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  double ****nodal_positions = atom->nodal_positions;
+  double ****nodal_velocities = atom->nodal_velocities;
+  double ****nodal_forces = atom->nodal_forces;
+
+  int *element_type = atom->element_type;
+  int *poly_count = atom->poly_count;
+  int **node_types = atom->node_types;
+  int *nodes_count_list = atom->nodes_per_element_list;	
+
+  int nodes_per_element;
+
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (rmass) {
+    for (int i = 0; i < nlocal; i++){
+      nodes_per_element = nodes_count_list[element_type[i]];
+      if (mask[i] & groupbit) {
+        v[i][0] = 0;
+        v[i][1] = 0;
+        v[i][2] = 0;
+        f[i][0] = 0;
+        f[i][1] = 0;
+        f[i][2] = 0;
+        for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
+          for(int k=0; k<nodes_per_element; k++){	
+              dtfm = dtf / rmass[i];
+              nodal_velocities[i][poly_counter][k][0] += dtfm * nodal_forces[i][poly_counter][k][0];
+              nodal_velocities[i][poly_counter][k][1] += dtfm * nodal_forces[i][poly_counter][k][1];
+              nodal_velocities[i][poly_counter][k][2] += dtfm * nodal_forces[i][poly_counter][k][2];
+
+              v[i][0] += nodal_velocities[i][poly_counter][k][0];
+              v[i][1] += nodal_velocities[i][poly_counter][k][1];
+              v[i][2] += nodal_velocities[i][poly_counter][k][2];
+              f[i][0] += nodal_forces[i][poly_counter][k][0];
+              f[i][1] += nodal_forces[i][poly_counter][k][1];
+              f[i][2] += nodal_forces[i][poly_counter][k][2];
+          }
+        }
+        v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+        v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+        v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+        f[i][0] = f[i][0] / nodes_per_element / poly_count[i];
+        f[i][1] = f[i][1] / nodes_per_element / poly_count[i];
+        f[i][2] = f[i][2] / nodes_per_element / poly_count[i];
+      }
+    }
+  } 
+  else {
+    for (int i = 0; i < nlocal; i++){
+      nodes_per_element = nodes_count_list[element_type[i]];
+      if (mask[i] & groupbit) {
+        v[i][0] = 0;
+        v[i][1] = 0;
+        v[i][2] = 0;
+        f[i][0] = 0;
+        f[i][1] = 0;
+        f[i][2] = 0;
+        for (int poly_counter = 0; poly_counter < poly_count[i];poly_counter++) {	
+          for(int k=0; k<nodes_per_element; k++){	
+            dtfm = dtf / mass[node_types[i][poly_counter]];
+            nodal_velocities[i][poly_counter][k][0] += dtfm * nodal_forces[i][poly_counter][k][0];
+            nodal_velocities[i][poly_counter][k][1] += dtfm * nodal_forces[i][poly_counter][k][1];
+            nodal_velocities[i][poly_counter][k][2] += dtfm * nodal_forces[i][poly_counter][k][2];
+
+            v[i][0] += nodal_velocities[i][poly_counter][k][0];
+            v[i][1] += nodal_velocities[i][poly_counter][k][1];
+            v[i][2] += nodal_velocities[i][poly_counter][k][2];
+            f[i][0] += nodal_forces[i][poly_counter][k][0];
+            f[i][1] += nodal_forces[i][poly_counter][k][1];
+            f[i][2] += nodal_forces[i][poly_counter][k][2];
+          }
+        }
+        v[i][0] = v[i][0] / nodes_per_element / poly_count[i];
+        v[i][1] = v[i][1] / nodes_per_element / poly_count[i];
+        v[i][2] = v[i][2] / nodes_per_element / poly_count[i];
+        f[i][0] = f[i][0] / nodes_per_element / poly_count[i];
+        f[i][1] = f[i][1] / nodes_per_element / poly_count[i];
+        f[i][2] = f[i][2] / nodes_per_element / poly_count[i];
+      }
+    }
+  }
+}

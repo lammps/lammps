@@ -50,7 +50,8 @@ enum{TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,
      THETA,THETA_RANDOM,ANGMOM,OMEGA,
      DIAMETER,DENSITY,VOLUME,IMAGE,BOND,ANGLE,DIHEDRAL,IMPROPER,
      SPH_E,SPH_CV,SPH_RHO,EDPD_TEMP,EDPD_CV,CC,SMD_MASS_DENSITY,
-     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ,CAC_CHARGE};
+     SMD_CONTACT_RADIUS,DPDTHETA,INAME,DNAME,VX,VY,VZ,CAC_CHARGE, CAC_TYPE,
+     CAC_TYPE_FRACTION};
 
 #define BIG INT_MAX
 
@@ -99,6 +100,15 @@ void Set::command(int narg, char **arg)
       set(TYPE);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"cac/type") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) varparse(arg[iarg+1],1);
+      else ivalue = force->numeric(FLERR,arg[iarg+1]);
+      if (!atom->CAC_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      set(CAC_TYPE);
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"type/fraction") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
       newtype = force->inumeric(FLERR,arg[iarg+1]);
@@ -111,6 +121,22 @@ void Set::command(int narg, char **arg)
       if (ivalue <= 0)
         error->all(FLERR,"Invalid random number seed in set command");
       setrandom(TYPE_FRACTION);
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"cac/type/fraction") == 0) {
+      if (iarg+4 > narg) error->all(FLERR,"Illegal set command");
+      newtype = force->inumeric(FLERR,arg[iarg+1]);
+      fraction = force->numeric(FLERR,arg[iarg+2]);
+      ivalue = force->inumeric(FLERR,arg[iarg+3]);
+      if (newtype <= 0 || newtype > atom->ntypes)
+        error->all(FLERR,"Invalid value in set command");
+      if (fraction < 0.0 || fraction > 1.0)
+        error->all(FLERR,"Invalid value in set command");
+      if (ivalue <= 0)
+        error->all(FLERR,"Invalid random number seed in set command");
+      if (!atom->CAC_flag)
+        error->all(FLERR,"Cannot set this attribute for this atom style");
+      setrandom(CAC_TYPE_FRACTION);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"type/ratio") == 0) {
@@ -777,6 +803,14 @@ void Set::set(int keyword)
         error->one(FLERR,"Invalid value in set command");
       atom->type[i] = ivalue;
     }
+    else if (keyword == CAC_TYPE) {
+      if (ivalue <= 0 || ivalue > atom->ntypes)
+        error->one(FLERR,"Invalid value in set command");
+      atom->type[i] = ivalue;
+      int *poly_count = atom->poly_count;
+      for(int ipoly=0; ipoly < poly_count[i]; ipoly++)
+        atom->node_types[i][ipoly] = ivalue;
+    }
     else if (keyword == MOLECULE) atom->molecule[i] = ivalue;
     else if (keyword == X) atom->x[i][0] = dvalue;
     else if (keyword == Y) atom->x[i][1] = dvalue;
@@ -1106,6 +1140,20 @@ void Set::setrandom(int keyword)
 
     memory->destroy(flag);
     memory->destroy(work);
+
+  } else if (keyword == CAC_TYPE_FRACTION){
+    int nlocal = atom->nlocal;
+    int *poly_count = atom->poly_count;
+    for (i = 0; i < nlocal; i++)
+      if (select[i]) {
+        ranpark->reset(seed,x[i]);
+        if (ranpark->uniform() > fraction) continue;
+        atom->type[i] = newtype;
+        // sets an entire element to same type
+        for(int ipoly=0; ipoly < poly_count[i]; ipoly++)
+          atom->node_types[i][ipoly] = newtype;
+          count++;
+      }
 
   // set dipole moments to random orientations in 3d or 2d
   // dipole length is determined by dipole type array

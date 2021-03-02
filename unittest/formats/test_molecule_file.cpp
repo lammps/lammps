@@ -98,8 +98,7 @@ TEST_F(MoleculeFileTest, minimal)
                 " 1 0.0 0.0 0.0\n");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*1 molecules"
-                                    ".*1 atoms.*0 bonds.*0. angles.*"));
+    ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
 }
 
 int main(int argc, char **argv)

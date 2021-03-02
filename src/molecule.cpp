@@ -725,6 +725,7 @@ void Molecule::types(char *line)
       readline(line);
 
       ValueTokenizer values(utils::trim(utils::trim_comment(line)));
+      if (values.count() != 2)
         error->one(FLERR,fmt::format("Invalid line in Types section of "
                                      "molecule file: {}",line));
 

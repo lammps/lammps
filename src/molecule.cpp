@@ -480,10 +480,16 @@ void Molecule::read(int flag)
         nibody = values.next_int();
         ndbody = values.next_int();
         nwant = 3;
-      } else break;
-
+      } else {
+        // unknown header keyword
+        if (utils::strmatch(text,"^\\d+\\s+\\S+")) {
+          values.next_int();
+          auto keyword = values.next_string();
+          error->one(FLERR,fmt::format("Invalid header keyword: {}",keyword));
+        } else break;
+      }
       if (nmatch != nwant)
-        error->one(FLERR,"Invalid header in molecule file");
+        error->one(FLERR,"Invalid header line format in molecule file");
     } catch (TokenizerException &e) {
       error->one(FLERR, fmt::format("Invalid header in molecule file\n"
                                     "{}", e.what()));

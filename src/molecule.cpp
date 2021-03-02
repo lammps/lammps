@@ -507,98 +507,98 @@ void Molecule::read(int flag)
 
   // grab keyword and skip next line
 
-  parse_keyword(0,line,keyword);
+  std::string keyword = parse_keyword(0,line);
   readline(line);
 
   // loop over sections of molecule file
 
-  while (strlen(keyword) > 0) {
-    if (strcmp(keyword,"Coords") == 0) {
+  while (!keyword.empty()) {
+    if (keyword == "Coords") {
       xflag = 1;
       if (flag) coords(line);
-      else skip_lines(natoms,line);
-    } else if (strcmp(keyword,"Types") == 0) {
+      else skip_lines(natoms,line,keyword);
+    } else if (keyword == "Types") {
       typeflag = 1;
       if (flag) types(line);
-      else skip_lines(natoms,line);
-    } else if (strcmp(keyword,"Molecules") == 0) {
+      else skip_lines(natoms,line,keyword);
+    } else if (keyword == "Molecules") {
       moleculeflag = 1;
       if (flag) molecules(line);
-      else skip_lines(natoms,line);
-    } else if (strcmp(keyword,"Fragments") == 0) {
+      else skip_lines(natoms,line,keyword);
+    } else if (keyword == "Fragments") {
       if (nfragments == 0)
         error->all(FLERR,"Molecule file has fragments but no nfragments setting");
       fragmentflag = 1;
       if (flag) fragments(line);
-      else skip_lines(nfragments,line);
-    } else if (strcmp(keyword,"Charges") == 0) {
+      else skip_lines(nfragments,line,keyword);
+    } else if (keyword == "Charges") {
       qflag = 1;
       if (flag) charges(line);
-      else skip_lines(natoms,line);
-    } else if (strcmp(keyword,"Diameters") == 0) {
+      else skip_lines(natoms,line,keyword);
+    } else if (keyword == "Diameters") {
       radiusflag = 1;
       if (flag) diameters(line);
-      else skip_lines(natoms,line);
-    } else if (strcmp(keyword,"Masses") == 0) {
+      else skip_lines(natoms,line,keyword);
+    } else if (keyword == "Masses") {
       rmassflag = 1;
       if (flag) masses(line);
-      else skip_lines(natoms,line);
+      else skip_lines(natoms,line,keyword);
 
-    } else if (strcmp(keyword,"Bonds") == 0) {
+    } else if (keyword == "Bonds") {
       if (nbonds == 0)
         error->all(FLERR,"Molecule file has bonds but no nbonds setting");
       bondflag = tag_require = 1;
       bonds(flag,line);
-    } else if (strcmp(keyword,"Angles") == 0) {
+    } else if (keyword == "Angles") {
       if (nangles == 0)
         error->all(FLERR,"Molecule file has angles but no nangles setting");
       angleflag = tag_require = 1;
       angles(flag,line);
-    } else if (strcmp(keyword,"Dihedrals") == 0) {
+    } else if (keyword == "Dihedrals") {
       if (ndihedrals == 0) error->all(FLERR,"Molecule file has dihedrals "
                                       "but no ndihedrals setting");
       dihedralflag = tag_require = 1;
       dihedrals(flag,line);
-    } else if (strcmp(keyword,"Impropers") == 0) {
+    } else if (keyword == "Impropers") {
       if (nimpropers == 0) error->all(FLERR,"Molecule file has impropers "
                                       "but no nimpropers setting");
       improperflag = tag_require = 1;
       impropers(flag,line);
 
-    } else if (strcmp(keyword,"Special Bond Counts") == 0) {
+    } else if (keyword == "Special Bond Counts") {
       nspecialflag = 1;
       nspecial_read(flag,line);
-    } else if (strcmp(keyword,"Special Bonds") == 0) {
+    } else if (keyword == "Special Bonds") {
       specialflag = tag_require = 1;
       if (flag) special_read(line);
-      else skip_lines(natoms,line);
+      else skip_lines(natoms,line,keyword);
 
-    } else if (strcmp(keyword,"Shake Flags") == 0) {
+    } else if (keyword == "Shake Flags") {
       shakeflagflag = 1;
       if (flag) shakeflag_read(line);
-      else skip_lines(natoms,line);
-    } else if (strcmp(keyword,"Shake Atoms") == 0) {
+      else skip_lines(natoms,line,keyword);
+    } else if (keyword == "Shake Atoms") {
       shakeatomflag = tag_require = 1;
       if (shaketypeflag) shakeflag = 1;
       if (!shakeflagflag)
         error->all(FLERR,"Molecule file shake flags not before shake atoms");
       if (flag) shakeatom_read(line);
-      else skip_lines(natoms,line);
-    } else if (strcmp(keyword,"Shake Bond Types") == 0) {
+      else skip_lines(natoms,line,keyword);
+    } else if (keyword == "Shake Bond Types") {
       shaketypeflag = 1;
       if (shakeatomflag) shakeflag = 1;
       if (!shakeflagflag)
         error->all(FLERR,"Molecule file shake flags not before shake bonds");
       if (flag) shaketype_read(line);
-      else skip_lines(natoms,line);
+      else skip_lines(natoms,line,keyword);
 
-    } else if (strcmp(keyword,"Body Integers") == 0) {
+    } else if (keyword == "Body Integers") {
       if (bodyflag == 0 || nibody == 0)
         error->all(FLERR,"Molecule file has body params "
                    "but no setting for them");
       ibodyflag = 1;
       body(flag,0,line);
-    } else if (strcmp(keyword,"Body Doubles") == 0) {
+    } else if (keyword == "Body Doubles") {
       if (bodyflag == 0 || ndbody == 0)
         error->all(FLERR,"Molecule file has body params "
                    "but no setting for them");
@@ -608,7 +608,7 @@ void Molecule::read(int flag)
     } else error->one(FLERR,fmt::format("Unknown section '{}' in molecule "
                                         "file", keyword));
 
-    parse_keyword(1,line,keyword);
+    keyword = parse_keyword(1,line);
   }
 
   // error check
@@ -1968,8 +1968,9 @@ void Molecule::readline(char *line)
    flag = 1, line has already been read
 ------------------------------------------------------------------------- */
 
-void Molecule::parse_keyword(int flag, char *line, char *keyword)
+std::string Molecule::parse_keyword(int flag, char *line)
 {
+  char line2[MAXLINE];
   if (flag) {
 
     // read upto non-blank line plus 1 following line
@@ -1981,42 +1982,38 @@ void Molecule::parse_keyword(int flag, char *line, char *keyword)
       while (eof == 0 && strspn(line," \t\n\r") == strlen(line)) {
         if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
       }
-      if (fgets(keyword,MAXLINE,fp) == nullptr) eof = 1;
+      if (fgets(line2,MAXLINE,fp) == nullptr) eof = 1;
     }
 
     // if eof, set keyword empty and return
 
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) {
-      keyword[0] = '\0';
-      return;
+      return std::string("");
     }
 
     // bcast keyword line to all procs
 
-    int n;
-    if (me == 0) n = strlen(line) + 1;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
   }
 
-  // copy non-whitespace and non-comment portion of line into keyword
+  // return non-whitespace and non-comment portion of line
 
-  int start = strspn(line," \t\n\r");
-  int stop = strcspn(line,"#") - 1;
-  while (line[stop] == ' ' || line[stop] == '\t'
-         || line[stop] == '\n' || line[stop] == '\r') stop--;
-  line[stop+1] = '\0';
-  strcpy(keyword,&line[start]);
+  return utils::trim(utils::trim_comment(line));
 }
 
 /* ----------------------------------------------------------------------
-   skip N lines of file
+   skip N lines of file. Check if non-numeric content (e.g. keyword).
 ------------------------------------------------------------------------- */
 
-void Molecule::skip_lines(int n, char *line)
+void Molecule::skip_lines(int n, char *line, const std::string &section)
 {
-  for (int i = 0; i < n; i++) readline(line);
+  for (int i = 0; i < n; i++) {
+    readline(line);
+    if (utils::strmatch(utils::trim(utils::trim_comment(line)),"^[A-Za-z ]+$"))
+      error->one(FLERR,fmt::format("Unexpected line in molecule file while "
+                                   "skipping {} section:\n{}",section,line));
+  }
 }
 
 /* ----------------------------------------------------------------------

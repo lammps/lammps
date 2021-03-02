@@ -55,14 +55,10 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   if (index >= narg) error->all(FLERR,"Illegal molecule command");
 
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
-
-  for (int i = 0; i < n-1; i++)
-    if (!isalnum(id[i]) && id[i] != '_')
-      error->all(FLERR,"Molecule template ID must be "
-                 "alphanumeric or underscore characters");
+  id = utils::strdup(arg[0]);
+  if (!utils::is_id(id))
+    error->all(FLERR,"Molecule template ID must be "
+               "alphanumeric or underscore characters");
 
   // parse args until reach unknown arg (next file)
 

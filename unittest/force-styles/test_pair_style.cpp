@@ -816,11 +816,16 @@ TEST(PairStyle, gpu)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    // relax error a bit for GPU package
-    double epsilon = 7.5 * test_config.epsilon;
-    // relax test precision when using pppm and single precision FFTs
+    // relax error for GPU package depending on precision setting
+    double epsilon = test_config.epsilon;
+    if (Info::has_accelerator_feature("GPU","precision","double"))
+        epsilon *= 7.5;
+    else if (Info::has_accelerator_feature("GPU","precision","mixed"))
+        epsilon *= 5.0e8;
+    else epsilon *= 1.0e10;
+    // relax test precision when using pppm and single precision FFTs, but only when also running with double precision
 #if defined(FFT_SINGLE)
-    if (lmp->force->kspace && lmp->force->kspace->compute_flag)
+    if (lmp->force->kspace && lmp->force->kspace->compute_flag && Info::has_accelerator_feature("GPU","precision","double"))
         if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
 #endif
     const std::vector<coord_t> &f_ref = test_config.init_forces;

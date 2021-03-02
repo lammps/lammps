@@ -851,7 +851,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 ------------------------------------------------------------------------- */
 
 bool utils::is_integer(const std::string &str) {
-  if (str.size() == 0) {
+  if (str.empty()) {
     return false;
   }
 
@@ -867,7 +867,7 @@ bool utils::is_integer(const std::string &str) {
 ------------------------------------------------------------------------- */
 
 bool utils::is_double(const std::string &str) {
-  if (str.size() == 0) {
+  if (str.empty()) {
     return false;
   }
 
@@ -875,6 +875,22 @@ bool utils::is_double(const std::string &str) {
     if (isdigit(c)) continue;
     if (c == '-' || c == '+' || c == '.') continue;
     if (c == 'e' || c == 'E') continue;
+    return false;
+  }
+  return true;
+}
+
+/* ----------------------------------------------------------------------
+   Return whether string is a valid ID string
+------------------------------------------------------------------------- */
+
+bool utils::is_id(const std::string &str) {
+  if (str.empty()) {
+    return false;
+  }
+
+  for (auto c : str) {
+    if (isalnum(c) || (c == '_')) continue;
     return false;
   }
   return true;

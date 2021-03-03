@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "atom.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
@@ -123,13 +124,13 @@ protected:
     void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)
     {
         std::string file = name + ".mol";
-        FILE *fp = fopen(file.c_str(), "w");
-        fputs(content.c_str(),fp);
+        FILE *fp         = fopen(file.c_str(), "w");
+        fputs(content.c_str(), fp);
         fclose(fp);
 
-        lmp->input->one(fmt::format("molecule {} {} {}",name,file,args));
+        lmp->input->one(fmt::format("molecule {} {} {}", name, file, args));
         remove(file.c_str());
-    }       
+    }
 };
 
 TEST_F(MoleculeFileTest, nofile)
@@ -148,48 +149,50 @@ TEST_F(MoleculeFileTest, badid)
 TEST_F(MoleculeFileTest, badargs)
 {
     TEST_FAILURE(".*Illegal molecule command.*",
-                 run_mol_cmd(test_name,"offset 1 2 3 4",
+                 run_mol_cmd(test_name, "offset 1 2 3 4",
                              "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
-    TEST_FAILURE(".*Illegal molecule command.*",
-                 run_mol_cmd(test_name,"toff",
-                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
-    TEST_FAILURE(".*Illegal molecule command.*",
-                 run_mol_cmd(test_name,"boff",
-                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
-    TEST_FAILURE(".*Illegal molecule command.*",
-                 run_mol_cmd(test_name,"aoff",
-                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
-    TEST_FAILURE(".*Illegal molecule command.*",
-                 run_mol_cmd(test_name,"doff",
-                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
-    TEST_FAILURE(".*Illegal molecule command.*",
-                 run_mol_cmd(test_name,"ioff",
-                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
-    TEST_FAILURE(".*Illegal molecule command.*",
-                 run_mol_cmd(test_name,"scale",
-                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule command.*",
+        run_mol_cmd(test_name, "toff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule command.*",
+        run_mol_cmd(test_name, "boff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule command.*",
+        run_mol_cmd(test_name, "aoff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule command.*",
+        run_mol_cmd(test_name, "doff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule command.*",
+        run_mol_cmd(test_name, "ioff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule command.*",
+        run_mol_cmd(test_name, "scale", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
     remove("badargs.mol");
 }
 
 TEST_F(MoleculeFileTest, noatom)
 {
     TEST_FAILURE(".*ERROR: No atoms or invalid atom count in molecule file.*",
-                 run_mol_cmd(test_name,"","Comment\n0 atoms\n1 bonds\n\n"
-                                    " Coords\n\nBonds\n\n 1 1 2\n"););
+                 run_mol_cmd(test_name, "",
+                             "Comment\n0 atoms\n1 bonds\n\n"
+                             " Coords\n\nBonds\n\n 1 1 2\n"););
     remove("noatom.mol");
 }
 
 TEST_F(MoleculeFileTest, empty)
 {
     TEST_FAILURE(".*ERROR: Unexpected end of molecule file.*",
-                 run_mol_cmd(test_name,"","Comment\n\n"););
+                 run_mol_cmd(test_name, "", "Comment\n\n"););
     remove("empty.mol");
 }
 
 TEST_F(MoleculeFileTest, nospecial)
 {
     TEST_FAILURE(".*ERROR: Cannot auto-generate special bonds before simulation box is defined.*",
-                 run_mol_cmd(test_name,"","Comment\n3 atoms\n\n2 bonds\n\n"
+                 run_mol_cmd(test_name, "",
+                             "Comment\n3 atoms\n\n2 bonds\n\n"
                              " Coords\n\n 1 1.0 1.0 1.0\n 2 1.0 1.0 0.0\n 3 1.0 0.0 1.0\n"
                              " Bonds\n\n 1 1 1 2\n 2 1 1 3\n"););
     remove("nospecial.mol");
@@ -198,22 +201,23 @@ TEST_F(MoleculeFileTest, nospecial)
 TEST_F(MoleculeFileTest, minimal)
 {
     ::testing::internal::CaptureStdout();
-    run_mol_cmd(test_name,"","Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
+    run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
+    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, twomols)
 {
     ::testing::internal::CaptureStdout();
-    run_mol_cmd(test_name,"","Comment\n2 atoms\n\n"
+    run_mol_cmd(test_name, "",
+                "Comment\n2 atoms\n\n"
                 " Coords\n\n 1 0.0 0.0 0.0\n 2 0.0 0.0 1.0\n"
                 " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*2 molecules.*2 atoms "
-                                    "with max type 2.*0 bonds.*"));
+    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*2 molecules.*2 atoms "
+                                     "with max type 2.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, twofiles)
@@ -222,12 +226,12 @@ TEST_F(MoleculeFileTest, twofiles)
     lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output,MatchesRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
-                                    "with max type 2.*2 bonds with max type 1.*"
-                                    "1 angles with max type 1.*0 dihedrals.*"
-                                    ".*Read molecule template twomols:.*1 molecules.*3 atoms "
-                                    "with max type 4.*2 bonds with max type 2.*"
-                                    "1 angles with max type 2.*0 dihedrals.*"));
+    ASSERT_THAT(output, MatchesRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
+                                     "with max type 2.*2 bonds with max type 1.*"
+                                     "1 angles with max type 1.*0 dihedrals.*"
+                                     ".*Read molecule template twomols:.*1 molecules.*3 atoms "
+                                     "with max type 4.*2 bonds with max type 2.*"
+                                     "1 angles with max type 2.*0 dihedrals.*"));
 }
 
 TEST_F(MoleculeFileTest, bonds)
@@ -237,7 +241,8 @@ TEST_F(MoleculeFileTest, bonds)
     lmp->input->one("region box block 0 1 0 1 0 1");
     lmp->input->one("create_box 2 box bond/types 2 extra/bond/per/atom 2 "
                     "extra/special/per/atom 4");
-    run_mol_cmd(test_name,"","Comment\n"
+    run_mol_cmd(test_name, "",
+                "Comment\n"
                 "4 atoms\n"
                 "2 bonds\n\n"
                 " Coords\n\n"
@@ -255,14 +260,30 @@ TEST_F(MoleculeFileTest, bonds)
                 " 2 2 1 3\n\n");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*1 molecules.*4 atoms.*type.*2.*"
-                                    "2 bonds.*type.*2.*0 angles.*"));
+    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*4 atoms.*type.*2.*"
+                                     "2 bonds.*type.*2.*0 angles.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one("create_atoms 0 single 0.0 0.0 0.0 mol bonds 67235");
+    lmp->input->one("mass * 2.0");
+    lmp->input->one("create_atoms 0 single 0.5 0.5 0.5 mol bonds 67235");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output,MatchesRegex(".*Created 4 atoms.*"));
+    ASSERT_THAT(output, MatchesRegex(".*Created 4 atoms.*"));
+
+    ::testing::internal::CaptureStdout();
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->natoms, 4);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    mol->compute_mass();
+    mol->compute_com();
+    ASSERT_DOUBLE_EQ(mol->masstotal, 8.0);
+    EXPECT_DOUBLE_EQ(mol->com[0], 1.0);
+    EXPECT_DOUBLE_EQ(mol->com[1], 0.5);
+    EXPECT_DOUBLE_EQ(mol->com[2], 0.5);
+    EXPECT_DOUBLE_EQ(mol->maxextent, sqrt(2));
+    EXPECT_EQ(mol->comatom, 1);
+    output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
 }
 
 int main(int argc, char **argv)

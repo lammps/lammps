@@ -98,10 +98,10 @@ and followed by a sequence of a string and an integer for each layer:
 * nnodes = Number of nodes
 
 This is followed by one block for each of the *nelem* elements. Each block consists
-of *scale0* minimum values, *scale1* (maximum - minimum) values,
+of *scale0* minimum value, *scale1* (maximum - minimum) value,
 in order to normalize the descriptors, followed by *nparams* parameters, 
 including *bias* and *weights* of the model, starting with the first node of the first layer
-and so on, max. 30 parameters per line. 
+and so on, with a maximum of 30 values per line. 
 
 Notes on mliappy models:
 When the *model* keyword is *mliappy*, the filename should end in '.pt',

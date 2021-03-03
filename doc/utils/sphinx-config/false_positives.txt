@@ -2096,6 +2096,7 @@ ncol
 ncorr
 ncount
 nd
+ndescriptors
 ndihedrals
 ndihedraltypes
 Ndihedraltype
@@ -2156,6 +2157,7 @@ niu
 Nk
 nktv
 nl
+nlayers
 nlen
 Nlines
 nlo
@@ -2171,6 +2173,7 @@ Nmin
 nmin
 Nmols
 nn
+nnodes
 Nocedal
 nocite
 nocoeff
@@ -2651,6 +2654,7 @@ reinit
 relaxbox
 relink
 relTol
+relu
 remappings
 remd
 Ren
@@ -2878,6 +2882,7 @@ si
 SiC
 Siepmann
 Sievers
+sigmoid
 Sij
 Sikandar
 Silbert

@@ -13,7 +13,7 @@ Syntax
 * N = # of atom types to use in this simulation
 * region-ID = ID of region to use as simulation domain
 * zero or more keyword/value pairs may be appended
-* keyword = *bond/types* or *angle/types* or *dihedral/types* or *improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom*
+* keyword = *bond/types* or *angle/types* or *dihedral/types* or *improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom* or *extra/special/per/atom*
 
   .. parsed-literal::
 

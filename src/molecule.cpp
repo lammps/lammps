@@ -125,16 +125,21 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   initialize();
 
-  // scan file for sizes of all fields and allocate them
+  // scan file for sizes of all fields and allocate storage for them
 
-  if (me == 0) open(arg[ifile]);
+  if (me == 0) {
+    fp = fopen(arg[ifile],"r");
+    if (fp == nullptr)
+      error->one(FLERR,fmt::format("Cannot open molecule file {}: {}",
+                                   arg[ifile], utils::getsyserror()));
+  }
   read(0);
   if (me == 0) fclose(fp);
   allocate();
 
   // read file again to populate all fields
 
-  if (me == 0) open(arg[ifile]);
+  if (me == 0) fp = fopen(arg[ifile],"r");
   read(1);
   if (me == 0) fclose(fp);
 
@@ -1960,18 +1965,6 @@ void Molecule::deallocate()
 
   memory->destroy(ibodyparams);
   memory->destroy(dbodyparams);
-}
-
-/* ----------------------------------------------------------------------
-   open molecule file
-------------------------------------------------------------------------- */
-
-void Molecule::open(char *file)
-{
-  fp = fopen(file,"r");
-  if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open molecule file {}: {}",
-                                 file, utils::getsyserror()));
 }
 
 /* ----------------------------------------------------------------------

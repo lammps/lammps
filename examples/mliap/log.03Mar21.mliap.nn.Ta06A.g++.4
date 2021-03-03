@@ -38,7 +38,7 @@ mass 1 180.88
 
 # choose potential
 
-include Ta06A.mliap.nn
+include Ta06A.nn.mliap
 # DATE: 2014-09-05 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014)
 
 # Definition of SNAP potential Ta_Cand06A
@@ -125,20 +125,20 @@ Step Temp E_pair c_energy TotEng Press v_press
       80    124.79303   -11.829099   -11.829099   -11.813094    1947.0715   -1947.0715 
       90    97.448054   -11.825592   -11.825592   -11.813094    2231.9563   -2231.9563 
      100    74.035418   -11.822589   -11.822589   -11.813094    2515.8526   -2515.8526 
-Loop time of 0.806392 on 4 procs for 100 steps with 128 atoms
+Loop time of 0.858301 on 4 procs for 100 steps with 128 atoms
 
-Performance: 5.357 ns/day, 4.480 hours/ns, 124.009 timesteps/s
-100.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 5.033 ns/day, 4.768 hours/ns, 116.509 timesteps/s
+100.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.75456    | 0.77908    | 0.7935     |   1.7 | 96.61
+Pair    | 0.75351    | 0.79999    | 0.85429    |   4.2 | 93.21
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0116     | 0.026033   | 0.050547   |   9.2 |  3.23
-Output  | 0.00071782 | 0.00075547 | 0.0008103  |   0.0 |  0.09
-Modify  | 0.00011633 | 0.00012274 | 0.0001295  |   0.0 |  0.02
-Other   |            | 0.0004031  |            |       |  0.05
+Comm    | 0.0026857  | 0.057019   | 0.10354    |  15.8 |  6.64
+Output  | 0.00078796 | 0.00080864 | 0.00085671 |   0.0 |  0.09
+Modify  | 0.00011437 | 0.00012275 | 0.00013339 |   0.0 |  0.01
+Other   |            | 0.0003564  |            |       |  0.04
 
 Nlocal:        32.0000 ave          32 max          32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

@@ -235,7 +235,8 @@ TEST_F(MoleculeFileTest, bonds)
     ::testing::internal::CaptureStdout();
     lmp->input->one("atom_style bond");
     lmp->input->one("region box block 0 1 0 1 0 1");
-    lmp->input->one("create_box 2 box bond/types 2 extra/special/per/atom 2");
+    lmp->input->one("create_box 2 box bond/types 2 extra/bond/per/atom 2 "
+                    "extra/special/per/atom 4");
     run_mol_cmd(test_name,"","Comment\n"
                 "4 atoms\n"
                 "2 bonds\n\n"
@@ -249,11 +250,6 @@ TEST_F(MoleculeFileTest, bonds)
                 " 2 1\n"
                 " 3 2\n"
                 " 4 2\n\n"
-                " Masses\n\n"
-                " 1 1.0\n"
-                " 2 2.0\n"
-                " 3 3.0\n"
-                " 4 4.0\n\n"
                 " Bonds\n\n"
                 " 1 1 1 2\n"
                 " 2 2 1 3\n\n");
@@ -261,6 +257,12 @@ TEST_F(MoleculeFileTest, bonds)
     if (verbose) std::cout << output;
     ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*1 molecules.*4 atoms.*type.*2.*"
                                     "2 bonds.*type.*2.*0 angles.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("create_atoms 0 single 0.0 0.0 0.0 mol bonds 67235");
+    output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output,MatchesRegex(".*Created 4 atoms.*"));
 }
 
 int main(int argc, char **argv)

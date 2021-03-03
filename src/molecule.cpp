@@ -57,7 +57,7 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   id = utils::strdup(arg[0]);
   if (!utils::is_id(id))
-    error->all(FLERR,"Molecule template ID must be "
+    error->all(FLERR,"Molecule template ID must have only "
                "alphanumeric or underscore characters");
 
   // parse args until reach unknown arg (next file)
@@ -499,7 +499,7 @@ void Molecule::read(int flag)
   // error checks
 
   if (natoms < 1)
-    error->all(FLERR,"No or invalid atom count in molecule file");
+    error->all(FLERR,"No atoms or invalid atom count in molecule file");
   if (nbonds < 0) error->all(FLERR,"Invalid bond count in molecule file");
   if (nangles < 0) error->all(FLERR,"Invalid angle count in molecule file");
   if (ndihedrals < 0)
@@ -533,7 +533,7 @@ void Molecule::read(int flag)
       else skip_lines(natoms,line,keyword);
     } else if (keyword == "Fragments") {
       if (nfragments == 0)
-        error->all(FLERR,"Molecule file has fragments but no nfragments setting");
+        error->all(FLERR,"Found Fragments section but no nfragments setting in header");
       fragmentflag = 1;
       if (flag) fragments(line);
       else skip_lines(nfragments,line,keyword);
@@ -552,22 +552,22 @@ void Molecule::read(int flag)
 
     } else if (keyword == "Bonds") {
       if (nbonds == 0)
-        error->all(FLERR,"Molecule file has bonds but no nbonds setting");
+        error->all(FLERR,"Found Bonds section but no nbonds setting in header");
       bondflag = tag_require = 1;
       bonds(flag,line);
     } else if (keyword == "Angles") {
       if (nangles == 0)
-        error->all(FLERR,"Molecule file has angles but no nangles setting");
+        error->all(FLERR,"Found Angles section but no nangles setting in header");
       angleflag = tag_require = 1;
       angles(flag,line);
     } else if (keyword == "Dihedrals") {
-      if (ndihedrals == 0) error->all(FLERR,"Molecule file has dihedrals "
-                                      "but no ndihedrals setting");
+      if (ndihedrals == 0) error->all(FLERR,"Found Dihedrals section"
+                                      "but no ndihedrals setting in header");
       dihedralflag = tag_require = 1;
       dihedrals(flag,line);
     } else if (keyword == "Impropers") {
-      if (nimpropers == 0) error->all(FLERR,"Molecule file has impropers "
-                                      "but no nimpropers setting");
+      if (nimpropers == 0) error->all(FLERR,"Found Impropers section"
+                                      "but no nimpropers setting in header");
       improperflag = tag_require = 1;
       impropers(flag,line);
 
@@ -587,27 +587,25 @@ void Molecule::read(int flag)
       shakeatomflag = tag_require = 1;
       if (shaketypeflag) shakeflag = 1;
       if (!shakeflagflag)
-        error->all(FLERR,"Molecule file shake flags not before shake atoms");
+        error->all(FLERR,"Shake Flags section must come before Shake Atoms section");
       if (flag) shakeatom_read(line);
       else skip_lines(natoms,line,keyword);
     } else if (keyword == "Shake Bond Types") {
       shaketypeflag = 1;
       if (shakeatomflag) shakeflag = 1;
       if (!shakeflagflag)
-        error->all(FLERR,"Molecule file shake flags not before shake bonds");
+        error->all(FLERR,"Shake Flags section must come before Shake Bonds section");
       if (flag) shaketype_read(line);
       else skip_lines(natoms,line,keyword);
 
     } else if (keyword == "Body Integers") {
       if (bodyflag == 0 || nibody == 0)
-        error->all(FLERR,"Molecule file has body params "
-                   "but no setting for them");
+        error->all(FLERR,"Found Body Integers section but no setting in header");
       ibodyflag = 1;
       body(flag,0,line);
     } else if (keyword == "Body Doubles") {
       if (bodyflag == 0 || ndbody == 0)
-        error->all(FLERR,"Molecule file has body params "
-                   "but no setting for them");
+        error->all(FLERR,"Found Body Doubles section but no setting in header");
       dbodyflag = 1;
       body(flag,1,line);
     } else {
@@ -693,7 +691,7 @@ void Molecule::coords(char *line)
 
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms)
-        error->one(FLERR,"Invalid Coords section in molecule file");
+        error->one(FLERR,"Invalid atom index in Coords section of molecule file");
       count[iatom]++;
       x[iatom][0] = values.next_double();
       x[iatom][1] = values.next_double();

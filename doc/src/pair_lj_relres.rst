@@ -13,8 +13,8 @@ Syntax
 
    pair_style lj/relres Rsi Rso Rci Rco
 
-* Rsi = inner switching distance between the fine-grained and coarse-grained potentials (distance units)
-* Rso = outer switching distance between the fine-grained and coarse-grained potentials (distance units)
+* Rsi = inner switching cutoff between the fine-grained and coarse-grained potentials (distance units)
+* Rso = outer switching cutoff between the fine-grained and coarse-grained potentials (distance units)
 * Rci = inner cutoff beyond which the force smoothing for all interactions is applied (distance units)
 * Rco = outer cutoff for all interactions (distance units)
 
@@ -48,14 +48,14 @@ a reference system :ref:`(Chaimovich2) <Chaimovich2>`.
         0, & \quad\mathrm{if}\quad  r\geq r_{co}.\end{array}\right.
 
 The FG parameters of the LJ potential (:math:`\epsilon^{FG}` and
-:math:`\sigma^{FG}`) are applied up to the inner switching distance,
+:math:`\sigma^{FG}`) are applied up to the inner switching cutoff,
 :math:`r_{si}`, while the CG parameters of the LJ potential
 (:math:`\epsilon^{CG}` and :math:`\sigma^{CG}`) are applied beyond the
-outer switching distance, :math:`r_{so}`. Between :math:`r_{si}` and
+outer switching cutoff, :math:`r_{so}`. Between :math:`r_{si}` and
 :math:`r_{so}` a polynomial smoothing function is applied so that the
 force and its derivative are continuous between the FG and CG
 potentials.  An analogous smoothing function is applied between the
-inner and outer cutoff distances (:math:`r_{ci}` and :math:`r_{co}`).
+inner and outer cutoffs (:math:`r_{ci}` and :math:`r_{co}`).
 The offsets :math:`\Gamma_{si}`, :math:`\Gamma_{so}` and
 :math:`\Gamma_{c}` ensure the continuity of the energy over the entire
 domain.  The corresponding polynomial coefficients :math:`\gamma_{sm}`
@@ -147,16 +147,17 @@ case, Ref. :ref:`(Chaimovich2) <Chaimovich2>` discusses the alternative
 formula, and in such a situation, the pair_coeff command should be explicitly
 used for all combinations of atom types :math:`I\;!=J`.
 
-The switching distance is another crucial parameter in RelRes:
-decreasing it improves the computational efficiency, yet if it is too
-small, the molecular simulations may not capture the system behavior
-correctly.  As a rule of thumb, the switching distance should be
-approximately :math:`\,\sim\! 1.5\sigma` :ref:`(Chaimovich1) <Chaimovich1>`;
-recommendations can be found in Ref. :ref:`(Chaimovich2) <Chaimovich2>`.
-Regarding the smoothing zone itself, :math:`\,\sim\!0.1\sigma` is
+The switching distance (the midpoint between inner and outer switching
+cutoffs) is another crucial factor in RelRes: decreasing it improves the
+computational efficiency, yet if it is too small, the molecular simulations
+may not capture the system behavior correctly.  As a rule of thumb,
+the switching distance should be approximately :math:`\,\sim\! 1.5\sigma`
+:ref:`(Chaimovich1) <Chaimovich1>`; recommendations can be found in
+Ref. :ref:`(Chaimovich2) <Chaimovich2>`.
+Regarding the switching smoothing zone, :math:`\,\sim\!0.1\sigma` is
 recommended; if desired, smoothing can be eliminated by setting
-the inner switching distance, :math:`r_{si}`, equal to the outer
-switching distance, :math:`r_{so}` (the same is true for the cutoffs
+the inner switching cutoff, :math:`r_{si}`, equal to the outer
+switching cutoff, :math:`r_{so}` (the same is true for the other cutoffs
 :math:`r_{ci}` and :math:`r_{co}`).
 
 ----------
@@ -176,7 +177,7 @@ the following commands should be used:
 
 In a more complex situation, there may be two distinct clusters in a system
 (these two clusters may be on same molecule or on different molecules),
-each with its own switching distance.  If there are still two atom types
+each with its own switching cutoffs.  If there are still two atom types
 in each cluster as in the earlier example, the commands should be:
 
 .. code-block:: LAMMPS
@@ -188,7 +189,7 @@ in each cluster as in the earlier example, the commands should be:
    pair_coeff 4 4 epsilon_FG4 sigma_FG4 0.0         0.0
    pair_modify shift yes
 
-In this example, the switching distance for the first cluster (atom types 1
+In this example, the switching cutoffs for the first cluster (atom types 1
 and 2) is defined explicitly in the pair_coeff command which overrides the
 global values, while the second cluster (atom types 3 and 4) uses the global
 definition from the pair_style command. The emphasis here is that the atom
@@ -214,7 +215,7 @@ system from the previous example, we recommend using the following commands:
    pair_modify shift yes
 
 Notice that the CG parameters are mixed only for interactions between atom
-types associated with hybrid sites, and that the switching distances are
+types associated with hybrid sites, and that the cutoffs are
 mixed on the cluster basis.
 
 More examples can be found in the *examples/relres* folder.

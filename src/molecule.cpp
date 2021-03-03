@@ -887,8 +887,6 @@ void Molecule::diameters(char *line)
       if (values.count() != 2)
         error->all(FLERR,fmt::format("Invalid line in Diameters section of "
                                      "molecule file: {}",line));
-
-
       int iatom = values.next_int() - 1;
       if (iatom < 0 || iatom >= natoms)
         error->all(FLERR,"Invalid atom index in Diameters section of molecule file");
@@ -924,24 +922,29 @@ void Molecule::masses(char *line)
       readline(line);
 
       ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 2) error->all(FLERR,"Invalid Masses section in molecule file");
+      if (values.count() != 2)
+        error->all(FLERR,fmt::format("Invalid line in Masses section of "
+                                     "molecule file: {}",line));
 
       int iatom = values.next_int() - 1;
-      if (iatom < 0 || iatom >= natoms) error->all(FLERR,"Invalid Masses section in molecule file");
+      if (iatom < 0 || iatom >= natoms)
+        error->all(FLERR,"Invalid atom index in Masses section of molecule file");
       count[iatom]++;
       rmass[iatom] = values.next_double();
       rmass[iatom] *= sizescale*sizescale*sizescale;
     }
   } catch (TokenizerException &e) {
-    error->all(FLERR, fmt::format("Invalid Masses section in molecule file\n"
-                                  "{}", e.what()));
+    error->all(FLERR, fmt::format("Invalid line in Masses section of "
+                                  "molecule file: {}\n{}",e.what(),line));
   }
 
-  for (int i = 0; i < natoms; i++)
-    if (count[i] == 0) error->all(FLERR,"Invalid Masses section in molecule file");
-
-  for (int i = 0; i < natoms; i++)
-    if (rmass[i] <= 0.0) error->all(FLERR,"Invalid atom mass in molecule file");
+  for (int i = 0; i < natoms; i++) {
+    if (count[i] == 0)   error->all(FLERR,fmt::format("Atom {} missing in Masses "
+                                                    "section of molecule file",i+1));
+    if (rmass[i] <= 0.0)
+      error->all(FLERR,fmt::format("Invalid atom mass {} for atom {} "
+                                   "in molecule file", radius[i], i+1));
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -968,14 +971,16 @@ void Molecule::bonds(int flag, char *line)
 
     try {
       ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 4) error->all(FLERR,"Invalid Bonds section in molecule file");
+      if (values.count() != 4)
+        error->all(FLERR,fmt::format("Invalid line in Bonds section of "
+                                     "molecule file: {}",line));
       values.next_int();
       itype = values.next_int();
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
     } catch (TokenizerException &e) {
-      error->all(FLERR, fmt::format("Invalid Bonds section in molecule file\n"
-                                    "{}", e.what()));
+      error->all(FLERR, fmt::format("Invalid line in Bonds section of "
+                                  "molecule file: {}\n{}",e.what(),line));
     }
 
     itype += boffset;
@@ -1036,15 +1041,17 @@ void Molecule::angles(int flag, char *line)
 
     try {
       ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 5) error->all(FLERR,"Invalid Angles section in molecule file");
+      if (values.count() != 5)
+        error->all(FLERR,fmt::format("Invalid line in Angles section of "
+                                     "molecule file: {}",line));
       values.next_int();
       itype = values.next_int();
       atom1 = values.next_tagint();
       atom2 = values.next_tagint();
       atom3 = values.next_tagint();
     } catch (TokenizerException &e) {
-      error->all(FLERR, fmt::format("Invalid Angles section in molecule file\n"
-                                    "{}", e.what()));
+      error->all(FLERR, fmt::format("Invalid line in Angles section of "
+                                    "molecule file: {}\n{}",e.what(),line));
     }
 
     itype += aoffset;
@@ -1120,7 +1127,10 @@ void Molecule::dihedrals(int flag, char *line)
 
     try {
       ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 6) error->all(FLERR,"Invalid Dihedrals section in molecule file");
+      if (values.count() != 6)
+        error->all(FLERR,fmt::format("Invalid line in Dihedrals section of "
+                                     "molecule file: {}",line));
+
       values.next_int();
       itype = values.next_int();
       atom1 = values.next_tagint();
@@ -1128,8 +1138,8 @@ void Molecule::dihedrals(int flag, char *line)
       atom3 = values.next_tagint();
       atom4 = values.next_tagint();
     } catch (TokenizerException &e) {
-      error->all(FLERR, fmt::format("Invalid Dihedrals section in molecule file\n"
-                                    "{}", e.what()));
+      error->all(FLERR, fmt::format("Invalid line in Dihedrals section of "
+                                    "molecule file: {}\n{}",e.what(),line));
     }
 
     itype += doffset;
@@ -1219,7 +1229,9 @@ void Molecule::impropers(int flag, char *line)
 
     try {
       ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 6) error->all(FLERR,"Invalid Impropers section in molecule file");
+      if (values.count() != 6)
+                error->all(FLERR,fmt::format("Invalid line in Impropers section of "
+                                     "molecule file: {}",line));
       values.next_int();
       itype = values.next_int();
       atom1 = values.next_tagint();
@@ -1227,8 +1239,8 @@ void Molecule::impropers(int flag, char *line)
       atom3 = values.next_tagint();
       atom4 = values.next_tagint();
     } catch (TokenizerException &e) {
-      error->all(FLERR, fmt::format("Invalid Impropers section in molecule file\n"
-                                    "{}", e.what()));
+      error->all(FLERR, fmt::format("Invalid line in Impropers section of "
+                                    "molecule file: {}\n{}",e.what(),line));
     }
 
     itype += ioffset;
@@ -1312,14 +1324,16 @@ void Molecule::nspecial_read(int flag, char *line)
 
     try {
       ValueTokenizer values(utils::trim_comment(line));
-      if (values.count() != 4) error->all(FLERR,"Invalid Special Bond Counts section in molecule file");
+      if (values.count() != 4)
+        error->all(FLERR,fmt::format("Invalid line in Special Bond Counts section of "
+                                     "molecule file: {}",line));
       values.next_int();
       c1 = values.next_tagint();
       c2 = values.next_tagint();
       c3 = values.next_tagint();
     } catch (TokenizerException &e) {
-      error->all(FLERR, fmt::format("Invalid Special Bond Counts section in molecule file\n"
-                                    "{}", e.what()));
+      error->all(FLERR, fmt::format("Invalid line in Special Bond Counts section of "
+                                    "molecule file: {}\n{}",e.what(),line));
     }
 
     if (flag) {
@@ -1353,12 +1367,13 @@ void Molecule::special_read(char *line)
         special[i][m-1] = values.next_tagint();
         if (special[i][m-1] <= 0 || special[i][m-1] > natoms ||
             special[i][m-1] == i+1)
-          error->all(FLERR,"Invalid special atom index in molecule file");
+          error->all(FLERR,"Invalid atom index in Special Bonds "
+                     "section of molecule file");
       }
     }
   } catch (TokenizerException &e) {
-    error->all(FLERR, fmt::format("Invalid Molecule file special list\n"
-                                  "{}", e.what()));
+    error->all(FLERR, fmt::format("Invalid line in Special Bonds section of "
+                                  "molecule file: {}\n{}",e.what(),line));
   }
 }
 

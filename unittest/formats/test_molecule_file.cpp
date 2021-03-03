@@ -106,6 +106,7 @@ protected:
         int argc           = sizeof(args) / sizeof(char *);
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+        create_molecule_files();
         if (!verbose) ::testing::internal::GetCapturedStdout();
         ASSERT_NE(lmp, nullptr);
     }
@@ -115,6 +116,8 @@ protected:
         if (!verbose) ::testing::internal::CaptureStdout();
         delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
+        remove("h2o.mol");
+        remove("co2.mol");
     }
 
     void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)
@@ -135,12 +138,61 @@ TEST_F(MoleculeFileTest, nofile)
                  lmp->input->one("molecule 1 nofile.mol"););
 }
 
+TEST_F(MoleculeFileTest, badid)
+{
+    TEST_FAILURE(".*Molecule template ID must have only "
+                 "alphanumeric or underscore characters.*",
+                 lmp->input->one("molecule @mol nofile.mol"););
+}
+
+TEST_F(MoleculeFileTest, badargs)
+{
+    TEST_FAILURE(".*Illegal molecule command.*",
+                 run_mol_cmd(test_name,"offset 1 2 3 4",
+                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(".*Illegal molecule command.*",
+                 run_mol_cmd(test_name,"toff",
+                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(".*Illegal molecule command.*",
+                 run_mol_cmd(test_name,"boff",
+                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(".*Illegal molecule command.*",
+                 run_mol_cmd(test_name,"aoff",
+                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(".*Illegal molecule command.*",
+                 run_mol_cmd(test_name,"doff",
+                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(".*Illegal molecule command.*",
+                 run_mol_cmd(test_name,"ioff",
+                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(".*Illegal molecule command.*",
+                 run_mol_cmd(test_name,"scale",
+                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    remove("badargs.mol");
+}
+
 TEST_F(MoleculeFileTest, noatom)
 {
-    TEST_FAILURE(".*ERROR: No or invalid atom count in molecule file.*",
+    TEST_FAILURE(".*ERROR: No atoms or invalid atom count in molecule file.*",
                  run_mol_cmd(test_name,"","Comment\n0 atoms\n1 bonds\n\n"
                                     " Coords\n\nBonds\n\n 1 1 2\n"););
     remove("noatom.mol");
+}
+
+TEST_F(MoleculeFileTest, empty)
+{
+    TEST_FAILURE(".*ERROR: Unexpected end of molecule file.*",
+                 run_mol_cmd(test_name,"","Comment\n\n"););
+    remove("empty.mol");
+}
+
+TEST_F(MoleculeFileTest, nospecial)
+{
+    TEST_FAILURE(".*ERROR: Cannot auto-generate special bonds before simulation box is defined.*",
+                 run_mol_cmd(test_name,"","Comment\n3 atoms\n\n2 bonds\n\n"
+                             " Coords\n\n 1 1.0 1.0 1.0\n 2 1.0 1.0 0.0\n 3 1.0 0.0 1.0\n"
+                             " Bonds\n\n 1 1 1 2\n 2 1 1 3\n"););
+    remove("nospecial.mol");
 }
 
 TEST_F(MoleculeFileTest, minimal)
@@ -167,7 +219,6 @@ TEST_F(MoleculeFileTest, twomols)
 TEST_F(MoleculeFileTest, twofiles)
 {
     ::testing::internal::CaptureStdout();
-    create_molecule_files();
     lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
@@ -177,8 +228,39 @@ TEST_F(MoleculeFileTest, twofiles)
                                     ".*Read molecule template twomols:.*1 molecules.*3 atoms "
                                     "with max type 4.*2 bonds with max type 2.*"
                                     "1 angles with max type 2.*0 dihedrals.*"));
-    remove("h2o.mol");
-    remove("co2.mol");
+}
+
+TEST_F(MoleculeFileTest, bonds)
+{
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("atom_style bond");
+    lmp->input->one("region box block 0 1 0 1 0 1");
+    lmp->input->one("create_box 2 box bond/types 2 extra/special/per/atom 2");
+    run_mol_cmd(test_name,"","Comment\n"
+                "4 atoms\n"
+                "2 bonds\n\n"
+                " Coords\n\n"
+                " 1 1.0 1.0 1.0\n"
+                " 2 1.0 1.0 0.0\n"
+                " 3 1.0 0.0 1.0\n"
+                " 4 1.0 0.0 0.0\n"
+                " Types\n\n"
+                " 1 1\n"
+                " 2 1\n"
+                " 3 2\n"
+                " 4 2\n\n"
+                " Masses\n\n"
+                " 1 1.0\n"
+                " 2 2.0\n"
+                " 3 3.0\n"
+                " 4 4.0\n\n"
+                " Bonds\n\n"
+                " 1 1 1 2\n"
+                " 2 2 1 3\n\n");
+    auto output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    ASSERT_THAT(output,MatchesRegex(".*Read molecule template.*1 molecules.*4 atoms.*type.*2.*"
+                                    "2 bonds.*type.*2.*0 angles.*"));
 }
 
 int main(int argc, char **argv)

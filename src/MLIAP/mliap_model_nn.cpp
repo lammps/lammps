@@ -11,6 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Pedro Antonio Santos Flórez (UNLV)
+------------------------------------------------------------------------- */
+
 #include "mliap_model_nn.h"
 #include "pair_mliap.h"
 #include "mliap_data.h"
@@ -19,6 +23,8 @@
 #include "comm.h"
 #include "memory.h"
 #include "tokenizer.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -52,9 +58,9 @@ MLIAPModelNN::~MLIAPModelNN()
 
 int MLIAPModelNN::get_nparams()
 {
-  if (nparams == 0) {
+  if (nparams == 0)
     if (ndescriptors == 0) error->all(FLERR,"ndescriptors not defined");
-  }
+
   return nparams;
 }
 
@@ -71,7 +77,7 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
                                    coefffilename,utils::getsyserror()));
   }
 
-  char line[MAXLINE],*ptr, *tstr;
+  char line[MAXLINE], *ptr, *tstr;
   int eof = 0;
 
   int n;
@@ -199,9 +205,7 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
         }
     }
   }
-  if (comm->me == 0) fclose(fpcoeff);
 }
-
 
 /*  ----------------------------------------------------------------------
    Calculate model gradients w.r.t descriptors
@@ -231,19 +235,28 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
     
       // forwardprop
       // input - hidden1
+
       for (int n=0; n < nnodes[0]; n++) {
         nodes[0][n] = 0;
         for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
-          nodes[0][n] += coeffi[n*((data->ndescriptors)+1)+icoeff+1] * (data->descriptors[ii][icoeff] - scalei[0][icoeff]) / scalei[1][icoeff];
+          nodes[0][n] += coeffi[n*((data->ndescriptors)+1)+icoeff+1] * 
+	    (data->descriptors[ii][icoeff] - scalei[0][icoeff]) / 
+	    scalei[1][icoeff];
         }
         if (activation[0] == 1) {
-          nodes[0][n] = sigm(nodes[0][n] + coeffi[n*((data->ndescriptors)+1)], dnodes[0][n]);
+          nodes[0][n] = sigm(nodes[0][n] + 
+			     coeffi[n*((data->ndescriptors)+1)], 
+			     dnodes[0][n]);
         }
         else if (activation[0] == 2) {
-          nodes[0][n] = tanh(nodes[0][n] + coeffi[n*((data->ndescriptors)+1)], dnodes[0][n]);
+          nodes[0][n] = tanh(nodes[0][n] + 
+			     coeffi[n*((data->ndescriptors)+1)], 
+			     dnodes[0][n]);
         }
         else if (activation[0] == 3) {
-          nodes[0][n] = relu(nodes[0][n] + coeffi[n*((data->ndescriptors)+1)], dnodes[0][n]);
+          nodes[0][n] = relu(nodes[0][n] + 
+			     coeffi[n*((data->ndescriptors)+1)], 
+			     dnodes[0][n]);
         }
         else {
           nodes[0][n] += coeffi[n*((data->ndescriptors)+1)];
@@ -252,6 +265,7 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
       }
 
       // hidden~output
+
       int k = 0;
       if (nl > 1) {
         k += ((data->ndescriptors)+1)*nnodes[0];
@@ -259,16 +273,23 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
           for (int n=0; n < nnodes[l]; n++) {
             nodes[l][n] = 0;
             for (int j=0; j < nnodes[l-1]; j++) {
-              nodes[l][n] += coeffi[k+n*(nnodes[l-1]+1)+j+1] * nodes[l-1][j];
+              nodes[l][n] += coeffi[k+n*(nnodes[l-1]+1)+j+1] * 
+		nodes[l-1][j];
             }
             if (activation[l] == 1) {
-              nodes[l][n] = sigm(nodes[l][n] + coeffi[k+n*(nnodes[l-1]+1)], dnodes[l][n]);
+              nodes[l][n] = sigm(nodes[l][n] + 
+				 coeffi[k+n*(nnodes[l-1]+1)], 
+				 dnodes[l][n]);
             }
             else if (activation[l] == 2) {
-              nodes[l][n] = tanh(nodes[l][n] + coeffi[k+n*(nnodes[l-1]+1)], dnodes[l][n]);
+              nodes[l][n] = tanh(nodes[l][n] + 
+				 coeffi[k+n*(nnodes[l-1]+1)], 
+				 dnodes[l][n]);
             }
             else if (activation[l] == 3) {
-              nodes[l][n] = relu(nodes[l][n] + coeffi[k+n*(nnodes[l-1]+1)], dnodes[l][n]);
+              nodes[l][n] = relu(nodes[l][n] + 
+				 coeffi[k+n*(nnodes[l-1]+1)], 
+				 dnodes[l][n]);
             }
             else {
               nodes[l][n] += coeffi[k+n*(nnodes[l-1]+1)];
@@ -297,7 +318,8 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
           for (int n=0; n<nnodes[l-1]; n++) {
             bnodes[l-1][n] = 0;
             for (int j=0; j<nnodes[l]; j++) {
-              bnodes[l-1][n] += coeffi[k+j*(nnodes[l-1]+1)+n+1] * bnodes[l][j];
+              bnodes[l-1][n] += coeffi[k+j*(nnodes[l-1]+1)+n+1] * 
+		bnodes[l][j];
             }
             if (activation[l-1] >= 1) {
               bnodes[l-1][n] *= dnodes[l-1][n];
@@ -309,7 +331,9 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
       for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
         data->betas[ii][icoeff] = 0;
         for (int j=0; j<nnodes[0]; j++) {
-          data->betas[ii][icoeff] += coeffi[j*((data->ndescriptors)+1)+icoeff+1] * bnodes[0][j];
+          data->betas[ii][icoeff] += 
+	    coeffi[j*((data->ndescriptors)+1)+icoeff+1] * 
+	    bnodes[0][j];
         }
 	data->betas[ii][icoeff] = data->betas[ii][icoeff]/scalei[1][icoeff];
       }

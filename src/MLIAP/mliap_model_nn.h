@@ -15,7 +15,6 @@
 #define LMP_MLIAP_MODEL_NN_H
 
 #include "mliap_model.h"
-#include <math.h>
 
 namespace LAMMPS_NS {
 
@@ -38,23 +37,20 @@ protected:
   double ***scale;               // element scale values
   double **coeffelem;            // element coefficients
   virtual void read_coeffs(char *);
-};
 
-}
-
-static inline double sigm(double x, double &deriv) {
+  inline double sigm(double x, double &deriv) {
     double expl = 1./(1.+exp(-x));
     deriv = expl*(1-expl);
     return expl;
-}
+  }
 
-static inline double tanh(double x, double &deriv) {
+  inline double tanh(double x, double &deriv) {
     double expl = 2./(1.+exp(-2.*x))-1;
     deriv = 1.-expl*expl;
     return expl;
-}
+  }
 
-static inline double relu(double x, double &deriv) {
+  inline double relu(double x, double &deriv) {
     if (x > 0) {
         deriv = 1.;
         return x;
@@ -62,6 +58,10 @@ static inline double relu(double x, double &deriv) {
         deriv = 0.;
         return 0;
     }
+  }
+
+};
+
 }
 
 #endif

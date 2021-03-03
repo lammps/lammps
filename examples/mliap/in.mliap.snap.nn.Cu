@@ -9,7 +9,7 @@ variable a equal 3.621262
 units           metal
 
 
-# generate the box and atom positions using a BCC lattice
+# generate the box and atom positions using a FCC lattice
 
 variable nx equal ${nrep}
 variable ny equal ${nrep}

@@ -29,7 +29,8 @@ const char *ellipsoid_nbor=0;
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0) {
+BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0),
+                                  host_olist_size(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
@@ -37,6 +38,10 @@ BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0) {
   ellipsoid_program=nullptr;
   lj_program=nullptr;
   ucl_device=nullptr;
+  #if defined(LAL_OCL_EV_JIT)
+  ellipsoid_program_noev=nullptr;
+  lj_program_noev=nullptr;
+  #endif
 }
 
 template <class numtyp, class acctyp>
@@ -53,6 +58,14 @@ BaseEllipsoidT::~BaseEllipsoid() {
   if (nbor_program) delete nbor_program;
   if (ellipsoid_program) delete ellipsoid_program;
   if (lj_program) delete lj_program;
+  #if defined(LAL_OCL_EV_JIT)
+  k_ellipsoid_noev.clear();
+  k_ellipsoid_sphere_noev.clear();
+  k_sphere_ellipsoid_noev.clear();
+  k_lj_fast.clear();
+  if (ellipsoid_program_noev) delete ellipsoid_program_noev;
+  if (lj_program_noev) delete lj_program_noev;
+  #endif
 }
 
 template <class numtyp, class acctyp>
@@ -89,11 +102,6 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   if (success!=0)
     return success;
 
-  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
-                  max_nbors,cell_size,true,1);
-  if (success!=0)
-    return success;
-
   if (ucl_device!=device->gpu) _compiled=false;
 
   ucl_device=device->gpu;
@@ -101,6 +109,11 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
 
   _block_size=device->block_ellipse();
   compile_kernels(*ucl_device,ellipsoid_program,lj_program,k_name,ellip_sphere);
+
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+                  max_nbors,cell_size,true,1);
+  if (success!=0)
+    return success;
 
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
@@ -133,12 +146,11 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   if (_multiple_forms && gpu_nbor!=0)
     return -9;
 
-  if (_multiple_forms)
+  if (_multiple_forms) {
     ans->force.zero();
-
-  // Memory for ilist ordered by particle type
-  if (host_olist.alloc(nbor->max_atoms(),*ucl_device)!=UCL_SUCCESS)
-    return -3;
+    host_olist_size = nbor->max_atoms();
+    host_olist = new int[nbor->max_atoms()];
+  }
 
   _max_an_bytes=ans->gpu_bytes()+nbor->gpu_bytes();
 
@@ -160,7 +172,10 @@ template <class numtyp, class acctyp>
 void BaseEllipsoidT::clear_base() {
   // Output any timing information
   output_times();
-  host_olist.clear();
+  if (host_olist_size) {
+    host_olist_size = 0;
+    delete []host_olist;
+  }
 
   time_nbor1.clear();
   time_ellipsoid.clear();
@@ -206,10 +221,14 @@ void BaseEllipsoidT::output_times() {
   MPI_Reduce(&_max_bytes,&mpi_max_bytes,1,MPI_DOUBLE,MPI_MAX,0,
              device->replica());
   double max_mb=mpi_max_bytes/(1024*1024);
-  double t_time=times[0]+times[1]+times[2]+times[3]+times[4]+times[5];
+
+  #ifdef USE_OPENCL
+  // Workaround for timing issue on Intel OpenCL
+  if (times[3] > 80e6) times[3]=0.0;
+  #endif
 
   if (device->replica_me()==0)
-    if (screen && times[5]>0.0) {
+    if (screen && times[7]>0.0) {
       int replica_size=device->replica_size();
 
       fprintf(screen,"\n\n-------------------------------------");
@@ -218,9 +237,8 @@ void BaseEllipsoidT::output_times() {
       fprintf(screen,"\n-------------------------------------");
       fprintf(screen,"--------------------------------\n");
 
-      if (device->procs_per_gpu()==1 && t_time>0) {
+      if (device->procs_per_gpu()==1 && times[3]>0) {
         fprintf(screen,"Data Transfer:   %.4f s.\n",times[0]/replica_size);
-        fprintf(screen,"Data Cast/Pack:  %.4f s.\n",times[5]/replica_size);
         fprintf(screen,"Neighbor copy:   %.4f s.\n",times[1]/replica_size);
         if (nbor->gpu_nbor()>0)
           fprintf(screen,"Neighbor build:  %.4f s.\n",times[2]/replica_size);
@@ -229,13 +247,15 @@ void BaseEllipsoidT::output_times() {
         fprintf(screen,"Force calc:      %.4f s.\n",times[3]/replica_size);
         fprintf(screen,"LJ calc:         %.4f s.\n",times[4]/replica_size);
       }
-      if (nbor->gpu_nbor()==2)
-        fprintf(screen,"Neighbor (CPU):  %.4f s.\n",times[9]/replica_size);
       if (times[6]>0)
         fprintf(screen,"Device Overhead: %.4f s.\n",times[6]/replica_size);
       fprintf(screen,"Average split:   %.4f.\n",avg_split);
-      fprintf(screen,"Threads / atom:  %d.\n",_threads_per_atom);
+      fprintf(screen,"Lanes / atom:    %d.\n",_threads_per_atom);
+      fprintf(screen,"Vector width:    %d.\n", device->simd_size());
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
+      if (nbor->gpu_nbor()==2)
+        fprintf(screen,"CPU Neighbor:    %.4f s.\n",times[9]/replica_size);
+      fprintf(screen,"CPU Cast/Pack:   %.4f s.\n",times[5]/replica_size);
       fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[7]/replica_size);
       fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[8]/replica_size);
       fprintf(screen,"-------------------------------------");
@@ -256,11 +276,13 @@ void BaseEllipsoidT::pack_nbors(const int GX, const int BX, const int start,
   if (shared_types) {
     k_nbor_fast.set_size(GX,BX);
     k_nbor_fast.run(&atom->x, &cut_form, &nbor->dev_nbor, &stride, &start,
-                    &inum, &nbor->dev_packed, &form_low, &form_high);
+                    &inum, &nbor->dev_packed, &form_low, &form_high,
+                    &_threads_per_atom);
   } else {
     k_nbor.set_size(GX,BX);
     k_nbor.run(&atom->x, &cut_form, &ntypes, &nbor->dev_nbor, &stride,
-               &start, &inum, &nbor->dev_packed, &form_low, &form_high);
+               &start, &inum, &nbor->dev_packed, &form_low, &form_high,
+               &_threads_per_atom);
   }
 }
 
@@ -298,7 +320,7 @@ void BaseEllipsoidT::reset_nbors(const int nall, const int inum,
         p++;
       }
     }
-    nbor->get_host(inum,host_olist.begin(),numj,firstneigh,block_size());
+    nbor->get_host(inum,host_olist,numj,firstneigh,block_size());
     nbor->copy_unpacked(inum,mn);
     return;
   }
@@ -330,8 +352,8 @@ inline void BaseEllipsoidT::build_nbor_list(const int inum, const int host_inum,
   atom->cast_copy_x(host_x,host_type);
 
   int mn;
-  nbor->build_nbor_list(host_x, inum, host_inum, nall, *atom, sublo, subhi, tag,
-                        nspecial, special, success, mn);
+  nbor->build_nbor_list(host_x, inum, host_inum, nall, *atom, sublo, subhi,
+                        tag, nspecial, special, success, mn, ans->error_flag);
   nbor->copy_unpacked(inum,mn);
   _last_ellipse=inum;
   _max_last_ellipse=inum;
@@ -348,11 +370,18 @@ template <class numtyp, class acctyp>
 int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
                              const int nall, double **host_x, int *host_type,
                              int *ilist, int *numj, int **firstneigh,
-                             const bool eflag, const bool vflag,
+                             const bool eflag_in, const bool vflag_in,
                              const bool eatom, const bool vatom,
                              int &host_start, const double cpu_time,
                              bool &success, double **host_quat) {
   acc_timers();
+  int eflag, vflag;
+  if (eflag_in) eflag=2;
+  else eflag=0;
+  if (vflag_in) vflag=2;
+  else vflag=0;
+
+  set_kernel(eflag,vflag);
   if (inum_full==0) {
     host_start=0;
     zero_timers();
@@ -373,7 +402,7 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
   }
   int *list;
   if (_multiple_forms)
-    list=host_olist.begin();
+    list=host_olist;
   else
     list=ilist;
 
@@ -384,7 +413,7 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
   atom->add_quat_data();
 
   loop(eflag,vflag);
-  ans->copy_answers(eflag,vflag,eatom,vatom,list);
+  ans->copy_answers(eflag_in,vflag_in,eatom,vatom,list,inum);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
   return list;
@@ -394,15 +423,23 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
 // Reneighbor on GPU if necessary and then compute forces, virials, energies
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall,
-                              double **host_x, int *host_type, double *sublo,
-                              double *subhi, tagint *tag, int **nspecial,
-                              tagint **special, const bool eflag, const bool vflag,
+int** BaseEllipsoidT::compute(const int ago, const int inum_full,
+                              const int nall, double **host_x, int *host_type,
+                              double *sublo, double *subhi, tagint *tag,
+                              int **nspecial, tagint **special,
+                              const bool eflag_in, const bool vflag_in,
                               const bool eatom, const bool vatom,
                               int &host_start, int **ilist, int **jnum,
                               const double cpu_time, bool &success,
                               double **host_quat) {
   acc_timers();
+  int eflag, vflag;
+  if (eflag_in) eflag=2;
+  else eflag=0;
+  if (vflag_in) vflag=2;
+  else vflag=0;
+
+  set_kernel(eflag,vflag);
   if (inum_full==0) {
     host_start=0;
     zero_timers();
@@ -435,7 +472,7 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full, const int nall
   *jnum=nbor->host_acc.begin();
 
   loop(eflag,vflag);
-  ans->copy_answers(eflag,vflag,eatom,vatom);
+  ans->copy_answers(eflag_in,vflag_in,eatom,vatom,inum);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
 
@@ -462,25 +499,26 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
   std::string s_lj=kns+"_lj";
   std::string s_lj_fast=kns+"_lj_fast";
 
-  std::string flags=device->compile_string();
+  std::string oclstring = device->compile_string()+" -DEVFLAG=1";
 
   if (nbor_program) delete nbor_program;
   nbor_program=new UCL_Program(dev);
-  nbor_program->load_string(ellipsoid_nbor,flags.c_str());
+  nbor_program->load_string(ellipsoid_nbor,oclstring.c_str(),nullptr,screen);
   k_nbor_fast.set_function(*nbor_program,"kernel_nbor_fast");
   k_nbor.set_function(*nbor_program,"kernel_nbor");
   neigh_tex.get_texture(*nbor_program,"pos_tex");
 
   if (ellipsoid_program) delete ellipsoid_program;
   ellipsoid_program=new UCL_Program(dev);
-  ellipsoid_program->load_string(ellipsoid_string,flags.c_str());
+  ellipsoid_program->load_string(ellipsoid_string,oclstring.c_str(),
+                                 nullptr,screen);
   k_ellipsoid.set_function(*ellipsoid_program,kname);
   pos_tex.get_texture(*ellipsoid_program,"pos_tex");
   quat_tex.get_texture(*ellipsoid_program,"quat_tex");
 
   if (lj_program) delete lj_program;
   lj_program=new UCL_Program(dev);
-  lj_program->load_string(lj_string,flags.c_str());
+  lj_program->load_string(lj_string,oclstring.c_str(),nullptr,screen);
   k_sphere_ellipsoid.set_function(*lj_program,s_sphere_ellipsoid.c_str());
   k_lj_fast.set_function(*lj_program,s_lj_fast.c_str());
   k_lj.set_function(*lj_program,s_lj.c_str());
@@ -489,7 +527,52 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
   lj_pos_tex.get_texture(*lj_program,"pos_tex");
   lj_quat_tex.get_texture(*lj_program,"quat_tex");
 
+  #if defined(LAL_OCL_EV_JIT)
+  oclstring = device->compile_string()+" -DEVFLAG=0";
+  if (ellipsoid_program_noev) delete ellipsoid_program_noev;
+  ellipsoid_program_noev=new UCL_Program(dev);
+  ellipsoid_program_noev->load_string(ellipsoid_string,oclstring.c_str(),
+                                      nullptr,screen);
+  k_ellipsoid_noev.set_function(*ellipsoid_program_noev,kname);
+
+  if (lj_program_noev) delete lj_program_noev;
+  lj_program_noev=new UCL_Program(dev);
+  lj_program_noev->load_string(lj_string,oclstring.c_str(),nullptr,screen);
+  k_sphere_ellipsoid_noev.set_function(*lj_program_noev,
+                                       s_sphere_ellipsoid.c_str());
+  k_lj_fast_noev.set_function(*lj_program_noev,s_lj_fast.c_str());
+  if (e_s)
+    k_ellipsoid_sphere_noev.set_function(*lj_program_noev,
+                                         s_ellipsoid_sphere.c_str());
+  #else
+  k_elps_sel = &k_ellipsoid;
+  k_elps_sphere_sel = &k_ellipsoid_sphere;
+  k_sphere_elps_sel = &k_sphere_ellipsoid;
+  k_lj_sel = &k_lj_fast;
+  #endif
+
   _compiled=true;
+
+  #if defined(USE_OPENCL) && (defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0))
+  if (dev.cl_device_version() >= 210) {
+    size_t mx_subgroup_sz = k_lj_fast.max_subgroup_size(_block_size);
+    mx_subgroup_sz = std::min(mx_subgroup_sz, k_ellipsoid.max_subgroup_size(_block_size));
+    mx_subgroup_sz = std::min(mx_subgroup_sz, k_sphere_ellipsoid.max_subgroup_size(_block_size));
+    if (e_s)
+      mx_subgroup_sz = std::min(mx_subgroup_sz, k_ellipsoid_sphere.max_subgroup_size(_block_size));
+    #if defined(LAL_OCL_EV_JIT)
+    mx_subgroup_sz = std::min(mx_subgroup_sz, k_lj_fast_noev.max_subgroup_size(_block_size));
+    mx_subgroup_sz = std::min(mx_subgroup_sz, k_ellipsoid_noev.max_subgroup_size(_block_size));
+    mx_subgroup_sz = std::min(mx_subgroup_sz, k_sphere_ellipsoid_noev.max_subgroup_size(_block_size));
+    if (e_s)
+      mx_subgroup_sz = std::min(mx_subgroup_sz, k_ellipsoid_sphere_noev.max_subgroup_size(_block_size));
+    #endif
+    if (_threads_per_atom > mx_subgroup_sz)
+      _threads_per_atom = mx_subgroup_sz;
+    device->set_simd_size(mx_subgroup_sz);
+  }
+  #endif
+
 }
 
 template class BaseEllipsoid<PRECISION,ACC_PRECISION>;

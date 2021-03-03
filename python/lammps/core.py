@@ -286,15 +286,16 @@ class lammps(object):
     self.lib.lammps_fix_external_set_energy_global = [c_void_p, c_char_p, c_double]
     self.lib.lammps_fix_external_set_virial_global = [c_void_p, c_char_p, POINTER(c_double)]
 
-    # detect if Python is using version of mpi4py that can pass a communicator
-
+    # detect if Python is using a version of mpi4py that can pass communicators
+    # only needed if LAMMPS has been compiled with MPI support.
     self.has_mpi4py = False
-    try:
-      from mpi4py import __version__ as mpi4py_version
-      # tested to work with mpi4py versions 2 and 3
-      self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
-    except:
-      pass
+    if self.has_mpi_support:
+      try:
+        from mpi4py import __version__ as mpi4py_version
+        # tested to work with mpi4py versions 2 and 3
+        self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
+      except:
+        pass
 
     # if no ptr provided, create an instance of LAMMPS
     #   don't know how to pass an MPI communicator from PyPar
@@ -307,22 +308,26 @@ class lammps(object):
 
     if not ptr:
 
-      # with mpi4py v2, can pass MPI communicator to LAMMPS
+      # with mpi4py v2+, we can pass MPI communicators to LAMMPS
       # need to adjust for type of MPI communicator object
       # allow for int (like MPICH) or void* (like OpenMPI)
-      if self.has_mpi4py and self.has_mpi_support:
+      if self.has_mpi_support and self.has_mpi4py:
         from mpi4py import MPI
         self.MPI = MPI
 
       if comm:
-        if not self.has_mpi4py:
-          raise Exception('Python mpi4py version is not 2 or 3')
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
+        if not self.has_mpi4py:
+          raise Exception('Python mpi4py version is not 2 or 3')
         if self.MPI._sizeof(self.MPI.Comm) == sizeof(c_int):
           MPI_Comm = c_int
         else:
           MPI_Comm = c_void_p
+
+        # Detect whether LAMMPS and mpi4py definitely use different MPI libs
+        if sizeof(MPI_Comm) != self.lib.lammps_config_has_mpi_support():
+          raise Exception('Inconsistent MPI library in LAMMPS and mpi4py')
 
         narg = 0
         cargs = None
@@ -1612,7 +1617,7 @@ class lammps(object):
   def get_neighlist(self, idx):
     """Returns an instance of :class:`NeighList` which wraps access to the neighbor list with the given index
 
-    See :py:meth:`lammps.numpy.get_neighlist() <lammps.numpy_wrapper.get_neighlist()>` if you want to use
+    See :py:meth:`lammps.numpy.get_neighlist() <lammps.numpy_wrapper.numpy_wrapper.get_neighlist()>` if you want to use
     NumPy arrays instead of ``c_int`` pointers.
 
     :param idx: index of neighbor list

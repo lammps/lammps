@@ -75,7 +75,8 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
     if (argi.get_dim() == 1) {
       std::string newarg(std::to_string(earg[iarg][0]));
-      newarg += '_' + argi.get_name() + '_' + std::to_string(argi.get_index1());
+      newarg += std::string("_") + argi.get_name();
+      newarg += std::string("_") + std::to_string(argi.get_index1());
       auxname[i] = new char[newarg.size()+1];
       strcpy(auxname[i],newarg.c_str());
     } else {

@@ -1,8 +1,10 @@
 .. index:: fix nvt
+.. index:: fix nvt/gpu
 .. index:: fix nvt/intel
 .. index:: fix nvt/kk
 .. index:: fix nvt/omp
 .. index:: fix npt
+.. index:: fix npt/gpu
 .. index:: fix npt/intel
 .. index:: fix npt/kk
 .. index:: fix npt/omp
@@ -13,12 +15,12 @@
 fix nvt command
 ===============
 
-Accelerator Variants: *nvt/intel*, *nvt/kk*, *nvt/omp*
+Accelerator Variants: *nvt/gpu*, *nvt/intel*, *nvt/kk*, *nvt/omp*
 
 fix npt command
 ===============
 
-Accelerator Variants: *npt/intel*, *npt/kk*, *npt/omp*
+Accelerator Variants: *npt/gpu*, *npt/intel*, *npt/kk*, *npt/omp*
 
 fix nph command
 ===============

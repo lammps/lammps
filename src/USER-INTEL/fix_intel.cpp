@@ -318,8 +318,7 @@ void FixIntel::init()
   _zero_master = 0;
 
   if (_pair_hybrid_flag && _hybrid_nonpair)
-    if (_pair_hybrid_flag > 1 || force->newton_pair == 0)
-      _pair_hybrid_zero = 1;
+    _pair_hybrid_zero = 1;
   _hybrid_nonpair = 0;
 
   _pair_intel_count = 0;

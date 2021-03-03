@@ -2297,6 +2297,7 @@ omegaz
 Omelyan
 omp
 OMP
+oneAPI
 onelevel
 oneway
 onn
@@ -2366,6 +2367,7 @@ parmin
 Parrinello
 Partay
 Particuology
+Pascuet
 pastewka
 Pastewka
 pathangle
@@ -2528,6 +2530,7 @@ ptm
 PTM
 ptol
 ptr
+PTX
 pu
 purdue
 Purohit

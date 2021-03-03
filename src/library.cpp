@@ -4128,16 +4128,18 @@ void lammps_get_os_info(char *buffer, int buf_size)
 /* ---------------------------------------------------------------------- */
 
 /** This function is used to query whether LAMMPS was compiled with
- *  a real MPI library or in serial.
+ *  a real MPI library or in serial. For the real MPI library it
+ *  reports the size of the MPI communicator in bytes (4 or 8),
+ *  which allows to check for compatibility with a hosting code.
  *
- * \return 0 when compiled with MPI STUBS, otherwise 1 */
+ * \return 0 when compiled with MPI STUBS, otherwise the MPI_Comm size in bytes */
 
 int lammps_config_has_mpi_support()
 {
 #ifdef MPI_STUBS
   return 0;
 #else
-  return 1;
+  return sizeof(MPI_Comm);
 #endif
 }
 

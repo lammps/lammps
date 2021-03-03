@@ -30,6 +30,16 @@ action () {
 
 action fix_gpu.cpp
 action fix_gpu.h
+action fix_nve_gpu.h
+action fix_nve_gpu.cpp
+action fix_nh_gpu.h
+action fix_nh_gpu.cpp
+action fix_nvt_gpu.h
+action fix_nvt_gpu.cpp
+action fix_npt_gpu.h
+action fix_npt_gpu.cpp
+action fix_nve_asphere_gpu.h fix_nve_asphere.h
+action fix_nve_asphere_gpu.cpp fix_nve_asphere.cpp
 action gpu_extra.h
 action pair_beck_gpu.cpp
 action pair_beck_gpu.h
@@ -83,6 +93,8 @@ action pair_lj96_cut_gpu.cpp
 action pair_lj96_cut_gpu.h
 action pair_lj_charmm_coul_long_gpu.cpp pair_lj_charmm_coul_long.cpp
 action pair_lj_charmm_coul_long_gpu.h pair_lj_charmm_coul_long.cpp
+action pair_lj_charmm_coul_charmm_gpu.cpp pair_lj_charmm_coul_charmm.cpp
+action pair_lj_charmm_coul_charmm_gpu.h pair_lj_charmm_coul_charmm.cpp
 action pair_lj_class2_coul_long_gpu.cpp pair_lj_class2_coul_long.cpp
 action pair_lj_class2_coul_long_gpu.h pair_lj_class2_coul_long.cpp
 action pair_lj_class2_gpu.cpp pair_lj_class2.cpp

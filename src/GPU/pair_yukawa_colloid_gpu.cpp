@@ -41,24 +41,27 @@ using namespace LAMMPS_NS;
 // External functions from cuda library for atom decomposition
 
 int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
-                 double **host_offset, double *special_lj, const int inum,
-                 const int nall, const int max_nbors,  const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen,
-                 const double kappa);
+                       double **host_offset, double *special_lj, const int inum,
+                       const int nall, const int max_nbors,
+                       const int maxspecial, const double cell_size,
+                       int &gpu_mode, FILE *screen, const double kappa);
 void ykcolloid_gpu_clear();
 int ** ykcolloid_gpu_compute_n(const int ago, const int inum_full,
-                        const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        int **ilist, int **jnum, const double cpu_time,
-                        bool &success, double *host_rad);
+                               const int nall, double **host_x, int *host_type,
+                               double *sublo, double *subhi, tagint *tag,
+                               int **nspecial, tagint **special,
+                               const bool eflag, const bool vflag,
+                               const bool eatom, const bool vatom,
+                               int &host_start, int **ilist, int **jnum,
+                               const double cpu_time, bool &success,
+                               double *host_rad);
 void ykcolloid_gpu_compute(const int ago, const int inum_full,
-                     const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh,
-                     const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, double *host_rad);
+                           const int nall, double **host_x, int *host_type,
+                           int *ilist, int *numj, int **firstneigh,
+                           const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int &host_start,
+                           const double cpu_time, bool &success,
+                           double *host_rad);
 double ykcolloid_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
@@ -167,9 +170,10 @@ void PairYukawaColloidGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = ykcolloid_gpu_init(atom->ntypes+1, cutsq, a,
                                    offset, force->special_lj, atom->nlocal,
-                                   atom->nlocal+atom->nghost, 300, maxspecial,
+                                   atom->nlocal+atom->nghost, mnf, maxspecial,
                                    cell_size, gpu_mode, screen, kappa);
   GPU_EXTRA::check_flag(success,error,world);
 

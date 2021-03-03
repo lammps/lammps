@@ -1,4 +1,5 @@
 LAMMPS (10 Feb 2021)
+  using 1 OpenMP thread(s) per MPI task
 # Demonstrate MLIAP interface to linear SNAP potential
 
 # Initialize simulation
@@ -28,7 +29,7 @@ region          box block 0 4 0 4 0 ${nz}
 region          box block 0 4 0 4 0 4
 create_box      1 box
 Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (13.264000 13.264000 13.264000)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
 create_atoms    1 box
 Created 128 atoms
   create_atoms CPU = 0.000 seconds
@@ -49,10 +50,10 @@ variable zblz equal 73
 
 # Specify hybrid with SNAP, ZBL
 
-pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model nn Ta06A_nn.mliap.model descriptor sna Ta06A.mliap.descriptor
-pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model nn Ta06A_nn.mliap.model descriptor sna Ta06A.mliap.descriptor
-pair_style hybrid/overlay zbl 4 4.8 mliap model nn Ta06A_nn.mliap.model descriptor sna Ta06A.mliap.descriptor
-Reading potential file Ta06A_nn.mliap.model with DATE: 2021-03-03
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 4.8 mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+Reading potential file Ta06A.nn.mliap.model with DATE: 2021-03-03
 Reading potential file Ta06A.mliap.descriptor with DATE: 2014-09-05
 SNAP keyword rcutfac 4.67637 
 SNAP keyword twojmax 6 
@@ -111,7 +112,7 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 18.15 | 18.15 | 18.15 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 18.06 | 18.06 | 18.06 Mbytes
 Step Temp E_pair c_energy TotEng Press v_press 
        0          300    -11.85157    -11.85157   -11.813095    2717.1661   -2717.1661 
       10    296.01467   -11.851059   -11.851059   -11.813095    2697.4796   -2697.4796 
@@ -124,33 +125,33 @@ Step Temp E_pair c_energy TotEng Press v_press
       80    124.79303   -11.829099   -11.829099   -11.813094    1947.0715   -1947.0715 
       90    97.448054   -11.825592   -11.825592   -11.813094    2231.9563   -2231.9563 
      100    74.035418   -11.822589   -11.822589   -11.813094    2515.8526   -2515.8526 
-Loop time of 1.19515 on 1 procs for 100 steps with 128 atoms
+Loop time of 0.806392 on 4 procs for 100 steps with 128 atoms
 
-Performance: 3.615 ns/day, 6.640 hours/ns, 83.671 timesteps/s
-98.5% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 5.357 ns/day, 4.480 hours/ns, 124.009 timesteps/s
+100.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.1924     | 1.1924     | 1.1924     |   0.0 | 99.77
+Pair    | 0.75456    | 0.77908    | 0.7935     |   1.7 | 96.61
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.000961   | 0.000961   | 0.000961   |   0.0 |  0.08
-Output  | 0.000707   | 0.000707   | 0.000707   |   0.0 |  0.06
-Modify  | 0.000459   | 0.000459   | 0.000459   |   0.0 |  0.04
-Other   |            | 0.00065    |            |       |  0.05
+Comm    | 0.0116     | 0.026033   | 0.050547   |   9.2 |  3.23
+Output  | 0.00071782 | 0.00075547 | 0.0008103  |   0.0 |  0.09
+Modify  | 0.00011633 | 0.00012274 | 0.0001295  |   0.0 |  0.02
+Other   |            | 0.0004031  |            |       |  0.05
 
-Nlocal:        128.000 ave         128 max         128 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:        727.000 ave         727 max         727 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:        3712.00 ave        3712 max        3712 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:      7424.00 ave        7424 max        7424 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:        32.0000 ave          32 max          32 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        431.000 ave         431 max         431 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:        928.000 ave         928 max         928 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:      1856.00 ave        1856 max        1856 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 7424
 Ave neighs/atom = 58.000000
 Neighbor list builds = 0
 Dangerous builds = 0
 
-Total wall time: 0:00:01
+Total wall time: 0:00:00

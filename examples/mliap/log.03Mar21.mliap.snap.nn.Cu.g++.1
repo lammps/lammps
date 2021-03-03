@@ -1,5 +1,5 @@
 LAMMPS (10 Feb 2021)
-
+  using 1 OpenMP thread(s) per MPI task
 # Demonstrate MLIAP interface to SNAP nn Cu potential
 
 # Initialize simulation
@@ -9,8 +9,7 @@ variable nrep equal 4
 variable a equal 3.621262
 units           metal
 
-
-# generate the box and atom positions using a BCC lattice
+# generate the box and atom positions using a FCC lattice
 
 variable nx equal ${nrep}
 variable nx equal 4
@@ -39,9 +38,9 @@ mass 1 63.546
 
 # choose potential
 
-pair_style mliap model nn Cu_nn.mliap.model descriptor sna Cu_snap.mliap.descriptor
-Reading potential file Cu_nn.mliap.model with DATE: 2021-03-03
-Reading potential file Cu_snap.mliap.descriptor with DATE: 2021-03-03
+pair_style mliap model nn Cu.nn.mliap.model descriptor sna Cu.snap.mliap.descriptor
+Reading potential file Cu.nn.mliap.model with DATE: 2021-03-03
+Reading potential file Cu.snap.mliap.descriptor with DATE: 2021-03-03
 SNAP keyword rcutfac 5.0 
 SNAP keyword twojmax 6 
 SNAP keyword nelems 1 
@@ -52,7 +51,7 @@ SNAP keyword rfac0 0.99363
 SNAP keyword rmin0 0 
 SNAP keyword bzeroflag 0 
 SNAP keyword switchflag 1 
-pair_coeff * * Cu Cu
+pair_coeff * * Cu
 
 # Setup output
 
@@ -104,20 +103,20 @@ Step Temp E_pair c_energy TotEng Press v_press
       80    75.426905   -4.0642423   -4.0642423   -4.0545307    7766.2217   -7766.2217 
       90    58.150738   -4.0620015   -4.0620015   -4.0545143    8668.0598   -8668.0598 
      100    52.301012   -4.0612408   -4.0612408   -4.0545067    9049.3141   -9049.3141 
-Loop time of 4.41003 on 1 procs for 100 steps with 256 atoms
+Loop time of 12.8453 on 1 procs for 100 steps with 256 atoms
 
-Performance: 0.980 ns/day, 24.500 hours/ns, 22.676 timesteps/s
-98.1% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 0.336 ns/day, 71.363 hours/ns, 7.785 timesteps/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.4064     | 4.4064     | 4.4064     |   0.0 | 99.92
+Pair    | 12.842     | 12.842     | 12.842     |   0.0 | 99.97
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.001466   | 0.001466   | 0.001466   |   0.0 |  0.03
-Output  | 0.000872   | 0.000872   | 0.000872   |   0.0 |  0.02
-Modify  | 0.000699   | 0.000699   | 0.000699   |   0.0 |  0.02
-Other   |            | 0.000632   |            |       |  0.01
+Comm    | 0.0014137  | 0.0014137  | 0.0014137  |   0.0 |  0.01
+Output  | 0.00090703 | 0.00090703 | 0.00090703 |   0.0 |  0.01
+Modify  | 0.0007583  | 0.0007583  | 0.0007583  |   0.0 |  0.01
+Other   |            | 0.0003434  |            |       |  0.00
 
 Nlocal:        256.000 ave         256 max         256 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -132,4 +131,4 @@ Total # of neighbors = 19968
 Ave neighs/atom = 78.000000
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:04
+Total wall time: 0:00:13

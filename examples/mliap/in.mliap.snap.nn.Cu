@@ -1,4 +1,3 @@
-
 # Demonstrate MLIAP interface to SNAP nn Cu potential
 
 # Initialize simulation
@@ -7,7 +6,6 @@ variable nsteps index 100
 variable nrep equal 4
 variable a equal 3.621262
 units           metal
-
 
 # generate the box and atom positions using a FCC lattice
 
@@ -26,8 +24,8 @@ mass 1 63.546
 
 # choose potential
 
-pair_style mliap model nn Cu_nn.mliap.model descriptor sna Cu_snap.mliap.descriptor
-pair_coeff * * Cu Cu
+pair_style mliap model nn Cu.nn.mliap.model descriptor sna Cu.snap.mliap.descriptor
+pair_coeff * * Cu
 
 # Setup output
 

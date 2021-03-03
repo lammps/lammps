@@ -101,7 +101,7 @@ In general, RelRes focuses on the speedup of pairwise interactions between
 all LJ sites. Importantly, it does not at all effect any other settings,
 flags, etc. that would be used in a molecular simulation with the
 conventional LJ potential. In particular, all intramolecular topology
-with its energetics (i.e., bonds, angles, etc.) remains unaltered.  
+with its energetics (i.e., bonds, angles, etc.) remains unaltered.
 
 At the most basic level in the RelRes framework, all sites are mapped into
 clusters. Each cluster is just a collection of sites bonded together (the

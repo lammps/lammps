@@ -102,6 +102,7 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
   double **x = atom->x;
   int *type = atom->type;
 
+  int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
@@ -146,8 +147,8 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
   grow_neigharrays();
 
   int ij = 0;
-  for (int ii = 0; ii < list->inum; ii++) {
-    const int i = list->ilist[ii];
+  for (int ii = 0; ii < natoms; ii++) {
+    const int i = ilist[ii];
 
     const double xtmp = x[i][0];
     const double ytmp = x[i][1];
@@ -207,21 +208,15 @@ void MLIAPData::grow_neigharrays()
 
   // grow neighbor arrays if necessary
 
+  int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-
-   // This saves some time, but is not always correct
-   // int iilast = list->inum-1;
-   // int ilast = list->ilist[iilast];
-   // int upperbound = firstneigh[ilast] - firstneigh[0] + numneigh[ilast];
-   // if (nneigh_max >= upperbound) return;
-
   double **x = atom->x;
   int *type = atom->type;
 
   int nneigh = 0;
-  for (int ii = 0; ii < list->inum; ii++) {
-    const int i = list->ilist[ii];
+  for (int ii = 0; ii < natomneigh; ii++) {
+    const int i = ilist[ii];
 
     const double xtmp = x[i][0];
     const double ytmp = x[i][1];

@@ -526,17 +526,19 @@ you want to copy files to is protected.
          make                        # perform make after CMake command
          make install                # perform the installation into prefix
 
-      By default CMake will remove any runtime path settings for shared
-      libraries so you may have to set or modify the ``LD_LIBRARY_PATH``
-      (or ``DYLD_LIBRARY_PATH``) environment variable, if you are installing
-      into a non-system location.  If you set the CMake variable
-      ``LAMMPS_INSTALL_RPATH`` to ``on``, however, the paths for any
-      linked shared libraries and the library installation folder for the
-      LAMMPS library will be embedded and thus avoiding the requirement
-      to set environment variables to find shared libraries.  The ``off``
-      setting is usually preferred for packaged binaries or when setting
-      up environment modules, the ``on`` setting is more convenient for
-      installation into a non-system or personal folder.
+      During the installation process CMake will by default remove any runtime
+      path settings for loading shared libraries.  Because of this you may
+      have to set or modify the ``LD_LIBRARY_PATH`` (or ``DYLD_LIBRARY_PATH``)
+      environment variable, if you are installing LAMMPS into a non-system
+      location and/or are linking to libraries in a non-system location that
+      depend on such runtime path settings.
+      As an alternative you may set the CMake variable ``LAMMPS_INSTALL_RPATH``
+      to ``on`` and then the runtime paths for any linked shared libraries
+      and the library installation folder for the LAMMPS library will be
+      embedded and thus the requirement to set environment variables is avoided.
+      The ``off`` setting is usually preferred for packaged binaries or when
+      setting up environment modules, the ``on`` setting is more convenient
+      for installing software into a non-system or personal folder.
 
    .. tab:: Traditional make
 

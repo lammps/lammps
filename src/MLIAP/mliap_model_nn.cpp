@@ -200,7 +200,8 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
         }
         l += nwords;
         if (l == nparams) {
-          stats = 0;
+          stats = 1;
+          l = 0;
           ielem++;
         }
     }

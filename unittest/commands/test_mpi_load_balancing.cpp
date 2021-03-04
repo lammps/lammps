@@ -5,8 +5,10 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "neighbor.h"
 #include "input.h"
 #include "timer.h"
+#include "info.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -43,11 +45,12 @@ protected:
 
     virtual void InitSystem()
     {
+        command("boundary        f f f");
         command("units           lj");
         command("atom_style      atomic");
         command("atom_modify     map yes");
 
-        command("region          box block 0 2 0 2 0 2");
+        command("region          box block 0 20 0 20 0 20");
         command("create_box      1 box");
         command("mass            1 1.0");
 
@@ -71,13 +74,13 @@ protected:
 TEST_F(MPILoadBalanceTest, grid_yz)
 {
     command("create_atoms 1 single 0 0 0");
-    command("create_atoms 1 single 0 0 0.5");
-    command("create_atoms 1 single 0 0.5 0");
-    command("create_atoms 1 single 0 0.5 0.5");
-    command("create_atoms 1 single 0.5 0 0");
-    command("create_atoms 1 single 0.5 0 0.5");
-    command("create_atoms 1 single 0.5 0.5 0");
-    command("create_atoms 1 single 0.5 0.5 0.5");
+    command("create_atoms 1 single 0 0 5");
+    command("create_atoms 1 single 0 5 0");
+    command("create_atoms 1 single 0 5 5");
+    command("create_atoms 1 single 5 0 0");
+    command("create_atoms 1 single 5 0 5");
+    command("create_atoms 1 single 5 5 0");
+    command("create_atoms 1 single 5 5 5");
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_EQ(lmp->comm->nprocs, 4);
 
@@ -96,7 +99,7 @@ TEST_F(MPILoadBalanceTest, grid_yz)
         break;
     }
 
-    command("balance 1 x uniform y 0.25 z uniform");
+    command("balance 1 x uniform y 0.125 z uniform");
 
     switch(lmp->comm->me) {
       case 0:
@@ -113,7 +116,7 @@ TEST_F(MPILoadBalanceTest, grid_yz)
         break;
     }
 
-    command("balance 1 x uniform y 0.25 z 0.25");
+    command("balance 1 x uniform y 0.125 z 0.125");
 
     switch(lmp->comm->me) {
       case 0:
@@ -129,6 +132,112 @@ TEST_F(MPILoadBalanceTest, grid_yz)
         ASSERT_EQ(lmp->atom->nlocal, 2);
         break;
     }
+}
+
+TEST_F(MPILoadBalanceTest, rcb)
+{
+    command("comm_style tiled");
+    command("create_atoms 1 single 0 0 0");
+    command("create_atoms 1 single 0 0 5");
+    command("create_atoms 1 single 0 5 0");
+    command("create_atoms 1 single 0 5 5");
+    command("create_atoms 1 single 5 0 0");
+    command("create_atoms 1 single 5 0 5");
+    command("create_atoms 1 single 5 5 0");
+    command("create_atoms 1 single 5 5 5");
+
+    switch(lmp->comm->me) {
+      case 0:
+        ASSERT_EQ(lmp->atom->nlocal, 8);
+        break;
+      case 1:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+      case 2:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+      case 3:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+    }
+
+    command("balance 1 rcb");
+
+    switch(lmp->comm->me) {
+      case 0:
+        ASSERT_EQ(lmp->atom->nlocal, 2);
+        break;
+      case 1:
+        ASSERT_EQ(lmp->atom->nlocal, 2);
+        break;
+      case 2:
+        ASSERT_EQ(lmp->atom->nlocal, 2);
+        break;
+      case 3:
+        ASSERT_EQ(lmp->atom->nlocal, 2);
+        break;
+    }
+
+    double dx = lmp->domain->subhi[0] - lmp->domain->sublo[0];
+    double dy = lmp->domain->subhi[1] - lmp->domain->sublo[1];
+    double dz = lmp->domain->subhi[2] - lmp->domain->sublo[2];
+
+    ASSERT_GT(dx, lmp->neighbor->skin);
+    ASSERT_GT(dy, lmp->neighbor->skin);
+    ASSERT_GT(dz, lmp->neighbor->skin);
+}
+
+TEST_F(MPILoadBalanceTest, rcb_min_size)
+{
+    command("comm_style tiled");
+    command("create_atoms 1 single 0 0 0");
+    command("create_atoms 1 single 0 0 0.25");
+    command("create_atoms 1 single 0 0.25 0");
+    command("create_atoms 1 single 0 0.25 0.25");
+    command("create_atoms 1 single 0.25 0 0");
+    command("create_atoms 1 single 0.25 0 0.25");
+    command("create_atoms 1 single 0.25 0.25 0");
+    command("create_atoms 1 single 0.25 0.25 0.25");
+
+    switch(lmp->comm->me) {
+      case 0:
+        ASSERT_EQ(lmp->atom->nlocal, 8);
+        break;
+      case 1:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+      case 2:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+      case 3:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+    }
+
+    command("balance 1 rcb");
+
+    switch(lmp->comm->me) {
+      case 0:
+        ASSERT_EQ(lmp->atom->nlocal, 8);
+        break;
+      case 1:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+      case 2:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+      case 3:
+        ASSERT_EQ(lmp->atom->nlocal, 0);
+        break;
+    }
+
+    double dx = lmp->domain->subhi[0] - lmp->domain->sublo[0];
+    double dy = lmp->domain->subhi[1] - lmp->domain->sublo[1];
+    double dz = lmp->domain->subhi[2] - lmp->domain->sublo[2];
+
+    ASSERT_GT(dx, lmp->neighbor->skin);
+    ASSERT_GT(dy, lmp->neighbor->skin);
+    ASSERT_GT(dz, lmp->neighbor->skin);
 }
 
 }

@@ -210,10 +210,11 @@ void MLIAPData::grow_neigharrays()
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
-  int iilast = list->inum-1;
-  int ilast = list->ilist[iilast];
-  int upperbound = firstneigh[ilast] - firstneigh[0] + numneigh[ilast];
-  if (nneigh_max >= upperbound) return;
+   // This saves some time, but is not always correct
+   // int iilast = list->inum-1;
+   // int ilast = list->ilist[iilast];
+   // int upperbound = firstneigh[ilast] - firstneigh[0] + numneigh[ilast];
+   // if (nneigh_max >= upperbound) return;
 
   double **x = atom->x;
   int *type = atom->type;

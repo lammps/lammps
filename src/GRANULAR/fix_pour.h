@@ -30,6 +30,7 @@ class FixPour : public Fix {
   ~FixPour();
   int setmask();
   void init();
+  void setup_pre_exchange();
   void pre_exchange();
   void reset_dt();
   void *extract(const char *, int &);
@@ -63,7 +64,8 @@ class FixPour : public Fix {
 
   int me,nprocs;
   int *recvcounts,*displs;
-  int nfreq,nfirst,ninserted,nper;
+  int nfreq,ninserted,nper;
+  bigint nfirst;
   double lo_current,hi_current;
   tagint maxtag_all,maxmol_all;
   class RanPark *random,*random2;

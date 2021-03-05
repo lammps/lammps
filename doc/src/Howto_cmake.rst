@@ -296,6 +296,8 @@ Some common CMake variables
      - Description
    * - ``CMAKE_INSTALL_PREFIX``
      - root directory of install location for ``make install``  (default: ``$HOME/.local``)
+   * - ``LAMMPS_INSTALL_RPATH``
+     - set or remove runtime path setting from binaries for ``make install`` (default: ``off``)
    * - ``CMAKE_BUILD_TYPE``
      - controls compilation options:
        one of ``RelWithDebInfo`` (default), ``Release``, ``Debug``, ``MinSizeRel``

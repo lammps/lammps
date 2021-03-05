@@ -41,7 +41,6 @@ PairStyle(rann,PairRANN)
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "pair.h"
-#include <map>
 
 
 namespace LAMMPS_NS {
@@ -65,15 +64,13 @@ namespace LAMMPS_NS {
     void init_list(int , NeighList *);
     void errorf(const char*,int,const char*);
     int factorial(int);
-    //black magic for modular fingerprints and activations
-    class RANN::Activation ***activation;
-    class RANN::Fingerprint ***fingerprints;
-    typedef RANN::Fingerprint *(*FingerprintCreator)(PairRANN *);
-    typedef RANN::Activation *(*ActivationCreator)(PairRANN *);
-    typedef std::map<std::string,FingerprintCreator> FingerprintCreatorMap;
-    typedef std::map<std::string,ActivationCreator> ActivationCreatorMap;
-    FingerprintCreatorMap *fingerprint_map;
-    ActivationCreatorMap *activation_map;
+
+//    typedef RANN::Fingerprint *(*FingerprintCreator)(PairRANN *);
+//    typedef RANN::Activation *(*ActivationCreator)(PairRANN *);
+//    typedef std::map<std::string,FingerprintCreator> FingerprintCreatorMap;
+//    typedef std::map<std::string,ActivationCreator> ActivationCreatorMap;
+//    FingerprintCreatorMap *fingerprint_map;
+//    ActivationCreatorMap *activation_map;
     RANN::Fingerprint * create_fingerprint(const char *);
     RANN::Activation * create_activation(const char *);
 
@@ -110,53 +107,54 @@ namespace LAMMPS_NS {
 
     struct Simulation{
       int *id;
-    bool forces;
-    bool spins;
-    double **x;
-    double **f;
-    double **s;
-    double box[3][3];
-    double origin[3];
-    double **features;
-    double **dfx;
-    double **dfy;
-    double **dfz;
-    double **dsx;
-    double **dsy;
-    double **dsz;
-    int *ilist,*numneigh,**firstneigh,*type,inum,gnum;
+      bool forces;
+      bool spins;
+      double **x;
+      double **f;
+      double **s;
+      double box[3][3];
+      double origin[3];
+      double **features;
+      double **dfx;
+      double **dfy;
+      double **dfz;
+      double **dsx;
+      double **dsy;
+      double **dsz;
+      int *ilist,*numneigh,**firstneigh,*type,inum,gnum;
     };
 
     struct NNarchitecture{
-    int layers;
-    int *dimensions;//vector of length layers with entries for neurons per layer
-    double **Weights;
-    double **Biases;
-    int *activations;//unused
-    int maxlayer;//longest layer (for memory allocation)
+      int layers;
+      int *dimensions;//vector of length layers with entries for neurons per layer
+      double **Weights;
+      double **Biases;
+      int *activations;//unused
+      int maxlayer;//longest layer (for memory allocation)
     };
 
     Simulation *sims;
     NNarchitecture *net;//array of networks, 1 for each element.
 
+   protected:
+     RANN::Activation ***activation;
+     RANN::Fingerprint ***fingerprints;
+
    private:
-    template <typename T> static RANN::Fingerprint *fingerprint_creator(PairRANN *);
-    template <typename T> static RANN::Activation *activation_creator(PairRANN *);
     //new functions
-    void allocate(std::vector<std::string>);//called after reading element list, but before reading the rest of the potential
+    void allocate(const std::vector<std::string>);//called after reading element list, but before reading the rest of the potential
     void read_file(char *);//read potential file
-    void strip_comments(char *,FILE *fp);
-    void read_atom_types(std::vector<std::string>,std::vector<std::string>);
-    void read_mass(std::vector<std::string>,std::vector<std::string>);
-    void read_fpe(std::vector<std::string>,std::vector<std::string>);//fingerprints per element. Count total fingerprints defined for each 1st element in element combinations
-    void read_fingerprints(std::vector<std::string>,std::vector<std::string>);
-    void read_fingerprint_constants(std::vector<std::string>,std::vector<std::string>);
-    void read_network_layers(std::vector<std::string>,std::vector<std::string>);//include input and output layer (hidden layers + 2)
-    void read_layer_size(std::vector<std::string>,std::vector<std::string>);
-    void read_weight(std::vector<std::string>,std::vector<std::string>,FILE*);//weights should be formatted as properly shaped matrices
-    void read_bias(std::vector<std::string>,std::vector<std::string>,FILE*);//biases should be formatted as properly shaped vectors
-    void read_activation_functions(std::vector<std::string>,std::vector<std::string>);
-    void read_screening(std::vector<std::string>,std::vector<std::string>);
+    void read_atom_types(std::vector<std::string>,std::vector<std::string>,char*,int);
+    void read_mass(std::vector<std::string>,std::vector<std::string>,char*,int);
+    void read_fpe(std::vector<std::string>,std::vector<std::string>,char*,int);//fingerprints per element. Count total fingerprints defined for each 1st element in element combinations
+    void read_fingerprints(std::vector<std::string>,std::vector<std::string>,char*,int);
+    void read_fingerprint_constants(std::vector<std::string>,std::vector<std::string>,char*,int);
+    void read_network_layers(std::vector<std::string>,std::vector<std::string>,char*,int);//include input and output layer (hidden layers + 2)
+    void read_layer_size(std::vector<std::string>,std::vector<std::string>,char*,int);
+    void read_weight(std::vector<std::string>,std::vector<std::string>,FILE*,char*,int*);//weights should be formatted as properly shaped matrices
+    void read_bias(std::vector<std::string>,std::vector<std::string>,FILE*,char*,int*);//biases should be formatted as properly shaped vectors
+    void read_activation_functions(std::vector<std::string>,std::vector<std::string>,char*,int);
+    void read_screening(std::vector<std::string>,std::vector<std::string>,char*,int);
     bool check_potential();//after finishing reading potential file
     void propagateforward(double *,double **,double **,int,int);//called by compute to get force and energy
     void propagateforwardspin(double *,double **,double **,double**,int,int);//called by compute to get force and energy

@@ -29,8 +29,6 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
  */
 #define MAXLINE 1024
 #include "pair_rann.h"
-#include "rann_list_activation.h"
-#include "rann_list_fingerprint.h"
 #include "tokenizer.h"
 #include <cmath>
 #include <cstdio>
@@ -45,6 +43,17 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "error.h"
 #include "update.h"
 #include "math_special.h"
+#include "rann_fingerprint_bond.h"
+#include "rann_fingerprint_bondscreened.h"
+#include "rann_fingerprint_bondscreenedspin.h"
+#include "rann_fingerprint_bondspin.h"
+#include "rann_fingerprint_radial.h"
+#include "rann_fingerprint_radialscreened.h"
+#include "rann_fingerprint_radialscreenedspin.h"
+#include "rann_fingerprint_radialspin.h"
+#include "rann_activation_linear.h"
+#include "rann_activation_sig_i.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -83,22 +92,7 @@ PairRANN::PairRANN(LAMMPS *lmp) : Pair(lmp)
   allscreen = true;
 
   dospin = false;
-  fingerprint_map = new FingerprintCreatorMap();
-  #define FINGERPRINT_CLASS
-  #define FingerprintStyle(key,Class) \
-    (*fingerprint_map)[#key] = &fingerprint_creator<RANN::Class>;
 
-  #include "rann_list_fingerprint.h"
-  #undef FingerprintStyle
-  #undef FINGERPRINT_CLASS
-  activation_map = new ActivationCreatorMap();
-  #define ACTIVATION_CLASS
-  #define ActivationStyle(key,Class) \
-    (*activation_map)[#key] = &activation_creator<RANN::Class>;
-
-  #include "rann_list_activation.h"
-  #undef ActivationStyle
-  #undef ACTIVATION_CLASS
 }
 
 PairRANN::~PairRANN()
@@ -181,7 +175,7 @@ PairRANN::~PairRANN()
 
 
 
-void PairRANN::allocate(std::vector<std::string> elementwords)
+void PairRANN::allocate(const std::vector<std::string> elementwords)
 {
   int i,j,k,l,n;
   n = atom->ntypes;
@@ -295,7 +289,9 @@ void PairRANN::read_file(char *filename)
   int n,nwords;
   std::string line,line1;
   int longline = 4096;
+  int linenum;
   char linetemp[longline];
+  std::string strtemp;
   char *ptr;
   bool comment;
   char str[128];
@@ -303,10 +299,17 @@ void PairRANN::read_file(char *filename)
   fp = utils::open_potential(filename,lmp,nullptr);
   if (fp == nullptr) {error->one(FLERR,"Cannot open RANN potential file");}
   ptr=fgets(linetemp,longline,fp);
-  strip_comments(linetemp,fp);
-  line=linetemp;
+  linenum++;
+  strtemp=utils::trim_comment(linetemp);
+  while (strtemp.empty()) {
+	  ptr=fgets(linetemp,longline,fp);
+	  strtemp=utils::trim_comment(linetemp);
+	  linenum++;
+  }
+  line=strtemp;
   while (eof == 0) {
     ptr=fgets(linetemp,longline,fp);
+    linenum++;
     if (ptr == NULL) {
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
@@ -316,27 +319,38 @@ void PairRANN::read_file(char *filename)
         break;
       }
     }
-    strip_comments(linetemp,fp);
+    strtemp=utils::trim_comment(linetemp);
+    while (strtemp.empty()) {
+    	ptr=fgets(linetemp,longline,fp);
+    	strtemp=utils::trim_comment(linetemp);
+    	linenum++;
+    }
     line1=linetemp;
     Tokenizer values = Tokenizer(line,": ,\t_\n");
     Tokenizer values1 = Tokenizer(line1,": ,\t_\n");
     linev = values.as_vector();
     line1v = values1.as_vector();
-    if (linev[0].compare("atomtypes")==0)read_atom_types(linev,line1v);
-    else if (linev[0].compare("mass")==0)read_mass(linev,line1v);
-    else if (linev[0].compare("fingerprintsperelement")==0)read_fpe(linev,line1v);
-    else if (linev[0].compare("fingerprints")==0)read_fingerprints(linev,line1v);
-    else if (linev[0].compare("fingerprintconstants")==0)read_fingerprint_constants(linev,line1v);
-    else if (linev[0].compare("networklayers")==0)read_network_layers(linev,line1v);
-    else if (linev[0].compare("layersize")==0)read_layer_size(linev,line1v);
-    else if (linev[0].compare("weight")==0)read_weight(linev,line1v,fp);
-    else if (linev[0].compare("bias")==0)read_bias(linev,line1v,fp);
-    else if (linev[0].compare("activationfunctions")==0)read_activation_functions(linev,line1v);
-    else if (linev[0].compare("calibrationparameters")==0)continue;//information on how the network was trained
-    else if (linev[0].compare("screening")==0)read_screening(linev,line1v);
+    if (linev[0]=="atomtypes") read_atom_types(linev,line1v,filename,linenum);
+    else if (linev[0]=="mass") read_mass(linev,line1v,filename,linenum);
+    else if (linev[0]=="fingerprintsperelement") read_fpe(linev,line1v,filename,linenum);
+    else if (linev[0]=="fingerprints") read_fingerprints(linev,line1v,filename,linenum);
+    else if (linev[0]=="fingerprintconstants") read_fingerprint_constants(linev,line1v,filename,linenum);
+    else if (linev[0]=="networklayers") read_network_layers(linev,line1v,filename,linenum);
+    else if (linev[0]=="layersize") read_layer_size(linev,line1v,filename,linenum);
+    else if (linev[0]=="weight") read_weight(linev,line1v,fp,filename,&linenum);
+    else if (linev[0]=="bias") read_bias(linev,line1v,fp,filename,&linenum);
+    else if (linev[0]=="activationfunctions") read_activation_functions(linev,line1v,filename,linenum);
+    else if (linev[0]=="screening") read_screening(linev,line1v,filename,linenum);
+    else if (linev[0]=="calibrationparameters") continue;//information on how the network was trained
     else error->one(FLERR,"Could not understand file syntax: unknown keyword");
     ptr=fgets(linetemp,longline,fp);
-    strip_comments(linetemp,fp);
+    linenum++;
+    strtemp=utils::trim_comment(linetemp);
+    while (strtemp.empty()) {
+    	ptr=fgets(linetemp,longline,fp);
+    	strtemp=utils::trim_comment(linetemp);
+    	linenum++;
+    }
     if (ptr == NULL) {
       if (check_potential()) {
         error->one(FLERR,"Invalid syntax in potential file, values are inconsistent or missing");
@@ -350,49 +364,32 @@ void PairRANN::read_file(char *filename)
   }
 }
 
-void PairRANN::strip_comments(char * line,FILE* fp) {
-  char *ptr;
-  bool comment;
-  utils::trim_comment(line);
-  if (strlen(line)==0) {
-    comment = true;
-    while (comment==true) {
-    ptr = fgets(line,4096,fp);
-    if (ptr==NULL) error->one(FLERR,"Unexpected end of RANN file");
-    utils::trim_comment(line);
-    if (strlen(line) == 0) continue;
-    comment = false;
-    }
-  }
-}
-
-void PairRANN::read_atom_types(std::vector<std::string> line,std::vector<std::string> line1) {
+void PairRANN::read_atom_types(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int nwords = line1.size();
-  if (nwords < 1) error->one(FLERR,"Incorrect syntax for atom types");
+  if (nwords < 1) error->one(filename,linenum,"Incorrect syntax for atom types");
   nelements = nwords;
-  line1.resize(nwords+1);
-  line1[nwords] = "all";
+  line1.push_back("all");
   allocate(line1);
 }
 
-void PairRANN::read_mass(std::vector<std::string> line,std::vector<std::string> line1) {
-  if (nelements == -1)error->one(FLERR,"atom types must be defined before mass in potential file.");
+void PairRANN::read_mass(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
+  if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before mass in potential file.");
   int nwords = 0,i;
   for (i=0;i<nelements;i++) {
     if (line[1].compare(elements[i])==0) {
-      mass[i]=strtod(line1[0].c_str(),NULL);
+      mass[i]=utils::numeric(filename,linenum,line1[0].c_str(),1,lmp);
       return;
     }
   }
-  error->one(FLERR,"mass element not found in atom types.");
+  error->one(filename,linenum-1,"mass element not found in atom types.");
 }
 
-void PairRANN::read_fpe(std::vector<std::string> line,std::vector<std::string> line1) {
+void PairRANN::read_fpe(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int i,j;
-  if (nelements == -1)error->one(FLERR,"atom types must be defined before fingerprints per element in potential file.");
+  if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints per element in potential file.");
   for (i=0;i<nelementsp;i++) {
     if (line[1].compare(elementsp[i])==0) {
-      fingerprintperelement[i] = strtol(line1[0].c_str(),NULL,10);
+      fingerprintperelement[i] = utils::inumeric(filename,linenum,line1[0].c_str(),1,lmp);
       fingerprints[i] = new RANN::Fingerprint *[fingerprintperelement[i]];
       for (int j=0;j<fingerprintperelement[i];j++) {
         fingerprints[i][j]=new RANN::Fingerprint(this);
@@ -400,16 +397,16 @@ void PairRANN::read_fpe(std::vector<std::string> line,std::vector<std::string> l
       return;
     }
   }
-  error->one(FLERR,"fingerprint-per-element element not found in atom types");
+  error->one(filename,linenum-1,"fingerprint-per-element element not found in atom types");
 }
 
-void PairRANN::read_fingerprints(std::vector<std::string> line,std::vector<std::string> line1) {
+void PairRANN::read_fingerprints(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int nwords1,nwords,i,j,k,l,m,i1;
   bool found;
   char str[MAXLINE];
   nwords1 = line1.size();
   nwords = line.size();
-  if (nelements == -1)error->one(FLERR,"atom types must be defined before fingerprints in potential file.");
+  if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
   int atomtypes[nwords-1];
   for (i=1;i<nwords;i++) {
     found = false;
@@ -420,29 +417,29 @@ void PairRANN::read_fingerprints(std::vector<std::string> line,std::vector<std::
         break;
       }
     }
-    if (!found) {error->one(FLERR,"fingerprint element not found in atom types");}
+    if (!found) {error->one(filename,linenum-1,"fingerprint element not found in atom types");}
   }
   i = atomtypes[0];
   k = 0;
-  if (fingerprintperelement[i]==-1) {error->one(FLERR,"fingerprint per element must be defined before fingerprints");}
+  if (fingerprintperelement[i]==-1) {error->one(filename,linenum-1,"fingerprint per element must be defined before fingerprints");}
   while (k<nwords1) {
     i1 = fingerprintcount[i];
+    if (i1>=fingerprintperelement[i]) {error->one(filename,linenum,"more fingerprints defined than fingerprint per element");}
     delete fingerprints[i][i1];
     fingerprints[i][i1] = create_fingerprint(line1[k].c_str());
-    if (fingerprints[i][i1]->n_body_type!=nwords-1) {error->one(FLERR,"invalid fingerprint for element combination");}
+    if (fingerprints[i][i1]->n_body_type!=nwords-1) {error->one(filename,linenum,"invalid fingerprint for element combination");}
     k++;
-    fingerprints[i][i1]->init(atomtypes,strtol(line1[k++].c_str(),NULL,10));
+    fingerprints[i][i1]->init(atomtypes,utils::inumeric(filename,linenum,line1[k++].c_str(),1,lmp));
     fingerprintcount[i]++;
   }
 }
 
-
-void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vector<std::string> line1) {
+void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int i,j,k,l,m,i1;
   bool found;
   char str [128];
   int nwords = line.size();
-  if (nelements == -1)error->one(FLERR,"atom types must be defined before fingerprints in potential file.");
+  if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
   int n_body_type = nwords-4;
   int atomtypes[n_body_type];
   for (i=1;i<=n_body_type;i++) {
@@ -454,7 +451,7 @@ void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vec
         break;
       }
     }
-    if (!found) {error->one(FLERR,"fingerprint element not found in atom types");}
+    if (!found) {error->one(filename,linenum-1,"fingerprint element not found in atom types");}
   }
   i = atomtypes[0];
   found = false;
@@ -464,7 +461,7 @@ void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vec
     for (j=0;j<n_body_type;j++) {
       if (fingerprints[i][k]->atomtypes[j]!=atomtypes[j]) {break;}
       if (j==n_body_type-1) {
-        if (line[nwords-3].compare(fingerprints[i][k]->style)==0 && strtol(line[nwords-2].c_str(),NULL,10)==fingerprints[i][k]->id) {
+        if (line[nwords-3].compare(fingerprints[i][k]->style)==0 && utils::inumeric(filename,linenum,line[nwords-2].c_str(),1,lmp)==fingerprints[i][k]->id) {
           found=true;
           i1 = k;
           break;
@@ -473,17 +470,17 @@ void PairRANN::read_fingerprint_constants(std::vector<std::string> line,std::vec
     }
     if (found) {break;}
   }
-  if (!found) {error->one(FLERR,"cannot define constants for unknown fingerprint");}
+  if (!found) {error->one(filename,linenum-1,"cannot define constants for unknown fingerprint");}
   fingerprints[i][i1]->fullydefined=fingerprints[i][i1]->parse_values(line[nwords-1],line1);
 }
 
-void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std::string> line1) {
+void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int i,j;
-  if (nelements == -1)error->one(FLERR,"atom types must be defined before network layers in potential file.");
+  if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before network layers in potential file.");
   for (i=0;i<nelements;i++) {
     if (line[1].compare(elements[i])==0) {
-      net[i].layers = strtol(line1[0].c_str(),NULL,10);
-      if (net[i].layers < 1)error->one(FLERR,"invalid number of network layers");
+      net[i].layers = utils::inumeric(filename,linenum,line1[0].c_str(),1,lmp);
+      if (net[i].layers < 1)error->one(filename,linenum,"invalid number of network layers");
       delete [] net[i].dimensions;
       weightdefined[i] = new bool [net[i].layers];
       biasdefined[i] = new bool [net[i].layers];
@@ -504,105 +501,107 @@ void PairRANN::read_network_layers(std::vector<std::string> line,std::vector<std
       return;
     }
   }
-  error->one(FLERR,"network layers element not found in atom types");
+  error->one(filename,linenum-1,"network layers element not found in atom types");
 }
 
-void PairRANN::read_layer_size(std::vector<std::string> line,std::vector<std::string> line1) {
+void PairRANN::read_layer_size(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int i;
   for (i=0;i<nelements;i++) {
     if (line[1].compare(elements[i])==0) {
-      if (net[i].layers==0)error->one(FLERR,"networklayers for each atom type must be defined before the corresponding layer sizes.");
-      int j = strtol(line[2].c_str(),NULL,10);
-      if (j>=net[i].layers || j<0) {error->one(FLERR,"invalid layer in layer size definition");};
-      net[i].dimensions[j]= strtol(line1[0].c_str(),NULL,10);
+      if (net[i].layers==0)error->one(filename,linenum-1,"networklayers for each atom type must be defined before the corresponding layer sizes.");
+      int j = utils::inumeric(filename,linenum,line[2].c_str(),1,lmp);
+      if (j>=net[i].layers || j<0) {error->one(filename,linenum,"invalid layer in layer size definition");};
+      net[i].dimensions[j]= utils::inumeric(filename,linenum,line1[0].c_str(),1,lmp);
       return;
     }
   }
-  error->one(FLERR,"layer size element not found in atom types");
+  error->one(filename,linenum-1,"layer size element not found in atom types");
 }
 
-void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp) {
+void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp,char *filename,int *linenum) {
   int i,j,k,l,nwords;
   char *ptr;
   int longline = 4096;
   char linetemp [longline];
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
-      if (net[l].layers==0)error->one(FLERR,"networklayers must be defined before weights.");
-      i=strtol(line[2].c_str(),NULL,10);
-      if (i>=net[l].layers || i<0)error->one(FLERR,"invalid weight layer");
-      if (net[l].dimensions[i]==0 || net[l].dimensions[i+1]==0) error->one(FLERR,"network layer sizes must be defined before corresponding weight");
+      if (net[l].layers==0)error->one(filename,*linenum-1,"networklayers must be defined before weights.");
+      i=utils::inumeric(filename,*linenum,line[2].c_str(),1,lmp);
+      if (i>=net[l].layers || i<0)error->one(filename,*linenum-1,"invalid weight layer");
+      if (net[l].dimensions[i]==0 || net[l].dimensions[i+1]==0) error->one(filename,*linenum-1,"network layer sizes must be defined before corresponding weight");
       net[l].Weights[i] = new double [net[l].dimensions[i]*net[l].dimensions[i+1]];
       weightdefined[l][i] = true;
       nwords = line1.size();
-      if (nwords != net[l].dimensions[i])error->one(FLERR,"invalid weights per line");
+      if (nwords != net[l].dimensions[i])error->one(filename,*linenum,"invalid weights per line");
       for (k=0;k<net[l].dimensions[i];k++) {
-        net[l].Weights[i][k] = strtod(line1[k].c_str(),NULL);
+        net[l].Weights[i][k] = utils::numeric(filename,*linenum,line1[k].c_str(),1,lmp);
       }
       for (j=1;j<net[l].dimensions[i+1];j++) {
         ptr = fgets(linetemp,longline,fp);
+        *linenum++;
         Tokenizer values1 = Tokenizer(linetemp,": ,\t_\n");
         line1 = values1.as_vector();
-        if (ptr==NULL)error->one(FLERR,"unexpected end of potential file!");
+        if (ptr==NULL)error->one(filename,*linenum,"unexpected end of potential file!");
         nwords = line1.size();
-        if (nwords != net[l].dimensions[i])error->one(FLERR,"invalid weights per line");
+        if (nwords != net[l].dimensions[i])error->one(filename,*linenum,"invalid weights per line");
         for (k=0;k<net[l].dimensions[i];k++) {
-          net[l].Weights[i][j*net[l].dimensions[i]+k] = strtod(line1[k].c_str(),NULL);
+          net[l].Weights[i][j*net[l].dimensions[i]+k] = utils::numeric(filename,*linenum,line1[k].c_str(),1,lmp);
         }
       }
       return;
     }
   }
-  error->one(FLERR,"weight element not found in atom types");
+  error->one(filename,*linenum-1,"weight element not found in atom types");
 }
 
-void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp) {
+void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> line1,FILE* fp,char *filename,int *linenum) {
   int i,j,l,nwords;
   char *ptr;
   char linetemp[MAXLINE];
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
-      if (net[l].layers==0)error->one(FLERR,"networklayers must be defined before biases.");
-      i=strtol(line[2].c_str(),NULL,10);
-      if (i>=net[l].layers || i<0)error->one(FLERR,"invalid bias layer");
-      if (net[l].dimensions[i]==0) error->one(FLERR,"network layer sizes must be defined before corresponding bias");
+      if (net[l].layers==0)error->one(filename,*linenum-1,"networklayers must be defined before biases.");
+      i=utils::inumeric(filename,*linenum,line[2].c_str(),1,lmp);
+      if (i>=net[l].layers || i<0)error->one(filename,*linenum-1,"invalid bias layer");
+      if (net[l].dimensions[i]==0) error->one(filename,*linenum-1,"network layer sizes must be defined before corresponding bias");
       biasdefined[l][i] = true;
       net[l].Biases[i] = new double [net[l].dimensions[i+1]];
-      net[l].Biases[i][0] = strtod(line1[0].c_str(),NULL);
+      net[l].Biases[i][0] = utils::numeric(filename,*linenum,line1[0].c_str(),1,lmp);
       for (j=1;j<net[l].dimensions[i+1];j++) {
         ptr = fgets(linetemp,MAXLINE,fp);
+        *linenum++;
         Tokenizer values1 = Tokenizer(linetemp,": ,\t_\n");
         line1 = values1.as_vector();
-        net[l].Biases[i][j] = strtod(line1[0].c_str(),NULL);
+        net[l].Biases[i][j] = utils::numeric(filename,*linenum,line1[0].c_str(),1,lmp);
       }
       return;
     }
   }
-  error->one(FLERR,"bias element not found in atom types");
+  error->one(filename,*linenum-1,"bias element not found in atom types");
 }
 
-void PairRANN::read_activation_functions(std::vector<std::string> line,std::vector<std::string> line1) {
+void PairRANN::read_activation_functions(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int i,j,l,nwords;
   int *ptr;
   for (l=0;l<nelements;l++) {
     if (line[1].compare(elements[l])==0) {
-      if (net[l].layers==0)error->one(FLERR,"networklayers must be defined before activation functions.");
+      if (net[l].layers==0)error->one(filename,linenum-1,"networklayers must be defined before activation functions.");
       i = strtol(line[2].c_str(),NULL,10);
-      if (i>=net[l].layers || i<0)error->one(FLERR,"invalid activation layer");
+      if (i>=net[l].layers || i<0)error->one(filename,linenum-1,"invalid activation layer");
       delete activation[l][i];
       activation[l][i]=create_activation(line1[0].c_str());
       return;
     }
   }
-  error->one(FLERR,"activation function element not found in atom types");
+  error->one(filename,linenum-1,"activation function element not found in atom types");
 }
 
-void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::string> line1) {
+void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::string> line1,char *filename,int linenum) {
   int i,j,k;
   bool found;
   int nwords = line.size();
-  if (nelements == -1)error->one(FLERR,"atom types must be defined before fingerprints in potential file.");
-  if (nwords!=5)error->one(FLERR,"invalid screening command");
+  if (nelements == -1)error->one(filename,linenum-1,"atom types must be defined before fingerprints in potential file.");
+  if (nwords!=5)error->one(filename,linenum-1,"invalid screening command");
   int n_body_type = 3;
   int atomtypes[n_body_type];
   for (i=1;i<=n_body_type;i++) {
@@ -614,7 +613,7 @@ void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::str
         break;
       }
     }
-    if (!found) {error->one(FLERR,"fingerprint element not found in atom types");}
+    if (!found) {error->one(filename,linenum-1,"fingerprint element not found in atom types");}
   }
   i = atomtypes[0];
   j = atomtypes[1];
@@ -622,14 +621,14 @@ void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::str
   int index = i*nelements*nelements+j*nelements+k;
   int index1 = i*nelements*nelements+k*nelements+j;
   if (line[4].compare("Cmin")==0)  {
-    screening_min[index] = strtod(line1[0].c_str(),NULL);
+    screening_min[index] = utils::numeric(filename,linenum,line1[0].c_str(),1,lmp);
     screening_min[index1] = screening_min[index];
   }
   else if (line[4].compare("Cmax")==0) {
-    screening_max[index] = strtod(line1[0].c_str(),NULL);
+    screening_max[index] = utils::numeric(filename,linenum,line1[0].c_str(),1,lmp);
     screening_max[index1] = screening_max[index];
   }
-  else error->one(FLERR,"unrecognized screening keyword");
+  else error->one(filename,linenum-1,"unrecognized screening keyword");
 }
 
 //Called after finishing reading the potential file to make sure it is complete. True is bad.
@@ -1223,17 +1222,31 @@ int PairRANN::factorial(int n) {
 	return round(MathSpecial::factorial(n));
 }
 
-template <typename T>
-RANN::Fingerprint *PairRANN::fingerprint_creator(PairRANN* pair)
-{
-  return new T(pair);
-}
-
 RANN::Fingerprint *PairRANN::create_fingerprint(const char *style)
 {
-  if (fingerprint_map->find(style) != fingerprint_map->end()) {
-    FingerprintCreator fingerprint_creator = (*fingerprint_map)[style];
-    return fingerprint_creator(this);
+  if (strcmp(style,"radial")==0) {
+	  return new RANN::Fingerprint_radial(this);
+  }
+  else if (strcmp(style,"radialscreened")==0) {
+	  return new RANN::Fingerprint_radialscreened(this);
+  }
+  else if (strcmp(style,"radialscreenedspin")==0) {
+	  return new RANN::Fingerprint_radialscreenedspin(this);
+  }
+  else if (strcmp(style,"radialspin")==0) {
+	  return new RANN::Fingerprint_radialspin(this);
+  }
+  else if (strcmp(style,"bond")==0) {
+	  return new RANN::Fingerprint_bond(this);
+  }
+  else if (strcmp(style,"bondscreened")==0) {
+	  return new RANN::Fingerprint_bondscreened(this);
+  }
+  else if (strcmp(style,"bondscreenedspin")==0) {
+	  return new RANN::Fingerprint_bondscreenedspin(this);
+  }
+  else if (strcmp(style,"bondspin")==0) {
+	  return new RANN::Fingerprint_bondspin(this);
   }
   char str[128];
   sprintf(str,"Unknown fingerprint style %s",style);
@@ -1241,17 +1254,14 @@ RANN::Fingerprint *PairRANN::create_fingerprint(const char *style)
   return NULL;
 }
 
-template <typename T>
-RANN::Activation *PairRANN::activation_creator(PairRANN* pair)
-{
-  return new T(pair);
-}
 
 RANN::Activation *PairRANN::create_activation(const char *style)
 {
-  if (activation_map->find(style) != activation_map->end()) {
-    ActivationCreator activation_creator = (*activation_map)[style];
-    return activation_creator(this);
+  if (strcmp(style,"linear")==0) {
+	  return new RANN::Activation_linear(this);
+  }
+  else if (strcmp(style,"sigI")==0) {
+	  return new RANN::Activation_sigI(this);
   }
   char str[128];
   sprintf(str,"Unknown activation style %s",style);

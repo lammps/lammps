@@ -367,14 +367,14 @@ double PairLJRelRes::init_one(int i, int j)
 //   hybrid and hybrid - mixing fg and cg parameters
 
   if (setflag[i][j] == 0) {
-    if (epsilon[i][i] == 0.0 && epsilonf[j][j] == 0.0 ||
-        epsilonf[i][i] == 0.0 && epsilon[j][j] == 0.0) { //no mixing
+    if (((epsilon[i][i] == 0.0) && (epsilonf[j][j] == 0.0))
+        || ((epsilonf[i][i] == 0.0) && (epsilon[j][j] == 0.0))) { //no mixing
       epsilon[i][j] = 0.0;
       epsilonf[i][j] = 0.0;
       sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
       sigmaf[i][j] = mix_distance(sigmaf[i][i],sigmaf[j][j]);
       cut_inner[i][j] = cutf[i][j] = cutf_inner[i][j] = cut[i][j] = 0.0;
-    } else if (epsilon[i][i] == 0.0 || epsilon[j][j] == 0.0) { // fg only
+    } else if ((epsilon[i][i] == 0.0) || (epsilon[j][j] == 0.0)) { // fg only
       epsilon[i][j] = 0.0;
       sigma[i][j] = mix_distance(sigma[i][i],sigma[j][j]);
       epsilonf[i][j] = mix_energy(epsilonf[i][i],epsilonf[j][j],
@@ -384,7 +384,7 @@ double PairLJRelRes::init_one(int i, int j)
       cutf[i][j] = mix_distance(cutf[i][i],cutf[j][j]);
       cut_inner[i][j] = cutf[i][j];
       cut[i][j] = cutf[i][j];
-    } else if (epsilonf[i][i] == 0.0 || epsilonf[j][j] == 0.0) { // cg only
+    } else if ((epsilonf[i][i] == 0.0) || (epsilonf[j][j] == 0.0)) { // cg only
       epsilonf[i][j] = 0.0;
       epsilon[i][j] = mix_energy(epsilon[i][i],epsilon[j][j],
                                  sigma[i][i],sigma[j][j]);
@@ -695,9 +695,9 @@ void PairLJRelRes::write_data_all(FILE *fp)
 }
 
 /* ---------------------------------------------------------------------- */
-double PairLJRelRes::single(int i, int j, int itype, int jtype, double rsq,
-                            double factor_coul, double factor_lj,
-                            double &fforce)
+double PairLJRelRes::single(int /*i*/, int /*j*/, int itype, int jtype,
+                            double rsq, double /*factor_coul*/,
+                            double factor_lj, double &fforce)
 {
   double r2inv,r6inv,forcelj,philj,r,t,tsq,fskin;
 

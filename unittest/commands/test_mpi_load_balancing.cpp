@@ -84,6 +84,7 @@ TEST_F(MPILoadBalanceTest, grid_yz)
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_EQ(lmp->comm->nprocs, 4);
 
+    // initial state
     switch(lmp->comm->me) {
       case 0:
         ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -101,6 +102,7 @@ TEST_F(MPILoadBalanceTest, grid_yz)
 
     command("balance 1 x uniform y 0.125 z uniform");
 
+    // state after balance command
     switch(lmp->comm->me) {
       case 0:
         ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -118,6 +120,7 @@ TEST_F(MPILoadBalanceTest, grid_yz)
 
     command("balance 1 x uniform y 0.125 z 0.125");
 
+    // state after second balance command
     switch(lmp->comm->me) {
       case 0:
         ASSERT_EQ(lmp->atom->nlocal, 2);
@@ -146,6 +149,7 @@ TEST_F(MPILoadBalanceTest, rcb)
     command("create_atoms 1 single 5 5 0");
     command("create_atoms 1 single 5 5 5");
 
+    // initial state
     switch(lmp->comm->me) {
       case 0:
         ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -163,6 +167,7 @@ TEST_F(MPILoadBalanceTest, rcb)
 
     command("balance 1 rcb");
 
+    // state after balance command
     switch(lmp->comm->me) {
       case 0:
         ASSERT_EQ(lmp->atom->nlocal, 2);
@@ -178,6 +183,7 @@ TEST_F(MPILoadBalanceTest, rcb)
         break;
     }
 
+    // box dimensions should have minimal size
     double dx = lmp->domain->subhi[0] - lmp->domain->sublo[0];
     double dy = lmp->domain->subhi[1] - lmp->domain->sublo[1];
     double dz = lmp->domain->subhi[2] - lmp->domain->sublo[2];
@@ -199,6 +205,7 @@ TEST_F(MPILoadBalanceTest, rcb_min_size)
     command("create_atoms 1 single 0.25 0.25 0");
     command("create_atoms 1 single 0.25 0.25 0.25");
 
+    // initial state
     switch(lmp->comm->me) {
       case 0:
         ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -214,8 +221,11 @@ TEST_F(MPILoadBalanceTest, rcb_min_size)
         break;
     }
 
+    // this should fail and not change the boxes
+    // or keep them at a minimum size
     command("balance 1 rcb");
 
+    // state after balance command
     switch(lmp->comm->me) {
       case 0:
         ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -231,6 +241,7 @@ TEST_F(MPILoadBalanceTest, rcb_min_size)
         break;
     }
 
+    // box dimensions should have minimal size
     double dx = lmp->domain->subhi[0] - lmp->domain->sublo[0];
     double dy = lmp->domain->subhi[1] - lmp->domain->sublo[1];
     double dz = lmp->domain->subhi[2] - lmp->domain->sublo[2];

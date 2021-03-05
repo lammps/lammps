@@ -98,9 +98,9 @@ arguments must be specified.
 Here are some guidelines for using the pair_style *lj/relres* command.
 
 In general, RelRes focuses on the speedup of pairwise interactions between
-all LJ sites. Importantly, it works with any settings, flags
-(e.g., :doc:`newton <newton>` flags, :doc:`special_bonds <special_bonds>`
-settings) that can be used in a molecular simulation with the
+all LJ sites. Importantly, it works with any settings and flags (e.g.,
+:doc:`special_bonds <special_bonds>` settings and :doc:`newton <newton>`
+flags) that can be used in a molecular simulation with the
 conventional LJ potential. In particular, all intramolecular topology
 with its energetics (i.e., bonds, angles, etc.) remains unaltered.
 

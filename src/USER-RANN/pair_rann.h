@@ -65,12 +65,6 @@ namespace LAMMPS_NS {
     void errorf(const char*,int,const char*);
     int factorial(int);
 
-//    typedef RANN::Fingerprint *(*FingerprintCreator)(PairRANN *);
-//    typedef RANN::Activation *(*ActivationCreator)(PairRANN *);
-//    typedef std::map<std::string,FingerprintCreator> FingerprintCreatorMap;
-//    typedef std::map<std::string,ActivationCreator> ActivationCreatorMap;
-//    FingerprintCreatorMap *fingerprint_map;
-//    ActivationCreatorMap *activation_map;
     RANN::Fingerprint * create_fingerprint(const char *);
     RANN::Activation * create_activation(const char *);
 

@@ -31,7 +31,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_relres[] =
-  "RelRes:\n\n"
+  "Pair style lj/relres: doi:10.1021/acs.jctc.0c01003\n\n"
   "@Article{Chaimovich1,\n"
   " author = {A. Chaimovich, C. Peter, K. Kremer},\n"
   " title = {Relative resolution: A hybrid formalism for fluid mixtures},\n"

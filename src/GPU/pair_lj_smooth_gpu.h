@@ -20,11 +20,11 @@ PairStyle(lj/smooth/gpu,PairLJSmoothGPU)
 #ifndef LMP_PAIR_LJ_SMOOTH_GPU_H
 #define LMP_PAIR_LJ_SMOOTH_GPU_H
 
-#include "pair_lj_cut.h"
+#include "pair_lj_smooth.h"
 
 namespace LAMMPS_NS {
 
-class PairLJSmoothGPU : public PairLJCut {
+class PairLJSmoothGPU : public PairLJSmooth {
  public:
   PairLJSmoothGPU(LAMMPS *lmp);
   ~PairLJSmoothGPU();
@@ -52,7 +52,7 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Cannot use newton pair with lj/cut/gpu pair style
+E: Cannot use newton pair with lj/smooth/gpu pair style
 
 Self-explanatory.
 

@@ -18,6 +18,7 @@
 #include "mliap_data.h"
 
 #include "atom.h"
+#include "error.h"
 #include "memory.h"
 #include "mliap_descriptor.h"
 #include "mliap_model.h"

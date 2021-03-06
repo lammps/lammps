@@ -386,7 +386,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // apply scaling factors and cylinder dims orthogonal to axis
 
   if (binflag) {
-    double scale;
+    double scale = 1.0;
     if (which == ArgInfo::BIN1D || which == ArgInfo::BIN2D
         || which == ArgInfo::BIN3D || which == ArgInfo::BINCYLINDER) {
       if (which == ArgInfo::BIN1D || which == ArgInfo::BINCYLINDER) ndim = 1;

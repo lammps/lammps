@@ -46,9 +46,9 @@ int mor_gpu_init(const int ntypes, double **cutsq, double **host_morse1,
                  const int nall, const int max_nbors, const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
 void mor_gpu_clear();
-int ** mor_gpu_compute_n(const int ago, const int inum,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** mor_gpu_compute_n(const int ago, const int inum, const int nall,
+                         double **host_x, int *host_type, double *sublo,
+                         double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
                          const bool eatom, const bool vatom, int &host_start,
                          int **ilist, int **jnum,
@@ -157,9 +157,10 @@ void PairMorseGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = mor_gpu_init(atom->ntypes+1, cutsq, morse1, r0, alpha, d0,
                              offset, force->special_lj, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

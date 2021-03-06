@@ -37,7 +37,7 @@ class PythonOpen(unittest.TestCase):
         lmp=lammps(name=self.machine)
         self.assertIsNot(lmp.lmp,None)
         self.assertEqual(lmp.opened,1)
-        self.assertEqual(has_mpi4py,lmp.has_mpi4py)
+        self.assertEqual(has_mpi and has_mpi4py,lmp.has_mpi4py)
         self.assertEqual(has_mpi,lmp.has_mpi_support)
         lmp.close()
         self.assertIsNone(lmp.lmp,None)

@@ -61,7 +61,7 @@ functions. Below is a detailed documentation of the API.
 .. autoclass:: lammps.lammps
    :members:
 
-.. autoclass:: lammps.numpy::numpy_wrapper
+.. autoclass:: lammps.numpy_wrapper::numpy_wrapper
    :members:
 
 ----------
@@ -134,8 +134,8 @@ Style Constants
    to request from computes or fixes. See :cpp:enum:`_LMP_STYLE_CONST`
    for the equivalent constants in the C library interface. Used in
    :py:func:`lammps.extract_compute`, :py:func:`lammps.extract_fix`, and their NumPy variants
-   :py:func:`lammps.numpy.extract_compute() <lammps.numpy.numpy_wrapper.extract_compute>` and
-   :py:func:`lammps.numpy.extract_fix() <lammps.numpy.numpy_wrapper.extract_fix>`.
+   :py:func:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.numpy_wrapper.extract_compute>` and
+   :py:func:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.numpy_wrapper.extract_fix>`.
 
 .. _py_type_constants:
 
@@ -149,8 +149,8 @@ Type Constants
    to request  from computes  or fixes.  See :cpp:enum:`_LMP_TYPE_CONST`
    for the equivalent constants in the C library interface. Used in
    :py:func:`lammps.extract_compute`, :py:func:`lammps.extract_fix`, and their NumPy variants
-   :py:func:`lammps.numpy.extract_compute() <lammps.numpy.numpy_wrapper.extract_compute>` and
-   :py:func:`lammps.numpy.extract_fix() <lammps.numpy.numpy_wrapper.extract_fix>`.
+   :py:func:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.numpy_wrapper.extract_compute>` and
+   :py:func:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.numpy_wrapper.extract_fix>`.
 
 .. _py_vartype_constants:
 
@@ -170,6 +170,6 @@ Classes representing internal objects
    :members:
    :no-undoc-members:
 
-.. autoclass:: lammps.numpy::NumPyNeighList
+.. autoclass:: lammps.numpy_wrapper::NumPyNeighList
    :members:
    :no-undoc-members:

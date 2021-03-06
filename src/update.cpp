@@ -54,6 +54,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   eflag_atom = vflag_atom = 0;
 
   dt_default = 1;
+  dt = 0.0;
   unit_style = nullptr;
   set_units("lj");
 

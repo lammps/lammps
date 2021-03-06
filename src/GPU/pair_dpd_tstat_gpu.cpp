@@ -47,12 +47,13 @@ int dpd_tstat_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
 void dpd_tstat_gpu_clear();
-int ** dpd_tstat_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                         double **host_x, int *host_type, double *sublo,
-                         double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time, bool &success,
+int ** dpd_tstat_gpu_compute_n(const int ago, const int inum_full,
+                         const int nall, double **host_x, int *host_type,
+                         double *sublo, double *subhi, tagint *tag,
+                         int **nspecial, tagint **special, const bool eflag,
+                         const bool vflag, const bool eatom, const bool vatom,
+                         int &host_start, int **ilist, int **jnum,
+                         const double cpu_time, bool &success,
                          double **host_v, const double dtinvsqrt,
                          const int seed, const int timestep,
                          double *boxlo, double *prd);
@@ -64,8 +65,9 @@ void dpd_tstat_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_v, const double dtinvsqrt,
                      const int seed, const int timestep,
                      const int nlocal, double *boxlo, double *prd);
-void dpd_tstat_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                          double **host_sigma, double **host_cut);
+void dpd_tstat_gpu_update_coeff(int ntypes, double **host_a0,
+                                double **host_gamma, double **host_sigma,
+                                double **host_cut);
 double dpd_tstat_gpu_bytes();
 
 #define EPSILON 1.0e-10
@@ -325,10 +327,11 @@ void PairDPDTstatGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = dpd_tstat_gpu_init(atom->ntypes+1, cutsq, a0, gamma, sigma,
-                             cut, force->special_lj, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
-                             cell_size, gpu_mode, screen);
+                                   cut, force->special_lj, atom->nlocal,
+                                   atom->nlocal+atom->nghost, mnf, maxspecial,
+                                   cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {

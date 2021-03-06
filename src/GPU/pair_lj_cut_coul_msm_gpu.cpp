@@ -48,15 +48,17 @@ int ljcm_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   const int nall, const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen,
                   double **host_cut_ljsq, double host_cut_coulsq,
-                  double *host_special_coul, const int order, const double qqrd2e);
+                  double *host_special_coul, const int order,
+                  const double qqrd2e);
 void ljcm_gpu_clear();
-int ** ljcm_gpu_compute_n(const int ago, const int inum,
-                          const int nall, double **host_x, int *host_type,
-                          double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** ljcm_gpu_compute_n(const int ago, const int inum, const int nall,
+                          double **host_x, int *host_type, double *sublo,
+                          double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag,
                           const bool eatom, const bool vatom, int &host_start,
                           int **ilist, int **jnum, const double cpu_time,
-                          bool &success, double *host_q, double *boxlo, double *prd);
+                          bool &success, double *host_q, double *boxlo,
+                          double *prd);
 void ljcm_gpu_compute(const int ago, const int inum, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
@@ -177,12 +179,13 @@ void PairLJCutCoulMSMGPU::init_style()
   int maxspecial=0;
   if (atom->molecular)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = ljcm_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                               force->kspace->get_gcons(),
                               force->kspace->get_dgcons(),
                               offset, force->special_lj,
                               atom->nlocal, atom->nlocal+atom->nghost,
-                              300, maxspecial, cell_size, gpu_mode, screen,
+                              mnf, maxspecial, cell_size, gpu_mode, screen,
                               cut_ljsq, cut_coulsq, force->special_coul,
                               force->kspace->order, force->qqrd2e);
   GPU_EXTRA::check_flag(success,error,world);

@@ -400,6 +400,7 @@ class PyLammps(object):
       self.lmp = lammps(name=name,cmdargs=cmdargs,ptr=None,comm=comm)
     print("LAMMPS output is captured by PyLammps wrapper")
     self._cmd_history = []
+    self._enable_cmd_history = False
     self.runs = []
 
   def __del__(self):
@@ -434,6 +435,24 @@ class PyLammps(object):
     """
     self.lmp.file(file)
 
+  @property
+  def enable_cmd_history(self):
+    """
+    :getter: Return whether command history is saved
+    :setter: Set if command history should be saved
+    :type: bool
+    """
+    return self._enable_cmd_history
+
+  @enable_cmd_history.setter
+  def enable_cmd_history(self, value):
+    """
+    :getter: Return whether command history is saved
+    :setter: Set if command history should be saved
+    :type: bool
+    """
+    self._enable_cmd_history = (value == True)
+
   def write_script(self, filepath):
     """
     Write LAMMPS script file containing all commands executed up until now
@@ -445,18 +464,28 @@ class PyLammps(object):
       for cmd in self._cmd_history:
         print(cmd, file=f)
 
+  def clear_cmd_history(self):
+    """
+    Clear LAMMPS command history up to this point
+    """
+    self._cmd_history = []
+
   def command(self, cmd):
     """
     Execute LAMMPS command
 
-    All commands executed will be stored in a command history which can be
-    written to a file using :py:meth:`PyLammps.write_script()`
+    If :py:attr:`PyLammps.enable_cmd_history` is set to ``True``, commands executed
+    will be recorded. The entire command history can be written to a file using
+    :py:meth:`PyLammps.write_script()`. To clear the command history, use
+    :py:meth:`PyLammps.clear_cmd_history()`.
 
     :param cmd: command string that should be executed
     :type: cmd: string
     """
     self.lmp.command(cmd)
-    self._cmd_history.append(cmd)
+
+    if self.enable_cmd_history:
+      self._cmd_history.append(cmd)
 
   def run(self, *args, **kwargs):
     """

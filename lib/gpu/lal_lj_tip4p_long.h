@@ -74,13 +74,13 @@ public:
 
   /// Reimplement BaseCharge pair loop with device neighboring
   int** compute(const int ago, const int inum_full, const int nall,
-                double **host_x, int *host_type, double *sublo,
-                double *subhi, tagint *tag,int *map_array, int map_size, int *sametag, int max_same,
-                int **nspecial,
-                tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
-                double *charge, double *boxlo, double *prd);
+                double **host_x, int *host_type, double *sublo, double *subhi,
+                tagint *tag,int *map_array, int map_size, int *sametag,
+                int max_same, int **nspecial, tagint **special,
+                const bool eflag, const bool vflag, const bool eatom,
+                const bool vatom, int &host_start, int **ilist, int **numj,
+                const double cpu_time, bool &success, double *charge,
+                double *boxlo, double *prd);
 
 
   // --------------------------- TYPE DATA --------------------------
@@ -115,11 +115,12 @@ public:
   UCL_D_Vec<int> atom_sametag;
 
   UCL_Kernel k_pair_distrib, k_pair_reneigh, k_pair_newsite;
+  UCL_Kernel k_pair_distrib_noev, *k_pair_dt_sel;
 
  private:
   bool _allocated;
   int t_ago;
-  void loop(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
 };
 
 }

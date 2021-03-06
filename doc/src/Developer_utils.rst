@@ -104,6 +104,9 @@ and parsing files or arguments.
 .. doxygenfunction:: strmatch
    :project: progguide
 
+.. doxygenfunction:: strfind
+   :project: progguide
+
 .. doxygenfunction:: is_integer
    :project: progguide
 

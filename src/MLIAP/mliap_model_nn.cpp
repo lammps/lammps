@@ -66,7 +66,7 @@ int MLIAPModelNN::get_nparams()
 
 void MLIAPModelNN::read_coeffs(char *coefffilename)
 {
-  
+
   // open coefficient file on proc 0
 
   FILE *fpcoeff;
@@ -122,7 +122,7 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
   int stats = 0;
   int ielem = 0;
   int l = 0;
-          
+
   while (1) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
@@ -136,20 +136,20 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
     if (eof) break;
     MPI_Bcast(&n,1,MPI_INT,0,world);
     MPI_Bcast(line,n,MPI_CHAR,0,world);
-          
+
     // strip comment, skip line if blank
 
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
     nwords = utils::trim_and_count_words(line);
     if (nwords == 0) continue;
-          
+
     if (stats == 0) { // Header NET
       tstr = strtok(line,"' \t\n\r\f");
       if (strncmp(tstr, "NET", 3) != 0) error->all(FLERR,"Incorrect format in MLIAPModel coefficient file");
-              
+
       ndescriptors = atoi(strtok(nullptr,"' \t\n\r\f"));
       nlayers = atoi(strtok(nullptr,"' \t\n\r\f"));
-            
+
       memory->create(activation,nlayers,"mliap_model:activation");
       memory->create(nnodes,nlayers,"mliap_model:nnodes");
       memory->create(scale,nelements,2,ndescriptors,"mliap_model:scale");
@@ -164,9 +164,9 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
         else if (strncmp(tstr, "relu", 4) == 0) activation[ilayer] = 3;
         else activation[ilayer] = 4;
       }
-            
+
       stats = 1;
-              
+
     } else if (stats == 1) {
         scale[ielem][0][l] = atof(strtok(line,"' \t\n\r\f"));
         for (int icoeff = 1; icoeff < nwords; icoeff++) {
@@ -177,7 +177,7 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
           stats = 2;
           l = 0;
         }
-              
+
     } else if (stats == 2) {
         scale[ielem][1][l] = atof(strtok(line,"' \t\n\r\f"));
         for (int icoeff = 1; icoeff < nwords; icoeff++) {
@@ -188,12 +188,12 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
           stats = 3;
           l = 0;
         }
-          
+
     // set up coeff lists
-          
+
     } else if (stats == 3) {
         if (nwords > 30) error->all(FLERR,"Incorrect format in MLIAPModel coefficient file");
-            
+
         coeffelem[ielem][l] = atof(strtok(line,"' \t\n\r\f"));
         for (int icoeff = 1; icoeff < nwords; icoeff++) {
           coeffelem[ielem][l+icoeff] = atof(strtok(nullptr,"' \t\n\r\f"));
@@ -220,11 +220,11 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
   for (int ii = 0; ii < data->natoms; ii++) {
       const int ielem = data->ielems[ii];
       const int nl = nlayers;
-    
+
       double* coeffi = coeffelem[ielem];
       double** scalei = scale[ielem];
       double **nodes, **dnodes, **bnodes;
-      
+
       nodes = new double*[nl];
       dnodes = new double*[nl];
       bnodes = new double*[nl];
@@ -233,31 +233,31 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
         dnodes[l] = new double[nnodes[l]];
         bnodes[l] = new double[nnodes[l]];
       }
-    
+
       // forwardprop
       // input - hidden1
 
       for (int n=0; n < nnodes[0]; n++) {
         nodes[0][n] = 0;
         for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
-          nodes[0][n] += coeffi[n*((data->ndescriptors)+1)+icoeff+1] * 
-	    (data->descriptors[ii][icoeff] - scalei[0][icoeff]) / 
-	    scalei[1][icoeff];
+          nodes[0][n] += coeffi[n*((data->ndescriptors)+1)+icoeff+1] *
+            (data->descriptors[ii][icoeff] - scalei[0][icoeff]) /
+            scalei[1][icoeff];
         }
         if (activation[0] == 1) {
-          nodes[0][n] = sigm(nodes[0][n] + 
-			     coeffi[n*((data->ndescriptors)+1)], 
-			     dnodes[0][n]);
+          nodes[0][n] = sigm(nodes[0][n] +
+                             coeffi[n*((data->ndescriptors)+1)],
+                             dnodes[0][n]);
         }
         else if (activation[0] == 2) {
-          nodes[0][n] = tanh(nodes[0][n] + 
-			     coeffi[n*((data->ndescriptors)+1)], 
-			     dnodes[0][n]);
+          nodes[0][n] = tanh(nodes[0][n] +
+                             coeffi[n*((data->ndescriptors)+1)],
+                             dnodes[0][n]);
         }
         else if (activation[0] == 3) {
-          nodes[0][n] = relu(nodes[0][n] + 
-			     coeffi[n*((data->ndescriptors)+1)], 
-			     dnodes[0][n]);
+          nodes[0][n] = relu(nodes[0][n] +
+                             coeffi[n*((data->ndescriptors)+1)],
+                             dnodes[0][n]);
         }
         else {
           nodes[0][n] += coeffi[n*((data->ndescriptors)+1)];
@@ -274,36 +274,36 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
           for (int n=0; n < nnodes[l]; n++) {
             nodes[l][n] = 0;
             for (int j=0; j < nnodes[l-1]; j++) {
-              nodes[l][n] += coeffi[k+n*(nnodes[l-1]+1)+j+1] * 
-		nodes[l-1][j];
+              nodes[l][n] += coeffi[k+n*(nnodes[l-1]+1)+j+1] *
+                nodes[l-1][j];
             }
             if (activation[l] == 1) {
-              nodes[l][n] = sigm(nodes[l][n] + 
-				 coeffi[k+n*(nnodes[l-1]+1)], 
-				 dnodes[l][n]);
+              nodes[l][n] = sigm(nodes[l][n] +
+                                 coeffi[k+n*(nnodes[l-1]+1)],
+                                 dnodes[l][n]);
             }
             else if (activation[l] == 2) {
-              nodes[l][n] = tanh(nodes[l][n] + 
-				 coeffi[k+n*(nnodes[l-1]+1)], 
-				 dnodes[l][n]);
+              nodes[l][n] = tanh(nodes[l][n] +
+                                 coeffi[k+n*(nnodes[l-1]+1)],
+                                 dnodes[l][n]);
             }
             else if (activation[l] == 3) {
-              nodes[l][n] = relu(nodes[l][n] + 
-				 coeffi[k+n*(nnodes[l-1]+1)], 
-				 dnodes[l][n]);
+              nodes[l][n] = relu(nodes[l][n] +
+                                 coeffi[k+n*(nnodes[l-1]+1)],
+                                 dnodes[l][n]);
             }
             else {
               nodes[l][n] += coeffi[k+n*(nnodes[l-1]+1)];
               dnodes[l][n] = 1;
             }
           }
-	  k += (nnodes[l-1]+1)*nnodes[l];
+          k += (nnodes[l-1]+1)*nnodes[l];
         }
       }
 
       // backwardprop
       // output layer dnode initialized to 1.
-      
+
       for (int n=0; n<nnodes[nl-1]; n++) {
         if (activation[nl-1] == 0) {
             bnodes[nl-1][n] = 1;
@@ -319,8 +319,8 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
           for (int n=0; n<nnodes[l-1]; n++) {
             bnodes[l-1][n] = 0;
             for (int j=0; j<nnodes[l]; j++) {
-              bnodes[l-1][n] += coeffi[k+j*(nnodes[l-1]+1)+n+1] * 
-		bnodes[l][j];
+              bnodes[l-1][n] += coeffi[k+j*(nnodes[l-1]+1)+n+1] *
+                bnodes[l][j];
             }
             if (activation[l-1] >= 1) {
               bnodes[l-1][n] *= dnodes[l-1][n];
@@ -328,38 +328,38 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
           }
         }
       }
-      
+
       for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++) {
         data->betas[ii][icoeff] = 0;
         for (int j=0; j<nnodes[0]; j++) {
-          data->betas[ii][icoeff] += 
-	    coeffi[j*((data->ndescriptors)+1)+icoeff+1] * 
-	    bnodes[0][j];
+          data->betas[ii][icoeff] +=
+            coeffi[j*((data->ndescriptors)+1)+icoeff+1] *
+            bnodes[0][j];
         }
-	data->betas[ii][icoeff] = data->betas[ii][icoeff]/scalei[1][icoeff];
+        data->betas[ii][icoeff] = data->betas[ii][icoeff]/scalei[1][icoeff];
       }
-      
+
       if (data->eflag) {
 
       // energy of atom I (E_i)
-      
+
         double etmp = nodes[nl-1][0];
-          
+
         data->energy += etmp;
         data->eatoms[ii] = etmp;
       }
       // Deleting the variables
-      
+
       for (int n=0; n<nl; n++) {
         delete nodes[n];
         delete dnodes[n];
         delete bnodes[n];
       }
-          
+
       delete nodes;
       delete dnodes;
       delete bnodes;
-      
+
   }
 }
 
@@ -406,7 +406,7 @@ int MLIAPModelNN::get_gamma_nnz(class MLIAPData* data)
 double MLIAPModelNN::memory_usage()
 {
   double bytes = 0;
-    
+
   bytes += (double)nelements*nparams*sizeof(double);         // coeffelem
   bytes += (double)nelements*2*ndescriptors*sizeof(double);  // scale
   bytes += (int)nlayers*sizeof(int);                         // nnodes

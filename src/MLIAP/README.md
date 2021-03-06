@@ -1,4 +1,4 @@
-This package provides a general interface to families of machine-learning interatomic potentials (MLIAPs). 
+This package provides a general interface to families of machine-learning interatomic potentials (MLIAPs).
 This interface consists of a `mliap pair style` and a `mliap compute`.
 The `mliap pair style` is used when running simulations with energies and
 forces calculated by an MLIAP. The interface allows separate
@@ -7,10 +7,10 @@ and the geometric quantities that characterize the atomic positions
 (`descriptor`). By defining `model` and `descriptor` separately,
 it is possible to use many different models with a given descriptor,
 or many different descriptors with a given model. The pair_style
-supports the following models: 
+supports the following models:
 
-- `linear`, 
-- `quadratic`, 
+- `linear`,
+- `quadratic`,
 - `nn` (neural networks)
 - `mliappy` (general Python interface to things like PyTorch).
 

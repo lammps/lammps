@@ -85,7 +85,7 @@ for the :doc:`pair_style snap <pair_snap>` coefficient file.
 Specifically, the line containing the element weight and radius is omitted,
 since these are handled by the *descriptor*.
 
-When the *model* keyword is *nn* (neural networks), the model file can contain 
+When the *model* keyword is *nn* (neural networks), the model file can contain
 blank and comment lines (start with #) anywhere. The second non-blank non-comment
 line must contain the string NET, followed by two integers:
 
@@ -99,9 +99,9 @@ and followed by a sequence of a string and an integer for each layer:
 
 This is followed by one block for each of the *nelem* elements. Each block consists
 of *scale0* minimum value, *scale1* (maximum - minimum) value,
-in order to normalize the descriptors, followed by *nparams* parameters, 
+in order to normalize the descriptors, followed by *nparams* parameters,
 including *bias* and *weights* of the model, starting with the first node of the first layer
-and so on, with a maximum of 30 values per line. 
+and so on, with a maximum of 30 values per line.
 
 Notes on mliappy models:
 When the *model* keyword is *mliappy*, the filename should end in '.pt',

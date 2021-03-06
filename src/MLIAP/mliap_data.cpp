@@ -50,6 +50,9 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
   ndims_virial = 6;
   yoffset = nparams*nelements;
   zoffset = 2*yoffset;
+  // must check before storing bigint into regular int
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for MLIAP package");
   natoms_array = atom->natoms;
   size_array_rows = 1+ndims_force*natoms_array+ndims_virial;
   size_array_cols = nparams*nelements+1;

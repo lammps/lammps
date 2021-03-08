@@ -467,7 +467,10 @@ void FixDeform::init()
       set[i].hi_stop = set[i].hi_start +
         0.5*delt*set[i].rate * (set[i].hi_start-set[i].lo_start);
       if (set[i].hi_stop <= set[i].lo_stop)
-        error->all(FLERR,"Final box dimension due to fix deform is < 0.0");
+        if (modify->find_fix_by_style("^halt") == -1)
+          error->all(FLERR,"Final box dimension due to fix deform is < 0.0");
+        else
+          if (comm->me == 0) error->warning(FLERR,"Final box dimension due to fix deform is < 0.0");
     } else if (set[i].style == TRATE) {
       set[i].lo_stop = 0.5*(set[i].lo_start+set[i].hi_start) -
         0.5*((set[i].hi_start-set[i].lo_start) * exp(set[i].rate*delt));

@@ -26,7 +26,7 @@ Masses
 7 12.0112
 8 1.00797
 
-Pair Coeffs # lj/class2/coul/long
+Pair Coeffs # hybrid
 
 1 lj/class2/coul/long 0.054 4.01
 2 lj/class2/coul/long 0.054 4.01

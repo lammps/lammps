@@ -1,0 +1,32 @@
+# energy minimization
+units           metal
+atom_style      atomic
+boundary        p p p
+lattice         fcc 4.5 origin 0.01 0.01 0.01
+region 	 myreg block 0 1 0 1 0 1
+create_box      1 myreg
+create_atoms    1 box
+pair_style      pinn
+pair_coeff      * * Al_2020.pinn Al
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+min_style       cg
+thermo          10
+thermo_style custom step pe lx ly lz vol press
+dump		1 all custom 50 dump.custom.* id type x y z fx fy fz 
+fix		1 all box/relax aniso 0.0 vmax 0.001
+minimize        1.0e-16 1.0e-16 50000 100000
+variable        natoms equal "count(all)"
+variable        PE0 equal "pe"
+variable        E0 equal "v_PE0/v_natoms"
+variable        L0 equal "lx"
+variable        L2 equal "lz"
+variable        avol equal "vol/v_natoms"
+variable        minpress equal "press"
+variable        a0 equal "v_L0/v_nx"
+variable        c0 equal "v_L2/v_ny"
+variable        ca equal "v_c0/v_a0"
+print           "Total energy: ${PE0}"
+print		"Volume per atom: ${avol}"
+print           "Cohesive energy: ${E0} ${natoms} ${minpress}"
+write_data	tmp.lammps

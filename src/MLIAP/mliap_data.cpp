@@ -54,12 +54,12 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
   // must check before storing bigint into regular int
   if (atom->natoms > MAXSMALLINT)
     error->all(FLERR,"Too many atoms for MLIAP package");
-  natoms_array = atom->natoms;
-  size_array_rows = 1+ndims_force*natoms_array+ndims_virial;
+  natoms = atom->natoms;
+  size_array_rows = 1+ndims_force*natoms+ndims_virial;
   size_array_cols = nparams*nelements+1;
   size_gradforce = ndims_force*nparams*nelements;
 
-  natoms_max = 0;
+  nlistatoms_max = 0;
   natomneigh_max = 0;
   nneigh_max = 0;
   nmax = 0;
@@ -120,38 +120,37 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
 
   // clear gradforce array
 
-  int ntotal = atom->nlocal + atom->nghost;
-  for (int i = 0; i < ntotal; i++)
+  int nall = atom->nlocal + atom->nghost;
+  for (int i = 0; i < nall; i++)
     for (int j = 0; j < size_gradforce; j++) {
       gradforce[i][j] = 0.0;
     }
 
+  // grow arrays if necessary
+
+  nlistatoms = list->inum;
+  if (nlistatoms_max < nlistatoms) {
+    memory->grow(betas,nlistatoms,ndescriptors,"MLIAPData:betas");
+    memory->grow(descriptors,nlistatoms,ndescriptors,"MLIAPData:descriptors");
+    memory->grow(eatoms,nlistatoms,"MLIAPData:eatoms");
+    nlistatoms_max = nlistatoms;
+  }
+
   // grow gamma arrays if necessary
 
   if (gradgradflag == 1) {
-    const int natomgamma = list->inum;
-    if (natomgamma_max < natomgamma) {
-      memory->grow(gamma_row_index,natomgamma,gamma_nnz,"MLIAPData:gamma_row_index");
-      memory->grow(gamma_col_index,natomgamma,gamma_nnz,"MLIAPData:gamma_col_index");
-      memory->grow(gamma,natomgamma,gamma_nnz,"MLIAPData:gamma");
-      natomgamma_max = natomgamma;
+    if (natomgamma_max < nlistatoms) {
+      memory->grow(gamma_row_index,nlistatoms,gamma_nnz,"MLIAPData:gamma_row_index");
+      memory->grow(gamma_col_index,nlistatoms,gamma_nnz,"MLIAPData:gamma_col_index");
+      memory->grow(gamma,nlistatoms,gamma_nnz,"MLIAPData:gamma");
+      natomgamma_max = nlistatoms;
     }
-  }
-
-  // grow arrays if necessary
-
-  natoms = list->inum;
-  if (natoms_max < natoms) {
-    memory->grow(betas,natoms,ndescriptors,"MLIAPData:betas");
-    memory->grow(descriptors,natoms,ndescriptors,"MLIAPData:descriptors");
-    memory->grow(eatoms,natoms,"MLIAPData:eatoms");
-    natoms_max = natoms;
   }
 
   grow_neigharrays();
 
   int ij = 0;
-  for (int ii = 0; ii < natoms; ii++) {
+  for (int ii = 0; ii < nlistatoms; ii++) {
     const int i = ilist[ii];
 
     const double xtmp = x[i][0];
@@ -202,12 +201,11 @@ void MLIAPData::grow_neigharrays()
 
   // grow neighbor atom arrays if necessary
 
-  const int natomneigh = list->inum;
-  if (natomneigh_max < natomneigh) {
-    memory->grow(iatoms,natomneigh,"MLIAPData:iatoms");
-    memory->grow(ielems,natomneigh,"MLIAPData:ielems");
-    memory->grow(numneighs,natomneigh,"MLIAPData:numneighs");
-    natomneigh_max = natomneigh;
+  if (natomneigh_max < nlistatoms) {
+    memory->grow(iatoms,nlistatoms,"MLIAPData:iatoms");
+    memory->grow(ielems,nlistatoms,"MLIAPData:ielems");
+    memory->grow(numneighs,nlistatoms,"MLIAPData:numneighs");
+    natomneigh_max = nlistatoms;
   }
 
   // grow neighbor arrays if necessary
@@ -219,7 +217,7 @@ void MLIAPData::grow_neigharrays()
   int *type = atom->type;
 
   int nneigh = 0;
-  for (int ii = 0; ii < natomneigh; ii++) {
+  for (int ii = 0; ii < nlistatoms; ii++) {
     const int i = ilist[ii];
 
     const double xtmp = x[i][0];
@@ -272,9 +270,9 @@ double MLIAPData::memory_usage()
       gamma_nnz*sizeof(double);                  // gamma
   }
 
-  bytes += (double)natoms*ndescriptors*sizeof(int);      // betas
-  bytes += (double)natoms*ndescriptors*sizeof(int);      // descriptors
-  bytes += (double)natoms*sizeof(double);                // eatoms
+  bytes += (double)nlistatoms*ndescriptors*sizeof(int);      // betas
+  bytes += (double)nlistatoms*ndescriptors*sizeof(int);      // descriptors
+  bytes += (double)nlistatoms*sizeof(double);                // eatoms
 
   bytes += (double)natomneigh_max*sizeof(int);               // iatoms
   bytes += (double)natomneigh_max*sizeof(int);               // ielems

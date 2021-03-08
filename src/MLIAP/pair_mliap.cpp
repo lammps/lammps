@@ -255,7 +255,7 @@ void PairMLIAP::e_tally(MLIAPData* data)
 {
   if (eflag_global) eng_vdwl += data->energy;
   if (eflag_atom)
-    for (int ii = 0; ii < data->natoms; ii++) {
+    for (int ii = 0; ii < data->nlistatoms; ii++) {
       const int i = data->iatoms[ii];
       eatom[i] += data->eatoms[ii];
     }

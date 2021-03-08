@@ -73,6 +73,10 @@ class Image : protected Pointers {
   double *depthcopy,*surfacecopy;
   unsigned char *imageBuffer,*rgbcopy,*writeBuffer;
 
+  // MPI_Gatherv
+
+  int *recvcounts,*displs;
+
   // constant view params
 
   double FOV;

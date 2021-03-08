@@ -292,6 +292,14 @@ void FixDeposit::init()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixDeposit::setup_pre_exchange()
+{
+  if (ninserted < ninsert) next_reneighbor = update->ntimestep+1;
+  else next_reneighbor = 0;
+}
+
 /* ----------------------------------------------------------------------
    perform particle insertion
 ------------------------------------------------------------------------- */
@@ -833,7 +841,7 @@ void FixDeposit::write_restart(FILE *fp)
   double list[5];
   list[n++] = random->state();
   list[n++] = ninserted;
-  list[n++] = nfirst;
+  list[n++] = ubuf(nfirst).d;
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = ubuf(update->ntimestep).d;
 
@@ -853,12 +861,12 @@ void FixDeposit::restart(char *buf)
   int n = 0;
   double *list = (double *) buf;
 
-  seed = static_cast<int> (list[n++]);
-  ninserted = static_cast<int> (list[n++]);
-  nfirst = static_cast<int> (list[n++]);
-  next_reneighbor = (bigint) ubuf(list[n++]).i;
+  seed = static_cast<int>(list[n++]);
+  ninserted = static_cast<int>(list[n++]);
+  nfirst = static_cast<bigint>(ubuf(list[n++]).i);
+  next_reneighbor = static_cast<bigint>(ubuf(list[n++]).i);
 
-  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  bigint ntimestep_restart = static_cast<bigint>(ubuf(list[n++]).i);
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR,"Must not reset timestep when restarting this fix");
 

@@ -229,10 +229,11 @@ void PairLJCutTIP4PLongGPU::init_style()
       error->warning(FLERR,"Increasing communication cutoff for TIP4P GPU style");
   }
 
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = ljtip4p_long_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                              offset, force->special_lj, atom->nlocal,
                              typeH, typeO, alpha, qdist,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen, cut_ljsq,
                              cut_coulsq, cut_coulsqplus,
                              force->special_coul, force->qqrd2e,

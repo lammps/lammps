@@ -28,6 +28,3 @@ dihedral_style   ${dihedral_style}
 improper_style   ${improper_style}
 
 read_data        ${data_file}
-dihedral_coeff   *
-improper_coeff   *
-

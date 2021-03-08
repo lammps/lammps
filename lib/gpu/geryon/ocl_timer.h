@@ -61,7 +61,6 @@ class UCL_Timer {
   /// Initialize command queue for timing
   inline void init(UCL_Device &dev, command_queue &cq) {
     clear();
-    t_factor=dev.timer_resolution()/1000000000.0;
     _cq=cq;
     clRetainCommandQueue(_cq);
     _initialized=true;
@@ -124,17 +123,17 @@ class UCL_Timer {
     clReleaseEvent(start_event);
     clReleaseEvent(stop_event);
     has_measured_time = false;
-    return (tend-tstart)*t_factor;
+    return (tend-tstart)*1e-6;
   }
 
   /// Return the time (s) of last start to stop - Forces synchronization
-  inline double seconds() { return time()/1000.0; }
+  inline double seconds() { return time()*1e-3; }
 
   /// Return the total time in ms
   inline double total_time() { return _total_time; }
 
   /// Return the total time in seconds
-  inline double total_seconds() { return _total_time/1000.0; }
+  inline double total_seconds() { return _total_time*1e-3; }
 
  private:
   cl_event start_event, stop_event;

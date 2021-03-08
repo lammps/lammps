@@ -47,6 +47,8 @@ HAS_PDFLATEX = YES
 endif
 endif
 
+# override settings for PIP commands
+# PIP_OPTIONS = --cert /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt --proxy http://proxy.mydomain.org
 
 #SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())') $(shell test -f $(BUILDDIR)/doxygen/xml/run.stamp && printf -- "-E")
 
@@ -228,13 +230,13 @@ $(VENV):
 	@( \
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install --upgrade pip; \
-		pip install -r $(BUILDDIR)/utils/requirements.txt; \
+		pip $(PIP_OPTIONS) install --upgrade pip; \
+		pip $(PIP_OPTIONS) install -r $(BUILDDIR)/utils/requirements.txt; \
 		deactivate;\
 	)
 
 $(MATHJAX):
-	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
+	@git clone --depth 1 git://github.com/mathjax/MathJax.git $@
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

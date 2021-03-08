@@ -14,5 +14,5 @@ Neighbor list access
 
 **NumPy Methods:**
 
-* :py:meth:`lammps.numpy.get_neighlist() <lammps.numpy_wrapper.get_neighlist()>`: Get neighbor list for given index, which uses NumPy arrays for its element neighbor arrays
-* :py:meth:`lammps.numpy.get_neighlist_element_neighbors() <lammps.numpy_wrapper.get_neighlist_element_neighbors()>`: Get element in neighbor list and its neighbors (as numpy array)
+* :py:meth:`lammps.numpy.get_neighlist() <lammps.numpy_wrapper.numpy_wrapper.get_neighlist()>`: Get neighbor list for given index, which uses NumPy arrays for its element neighbor arrays
+* :py:meth:`lammps.numpy.get_neighlist_element_neighbors() <lammps.numpy_wrapper.numpy_wrapper.get_neighlist_element_neighbors()>`: Get element in neighbor list and its neighbors (as numpy array)

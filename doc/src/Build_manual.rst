@@ -74,7 +74,11 @@ For the documentation build a python virtual environment is set up in
 the folder ``doc/docenv`` and various python packages are installed into
 that virtual environment via the ``pip`` tool.  For rendering embedded
 LaTeX code also the `MathJax <https://www.mathjax.org/>`_ JavaScript
-engine needs to be downloaded.
+engine needs to be downloaded.  If you need to pass additional options
+to the pip commands to work (e.g. to use a web proxy or to point to
+additional SSL certificates) you can set them via the ``PIP_OPTIONS``
+environment variable or uncomment and edit the ``PIP_OPTIONS`` setting
+at beginning of the makefile.
 
 The actual translation is then done via ``make`` commands in the doc
 folder.  The following ``make`` commands are available:
@@ -108,7 +112,10 @@ installation of the HTML manual pages into the "install" step when
 installing LAMMPS after the CMake build via ``cmake --build . --target
 install``.  The documentation build is included in the default build
 target, but can also be requested independently with
-``cmake --build . --target doc``.
+``cmake --build . --target doc``.  If you need to pass additional options
+to the pip commands to work (e.g. to use a web proxy or to point to
+additional SSL certificates) you can set them via the ``PIP_OPTIONS``
+environment variable.
 
 .. code-block:: bash
 

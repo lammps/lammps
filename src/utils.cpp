@@ -691,7 +691,7 @@ std::string utils::utf8_subst(const std::string &line)
           out += ' ', i += 2;
       }
     // UTF-8 4-byte character
-    } else if ((in[i] & 0xe8U) == 0xf0U) {
+    } else if ((in[i] & 0xf8U) == 0xf0U) {
       if ((i+3) < len) {
         ;
       }

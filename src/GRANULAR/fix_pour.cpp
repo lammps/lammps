@@ -375,7 +375,8 @@ void FixPour::init()
 
 void FixPour::setup_pre_exchange()
 {
-  next_reneighbor = update->ntimestep + 1;
+  if (ninserted < ninsert) next_reneighbor = update->ntimestep + 1;
+  else next_reneighbor = 0;
 }
 
 /* ----------------------------------------------------------------------

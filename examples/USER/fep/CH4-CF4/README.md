@@ -25,6 +25,11 @@ following:
   exponent of the coupling parameter lambda in the soft-core pair
   potentials was in this example n = 1.
 
+* Atoms of the fragments being created should not interact with atoms being
+  deleted. In this small solute this is guaranteed by the exclusion of 1-2
+  and 1-3 interactions, so no modifications of the *pair_coeff* are needed.
+  Otherwise the LJ epsilon of those interactions should be zeroed.
+
 * Eletrostatic charges that are modified are varied linearly from the
   initial to the final values. This keeps the overall charge of the
   molecule constant, which is good for the long range electrostatics
@@ -33,6 +38,10 @@ following:
 The following directories contain input files and results for
 calculations using the free-energy perturbation and Bennet's acceptance
 ratio (BAR) method:
+
+* `mols` -- molecule description files and force field database used
+  to create the initial configurations used for the simulations
+  `data.0.lmp` and `data.1.lmp`
 
 * `fep01` -- Calculation using FEP, 20-step transformation of a CH4
   molecule into CF4, constant NpT. Results in `fep01.fep`

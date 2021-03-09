@@ -287,6 +287,61 @@ TEST(Utils, signed_double_and_d_exponential)
     ASSERT_FALSE(utils::is_double("-10D-22"));
 }
 
+TEST(Utils, valid_id1)
+{
+    ASSERT_TRUE(utils::is_id("abc"));
+}
+
+TEST(Utils, valid_id2)
+{
+    ASSERT_TRUE(utils::is_id("123"));
+}
+
+TEST(Utils, valid_id3)
+{
+    ASSERT_TRUE(utils::is_id("abc123"));
+}
+
+TEST(Utils, valid_id4)
+{
+    ASSERT_TRUE(utils::is_id("abc_123"));
+}
+
+TEST(Utils, valid_id5)
+{
+    ASSERT_TRUE(utils::is_id("123_abc"));
+}
+
+TEST(Utils, valid_id6)
+{
+    ASSERT_TRUE(utils::is_id("_123"));
+}
+
+TEST(Utils, valid_id7)
+{
+    ASSERT_TRUE(utils::is_id("___"));
+}
+
+TEST(Utils, invalid_id1)
+{
+    ASSERT_FALSE(utils::is_id("+abc"));
+}
+
+TEST(Utils, invalid_id2)
+{
+    ASSERT_FALSE(utils::is_id("a[1]"));
+}
+
+TEST(Utils, invalid_id3)
+{
+    ASSERT_FALSE(utils::is_id("b(c)"));
+}
+
+TEST(Utils, invalid_id4)
+{
+    ASSERT_FALSE(utils::is_id("a$12"));
+}
+
 TEST(Utils, strmatch_beg)
 {
     ASSERT_TRUE(utils::strmatch("rigid/small/omp", "^rigid"));

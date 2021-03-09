@@ -928,6 +928,10 @@ void FixDeform::end_of_step()
     if (set[5].style) domain->xy = set[5].tilt_target;
   }
 
+  for (i = 0; i < 3; i++)
+    if (domain->boxhi[i] <= domain->boxlo[i])
+      error->all(FLERR,"Final box dimension due to fix deform is < 0.0");
+
   domain->set_global_box();
   domain->set_local_box();
 

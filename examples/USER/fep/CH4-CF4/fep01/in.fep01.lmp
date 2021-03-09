@@ -45,17 +45,32 @@ fix SHAKE all shake 0.0001 20 0 b 3 a 4
 
 fix NPT all npt temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 500
 
-thermo_style custom step cpu etotal ke pe evdwl ecoul elong temp press vol density
+thermo_style custom step etotal ke pe evdwl ecoul elong temp press density
 thermo 1000
 
 run 200000
 
 reset_timestep 0
-unfix NPT
-fix NVT all nvt temp ${TK} ${TK} 100
 
-variable dlambda equal  1.0
-variable minusdl equal -1.0
+variable lambda equal ramp(0.0,1.0)
+variable minusl equal 1.0-v_lambda
+variable qC equal  0.48*v_lambda-0.24*(1.0-v_lambda)
+variable qH equal  0.06*(1.0-v_lambda)
+variable qF equal -0.12*v_lambda
+
+fix ADAPT all adapt/fep 100000 &
+    pair lj/cut/coul/long/soft lambda 2 4*5 v_minusl &
+    pair lj/cut/coul/long/soft lambda 3 4*5 v_lambda &
+    atom charge 1 v_qC &
+    atom charge 2 v_qH &
+    atom charge 3 v_qF &
+    after yes
+
+thermo_style custom step etotal ke pe evdwl ecoul elong temp press density &
+    v_lambda v_qC v_qH v_qF
+
+variable dlambda equal  0.05
+variable minusdl equal -0.05
 variable dqC equal  (0.48+0.24)*v_dlambda
 variable dqH equal -0.06*v_dlambda
 variable dqF equal -0.12*v_dlambda
@@ -65,14 +80,15 @@ compute FEP all fep ${TK} &
     pair lj/cut/coul/long/soft lambda 3 4*5 v_dlambda &
     atom charge 1 v_dqC &
     atom charge 2 v_dqH &
-    atom charge 3 v_dqF
+    atom charge 3 v_dqF &
+    volume yes
 
-fix FEP all ave/time 1 1 100 c_FEP[1] c_FEP[2] file bar01.fep
+fix FEP all ave/time 20 4000 100000 c_FEP[*] file fep01.fep
 
-dump TRAJ all custom 5000 dump.lammpstrj id mol type element xu yu zu
+dump TRAJ all custom 20000 dump.lammpstrj id mol type element xu yu zu
 dump_modify TRAJ element C H F H O
 
-run 500000
+run 2000000
 
 # write_restart restart.*.lmp
 write_data data.*.lmp

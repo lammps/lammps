@@ -1,13 +1,13 @@
-# Demonstrate MLIAP/PyTorch interface to linear SNAP potential
+# Demonstrate MLIAP interface to SNAP nn Cu potential
 
 # Initialize simulation
 
 variable nsteps index 100
 variable nrep equal 4
-variable a equal 3.316
+variable a equal 3.621262
 units           metal
 
-# generate the box and atom positions using a BCC lattice
+# generate the box and atom positions using a FCC lattice
 
 variable nx equal ${nrep}
 variable ny equal ${nrep}
@@ -15,16 +15,17 @@ variable nz equal ${nrep}
 
 boundary        p p p
 
-lattice         bcc $a
+lattice         fcc $a
 region          box block 0 ${nx} 0 ${ny} 0 ${nz}
 create_box      1 box
 create_atoms    1 box
 
-mass 1 180.88
+mass 1 63.546
 
 # choose potential
 
-include Ta06A.pytorch.mliap
+pair_style mliap model nn Cu.nn.mliap.model descriptor sna Cu.snap.mliap.descriptor
+pair_coeff * * Cu
 
 # Setup output
 
@@ -50,4 +51,3 @@ neigh_modify once no every 1 delay 0 check yes
 velocity all create 300.0 4928459 loop geom
 fix 1 all nve
 run             ${nsteps}
-

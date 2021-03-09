@@ -1,4 +1,4 @@
-# Demonstrate MLIAP/PyTorch interface to linear SNAP potential
+# Demonstrate MLIAP interface to linear SNAP potential
 
 # Initialize simulation
 
@@ -24,7 +24,7 @@ mass 1 180.88
 
 # choose potential
 
-include Ta06A.pytorch.mliap
+include Ta06A.nn.mliap
 
 # Setup output
 

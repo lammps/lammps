@@ -1,6 +1,6 @@
 LAMMPS (10 Feb 2021)
   using 1 OpenMP thread(s) per MPI task
-# Demonstrate MLIAP/PyTorch interface to linear SNAP potential
+# Demonstrate MLIAP interface to linear SNAP potential
 
 # Initialize simulation
 
@@ -38,7 +38,7 @@ mass 1 180.88
 
 # choose potential
 
-include Ta06A.pytorch.mliap
+include Ta06A.nn.mliap
 # DATE: 2014-09-05 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014)
 
 # Definition of SNAP potential Ta_Cand06A
@@ -50,10 +50,10 @@ variable zblz equal 73
 
 # Specify hybrid with SNAP, ZBL
 
-pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
-pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
-pair_style hybrid/overlay zbl 4 4.8 mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
-Loading python model complete.
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 4.8 mliap model nn Ta06A.nn.mliap.model descriptor sna Ta06A.mliap.descriptor
+Reading potential file Ta06A.nn.mliap.model with DATE: 2021-03-03
 Reading potential file Ta06A.mliap.descriptor with DATE: 2014-09-05
 SNAP keyword rcutfac 4.67637 
 SNAP keyword twojmax 6 
@@ -125,20 +125,20 @@ Step Temp E_pair c_energy TotEng Press v_press
       80    124.79303   -11.829099   -11.829099   -11.813094    1947.0715   -1947.0715 
       90    97.448054   -11.825592   -11.825592   -11.813094    2231.9563   -2231.9563 
      100    74.035418   -11.822589   -11.822589   -11.813094    2515.8526   -2515.8526 
-Loop time of 2.0472 on 1 procs for 100 steps with 128 atoms
+Loop time of 3.05207 on 1 procs for 100 steps with 128 atoms
 
-Performance: 2.110 ns/day, 11.373 hours/ns, 48.847 timesteps/s
-100.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 1.415 ns/day, 16.956 hours/ns, 32.765 timesteps/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.0443     | 2.0443     | 2.0443     |   0.0 | 99.86
+Pair    | 3.0503     | 3.0503     | 3.0503     |   0.0 | 99.94
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.001157   | 0.001157   | 0.001157   |   0.0 |  0.06
-Output  | 0.00080857 | 0.00080857 | 0.00080857 |   0.0 |  0.04
-Modify  | 0.00053188 | 0.00053188 | 0.00053188 |   0.0 |  0.03
-Other   |            | 0.0004304  |            |       |  0.02
+Comm    | 0.00072395 | 0.00072395 | 0.00072395 |   0.0 |  0.02
+Output  | 0.00050893 | 0.00050893 | 0.00050893 |   0.0 |  0.02
+Modify  | 0.00037375 | 0.00037375 | 0.00037375 |   0.0 |  0.01
+Other   |            | 0.0001878  |            |       |  0.01
 
 Nlocal:        128.000 ave         128 max         128 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

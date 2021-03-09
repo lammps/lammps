@@ -1,5 +1,5 @@
-LAMMPS (30 Nov 2020)
-  using 48 OpenMP thread(s) per MPI task
+LAMMPS (10 Feb 2021)
+  using 1 OpenMP thread(s) per MPI task
 # Demonstrate MLIAP/PyTorch interface to linear SNAP potential
 
 # Initialize simulation
@@ -32,13 +32,13 @@ Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (13.264000 13.264000
   1 by 2 by 2 MPI processor grid
 create_atoms    1 box
 Created 128 atoms
-  create_atoms CPU = 0.002 seconds
+  create_atoms CPU = 0.000 seconds
 
 mass 1 180.88
 
 # choose potential
 
-include Ta06A.mliap.pytorch
+include Ta06A.pytorch.mliap
 # DATE: 2014-09-05 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014)
 
 # Definition of SNAP potential Ta_Cand06A
@@ -50,9 +50,9 @@ variable zblz equal 73
 
 # Specify hybrid with SNAP, ZBL
 
-pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pkl descriptor sna Ta06A.mliap.descriptor
-pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pkl descriptor sna Ta06A.mliap.descriptor
-pair_style hybrid/overlay zbl 4 4.8 mliap model mliappy Ta06A.mliap.pytorch.model.pkl descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 4.8 mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
 Loading python model complete.
 Reading potential file Ta06A.mliap.descriptor with DATE: 2014-09-05
 SNAP keyword rcutfac 4.67637 
@@ -112,7 +112,7 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 159.7 | 159.7 | 159.7 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 18.06 | 18.06 | 18.06 Mbytes
 Step Temp E_pair c_energy TotEng Press v_press 
        0          300    -11.85157    -11.85157   -11.813095    2717.1661   -2717.1661 
       10    296.01467   -11.851059   -11.851059   -11.813095    2697.4796   -2697.4796 
@@ -125,20 +125,20 @@ Step Temp E_pair c_energy TotEng Press v_press
       80    124.79303   -11.829099   -11.829099   -11.813094    1947.0715   -1947.0715 
       90    97.448054   -11.825592   -11.825592   -11.813094    2231.9563   -2231.9563 
      100    74.035418   -11.822589   -11.822589   -11.813094    2515.8526   -2515.8526 
-Loop time of 0.562802 on 192 procs for 100 steps with 128 atoms
+Loop time of 0.572344 on 4 procs for 100 steps with 128 atoms
 
-Performance: 7.676 ns/day, 3.127 hours/ns, 177.682 timesteps/s
-99.7% CPU use with 4 MPI tasks x 48 OpenMP threads
+Performance: 7.548 ns/day, 3.180 hours/ns, 174.720 timesteps/s
+100.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.53583    | 0.54622    | 0.55401    |   0.9 | 97.05
+Pair    | 0.51796    | 0.5401     | 0.56608    |   2.4 | 94.37
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0071442  | 0.01491    | 0.025289   |   5.4 |  2.65
-Output  | 0.00092525 | 0.00095771 | 0.0010166  |   0.0 |  0.17
-Modify  | 0.00014479 | 0.00015043 | 0.00015893 |   0.0 |  0.03
-Other   |            | 0.0005624  |            |       |  0.10
+Comm    | 0.0044844  | 0.030393   | 0.052464   |  10.2 |  5.31
+Output  | 0.001      | 0.0010351  | 0.0011083  |   0.1 |  0.18
+Modify  | 0.0001468  | 0.00016417 | 0.00017977 |   0.0 |  0.03
+Other   |            | 0.0006567  |            |       |  0.11
 
 Nlocal:        32.0000 ave          32 max          32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -154,4 +154,4 @@ Ave neighs/atom = 58.000000
 Neighbor list builds = 0
 Dangerous builds = 0
 
-Total wall time: 0:00:02
+Total wall time: 0:00:05

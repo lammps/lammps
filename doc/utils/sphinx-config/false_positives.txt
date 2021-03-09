@@ -384,6 +384,7 @@ CGDNA
 cgs
 cgsdk
 CGSDK
+Chaimovich
 Chalopin
 Champaign
 charmm
@@ -1953,6 +1954,7 @@ Monaghan
 Monaghans
 monodisperse
 monodispersity
+monopole
 monovalent
 Montalenti
 Montero
@@ -2623,10 +2625,12 @@ Rappe
 Ravelo
 rc
 Rc
+Rci
 Rcm
 rcmax
 Rcmx
 Rcmy
+Rco
 Rcut
 rcutfac
 rdc
@@ -2653,6 +2657,7 @@ Reinders
 reinit
 relaxbox
 relink
+relres
 relTol
 remappings
 remd
@@ -2765,6 +2770,8 @@ rozero
 Rperp
 Rr
 rRESPA
+Rsi
+Rso
 Rspace
 rsq
 rst

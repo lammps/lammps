@@ -108,7 +108,7 @@ void KimInit::command(int narg, char **arg)
 
   determine_model_type_and_units(model_name, user_units, &model_units, pkim);
 
-  write_log_cite(model_name);
+  write_log_cite(lmp, model_type, model_name);
 
   do_init(model_name, user_units, model_units, pkim);
 }
@@ -488,7 +488,9 @@ void KimInit::do_variables(const std::string &from, const std::string &to)
 
 /* ---------------------------------------------------------------------- */
 
-void KimInit::write_log_cite(char *model_name)
+void KimInit::write_log_cite(class LAMMPS *lmp,
+                             KimInit::model_type_enum model_type,
+                             char *model_name)
 {
   if (!lmp->citeme) return;
 
@@ -496,50 +498,52 @@ void KimInit::write_log_cite(char *model_name)
   std::string re = "[MS][OM]_\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d";
   std::string kim_id = utils::strfind(model_name_str, re);
 
-  if (kim_id.empty()) return;
-
-  KIM_Collections *collections;
-  int err = KIM_Collections_Create(&collections);
-  if (err) return;
-
-  auto logID = fmt::format("{}_Collections", comm->me);
-  KIM_Collections_SetLogID(collections, logID.c_str());
-
-  int extent;
-  if (model_type == MO) {
-    err = KIM_Collections_CacheListOfItemMetadataFiles(
-      collections, KIM_COLLECTION_ITEM_TYPE_portableModel,
-      model_name, &extent);
-  } else if (model_type == SM) {
-    err = KIM_Collections_CacheListOfItemMetadataFiles(
-      collections, KIM_COLLECTION_ITEM_TYPE_simulatorModel,
-      model_name, &extent);
+  std::string cite_id;
+  if (kim_id.empty()) {
+    cite_id = fmt::format("KIM potential: unpublished, \"{}\"\n",model_name_str);
   } else {
-    error->all(FLERR, "Unknown model type");
-  }
+    KIM_Collections *collections;
+    int err = KIM_Collections_Create(&collections);
+    if (err) return;
 
-  if (err) {
+    auto logID = fmt::format("{}_Collections", lmp->comm->me);
+    KIM_Collections_SetLogID(collections, logID.c_str());
+
+    int extent;
+    if (model_type == MO) {
+      err = KIM_Collections_CacheListOfItemMetadataFiles(
+          collections, KIM_COLLECTION_ITEM_TYPE_portableModel,
+          model_name, &extent);
+    } else if (model_type == SM) {
+      err = KIM_Collections_CacheListOfItemMetadataFiles(
+          collections, KIM_COLLECTION_ITEM_TYPE_simulatorModel,
+          model_name, &extent);
+    } else {
+      lmp->error->all(FLERR, "Unknown model type");
+    }
+
+    if (err) {
+      KIM_Collections_Destroy(&collections);
+      return;
+    }
+
+    cite_id = fmt::format("OpenKIM potential: https://openkim.org/cite/"
+                          "{}#item-citation\n\n",kim_id);
+
+    for (int i = 0; i < extent; ++i) {
+      char const *fileName;
+      int availableAsString;
+      char const *fileString;
+      err = KIM_Collections_GetItemMetadataFile(
+          collections, i, &fileName, nullptr, nullptr,
+          &availableAsString, &fileString);
+      if (err) continue;
+
+      if (utils::strmatch(fileName, "^kimcite") && availableAsString)
+        cite_id += fileString;
+    }
     KIM_Collections_Destroy(&collections);
-    return;
-  }
-
-  auto cite_id = fmt::format("OpenKIM potential: https://openkim.org/cite/"
-                             "{}#item-citation\n\n",kim_id);
-
-  for (int i = 0; i < extent; ++i) {
-    char const *fileName;
-    int availableAsString;
-    char const *fileString;
-    err = KIM_Collections_GetItemMetadataFile(
-      collections, i, &fileName, nullptr, nullptr,
-      &availableAsString, &fileString);
-    if (err) continue;
-
-    if (utils::strmatch(fileName, "^kimcite") && availableAsString)
-      cite_id += fileString;
   }
 
   lmp->citeme->add(cite_id);
-
-  KIM_Collections_Destroy(&collections);
 }

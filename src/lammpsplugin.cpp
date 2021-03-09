@@ -27,12 +27,12 @@
 
 namespace LAMMPS_NS
 {
-  
+
   void lammpsplugin_load(const char *file, void *ptr)
   {
     LAMMPS *lmp = (LAMMPS *)ptr;
 #if defined(WIN32)
-    utils::logmsg(lmp,"Loading of plugins not supported on Windows yet\n");
+    utils::logmesg(lmp,"Loading of plugins not supported on Windows yet\n");
 #else
     void *dso = dlopen(file,RTLD_NOW);
     if (dso == nullptr) {
@@ -71,6 +71,3 @@ namespace LAMMPS_NS
     }
   }
 }
-
-  
-

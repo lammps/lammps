@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-  typedef void *(lammpsplugin_factory)(void *);  
+  typedef void *(lammpsplugin_factory)(void *);
   typedef void (*lammpsplugin_initfunc)(void *);
 
   typedef struct {

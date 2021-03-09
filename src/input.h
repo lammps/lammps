@@ -79,6 +79,7 @@ class Input : protected Pointers {
   void include();
   void jump();
   void label();
+  void load_plugin();
   void log();
   void next_command();
   void partition();

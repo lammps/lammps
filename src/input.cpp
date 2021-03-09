@@ -29,6 +29,7 @@
 #include "group.h"
 #include "improper.h"
 #include "kspace.h"
+#include "lammpsplugin.h"
 #include "memory.h"
 #include "min.h"
 #include "modify.h"
@@ -714,6 +715,7 @@ int Input::execute_command()
   else if (!strcmp(command,"include")) include();
   else if (!strcmp(command,"jump")) jump();
   else if (!strcmp(command,"label")) label();
+  else if (!strcmp(command,"load_plugin")) load_plugin();
   else if (!strcmp(command,"log")) log();
   else if (!strcmp(command,"next")) next_command();
   else if (!strcmp(command,"partition")) partition();
@@ -1025,6 +1027,14 @@ void Input::label()
 {
   if (narg != 1) error->all(FLERR,"Illegal label command");
   if (label_active && strcmp(labelstr,arg[0]) == 0) label_active = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::load_plugin()
+{
+  if (narg != 1) error->all(FLERR,"Illegal load_plugin command");
+  lammpsplugin_load(arg[0],lmp);
 }
 
 /* ---------------------------------------------------------------------- */

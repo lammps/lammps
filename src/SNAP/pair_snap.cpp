@@ -381,17 +381,8 @@ void PairSNAP::settings(int narg, char ** /* arg */)
 
 void PairSNAP::coeff(int narg, char **arg)
 {
-  if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
-
-  if (nelements) {
-    for (int i = 0; i < nelements; i++)
-      delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-    memory->destroy(coeffelem);
-  }
+  if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
   char* type1 = arg[0];
   char* type2 = arg[1];
@@ -403,6 +394,47 @@ void PairSNAP::coeff(int narg, char **arg)
 
   if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
+
+  // clean out old arrays
+
+  if (elements) {
+    for (int i = 0; i < nelements; i++)
+      delete[] elements[i];
+    delete[] elements;
+    memory->destroy(radelem);
+    memory->destroy(wjelem);
+    memory->destroy(coeffelem);
+  }
+
+  // nelements = # of unique elements declared
+  // elements = list of unique element names
+  //            allocate as ntypes >= nelements
+
+  elements = new char*[atom->ntypes];
+  for (int i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
+
+  // read args that map atom types to SNAP elements
+  // map[i] = which element the Ith atom type is, -1 if not mapped
+  // map[0] is not used
+
+  nelements = 0;
+  for (int i = 1; i <= atom->ntypes; i++) {
+    char* elemstring = elemtypes[i-1];
+    if (strcmp(elemstring,"NULL") == 0) {
+      map[i] = -1;
+      continue;
+    }
+    int j;
+    for (j = 0; j < nelements; j++)
+      if (strcmp(elemstring,elements[j]) == 0) break;
+    map[i] = j;
+    if (j == nelements) {
+      int n = strlen(elemstring) + 1;
+      elements[j] = new char[n];
+      strcpy(elements[j],elemstring);
+      nelements++;
+    }
+  }
 
   // read snapcoeff and snapparam files
 
@@ -421,23 +453,6 @@ void PairSNAP::coeff(int narg, char **arg)
     if (ntmp != ncoeffall) {
       error->all(FLERR,"Incorrect SNAP coeff file");
     }
-  }
-
-  // read args that map atom types to SNAP elements
-  // map[i] = which element the Ith atom type is, -1 if not mapped
-  // map[0] is not used
-
-  for (int i = 1; i <= atom->ntypes; i++) {
-    char* elemname = elemtypes[i-1];
-    int jelem;
-    for (jelem = 0; jelem < nelements; jelem++)
-      if (strcmp(elemname,elements[jelem]) == 0)
-        break;
-
-    if (jelem < nelements)
-      map[i] = jelem;
-    else if (strcmp(elemname,"NULL") == 0) map[i] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
   }
 
   // clear setflag since coeff() called once with I,J = * *
@@ -559,19 +574,24 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   iword = 1;
   words[iword] = strtok(nullptr,"' \t\n\r\f");
 
-  nelements = atoi(words[0]);
+  int nelemtmp = atoi(words[0]);
   ncoeffall = atoi(words[1]);
 
   // set up element lists
 
-  elements = new char*[nelements];
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
 
-  // Loop over nelements blocks in the SNAP coefficient file
+  // initialize checklist for all required nelements
 
-  for (int ielem = 0; ielem < nelements; ielem++) {
+  int elementflags[nelements];
+  for (int jelem = 0; jelem < nelements; jelem++)
+      elementflags[jelem] = 0;
+
+  // loop over nelemtmp blocks in the SNAP coefficient file
+
+  for (int ielem = 0; ielem < nelemtmp; ielem++) {
 
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
@@ -597,50 +617,76 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     iword = 2;
     words[iword] = strtok(nullptr,"' \t\n\r\f");
 
-    char* elemtmp = words[0];
-    int n = strlen(elemtmp) + 1;
-    elements[ielem] = new char[n];
-    strcpy(elements[ielem],elemtmp);
+    int jelem;
+    for (jelem = 0; jelem < nelements; jelem++)
+      if (strcmp(words[0],elements[jelem]) == 0) break;
 
-    radelem[ielem] = atof(words[1]);
-    wjelem[ielem] = atof(words[2]);
+    // if this element not needed, skip this block
+  
+    if (jelem == nelements) {
+      if (comm->me == 0) {
+	for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
+	  ptr = fgets(line,MAXLINE,fpcoeff);
+	  if (ptr == nullptr) {
+	    eof = 1;
+	    fclose(fpcoeff);
+	  }
+	}
+      }
+      MPI_Bcast(&eof,1,MPI_INT,0,world);
+      if (eof)
+	error->all(FLERR,"Incorrect format in SNAP coefficient file");
+      continue;
+    }
 
+    if (elementflags[jelem] == 1)
+      error->all(FLERR,"Incorrect format in SNAP coefficient file");
+    else
+      elementflags[jelem] = 1;
+
+    radelem[jelem] = atof(words[1]);
+    wjelem[jelem] = atof(words[2]);
 
     if (comm->me == 0) {
       if (screen) fprintf(screen,"SNAP Element = %s, Radius %g, Weight %g \n",
-                          elements[ielem], radelem[ielem], wjelem[ielem]);
+			  elements[jelem], radelem[jelem], wjelem[jelem]);
       if (logfile) fprintf(logfile,"SNAP Element = %s, Radius %g, Weight %g \n",
-                          elements[ielem], radelem[ielem], wjelem[ielem]);
+			   elements[jelem], radelem[jelem], wjelem[jelem]);
     }
 
     for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
       if (comm->me == 0) {
-        ptr = fgets(line,MAXLINE,fpcoeff);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fpcoeff);
-        } else n = strlen(line) + 1;
+	ptr = fgets(line,MAXLINE,fpcoeff);
+	if (ptr == nullptr) {
+	  eof = 1;
+	  fclose(fpcoeff);
+	} else n = strlen(line) + 1;
       }
 
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof)
-        error->all(FLERR,"Incorrect format in SNAP coefficient file");
+	error->all(FLERR,"Incorrect format in SNAP coefficient file");
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
       nwords = utils::trim_and_count_words(line);
       if (nwords != 1)
-        error->all(FLERR,"Incorrect format in SNAP coefficient file");
+	error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
       iword = 0;
       words[iword] = strtok(line,"' \t\n\r\f");
 
-      coeffelem[ielem][icoeff] = atof(words[0]);
+      coeffelem[jelem][icoeff] = atof(words[0]);
 
     }
   }
 
   if (comm->me == 0) fclose(fpcoeff);
+
+  for (int jelem = 0; jelem < nelements; jelem++) {
+    if (elementflags[jelem] == 0)
+      error->all(FLERR,"Element not found in SNAP coefficient file");
+  }
 
   // set flags for required keywords
 

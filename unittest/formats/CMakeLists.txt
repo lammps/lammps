@@ -40,11 +40,11 @@ set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS
 if(PKG_COMPRESS)
     find_program(GZIP_BINARY NAMES gzip REQUIRED)
 
-    add_executable(test_dump_atom_gz test_dump_atom_gz.cpp)
-    target_link_libraries(test_dump_atom_gz PRIVATE lammps GTest::GMock GTest::GTest)
-    add_test(NAME DumpAtomGZ COMMAND test_dump_atom_gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    set_tests_properties(DumpAtomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
-    set_tests_properties(DumpAtomGZ PROPERTIES ENVIRONMENT "GZIP_BINARY=${GZIP_BINARY}")
+    add_executable(test_dump_atom_compressed test_dump_atom_compressed.cpp)
+    target_link_libraries(test_dump_atom_compressed PRIVATE lammps GTest::GMock GTest::GTest)
+
+    add_test(NAME DumpAtomGZ COMMAND test_dump_atom_compressed gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    set_tests_properties(DumpAtomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
 
     add_executable(test_dump_custom_gz test_dump_custom_gz.cpp)
     target_link_libraries(test_dump_custom_gz PRIVATE lammps GTest::GMock GTest::GTest)
@@ -75,11 +75,8 @@ if(PKG_COMPRESS)
     find_program(ZSTD_BINARY NAMES zstd)
 
     if(Zstd_FOUND AND ZSTD_BINARY)
-        add_executable(test_dump_atom_zstd test_dump_atom_zstd.cpp)
-        target_link_libraries(test_dump_atom_zstd PRIVATE lammps GTest::GMock GTest::GTest)
-        add_test(NAME DumpAtomZstd COMMAND test_dump_atom_zstd WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-        set_tests_properties(DumpAtomZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
-        set_tests_properties(DumpAtomZstd PROPERTIES ENVIRONMENT "ZSTD_BINARY=${ZSTD_BINARY}")
+        add_test(NAME DumpAtomZstd COMMAND test_dump_atom_compressed zstd WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        set_tests_properties(DumpAtomZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${ZSTD_BINARY}")
 
         add_executable(test_dump_custom_zstd test_dump_custom_zstd.cpp)
         target_link_libraries(test_dump_custom_zstd PRIVATE lammps GTest::GMock GTest::GTest)

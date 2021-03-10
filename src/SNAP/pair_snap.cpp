@@ -782,6 +782,9 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   if (rcutfacflag == 0 || twojmaxflag == 0)
     error->all(FLERR,"Incorrect SNAP parameter file");
 
+  if (chemflag && nelemtmp != nelements)
+    error->all(FLERR,"Incorrect SNAP parameter file");
+
 }
 
 /* ----------------------------------------------------------------------

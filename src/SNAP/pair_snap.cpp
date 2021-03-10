@@ -13,19 +13,19 @@
 
 #include "pair_snap.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "sna.h"
-#include "memory.h"
-#include "error.h"
+#include "tokenizer.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

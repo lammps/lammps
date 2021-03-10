@@ -188,7 +188,7 @@ of linear coefficients for element :math:`\mu_i`. The SNAP coefficient file shou
 a total of :math:`K N_{elem}^3` coefficients in each element block,
 where :math:`N_{elem}` is the number of elements in the SNAP coefficient file,
 which must equal the number of unique elements appearing in the
-LAMMPS pair_coeff command, to avoid ambiguity in the 
+LAMMPS pair_coeff command, to avoid ambiguity in the
 number of coefficients.
 
 The keyword *chunksize* is only applicable when using the

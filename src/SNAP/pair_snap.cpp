@@ -622,20 +622,20 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (strcmp(words[0],elements[jelem]) == 0) break;
 
     // if this element not needed, skip this block
-  
+
     if (jelem == nelements) {
       if (comm->me == 0) {
-	for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
-	  ptr = fgets(line,MAXLINE,fpcoeff);
-	  if (ptr == nullptr) {
-	    eof = 1;
-	    fclose(fpcoeff);
-	  }
-	}
+        for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
+          ptr = fgets(line,MAXLINE,fpcoeff);
+          if (ptr == nullptr) {
+            eof = 1;
+            fclose(fpcoeff);
+          }
+        }
       }
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof)
-	error->all(FLERR,"Incorrect format in SNAP coefficient file");
+        error->all(FLERR,"Incorrect format in SNAP coefficient file");
       continue;
     }
 
@@ -647,31 +647,28 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     radelem[jelem] = atof(words[1]);
     wjelem[jelem] = atof(words[2]);
 
-    if (comm->me == 0) {
-      if (screen) fprintf(screen,"SNAP Element = %s, Radius %g, Weight %g \n",
-			  elements[jelem], radelem[jelem], wjelem[jelem]);
-      if (logfile) fprintf(logfile,"SNAP Element = %s, Radius %g, Weight %g \n",
-			   elements[jelem], radelem[jelem], wjelem[jelem]);
-    }
+    if (comm->me == 0)
+      utils::logmesg(lmp,fmt::format("SNAP Element = {}, Radius {}, Weight {}\n",
+                                     elements[jelem], radelem[jelem], wjelem[jelem]);
 
     for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
       if (comm->me == 0) {
-	ptr = fgets(line,MAXLINE,fpcoeff);
-	if (ptr == nullptr) {
-	  eof = 1;
-	  fclose(fpcoeff);
-	} else n = strlen(line) + 1;
+        ptr = fgets(line,MAXLINE,fpcoeff);
+        if (ptr == nullptr) {
+          eof = 1;
+          fclose(fpcoeff);
+        } else n = strlen(line) + 1;
       }
 
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof)
-	error->all(FLERR,"Incorrect format in SNAP coefficient file");
+        error->all(FLERR,"Incorrect format in SNAP coefficient file");
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
       nwords = utils::trim_and_count_words(line);
       if (nwords != 1)
-	error->all(FLERR,"Incorrect format in SNAP coefficient file");
+        error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
       iword = 0;
       words[iword] = strtok(line,"' \t\n\r\f");

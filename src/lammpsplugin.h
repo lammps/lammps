@@ -14,9 +14,9 @@
 #ifndef LMP_LAMMPSPLUGIN_H
 #define LMP_LAMMPSPLUGIN_H
 
-#ifdef __cplusplus
+// C style API and data structures required for dynamic loading
+
 extern "C" {
-#endif
 
   typedef void *(lammpsplugin_factory)(void *);
   typedef void (*lammpsplugin_initfunc)(void *);
@@ -29,16 +29,26 @@ extern "C" {
     lammpsplugin_factory *creator;
   } lammpsplugin_t;
 
-  void lammpsplugin_init(void *);
+  typedef struct {
+    const char *style;
+    const char *name;
+    const void *handle;
+  } lammpsplugin_entry_t;
 
-#ifdef __cplusplus
+  // prototype for initializer function required
+  // to load a plugin; uses C bindings
+
+  void lammpsplugin_init(void *);
 }
-#endif
 
 namespace LAMMPS_NS
 {
-  extern  void lammpsplugin_load(const char *, void *);
-  extern  void lammpsplugin_register(lammpsplugin_t *, void *);
+  extern void lammpsplugin_load(const char *, void *);
+  extern void lammpsplugin_register(lammpsplugin_t *, void *);
+  extern int lammpsplugin_get_num_plugins();
+  extern const lammpsplugin_entry_t *lammpsplugin_info(int);
+  extern int lammpsplugin_find(const char *, const char *);
+  extern void lammpsplugin_unload(const char *, const char *, void *);
 }
 
 #endif

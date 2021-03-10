@@ -18,6 +18,7 @@
 #include "lammps.h"
 #include "modify.h"
 
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -27,6 +28,7 @@
 
 namespace LAMMPS_NS
 {
+  static std::vector<lammpsplugin_entry_t> pluginlist;
 
   void lammpsplugin_load(const char *file, void *ptr)
   {
@@ -34,7 +36,7 @@ namespace LAMMPS_NS
 #if defined(WIN32)
     utils::logmesg(lmp,"Loading of plugins not supported on Windows yet\n");
 #else
-    void *dso = dlopen(file,RTLD_NOW);
+    void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
       utils::logmesg(lmp,fmt::format("Loading of plugin from file {} failed: "
                                      "{}", file, utils::getsyserror()));
@@ -48,6 +50,7 @@ namespace LAMMPS_NS
       return;
     }
     ((lammpsplugin_initfunc)(initfunc))(ptr);
+//    dlclose(dso);
 #endif
   }
 
@@ -61,6 +64,12 @@ namespace LAMMPS_NS
                                      "version {} loaded into LAMMPS "
                                      "version {}\n", plugin->info,
                                      plugin->version, lmp->version));
+    lammpsplugin_entry_t entry;
+    entry.style = plugin->style;
+    entry.name = plugin->name;
+    entry.handle = nullptr;
+    pluginlist.push_back(entry);
+
     std::string pstyle = plugin->style;
     if (pstyle == "pair") {
       (*(lmp->force->pair_map))[plugin->name] =
@@ -68,6 +77,41 @@ namespace LAMMPS_NS
     } else {
       utils::logmesg(lmp,fmt::format("Loading plugin for {} styles not "
                                      "yet implemented\n", pstyle));
+      pluginlist.pop_back();
+    }
+  }
+
+  int lammpsplugin_get_num_plugins() 
+  {
+    return pluginlist.size();
+  }
+
+  const lammpsplugin_entry_t *lammpsplugin_info(int idx)
+  {
+    if ((idx < 0) || idx >= pluginlist.size()) return nullptr;
+
+    return &pluginlist[idx];
+  }
+
+  int lammpsplugin_find(const char *style, const char *name)
+  {
+    for (int i=0; i < pluginlist.size(); ++i) {
+      if ((strcmp(style,pluginlist[i].style) == 0)
+          && (strcmp(name,pluginlist[i].name) == 0))
+        return i;
+    }
+    return -1;
+  }
+  
+  void lammpsplugin_unload(const char *style, const char *name, void *ptr)
+  {
+    LAMMPS *lmp = (LAMMPS *)ptr;
+    std::string pstyle = style;
+    if (pstyle == "pair") {
+      auto found = lmp->force->pair_map->find(name);
+      if (found != lmp->force->pair_map->end()) {
+        lmp->force->pair_map->erase(found);
+      }
     }
   }
 }

@@ -715,10 +715,10 @@ int Input::execute_command()
   else if (!strcmp(command,"include")) include();
   else if (!strcmp(command,"jump")) jump();
   else if (!strcmp(command,"label")) label();
-  else if (!strcmp(command,"load_plugin")) load_plugin();
   else if (!strcmp(command,"log")) log();
   else if (!strcmp(command,"next")) next_command();
   else if (!strcmp(command,"partition")) partition();
+  else if (!strcmp(command,"plugin")) plugin();
   else if (!strcmp(command,"print")) print();
   else if (!strcmp(command,"python")) python();
   else if (!strcmp(command,"quit")) quit();
@@ -1031,14 +1031,6 @@ void Input::label()
 
 /* ---------------------------------------------------------------------- */
 
-void Input::load_plugin()
-{
-  if (narg != 1) error->all(FLERR,"Illegal load_plugin command");
-  lammpsplugin_load(arg[0],lmp);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void Input::log()
 {
   if ((narg < 1) || (narg > 2)) error->all(FLERR,"Illegal log command");
@@ -1103,6 +1095,32 @@ void Input::partition()
   } else {
     if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(ptr);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Input::plugin()
+{
+  if (narg < 1) error->all(FLERR,"Illegal plugin command");
+  std::string cmd = arg[0];
+  if (cmd == "load") {
+    if (narg < 2) error->all(FLERR,"Illegal plugin load command");
+    for (int i=1; i < narg; ++i)
+      lammpsplugin_load(arg[i],lmp);
+  } else if (cmd == "unload") {
+    if (narg != 3) error->all(FLERR,"Illegal plugin unload command");
+    lammpsplugin_unload(arg[1],arg[2],lmp);
+  } else if (cmd == "list") {
+    if (comm->me == 0) {
+      int num = lammpsplugin_get_num_plugins();
+      utils::logmesg(lmp,"Currently loaded plugins\n");
+      for (int i=0; i < num; ++i) {
+        auto entry = lammpsplugin_info(i);
+        utils::logmesg(lmp,fmt::format("{:4}: {} style plugin {}\n",
+                                       i+1,entry->style,entry->name));
+      }
+    }
+  } else error->all(FLERR,"Illegal plugin command");
 }
 
 /* ---------------------------------------------------------------------- */

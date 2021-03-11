@@ -55,6 +55,7 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 #include "pair_kim.h"
+#include "kim_init.h"
 
 #include "atom.h"
 #include "citeme.h"
@@ -336,6 +337,9 @@ void PairKIM::settings(int narg, char **arg)
 
   // initialize KIM Model
   kim_init();
+
+  // add citation
+  KimInit::write_log_cite(lmp, KimInit::MO, kim_modelname);
 }
 
 /* ----------------------------------------------------------------------

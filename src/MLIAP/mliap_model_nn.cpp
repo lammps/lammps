@@ -356,9 +356,9 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
         delete bnodes[n];
       }
 
-      delete nodes;
-      delete dnodes;
-      delete bnodes;
+      delete[] nodes;
+      delete[] dnodes;
+      delete[] bnodes;
 
   }
 }

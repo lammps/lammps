@@ -183,7 +183,9 @@ TEST_F(DumpXYZCompressTest, compressed_modify_bad_param)
 {
     if (compression_style != "xyz/gz") GTEST_SKIP();
 
+    if (!verbose) ::testing::internal::CaptureStdout();
     command(fmt::format("dump id1 all {} 1 {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.xyz")));
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
         command("dump_modify id1 compression_level 12");
@@ -194,7 +196,9 @@ TEST_F(DumpXYZCompressTest, compressed_modify_multi_bad_param)
 {
     if (compression_style != "xyz/gz") GTEST_SKIP();
 
+    if (!verbose) ::testing::internal::CaptureStdout();
     command(fmt::format("dump id1 all {} 1 {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.xyz")));
+    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
         command("dump_modify id1 pad 3 compression_level 12");

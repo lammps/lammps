@@ -418,13 +418,13 @@ void utils::bounds(const char *file, int line, const std::string &str,
       error->all(file,line,fmt::format("Invalid range string: {}",str));
 
     if (nlo < nmin)
-      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds "
                                        "({}-{})",nlo,nmin,nmax));
     else if (nhi > nmax)
-      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds "
                                        "({}-{})",nhi,nmin,nmax));
     else if (nlo > nhi)
-      error->all(file,line,fmt::format("Numeric index {} is out of bounds"
+      error->all(file,line,fmt::format("Numeric index {} is out of bounds "
                                        "({}-{})",nlo,nmin,nhi));
   }
 }

@@ -218,6 +218,7 @@ OPT.
    * :doc:`peri/lps (o) <pair_peri>`
    * :doc:`peri/pmb (o) <pair_peri>`
    * :doc:`peri/ves <pair_peri>`
+   * :doc:`pinn <pair_pinn>`
    * :doc:`polymorphic <pair_polymorphic>`
    * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`

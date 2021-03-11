@@ -1,4 +1,4 @@
-# .. index:: pair_style pinn
+.. index:: pair_style pinn
 
 pair_style pinn command
 ==============================
@@ -29,7 +29,8 @@ The following commands can be used to build LAMMPS with the user-pinn package:
 
 Description
 """""""""""
-Style pinn computes interatomic interactions for various materials using physically informed neural network (PINN) potentials :ref:`(1) <1>`, :ref:`(2) <2>`.  Computationally, PINN uses an artificial neural network (ANN) to predict parameters for a physics-based potential to calculate the energy  :math:`E_{i_α}` of an atom :math:`i_α` of chemical element :math:`α` as a function of its position with respect to other atoms inside a spherical neighborhood of radius :math:`R_c`. In the current formulation, :math:`E_{i_α}` is calculated through a modified version of a bond-order potential (BOP) as follows:
+
+Style pinn computes interatomic interactions for various materials using physically informed neural network (PINN) potentials :ref:`(1) <1>`, :ref:`(2) <2>`.  Computationally, PINN uses an artificial neural network (ANN) to predict parameters for a physics-based potential to calculate the energy :math:`E_{i_{\alpha}}` of an atom :math:`i_{\alpha}` of chemical element :math:`\alpha` as a function of its position with respect to other atoms inside a spherical neighborhood of radius :math:`R_c`. In the current formulation, :math:`E_{i_{\alpha}}` is calculated through a modified version of a bond-order potential (BOP) as follows:
 
 .. math::
 
@@ -40,16 +41,16 @@ where
 
 .. math::
 
-	S_{i_{ \alpha }}^{j_{ \beta }}= \prod_{k_{ \gamma } \neq i_{ \alpha },j_{ \beta }}^{}s_{i_{ \alpha }}^{j_{ \beta }k_{ \gamma }};~~~~~s_{i_{ \alpha }}^{j_{ \beta }k_{ \gamma }}=1-f_{c} \left( r_{i_{ \alpha }}^{k_{ \gamma }}+r_{j_{ \beta }}^{k_{ \gamma }}-r_{i_{ \alpha }}^{j_{ \beta }} \right) e^{- \lambda _{i_{ \alpha }}^{ \beta  \gamma } \left( r_{i_{ \alpha }}^{k_{ \gamma }}+r_{j_{ \beta }}^{k_{ \gamma }}-r_{i_{ \alpha }}^{j_{ \beta }} \right) },~~~~  \left( 2 \right)
+   S_{i_{ \alpha }}^{j_{ \beta }}= \prod_{k_{ \gamma } \neq i_{ \alpha },j_{ \beta }}^{} s_{i_{ \alpha }}^{j_{ \beta }k_{ \gamma }};~~~~~s_{i_{ \alpha }}^{j_{ \beta }k_{ \gamma }}=1-f_{c} \left( r_{i_{ \alpha }}^{k_{ \gamma }}+r_{j_{ \beta }}^{k_{ \gamma }}-r_{i_{ \alpha }}^{j_{ \beta }} \right) e^{- \lambda _{i_{ \alpha }}^{ \beta  \gamma } \left( r_{i_{ \alpha }}^{k_{ \gamma }}+r_{j_{ \beta }}^{k_{ \gamma }}-r_{i_{ \alpha }}^{j_{ \beta }} \right) },~~~~  \left( 2 \right)
 
 
 .. math::
 
-	\Phi _{i_{ \alpha }}^{j_{ \beta }}= \left( 1+Z_{i_{ \alpha }}^{j_{ \beta }} \right) ^{-\frac{1}{2}};~~~~~Z_{i_{ \alpha }}^{j_{ \beta }}= \sum _{k_{ \gamma } \neq i_{ \alpha },j_{ \beta }}^{} \zeta _{i_{ \alpha }}^{ \beta  \gamma }S_{i_{ \alpha }}^{k_{ \gamma }} \left( \cos  \theta _{i_{ \alpha }}^{j_{ \beta }k_{ \gamma }}-h_{i_{ \alpha }}^{ \beta  \gamma } \right) ^{2}f_{c} \left( r_{i_{ \alpha }}^{k_{ \gamma }} \right) ,~~~  \left( 3 \right)
+   \Phi _{i_{ \alpha }}^{j_{ \beta }}= \left( 1+Z_{i_{ \alpha }}^{j_{ \beta }} \right) ^{-\frac{1}{2}};~~~~~Z_{i_{ \alpha }}^{j_{ \beta }}= \sum _{k_{ \gamma } \neq i_{ \alpha },j_{ \beta }}^{} \zeta _{i_{ \alpha }}^{ \beta  \gamma }S_{i_{ \alpha }}^{k_{ \gamma }} \left( \cos  \theta _{i_{ \alpha }}^{j_{ \beta }k_{ \gamma }}-h_{i_{ \alpha }}^{ \beta  \gamma } \right) ^{2}f_{c} \left( r_{i_{ \alpha }}^{k_{ \gamma }} \right) ,~~~  \left( 3 \right)
 
 .. math::
 
-	W_{i_{ \alpha }}=- \sigma _{i_{ \alpha }} \psi _{i_{ \alpha }}^{\frac{1}{2}};~~~~ \psi _{i_{ \alpha }}= \sum _{j_{ \beta } \neq i_{ \alpha }}^{}S_{i_{ \alpha }}^{j_{ \beta }} \Phi _{i_{ \alpha }}^{j_{ \beta }}f_{c} \left( r_{i_{ \alpha }}^{j_{ \beta }} \right) ,~~~~  \left( 4 \right) 
+   W_{i_{ \alpha }}=- \sigma _{i_{ \alpha }} \psi _{i_{ \alpha }}^{\frac{1}{2}};~~~~ \psi _{i_{ \alpha }}= \sum _{j_{ \beta } \neq i_{ \alpha }}^{}S_{i_{ \alpha }}^{j_{ \beta }} \Phi _{i_{ \alpha }}^{j_{ \beta }}f_{c} \left( r_{i_{ \alpha }}^{j_{ \beta }} \right) ,~~~~  \left( 4 \right) 
 
 .. math::
 
@@ -62,7 +63,7 @@ The following nomenclature is used in the above equations: (i) Greek
 symbols, :math:`\alpha,\beta,\gamma = 1,2,..\ n_{\text{el}}`, indicate
 the chemical elements, :math:`n_{\text{el}}` of them in total; (ii) the
 subscript :math:`i_{\alpha}` indicates the atom :math:`i_{\alpha}` of
-element α, whose energy is calculated. This atom is referred to as the
+element :math:`\alpha` , whose energy is calculated. This atom is referred to as the
 *host* atom. The superscripts :math:`j_{\beta}k_{\gamma}` indicate the
 *neighbor*\ s of the host atom with their chemical types. The distance
 between the atoms :math:`\left( i_{\alpha} \right)` and
@@ -80,11 +81,11 @@ The BOP parameters   :math:`A_{i_{ \alpha }}^{ \beta }`, :math:`a_{i_{ \alpha }}
 
 
 .. math::
- 	\left( ~~A_{ \alpha }^{ \beta }+ \Delta A_{i_{ \alpha }}^{ \beta },~~~a_{ \alpha }^{ \beta }+ \Delta a_{i_{ \alpha }}^{ \beta },~~ \ldots ,   \lambda _{ \alpha }^{ \beta  \gamma }+ \Delta  \lambda _{i_{ \alpha }}^{ \beta  \gamma } \right) ` ,\ \  \  (6)
+   \left( ~~A_{ \alpha }^{ \beta }+ \Delta A_{i_{ \alpha }}^{ \beta },~~~a_{ \alpha }^{ \beta }+ \Delta a_{i_{ \alpha }}^{ \beta },~~ \ldots ,   \lambda _{ \alpha }^{ \beta  \gamma }+ \Delta  \lambda _{i_{ \alpha }}^{ \beta  \gamma } \right) ` ,\ \  \  (6)
 
 
 where
-:math:`\left( A_{\alpha}^{\beta},\ a_{\alpha}^{\beta},B_{\alpha}^{\beta},\ b_{\alpha}^{\beta},h_{\alpha}^{\text{βγ}},\sigma_{\alpha},\zeta_{\alpha}^{\text{βγ}},\lambda_{\alpha}^{\text{βγ}} \right)`
+:math:`\left( A_{\alpha}^{\beta},\ a_{\alpha}^{\beta},B_{\alpha}^{\beta},\ b_{\alpha}^{\beta},h_{\alpha}^{{\beta \gamma}},\sigma_{\alpha},\zeta_{\alpha}^{{ \beta \gamma}},\lambda_{\alpha}^{{ \beta \gamma}} \right)`
 is the set of *base* parameters of a globally optimized BOP. These
 parameters only depend on the chemical type
 :math:`\left( \alpha,\beta,\gamma \right)` but otherwise are the same of
@@ -134,7 +135,7 @@ potential becomes
 .. math:: N_{\text{BOP}} = n_{\text{el}}\left( 4n_{\text{el}} + 1 + 3{n_{\text{el}}}^{2} \right)\ \ \ \ \ (8c)
 
 The perturbations
-:math:`\left( {\mathrm{\Delta}A}_{i_{\alpha}}^{\beta},\ {\mathrm{\Delta}a}_{i_{\alpha}}^{\beta},{\mathrm{\Delta}B}_{i_{\alpha}}^{\beta},{\mathrm{\Delta}b}_{i_{\alpha}}^{\beta},{\mathrm{\Delta}h}_{i_{\alpha}}^{\text{βγ}},{\mathrm{\Delta}\sigma}_{i_{\alpha}},{\mathrm{\Delta}\zeta}_{i_{\alpha}}^{\text{βγ}},{\mathrm{\Delta}\lambda}_{i_{\alpha}}^{\text{βγ}} \right)`
+:math:`\left( {\mathrm{\Delta}A}_{i_{\alpha}}^{\beta},\ {\mathrm{\Delta}a}_{i_{\alpha}}^{\beta},{\mathrm{\Delta}B}_{i_{\alpha}}^{\beta},{\mathrm{\Delta}b}_{i_{\alpha}}^{\beta},{\mathrm{\Delta}h}_{i_{\alpha}}^{{ \beta \gamma}},{\mathrm{\Delta}\sigma}_{i_{\alpha}},{\mathrm{\Delta}\zeta}_{i_{\alpha}}^{{ \beta \gamma}},{\mathrm{\Delta}\lambda}_{i_{\alpha}}^{{ \beta \gamma}} \right)`
 to the base parameters are predicted by the ANN according to the local
 atomic environment of the host atom :math:`\left( i_{\alpha} \right)`.
 
@@ -144,30 +145,30 @@ parameters (LSPs) :math:`\left\{ G \right\}_{i}`. Two kinds of feature
 vectors are offered in this release of PINN.
 
 -  The feature vector of Kind I is defined as
-   :math:`\mathbf{G}_{\mathbf{i}}^{\left( \mathbf{1} \right)} = \left\{ G_{sl,\alpha}^{\text{βγ}} \right\}_{i}`
+   :math:`\mathbf{G}_{\mathbf{i}}^{\left( \mathbf{1} \right)} = \left\{ G_{sl,\alpha}^{{ \beta \gamma}} \right\}_{i}`
    and depends on the chemical type :math:`\left( \alpha \right)\ `\ of
    the host atom (i).
 
 -  The feature vector of Kind II is defined as
-   :math:`\mathbf{G}_{\mathbf{i}}^{\left( \mathbf{2} \right)} = \left\{ G_{\text{sl}}^{\text{βγ}} \right\}_{i}`
+   :math:`\mathbf{G}_{\mathbf{i}}^{\left( \mathbf{2} \right)} = \left\{ G_{\text{sl}}^{{ \beta \gamma}} \right\}_{i}`
    and does not depend on the chemical type
    :math:`\left( \alpha \right)\ `\ of the host atom (i).
 
 For both kinds, the LSPs are expressed as:
 
-.. math:: G_{sl,\alpha}^{\text{βγ}} = \sinh^{- 1}\Gamma_{sl,\alpha\ }^{\text{βγ}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (9a)
+.. math:: G_{sl,\alpha}^{{ \beta \gamma}} = \sinh^{- 1}\Gamma_{sl,\alpha }^{{ \beta \gamma}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (9a)
 
 and
 
-.. math:: G_{\text{sl}}^{\text{βγ}} = \sinh^{- 1}{\Gamma_{\text{sl\ }}^{\text{βγ}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (9b)}
+.. math:: G_{\text{sl}}^{{ \beta \gamma}} = \sinh^{- 1}{\Gamma_{\text{sl}}^{{ \beta \gamma}},\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (9b)}
 
 with
 
-.. math:: \Gamma_{sl,\alpha\ }^{\text{βγ}} = \mathrm{\Delta} + \sum_{j,k \neq i}^{}{P_{l}\left( \cos\theta_{\text{ijk}} \right)f_{s}\left( r_{\text{ij}} \right)f_{s}\left( r_{\text{ik}} \right)\delta_{\text{iα}}\delta_{\text{jβ}}\delta_{\text{kγ}}},\ \ \ \ (10a)
+.. math:: \Gamma_{sl,\alpha\ }^{{ \beta \gamma}} = \mathrm{\Delta} + \sum_{j,k \neq i}^{}{P_{l}\left( \cos\theta_{\text{ijk}} \right)f_{s}\left( r_{\text{ij}} \right)f_{s}\left( r_{\text{ik}} \right)\delta_{\text{i} \alpha}\delta_{\text{j} \beta}\delta_{\text{k} \gamma}},\ \ \ \ (10a)
 
 and
 
-.. math:: \Gamma_{\text{sl\ }}^{\text{βγ}} = \mathrm{\Delta} + \sum_{j,k \neq i}^{}{P_{l}\left( \cos\theta_{\text{ijk}} \right)f_{s}\left( r_{\text{ij}} \right)f_{s}\left( r_{\text{ik}} \right)\delta_{\text{jβ}}\delta_{\text{kγ}}}.\ \ \ \ \ \ (10b)
+.. math:: \Gamma_{\text{sl}}^{{ \beta \gamma}} = \mathrm{\Delta} + \sum_{j,k \neq i}^{}{P_{l}\left( \cos\theta_{\text{ijk}} \right)f_{s}\left( r_{\text{ij}} \right)f_{s}\left( r_{\text{ik}} \right)\delta_{\text{j} \beta}\delta_{\text{k} \gamma}}.\ \ \ \ \ \ (10b)
 
 The sum in Eq.(10a,b) includes :math:`j = k` terms with
 :math:`\cos\theta_{\text{ijj}} = 1`. :math:`\mathrm{\Delta}` is a
@@ -191,27 +192,27 @@ Note that the cutoff function used in this calculation,
 has an increased cut-off range compared to Eq.(5), because the screening
 atoms in Eq.(2) extends to :math:`1.5R_{c}`. Finally, to distinguish
 between different chemical elements, the symbols
-:math:`\delta_{\text{iα}}` are introduced:
+:math:`\delta_{\text{i} \alpha}` are introduced:
 
 
 
 .. math::
 
-   \delta_{\text{iα}} = \left\{ \begin{matrix}
+   \delta_{\text{i} \alpha} = \left\{ \begin{matrix}
    1\ :if\ atom\ i\ is\ of\ element\ \alpha \\
    \ 0\ :\ \ \ \ \ \ \ \ \ \ \ \ \ \ otherwise\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \  \\
    \end{matrix}. \right.\ \ \ \ \ \ \ (13)
 
 According to Eqs.(10a,b),
-:math:`\Gamma_{sl,\alpha\ }^{\text{βγ}} = \Gamma_{sl,\alpha\ }^{\text{γβ}}`
+:math:`\Gamma_{sl,\alpha\ }^{{ \beta \gamma}} = \Gamma_{sl,\alpha }^{{ \gamma \beta}}`
 and
-:math:`\Gamma_{\text{sl\ }}^{\text{βγ}} = \Gamma_{\text{sl\ }}^{\text{γβ}}`.
+:math:`\Gamma_{\text{sl}}^{\beta \gamma} = \Gamma_{\text{sl}}^{\gamma \beta}`.
 Accordingly,
-:math:`G_{sl,\alpha\ }^{\text{βγ}} = G_{sl,\alpha\ }^{\text{γβ}}` and
-:math:`G_{\text{sl\ }}^{\text{βγ}} = G_{\text{sl\ }}^{\text{γβ}}`.
+:math:`G_{sl,\alpha }^{{ \beta \gamma}} = G_{sl,\alpha }^{{ \gamma \beta}}` and
+:math:`G_{\text{sl }}^{{ \beta \gamma}} = G_{\text{sl }}^{{ \gamma \beta}}`.
 
-The arrays :math:`\left\{ G_{sl,\alpha}^{\text{βγ}} \right\}_{i}` and
-:math:`\left\{ G_{\text{sl}}^{\text{βγ}} \right\}_{i}` form the feature
+The arrays :math:`\left\{ G_{sl,\alpha}^{{ \beta \gamma}} \right\}_{i}` and
+:math:`\left\{ G_{\text{sl}}^{{ \beta \gamma}} \right\}_{i}` form the feature
 vectors of Kind I and Kind II, respectively, and are fed as input into
 the ANN.
 
@@ -221,15 +222,15 @@ hierarchical ordering. First, by the structural indices
 
 .. math::
 
-   \left( \mathbf{G}_{\mathbf{\text{sl}}} \right)_{\alpha}^{\text{βγ}} = \begin{pmatrix}
-   \left\{ G_{01,\alpha}^{\text{βγ}} \right\},\left\{ G_{02,\alpha}^{\text{βγ}} \right\},\ldots\ \left\{ G_{0l_{\max},\alpha}^{\text{βγ}} \right\}, \\
+   \left( \mathbf{G}_{\mathbf{\text{sl}}} \right)_{\alpha}^{{ \beta \gamma}} = \begin{pmatrix}
+   \left\{ G_{01,\alpha}^{{ \beta \gamma}} \right\},\left\{ G_{02,\alpha}^{{ \beta \gamma}} \right\},\ldots\ \left\{ G_{0l_{\max},\alpha}^{{ \beta \gamma}} \right\}, \\
    \ \begin{matrix}
-   \left\{ G_{11,\alpha}^{\text{βγ}} \right\},\left\{ G_{12,\alpha}^{\text{βγ}} \right\},\ldots\ \left\{ G_{1l_{\max},\alpha}^{\text{βγ}} \right\}, \\
+   \left\{ G_{11,\alpha}^{{ \beta \gamma}} \right\},\left\{ G_{12,\alpha}^{{ \beta \gamma}} \right\},\ldots\ \left\{ G_{1l_{\max},\alpha}^{{ \beta \gamma}} \right\}, \\
    \  \\
    \end{matrix} \\
    : \\
-   \left\{ G_{s_{\max}1,\alpha}^{\text{βγ}} \right\},\left\{ G_{s_{\max}2,\alpha}^{\text{βγ}} \right\},\ldots\ \left\{ G_{s_{\max}l_{\max},\alpha}^{\text{βγ}} \right\} \\
-   \end{pmatrix}_{\alpha}^{\text{βγ}},\ \ \ \ \ (14)
+   \left\{ G_{s_{\max}1,\alpha}^{{ \beta \gamma}} \right\},\left\{ G_{s_{\max}2,\alpha}^{{ \beta \gamma}} \right\},\ldots\ \left\{ G_{s_{\max}l_{\max},\alpha}^{{ \beta \gamma}} \right\} \\
+   \end{pmatrix}_{\alpha}^{{ \beta \gamma}},\ \ \ \ \ (14)
 
 and second, by the chemical indices
 :math:`\left( \alpha,\beta,\gamma \right)` for Kind I:
@@ -243,9 +244,9 @@ and by :math:`\left( \beta,\gamma \right)` for Kind II:
 
 For Kind I descriptors, if the host atom is of chemical sort
 :math:`\alpha = 1`, then all
-:math:`\left( \mathbf{G}_{\mathbf{\text{sl}}} \right)_{2}^{\text{βγ}} = \sinh^{- 1}\left( \mathrm{\Delta} \right)`
+:math:`\left( \mathbf{G}_{\mathbf{\text{sl}}} \right)_{2}^{{ \beta \gamma}} = \sinh^{- 1}\left( \mathrm{\Delta} \right)`
 (see Eq.(10a)); and if :math:`\alpha = 2`, then all
-:math:`\left( \mathbf{G}_{\mathbf{\text{sl}}} \right)_{1}^{\text{βγ}} = \sinh^{- 1}\left( \mathrm{\Delta} \right)`
+:math:`\left( \mathbf{G}_{\mathbf{\text{sl}}} \right)_{1}^{{ \beta \gamma}} = \sinh^{- 1}\left( \mathrm{\Delta} \right)`
 . Since an atom can only be of one chemical type, most of the
 descriptors are
 :math:`const = \sinh^{- 1}\left( \mathrm{\Delta} \right)` , which
@@ -261,7 +262,7 @@ described by the iteration scheme computing the signal
 :math:`t_{\eta}^{\left( n \right)}` at each node :math:`\eta` of layer
 *n* as
 
-.. math:: t_{\eta}^{\left( n \right)} = f_{a}^{\left( n \right)}\left( \sum_{k = 1}^{\eta_{\max}^{\left( n - 1 \right)}}{w_{\text{ηk}}^{\left( n - 1 \right)}t_{k}^{\left( n - 1 \right)}} + b_{\eta}^{\left( n \right)} \right),\ \ \ \ \ n = 2,3,\ \ldots M;\ \ \eta = 1,2,..\ \eta_{\max}^{\left( n \right)}\ \ \ \ \ (16)
+.. math:: t_{\eta}^{\left( n \right)} = f_{a}^{\left( n \right)}\left( \sum_{k = 1}^{\eta_{\max}^{\left( n - 1 \right)}}{w_{{\eta k}}^{\left( n - 1 \right)}t_{k}^{\left( n - 1 \right)}} + b_{\eta}^{\left( n \right)} \right),\ \ \ \ \ n = 2,3,\ \ldots M;\ \ \eta = 1,2,..\ \eta_{\max}^{\left( n \right)}\ \ \ \ \ (16)
 
 with the initial condition
 :math:`\left\{ t_{\eta}^{\left( 1 \right)} \right\} \equiv \left\{ G \right\}_{i}`,
@@ -280,7 +281,7 @@ Currently, only one type of activation function is implemented:
 Type 1:
 :math:`f_{a}\left( x \right) = \frac{1}{1 + e^{- x}} - 0.5 = \frac{1}{2}\tanh\frac{x}{2}`.
 
-The coefficients :math:`w_{\text{kη}}^{\left( n \right)}` and
+The coefficients :math:`w_{\text{k} \eta}^{\left( n \right)}` and
 :math:`b_{\eta}^{\left( n \right)}` appearing in Eq.(16) are the weights
 and biases of the ANN, which were optimized during the training process.
 The ANN output :math:`t_{\eta}^{\left( M \right)}` contains the
@@ -288,14 +289,12 @@ perturbations to the BOP parameters for the host atom
 :math:`\left( i \right)`. Their order follows the order of the base
 parameters given in Eq.(7):
 
-.. math:: \left( {\mathrm{\Delta}A}_{i_{1}}^{1},\ {\mathrm{\Delta}A}_{i_{1}}^{2},..\ \ {\mathrm{\Delta}\lambda}_{i_{n_{\text{el}}}}^{n_{\text{el}}n_{\text{el}}} \right) = \left( t_{1}^{\left( M \right)},\ t_{2}^{\left( M \right)},\ \ldots t_{\text{last}}^{\left( M \right)}\text{\ \ } \right)_{i}.\ \ \ \ \ (18)
+.. math:: \left( {\mathrm{\Delta}A}_{i_{1}}^{1},\ {\mathrm{\Delta}A}_{i_{1}}^{2},..\ \ {\mathrm{\Delta}\lambda}_{i_{n_{\text{el}}}}^{n_{\text{el}}n_{\text{el}}} \right) = \left( t_{1}^{\left( M \right)},\ t_{2}^{\left( M \right)},\ \ldots t_{\text{last}}^{\left( M \right)} \right)_{i}.\ \ \ \ \ (18)
 
 
-According to Eq.(7), the ANN output consists of sets of perturbation
-parameters for each possible chemical type of the host atom
-:math:`\left( i \right)`
+According to Eq.(7), the ANN output consists of sets of perturbation parameters for each possible chemical type of the host atom :math:`\left( i \right)`
 
-.. math:: \left( \underset{\left( i \right)\ of\ element\ 1}{\overset{{\mathrm{\Delta}A}_{i_{1}}^{1},\ {\mathrm{\Delta}A}_{i_{1}}^{2},..\ \ {\mathrm{\Delta}\lambda}_{i_{1}}^{n_{\text{el}}n_{\text{el}}}}{︸}}\ ,\underset{\left( i \right)\ of\ element\ 2}{\overset{{\mathrm{\Delta}A}_{i_{2}}^{1},\ {\mathrm{\Delta}A}_{i_{2}}^{2},..\ \ {\mathrm{\Delta}\lambda}_{i_{2}}^{n_{\text{el}}n_{\text{el}}}}{︸}},\ldots\ \underset{\left( i \right)\text{\ of\ element\ }n_{\text{el}}}{\overset{{\mathrm{\Delta}A}_{i_{n_{\text{el}}}}^{1},\ {\mathrm{\Delta}A}_{i_{n_{\text{el}}}}^{2},..\ \ {\mathrm{\Delta}\lambda}_{i_{n_{\text{el}}}}^{n_{\text{el}}n_{\text{el}}}}{︸}} \right).\ \ \ (19)
+.. math:: \left( \underset{\left( i \right)\ of\ element\ 1}{\overset{{\mathrm{\Delta}A}_{i_{1}}^{1},\ {\mathrm{\Delta}A}_{i_{1}}^{2},..\ \ {\mathrm{\Delta}\lambda}_{i_{1}}^{n_{\text{el}}n_{\text{el}}}}{\underbrace{}}}\ ,\underset{\left( i \right)\ of\ element\ 2}{\overset{{\mathrm{\Delta}A}_{i_{2}}^{1},\ {\mathrm{\Delta}A}_{i_{2}}^{2},..\ \ {\mathrm{\Delta}\lambda}_{i_{2}}^{n_{\text{el}}n_{\text{el}}}}{\underbrace{}}},\ldots\ \underset{\left( i \right)\text{ of element }n_{\text{el}}}{\overset{{\mathrm{\Delta}A}_{i_{n_{\text{el}}}}^{1},\ {\mathrm{\Delta}A}_{i_{n_{\text{el}}}}^{2},..\ \ {\mathrm{\Delta}\lambda}_{i_{n_{\text{el}}}}^{n_{\text{el}}n_{\text{el}}}}{\underbrace{}}} \right).\ \ \ (19)
 
 Since the host atom can only be of one chemical type at a time, only one
 subset in the output vector (19) is used, making the calculations and
@@ -332,7 +331,7 @@ Next lines until the end of the file list the ANN weights and biases, layer by l
    \ldots \\
    w_{1,\eta_{\max}^{\left( 1 \right)}}^{\left( 1 \right)},w_{2,\eta_{\max}^{\left( 1 \right)}}^{\left( 1 \right)},\ldots w_{\eta_{\max}^{\left( 2 \right)}\eta_{\max}^{\left( 1 \right)}}^{\left( 1 \right)}\  \\
    b_{1}^{\left( 2 \right)},b_{2}^{\left( 2 \right)},\ldots b_{\eta_{\max}^{\left( 2 \right)}}^{\left( 2 \right)} \\
-   \end{matrix} \right\}\ input\ layer:\ \ \ t_{\eta}^{\left( 2 \right)} = f_{a}\left( \sum_{k = 1}^{\eta_{\max}^{\left( 1 \right)}}{w_{\text{ηk}}^{\left( 1 \right)}t_{k}^{\left( 1 \right)}} + b_{\eta}^{\left( 2 \right)} \right)
+   \end{matrix} \right\}\ input\ layer:\ \ \ t_{\eta}^{\left( 2 \right)} = f_{a}\left( \sum_{k = 1}^{\eta_{\max}^{\left( 1 \right)}}{w_{{\eta k}}^{\left( 1 \right)}t_{k}^{\left( 1 \right)}} + b_{\eta}^{\left( 2 \right)} \right)
 .. math::
    \left. \ \begin{matrix}
    : \\
@@ -341,7 +340,7 @@ Next lines until the end of the file list the ANN weights and biases, layer by l
    \ldots \\
    w_{1,\eta_{\max}^{\left( n - 1 \right)}}^{\left( n - 1 \right)},w_{2,\eta_{\max}^{\left( n - 1 \right)}}^{\left( n - 1 \right)},\ldots w_{\eta_{\max}^{\left( n \right)}\eta_{\max}^{\left( n - 1 \right)}}^{\left( n - 1 \right)}\  \\
    b_{1}^{\left( n \right)},b_{2}^{\left( n \right)},\ldots b_{\eta_{\max}^{\left( n \right)}}^{\left( n \right)} \\
-   \end{matrix} \right\}\ hidden\ layer:\ \ \ t_{\eta}^{\left( n \right)} = f_{a}\left( \sum_{k = 1}^{\eta_{\max}^{\left( n - 1 \right)}}{w_{\text{ηk}}^{\left( n - 1 \right)}t_{k}^{\left( n - 1 \right)}} + b_{\eta}^{\left( n \right)} \right)
+   \end{matrix} \right\}\ hidden\ layer:\ \ \ t_{\eta}^{\left( n \right)} = f_{a}\left( \sum_{k = 1}^{\eta_{\max}^{\left( n - 1 \right)}}{w_{{\eta k}}^{\left( n - 1 \right)}t_{k}^{\left( n - 1 \right)}} + b_{\eta}^{\left( n \right)} \right)
 .. math::
    \left. \ \begin{matrix}
    \begin{matrix}
@@ -351,10 +350,9 @@ Next lines until the end of the file list the ANN weights and biases, layer by l
    w_{1,\eta_{\max}^{\left( M - 1 \right)}}^{\left( M - 1 \right)},w_{2,\eta_{\max}^{\left( M - 1 \right)}}^{\left( M - 1 \right)},\ldots w_{\eta_{\max}^{\left( M \right)}\eta_{\max}^{\left( M - 1 \right)}}^{\left( M - 1 \right)}\  \\
    \end{matrix} \\
    b_{1}^{\left( M \right)},b_{2}^{\left( M \right)},\ldots b_{\eta_{\max}^{\left( M \right)}}^{\left( M \right)} \\
-   \end{matrix} \right\}\ output\ layer:\ \ \ t_{\eta}^{\left( M \right)} = \sum_{k = 1}^{\eta_{\max}^{\left( M - 1 \right)}}{w_{\text{ηk}}^{\left( M - 1 \right)}t_{k}^{\left( M - 1 \right)}} + b_{\eta}^{\left( M \right)}
+   \end{matrix} \right\}\ output\ layer:\ \ \ t_{\eta}^{\left( M \right)} = \sum_{k = 1}^{\eta_{\max}^{\left( M - 1 \right)}}{w_{{\eta k}}^{\left( M - 1 \right)}t_{k}^{\left( M - 1 \right)}} + b_{\eta}^{\left( M \right)}
 
-The PINN file format described above allows for the formulation of
-several types of PINN potentials.
+The PINN file format described above allows for the formulation of several types of PINN potentials.
 
 A. Mono-atomic
 
@@ -377,7 +375,12 @@ B. Multicomponent
       ii. Kind II
 
 
-The numbers :math:`n_{el}`, :math:`N_{BOP}`, :math:`s_{max}`, :math:`l_{max}`, :math:`η_{max}^1`, and :math:`η_{max}^M`, from (8c), (14), and (16) are used to uniquely identify the type of the potential according to the following below. Note that the type of descriptors (Kind I or Kind II) is determined automatically according to the value of :math:`η_{max}^1`  .The following flowchart is used to identify the type of PINN used.
+The numbers :math:`n_{el}`, :math:`N_{BOP}`, :math:`s_{max}`, :math:`l_{max}`, 
+:math:`\eta_{max}^1`, and :math:`\eta_{max}^M`, from 8c, 14, and 16 
+are used to uniquely identify the type of the potential according to the 
+following below. Note that the type of descriptors, Kind I or Kind II, is 
+determined automatically according to the value of :math:`\eta_{max}^1`. 
+The following flowchart is used to identify the type of PINN used.
 
 .. image:: JPG/user_pinn_2.png
   :width: 800
@@ -403,10 +406,9 @@ none
 
 .. _1:
 
-**(1)** G. P. Purja Pun, R. Batra, R. Ramprasad, and Y. Mishin, “Physically informed artificial neural networks for atomistic modeling of materials,” Nature Communications, vol. 10, p. 2339, 2019. 
-
+**(1)** Pun, Batra, Ramprasad, and Mishin, Nature Communications, 10, 2339, 2019. 
 
 .. _2:
 
-**(2)** G. P. P. Pun, V. Yamakov, J. Hickman, E. H. Glaessgen, and Y. Mishin, “Development of a general- purpose machine-learning interatomic potential for aluminum by the physically informed neural network method,” Physical Review Materials, vol. 4, p. 113807, 2020. 
+**(2)** Pun, Yamakov, Hickman, Glaessgen, and Mishin, Phys Rev M, 4, 113807, 2020. 
 

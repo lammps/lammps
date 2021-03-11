@@ -16,7 +16,7 @@
 #if defined(USE_OPENCL)
 #include "lj_smooth_cl.h"
 #elif defined(USE_CUDART)
-const char *lj=0;
+const char *lj_smooth=0;
 #else
 #include "lj_smooth_cubin.h"
 #endif
@@ -51,7 +51,7 @@ int LJSMOOTHT::init(const int ntypes,
                           const int nall, const int max_nbors,
                           const int maxspecial, const double cell_size,
                           const double gpu_split, FILE *_screen,
-                          double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
+                          double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
                           double **host_ljsw4,
                           double **cut_inner, double **cut_inner_sq) {
   int success;
@@ -88,6 +88,10 @@ int LJSMOOTHT::init(const int ntypes,
   ljsw.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,ljsw,host_write,host_ljsw1,host_ljsw2,
                          host_ljsw3,host_ljsw4);
+  
+  ljsw0.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack4(ntypes,lj_types,ljsw0,host_write,host_ljsw0,cut_inner,host_ljsw2,
+                         host_ljsw3);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -95,7 +99,7 @@ int LJSMOOTHT::init(const int ntypes,
   ucl_copy(sp_lj,dview,false);
 
   _allocated=true;
-  this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+ljsw.row_bytes()+sp_lj.row_bytes();
+  this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+ljsw.row_bytes()+ljsw0.row_bytes()+sp_lj.row_bytes();
   return 0;
 }
 
@@ -103,7 +107,7 @@ template <class numtyp, class acctyp>
 void LJSMOOTHT::reinit(const int ntypes, double **host_cutsq, double **host_lj1,
                  double **host_lj2, double **host_lj3,
                  double **host_lj4, double **host_offset,
-                 double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
+                 double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
                  double **host_ljsw4,
                  double **cut_inner, double **cut_inner_sq) {
   // Allocate a host write buffer for data initialization
@@ -119,6 +123,8 @@ void LJSMOOTHT::reinit(const int ntypes, double **host_cutsq, double **host_lj1,
                          host_offset, cut_inner);
   this->atom->type_pack4(ntypes,_lj_types,ljsw,host_write,host_ljsw1,host_ljsw2,
                          host_ljsw3,host_ljsw4);
+  this->atom->type_pack4(ntypes,_lj_types,ljsw0,host_write,host_ljsw0, cut_inner, host_ljsw2,
+                         host_ljsw3);
 }
 
 template <class numtyp, class acctyp>
@@ -130,6 +136,7 @@ void LJSMOOTHT::clear() {
   lj1.clear();
   lj3.clear();
   ljsw.clear();
+  ljsw0.clear();
   sp_lj.clear();
   this->clear_atomic();
 }
@@ -165,14 +172,14 @@ void LJSMOOTHT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3,  &ljsw, &sp_lj,
+    this->k_pair_fast.run(&this->atom->x, &lj1, &lj3,  &ljsw, &ljsw0, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch,
                           &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
-    this->k_pair.run(&this->atom->x, &lj1, &lj3,  &ljsw, &_lj_types, &sp_lj,
+    this->k_pair.run(&this->atom->x, &lj1, &lj3,  &ljsw, &ljsw0, &_lj_types, &sp_lj,
                      &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->_threads_per_atom);

@@ -32,7 +32,7 @@ int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double **offset, double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen,
-                 double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
+                 double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
                  double **host_ljsw4, double **cut_inner, double **cut_inner_sq) {
   LJSMTMF.clear();
   gpu_mode=LJSMTMF.device->gpu_mode();
@@ -59,7 +59,7 @@ int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     init_ok=LJSMTMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
                        host_lj4, offset, special_lj, inum, nall, 300,
                        maxspecial, cell_size, gpu_split, screen,
-                       host_ljsw1, host_ljsw2, host_ljsw3, host_ljsw4, cut_inner, cut_inner_sq);
+                       host_ljsw0, host_ljsw1, host_ljsw2, host_ljsw3, host_ljsw4, cut_inner, cut_inner_sq);
 
   LJSMTMF.device->world_barrier();
   if (message)
@@ -77,7 +77,7 @@ int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=LJSMTMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                          offset, special_lj, inum, nall, 300, maxspecial,
-                         cell_size, gpu_split, screen, host_ljsw1, host_ljsw2, host_ljsw3,
+                         cell_size, gpu_split, screen, host_ljsw0, host_ljsw1, host_ljsw2, host_ljsw3,
                          host_ljsw4, cut_inner, cut_inner_sq);
 
     LJSMTMF.device->gpu_barrier();
@@ -97,19 +97,19 @@ int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
 // ---------------------------------------------------------------------------
 void ljsmt_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
                     double **host_lj2, double **host_lj3, double **host_lj4,
-                    double **offset, double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
+                    double **offset, double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
                     double **host_ljsw4, double **cut_inner, double **cut_inner_sq) {
   int world_me=LJSMTMF.device->world_me();
   int gpu_rank=LJSMTMF.device->gpu_rank();
   int procs_per_gpu=LJSMTMF.device->procs_per_gpu();
 
   if (world_me==0)
-    LJSMTMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4, offset, host_ljsw1, host_ljsw2, host_ljsw3, host_ljsw4, cut_inner, cut_inner_sq);
+    LJSMTMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4, offset, host_ljsw0, host_ljsw1, host_ljsw2, host_ljsw3, host_ljsw4, cut_inner, cut_inner_sq);
   LJSMTMF.device->world_barrier();
 
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
-      LJSMTMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4, offset, host_ljsw1, host_ljsw2, host_ljsw3, host_ljsw4, cut_inner, cut_inner_sq);
+      LJSMTMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4, offset, host_ljsw0, host_ljsw1, host_ljsw2, host_ljsw3, host_ljsw4, cut_inner, cut_inner_sq);
     LJSMTMF.device->gpu_barrier();
   }
 }

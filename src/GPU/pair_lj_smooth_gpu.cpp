@@ -45,15 +45,15 @@ int ljsmt_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double **offset, double *special_lj, const int nlocal,
                  const int nall, const int max_nbors, const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen,
-                 double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
-                 double **host_ljsw4,
+                 double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, 
+                 double **host_ljsw3, double **host_ljsw4,
                  double **cut_inner, double **cut_innersq);
 
 void ljsmt_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
                    double **host_lj2, double **host_lj3, double **host_lj4,
                    double **offset,
-                   double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
-                   double **host_ljsw4,
+                   double **host_ljsw0, double **host_ljsw1, double **host_ljsw2, 
+                   double **host_ljsw3, double **host_ljsw4,
                    double **cut_inner, double **cut_innersq);
 
 void ljsmt_gpu_clear();
@@ -174,7 +174,7 @@ void PairLJSmoothGPU::init_style()
   int success = ljsmt_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                              offset, force->special_lj, atom->nlocal,
                              atom->nlocal+atom->nghost, 300, maxspecial,
-                             cell_size, gpu_mode, screen, ljsw1, ljsw2,
+                             cell_size, gpu_mode, screen, ljsw0, ljsw1, ljsw2,
                              ljsw3, ljsw4, cut_inner, cut_inner_sq);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -191,7 +191,7 @@ void PairLJSmoothGPU::reinit()
 {
   Pair::reinit();
 
-  ljsmt_gpu_reinit(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4, offset, ljsw1, ljsw2, ljsw3, ljsw4, cut_inner, cut_inner_sq);
+  ljsmt_gpu_reinit(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4, offset, ljsw0, ljsw1, ljsw2, ljsw3, ljsw4, cut_inner, cut_inner_sq);
 }
 
 /* ---------------------------------------------------------------------- */

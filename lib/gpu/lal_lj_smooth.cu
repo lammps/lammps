@@ -28,6 +28,7 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
                    const __global numtyp4 *restrict lj1,
                    const __global numtyp4 *restrict lj3,
                    const __global numtyp4 *restrict ljsw,
+                   const __global numtyp4 *restrict ljsw0,
                    const int lj_types,
                    const __global numtyp *restrict sp_lj,
                    const __global int * dev_nbor,
@@ -82,7 +83,7 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
         }
         else {
           r = sqrt(rsq);
-          t = r - lj3[mtype].w;
+          t = r - ljsw0[mtype].y;
           tsq = t*t;
           fskin = ljsw[mtype].x + ljsw[mtype].y*t +
             ljsw[mtype].z*tsq + ljsw[mtype].w*tsq*t;
@@ -98,7 +99,7 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
           if (rsq < lj1[mtype].w)
             e = r6inv * (lj3[mtype].x*r6inv - lj3[mtype].y) - lj3[mtype].z;
           else
-            e = ljsw[mtype].x - ljsw[mtype].x*t -
+            e = ljsw0[mtype].x - ljsw[mtype].x*t -
               ljsw[mtype].y*tsq/2.0 - ljsw[mtype].z*tsq*t/3.0 -
               ljsw[mtype].z*tsq*tsq/4.0 - lj3[mtype].z;
 
@@ -125,6 +126,7 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
                         const __global numtyp4 *restrict lj1_in,
                         const __global numtyp4 *restrict lj3_in,
                         const __global numtyp4 *restrict ljsw,
+                        const __global numtyp4 *restrict ljsw0,
                         const __global numtyp *restrict sp_lj_in,
                         const __global int * dev_nbor,
                         const __global int * dev_packed,
@@ -191,7 +193,7 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
         }
         else {
           r = sqrt(rsq);
-          t = r - lj3[mtype].w;
+          t = r - ljsw0[mtype].y; //?
           //printf("%f\n", r - lj3[mtype].w);
           tsq = t*t;
           fskin = ljsw[mtype].x + ljsw[mtype].y*t +
@@ -208,7 +210,7 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
           if (rsq < lj1[mtype].w)
             e = r6inv * (lj3[mtype].x*r6inv - lj3[mtype].y) - lj3[mtype].z;
           else
-            e = ljsw[mtype].x - ljsw[mtype].x*t - 
+            e = ljsw0[mtype].x - ljsw[mtype].x*t - 
               ljsw[mtype].y*tsq/2.0 - ljsw[mtype].z*tsq*t/3.0 -
               ljsw[mtype].z*tsq*tsq/4.0 - lj3[mtype].z; //???
 

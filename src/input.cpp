@@ -1115,7 +1115,7 @@ void Input::plugin()
       int num = plugin_get_num_plugins();
       utils::logmesg(lmp,"Currently loaded plugins\n");
       for (int i=0; i < num; ++i) {
-        auto entry = plugin_info(i);
+        auto entry = plugin_get_info(i);
         utils::logmesg(lmp,fmt::format("{:4}: {} style plugin {}\n",
                                        i+1,entry->style,entry->name));
       }

@@ -13,6 +13,7 @@
 
 #include "plugin.h"
 
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "lammps.h"
@@ -38,16 +39,18 @@ namespace LAMMPS_NS
   // load DSO and call included registration function
   void plugin_load(const char *file, LAMMPS *lmp)
   {
+    int me = lmp->comm->me;
 #if defined(WIN32)
-    utils::logmesg(lmp,"Loading of plugins not supported on Windows yet\n");
+    lmp->error->all(FLERR,"Loading of plugins on Windows not yet supported\n");
 #else
 
-    // open DSO from given path
+    // open DSO file from given path load symbols globally
     
     void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
-      utils::logmesg(lmp,fmt::format("Loading of plugin from file {} failed: "
-                                     "{}", file, utils::getsyserror()));
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("Open of plugin file {} failed: {}",
+                                       file,utils::getsyserror()));
       return;
     }
 
@@ -56,30 +59,44 @@ namespace LAMMPS_NS
     void *initfunc = dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
       dlclose(dso);
-      utils::logmesg(lmp,fmt::format("Symbol lookup failure in file {}\n",file));
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("Plugin symbol lookup failure in "
+                                       "file {}\n",file));
       return;
     }
 
-    // call initializer function loaded from DSO and pass pointer to LAMMPS instance,
-    // the DSO handle (for reference counting) and plugin registration function pointer
+    // call initializer function loaded from DSO and pass a pointer
+    // to the LAMMPS instance, the DSO handle (for reference counting)
+    // and plugin registration function pointer
 
-    ((lammpsplugin_initfunc)(initfunc))((void *)lmp, dso, (void *)&plugin_register);
+    ((lammpsplugin_initfunc)(initfunc))((void *)lmp, dso,
+                                        (void *)&plugin_register);
 #endif
   }
 
-  // register new style from plugin with LAMMPS
+  // register a new style from a plugin with LAMMPS
+  // this is the callback function that is called from within
+  // the plugin initializer function. all plugin information
+  // is taken from the lammpsplugin_t struct.
+
   void plugin_register(lammpsplugin_t *plugin, void *ptr)
   {
     LAMMPS *lmp = (LAMMPS *)ptr;
+    int me = lmp->comm->me;
 
     if (plugin == nullptr) return;
-    utils::logmesg(lmp,fmt::format("Loading plugin: {} by {}\n",
-                                   plugin->info, plugin->author));
-    if ((plugin->version) && (strcmp(plugin->version,lmp->version) != 0))
-      utils::logmesg(lmp,fmt::format("  compiled for LAMMPS version {} "
-                                     "loaded into LAMMPS version {}\n",
-                                     plugin->version, lmp->version));
+    if (me == 0) {
+      utils::logmesg(lmp,fmt::format("Loading plugin: {} by {}\n",
+                                     plugin->info, plugin->author));
+      // print version info only if the versions of host and plugin don't match
+      if ((plugin->version) && (strcmp(plugin->version,lmp->version) != 0))
+        utils::logmesg(lmp,fmt::format("  compiled for LAMMPS version {} "
+                                       "loaded into LAMMPS version {}\n",
+                                       plugin->version, lmp->version));
+    }
+
     pluginlist.push_back(*plugin);
+
     if (dso_refcounter.find(plugin->handle) != dso_refcounter.end()) {
       ++ dso_refcounter[plugin->handle];
     } else {
@@ -88,8 +105,15 @@ namespace LAMMPS_NS
 
     std::string pstyle = plugin->style;
     if (pstyle == "pair") {
-      (*(lmp->force->pair_map))[plugin->name] =
-        (LAMMPS_NS::Force::PairCreator)plugin->creator;
+      auto pair_map = lmp->force->pair_map;
+      if (pair_map->find(plugin->name) != pair_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in pair "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+
+      (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator;
     } else {
       utils::logmesg(lmp,fmt::format("Loading plugin for {} styles not "
                                      "yet implemented\n", pstyle));
@@ -97,20 +121,14 @@ namespace LAMMPS_NS
     }
   }
 
+  // number of styles loaded from plugin files
+
   int plugin_get_num_plugins() 
   {
     return pluginlist.size();
   }
 
-  const lammpsplugin_t *plugin_get_info(int idx)
-  {
-    int i=0;
-    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
-      if (i == idx) return &(*p);
-      ++i;
-    }
-    return nullptr;
-  }
+  // return position index in list of given plugin of given style
 
   int plugin_find(const char *style, const char *name)
   {
@@ -124,10 +142,22 @@ namespace LAMMPS_NS
     return -1;
   }
 
+  // get pointer to plugin initializer struct at position idx
+
+  const lammpsplugin_t *plugin_get_info(int idx)
+  {
+    int i=0;
+    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
+      if (i == idx) return &(*p);
+      ++i;
+    }
+    return nullptr;
+  }
+
+  // remove plugin of given name and style from internal lists
+
   void plugin_erase(const char *style, const char *name)
   {
-    fmt::print("Erasing {} style {} from list with {} plugins\n",
-               style, name, pluginlist.size());
     for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
       if ((strcmp(style,p->style) == 0)
           && (strcmp(name,p->name) == 0)) {
@@ -138,26 +168,43 @@ namespace LAMMPS_NS
   }
 
   // remove plugin from given style table and plugin list.
-  // close dso handle if this is the last plugin from that dso.
+  // optionally close the DSO handle if last plugin from that DSO
+  // must delete style instance if style is currently active.
+
   void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
   {
+    int me = lmp->comm->me;
+
+    // ignore unload request if not loaded from a plugin
     int idx = plugin_find(style,name);
-    if (idx < 0)
-      lmp->error->all(FLERR,fmt::format("{} style {} is not loaded from "
-                                        "a plugin", style, name));
-    auto plugin = plugin_get_info(idx);
-    void *handle = plugin->handle;
-    utils::logmesg(lmp,fmt::format("Unloading {} style {}\n",style,name));
+    if (idx < 0) {
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("Ignoring unload of {} style {}: not "
+                                       "loaded from a plugin", style, name));
+      return;
+    }
+
+    // copy of DSO handle for later
+    void *handle = plugin_get_info(idx)->handle;
+
+    // remove selected plugin from list of plugins
+
+    if (me == 0)
+      utils::logmesg(lmp,fmt::format("Unloading {} style {}\n",style,name));
     plugin_erase(style,name);
+
+    // remove style of given name from corresponding map
+    // must delete style instance if currently active so
+    // we can close the DSO handle if the last reference is gone.
 
     std::string pstyle = style;
     if (pstyle == "pair") {
       auto found = lmp->force->pair_map->find(name);
-      if (found != lmp->force->pair_map->end()) {
+      if (found != lmp->force->pair_map->end())
         lmp->force->pair_map->erase(found);
-      }
 
       // must delete pair style instance if in use
+
       if (lmp->force->pair_style) {
         if (utils::strmatch(lmp->force->pair_style,"^hybrid")) {
           if (lmp->force->pair_match(name,1,1) != nullptr)
@@ -168,6 +215,8 @@ namespace LAMMPS_NS
         }
       }
     }
+
+    // if reference count is down to zero, close DSO handle.
 
     -- dso_refcounter[handle];
     if (dso_refcounter[handle] == 0) {

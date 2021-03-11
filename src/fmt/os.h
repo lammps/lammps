@@ -375,11 +375,7 @@ struct ostream_params {
 };
 }  // namespace detail
 
-#if defined(__PGI)
 static detail::buffer_size buffer_size;
-#else
-static constexpr detail::buffer_size buffer_size;
-#endif
 
 // A fast output stream which is not thread-safe.
 class ostream final : private detail::buffer<char> {

@@ -40,7 +40,11 @@ TEST_F(DumpXYZCompressTest, compressed_run0)
     auto text_file_0       = text_dump_filename(base_name_0);
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
 
-    generate_text_and_compressed_dump(text_files, compressed_files, "", "", 0);
+    if(compression_style == "xyz/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, "", "", "", "checksum yes", 0);
+    } else {
+        generate_text_and_compressed_dump(text_files, compressed_files, "", "", 0);
+    }
 
     TearDown();
 
@@ -70,7 +74,11 @@ TEST_F(DumpXYZCompressTest, compressed_multi_file_run1)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto compressed_file_1 = compressed_dump_filename(base_name_1);
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "", "", 1);
+    if(compression_style == "xyz/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, "", "", "", "checksum no", 1);
+    } else {
+        generate_text_and_compressed_dump(text_file, compressed_file, "", "", 1);
+    }
 
     TearDown();
 
@@ -228,44 +236,4 @@ TEST_F(DumpXYZCompressTest, compressed_modify_clevel_run0)
     delete_file(text_file);
     delete_file(compressed_file);
     delete_file(converted_file);
-}
-
-int main(int argc, char **argv)
-{
-    MPI_Init(&argc, &argv);
-    ::testing::InitGoogleMock(&argc, argv);
-
-    if (argc < 2) {
-        std::cerr << "usage: " << argv[0] << " (gz|zstd)\n\n" << std::endl;
-        return 1;
-    }
-
-    if(strcmp(argv[1], "gz") == 0) {
-        COMPRESS_SUFFIX = "gz";
-        COMPRESS_EXTENSION = "gz";
-    } else if(strcmp(argv[1], "zstd") == 0) {
-        COMPRESS_SUFFIX = "zstd";
-        COMPRESS_EXTENSION = "zst";
-    } else {
-        std::cerr << "usage: " << argv[0] << " (gz|zstd)\n\n" << std::endl;
-        return 1;
-    }
-
-    COMPRESS_BINARY = getenv("COMPRESS_BINARY");
-
-    // handle arguments passed via environment variable
-    if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
-        for (auto arg : env) {
-            if (arg == "-v") {
-                verbose = true;
-            }
-        }
-    }
-
-    if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
-
-    int rv = RUN_ALL_TESTS();
-    MPI_Finalize();
-    return rv;
 }

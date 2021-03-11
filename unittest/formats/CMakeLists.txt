@@ -40,19 +40,19 @@ set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS
 if(PKG_COMPRESS)
     find_program(GZIP_BINARY NAMES gzip REQUIRED)
 
-    add_executable(test_dump_atom_compressed test_dump_atom_compressed.cpp)
+    add_executable(test_dump_atom_compressed test_dump_atom_compressed.cpp compressed_dump_test_main.cpp)
     target_link_libraries(test_dump_atom_compressed PRIVATE lammps GTest::GMock GTest::GTest)
 
-    add_executable(test_dump_custom_compressed test_dump_custom_compressed.cpp)
+    add_executable(test_dump_custom_compressed test_dump_custom_compressed.cpp compressed_dump_test_main.cpp)
     target_link_libraries(test_dump_custom_compressed PRIVATE lammps GTest::GMock GTest::GTest)
 
-    add_executable(test_dump_cfg_compressed test_dump_cfg_compressed.cpp)
+    add_executable(test_dump_cfg_compressed test_dump_cfg_compressed.cpp compressed_dump_test_main.cpp)
     target_link_libraries(test_dump_cfg_compressed PRIVATE lammps GTest::GMock GTest::GTest)
 
-    add_executable(test_dump_local_compressed test_dump_local_compressed.cpp)
+    add_executable(test_dump_local_compressed test_dump_local_compressed.cpp compressed_dump_test_main.cpp)
     target_link_libraries(test_dump_local_compressed PRIVATE lammps GTest::GMock GTest::GTest)
 
-    add_executable(test_dump_xyz_compressed test_dump_xyz_compressed.cpp)
+    add_executable(test_dump_xyz_compressed test_dump_xyz_compressed.cpp compressed_dump_test_main.cpp)
     target_link_libraries(test_dump_xyz_compressed PRIVATE lammps GTest::GMock GTest::GTest)
 
     add_test(NAME DumpAtomGZ COMMAND test_dump_atom_compressed gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

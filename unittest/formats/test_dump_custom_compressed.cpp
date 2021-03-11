@@ -38,7 +38,11 @@ TEST_F(DumpCustomCompressTest, compressed_run1)
     auto compressed_file = compressed_dump_filename(base_name);
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    generate_text_and_compressed_dump(text_file, compressed_file, fields, "units yes", 1);
+    if(compression_style == "custom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "units yes", "units yes checksum yes", 1);
+    } else {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, "units yes", 1);
+    }
 
     TearDown();
 
@@ -96,7 +100,11 @@ TEST_F(DumpCustomCompressTest, compressed_multi_file_run1)
     auto compressed_file_1 = compressed_dump_filename(base_name_1);
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    generate_text_and_compressed_dump(text_file, compressed_file, fields, "", 1);
+    if(compression_style == "custom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "", "checksum no", 1);
+    } else {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, "", 1);
+    }
 
     TearDown();
 
@@ -255,44 +263,4 @@ TEST_F(DumpCustomCompressTest, compressed_modify_clevel_run0)
     delete_file(text_file);
     delete_file(compressed_file);
     delete_file(converted_file);
-}
-
-int main(int argc, char **argv)
-{
-    MPI_Init(&argc, &argv);
-    ::testing::InitGoogleMock(&argc, argv);
-
-    if (argc < 2) {
-        std::cerr << "usage: " << argv[0] << " (gz|zstd)\n\n" << std::endl;
-        return 1;
-    }
-
-    if(strcmp(argv[1], "gz") == 0) {
-        COMPRESS_SUFFIX = "gz";
-        COMPRESS_EXTENSION = "gz";
-    } else if(strcmp(argv[1], "zstd") == 0) {
-        COMPRESS_SUFFIX = "zstd";
-        COMPRESS_EXTENSION = "zst";
-    } else {
-        std::cerr << "usage: " << argv[0] << " (gz|zstd)\n\n" << std::endl;
-        return 1;
-    }
-
-    COMPRESS_BINARY = getenv("COMPRESS_BINARY");
-
-    // handle arguments passed via environment variable
-    if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = utils::split_words(var);
-        for (auto arg : env) {
-            if (arg == "-v") {
-                verbose = true;
-            }
-        }
-    }
-
-    if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
-
-    int rv = RUN_ALL_TESTS();
-    MPI_Finalize();
-    return rv;
 }

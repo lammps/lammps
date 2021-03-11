@@ -17,9 +17,9 @@
 #include "../testing/systems/melt.h"
 #include <string>
 
-const char * COMPRESS_SUFFIX = nullptr;
-const char * COMPRESS_EXTENSION = nullptr;
-char * COMPRESS_BINARY = nullptr;
+extern const char * COMPRESS_SUFFIX;
+extern const char * COMPRESS_EXTENSION;
+extern char * COMPRESS_BINARY;
 
 class CompressedDumpTest : public MeltTest {
 protected:

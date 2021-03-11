@@ -52,6 +52,9 @@ if(PKG_COMPRESS)
     add_executable(test_dump_local_compressed test_dump_local_compressed.cpp)
     target_link_libraries(test_dump_local_compressed PRIVATE lammps GTest::GMock GTest::GTest)
 
+    add_executable(test_dump_xyz_compressed test_dump_xyz_compressed.cpp)
+    target_link_libraries(test_dump_xyz_compressed PRIVATE lammps GTest::GMock GTest::GTest)
+
     add_test(NAME DumpAtomGZ COMMAND test_dump_atom_compressed gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     set_tests_properties(DumpAtomGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
 
@@ -64,11 +67,8 @@ if(PKG_COMPRESS)
     add_test(NAME DumpLocalGZ COMMAND test_dump_local_compressed gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     set_tests_properties(DumpLocalGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
 
-    add_executable(test_dump_xyz_gz test_dump_xyz_gz.cpp)
-    target_link_libraries(test_dump_xyz_gz PRIVATE lammps GTest::GMock GTest::GTest)
-    add_test(NAME DumpXYZGZ COMMAND test_dump_xyz_gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    set_tests_properties(DumpXYZGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
-    set_tests_properties(DumpXYZGZ PROPERTIES ENVIRONMENT "GZIP_BINARY=${GZIP_BINARY}")
+    add_test(NAME DumpXYZGZ COMMAND test_dump_xyz_compressed gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    set_tests_properties(DumpXYZGZ PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${GZIP_BINARY}")
 
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(Zstd IMPORTED_TARGET libzstd>=1.4)
@@ -87,11 +87,8 @@ if(PKG_COMPRESS)
         add_test(NAME DumpLocalZstd COMMAND test_dump_local_compressed zstd WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
         set_tests_properties(DumpLocalZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${ZSTD_BINARY}")
 
-        add_executable(test_dump_xyz_zstd test_dump_xyz_zstd.cpp)
-        target_link_libraries(test_dump_xyz_zstd PRIVATE lammps GTest::GMock GTest::GTest)
-        add_test(NAME DumpXYZZstd COMMAND test_dump_xyz_zstd WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-        set_tests_properties(DumpXYZZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
-        set_tests_properties(DumpXYZZstd PROPERTIES ENVIRONMENT "ZSTD_BINARY=${ZSTD_BINARY}")
+        add_test(NAME DumpXYZZstd COMMAND test_dump_xyz_compressed zstd WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+        set_tests_properties(DumpXYZZstd PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};COMPRESS_BINARY=${ZSTD_BINARY}")
     endif()
 endif()
 

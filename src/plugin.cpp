@@ -18,6 +18,7 @@
 #include "lammps.h"
 #include "modify.h"
 
+#include <map>
 #include <vector>
 
 #ifdef _WIN32
@@ -28,14 +29,20 @@
 
 namespace LAMMPS_NS
 {
+  // store list of plugin information data for loaded styles
   static std::vector<lammpsplugin_t> pluginlist;
+  // map of dso handles 
+  static std::map<void *, int> dso_refcounter;
 
-  void plugin_load(const char *file, void *ptr)
+  // load DSO and call included registration function
+  void plugin_load(const char *file, LAMMPS *lmp)
   {
-    LAMMPS *lmp = (LAMMPS *)ptr;
 #if defined(WIN32)
     utils::logmesg(lmp,"Loading of plugins not supported on Windows yet\n");
 #else
+
+    // open DSO from given path
+    
     void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
       utils::logmesg(lmp,fmt::format("Loading of plugin from file {} failed: "
@@ -43,17 +50,23 @@ namespace LAMMPS_NS
       return;
     }
 
+    // look up lammpsplugin_init() function in DSO. must have C bindings.
+
     void *initfunc = dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
       dlclose(dso);
       utils::logmesg(lmp,fmt::format("Symbol lookup failure in file {}\n",file));
       return;
     }
-    ((lammpsplugin_initfunc)(initfunc))(ptr,dso,&plugin_register);
-//    dlclose(dso);
+
+    // call initializer function loaded from DSO and pass pointer to LAMMPS instance,
+    // the DSO handle (for reference counting) and plugin registration function pointer
+
+    ((lammpsplugin_initfunc)(initfunc))((void *)lmp, dso, (void *)&plugin_register);
 #endif
   }
 
+  // register new style from plugin with LAMMPS
   void plugin_register(lammpsplugin_t *plugin, void *ptr)
   {
     LAMMPS *lmp = (LAMMPS *)ptr;
@@ -99,10 +112,10 @@ namespace LAMMPS_NS
     }
     return -1;
   }
-  
-  void plugin_unload(const char *style, const char *name, void *ptr)
+
+  // remove plugin from given style table
+  void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
   {
-    LAMMPS *lmp = (LAMMPS *)ptr;
     std::string pstyle = style;
     if (pstyle == "pair") {
       auto found = lmp->force->pair_map->find(name);

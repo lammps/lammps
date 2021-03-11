@@ -31,12 +31,12 @@ extern "C" {
   } lammpsplugin_t;
 
   typedef void (*lammpsplugin_regfunc)(lammpsplugin_t *, void *);
-  typedef void (*lammpsplugin_initfunc)(void *, void *, lammpsplugin_regfunc);
+  typedef void (*lammpsplugin_initfunc)(void *, void *, void *);
 
   // prototype for initializer function required
   // to load a plugin; uses C bindings
 
-  void lammpsplugin_init(void *, void *, lammpsplugin_regfunc);
+  void lammpsplugin_init(void *, void *, void *);
 }
 
 #endif

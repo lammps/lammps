@@ -58,7 +58,9 @@ namespace LAMMPS_NS
 
     void *initfunc = dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
+#ifndef WIN32
       dlclose(dso);
+#endif
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Plugin symbol lookup failure in "
                                        "file {}\n",file));

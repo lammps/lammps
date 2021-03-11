@@ -64,25 +64,28 @@ public:
     }
 
     void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file,
-                                           std::string dump_modify_options, int ntimesteps)
+                                           std::string dump_options, std::string dump_modify_options, int ntimesteps)
     {
         generate_text_and_compressed_dump(text_file, compressed_file,
+                                          dump_options, dump_options,
                                           dump_modify_options, dump_modify_options, ntimesteps);
     }
 
     void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file,
-                                           std::string text_options, std::string compressed_options, int ntimesteps)
+                                           std::string text_options, std::string compressed_options,
+                                           std::string text_modify_options, std::string compressed_modify_options,
+                                           int ntimesteps)
     {
         if (!verbose) ::testing::internal::CaptureStdout();
-        command(fmt::format("dump id0 all {} 1 {}", dump_style, text_file));
-        command(fmt::format("dump id1 all {} 1 {}", compression_style, compressed_file));
+        command(fmt::format("dump id0 all {} 1 {} {}", dump_style, text_file, text_options));
+        command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_file, compressed_options));
 
-        if (!text_options.empty()) {
-            command(fmt::format("dump_modify id0 {}", text_options));
+        if (!text_modify_options.empty()) {
+            command(fmt::format("dump_modify id0 {}", text_modify_options));
         }
 
-        if (!compressed_options.empty()) {
-            command(fmt::format("dump_modify id1 {}", compressed_options));
+        if (!compressed_modify_options.empty()) {
+            command(fmt::format("dump_modify id1 {}", compressed_modify_options));
         }
 
         command(fmt::format("run {}", ntimesteps));

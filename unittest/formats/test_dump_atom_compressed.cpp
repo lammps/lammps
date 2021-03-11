@@ -40,7 +40,7 @@ TEST_F(DumpAtomCompressTest, compressed_run0)
     auto text_file       = text_dump_filename("run0.melt");
     auto compressed_file = compressed_dump_filename("run0.melt");
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "", 0);
 
     TearDown();
 
@@ -71,7 +71,7 @@ TEST_F(DumpAtomCompressTest, compressed_multi_file_run1)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto compressed_file_1 = compressed_dump_filename(base_name_1);
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "", 1);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "", 1);
 
     TearDown();
 
@@ -107,7 +107,7 @@ TEST_F(DumpAtomCompressTest, compressed_multi_file_with_pad_run1)
     auto compressed_file_0 = compressed_dump_filename(base_name_0);
     auto compressed_file_1 = compressed_dump_filename(base_name_1);
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "pad 3", 1);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "pad 3", 1);
 
     TearDown();
 
@@ -151,7 +151,7 @@ TEST_F(DumpAtomCompressTest, compressed_multi_file_with_maxfiles_run1)
     auto compressed_file_1 = compressed_dump_filename(base_name_1);
     auto compressed_file_2 = compressed_dump_filename(base_name_2);
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "maxfiles 2", 2);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "maxfiles 2", 2);
 
     TearDown();
 
@@ -188,8 +188,7 @@ TEST_F(DumpAtomCompressTest, compressed_with_units_run0)
     auto text_file       = text_dump_filename(base_name);
     auto compressed_file = compressed_dump_filename(base_name);
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "scale no units yes",
-                                      0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "scale no units yes", 0);
 
     TearDown();
 
@@ -213,7 +212,7 @@ TEST_F(DumpAtomCompressTest, compressed_with_time_run0)
     auto text_file       = text_dump_filename(base_name);
     auto compressed_file = compressed_dump_filename(base_name);
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "scale no time yes", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "scale no time yes", 0);
 
     TearDown();
 
@@ -238,7 +237,7 @@ TEST_F(DumpAtomCompressTest, compressed_triclinic_run0)
     auto compressed_file = compressed_dump_filename(base_name);
 
     enable_triclinic();
-    generate_text_and_compressed_dump(text_file, compressed_file, "", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "", 0);
 
     TearDown();
 
@@ -263,7 +262,7 @@ TEST_F(DumpAtomCompressTest, compressed_triclinic_with_units_run0)
     auto compressed_file = compressed_dump_filename(base_name);
 
     enable_triclinic();
-    generate_text_and_compressed_dump(text_file, compressed_file, "scale no units yes", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "scale no units yes", 0);
 
     TearDown();
 
@@ -288,7 +287,7 @@ TEST_F(DumpAtomCompressTest, compressed_triclinic_with_time_run0)
     auto compressed_file = compressed_dump_filename(base_name);
 
     enable_triclinic();
-    generate_text_and_compressed_dump(text_file, compressed_file, "scale no time yes", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "scale no time yes", 0);
 
     TearDown();
 
@@ -313,7 +312,7 @@ TEST_F(DumpAtomCompressTest, compressed_triclinic_with_image_run0)
     auto compressed_file = compressed_dump_filename(base_name);
 
     enable_triclinic();
-    generate_text_and_compressed_dump(text_file, compressed_file, "image yes", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "image yes", 0);
 
     TearDown();
 
@@ -359,7 +358,7 @@ TEST_F(DumpAtomCompressTest, compressed_modify_clevel_run0)
     auto text_file       = text_dump_filename(base_name);
     auto compressed_file = compressed_dump_filename(base_name);
 
-    generate_text_and_compressed_dump(text_file, compressed_file, "", "compression_level 3", 0);
+    generate_text_and_compressed_dump(text_file, compressed_file, "", "", "", "compression_level 3", 0);
 
     TearDown();
 

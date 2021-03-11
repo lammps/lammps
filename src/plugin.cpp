@@ -33,7 +33,7 @@ namespace LAMMPS_NS
 {
   // store list of plugin information data for loaded styles
   static std::list<lammpsplugin_t> pluginlist;
-  // map of dso handles 
+  // map of dso handles
   static std::map<void *, int> dso_refcounter;
 
   // load DSO and call included registration function
@@ -45,7 +45,7 @@ namespace LAMMPS_NS
 #else
 
     // open DSO file from given path load symbols globally
-    
+
     void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
       if (me == 0)
@@ -125,7 +125,7 @@ namespace LAMMPS_NS
 
   // number of styles loaded from plugin files
 
-  int plugin_get_num_plugins() 
+  int plugin_get_num_plugins()
   {
     return pluginlist.size();
   }
@@ -210,7 +210,7 @@ namespace LAMMPS_NS
       if (lmp->force->pair_style) {
         if (utils::strmatch(lmp->force->pair_style,"^hybrid")) {
           if (lmp->force->pair_match(name,1,1) != nullptr)
-            lmp->force->create_pair("none",0);          
+            lmp->force->create_pair("none",0);
         } else {
           if (strcmp(lmp->force->pair_style,name) == 0)
             lmp->force->create_pair("none",0);

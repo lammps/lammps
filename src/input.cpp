@@ -29,13 +29,13 @@
 #include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "lammpsplugin.h"
 #include "memory.h"
 #include "min.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
 #include "pair.h"
+#include "plugin.h"
 #include "special.h"
 #include "style_command.h"
 #include "thermo.h"
@@ -1106,16 +1106,16 @@ void Input::plugin()
   if (cmd == "load") {
     if (narg < 2) error->all(FLERR,"Illegal plugin load command");
     for (int i=1; i < narg; ++i)
-      lammpsplugin_load(arg[i],lmp);
+      plugin_load(arg[i],lmp);
   } else if (cmd == "unload") {
     if (narg != 3) error->all(FLERR,"Illegal plugin unload command");
-    lammpsplugin_unload(arg[1],arg[2],lmp);
+    plugin_unload(arg[1],arg[2],lmp);
   } else if (cmd == "list") {
     if (comm->me == 0) {
-      int num = lammpsplugin_get_num_plugins();
+      int num = plugin_get_num_plugins();
       utils::logmesg(lmp,"Currently loaded plugins\n");
       for (int i=0; i < num; ++i) {
-        auto entry = lammpsplugin_info(i);
+        auto entry = plugin_info(i);
         utils::logmesg(lmp,fmt::format("{:4}: {} style plugin {}\n",
                                        i+1,entry->style,entry->name));
       }

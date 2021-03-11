@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "lammpsplugin.h"
+#include "plugin.h"
 
 #include "error.h"
 #include "force.h"
@@ -28,9 +28,9 @@
 
 namespace LAMMPS_NS
 {
-  static std::vector<lammpsplugin_entry_t> pluginlist;
+  static std::vector<lammpsplugin_t> pluginlist;
 
-  void lammpsplugin_load(const char *file, void *ptr)
+  void plugin_load(const char *file, void *ptr)
   {
     LAMMPS *lmp = (LAMMPS *)ptr;
 #if defined(WIN32)
@@ -46,15 +46,15 @@ namespace LAMMPS_NS
     void *initfunc = dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
       dlclose(dso);
-      utils::logmesg(lmp,fmt::format("Symbol lookup failure in file {}",file));
+      utils::logmesg(lmp,fmt::format("Symbol lookup failure in file {}\n",file));
       return;
     }
-    ((lammpsplugin_initfunc)(initfunc))(ptr);
+    ((lammpsplugin_initfunc)(initfunc))(ptr,dso,&plugin_register);
 //    dlclose(dso);
 #endif
   }
 
-  void lammpsplugin_register(lammpsplugin_t *plugin, void *ptr)
+  void plugin_register(lammpsplugin_t *plugin, void *ptr)
   {
     LAMMPS *lmp = (LAMMPS *)ptr;
 
@@ -64,11 +64,8 @@ namespace LAMMPS_NS
                                      "version {} loaded into LAMMPS "
                                      "version {}\n", plugin->info,
                                      plugin->version, lmp->version));
-    lammpsplugin_entry_t entry;
-    entry.style = plugin->style;
-    entry.name = plugin->name;
-    entry.handle = nullptr;
-    pluginlist.push_back(entry);
+
+    pluginlist.push_back(*plugin);
 
     std::string pstyle = plugin->style;
     if (pstyle == "pair") {
@@ -81,19 +78,19 @@ namespace LAMMPS_NS
     }
   }
 
-  int lammpsplugin_get_num_plugins() 
+  int plugin_get_num_plugins() 
   {
     return pluginlist.size();
   }
 
-  const lammpsplugin_entry_t *lammpsplugin_info(int idx)
+  const lammpsplugin_t *plugin_info(int idx)
   {
     if ((idx < 0) || idx >= pluginlist.size()) return nullptr;
 
     return &pluginlist[idx];
   }
 
-  int lammpsplugin_find(const char *style, const char *name)
+  int plugin_find(const char *style, const char *name)
   {
     for (int i=0; i < pluginlist.size(); ++i) {
       if ((strcmp(style,pluginlist[i].style) == 0)
@@ -103,7 +100,7 @@ namespace LAMMPS_NS
     return -1;
   }
   
-  void lammpsplugin_unload(const char *style, const char *name, void *ptr)
+  void plugin_unload(const char *style, const char *name, void *ptr)
   {
     LAMMPS *lmp = (LAMMPS *)ptr;
     std::string pstyle = style;

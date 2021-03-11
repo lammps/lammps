@@ -22,19 +22,21 @@ static Pair *morse2ompcreator(LAMMPS *lmp)
 }
 
 static lammpsplugin_t plugin;
-void lammpsplugin_init(void *lmp)
+extern "C" void lammpsplugin_init(void *lmp, void *handle, lammpsplugin_regfunc register_plugin)
 {
     memset(&plugin,0,sizeof(lammpsplugin_t));
     plugin.version = LAMMPS_VERSION;
     plugin.style   = "pair";
     plugin.name    = "morse2";
-    plugin.info    = "Morse2 variant pair style v1.0 by Axel Kohlmeyer";
+    plugin.info    = "Morse2 variant pair style v1.0";
+    plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
     plugin.creator = (lammpsplugin_factory *) &morse2creator;
-    lammpsplugin_register(&plugin, (LAMMPS *)lmp);
+    plugin.handle  = handle;
+    register_plugin(&plugin,lmp);
 
     plugin.style   = "pair";
     plugin.name    = "morse2/omp";
-    plugin.info    = "Morse2 variant pair style for OpenMP v1.0 by Axel Kohlmeyer";
+    plugin.info    = "Morse2 variant pair style for OpenMP v1.0";
     plugin.creator = (lammpsplugin_factory *) &morse2ompcreator;
-    lammpsplugin_register(&plugin, (LAMMPS *)lmp);
+    register_plugin(&plugin,lmp);
 }

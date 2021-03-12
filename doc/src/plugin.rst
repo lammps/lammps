@@ -17,6 +17,7 @@ Syntax
 
      *load* file = load plugin(s) from shared object in *file*
      *unload* style name = unload plugin *name* of style *style*
+         *style* = *pair* or *fix* or *command*
      *list* = print a list of currently loaded plugins
 
 Examples
@@ -26,6 +27,7 @@ Examples
 
    plugin load morse2plugin.so
    plugin unload pair morse2/omp
+   plugin unload command hello
    plugin list
 
 Description

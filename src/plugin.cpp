@@ -86,14 +86,25 @@ namespace LAMMPS_NS
     int me = lmp->comm->me;
 
     if (plugin == nullptr) return;
+
+    // ignore load request if same plugin already loaded
+    int idx = plugin_find(plugin->style,plugin->name);
+    if (idx >= 0) {
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("Ignoring load of {} style {}: must "
+                                       "unload existing {} plugin first\n",
+                                       plugin->style,plugin->name,plugin->name));
+      return;
+    }
+
     if (me == 0) {
       utils::logmesg(lmp,fmt::format("Loading plugin: {} by {}\n",
-                                     plugin->info, plugin->author));
+                                     plugin->info,plugin->author));
       // print version info only if the versions of host and plugin don't match
       if ((plugin->version) && (strcmp(plugin->version,lmp->version) != 0))
         utils::logmesg(lmp,fmt::format("  compiled for LAMMPS version {} "
                                        "loaded into LAMMPS version {}\n",
-                                       plugin->version, lmp->version));
+                                       plugin->version,lmp->version));
     }
 
     pluginlist.push_back(*plugin);
@@ -191,7 +202,7 @@ namespace LAMMPS_NS
     if (idx < 0) {
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Ignoring unload of {} style {}: not "
-                                       "loaded from a plugin\n", style, name));
+                                       "loaded from a plugin\n",style,name));
       return;
     }
 

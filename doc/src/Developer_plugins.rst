@@ -57,15 +57,14 @@ function would look like this:
     plugin.name    = "morse2";
     plugin.info    = "Morse2 variant pair style v1.0";
     plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
-    plugin.creator1 = (lammpsplugin_factory1 *) &morse2creator;
-    plugin.creator2 = nullptr;
+    plugin.creator.v1 = (lammpsplugin_factory1 *) &morse2creator;
     plugin.handle  = handle;
     (*register_plugin)(&plugin,lmp);
   }
 
 The factory function in this example is called ``morse2creator()``.  It
 receives a pointer to the LAMMPS class as only argument and thus has to
-be assigned to the *creator1* member of the plugin struct and cast to the
+be assigned to the *creator.v1* member of the plugin struct and cast to the
 ``lammpsplugin_factory1`` pointer type.  It returns a
 pointer to the allocated class instance derived from the ``Pair`` class.
 This function may be declared static to avoid clashes with other plugins.
@@ -74,7 +73,7 @@ the entire LAMMPS executable.
 If the factory function would be for a fix or compute, which take three
 arguments (a pointer to the LAMMPS class, the number of arguments and the
 list of argument strings), then the pointer type is ``lammpsplugin_factory2``
-and it must be assigned to the *creator2* member of the plugin struct.
+and it must be assigned to the *creator.v2* member of the plugin struct.
 Below is an example for that:
 
 .. code-block:: C++
@@ -100,11 +99,64 @@ Below is an example for that:
     plugin.name    = "nve2";
     plugin.info    = "NVE2 variant fix style v1.0";
     plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
-    plugin.creator1 = nullptr;
-    plugin.creator2 = (lammpsplugin_factory2 *) &nve2creator;
+    plugin.creator.v2 = (lammpsplugin_factory2 *) &nve2creator;
     plugin.handle  = handle;
     (*register_plugin)(&plugin,lmp);
   }
+
+For command styles there is a third variant of factory function as
+demonstrated in the following example, which also shows that the
+implementation of the plugin class may also be within the same
+file as the plugin interface code:
+
+.. code-block:: C++
+
+   #include "lammpsplugin.h"
+
+   #include "comm.h"
+   #include "error.h"
+   #include "pointers.h"
+   #include "version.h"
+
+   #include <cstring>
+
+   namespace LAMMPS_NS {
+     class Hello : protected Pointers {
+      public:
+       Hello(class LAMMPS *lmp) : Pointers(lmp) {};
+       void command(int, char **);
+     };
+   }
+
+   using namespace LAMMPS_NS;
+
+   void Hello::command(int argc, char **argv)
+   {
+      if (argc != 1) error->all(FLERR,"Illegal hello command");
+      if (comm->me == 0)
+        utils::logmesg(lmp,fmt::format("Hello, {}!\n",argv[0]));
+   }
+
+   static void hellocreator(LAMMPS *lmp, int argc, char **argv)
+   {
+     Hello hello(lmp);
+     hello.command(argc,argv);
+   }
+
+   extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
+   {
+     lammpsplugin_t plugin;
+     lammpsplugin_regfunc register_plugin = (lammpsplugin_regfunc) regfunc;
+
+     plugin.version = LAMMPS_VERSION;
+     plugin.style   = "command";
+     plugin.name    = "hello";
+     plugin.info    = "Hello world command v1.0";
+     plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
+     plugin.creator.v3 = (lammpsplugin_factory3 *) &hellocreator;
+     plugin.handle  = handle;
+     (*register_plugin)(&plugin,lmp);
+   }
 
 The initialization function **must** be called ``lammpsplugin_init``, it
 **must** have C bindings and it takes three void pointers as arguments.

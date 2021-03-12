@@ -58,9 +58,8 @@ namespace LAMMPS_NS
 
     void *initfunc = dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
-#ifndef WIN32
       dlclose(dso);
-#endif
+
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Plugin symbol lookup failure in "
                                        "file {}\n",file));
@@ -182,7 +181,7 @@ namespace LAMMPS_NS
     if (idx < 0) {
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Ignoring unload of {} style {}: not "
-                                       "loaded from a plugin", style, name));
+                                       "loaded from a plugin\n", style, name));
       return;
     }
 

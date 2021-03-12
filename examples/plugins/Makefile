@@ -1,5 +1,5 @@
 CXX=mpicxx
-CXXFLAGS=-I../../src -Wall -O3 -fPIC -I../../src/USER-OMP -fopenmp
+CXXFLAGS=-I../../src -Wall -Wextra -O3 -fPIC -I../../src/USER-OMP -fopenmp
 LD=$(CXX) -shared -rdynamic -fopenmp
 
 morse2plugin.so: morse2plugin.o pair_morse2.o pair_morse2_omp.o

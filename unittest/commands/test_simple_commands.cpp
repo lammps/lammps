@@ -344,6 +344,15 @@ TEST_F(SimpleCommandsTest, Units)
     TEST_FAILURE(".*ERROR: Illegal units command.*", lmp->input->one("units unknown"););
 }
 
+TEST_F(SimpleCommandsTest, Plugin)
+{
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("plugin load plugins/helloplugin.so");
+    auto text = ::testing::internal::GetCapturedStdout();
+
+    ASSERT_THAT(text, MatchesRegex(".*Loading plugin: Hello world command.*"));
+}
+
 TEST_F(SimpleCommandsTest, Shell)
 {
     if (!verbose) ::testing::internal::CaptureStdout();

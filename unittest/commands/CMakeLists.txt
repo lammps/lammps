@@ -1,5 +1,24 @@
 
+# build LAMMPS plugins, but not on Windows
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  ExternalProject_Add(plugins
+                      SOURCE_DIR      "${LAMMPS_DIR}/examples/plugins"
+                      BINARY_DIR      "${CMAKE_BINARY_DIR}/plugins"
+                      CMAKE_ARGS      ${CMAKE_REQUEST_PIC}
+                                      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+                                      -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+                                      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+                                      -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+                                      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+                     BUILD_BYPRODUCTS <BINARY_DIR>/morse2plugin${CMAKE_STATIC_LIBRARY_SUFFIX}
+                                      <BINARY_DIR>/nve2plugin${CMAKE_STATIC_LIBRARY_SUFFIX}
+                                      <BINARY_DIR>/helloplugin${CMAKE_STATIC_LIBRARY_SUFFIX}
+                     INSTALL_COMMAND ""
+                     TEST_COMMAND    "")
+endif()
+
 add_executable(test_simple_commands test_simple_commands.cpp)
+add_dependencies(test_simple_commands plugins)
 target_link_libraries(test_simple_commands PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME SimpleCommands COMMAND test_simple_commands WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 

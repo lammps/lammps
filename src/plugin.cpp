@@ -114,10 +114,20 @@ namespace LAMMPS_NS
                                                 plugin->name));
       }
 
-      (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator;
+      (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator1;
+    } else if (pstyle == "fix") {
+      auto fix_map = lmp->modify->fix_map;
+      if (fix_map->find(plugin->name) != fix_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in fix "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+
+      (*fix_map)[plugin->name] = (Modify::FixCreator)plugin->creator2;
     } else {
       utils::logmesg(lmp,fmt::format("Loading plugin for {} styles not "
-                                     "yet implemented\n", pstyle));
+                                     "yet implemented\n",pstyle));
       pluginlist.pop_back();
     }
   }

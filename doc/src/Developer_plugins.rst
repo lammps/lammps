@@ -57,17 +57,54 @@ function would look like this:
     plugin.name    = "morse2";
     plugin.info    = "Morse2 variant pair style v1.0";
     plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
-    plugin.creator = (lammpsplugin_factory *) &morse2creator;
+    plugin.creator1 = (lammpsplugin_factory1 *) &morse2creator;
+    plugin.creator2 = nullptr;
     plugin.handle  = handle;
     (*register_plugin)(&plugin,lmp);
   }
 
 The factory function in this example is called ``morse2creator()``.  It
-receives a pointer to the LAMMPS class as argument and returns a
+receives a pointer to the LAMMPS class as only argument and thus has to
+be assigned to the *creator1* member of the plugin struct and cast to the
+``lammpsplugin_factory1`` pointer type.  It returns a
 pointer to the allocated class instance derived from the ``Pair`` class.
 This function may be declared static to avoid clashes with other plugins.
 The name of the derived class, ``PairMorse2``, must be unique inside
 the entire LAMMPS executable.
+If the factory function would be for a fix or compute, which take three
+arguments (a pointer to the LAMMPS class, the number of arguments and the
+list of argument strings), then the pointer type is ``lammpsplugin_factory2``
+and it must be assigned to the *creator2* member of the plugin struct.
+Below is an example for that:
+
+.. code-block:: C++
+
+  #include "lammpsplugin.h"
+  #include "version.h"
+  #include "fix_nve2.h"
+
+  using namespace LAMMPS_NS;
+
+  static Fix *nve2creator(LAMMPS *lmp, int argc, char **argv)
+  {
+    return new FixNVE2(lmp,argc,argv);
+  }
+
+  extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
+  {
+    lammpsplugin_regfunc register_plugin = (lammpsplugin_regfunc) regfunc;
+    lammpsplugin_t plugin;
+
+    plugin.version = LAMMPS_VERSION;
+    plugin.style   = "fix";
+    plugin.name    = "nve2";
+    plugin.info    = "NVE2 variant fix style v1.0";
+    plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
+    plugin.creator1 = nullptr;
+    plugin.creator2 = (lammpsplugin_factory2 *) &nve2creator;
+    plugin.handle  = handle;
+    (*register_plugin)(&plugin,lmp);
+  }
 
 The initialization function **must** be called ``lammpsplugin_init``, it
 **must** have C bindings and it takes three void pointers as arguments.

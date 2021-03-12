@@ -18,7 +18,8 @@
 
 extern "C" {
 
-  typedef void *(lammpsplugin_factory)(void *);
+  typedef void *(lammpsplugin_factory1)(void *);
+  typedef void *(lammpsplugin_factory2)(void *, int, char **);
 
   typedef struct {
     const char *version;
@@ -26,7 +27,8 @@ extern "C" {
     const char *name;
     const char *info;
     const char *author;
-    lammpsplugin_factory *creator;
+    lammpsplugin_factory1 *creator1;
+    lammpsplugin_factory2 *creator2;
     void *handle;
   } lammpsplugin_t;
 

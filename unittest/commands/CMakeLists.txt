@@ -3,17 +3,22 @@
 if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   ExternalProject_Add(plugins
                       SOURCE_DIR      "${LAMMPS_DIR}/examples/plugins"
-                      BINARY_DIR      "${CMAKE_BINARY_DIR}/plugins"
+                      BINARY_DIR      ${CMAKE_BINARY_DIR}/build-plugins
+                      INSTALL_DIR     ${CMAKE_BINARY_DIR}
                       CMAKE_ARGS      ${CMAKE_REQUEST_PIC}
                                       -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
                                       -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
                                       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                                       -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                     BUILD_BYPRODUCTS <BINARY_DIR>/morse2plugin${CMAKE_STATIC_LIBRARY_SUFFIX}
-                                      <BINARY_DIR>/nve2plugin${CMAKE_STATIC_LIBRARY_SUFFIX}
-                                      <BINARY_DIR>/helloplugin${CMAKE_STATIC_LIBRARY_SUFFIX}
-                     INSTALL_COMMAND ""
+                     BUILD_BYPRODUCTS <BINARY_DIR>/morse2plugin${CMAKE_SHARED_LIBRARY_SUFFIX}
+                                      <BINARY_DIR>/nve2plugin${CMAKE_SHARED_LIBRARY_SUFFIX}
+                                      <BINARY_DIR>/helloplugin${CMAKE_SHARED_LIBRARY_SUFFIX}
+                     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                                      <BINARY_DIR>/morse2plugin${CMAKE_SHARED_LIBRARY_SUFFIX}
+                                      <BINARY_DIR>/nve2plugin${CMAKE_SHARED_LIBRARY_SUFFIX}
+                                      <BINARY_DIR>/helloplugin${CMAKE_SHARED_LIBRARY_SUFFIX}
+                                      ${CMAKE_CURRENT_BINARY_DIR}
                      TEST_COMMAND    "")
 endif()
 

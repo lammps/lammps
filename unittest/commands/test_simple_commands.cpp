@@ -347,9 +347,9 @@ TEST_F(SimpleCommandsTest, Units)
 TEST_F(SimpleCommandsTest, Plugin)
 {
 #if defined(__APPLE__)
-    std::string loadfmt("plugin load plugins/{}plugin.dylib");
+    std::string loadfmt("plugin load {}plugin.dylib");
 #else
-    std::string loadfmt("plugin load plugins/{}plugin.so");
+    std::string loadfmt("plugin load {}plugin.so");
 #endif
     ::testing::internal::CaptureStdout();
     lmp->input->one(fmt::format(loadfmt, "hello"));
@@ -361,7 +361,7 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one(fmt::format(loadfmt, "xxx"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, MatchesRegex(".*Open of file plugins/xxx.* failed.*"));
+    ASSERT_THAT(text, MatchesRegex(".*Open of file xxx.* failed.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one(fmt::format(loadfmt, "nve2"));

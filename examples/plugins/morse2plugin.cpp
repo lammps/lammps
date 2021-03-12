@@ -33,6 +33,7 @@ extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
   plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
   plugin.creator1 = (lammpsplugin_factory1 *) &morse2creator;
   plugin.creator2 = nullptr;
+  plugin.creator3 = nullptr;
   plugin.handle  = handle;
   (*register_plugin)(&plugin,lmp);
 

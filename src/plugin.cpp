@@ -15,6 +15,7 @@
 
 #include "comm.h"
 #include "error.h"
+#include "input.h"
 #include "force.h"
 #include "lammps.h"
 #include "modify.h"
@@ -128,8 +129,8 @@ namespace LAMMPS_NS
                                                 "style {} from plugin",
                                                 plugin->name));
       }
-
       (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator1;
+
     } else if (pstyle == "fix") {
       auto fix_map = lmp->modify->fix_map;
       if (fix_map->find(plugin->name) != fix_map->end()) {
@@ -138,8 +139,18 @@ namespace LAMMPS_NS
                                                 "style {} from plugin",
                                                 plugin->name));
       }
-
       (*fix_map)[plugin->name] = (Modify::FixCreator)plugin->creator2;
+
+    } else if (pstyle == "command") {
+      auto command_map = lmp->input->command_map;
+      if (command_map->find(plugin->name) != command_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in fix "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+      (*command_map)[plugin->name] = (Input::CommandCreator)plugin->creator3;
+
     } else {
       utils::logmesg(lmp,fmt::format("Loading plugin for {} styles not "
                                      "yet implemented\n",pstyle));

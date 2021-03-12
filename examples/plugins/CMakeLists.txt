@@ -53,4 +53,12 @@ target_link_libraries(nve2plugin PRIVATE lammps)
 add_library(helloplugin MODULE helloplugin.cpp)
 target_link_libraries(helloplugin PRIVATE lammps)
 
-set_target_properties(morse2plugin nve2plugin helloplugin PROPERTIES PREFIX "")
+set_target_properties(morse2plugin nve2plugin helloplugin PROPERTIES
+                      PREFIX ""
+                      LINK_FLAGS "-rdynamic")
+
+# MacOS seems to need this
+if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+  set_target_properties(morse2plugin nve2plugin helloplugin PROPERTIES
+                        LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+endif()

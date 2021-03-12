@@ -1,16 +1,16 @@
 CXX=mpicxx
-CXXFLAGS=-I../../src -Wall -Wextra -O3 -fPIC -I../../src/USER-OMP -fopenmp
-LD=$(CXX) -shared -rdynamic -fopenmp
+CXXFLAGS=-I../../src -Wall -Wextra -O3 -fPIC -I../../src/USER-OMP 
+LD=$(CXX) -bundle -rdynamic -Wl,-undefined,dynamic_lookup
 
-default: morse2plugin.so nve2plugin.so helloplugin.so
+default: morse2plugin.dylib nve2plugin.dylib helloplugin.dylib
 
-helloplugin.so: helloplugin.o
+helloplugin.dylib: helloplugin.o
 	$(LD) -o $@ $^
 
-morse2plugin.so: morse2plugin.o pair_morse2.o pair_morse2_omp.o
+morse2plugin.dylib: morse2plugin.o pair_morse2.o pair_morse2_omp.o
 	$(LD) -o $@ $^
 
-nve2plugin.so: nve2plugin.o fix_nve2.o
+nve2plugin.dylib: nve2plugin.o fix_nve2.o
 	$(LD) -o $@ $^
 
 .cpp.o:
@@ -26,5 +26,5 @@ fix_nve2.o: fix_nve2.cpp fix_nve2.h
 nve2plugin.o: nve2plugin.cpp fix_nve2.h
 
 clean:
-	rm -rf *~ *.so *.dylib *.o log.lammps CMakeCache.txt CMakeFiles
+	rm -rf *~ *.dylib *.dylib *.o log.lammps CMakeCache.txt CMakeFiles
 

@@ -240,6 +240,11 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
+# link with -ldl or equivalent for plugin loading; except on Windows
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+  target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
+endif()
+
 # Compiler specific features for testing
 if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
   option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)

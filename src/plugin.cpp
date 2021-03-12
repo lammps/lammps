@@ -51,8 +51,7 @@ namespace LAMMPS_NS
     void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Open of plugin file {} failed: {}",
-                                       file,utils::getsyserror()));
+        utils::logmesg(lmp,fmt::format("Open of file {} failed\n",file));
       return;
     }
 
@@ -145,7 +144,7 @@ namespace LAMMPS_NS
       auto command_map = lmp->input->command_map;
       if (command_map->find(plugin->name) != command_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in fix "
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in command "
                                                 "style {} from plugin",
                                                 plugin->name));
       }

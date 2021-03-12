@@ -207,10 +207,16 @@ namespace LAMMPS_NS
             lmp->force->create_pair("none",0);
         }
       }
+
     } else if (pstyle == "fix") {
       for (int ifix = lmp->modify->find_fix_by_style(name);
            ifix >= 0; ifix = lmp->modify->find_fix_by_style(name))
         lmp->modify->delete_fix(ifix);
+
+    } else if (pstyle == "command") {
+      auto command_map = lmp->input->command_map;
+      auto cmd = command_map->find(name);
+      if (cmd != command_map->end()) command_map->erase(name);
     }
 
     // if reference count is down to zero, close DSO handle.

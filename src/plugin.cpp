@@ -31,9 +31,10 @@
 
 namespace LAMMPS_NS
 {
-  // store list of plugin information data for loaded styles
+  // list of plugin information data for loaded styles
   static std::list<lammpsplugin_t> pluginlist;
-  // map of dso handles
+
+  // map for counting references to dso handles
   static std::map<void *, int> dso_refcounter;
 
   // load DSO and call included registration function
@@ -44,7 +45,7 @@ namespace LAMMPS_NS
     lmp->error->all(FLERR,"Loading of plugins on Windows not yet supported\n");
 #else
 
-    // open DSO file from given path load symbols globally
+    // open DSO file from given path; load symbols globally
 
     void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
@@ -54,7 +55,8 @@ namespace LAMMPS_NS
       return;
     }
 
-    // look up lammpsplugin_init() function in DSO. must have C bindings.
+    // look up lammpsplugin_init() function in DSO
+    // function must have C bindings so there is no name mangling
 
     void *initfunc = dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
@@ -70,15 +72,17 @@ namespace LAMMPS_NS
     // to the LAMMPS instance, the DSO handle (for reference counting)
     // and plugin registration function pointer
 
-    ((lammpsplugin_initfunc)(initfunc))((void *)lmp, dso,
-                                        (void *)&plugin_register);
+    (*(lammpsplugin_initfunc)(initfunc))((void *)lmp, dso,
+                                         (void *)&plugin_register);
 #endif
   }
 
-  // register a new style from a plugin with LAMMPS
-  // this is the callback function that is called from within
-  // the plugin initializer function. all plugin information
-  // is taken from the lammpsplugin_t struct.
+  /* --------------------------------------------------------------------
+     register a new style from a plugin with LAMMPS
+     this is the callback function that is called from within
+     the plugin initializer function. all plugin information
+     is taken from the lammpsplugin_t struct.
+     -------------------------------------------------------------------- */
 
   void plugin_register(lammpsplugin_t *plugin, void *ptr)
   {
@@ -143,55 +147,11 @@ namespace LAMMPS_NS
     }
   }
 
-  // number of styles loaded from plugin files
-
-  int plugin_get_num_plugins()
-  {
-    return pluginlist.size();
-  }
-
-  // return position index in list of given plugin of given style
-
-  int plugin_find(const char *style, const char *name)
-  {
-    int i=0;
-    for (auto entry : pluginlist) {
-      if ((strcmp(style,entry.style) == 0)
-          && (strcmp(name,entry.name) == 0))
-        return i;
-      ++i;
-    }
-    return -1;
-  }
-
-  // get pointer to plugin initializer struct at position idx
-
-  const lammpsplugin_t *plugin_get_info(int idx)
-  {
-    int i=0;
-    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
-      if (i == idx) return &(*p);
-      ++i;
-    }
-    return nullptr;
-  }
-
-  // remove plugin of given name and style from internal lists
-
-  void plugin_erase(const char *style, const char *name)
-  {
-    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
-      if ((strcmp(style,p->style) == 0)
-          && (strcmp(name,p->name) == 0)) {
-        pluginlist.erase(p);
-        return;
-      }
-    }
-  }
-
-  // remove plugin from given style table and plugin list.
-  // optionally close the DSO handle if last plugin from that DSO
-  // must delete style instance if style is currently active.
+  /* --------------------------------------------------------------------
+     remove plugin from given style table and plugin list
+     optionally close the DSO handle if it is the last plugin from that DSO
+     must also delete style instances if style is currently active
+     -------------------------------------------------------------------- */
 
   void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
   {
@@ -250,5 +210,59 @@ namespace LAMMPS_NS
       dlclose(handle);
 #endif
     }
+  }
+
+  /* --------------------------------------------------------------------
+     remove plugin of given name and style from internal lists
+     -------------------------------------------------------------------- */
+
+  void plugin_erase(const char *style, const char *name)
+  {
+    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
+      if ((strcmp(style,p->style) == 0)
+          && (strcmp(name,p->name) == 0)) {
+        pluginlist.erase(p);
+        return;
+      }
+    }
+  }
+
+  /* --------------------------------------------------------------------
+     number of styles loaded from plugin files
+     -------------------------------------------------------------------- */
+
+  int plugin_get_num_plugins()
+  {
+    return pluginlist.size();
+  }
+
+  /* --------------------------------------------------------------------
+     return position index in list of given plugin of given style
+     -------------------------------------------------------------------- */
+
+  int plugin_find(const char *style, const char *name)
+  {
+    int i=0;
+    for (auto entry : pluginlist) {
+      if ((strcmp(style,entry.style) == 0)
+          && (strcmp(name,entry.name) == 0))
+        return i;
+      ++i;
+    }
+    return -1;
+  }
+
+  /* --------------------------------------------------------------------
+     get pointer to plugin initializer struct at position idx
+     -------------------------------------------------------------------- */
+
+  const lammpsplugin_t *plugin_get_info(int idx)
+  {
+    int i=0;
+    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
+      if (i == idx) return &(*p);
+      ++i;
+    }
+    return nullptr;
   }
 }

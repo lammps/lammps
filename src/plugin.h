@@ -19,13 +19,16 @@
 namespace LAMMPS_NS
 {
   class LAMMPS;
+
   void plugin_load(const char *, LAMMPS *);
   void plugin_register(lammpsplugin_t *, void *);
-  int plugin_get_num_plugins();
-  const lammpsplugin_t *plugin_get_info(int);
-  int plugin_find(const char *, const char *);
-  void plugin_erase(const char *, const char *);
+
   void plugin_unload(const char *, const char *, LAMMPS *);
+  void plugin_erase(const char *, const char *);
+
+  int plugin_get_num_plugins();
+  int plugin_find(const char *, const char *);
+  const lammpsplugin_t *plugin_get_info(int);
 }
 
 #endif

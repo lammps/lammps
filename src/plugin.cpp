@@ -222,7 +222,9 @@ namespace LAMMPS_NS
 
     -- dso_refcounter[handle];
     if (dso_refcounter[handle] == 0) {
+#ifndef WIN32
       dlclose(handle);
+#endif
     }
   }
 }

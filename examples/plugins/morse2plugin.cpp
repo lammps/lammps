@@ -31,15 +31,13 @@ extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
   plugin.name    = "morse2";
   plugin.info    = "Morse2 variant pair style v1.0";
   plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
-  plugin.creator1 = (lammpsplugin_factory1 *) &morse2creator;
-  plugin.creator2 = nullptr;
-  plugin.creator3 = nullptr;
+  plugin.creator.v1 = (lammpsplugin_factory1 *) &morse2creator;
   plugin.handle  = handle;
   (*register_plugin)(&plugin,lmp);
 
   // also register morse2/omp pair style. only need to update changed fields
   plugin.name    = "morse2/omp";
   plugin.info    = "Morse2 variant pair style for OpenMP v1.0";
-  plugin.creator1 = (lammpsplugin_factory1 *) &morse2ompcreator;
+  plugin.creator.v1 = (lammpsplugin_factory1 *) &morse2ompcreator;
   (*register_plugin)(&plugin,lmp);
 }

@@ -41,9 +41,7 @@ extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
   plugin.name    = "hello";
   plugin.info    = "Hello world command v1.0";
   plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
-  plugin.creator1 = nullptr;
-  plugin.creator2 = nullptr;
-  plugin.creator3 = (lammpsplugin_factory3 *) &hellocreator;
+  plugin.creator.v3 = (lammpsplugin_factory3 *) &hellocreator;
   plugin.handle  = handle;
   (*register_plugin)(&plugin,lmp);
 }

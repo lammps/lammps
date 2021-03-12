@@ -24,9 +24,7 @@ extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
   plugin.name    = "nve2";
   plugin.info    = "NVE2 variant fix style v1.0";
   plugin.author  = "Axel Kohlmeyer (akohlmey@gmail.com)";
-  plugin.creator1 = nullptr;
-  plugin.creator2 = (lammpsplugin_factory2 *) &nve2creator;
-  plugin.creator3 = nullptr;
+  plugin.creator.v2 = (lammpsplugin_factory2 *) &nve2creator;
   plugin.handle  = handle;
   (*register_plugin)(&plugin,lmp);
 }

@@ -28,9 +28,11 @@ extern "C" {
     const char *name;
     const char *info;
     const char *author;
-    lammpsplugin_factory1 *creator1;
-    lammpsplugin_factory2 *creator2;
-    lammpsplugin_factory3 *creator3;
+    union {
+      lammpsplugin_factory1 *v1;
+      lammpsplugin_factory2 *v2;
+      lammpsplugin_factory3 *v3;
+    } creator;
     void *handle;
   } lammpsplugin_t;
 

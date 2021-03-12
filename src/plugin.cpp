@@ -129,7 +129,7 @@ namespace LAMMPS_NS
                                                 "style {} from plugin",
                                                 plugin->name));
       }
-      (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator1;
+      (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator.v1;
 
     } else if (pstyle == "fix") {
       auto fix_map = lmp->modify->fix_map;
@@ -139,7 +139,7 @@ namespace LAMMPS_NS
                                                 "style {} from plugin",
                                                 plugin->name));
       }
-      (*fix_map)[plugin->name] = (Modify::FixCreator)plugin->creator2;
+      (*fix_map)[plugin->name] = (Modify::FixCreator)plugin->creator.v2;
 
     } else if (pstyle == "command") {
       auto command_map = lmp->input->command_map;
@@ -149,7 +149,7 @@ namespace LAMMPS_NS
                                                 "style {} from plugin",
                                                 plugin->name));
       }
-      (*command_map)[plugin->name] = (Input::CommandCreator)plugin->creator3;
+      (*command_map)[plugin->name] = (Input::CommandCreator)plugin->creator.v3;
 
     } else {
       utils::logmesg(lmp,fmt::format("Loading plugin for {} styles not "

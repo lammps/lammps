@@ -378,7 +378,7 @@ void MLIAPModelNN::compute_gradients(MLIAPData* data)
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelNN::compute_gradgrads(class MLIAPData /* *data */)
+void MLIAPModelNN::compute_gradgrads(class MLIAPData * /*data*/)
 {
   error->all(FLERR,"compute_gradgrads not implemented");
 }
@@ -388,7 +388,7 @@ void MLIAPModelNN::compute_gradgrads(class MLIAPData /* *data */)
    egradient is derivative of energy w.r.t. parameters
    ---------------------------------------------------------------------- */
 
-void MLIAPModelNN::compute_force_gradients(class MLIAPData /* *data */)
+void MLIAPModelNN::compute_force_gradients(class MLIAPData * /*data*/)
 {
   error->all(FLERR,"compute_force_gradients not implemented");
 }
@@ -397,7 +397,7 @@ void MLIAPModelNN::compute_force_gradients(class MLIAPData /* *data */)
    count the number of non-zero entries in gamma matrix
    ---------------------------------------------------------------------- */
 
-int MLIAPModelNN::get_gamma_nnz(class MLIAPData /* *data */)
+int MLIAPModelNN::get_gamma_nnz(class MLIAPData * /*data*/)
 {
   // todo: get_gamma_nnz
   return 0;

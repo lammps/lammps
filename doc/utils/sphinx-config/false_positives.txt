@@ -160,6 +160,7 @@ atwt
 augt
 AuO
 automagically
+Auvergne
 Avalos
 avalue
 aveforce
@@ -1740,6 +1741,7 @@ lwsock
 lx
 ly
 Lybrand
+lyon
 Lyulin
 lz
 Maaravi
@@ -3256,6 +3258,7 @@ Tz
 Tzou
 ub
 Uberuaga
+uce
 uChem
 uCond
 uef

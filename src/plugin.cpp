@@ -167,6 +167,16 @@ namespace LAMMPS_NS
   {
     int me = lmp->comm->me;
 
+    // ignore unload request from unsupported style categories
+    if ((strcmp(style,"pair") != 0)
+        && (strcmp(style,"fix") != 0)
+        && (strcmp(style,"command") != 0)) {
+      if (me == 0)
+        utils::logmesg(lmp,fmt::format("Ignoring unload: {} is not a "
+                                       "supported plugin style\n",style));
+      return;
+    }
+
     // ignore unload request if not loaded from a plugin
     int idx = plugin_find(style,name);
     if (idx < 0) {

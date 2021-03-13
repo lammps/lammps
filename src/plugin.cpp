@@ -81,9 +81,9 @@ namespace LAMMPS_NS
     int me = lmp->comm->me;
 
     // open DSO file from given path; load symbols globally
-    
+
     void *dso = my_dlopen(file);
-    
+
     if (dso == nullptr) {
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Open of file {} failed\n",file));

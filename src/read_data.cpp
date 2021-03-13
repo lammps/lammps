@@ -2053,7 +2053,7 @@ void ReadData::skip_lines(bigint n)
 }
 
 /* ----------------------------------------------------------------------
-   parse a line of coeffs into words, storing them in narg,arg
+   parse a line of coeffs into words, storing them in ncoeffarg,coeffarg
    trim anything from '#' onward
    word strings remain in line, are not copied
    if addstr != nullptr, add addstr as extra arg for class2 angle/dihedral/improper
@@ -2069,33 +2069,38 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
   char *ptr;
   if ((ptr = strchr(line,'#'))) *ptr = '\0';
 
-  narg = 0;
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (narg == maxarg) {
-      maxarg += DELTA;
-      arg = (char **)
-        memory->srealloc(arg,maxarg*sizeof(char *),"read_data:arg");
+  ncoeffarg = 0;
+  char *word = line;
+  char *end = line + strlen(line)+1;
+
+  while (word < end) {
+    word += strspn(word," \t\r\n\f");
+    word[strcspn(word," \t\r\n\f")] = '\0';
+    if (strlen(word) == 0) break;
+    if (ncoeffarg == maxcoeffarg) {
+      maxcoeffarg += DELTA;
+      coeffarg = (char **)
+        memory->srealloc(coeffarg,maxcoeffarg*sizeof(char *),"read_data:coeffarg");
     }
-    if (addstr && narg == 1 && !islower(word[0])) arg[narg++] = (char *) addstr;
-    arg[narg++] = word;
-    if (addstr && narg == 2 && islower(word[0])) arg[narg++] = (char *) addstr;
-    if (dupflag && narg == 1) arg[narg++] = word;
-    word = strtok(nullptr," \t\n\r\f");
+    if (addstr && ncoeffarg == 1 && !islower(word[0])) coeffarg[ncoeffarg++] = (char *) addstr;
+    coeffarg[ncoeffarg++] = word;
+    if (addstr && ncoeffarg == 2 && islower(word[0])) coeffarg[ncoeffarg++] = (char *) addstr;
+    if (dupflag && ncoeffarg == 1) coeffarg[ncoeffarg++] = word;
+    word += strlen(word)+1;
   }
 
   // to avoid segfaults on empty lines
 
-  if (narg == 0) return;
+  if (ncoeffarg == 0) return;
 
   if (noffset) {
-    int value = utils::inumeric(FLERR,arg[0],false,lmp);
+    int value = utils::inumeric(FLERR,coeffarg[0],false,lmp);
     sprintf(argoffset1,"%d",value+offset);
-    arg[0] = argoffset1;
+    coeffarg[0] = argoffset1;
     if (noffset == 2) {
-      value = utils::inumeric(FLERR,arg[1],false,lmp);
+      value = utils::inumeric(FLERR,coeffarg[1],false,lmp);
       sprintf(argoffset2,"%d",value+offset);
-      arg[1] = argoffset2;
+      coeffarg[1] = argoffset2;
     }
   }
 }

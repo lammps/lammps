@@ -48,23 +48,26 @@ namespace LAMMPS_NS
 
     // open DSO file from given path; load symbols globally
 
+    dlerror();
     void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Open of file {} failed\n",file));
+        utils::logmesg(lmp,fmt::format("Open of file {} failed: {}\n",
+                                       file,dlerror()));
       return;
     }
 
     // look up lammpsplugin_init() function in DSO
     // function must have C bindings so there is no name mangling
 
+    dlerror();
     void *initfunc = dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
       dlclose(dso);
 
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Plugin symbol lookup failure in "
-                                       "file {}\n",file));
+                                       "file {}: {}\n",file,dlerror()));
       return;
     }
 

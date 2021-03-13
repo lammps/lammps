@@ -24,47 +24,10 @@
 #include <map>
 #include <list>
 
-#if defined(_WIN32)
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <dlfcn.h>
-#endif
-
-#if defined(_WIN32)
-
-// open a shared object file
-static void *my_dlopen(const char *fname) {
-  return (void *)LoadLibrary(fname);
-}
-
-// resolve a symbol in shared object
-static void *my_dlsym(void *h, const char *sym) {
-  return (void *)GetProcAddress((HINSTANCE)h, sym);
-}
-
-// close a shared object
-static int my_dlclose(void *h) {
-  /* FreeLibrary returns nonzero on success */
-  return !FreeLibrary((HINSTANCE)h);
-}
-
-#else
-
-// open a shared object file
-static void *my_dlopen(const char *fname) {
-  return dlopen(fname, RTLD_NOW|RTLD_GLOBAL);
-}
-
-// resolve a symbol in shared object
-static void *my_dlsym(void *h, const char *sym) {
-  return dlsym(h, sym);
-}
-
-// close a shared object
-static int my_dlclose(void *h) {
-  return dlclose(h);
-}
-
 #endif
 
 namespace LAMMPS_NS
@@ -79,11 +42,13 @@ namespace LAMMPS_NS
   void plugin_load(const char *file, LAMMPS *lmp)
   {
     int me = lmp->comm->me;
+#if defined(WIN32)
+    lmp->error->all(FLERR,"Loading of plugins on Windows is not supported\n");
+#else
 
     // open DSO file from given path; load symbols globally
 
-    void *dso = my_dlopen(file);
-
+    void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Open of file {} failed\n",file));
@@ -93,10 +58,9 @@ namespace LAMMPS_NS
     // look up lammpsplugin_init() function in DSO
     // function must have C bindings so there is no name mangling
 
-    void *initfunc = my_dlsym(dso,"lammpsplugin_init");
-
+    void *initfunc = dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
-      my_dlclose(dso);
+      dlclose(dso);
 
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Plugin symbol lookup failure in "
@@ -110,6 +74,7 @@ namespace LAMMPS_NS
 
     (*(lammpsplugin_initfunc)(initfunc))((void *)lmp, dso,
                                          (void *)&plugin_register);
+#endif
   }
 
   /* --------------------------------------------------------------------
@@ -256,7 +221,11 @@ namespace LAMMPS_NS
     // if reference count is down to zero, close DSO handle.
 
     -- dso_refcounter[handle];
-    if (dso_refcounter[handle] == 0) my_dlclose(handle);
+    if (dso_refcounter[handle] == 0) {
+#ifndef WIN32
+      dlclose(handle);
+#endif
+    }
   }
 
   /* --------------------------------------------------------------------

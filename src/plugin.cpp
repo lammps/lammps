@@ -186,7 +186,7 @@ namespace LAMMPS_NS
       return;
     }
 
-    // copy of DSO handle for later
+    // make copy of DSO handle for later use
     void *handle = plugin_get_info(idx)->handle;
 
     // remove selected plugin from list of plugins
@@ -201,6 +201,7 @@ namespace LAMMPS_NS
 
     std::string pstyle = style;
     if (pstyle == "pair") {
+
       auto found = lmp->force->pair_map->find(name);
       if (found != lmp->force->pair_map->end())
         lmp->force->pair_map->erase(found);
@@ -218,14 +219,20 @@ namespace LAMMPS_NS
       }
 
     } else if (pstyle == "fix") {
+
+      auto fix_map = lmp->modify->fix_map;
+      auto found = fix_map->find(name);
+      if (found != fix_map->end()) fix_map->erase(name);
+
       for (int ifix = lmp->modify->find_fix_by_style(name);
            ifix >= 0; ifix = lmp->modify->find_fix_by_style(name))
         lmp->modify->delete_fix(ifix);
 
     } else if (pstyle == "command") {
+
       auto command_map = lmp->input->command_map;
-      auto cmd = command_map->find(name);
-      if (cmd != command_map->end()) command_map->erase(name);
+      auto found = command_map->find(name);
+      if (found != command_map->end()) command_map->erase(name);
     }
 
     // if reference count is down to zero, close DSO handle.

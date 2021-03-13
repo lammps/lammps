@@ -303,18 +303,21 @@ void Group::assign(int narg, char **arg)
       else if (category == MOLECULE) tattribute = atom->molecule;
       else if (category == ID) tattribute = atom->tag;
 
-      char *ptr;
+      char *ptr,*end;
       tagint start,stop,delta;
 
       for (int iarg = 2; iarg < narg; iarg++) {
         delta = 1;
-        if (strchr(arg[iarg],':')) {
-          ptr = strtok(arg[iarg],":");
+        ptr = arg[iarg];
+        end = ptr + strlen(ptr)+1;
+        if (strchr(ptr,':')) {
+          ptr[strcspn(ptr,":")] = '\0';
           start = utils::tnumeric(FLERR,ptr,false,lmp);
-          ptr = strtok(nullptr,":");
+          ptr += strlen(ptr)+1;
+          if (strchr(ptr,':')) ptr[strcspn(ptr,":")] = '\0';
           stop = utils::tnumeric(FLERR,ptr,false,lmp);
-          ptr = strtok(nullptr,":");
-          if (ptr) delta = utils::tnumeric(FLERR,ptr,false,lmp);
+          ptr += strlen(ptr)+1;
+          if (ptr < end) delta = utils::tnumeric(FLERR,ptr,false,lmp);
         } else {
           start = stop = utils::tnumeric(FLERR,arg[iarg],false,lmp);
         }

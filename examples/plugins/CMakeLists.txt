@@ -31,11 +31,6 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# bail out on windows
-if(CMAKE_SYSTEM_NAME STREQUAL Windows)
-  message(FATAL_ERROR "LAMMPS plugins are currently not supported on Windows")
-endif()
-
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 include(CheckIncludeFileCXX)
 include(LAMMPSInterfaceCXX)
@@ -53,12 +48,13 @@ target_link_libraries(nve2plugin PRIVATE lammps)
 add_library(helloplugin MODULE helloplugin.cpp)
 target_link_libraries(helloplugin PRIVATE lammps)
 
-set_target_properties(morse2plugin nve2plugin helloplugin PROPERTIES
-                      PREFIX ""
-                      LINK_FLAGS "-rdynamic")
+set_target_properties(morse2plugin nve2plugin helloplugin PROPERTIES PREFIX "")
 
-# MacOS seems to need this
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set_target_properties(morse2plugin nve2plugin helloplugin PROPERTIES
                         LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
+elseif(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set_target_properties(morse2plugin nve2plugin helloplugin PROPERTIES LINK_FLAGS "-Wl,--undefined")
+else()
+  set_target_properties(morse2plugin nve2plugin helloplugin PROPERTIES LINK_FLAGS "-rdynamic")
 endif()

@@ -58,6 +58,9 @@ Restrictions
 
 Plugins are currently not available on Windows.
 
+For the loading of plugins to work, the LAMMPS library must be
+:ref:`compiled as a shared library <library>`.
+
 Plugins are dependent on the LAMMPS binary interface (ABI)
 and particularly the MPI library used. So they are not guaranteed
 to work when the plugin was compiled with a different MPI library

@@ -988,12 +988,12 @@ to then decide how to cast the (void*) pointer and access the data.
 
 \endverbatim
  *
- * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  handle   pointer to a previously created LAMMPS instance (unused)
  * \param  name     string with the name of the extracted property
  * \return          integer constant encoding the data type of the property
  *                  or -1 if not found. */
 
-int lammps_extract_global_datatype(void *handle, const char *name)
+int lammps_extract_global_datatype(void * /*handle*/, const char *name)
 {
   if (strcmp(name,"dt") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ntimestep") == 0) return LAMMPS_BIGINT;

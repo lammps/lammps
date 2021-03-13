@@ -239,6 +239,18 @@ namespace LAMMPS_NS
   }
 
   /* --------------------------------------------------------------------
+     unload all loaded plugins
+     -------------------------------------------------------------------- */
+
+  void plugin_clear(LAMMPS *lmp)
+  {
+    while (pluginlist.size() > 0) {
+      auto p = pluginlist.begin();
+      plugin_unload(p->style,p->name,lmp);
+    }
+  }
+
+  /* --------------------------------------------------------------------
      remove plugin of given name and style from internal lists
      -------------------------------------------------------------------- */
 

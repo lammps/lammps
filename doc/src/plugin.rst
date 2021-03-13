@@ -10,7 +10,7 @@ Syntax
 
    plugin command args
 
-* command = *load* or *unload* or *list*
+* command = *load* or *unload* or *list* or *clear*
 * args = list of arguments for a particular plugin command
 
   .. parsed-literal::
@@ -19,6 +19,7 @@ Syntax
      *unload* style name = unload plugin *name* of style *style*
          *style* = *pair* or *fix* or *command*
      *list* = print a list of currently loaded plugins
+     *clear* = unload all currently loaded plugins
 
 Examples
 """"""""
@@ -29,6 +30,7 @@ Examples
    plugin unload pair morse2/omp
    plugin unload command hello
    plugin list
+   plugin clear
 
 Description
 """""""""""
@@ -52,21 +54,25 @@ that style instance will be deleted.
 The *list* command will print a list of the loaded plugins and their
 styles and names.
 
+The *clear* command will unload all currently loaded plugins.
+
 
 Restrictions
 """"""""""""
 
-Plugins are currently not available on Windows.
+Plugins are not available on Windows.
 
-For the loading of plugins to work, the LAMMPS library must be
-:ref:`compiled as a shared library <library>`.
+For the loading of plugins to work the LAMMPS library must be
+:ref:`compiled as a shared library <library>`.  If plugins
+access functions or classes from a package, LAMMPS must have
+been compiled with that package included.
 
 Plugins are dependent on the LAMMPS binary interface (ABI)
 and particularly the MPI library used. So they are not guaranteed
 to work when the plugin was compiled with a different MPI library
 or different compilation settings or a different LAMMPS version.
-If there is a mismatch the *plugin* command may fail to load the
-plugin(s) or data corruption or crashes may happen.
+There are no checks, so if there is a mismatch the plugin object
+will either not load or data corruption and crashes may happen.
 
 
 Related commands

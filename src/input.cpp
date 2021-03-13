@@ -1110,6 +1110,8 @@ void Input::plugin()
   } else if (cmd == "unload") {
     if (narg != 3) error->all(FLERR,"Illegal plugin unload command");
     plugin_unload(arg[1],arg[2],lmp);
+  } else if (cmd == "clear") {
+    plugin_clear(lmp);
   } else if (cmd == "list") {
     if (comm->me == 0) {
       int num = plugin_get_num_plugins();

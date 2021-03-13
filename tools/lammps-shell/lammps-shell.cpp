@@ -350,7 +350,7 @@ static char *variable_expand_generator(const char *text, int state)
 
 static char *plugin_generator(const char *text, int state)
 {
-    const char *subcmd[] = {"load", "unload", "list", NULL};
+    const char *subcmd[] = {"load", "unload", "list", "clear", NULL};
     const char *sub;
     static std::size_t idx, len;
     if (!state) idx = 0;

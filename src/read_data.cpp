@@ -73,8 +73,8 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   keyword = new char[MAXLINE];
   style = new char[MAXLINE];
   buffer = new char[CHUNK*MAXLINE];
-  narg = maxarg = 0;
-  arg = nullptr;
+  ncoeffarg = maxcoeffarg = 0;
+  coeffarg = nullptr;
   fp = nullptr;
 
   // customize for new sections
@@ -98,7 +98,7 @@ ReadData::~ReadData()
   delete [] keyword;
   delete [] style;
   delete [] buffer;
-  memory->sfree(arg);
+  memory->sfree(coeffarg);
 
   for (int i = 0; i < nfix; i++) {
     delete [] fix_header[i];
@@ -1760,9 +1760,9 @@ void ReadData::paircoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,nullptr,1,2,toffset);
-    if (narg == 0)
+    if (ncoeffarg == 0)
       error->all(FLERR,"Unexpected empty line in PairCoeffs section");
-    force->pair->coeff(narg,arg);
+    force->pair->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -1787,9 +1787,9 @@ void ReadData::pairIJcoeffs()
       next = strchr(buf,'\n');
       *next = '\0';
       parse_coeffs(buf,nullptr,0,2,toffset);
-      if (narg == 0)
+      if (ncoeffarg == 0)
         error->all(FLERR,"Unexpected empty line in PairCoeffs section");
-      force->pair->coeff(narg,arg);
+      force->pair->coeff(ncoeffarg,coeffarg);
       buf = next + 1;
     }
   delete [] original;
@@ -1812,9 +1812,9 @@ void ReadData::bondcoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,nullptr,0,1,boffset);
-    if (narg == 0)
+    if (ncoeffarg == 0)
       error->all(FLERR,"Unexpected empty line in BondCoeffs section");
-    force->bond->coeff(narg,arg);
+    force->bond->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -1839,8 +1839,8 @@ void ReadData::anglecoeffs(int which)
     if (which == 0) parse_coeffs(buf,nullptr,0,1,aoffset);
     else if (which == 1) parse_coeffs(buf,"bb",0,1,aoffset);
     else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset);
-    if (narg == 0) error->all(FLERR,"Unexpected empty line in AngleCoeffs section");
-    force->angle->coeff(narg,arg);
+    if (ncoeffarg == 0) error->all(FLERR,"Unexpected empty line in AngleCoeffs section");
+    force->angle->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -1868,9 +1868,9 @@ void ReadData::dihedralcoeffs(int which)
     else if (which == 3) parse_coeffs(buf,"at",0,1,doffset);
     else if (which == 4) parse_coeffs(buf,"aat",0,1,doffset);
     else if (which == 5) parse_coeffs(buf,"bb13",0,1,doffset);
-    if (narg == 0)
+    if (ncoeffarg == 0)
       error->all(FLERR,"Unexpected empty line in DihedralCoeffs section");
-    force->dihedral->coeff(narg,arg);
+    force->dihedral->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -1894,8 +1894,8 @@ void ReadData::impropercoeffs(int which)
     *next = '\0';
     if (which == 0) parse_coeffs(buf,nullptr,0,1,ioffset);
     else if (which == 1) parse_coeffs(buf,"aa",0,1,ioffset);
-    if (narg == 0) error->all(FLERR,"Unexpected empty line in ImproperCoeffs section");
-    force->improper->coeff(narg,arg);
+    if (ncoeffarg == 0) error->all(FLERR,"Unexpected empty line in ImproperCoeffs section");
+    force->improper->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;

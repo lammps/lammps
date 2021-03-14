@@ -66,10 +66,7 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
 
   // create "all" group
 
-  char *str = (char *) "all";
-  int n = strlen(str) + 1;
-  names[0] = new char[n];
-  strcpy(names[0],str);
+  names[0] = utils::strdup("all");
   ngroup = 1;
 }
 
@@ -157,9 +154,7 @@ void Group::assign(int narg, char **arg)
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
-    int n = strlen(arg[0]) + 1;
-    names[igroup] = new char[n];
-    strcpy(names[igroup],arg[0]);
+    names[igroup] = utils::strdup(arg[0]);
     ngroup++;
   }
 
@@ -563,9 +558,7 @@ void Group::create(char *name, int *flag)
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
-    int n = strlen(name) + 1;
-    names[igroup] = new char[n];
-    strcpy(names[igroup],name);
+    names[igroup] = utils::strdup(name);
     ngroup++;
   }
 
@@ -602,9 +595,7 @@ int Group::find_or_create(const char *name)
 
   if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
   igroup = find_unused();
-  int n = strlen(name) + 1;
-  names[igroup] = new char[n];
-  strcpy(names[igroup],name);
+  names[igroup] = utils::strdup(name);
   ngroup++;
 
   return igroup;

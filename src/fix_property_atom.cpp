@@ -17,6 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
+#include "tokenizer.h"
 
 #include <cstring>
 
@@ -214,66 +215,50 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
     atom->map_set();
   }
 
-  next = strchr(buf,'\n');
-  *next = '\0';
-  int nwords = utils::trim_and_count_words(buf);
-  *next = '\n';
-
-  if (nwords != nvalue+1)
-    error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
-
-  char **values = new char*[nwords];
-
   // loop over lines of atom info
   // tokenize the line into values
-  // if I own atom tag, unpack its values
+  // if I own atom tag, assign its values
 
   tagint map_tag_max = atom->map_tag_max;
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    *next = '\0';
 
-    values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == nullptr)
-      error->all(FLERR,fmt::format("Too few lines in {} section of data file",keyword));
+    try {
+      ValueTokenizer values(buf);
+      if (values.count() != nvalue+1)
+        error->all(FLERR,fmt::format("Incorrect format in {} section "
+                                     "of data file: {}",keyword,buf));
 
-    int format_ok = 1;
-    for (j = 1; j < nwords; j++) {
-      values[j] = strtok(nullptr," \t\n\r\f");
-      if (values[j] == nullptr) format_ok = 0;
-    }
-    if (!format_ok)
-      error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
+      itag = values.next_tagint() + id_offset;
+      if (itag <= 0 || itag > map_tag_max)
+        error->all(FLERR,fmt::format("Invalid atom ID {} in {} section of "
+                                     "data file",itag, keyword));
 
-    itag = ATOTAGINT(values[0]) + id_offset;
-    if (itag <= 0 || itag > map_tag_max)
-      error->all(FLERR,fmt::format("Invalid atom ID {} in {} section of "
-                                   "data file",itag, keyword));
+      // assign words in line to per-atom vectors
 
-    // assign words in line to per-atom vectors
-
-    if ((m = atom->map(itag)) >= 0) {
-      for (j = 0; j < nvalue; j++) {
-        if (style[j] == MOLECULE) {
-          atom->molecule[m] = utils::tnumeric(FLERR,values[j+1],false,lmp);
-        } else if (style[j] == CHARGE) {
-          atom->q[m] = utils::numeric(FLERR,values[j+1],false,lmp);
-        } else if (style[j] == RMASS) {
-          atom->rmass[m] = utils::numeric(FLERR,values[j+1],false,lmp);
-        } else if (style[j] == INTEGER) {
-          atom->ivector[index[j]][m] = utils::inumeric(FLERR,values[j+1],
-                                                       false,lmp);
-        } else if (style[j] == DOUBLE) {
-          atom->dvector[index[j]][m] = utils::numeric(FLERR,values[j+1],
-                                                      true,lmp);
+      if ((m = atom->map(itag)) >= 0) {
+        for (j = 0; j < nvalue; j++) {
+          if (style[j] == MOLECULE) {
+            atom->molecule[m] = values.next_tagint();
+          } else if (style[j] == CHARGE) {
+            atom->q[m] = values.next_double();
+          } else if (style[j] == RMASS) {
+            atom->rmass[m] = values.next_double();
+          } else if (style[j] == INTEGER) {
+            atom->ivector[index[j]][m] = values.next_int();
+          } else if (style[j] == DOUBLE) {
+            atom->dvector[index[j]][m] = values.next_double();
+          }
         }
       }
+    } catch (TokenizerException &e) {
+      error->all(FLERR,fmt::format("Invalid format in {} section of data "
+                                   "file '{}': {}",keyword, buf,e.what()));
     }
-
     buf = next + 1;
   }
-
-  delete [] values;
 
   if (mapflag) {
     atom->map_delete();

@@ -108,7 +108,9 @@ protected:
     {
         if (!verbose) ::testing::internal::CaptureStdout();
         command("fix props all property/atom mol rmass q");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
         atomic_system();
+        if (!verbose) ::testing::internal::CaptureStdout();
         command("variable molid atom floor(id/4)+1");
         command("variable charge atom 2.0*sin(PI/32*id)");
         command("set atom * mol v_molid");
@@ -237,6 +239,7 @@ TEST_F(GroupTest, SelectRestart)
     command("write_restart group.restart");
     command("clear");
     command("read_restart group.restart");
+    unlink("group.restart");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     group = lmp->group;
     ASSERT_EQ(group->count(group->find("one")), 16);

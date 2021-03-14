@@ -170,3 +170,31 @@ TEST(ValueTokenizer, not_contains)
     ValueTokenizer values("test word");
     ASSERT_FALSE(values.contains("test2"));
 }
+
+TEST(ValueTokenizer, missing_int)
+{
+    ValueTokenizer values("10");
+    ASSERT_EQ(values.next_int(), 10);
+    ASSERT_THROW(values.next_int(), TokenizerException);
+}
+
+TEST(ValueTokenizer, missing_tagint)
+{
+    ValueTokenizer values("42");
+    ASSERT_EQ(values.next_tagint(), 42);
+    ASSERT_THROW(values.next_tagint(), TokenizerException);
+}
+
+TEST(ValueTokenizer, missing_bigint)
+{
+    ValueTokenizer values("42");
+    ASSERT_EQ(values.next_bigint(), 42);
+    ASSERT_THROW(values.next_bigint(), TokenizerException);
+}
+
+TEST(ValueTokenizer, missing_double)
+{
+    ValueTokenizer values("3.14");
+    ASSERT_DOUBLE_EQ(values.next_double(), 3.14);
+    ASSERT_THROW(values.next_double(), TokenizerException);
+}

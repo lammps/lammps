@@ -1114,13 +1114,13 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == nullptr)
-      error->all(FLERR,"Incorrect atom format in data file");
-    for (m = 1; m < nwords; m++) {
-      values[m] = strtok(nullptr," \t\n\r\f");
-      if (values[m] == nullptr)
+    for (m = 0; m < nwords; m++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      if (strlen(buf) == 0)
         error->all(FLERR,"Incorrect atom format in data file");
+      values[m] = buf;
+      buf += strlen(buf)+1;
     }
 
     int imx = 0, imy = 0, imz = 0;
@@ -1217,9 +1217,12 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    for (j = 1; j < nwords; j++)
-      values[j] = strtok(nullptr," \t\n\r\f");
+    for (j = 0; j < nwords; j++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      values[j] = buf;
+      buf += strlen(buf)+1;
+    }
 
     tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1569,9 +1572,12 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
-    values[0] = strtok(buf," \t\n\r\f");
-    for (j = 1; j < nwords; j++)
-      values[j] = strtok(nullptr," \t\n\r\f");
+    for (j = 0; j < nwords; j++) {
+      buf += strspn(buf," \t\n\r\f");
+      buf[strcspn(buf," \t\n\r\f")] = '\0';
+      values[j] = buf;
+      buf += strlen(buf)+1;
+    }
 
     tagdata = ATOTAGINT(values[0]) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
@@ -1611,8 +1617,10 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
   // else skip values
 
   for (int i = 0; i < n; i++) {
-    if (i == 0) tagdata = ATOTAGINT(strtok(buf," \t\n\r\f")) + id_offset;
-    else tagdata = ATOTAGINT(strtok(nullptr," \t\n\r\f")) + id_offset;
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    tagdata = utils::tnumeric(FLERR,buf,false,lmp) + id_offset;
+    buf += strlen(buf)+1;
 
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
@@ -1622,8 +1630,15 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     else
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
-    ninteger = utils::inumeric(FLERR,strtok(nullptr," \t\n\r\f"),false,lmp);
-    ndouble = utils::inumeric(FLERR,strtok(nullptr," \t\n\r\f"),false,lmp);
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    ninteger = utils::inumeric(FLERR,buf,false,lmp);
+    buf += strlen(buf)+1;
+
+    buf += strspn(buf," \t\n\r\f");
+    buf[strcspn(buf," \t\n\r\f")] = '\0';
+    ndouble = utils::inumeric(FLERR,buf,false,lmp);
+    buf += strlen(buf)+1;
 
     if ((m = map(tagdata)) >= 0) {
       if (ninteger > maxint) {
@@ -1637,17 +1652,29 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
         dvalues = new double[maxdouble];
       }
 
-      for (j = 0; j < ninteger; j++)
-        ivalues[j] = utils::inumeric(FLERR,strtok(nullptr," \t\n\r\f"),false,lmp);
-      for (j = 0; j < ndouble; j++)
-        dvalues[j] = utils::numeric(FLERR,strtok(nullptr," \t\n\r\f"),false,lmp);
+      for (j = 0; j < ninteger; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        ivalues[j] = utils::inumeric(FLERR,buf,false,lmp);
+        buf += strlen(buf)+1;
+      }
+
+      for (j = 0; j < ndouble; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        dvalues[j] = utils::numeric(FLERR,buf,false,lmp);
+        buf += strlen(buf)+1;
+      }
 
       avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
 
     } else {
       nvalues = ninteger + ndouble;    // number of values to skip
-      for (j = 0; j < nvalues; j++)
-        strtok(nullptr," \t\n\r\f");
+      for (j = 0; j < nvalues; j++) {
+        buf += strspn(buf," \t\n\r\f");
+        buf[strcspn(buf," \t\n\r\f")] = '\0';
+        buf += strlen(buf)+1;
+      }
     }
   }
 

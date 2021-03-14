@@ -550,6 +550,18 @@ TEST(Utils, bounds_case1)
     utils::bounds(FLERR, "1", 1, 10, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, 1);
     ASSERT_EQ(nhi, 1);
+    utils::bounds(FLERR, "1x", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "-1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "+1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "1:3", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, bounds_case2)
@@ -563,6 +575,9 @@ TEST(Utils, bounds_case2)
     utils::bounds(FLERR, "*", -10, 5, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, -10);
     ASSERT_EQ(nhi, 5);
+    utils::bounds(FLERR, "?", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, bounds_case3)
@@ -576,32 +591,9 @@ TEST(Utils, bounds_case3)
     utils::bounds(FLERR, "3*", -10, 5, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, 3);
     ASSERT_EQ(nhi, 5);
-}
-
-TEST(Utils, bounds_case4)
-{
-    int nlo, nhi;
-
-    nlo = nhi = -1;
-    utils::bounds(FLERR, "*2", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo, 0);
-    ASSERT_EQ(nhi, 2);
-    utils::bounds(FLERR, "*3", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo, -10);
-    ASSERT_EQ(nhi, 3);
-}
-
-TEST(Utils, bounds_case5)
-{
-    int nlo, nhi;
-
-    nlo = nhi = -1;
-    utils::bounds(FLERR, "2*5", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo, 2);
-    ASSERT_EQ(nhi, 5);
-    utils::bounds(FLERR, "-2*3", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo, -2);
-    ASSERT_EQ(nhi, 3);
+    utils::bounds(FLERR, "3*:2", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, boundsbig_case1)
@@ -615,6 +607,18 @@ TEST(Utils, boundsbig_case1)
     utils::bounds(FLERR, "1", 1, 10, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, 1);
     ASSERT_EQ(nhi, 1);
+    utils::bounds(FLERR, "1x", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "-1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "+1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "1:3", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, boundsbig_case2)
@@ -628,6 +632,9 @@ TEST(Utils, boundsbig_case2)
     utils::bounds(FLERR, "*", -10, 5, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, -10);
     ASSERT_EQ(nhi, 5);
+    utils::bounds(FLERR, "?", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, boundsbig_case3)
@@ -641,32 +648,9 @@ TEST(Utils, boundsbig_case3)
     utils::bounds(FLERR, "3*", -10, 5, nlo, nhi, nullptr);
     ASSERT_EQ(nlo, 3);
     ASSERT_EQ(nhi, 5);
-}
-
-TEST(Utils, boundsbig_case4)
-{
-    bigint nlo, nhi;
-
-    nlo = nhi = -1;
-    utils::bounds(FLERR, "*2", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo, 0);
-    ASSERT_EQ(nhi, 2);
-    utils::bounds(FLERR, "*3", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo, -10);
-    ASSERT_EQ(nhi, 3);
-}
-
-TEST(Utils, boundsbig_case5)
-{
-    bigint nlo, nhi;
-
-    nlo = nhi = -1;
-    utils::bounds(FLERR, "2*5", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo, 2);
-    ASSERT_EQ(nhi, 5);
-    utils::bounds(FLERR, "-2*3", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo, -2);
-    ASSERT_EQ(nhi, 3);
+    utils::bounds(FLERR, "3*:2", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, guesspath)

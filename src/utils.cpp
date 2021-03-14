@@ -394,9 +394,16 @@ template<typename TYPE>
 void utils::bounds(const char *file, int line, const std::string &str,
                    bigint nmin, bigint nmax, TYPE &nlo, TYPE &nhi, Error *error)
 {
-  size_t found = str.find_first_of("*");
-
   nlo = nhi = -1;
+
+  // check for illegal charcters
+  size_t found = str.find_first_not_of("*-0123456789");
+  if (found != std::string::npos) {
+    if (error) error->all(file,line,fmt::format("Invalid range string: {}",str));
+    return;
+  }
+
+  found = str.find_first_of("*");
   if (found == std::string::npos) {    // contains no '*'
     nlo = nhi = strtol(str.c_str(),nullptr,10);
   } else if (str.size() == 1) {        // is only '*'

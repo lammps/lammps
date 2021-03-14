@@ -649,14 +649,15 @@ Magic patterns for the "file" command
 
 .. versionadded:: 10Mar2021
 
-The file ``magic`` contains pattern that are used by the ``file``
-program available on most Unix-like operating systems which enable
-it to detect various LAMMPS files and print some useful information
-about them.  To enable these patterns, append or copy them to either
-the file ``.magic`` in your home directory or (as administrator) to
-``/etc/magic`` (for a system-wide installation).  Afterwards the
-``file`` command should be able to detect LAMMPS binary
-restarts and dump files and some data and log files. Examples:
+The file ``magic`` contains patterns that are used by the
+`file program <https://en.wikipedia.org/wiki/File_(command)>`_
+available on most Unix-like operating systems which enables it
+to detect various LAMMPS files and print some useful information
+about them.  To enable these patterns, append or copy the contents
+of the file to either the file ``.magic`` in your home directory
+or (as administrator) to ``/etc/magic`` (for a system-wide
+installation).  Afterwards the ``file`` command should be able to
+detect most LAMMPS restarts, dump, data and log files. Examples:
 
 .. code-block:: bash
 

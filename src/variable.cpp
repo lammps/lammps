@@ -5117,8 +5117,10 @@ int VarReader::read_scalar(char *str)
       if (n == 0) break;                                 // end of file
       str[n-1] = '\0';                                   // strip newline
       if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
-      if (strtok(str," \t\n\r\f") == nullptr) continue;     // skip if blank
+      str += strspn(" \t\n\r\f");                        // strip whitespace
+      str[strcspn(str," \t\n\r\f")] = '\0';
       n = strlen(str) + 1;
+      if (n == 1) continue;                              // skip if blank
       break;
     }
   }
@@ -5160,8 +5162,10 @@ int VarReader::read_peratom()
       if (n == 0) break;                                 // end of file
       str[n-1] = '\0';                                   // strip newline
       if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
-      if (strtok(str," \t\n\r\f") == nullptr) continue;     // skip if blank
+      str += strspn(" \t\n\r\f");                        // strip whitespace
+      str[strcspn(str," \t\n\r\f")] = '\0';
       n = strlen(str) + 1;
+      if (n == 1) continue;                              // skip if blank
       break;
     }
   }

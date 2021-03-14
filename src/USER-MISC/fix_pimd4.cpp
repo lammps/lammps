@@ -431,6 +431,12 @@ void FixPIMD4::setup_pre_force(int vflag)
 
 void FixPIMD4::setup(int vflag)
 {
+    if(method==NMPIMD)
+    {
+      nmpimd_fill(atom->v);
+      comm_exec(atom->v);
+      nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
+    }
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
   post_force(vflag);

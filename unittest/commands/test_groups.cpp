@@ -18,7 +18,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
-#include "regrion.h"
+#include "region.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -62,6 +62,8 @@ using ::testing::StrEq;
 class GroupTest : public ::testing::Test {
 protected:
     LAMMPS *lmp;
+    Group *group;
+    Domain *domain;
 
     void SetUp() override
     {
@@ -71,6 +73,8 @@ protected:
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         if (!verbose) ::testing::internal::GetCapturedStdout();
+        group = lmp->group;
+        domain = lmp->domain;
     }
 
     void TearDown() override
@@ -81,36 +85,44 @@ protected:
         std::cout.flush();
     }
 
+    void command(const std::string &cmd) { lmp->input->one(cmd); }
+
     void atomic_system()
     {
         if (!verbose) ::testing::internal::CaptureStdout();
-        lmp->input->one("units real");
-        lmp->input->one("lattice sc 1.0 origin 0.125 0.125 0.125");
-        lmp->input->one("region box block -2 2 -2 2 -2 2");
-        lmp->input->one("create_box 8 box");
-        lmp->input->one("create_atoms 1 box");
-        lmp->input->one("mass * 1.0");
-        lmp->input->one("region left block -2.0 -1.0 INF INF INF INF");
-        lmp->input->one("region right block 0.5  2.0 INF INF INF INF");
-        lmp->input->one("set region left type 2");
-        lmp->input->one("set region right type 3");
+        command("units real");
+        command("lattice sc 1.0 origin 0.125 0.125 0.125");
+        command("region box block -2 2 -2 2 -2 2");
+        command("create_box 8 box");
+        command("create_atoms 1 box");
+        command("mass * 1.0");
+        command("region left block -2.0 -1.0 INF INF INF INF");
+        command("region right block 0.5  2.0 INF INF INF INF");
+        command("region top block INF INF -2.0 -1.0 INF INF");
+        command("set region left type 2");
+        command("set region right type 3");
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
     void molecular_system()
     {
         if (!verbose) ::testing::internal::CaptureStdout();
-        lmp->input->one("atom_style full");
+        command("fix props all property/atom mol rmass q");
         atomic_system();
+        command("variable molid atom floor(id/4)+1");
+        command("variable charge atom 2.0*sin(PI/32*id)");
+        command("set atom * mol v_molid");
+        command("set atom * charge v_charge");
+        command("set type 1 mass 0.5");
+        command("set type 2*4 mass 2.0");
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 };
 
 TEST_F(GroupTest, NoBox)
 {
-    ASSERT_EQ(lmp->group->ngroup, 1);
-    TEST_FAILURE(".*ERROR: Group command before simulation box.*",
-                 lmp->input->one("group none empty"););
+    ASSERT_EQ(group->ngroup, 1);
+    TEST_FAILURE(".*ERROR: Group command before simulation box.*", command("group none empty"););
 }
 
 TEST_F(GroupTest, EmptyDelete)
@@ -118,37 +130,40 @@ TEST_F(GroupTest, EmptyDelete)
     atomic_system();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group new1 empty");
-    lmp->input->one("group new2 empty");
-    lmp->input->one("group new2 empty");
-    lmp->input->one("group new3 empty");
-    lmp->input->one("group new4 empty");
-    lmp->input->one("group new5 empty");
-    lmp->input->one("group new6 empty");
-    lmp->input->one("fix 1 new2 nve");
-    lmp->input->one("compute 1 new3 ke");
-    lmp->input->one("dump 1 new4 atom 50 dump.melt");
-    lmp->input->one("atom_modify first new5");
+    command("group new1 empty");
+    command("group new2 empty");
+    command("group new2 empty");
+    command("group new3 empty");
+    command("group new4 empty");
+    command("group new5 empty");
+    command("group new6 empty");
+    command("fix 1 new2 nve");
+    command("compute 1 new3 ke");
+    command("dump 1 new4 atom 50 dump.melt");
+    command("atom_modify first new5");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->ngroup, 7);
-    TEST_FAILURE(".*ERROR: Illegal group command.*", lmp->input->one("group new3 empty xxx"););
+    ASSERT_EQ(group->ngroup, 7);
+    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new3 xxx"););
+    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new3 empty xxx"););
+    TEST_FAILURE(".*ERROR: Group command requires atom attribute molecule.*",
+                 command("group new2 include molecule"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->group->assign("new1 delete");
+    group->assign("new1 delete");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->ngroup, 6);
+    ASSERT_EQ(group->ngroup, 6);
 
-    TEST_FAILURE(".*ERROR: Illegal group command.*", lmp->input->one("group new2 delete xxx"););
-    TEST_FAILURE(".*ERROR: Cannot delete group all.*", lmp->input->one("group all delete"););
-    TEST_FAILURE(".*ERROR: Could not find group delete.*", lmp->input->one("group new0 delete"););
+    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new2 delete xxx"););
+    TEST_FAILURE(".*ERROR: Cannot delete group all.*", command("group all delete"););
+    TEST_FAILURE(".*ERROR: Could not find group delete.*", command("group new0 delete"););
     TEST_FAILURE(".*ERROR: Cannot delete group currently used by a fix.*",
-                 lmp->input->one("group new2 delete"););
+                 command("group new2 delete"););
     TEST_FAILURE(".*ERROR: Cannot delete group currently used by a compute.*",
-                 lmp->input->one("group new3 delete"););
+                 command("group new3 delete"););
     TEST_FAILURE(".*ERROR: Cannot delete group currently used by a dump.*",
-                 lmp->input->one("group new4 delete"););
+                 command("group new4 delete"););
     TEST_FAILURE(".*ERROR: Cannot delete group currently used by atom_modify.*",
-                 lmp->input->one("group new5 delete"););
+                 command("group new5 delete"););
 }
 
 TEST_F(GroupTest, RegionClear)
@@ -156,39 +171,37 @@ TEST_F(GroupTest, RegionClear)
     atomic_system();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group one region left");
-    lmp->input->one("group two region right");
-    lmp->input->one("group three empty");
-    lmp->input->one("group four region left");
-    lmp->input->one("group four region right");
+    command("group one region left");
+    command("group two region right");
+    command("group three empty");
+    command("group four region left");
+    command("group four region right");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->count(lmp->group->find("one")), 16);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("two")), 16);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("three")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("four")), 32);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("all")), lmp->atom->natoms);
-    ASSERT_EQ(lmp->group->count_all(), lmp->atom->natoms);
+    ASSERT_EQ(group->count(group->find("one")), 16);
+    ASSERT_EQ(group->count(group->find("two")), 16);
+    ASSERT_EQ(group->count(group->find("three")), 0);
+    ASSERT_EQ(group->count(group->find("four")), 32);
+    ASSERT_EQ(group->count(group->find("all")), lmp->atom->natoms);
+    ASSERT_EQ(group->count_all(), lmp->atom->natoms);
 
-    TEST_FAILURE(".*ERROR: Illegal group command.*",
-                 lmp->input->one("group three region left xxx"););
-    TEST_FAILURE(".*ERROR: Group region ID does not exist.*",
-                 lmp->input->one("group four region top"););
+    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three region left xxx"););
+    TEST_FAILURE(".*ERROR: Group region ID does not exist.*", command("group four region dummy"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group one clear");
-    lmp->input->one("group two clear");
-    lmp->input->one("group three clear");
-    lmp->input->one("group four clear");
+    command("group one clear");
+    command("group two clear");
+    command("group three clear");
+    command("group four clear");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->count(lmp->group->find("one")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("two")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("three")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("four")), 0);
+    ASSERT_EQ(group->count(group->find("one")), 0);
+    ASSERT_EQ(group->count(group->find("two")), 0);
+    ASSERT_EQ(group->count(group->find("three")), 0);
+    ASSERT_EQ(group->count(group->find("four")), 0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("delete_atoms region box");
+    command("delete_atoms region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->count(lmp->group->find("all")), 0);
+    ASSERT_EQ(group->count(group->find("all")), 0);
 }
 
 TEST_F(GroupTest, SelectRestart)
@@ -200,56 +213,133 @@ TEST_F(GroupTest, SelectRestart)
         flags[i] = i & 1;
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group one region left");
-    lmp->input->one("group two region right");
-    lmp->group->create("half", flags);
-    lmp->group->find_or_create("three");
-    lmp->group->find_or_create("one");
-    lmp->input->one("group four union one two");
-    lmp->input->one("group five subtract all half four");
+    command("group one region left");
+    command("group two region right");
+    group->create("half", flags);
+    group->find_or_create("three");
+    group->find_or_create("one");
+    command("group four union one two");
+    command("group five subtract all half four");
+    command("group top region top");
+    command("group six intersect half top");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->count(lmp->group->find("one")), 16);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("two")), 16);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("three")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("half")), 32);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("four")), 32);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("five")), 16);
+    ASSERT_EQ(group->count(group->find("one")), 16);
+    ASSERT_EQ(group->count(group->find("two")), 16);
+    ASSERT_EQ(group->count(group->find("three")), 0);
+    ASSERT_EQ(group->count(group->find("half")), 32);
+    ASSERT_EQ(group->count(group->find("four")), 32);
+    ASSERT_EQ(group->count(group->find("five")), 16);
+    ASSERT_EQ(group->count(group->find("six")), 8);
+    ASSERT_EQ(group->count(group->find("half"), domain->find_region("top")), 8);
+    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 8.0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("write_restart group.restart");
-    lmp->input->one("clear");
-    lmp->input->one("read_restart group.restart");
+    command("write_restart group.restart");
+    command("clear");
+    command("read_restart group.restart");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->count(lmp->group->find("one")), 16);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("two")), 16);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("three")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("half")), 32);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("four")), 32);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("five")), 16);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("half"), lmp->domain->find_region("left")), 8);
-
-#if 0
-    TEST_FAILURE(".*ERROR: Illegal group command.*",
-                 lmp->input->one("group three region left xxx"););
-    TEST_FAILURE(".*ERROR: Group region ID does not exist.*",
-                 lmp->input->one("group four region top"););
+    group = lmp->group;
+    ASSERT_EQ(group->count(group->find("one")), 16);
+    ASSERT_EQ(group->count(group->find("two")), 16);
+    ASSERT_EQ(group->count(group->find("three")), 0);
+    ASSERT_EQ(group->count(group->find("half")), 32);
+    ASSERT_EQ(group->count(group->find("four")), 32);
+    ASSERT_EQ(group->count(group->find("five")), 16);
+    ASSERT_DOUBLE_EQ(group->mass(group->find("six")), 8.0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("group one clear");
-    lmp->input->one("group two clear");
-    lmp->input->one("group three clear");
-    lmp->input->one("group four clear");
+    command("group four clear");
+    command("group five clear");
+    command("group six clear");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->count(lmp->group->find("one")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("two")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("three")), 0);
-    ASSERT_EQ(lmp->group->count(lmp->group->find("four")), 0);
+
+    TEST_FAILURE(".*ERROR: Group ID does not exist.*", command("group four union one two xxx"););
+    TEST_FAILURE(".*ERROR: Group ID does not exist.*",
+                 command("group five subtract all half xxx"););
+    TEST_FAILURE(".*ERROR: Group ID does not exist.*",
+                 command("group five intersect half top xxx"););
+}
+
+TEST_F(GroupTest, Molecular)
+{
+    molecular_system();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("delete_atoms region box");
+    command("group one region left");
+    command("group two region right");
+    command("group half id 1:1000:2");
+    command("group top region top");
+    command("group three intersect half top");
+    command("group three include molecule");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(lmp->group->count(lmp->group->find("all")), 0);
-#endif
+    ASSERT_EQ(group->count(group->find("one")), 16);
+    ASSERT_EQ(group->count(group->find("two")), 16);
+    ASSERT_EQ(group->count(group->find("three")), 15);
+    ASSERT_DOUBLE_EQ(group->mass(group->find("half")), 40);
+    ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 10);
+    ASSERT_DOUBLE_EQ(group->charge(group->find("top")), 0);
+    ASSERT_DOUBLE_EQ(group->charge(group->find("right"), domain->find_region("top")), 0);
+
+    TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three include xxx"););
+}
+
+TEST_F(GroupTest, Dynamic)
+{
+    atomic_system();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("variable step atom id<=step");
+    command("group half id 1:1000:2");
+    command("group grow dynamic half var step every 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(group->count(group->find("grow")), 0);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("run 10 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(group->count(group->find("grow")), 5);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("group grow dynamic half var step every 1");
+    command("run 10 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(group->count(group->find("grow")), 10);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("group grow static");
+    command("run 10 post no");
+    command("group part variable step");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(group->count(group->find("grow")), 10);
+    ASSERT_EQ(group->count(group->find("part")), 30);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("group grow dynamic half var step every 1");
+    command("run 10 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(group->count(group->find("grow")), 20);
+    TEST_FAILURE(".*ERROR: Cannot subtract groups using a dynamic group.*",
+                 command("group chunk subtract half grow"););
+    TEST_FAILURE(".*ERROR: Cannot union groups using a dynamic group.*",
+                 command("group chunk union half grow"););
+    TEST_FAILURE(".*ERROR: Cannot intersect groups using a dynamic group.*",
+                 command("group chunk intersect half grow"););
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("group grow delete");
+    command("variable ramp equal step");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(group->ngroup, 4);
+
+    TEST_FAILURE(".*ERROR: Group dynamic cannot reference itself.*",
+                 command("group half dynamic half region top"););
+    TEST_FAILURE(".*ERROR: Group dynamic parent group does not exist.*",
+                 command("group half dynamic dummy region top"););
+
+    TEST_FAILURE(".*ERROR: Variable for group is invalid style.*",
+                 command("group ramp variable ramp"););
+    TEST_FAILURE(".*ERROR: Variable name for group does not exist.*",
+                 command("group ramp variable grow"););
 }
 } // namespace LAMMPS_NS
 

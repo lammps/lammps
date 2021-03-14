@@ -327,8 +327,9 @@ void FixPropertyAtom::write_data_section_pack(int /*mth*/, double **buf)
 }
 
 /* ----------------------------------------------------------------------
-   write section keyword for Mth data section to file
-   use Molecules or Charges if that is only field, else use fix ID
+   write a Molecules or Charges section if that is only field
+   manages by this fix instance. Otherwise write everything
+   to the section labeled by the fix ID
    only called by proc 0
 ------------------------------------------------------------------------- */
 
@@ -336,7 +337,18 @@ void FixPropertyAtom::write_data_section_keyword(int /*mth*/, FILE *fp)
 {
   if (nvalue == 1 && style[0] == MOLECULE) fprintf(fp,"\nMolecules\n\n");
   else if (nvalue == 1 && style[0] == CHARGE) fprintf(fp,"\nCharges\n\n");
-  else fprintf(fp,"\n%s\n\n",id);
+  else {
+    fprintf(fp,"\n%s #",id);
+    // write column hint as comment
+    for (int i = 0; i < nvalue; ++i) {
+      if (style[i] == MOLECULE) fputs(" mol",fp);
+      else if (style[i] == CHARGE) fputs(" q",fp);
+      else if (style[i] == RMASS) fputs(" rmass",fp);
+      else if (style[i] == INTEGER) fprintf(fp," i_%s", atom->iname[index[i]]);
+      else if (style[i] == DOUBLE) fprintf(fp, " d_%s", atom->dname[index[i]]);
+    }
+    fputs("\n\n",fp);
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -200,7 +200,7 @@ void Group::assign(int narg, char **arg)
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
 
-    if ((category == MOLECULE) && (!atom->molecular))
+    if ((category == MOLECULE) && (!atom->molecule_flag))
       error->all(FLERR,"Group command requires atom attribute molecule");
 
     if ((category == ID) && (!atom->tag_enable))
@@ -362,7 +362,7 @@ void Group::assign(int narg, char **arg)
 
     if (narg != 3) error->all(FLERR,"Illegal group command");
     if (strcmp(arg[2],"molecule") == 0) {
-      if (!atom->molecular)
+      if (!atom->molecule_flag)
         error->all(FLERR,"Group command requires atom attribute molecule");
 
       add_molecules(igroup,bit);

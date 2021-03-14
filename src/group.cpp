@@ -99,6 +99,7 @@ void Group::assign(int narg, char **arg)
   // clear mask of each atom assigned to this group
 
   if (strcmp(arg[1],"delete") == 0) {
+    if (narg != 2) error->all(FLERR,"Illegal group command");
     int igroup = find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
@@ -183,7 +184,8 @@ void Group::assign(int narg, char **arg)
 
   } else if (strcmp(arg[1],"empty") == 0) {
 
-    ; // nothing to do here
+    if (narg != 2) error->all(FLERR,"Illegal group command");
+    // nothing else to do here
 
   // style = type, molecule, id
   // add to group if atom matches type/molecule/id or condition
@@ -546,7 +548,7 @@ void Group::assign(const std::string &groupcmd)
    add flagged atoms to a new or existing group
 ------------------------------------------------------------------------- */
 
-void Group::create(char *name, int *flag)
+void Group::create(const char *name, int *flag)
 {
   int i;
 

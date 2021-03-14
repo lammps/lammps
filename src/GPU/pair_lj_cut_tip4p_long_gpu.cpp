@@ -210,7 +210,7 @@ void PairLJCutTIP4PLongGPU::init_style()
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
 
   // set alpha parameter

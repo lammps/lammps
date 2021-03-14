@@ -165,7 +165,7 @@ void PairLJCharmmCoulCharmmGPU::init_style()
   double cell_size = sqrt(cut_bothsq) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
 
   bool arithmetic = true;

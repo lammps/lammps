@@ -189,7 +189,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   k_bins.sync<DeviceType>();
   k_atom2bin.sync<DeviceType>();
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (exclude)
       atomKK->sync(Device,X_MASK|RADIUS_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK|TAG_MASK|SPECIAL_MASK);
     else

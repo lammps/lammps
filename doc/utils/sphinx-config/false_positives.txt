@@ -3258,7 +3258,7 @@ Tz
 Tzou
 ub
 Uberuaga
-uce
+uca
 uChem
 uCond
 uef

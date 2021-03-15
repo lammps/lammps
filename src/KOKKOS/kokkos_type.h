@@ -30,7 +30,7 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
 #define LMP_KOKKOS_GPU
 #endif
 
@@ -207,11 +207,14 @@ template<>
 struct ExecutionSpaceFromDevice<Kokkos::Cuda> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
-#endif
-
-#if defined(KOKKOS_ENABLE_HIP)
+#elif defined(KOKKOS_ENABLE_HIP)
 template<>
 struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
+  static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
+};
+#elif defined(KOKKOS_ENABLE_SYCL)
+template<>
+struct ExecutionSpaceFromDevice<Kokkos::Experimental::SYCL> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
 #endif
@@ -221,14 +224,18 @@ struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
 typedef Kokkos::CudaHostPinnedSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_HIP)
 typedef Kokkos::Experimental::HIPHostPinnedSpace LMPPinnedHostType;
+#elif defined(KOKKOS_ENABLE_SYCL)
+typedef Kokkos::Experimental::SYCLSharedUSMSpace LMPPinnedHostType;
 #endif
 
-// create simple LMPDeviceSpace typedef for non HIP or CUDA specific
+// create simple LMPDeviceSpace typedef for non CUDA-, HIP-, or SYCL-specific
 // behaviour
 #if defined(KOKKOS_ENABLE_CUDA)
 typedef Kokkos::Cuda LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_HIP)
 typedef Kokkos::Experimental::HIP LMPDeviceSpace;
+#elif defined(KOKKOS_ENABLE_SYCL)
+typedef Kokkos::Experimental::SYCL LMPDeviceSpace;
 #endif
 
 
@@ -257,11 +264,14 @@ template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
   using value = Kokkos::Experimental::ScatterAtomic;
 };
-#endif
-
-#ifdef KOKKOS_ENABLE_HIP
+#elif defined(KOKKOS_ENABLE_HIP)
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
+  using value = Kokkos::Experimental::ScatterAtomic;
+};
+#elif defined(KOKKOS_ENABLE_SYCL)
+template<>
+struct AtomicDup<HALFTHREAD,Kokkos::Experimental::SYCL> {
   using value = Kokkos::Experimental::ScatterAtomic;
 };
 #endif
@@ -1154,10 +1164,14 @@ typedef SNAComplex<SNAreal> SNAcomplex;
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#define LAMMPS_LAMBDA KOKKOS_LAMBDA
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#define LAMMPS_LAMBDA [=] __device__
+#else
+#define LAMMPS_LAMBDA [=]
+#endif
 
 #ifdef LMP_KOKKOS_GPU
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__) || defined(__SYCL_DEVICE_ONLY__)
 #define LMP_KK_DEVICE_COMPILE
 #endif
 #endif

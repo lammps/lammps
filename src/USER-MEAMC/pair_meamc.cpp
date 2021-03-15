@@ -17,7 +17,6 @@
 
 #include "pair_meamc.h"
 
-#include <cstring>
 #include <memory>
 
 #include "meam.h"
@@ -421,7 +420,7 @@ void PairMEAMC::read_global_meamc_file(const std::string &globalfile)
         // store parameters
 
         z[index] = values.next_double();
-        ielement[index] = values.next_double();
+        ielement[index] = values.next_int();
         atwt[index] = values.next_double();
         alpha[index] = values.next_double();
         b0[index] = values.next_double();
@@ -436,7 +435,7 @@ void PairMEAMC::read_global_meamc_file(const std::string &globalfile)
         t2[index] = values.next_double();
         t3[index] = values.next_double();
         rozero[index] = values.next_double();
-        ibar[index] = values.next_double();
+        ibar[index] = values.next_int();
 
         if (!isone(t0[index]))
           error->one(FLERR,"Unsupported parameter in MEAM library file: t0!=1");

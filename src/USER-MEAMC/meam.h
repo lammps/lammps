@@ -17,7 +17,6 @@
 #include "math_const.h"         // IWYU pragma: export
 
 #include <cmath>
-#include <cstring>
 #include <string>
 
 #define maxelt 5

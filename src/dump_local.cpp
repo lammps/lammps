@@ -103,21 +103,16 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   // setup column string
 
-  int n = 0;
-  for (int iarg = 0; iarg < nfield; iarg++) n += strlen(earg[iarg]) + 2;
-  columns = new char[n];
-  columns[0] = '\0';
+  std::string cols;
   for (int iarg = 0; iarg < nfield; iarg++) {
-    strcat(columns,earg[iarg]);
-    strcat(columns," ");
+    cols += earg[iarg];
+    cols += " ";
   }
+  columns = utils::strdup(cols);
 
   // setup default label string
 
-  char *str = (char *) "ENTRIES";
-  n = strlen(str) + 1;
-  label = new char[n];
-  strcpy(label,str);
+  label = utils::strdup("ENTRIES");
 
   // if wildcard expansion occurred, free earg memory from exapnd_args()
 
@@ -164,41 +159,29 @@ void DumpLocal::init_style()
   // format = copy of default or user-specified line format
 
   delete [] format;
-  char *str;
-  if (format_line_user) str = format_line_user;
-  else str = format_default;
-
-  int n = strlen(str) + 1;
-  format = new char[n];
-  strcpy(format,str);
+  if (format_line_user) format = utils::strdup(format_line_user);
+  else format = utils::strdup(format_default);
 
   // tokenize the format string and add space at end of each format element
   // if user-specified int/float format exists, use it instead
   // if user-specified column format exists, use it instead
   // lo priority = line, medium priority = int/float, hi priority = column
 
-  char *ptr;
-  for (int i = 0; i < size_one; i++) {
-    if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(nullptr," \0");
-    if (ptr == nullptr) error->all(FLERR,"Dump_modify format line is too short");
+  auto words = utils::split_words(format);
+  if ((int) words.size() <  size_one)
+    error->all(FLERR,"Dump_modify format line is too short");
+
+  int i=0;
+  for (auto word : words) {
     delete [] vformat[i];
 
-    if (format_column_user[i]) {
-      vformat[i] = new char[strlen(format_column_user[i]) + 2];
-      strcpy(vformat[i],format_column_user[i]);
-    } else if (vtype[i] == INT && format_int_user) {
-      vformat[i] = new char[strlen(format_int_user) + 2];
-      strcpy(vformat[i],format_int_user);
-    } else if (vtype[i] == DOUBLE && format_float_user) {
-      vformat[i] = new char[strlen(format_float_user) + 2];
-      strcpy(vformat[i],format_float_user);
-    } else {
-      vformat[i] = new char[strlen(ptr) + 2];
-      strcpy(vformat[i],ptr);
-    }
-
-    vformat[i] = strcat(vformat[i]," ");
+    if (format_column_user[i])
+      vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
+    else if (vtype[i] == INT && format_int_user)
+      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+    else if (vtype[i] == DOUBLE && format_float_user)
+      vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+    else vformat[i] = utils::strdup(word + " ");
   }
 
   // setup boundary string
@@ -241,9 +224,7 @@ int DumpLocal::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"label") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
     delete [] label;
-    int n = strlen(arg[1]) + 1;
-    label = new char[n];
-    strcpy(label,arg[1]);
+    label = utils::strdup(arg[1]);
     return 2;
   }
   return 0;

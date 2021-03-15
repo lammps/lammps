@@ -554,9 +554,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg,
         earg = (char **)
           lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
       }
-      n = strlen(arg[iarg]) + 1;
-      earg[newarg] = new char[n];
-      strcpy(earg[newarg],arg[iarg]);
+      earg[newarg] = utils::strdup(arg[iarg]);
       newarg++;
     }
   }

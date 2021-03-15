@@ -341,11 +341,8 @@ void Atom::settings(Atom *old)
   map_style = old->map_style;
   sortfreq = old->sortfreq;
   userbinsize = old->userbinsize;
-  if (old->firstgroupname) {
-    int n = strlen(old->firstgroupname) + 1;
-    firstgroupname = new char[n];
-    strcpy(firstgroupname,old->firstgroupname);
-  }
+  if (old->firstgroupname)
+    firstgroupname = utils::strdup(old->firstgroupname);
 }
 
 /* ----------------------------------------------------------------------
@@ -532,9 +529,7 @@ void Atom::add_peratom(const char *name, void *address,
       memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
   }
 
-  int n = strlen(name) + 1;
-  peratom[nperatom].name = new char[n];
-  strcpy(peratom[nperatom].name,name);
+  peratom[nperatom].name = utils::strdup(name);
   peratom[nperatom].address = address;
   peratom[nperatom].datatype = datatype;
   peratom[nperatom].cols = cols;
@@ -582,9 +577,7 @@ void Atom::add_peratom_vary(const char *name, void *address,
       memory->srealloc(peratom,maxperatom*sizeof(PerAtom),"atom:peratom");
   }
 
-  int n = strlen(name) + 1;
-  peratom[nperatom].name = new char[n];
-  strcpy(peratom[nperatom].name,name);
+  peratom[nperatom].name = utils::strdup(name);
   peratom[nperatom].address = address;
   peratom[nperatom].datatype = datatype;
   peratom[nperatom].cols = -1;
@@ -815,9 +808,7 @@ void Atom::modify_params(int narg, char **arg)
         delete [] firstgroupname;
         firstgroupname = nullptr;
       } else {
-        int n = strlen(arg[iarg+1]) + 1;
-        firstgroupname = new char[n];
-        strcpy(firstgroupname,arg[iarg+1]);
+        firstgroupname = utils::strdup(arg[iarg+1]);
         sortfreq = 0;
       }
       iarg += 2;
@@ -2427,9 +2418,7 @@ int Atom::add_custom(const char *name, int flag)
     nivector++;
     iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
                                        "atom:iname");
-    int n = strlen(name) + 1;
-    iname[index] = new char[n];
-    strcpy(iname[index],name);
+    iname[index] = utils::strdup(name);
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
@@ -2438,9 +2427,7 @@ int Atom::add_custom(const char *name, int flag)
     ndvector++;
     dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
                                        "atom:dname");
-    int n = strlen(name) + 1;
-    dname[index] = new char[n];
-    strcpy(dname[index],name);
+    dname[index] = utils::strdup(name);
     dvector = (double **) memory->srealloc(dvector,ndvector*sizeof(double *),
                                            "atom:dvector");
     memory->create(dvector[index],nmax,"atom:dvector");

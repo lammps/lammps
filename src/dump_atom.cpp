@@ -51,9 +51,8 @@ void DumpAtom::init_style()
   if (format_line_user) {
     format = utils::strdup(std::string(format_line_user) + "\n");
   } else {
-    char *str;
-    if (image_flag == 0) format = utils::strdup(TAGINT_FORMAT " %d %g %g %g");
-    else format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d");
+    if (image_flag == 0) format = utils::strdup(TAGINT_FORMAT " %d %g %g %g\n");
+    else format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d\n");
   }
 
   // setup boundary string

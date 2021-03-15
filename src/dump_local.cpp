@@ -26,8 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-enum{INT,DOUBLE};
-
 #define ONEFIELD 32
 #define DELTA 1048576
 
@@ -93,8 +91,8 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   format_default[0] = '\0';
 
   for (int i = 0; i < size_one; i++) {
-    if (vtype[i] == INT) strcat(format_default,"%d ");
-    else if (vtype[i] == DOUBLE) strcat(format_default,"%g ");
+    if (vtype[i] == Dump::INT) strcat(format_default,"%d ");
+    else if (vtype[i] == Dump::DOUBLE) strcat(format_default,"%g ");
     vformat[i] = nullptr;
   }
 
@@ -177,11 +175,12 @@ void DumpLocal::init_style()
 
     if (format_column_user[i])
       vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
-    else if (vtype[i] == INT && format_int_user)
+    else if (vtype[i] == Dump::INT && format_int_user)
       vformat[i] = utils::strdup(std::string(format_int_user) + " ");
-    else if (vtype[i] == DOUBLE && format_float_user)
+    else if (vtype[i] == Dump::DOUBLE && format_float_user)
       vformat[i] = utils::strdup(std::string(format_float_user) + " ");
     else vformat[i] = utils::strdup(word + " ");
+    ++i;
   }
 
   // setup boundary string
@@ -334,7 +333,7 @@ int DumpLocal::convert_string(int n, double *mybuf)
     }
 
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT)
+      if (vtype[j] == Dump::INT)
         offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
       else
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
@@ -369,7 +368,7 @@ void DumpLocal::write_lines(int n, double *mybuf)
   int m = 0;
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
-      if (vtype[j] == INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+      if (vtype[j] == Dump::INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
       else fprintf(fp,vformat[j],mybuf[m]);
       m++;
     }
@@ -389,13 +388,13 @@ void DumpLocal::parse_fields(int narg, char **arg)
 
     if (strcmp(arg[iarg],"index") == 0) {
       pack_choice[iarg] = &DumpLocal::pack_index;
-      vtype[iarg] = INT;
+      vtype[iarg] = Dump::INT;
 
     } else {
       int n;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX);
       computefixflag = 1;
-      vtype[iarg] = DOUBLE;
+      vtype[iarg] = Dump::DOUBLE;
       argindex[iarg] = argi.get_index1();
 
       switch (argi.get_type()) {

@@ -102,12 +102,35 @@ TEST(Tokenizer, default_separators)
     ASSERT_EQ(t.count(), 2);
 }
 
-TEST(Tokenizer, as_vector)
+TEST(Tokenizer, as_vector1)
 {
     Tokenizer t(" \r\n test \t word \f");
     std::vector<std::string> list = t.as_vector();
     ASSERT_THAT(list[0], Eq("test"));
     ASSERT_THAT(list[1], Eq("word"));
+}
+
+TEST(Tokenizer, as_vector2)
+{
+    auto list = Tokenizer("a\\b\\c","\\").as_vector();
+    ASSERT_THAT(list[0], Eq("a"));
+    ASSERT_THAT(list[1], Eq("b"));
+    ASSERT_THAT(list[2], Eq("c"));
+    ASSERT_EQ(list.size(), 3);
+}
+
+TEST(Tokenizer, as_vector3)
+{
+    auto list = Tokenizer ("a\\","\\").as_vector();
+    ASSERT_THAT(list[0], Eq("a"));
+    ASSERT_EQ(list.size(), 1);
+}
+
+TEST(Tokenizer, as_vector4)
+{
+    auto list = Tokenizer ("\\a","\\").as_vector();
+    ASSERT_THAT(list[0], Eq("a"));
+    ASSERT_EQ(list.size(), 1);
 }
 
 TEST(ValueTokenizer, empty_string)

@@ -12,7 +12,7 @@ which has both LAMMPS and its Python package installed:
 1. Clone the LAMMPS source code
 
    ```shell
-   $ git clone https://github.com/lammps/lammps.git
+   $ git clone -b stable https://github.com/lammps/lammps.git
    $ cd lammps
    ```
 

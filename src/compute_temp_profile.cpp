@@ -575,6 +575,12 @@ void ComputeTempProfile::bin_assign()
 
 /* ---------------------------------------------------------------------- */
 
+void ComputeTempProfile::reset_extra_dof() {
+  extra_dof = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 double ComputeTempProfile::memory_usage()
 {
   double bytes = (double)maxatom * sizeof(int);

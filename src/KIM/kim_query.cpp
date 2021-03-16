@@ -62,6 +62,10 @@
 #include "fix_store_kim.h"
 #include "info.h"
 #include "input.h"
+extern "C" {
+#include "KIM_Collections.h"
+#include "KIM_CollectionItemType.h"
+}
 #include "modify.h"
 #include "utils.h"
 #include "variable.h"
@@ -185,6 +189,35 @@ void KimQuery::command(int narg, char **arg)
 
   input->write_echo("#=== BEGIN kim-query =================================="
                     "=======\n");
+  // trim list of models to those that are installed on the system
+  if (query_function == "get_available_models") {
+    ValueTokenizer vals(value, ",");
+    std::string available;
+    std::string missing;
+
+    KIM_Collections * col;
+    if (KIM_Collections_Create(&col)) {
+      delete [] value;
+      error->all(FLERR, fmt::format("Unable to create KIM_Collections object"));
+    }
+
+    while (vals.has_next()) {
+      auto svalue = vals.next_string();
+      KIM_CollectionItemType typ;
+      if (KIM_Collections_GetItemType(col, svalue.c_str(), &typ))
+        missing += fmt::format("{} ", svalue);
+      else
+        available += fmt::format("{} ", svalue);
+    }
+    KIM_Collections_Destroy(&col);
+
+    input->write_echo(fmt::format("# Installed OpenKIM models: {}\n", available));
+    input->write_echo(fmt::format("# Missing OpenKIM models:   {}\n", missing));
+    // replace results with available
+    strcpy(value, available.c_str());  // available guaranteed to fit
+  };
+
+
   ValueTokenizer values(value, ",");
   if (format_arg == "split") {
     int counter = 1;

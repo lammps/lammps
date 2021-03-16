@@ -62,10 +62,6 @@
 #include "fix_store_kim.h"
 #include "info.h"
 #include "input.h"
-extern "C" {
-#include "KIM_Collections.h"
-#include "KIM_CollectionItemType.h"
-}
 #include "modify.h"
 #include "utils.h"
 #include "variable.h"
@@ -81,6 +77,11 @@ extern "C" {
 #include <sys/types.h>
 #include <curl/curl.h>
 #endif
+
+extern "C" {
+#include "KIM_Collections.h"
+#include "KIM_CollectionItemType.h"
+}
 
 using namespace LAMMPS_NS;
 
@@ -191,32 +192,43 @@ void KimQuery::command(int narg, char **arg)
                     "=======\n");
   // trim list of models to those that are installed on the system
   if (query_function == "get_available_models") {
-    ValueTokenizer vals(value, ",");
+    ValueTokenizer vals(value, ", \"");
     std::string available;
     std::string missing;
 
-    KIM_Collections * col;
-    if (KIM_Collections_Create(&col)) {
+    KIM_Collections * collections;
+    KIM_CollectionItemType typ;
+
+    if (KIM_Collections_Create(&collections)) {
       delete [] value;
-      error->all(FLERR, fmt::format("Unable to create KIM_Collections object"));
+      error->all(FLERR,
+        fmt::format("Unable to access KIM Collections to find Model"));
     }
+
+    auto logID = fmt::format("{}_Collections", comm->me);
+    KIM_Collections_SetLogID(collections, logID.c_str());
 
     while (vals.has_next()) {
       auto svalue = vals.next_string();
-      KIM_CollectionItemType typ;
-      if (KIM_Collections_GetItemType(col, svalue.c_str(), &typ))
-        missing += fmt::format("{} ", svalue);
+      if (KIM_Collections_GetItemType(collections, svalue.c_str(), &typ))
+        missing += fmt::format("{}, ", svalue);
       else
-        available += fmt::format("{} ", svalue);
+        available += fmt::format("{}, ", svalue);
     }
-    KIM_Collections_Destroy(&col);
+    KIM_Collections_Destroy(&collections);
 
-    input->write_echo(fmt::format("# Installed OpenKIM models: {}\n", available));
-    input->write_echo(fmt::format("# Missing OpenKIM models:   {}\n", missing));
+    input->write_echo(
+      fmt::format("# Missing OpenKIM models:   {}\n\n", missing));
+
+    if (available.empty())
+      error->all(FLERR,
+        fmt::format("There is no OpenKIM model installed on the system"));
+    input->write_echo(
+      fmt::format("# Installed OpenKIM models: {}\n\n", available));
+
     // replace results with available
     strcpy(value, available.c_str());  // available guaranteed to fit
   };
-
 
   ValueTokenizer values(value, ",");
   if (format_arg == "split") {

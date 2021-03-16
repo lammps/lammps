@@ -881,7 +881,7 @@ void FixAveChunk::end_of_step()
       if (count_sum[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == ArgInfo::TEMPERATURE) {
-            values_sum[m][j] *= mvv2e / ((cdof + adof*count_sum[m]) * boltz);
+            values_sum[m][j] *= mvv2e/((repeat*cdof + adof*count_sum[m])*boltz);
           } else if (which[j] == ArgInfo::DENSITY_NUMBER) {
             if (volflag == SCALAR) values_sum[m][j] /= chunk_volume_scalar;
             else values_sum[m][j] /= chunk_volume_vec[m];

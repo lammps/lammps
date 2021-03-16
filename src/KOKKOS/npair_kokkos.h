@@ -316,14 +316,16 @@ class NeighborKokkosExecute
   __device__
 #endif
   inline
-  void build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev, size_t sharedsize) const;
+  void build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                     size_t sharedsize) const;
 
   template<int HalfNeigh, int Newton, int Tri>
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   __device__
 #endif
   inline
-  void build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,  size_t sharedsize) const;
+  void build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                         size_t sharedsize) const;
 #endif
 
   KOKKOS_INLINE_FUNCTION
@@ -397,7 +399,7 @@ struct NPairKokkosBuildFunctor {
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   __device__
 #endif
-	  inline
+  inline
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
     c.template build_ItemGPU<HALF_NEIGH,GHOST_NEWTON,TRI>(dev, sharedsize);
   }

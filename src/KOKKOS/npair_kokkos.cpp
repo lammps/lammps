@@ -549,7 +549,8 @@ template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
 __device__
 #endif
 inline
-void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev, size_t sharedsize) const
+void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                                                      size_t sharedsize) const
 {
   auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
   /* loop over atoms in i's bin,
@@ -991,7 +992,8 @@ template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
 __device__
 #endif
 inline
-void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev, size_t sharedsize) const
+void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                                                          size_t sharedsize) const
 {
   auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
   /* loop over atoms in i's bin,

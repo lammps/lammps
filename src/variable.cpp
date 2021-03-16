@@ -186,9 +186,7 @@ void Variable::set(int narg, char **arg)
       nlast = utils::inumeric(FLERR,arg[2],false,lmp);
       if (nlast <= 0) error->all(FLERR,"Illegal variable command");
       if (narg == 4 && strcmp(arg[3],"pad") == 0) {
-        char digits[12];
-        sprintf(digits,"%d",nlast);
-        pad[nvar] = strlen(digits);
+        pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
     } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
       nfirst = utils::inumeric(FLERR,arg[2],false,lmp);
@@ -196,9 +194,7 @@ void Variable::set(int narg, char **arg)
       if (nfirst > nlast || nlast < 0)
         error->all(FLERR,"Illegal variable command");
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
-        char digits[12];
-        sprintf(digits,"%d",nlast);
-        pad[nvar] = strlen(digits);
+        pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
     } else error->all(FLERR,"Illegal variable command");
     num[nvar] = nlast;

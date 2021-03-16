@@ -443,16 +443,15 @@ template void utils::bounds<>(const char *, int, const std::string &,
 int utils::expand_args(const char *file, int line, int narg, char **arg,
                        int mode, char **&earg, LAMMPS *lmp)
 {
-  int n,iarg,index,nlo,nhi,nmax,expandflag,icompute,ifix;
-  char *ptr1,*ptr2,*str;
+  int iarg;
 
-  ptr1 = nullptr;
+  char *ptr = nullptr;
   for (iarg = 0; iarg < narg; iarg++) {
-    ptr1 = strchr(arg[iarg],'*');
-    if (ptr1) break;
+    ptr = strchr(arg[iarg],'*');
+    if (ptr) break;
   }
 
-  if (!ptr1) {
+  if (!ptr) {
     earg = arg;
     return narg;
   }
@@ -462,99 +461,96 @@ int utils::expand_args(const char *file, int line, int narg, char **arg,
   int maxarg = narg-iarg;
   earg = (char **) lmp->memory->smalloc(maxarg*sizeof(char *),"input:earg");
 
-  int newarg = 0;
+  int newarg = 0, expandflag, nlo, nhi, nmax;
+  std::string id, wc, tail;
+
   for (iarg = 0; iarg < narg; iarg++) {
-    expandflag = 0;
+    std::string word(arg[iarg]);
 
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0) {
+    // only match compute/fix reference with a '*' wildcard
+    // number range in the first pair of square brackets
 
-      ptr1 = strchr(&arg[iarg][2],'[');
-      if (ptr1) {
-        ptr2 = strchr(ptr1,']');
-        if (ptr2) {
-          *ptr2 = '\0';
-          if (strchr(ptr1,'*')) {
-            if (arg[iarg][0] == 'c') {
-              *ptr1 = '\0';
-              icompute = lmp->modify->find_compute(&arg[iarg][2]);
-              *ptr1 = '[';
+    if (strmatch(word,"^[cf]_\\w+\\[\\d*\\*\\d*\\]")) {
 
-              // check for global vector/array, peratom array, local array
+      // split off the compute/fix ID, the wildcard and trailing text
+      size_t first = word.find("[");
+      size_t second = word.find("]",first+1);
+      id = word.substr(2,first-2);
+      wc = word.substr(first+1,second-first-1);
+      tail = word.substr(second+1);
 
-              if (icompute >= 0) {
-                if (mode == 0 && lmp->modify->compute[icompute]->vector_flag) {
-                  nmax = lmp->modify->compute[icompute]->size_vector;
-                  expandflag = 1;
-                } else if (mode == 1 && lmp->modify->compute[icompute]->array_flag) {
-                  nmax = lmp->modify->compute[icompute]->size_array_cols;
-                  expandflag = 1;
-                } else if (lmp->modify->compute[icompute]->peratom_flag &&
-                           lmp->modify->compute[icompute]->size_peratom_cols) {
-                  nmax = lmp->modify->compute[icompute]->size_peratom_cols;
-                  expandflag = 1;
-                } else if (lmp->modify->compute[icompute]->local_flag &&
-                           lmp->modify->compute[icompute]->size_local_cols) {
-                  nmax = lmp->modify->compute[icompute]->size_local_cols;
-                  expandflag = 1;
-                }
-              }
-            } else if (arg[iarg][0] == 'f') {
-              *ptr1 = '\0';
-              ifix = lmp->modify->find_fix(&arg[iarg][2]);
-              *ptr1 = '[';
+      if (word[0] == 'c') {
+        int icompute = lmp->modify->find_compute(id);
 
-              // check for global vector/array, peratom array, local array
+        // check for global vector/array, peratom array, local array
 
-              if (ifix >= 0) {
-                if (mode == 0 && lmp->modify->fix[ifix]->vector_flag) {
-                  nmax = lmp->modify->fix[ifix]->size_vector;
-                  expandflag = 1;
-                } else if (mode == 1 && lmp->modify->fix[ifix]->array_flag) {
-                  nmax = lmp->modify->fix[ifix]->size_array_cols;
-                  expandflag = 1;
-                } else if (lmp->modify->fix[ifix]->peratom_flag &&
-                           lmp->modify->fix[ifix]->size_peratom_cols) {
-                  nmax = lmp->modify->fix[ifix]->size_peratom_cols;
-                  expandflag = 1;
-                } else if (lmp->modify->fix[ifix]->local_flag &&
-                           lmp->modify->fix[ifix]->size_local_cols) {
-                  nmax = lmp->modify->fix[ifix]->size_local_cols;
-                  expandflag = 1;
-                }
-              }
-            }
+        if (icompute >= 0) {
+          Compute *compute = lmp->modify->compute[icompute];
+          if (mode == 0 && compute->vector_flag) {
+            nmax = compute->size_vector;
+            expandflag = 1;
+          } else if (mode == 1 && compute->array_flag) {
+            nmax = compute->size_array_cols;
+            expandflag = 1;
+          } else if (compute->peratom_flag && compute->size_peratom_cols) {
+            nmax = compute->size_peratom_cols;
+            expandflag = 1;
+          } else if (compute->local_flag && compute->size_local_cols) {
+            nmax = compute->size_local_cols;
+            expandflag = 1;
           }
-          *ptr2 = ']';
+        }
+      } else if (word[0] == 'f') {
+        int ifix = lmp->modify->find_fix(id);
+
+        // check for global vector/array, peratom array, local array
+
+        if (ifix >= 0) {
+          Fix *fix = lmp->modify->fix[ifix];
+
+          if (mode == 0 && fix->vector_flag) {
+            nmax = fix->size_vector;
+            expandflag = 1;
+          } else if (mode == 1 && fix->array_flag) {
+            nmax = fix->size_array_cols;
+            expandflag = 1;
+          } else if (fix->peratom_flag && fix->size_peratom_cols) {
+            nmax = fix->size_peratom_cols;
+            expandflag = 1;
+          } else if (fix->local_flag && fix->size_local_cols) {
+            nmax = fix->size_local_cols;
+            expandflag = 1;
+          }
         }
       }
     }
 
     if (expandflag) {
-      *ptr2 = '\0';
-      bounds(file,line,ptr1+1,1,nmax,nlo,nhi,lmp->error);
-      *ptr2 = ']';
+
+      // expand wild card string to nlo/nhi numbers
+      utils::bounds(file,line,wc,1,nmax,nlo,nhi,lmp->error);
+
       if (newarg+nhi-nlo+1 > maxarg) {
         maxarg += nhi-nlo+1;
         earg = (char **)
           lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
       }
-      for (index = nlo; index <= nhi; index++) {
-        n = strlen(arg[iarg]) + 16;   // 16 = space for large inserted integer
-        str = earg[newarg] = new char[n];
-        strncpy(str,arg[iarg],ptr1+1-arg[iarg]);
-        sprintf(&str[ptr1+1-arg[iarg]],"%d",index);
-        strcat(str,ptr2);
+
+      for (int index = nlo; index <= nhi; index++) {
+        // assemble and duplicate expanded string
+        earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}",word[0],
+                                                 id,index,tail));
         newarg++;
       }
 
     } else {
+      // no expansion: duplicate original string
       if (newarg == maxarg) {
         maxarg++;
         earg = (char **)
           lmp->memory->srealloc(earg,maxarg*sizeof(char *),"input:earg");
       }
-      earg[newarg] = utils::strdup(arg[iarg]);
+      earg[newarg] = utils::strdup(word);
       newarg++;
     }
   }

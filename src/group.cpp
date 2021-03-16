@@ -28,6 +28,7 @@
 #include "modify.h"
 #include "output.h"
 #include "region.h"
+#include "tokenizer.h"
 #include "variable.h"
 
 #include <cmath>
@@ -300,20 +301,24 @@ void Group::assign(int narg, char **arg)
       else if (category == MOLECULE) tattribute = atom->molecule;
       else if (category == ID) tattribute = atom->tag;
 
-      char *ptr;
       tagint start,stop,delta;
 
       for (int iarg = 2; iarg < narg; iarg++) {
         delta = 1;
-        if (strchr(arg[iarg],':')) {
-          ptr = strtok(arg[iarg],":");
-          start = utils::tnumeric(FLERR,ptr,false,lmp);
-          ptr = strtok(nullptr,":");
-          stop = utils::tnumeric(FLERR,ptr,false,lmp);
-          ptr = strtok(nullptr,":");
-          if (ptr) delta = utils::tnumeric(FLERR,ptr,false,lmp);
-        } else {
-          start = stop = utils::tnumeric(FLERR,arg[iarg],false,lmp);
+        try {
+          ValueTokenizer values(arg[iarg],":");
+          start = values.next_tagint();
+          if (utils::strmatch(arg[iarg],"^-?\\d+$")) {
+            stop = start;
+          } else if (utils::strmatch(arg[iarg],"^-?\\d+:-?\\d+$")) {
+            stop = values.next_tagint();
+          } else if (utils::strmatch(arg[iarg],"^-?\\d+:-?\\d+:\\d+$")) {
+            stop = values.next_tagint();
+            delta = values.next_tagint();
+          } else throw TokenizerException("Syntax error","");
+        } catch (TokenizerException &e) {
+          error->all(FLERR,fmt::format("Incorrect range string "
+                                       "'{}': {}",arg[iarg],e.what()));
         }
         if (delta < 1)
           error->all(FLERR,"Illegal range increment value");

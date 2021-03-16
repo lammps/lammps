@@ -150,39 +150,38 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   ntypes = atom->ntypes;
   typenames = new char*[ntypes+1];
-  for (int itype = 1; itype <= ntypes; itype++) {
-    typenames[itype] = new char[2];
-    strcpy(typenames[itype],"C");
-  }
+  for (int itype = 1; itype <= ntypes; itype++)
+    typenames[itype] = utils::strdup("C");
 
   // setup format strings
 
   vformat = new char*[nfield];
+  std::string cols;
 
-  format_default = new char[4*nfield+1];
-  format_default[0] = '\0';
-
+  cols.clear();
   for (int i = 0; i < nfield; i++) {
-    if (vtype[i] == Dump::INT) strcat(format_default,"%d ");
-    else if (vtype[i] == Dump::DOUBLE) strcat(format_default,"%g ");
-    else if (vtype[i] == Dump::STRING) strcat(format_default,"%s ");
-    else if (vtype[i] == Dump::BIGINT) strcat(format_default,BIGINT_FORMAT " ");
+    if (vtype[i] == Dump::INT) cols += "%d ";
+    else if (vtype[i] == Dump::DOUBLE) cols += "%g ";
+    else if (vtype[i] == Dump::STRING) cols += "%s ";
+    else if (vtype[i] == Dump::BIGINT) cols += BIGINT_FORMAT " ";
     vformat[i] = nullptr;
   }
+  cols.resize(cols.size()-1);
+  format_default = utils::strdup(cols);
 
   format_column_user = new char*[nfield];
   for (int i = 0; i < nfield; i++) format_column_user[i] = nullptr;
 
   // setup column string
 
-  int n = 0;
-  for (int iarg = 0; iarg < nfield; iarg++) n += strlen(earg[iarg]) + 2;
-  columns = new char[n];
-  columns[0] = '\0';
+  cols.clear();
   for (int iarg = 0; iarg < nfield; iarg++) {
-    strcat(columns,earg[iarg]);
-    if (iarg+1 < nfield) strcat(columns," ");
+    cols += earg[iarg];
+    cols += " ";
   }
+  // remove trailing blank and copy
+  cols.resize(cols.size()-1);
+  columns = utils::strdup(cols);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,44 +262,36 @@ void DumpCustom::init_style()
   // format = copy of default or user-specified line format
 
   delete [] format;
-  char *str;
-  if (format_line_user) str = format_line_user;
-  else str = format_default;
-
-  int n = strlen(str) + 1;
-  format = new char[n];
-  strcpy(format,str);
+  if (format_line_user) format = utils::strdup(format_line_user);
+  else format = utils::strdup(format_default);
 
   // tokenize the format string and add space at end of each format element
   // if user-specified int/float format exists, use it instead
   // if user-specified column format exists, use it instead
   // lo priority = line, medium priority = int/float, hi priority = column
 
-  char *ptr;
-  for (int i = 0; i < nfield; i++) {
-    if (i == 0) ptr = strtok(format," \0");
-    else ptr = strtok(nullptr," \0");
-    if (ptr == nullptr) error->all(FLERR,"Dump_modify format line is too short");
+  auto words = utils::split_words(format);
+  if ((int) words.size() < nfield)
+    error->all(FLERR,"Dump_modify format line is too short");
+
+  int i=0;
+  for (auto word : words) {
     delete [] vformat[i];
 
-    if (format_column_user[i]) {
-      vformat[i] = new char[strlen(format_column_user[i]) + 2];
-      strcpy(vformat[i],format_column_user[i]);
-    } else if (vtype[i] == Dump::INT && format_int_user) {
-      vformat[i] = new char[strlen(format_int_user) + 2];
-      strcpy(vformat[i],format_int_user);
-    } else if (vtype[i] == Dump::DOUBLE && format_float_user) {
-      vformat[i] = new char[strlen(format_float_user) + 2];
-      strcpy(vformat[i],format_float_user);
-    } else if (vtype[i] == Dump::BIGINT && format_bigint_user) {
-      vformat[i] = new char[strlen(format_bigint_user) + 2];
-      strcpy(vformat[i],format_bigint_user);
-    } else {
-      vformat[i] = new char[strlen(ptr) + 2];
-      strcpy(vformat[i],ptr);
-    }
+    if (format_column_user[i])
+      vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
+    else if (vtype[i] == Dump::INT && format_int_user)
+      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+    else if (vtype[i] == Dump::DOUBLE && format_float_user)
+      vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+    else if (vtype[i] == Dump::BIGINT && format_bigint_user)
+      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+    else vformat[i] = utils::strdup(word + " ");
 
-    if (i+1 < nfield) vformat[i] = strcat(vformat[i]," ");
+    // remove trailing blank on last column's format
+    if (i == nfield-1) vformat[i][strlen(vformat[i])-1] = '\0';
+
+    ++i;
   }
 
   // setup boundary string

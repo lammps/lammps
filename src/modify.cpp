@@ -995,18 +995,14 @@ void Modify::replace_fix(const char *replaceID,
   if (jfix >= 0) error->all(FLERR,"Replace_fix ID is already in use");
 
   delete [] fix[ifix]->id;
-  int n = strlen(arg[0]) + 1;
-  fix[ifix]->id = new char[n];
-  strcpy(fix[ifix]->id,arg[0]);
+  fix[ifix]->id = utils::strdup(arg[0]);
 
   int jgroup = group->find(arg[1]);
   if (jgroup == -1) error->all(FLERR,"Could not find replace_fix group ID");
   fix[ifix]->igroup = jgroup;
 
   delete [] fix[ifix]->style;
-  n = strlen(arg[2]) + 1;
-  fix[ifix]->style = new char[n];
-  strcpy(fix[ifix]->style,arg[2]);
+  fix[ifix]->style = utils::strdup(arg[2]);
 
   // invoke add_fix
   // it will find and overwrite the replaceID fix

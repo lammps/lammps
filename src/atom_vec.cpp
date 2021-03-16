@@ -154,11 +154,8 @@ void AtomVec::store_args(int narg, char **arg)
   nargcopy = narg;
   if (nargcopy) argcopy = new char*[nargcopy];
   else argcopy = nullptr;
-  for (int i = 0; i < nargcopy; i++) {
-    int n = strlen(arg[i]) + 1;
-    argcopy[i] = new char[n];
-    strcpy(argcopy[i],arg[i]);
-  }
+  for (int i = 0; i < nargcopy; i++)
+    argcopy[i] = utils::strdup(arg[i]);
 }
 
 /* ----------------------------------------------------------------------

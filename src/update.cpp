@@ -301,9 +301,7 @@ void Update::set_units(const char *style)
   } else error->all(FLERR,"Illegal units command");
 
   delete [] unit_style;
-  int n = strlen(style) + 1;
-  unit_style = new char[n];
-  strcpy(unit_style,style);
+  unit_style = utils::strdup(style);
 
   // check if timestep was changed from default value
   if (!dt_default && (comm->me == 0)) {

@@ -125,12 +125,12 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     int nvalues = utils::expand_args(FLERR,narg-1,&arg[1],0,earg,lmp);
     if (earg != &arg[1]) expand = 1;
 
-    std::string concat;
+    line = new char[256+nvalues*64];
+    line[0] = '\0';
     for (int iarg = 0; iarg < nvalues; iarg++) {
-      concat += earg[iarg];
-      concat += " ";
+      strcat(line,earg[iarg]);
+      strcat(line," ");
     }
-    line = utils::strdup(concat);
     line[strlen(line)-1] = '\0';
 
     // if wildcard expansion occurred, free earg memory from exapnd_args()

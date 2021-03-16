@@ -162,17 +162,20 @@ The initialization function **must** be called ``lammpsplugin_init``, it
 **must** have C bindings and it takes three void pointers as arguments.
 The first is a pointer to the LAMMPS class that calls it and it needs to
 be passed to the registration function.  The second argument is a
-pointer to the internal handle of the DSO file, this needs to added to
-the plugin info struct, so that the DSO can be close and unloaded when
-all its contained plugins are unloaded.  The third argument is a
+pointer to the internal handle of the DSO file, this needs to be added
+to the plugin info struct, so that the DSO can be closed and unloaded
+when all its contained plugins are unloaded.  The third argument is a
 function pointer to the registration function and needs to be stored
-in a variable of ``lammpsplugin_regfunc`` type.
+in a variable of ``lammpsplugin_regfunc`` type and then called with a
+pointer to the ``lammpsplugin_`` struct and the pointer to the LAMMPS
+instance as arguments to register a single plugin.  There may be multiple
+calls to multiple plugins in the same initialization function.
 
 To register a plugin a struct of the ``lammpsplugin_t`` needs to be filled
 with relevant info: current LAMMPS version string, kind of style, name of
-style, info string, author string, pointer to factory function, DSO handle.
-The the registration function is called with a pointer to the address of
-this struct and the pointer of the LAMMPS class.  The registration function
+style, info string, author string, pointer to factory function, and the
+DSO handle.  The registration function is called with a pointer to the address
+of this struct and the pointer of the LAMMPS class.  The registration function
 will then add the factory function of the plugin style to the respective
 style map under the provided name.  It will also make a copy of the struct
 in a list of all loaded plugins and update the reference counter for loaded

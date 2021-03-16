@@ -1826,10 +1826,10 @@ void Domain::delete_region(int narg, char **arg)
    return -1 if no such region
 ------------------------------------------------------------------------- */
 
-int Domain::find_region(char *name)
+int Domain::find_region(const std::string &name)
 {
   for (int iregion = 0; iregion < nregion; iregion++)
-    if (strcmp(name,regions[iregion]->id) == 0) return iregion;
+    if (name == regions[iregion]->id) return iregion;
   return -1;
 }
 

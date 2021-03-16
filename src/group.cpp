@@ -66,10 +66,7 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
 
   // create "all" group
 
-  char *str = (char *) "all";
-  int n = strlen(str) + 1;
-  names[0] = new char[n];
-  strcpy(names[0],str);
+  names[0] = utils::strdup("all");
   ngroup = 1;
 }
 
@@ -102,6 +99,7 @@ void Group::assign(int narg, char **arg)
   // clear mask of each atom assigned to this group
 
   if (strcmp(arg[1],"delete") == 0) {
+    if (narg != 2) error->all(FLERR,"Illegal group command");
     int igroup = find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
@@ -157,9 +155,7 @@ void Group::assign(int narg, char **arg)
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
-    int n = strlen(arg[0]) + 1;
-    names[igroup] = new char[n];
-    strcpy(names[igroup],arg[0]);
+    names[igroup] = utils::strdup(arg[0]);
     ngroup++;
   }
 
@@ -188,7 +184,8 @@ void Group::assign(int narg, char **arg)
 
   } else if (strcmp(arg[1],"empty") == 0) {
 
-    ; // nothing to do here
+    if (narg != 2) error->all(FLERR,"Illegal group command");
+    // nothing else to do here
 
   // style = type, molecule, id
   // add to group if atom matches type/molecule/id or condition
@@ -203,7 +200,7 @@ void Group::assign(int narg, char **arg)
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
 
-    if ((category == MOLECULE) && (!atom->molecular))
+    if ((category == MOLECULE) && (!atom->molecule_flag))
       error->all(FLERR,"Group command requires atom attribute molecule");
 
     if ((category == ID) && (!atom->tag_enable))
@@ -365,7 +362,7 @@ void Group::assign(int narg, char **arg)
 
     if (narg != 3) error->all(FLERR,"Illegal group command");
     if (strcmp(arg[2],"molecule") == 0) {
-      if (!atom->molecular)
+      if (!atom->molecule_flag)
         error->all(FLERR,"Group command requires atom attribute molecule");
 
       add_molecules(igroup,bit);
@@ -551,7 +548,7 @@ void Group::assign(const std::string &groupcmd)
    add flagged atoms to a new or existing group
 ------------------------------------------------------------------------- */
 
-void Group::create(char *name, int *flag)
+void Group::create(const char *name, int *flag)
 {
   int i;
 
@@ -563,9 +560,7 @@ void Group::create(char *name, int *flag)
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
-    int n = strlen(name) + 1;
-    names[igroup] = new char[n];
-    strcpy(names[igroup],name);
+    names[igroup] = utils::strdup(name);
     ngroup++;
   }
 
@@ -602,9 +597,7 @@ int Group::find_or_create(const char *name)
 
   if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
   igroup = find_unused();
-  int n = strlen(name) + 1;
-  names[igroup] = new char[n];
-  strcpy(names[igroup],name);
+  names[igroup] = utils::strdup(name);
   ngroup++;
 
   return igroup;

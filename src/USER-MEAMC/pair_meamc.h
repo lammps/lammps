@@ -22,7 +22,8 @@ PairStyle(meam,PairMEAMC)
 #define LMP_PAIR_MEAMC_H
 
 #include "pair.h"
-
+#include <vector>
+#include <string>
 
 namespace LAMMPS_NS {
 
@@ -48,14 +49,16 @@ class PairMEAMC : public Pair {
   class MEAM *meam_inst;
   double cutmax;                // max cutoff for all elements
   int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  double *mass;                 // mass of each element
+  std::vector<std::string> elements; // names of unique elements
+  std::vector<double> mass;          // mass of each element
 
   int *map;                     // mapping from atom types (1-indexed) to elements (1-indexed)
   double **scale;               // scaling factor for adapt
 
   void allocate();
   void read_files(const std::string &, const std::string &);
+  void read_global_meamc_file(const std::string &);
+  void read_user_meamc_file(const std::string &);
   void neigh_strip(int, int *, int *, int **);
 };
 

@@ -38,6 +38,10 @@ namespace LAMMPS_NS
     PotentialFileReader(class LAMMPS *lmp, const std::string &filename,
                         const std::string &potential_name,
                         const int auto_convert = 0);
+    PotentialFileReader(class LAMMPS *lmp, const std::string &filename,
+                        const std::string &potential_name,
+                        const std::string &name_suffix,
+                        const int auto_convert = 0);
     virtual ~PotentialFileReader();
 
     void ignore_comments(bool value);

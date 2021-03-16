@@ -84,9 +84,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 {
   MPI_Comm_rank(world,&me);
 
-  int n = strlen(arg[0]) + 1;
-  style = new char[n];
-  strcpy(style,arg[0]);
+  style = utils::strdup(arg[0]);
 
   // set thermo_modify defaults
 
@@ -127,12 +125,12 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     int nvalues = utils::expand_args(FLERR,narg-1,&arg[1],0,earg,lmp);
     if (earg != &arg[1]) expand = 1;
 
-    line = new char[256+nvalues*64];
-    line[0] = '\0';
+    std::string concat;
     for (int iarg = 0; iarg < nvalues; iarg++) {
-      strcat(line,earg[iarg]);
-      strcat(line," ");
+      concat += earg[iarg];
+      concat += " ";
     }
+    line = utils::strdup(concat);
     line[strlen(line)-1] = '\0';
 
     // if wildcard expansion occurred, free earg memory from exapnd_args()
@@ -456,9 +454,7 @@ void Thermo::modify_params(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       if (index_temp < 0) error->all(FLERR,"Thermo style does not use temp");
       delete [] id_compute[index_temp];
-      int n = strlen(arg[iarg+1]) + 1;
-      id_compute[index_temp] = new char[n];
-      strcpy(id_compute[index_temp],arg[iarg+1]);
+      id_compute[index_temp] = utils::strdup(arg[iarg+1]);
 
       int icompute = modify->find_compute(arg[iarg+1]);
       if (icompute < 0)
@@ -496,15 +492,11 @@ void Thermo::modify_params(int narg, char **arg)
 
       if (index_press_scalar >= 0) {
         delete [] id_compute[index_press_scalar];
-        int n = strlen(arg[iarg+1]) + 1;
-        id_compute[index_press_scalar] = new char[n];
-        strcpy(id_compute[index_press_scalar],arg[iarg+1]);
+        id_compute[index_press_scalar] = utils::strdup(arg[iarg+1]);
       }
       if (index_press_vector >= 0) {
         delete [] id_compute[index_press_vector];
-        int n = strlen(arg[iarg+1]) + 1;
-        id_compute[index_press_vector] = new char[n];
-        strcpy(id_compute[index_press_vector],arg[iarg+1]);
+        id_compute[index_press_vector] = utils::strdup(arg[iarg+1]);
       }
 
       int icompute = modify->find_compute(arg[iarg+1]);
@@ -579,41 +571,32 @@ void Thermo::modify_params(int narg, char **arg)
 
       if (strcmp(arg[iarg+1],"line") == 0) {
         delete [] format_line_user;
-        int n = strlen(arg[iarg+2]) + 1;
-        format_line_user = new char[n];
-        strcpy(format_line_user,arg[iarg+2]);
+        format_line_user = utils::strdup(arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"int") == 0) {
         if (format_int_user) delete [] format_int_user;
-        int n = strlen(arg[iarg+2]) + 1;
-        format_int_user = new char[n];
-        strcpy(format_int_user,arg[iarg+2]);
+        format_int_user = utils::strdup(arg[iarg+2]);
         if (format_bigint_user) delete [] format_bigint_user;
-        n = strlen(format_int_user) + 8;
-        format_bigint_user = new char[n];
         // replace "d" in format_int_user with bigint format specifier
-        // use of &str[1] removes leading '%' from BIGINT_FORMAT string
         char *ptr = strchr(format_int_user,'d');
         if (ptr == nullptr)
           error->all(FLERR,
                      "Thermo_modify int format does not contain d character");
-        char str[8];
-        sprintf(str,"%s",BIGINT_FORMAT);
+
         *ptr = '\0';
-        sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+        std::string fnew = fmt::format("{}{}{}",format_int_user,
+                                       std::string(BIGINT_FORMAT).substr(1),
+                                       ptr+1);
+        format_bigint_user = utils::strdup(fnew);
         *ptr = 'd';
       } else if (strcmp(arg[iarg+1],"float") == 0) {
         if (format_float_user) delete [] format_float_user;
-        int n = strlen(arg[iarg+2]) + 1;
-        format_float_user = new char[n];
-        strcpy(format_float_user,arg[iarg+2]);
+        format_float_user = utils::strdup(arg[iarg+2]);
       } else {
         int i = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
         if (i < 0 || i >= nfield_initial+1)
           error->all(FLERR,"Illegal thermo_modify command");
         if (format_column_user[i]) delete [] format_column_user[i];
-        int n = strlen(arg[iarg+2]) + 1;
-        format_column_user[i] = new char[n];
-        strcpy(format_column_user[i],arg[iarg+2]);
+        format_column_user[i] = utils::strdup(arg[iarg+2]);
       }
       iarg += 3;
 
@@ -985,10 +968,8 @@ void Thermo::parse_fields(char *str)
 
 void Thermo::addfield(const char *key, FnPtr func, int typeflag)
 {
-  int n = strlen(key) + 1;
   delete[] keyword[nfield];
-  keyword[nfield] = new char[n];
-  strcpy(keyword[nfield],key);
+  keyword[nfield] = utils::strdup(key);
   vfunc[nfield] = func;
   vtype[nfield] = typeflag;
   nfield++;
@@ -1008,9 +989,7 @@ int Thermo::add_compute(const char *id, int which)
         which == compute_which[icompute]) break;
   if (icompute < ncompute) return icompute;
 
-  int n = strlen(id) + 1;
-  id_compute[ncompute] = new char[n];
-  strcpy(id_compute[ncompute],id);
+  id_compute[ncompute] = utils::strdup(id);
   compute_which[ncompute] = which;
   ncompute++;
   return ncompute-1;
@@ -1022,9 +1001,7 @@ int Thermo::add_compute(const char *id, int which)
 
 int Thermo::add_fix(const char *id)
 {
-  int n = strlen(id) + 1;
-  id_fix[nfix] = new char[n];
-  strcpy(id_fix[nfix],id);
+  id_fix[nfix] = utils::strdup(id);
   nfix++;
   return nfix-1;
 }
@@ -1035,9 +1012,7 @@ int Thermo::add_fix(const char *id)
 
 int Thermo::add_variable(const char *id)
 {
-  int n = strlen(id) + 1;
-  id_variable[nvariable] = new char[n];
-  strcpy(id_variable[nvariable],id);
+  id_variable[nvariable] = utils::strdup(id);
   nvariable++;
   return nvariable-1;
 }

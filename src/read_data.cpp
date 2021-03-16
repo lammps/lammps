@@ -278,14 +278,8 @@ void ReadData::command(int narg, char **arg)
       if (fix_index[nfix] < 0)
         error->all(FLERR,"Fix ID for read_data does not exist");
       if (strcmp(arg[iarg+2],"NULL") == 0) fix_header[nfix] = nullptr;
-      else {
-        int n = strlen(arg[iarg+2]) + 1;
-        fix_header[nfix] = new char[n];
-        strcpy(fix_header[nfix],arg[iarg+2]);
-      }
-      int n = strlen(arg[iarg+3]) + 1;
-      fix_section[nfix] = new char[n];
-      strcpy(fix_section[nfix],arg[iarg+3]);
+      else fix_header[nfix] = utils::strdup(arg[iarg+2]);
+      fix_section[nfix] = utils::strdup(arg[iarg+3]);
       nfix++;
       iarg += 4;
 

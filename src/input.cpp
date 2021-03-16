@@ -1078,22 +1078,20 @@ void Input::partition()
   int ilo,ihi;
   utils::bounds(FLERR,arg[1],1,universe->nworlds,ilo,ihi,error);
 
-  // copy original line to copy, since will use strtok() on it
-  // ptr = start of 4th word
+  // new command starts at the 3rd argument,
+  // which must not be another partition command
 
-  strcpy(copy,line);
-  char *ptr = strtok(copy," \t\n\r\f");
-  ptr = strtok(nullptr," \t\n\r\f");
-  ptr = strtok(nullptr," \t\n\r\f");
-  ptr += strlen(ptr) + 1;
-  ptr += strspn(ptr," \t\n\r\f");
+  if (strcmp(arg[2],"partition") == 0)
+    error->all(FLERR,"Illegal partition command");
+
+  char *cmd = strstr(line,arg[2]);
 
   // execute the remaining command line on requested partitions
 
   if (yesflag) {
-    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(ptr);
+    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(cmd);
   } else {
-    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(ptr);
+    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(cmd);
   }
 }
 

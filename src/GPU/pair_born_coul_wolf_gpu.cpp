@@ -177,7 +177,7 @@ void PairBornCoulWolfGPU::init_style()
     cut_coul;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = borncw_gpu_init(atom->ntypes+1, cutsq, rhoinv,

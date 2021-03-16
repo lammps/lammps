@@ -191,7 +191,7 @@ void PairLJCutCoulLongGPU::init_style()
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = ljcl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,

@@ -67,14 +67,14 @@ namespace LAMMPS_NS {
     /*! get dimension of reference
      *
      * This will return either 0, 1, 2 depending on whether the
-     * reference has no, one or two "[<number>]" postfixes.
+     * reference has no, one or two "[{number}]" postfixes.
      *
      * \return  integer with the dimensionality of the reference */
     int  get_dim()  const { return dim; }
 
     /*! get index of first dimension
      *
-     * This will return the <number> in the first "[<number>]"
+     * This will return the number in the first "[{number}]"
      * postfix or 0 if there is no postfix.
      *
      * \return  integer with index or the postfix or 0 */
@@ -82,7 +82,7 @@ namespace LAMMPS_NS {
 
     /*! get index of second dimension
      *
-     * This will return the <number> in the second "[<number>]"
+     * This will return the number in the second "[{number}]"
      * postfix or -1 if there is no second postfix.
      *
      * \return  integer with index of the postfix or -1 */

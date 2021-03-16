@@ -159,7 +159,7 @@ void PairMIECutGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = mie_gpu_init(atom->ntypes+1, cutsq, mie1, mie2, mie3, mie4,

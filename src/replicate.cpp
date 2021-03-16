@@ -602,7 +602,7 @@ void Replicate::command(int narg, char **arg)
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
-                if (atom->molecular) {
+                if (atom->molecular != Atom::ATOMIC) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
                   if (atom->molecular == Atom::MOLECULAR) {
@@ -704,7 +704,7 @@ void Replicate::command(int narg, char **arg)
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
-                if (atom->molecular) {
+                if (atom->molecular != Atom::ATOMIC) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
                   if (atom->molecular == Atom::MOLECULAR) {

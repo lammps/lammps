@@ -234,6 +234,8 @@ LAMMPS.
          cmake ../cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_Fortran_COMPILER=gfortran
          # Building with Intel Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
+         # Building with Intel oneAPI Compilers:
+         cmake ../cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_Fortran_COMPILER=ifx
          # Building with LLVM/Clang Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
          # Building with PGI/Nvidia Compilers:
@@ -243,8 +245,10 @@ LAMMPS.
       provided that can be loaded with
       `-C ../cmake/presets/clang.cmake`.  Similarly,
       `-C ../cmake/presets/intel.cmake` should switch the compiler
-      toolchain to the Intel compilers and `-C ../cmake/presets/pgi.cmake`
-      should switch the compiler to the PGI compilers.
+      toolchain to the legacy Intel compilers, `-C ../cmake/presets/oneapi.cmake`
+      will switch to the LLVM based oneAPI Intel compilers,
+      and `-C ../cmake/presets/pgi.cmake`
+      will switch the compiler to the PGI compilers.
 
       In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
       compiler flags to tune for optimal performance on given hosts. By

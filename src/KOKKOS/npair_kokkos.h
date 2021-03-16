@@ -312,12 +312,18 @@ class NeighborKokkosExecute
 
 #ifdef LMP_KOKKOS_GPU
   template<int HalfNeigh, int Newton, int Tri>
-  __device__ inline
-  void build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const;
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+  __device__
+#endif
+  inline
+  void build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev, size_t sharedsize) const;
 
   template<int HalfNeigh, int Newton, int Tri>
-  __device__ inline
-  void build_ItemSizeCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const;
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+  __device__
+#endif
+  inline
+  void build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,  size_t sharedsize) const;
 #endif
 
   KOKKOS_INLINE_FUNCTION
@@ -388,10 +394,12 @@ struct NPairKokkosBuildFunctor {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 #ifdef LMP_KOKKOS_GPU
-  __device__ inline
-
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+  __device__
+#endif
+	  inline
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
-    c.template build_ItemCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
+    c.template build_ItemGPU<HALF_NEIGH,GHOST_NEWTON,TRI>(dev, sharedsize);
   }
   size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
@@ -446,9 +454,12 @@ struct NPairKokkosBuildFunctorSize {
   }
 
 #ifdef LMP_KOKKOS_GPU
-  __device__ inline
+  #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+  __device__
+#endif
+  inline
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
-    c.template build_ItemSizeCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
+    c.template build_ItemSizeGPU<HALF_NEIGH,GHOST_NEWTON,TRI>(dev, sharedsize);
   }
   size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif

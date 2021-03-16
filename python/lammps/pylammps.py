@@ -132,6 +132,9 @@ class Atom(object):
     self._pylmp = pylammps_instance
     self.index = index
 
+  def __dir__(self):
+    return [k for k in super().__dir__() if not k.startswith('_')]
+
   @property
   def id(self):
     """

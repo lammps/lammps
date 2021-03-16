@@ -655,7 +655,7 @@ void Info::command(int narg, char **arg)
       if ((style[i] != LOOP) && (style[i] != ULOOP))
         ndata = input->variable->num[i];
       for (int j=0; j < ndata; ++j)
-        fmt::print(out," {}",data[i][j]);
+        if (data[i][j]) fmt::print(out," {}",data[i][j]);
       fputs("\n",out);
     }
   }

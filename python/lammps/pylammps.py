@@ -298,6 +298,9 @@ class variable_set:
     def __str__(self):
         return "{}({})".format(self._name, ','.join(["{}={}".format(k, self.__dict__[k]) for k in self.__dict__.keys() if not k.startswith('_')]))
 
+    def __dir__(self):
+        return [k for k in self.__dict__.keys() if not k.startswith('_')]
+
     def __repr__(self):
         return self.__str__()
 

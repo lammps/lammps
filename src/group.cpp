@@ -312,7 +312,7 @@ void Group::assign(int narg, char **arg)
           ValueTokenizer values(arg[iarg],":");
           start = values.next_tagint();
           if (utils::strmatch(arg[iarg],"^\\d+$")) {
-            start = stop;
+            stop = start;
           } else if (utils::strmatch(arg[iarg],"^\\d+:\\d+$")) {
             stop = values.next_tagint();
           } else if (utils::strmatch(arg[iarg],"^\\d+:\\d+:\\d+$")) {

@@ -545,10 +545,7 @@ __device__ __forceinline__ int __syncthreads_count(int predicate) {
 
 #ifdef LMP_KOKKOS_GPU
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-__device__
-#endif
-inline
+LAMMPS_DEVICE_FUNCTION inline
 void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
                                                       size_t sharedsize) const
 {
@@ -597,7 +594,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
 #ifndef KOKKOS_ENABLE_SYCL
   int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
 
-  if(test) return;
+  if (test) return;
 #else
   dev.team_barrier();
 #endif
@@ -992,10 +989,7 @@ void NeighborKokkosExecute<DeviceType>::
 
 #ifdef LMP_KOKKOS_GPU
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-__device__
-#endif
-inline
+LAMMPS_DEVICE_FUNCTION inline
 void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
                                                           size_t sharedsize) const
 {
@@ -1049,7 +1043,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
 #ifndef KOKKOS_ENABLE_SYCL
     int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
 
-    if(test) return;
+    if (test) return;
 #else
     dev.team_barrier();
 #endif

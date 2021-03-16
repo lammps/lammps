@@ -1170,6 +1170,12 @@ typedef SNAComplex<SNAreal> SNAcomplex;
 #define LAMMPS_LAMBDA [=]
 #endif
 
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#define LAMMPS_DEVICE_FUNCTION __device__
+#else
+#define LAMMPS_DEVICE_FUNCTION
+#endif
+
 #ifdef LMP_KOKKOS_GPU
 #if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__) || defined(__SYCL_DEVICE_ONLY__)
 #define LMP_KK_DEVICE_COMPILE

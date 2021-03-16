@@ -113,7 +113,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
 #endif
 }
 
-#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)) || defined(KOKKOS_ENABLE_HIP)
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
 // CUDA specialization of init_style to properly call rand_pool.init()
 template<>
 void PairDPDfdtEnergyKokkos<LMPDeviceSpace>::init_style()

@@ -1,16 +1,30 @@
 # Add the contents of this file to either $HOME/.magic
 # or /etc/magic so that the file(1) command can recognize
 # your LAMMPS files and print some useful information.
-# Last change: 2021-03-14 by akohlmey@gmail.com
+# Last change: 2021-03-15 by akohlmey@gmail.com
 
 # Binary restart file for the LAMMPS MD code, https://lammps.sandia.gov
-0        string  LammpS\ RestartT  LAMMPS binary restart file
->0x14    long    x                 (rev %d),
->>0x20   string  x                 Version %s,
->>>0x10  lelong  0x0001            Little Endian
->>>0x10  lelong  0x1000            Big Endian
+
+# written on a little endian machine
+0            string  LammpS\ RestartT  LAMMPS binary restart file
+>16          lelong  0x0001
+>>20         lelong  x                 (rev %d),
+>>>32        string  x                 Version %s,
+>>>>&41      string  x                 Units %s,
+>>>>>&5      lequad  x                 Timestep %lld,
+>>>>>>0x10   lelong  0x0001            Little Endian
+
+# written on a big endian machine
+0            string  LammpS\ RestartT  LAMMPS binary restart file
+>16          lelong  0x1000            Big Endian
+>>20         belong  x                 (rev %d),
+>>>32        string  x                 Version %s,
+>>>>&41      string  x                 Units %s,
+>>>>>&5      bequad  x                 Timestep %lld,
+>>>>>>0x10   lelong  0x1000            Big Endian
 
 # Atom style binary dump file for the LAMMPS MD code, https://lammps.sandia.gov
+
 # written on a little endian machine
 0         lequad  -8
 >0x08     string  DUMPATOM     LAMMPS atom style binary dump

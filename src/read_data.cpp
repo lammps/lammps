@@ -221,7 +221,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/bond/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No bonds allowed with this atom style");
       atom->extra_bond_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_bond_per_atom < 0)
@@ -229,7 +229,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/angle/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No angles allowed with this atom style");
       atom->extra_angle_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_angle_per_atom < 0)
@@ -237,7 +237,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/dihedral/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No dihedrals allowed with this atom style");
       atom->extra_dihedral_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_dihedral_per_atom < 0)
@@ -245,7 +245,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/improper/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No impropers allowed with this atom style");
       atom->extra_improper_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_improper_per_atom < 0)
@@ -253,7 +253,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/special/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No bonded interactions allowed with this atom style");
       force->special_extra = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (force->special_extra < 0)

@@ -432,7 +432,7 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"Units         = {}\n", update->unit_style);
     fmt::print(out,"Atom style    = {}\n", atom->atom_style);
     fmt::print(out,"Atom map      = {}\n", mapstyles[atom->map_style]);
-    if (atom->molecular > 0) {
+    if (atom->molecular != Atom::ATOMIC) {
       const char *msg;
       msg = (atom->molecular == Atom::TEMPLATE) ? "template" : "standard";
       fmt::print(out,"Molecule type = {}\n",msg);
@@ -447,7 +447,7 @@ void Info::command(int narg, char **arg)
         fmt::print(out," {}", hybrid->keywords[i]);
       fputc('\n',out);
     }
-    if (atom->molecular > 0) {
+    if (atom->molecular != Atom::ATOMIC) {
       const char *msg;
       msg = force->bond_style ? force->bond_style : "none";
       fmt::print(out,"Bonds     = {:12},  types = {:8},  style = {}\n",
@@ -1316,13 +1316,16 @@ std::string Info::get_os_info()
 std::string Info::get_compiler_info()
 {
   std::string buf;
-#if __clang__
+#if __INTEL_LLVM_COMPILER
+  double version = static_cast<double>(__INTEL_LLVM_COMPILER)*0.01;
+  buf = fmt::format("Intel LLVM C++ {:.1f} / {}", version, __VERSION__);
+#elif __clang__
   buf = fmt::format("Clang C++ {}", __VERSION__);
 #elif __PGI
   buf = fmt::format("PGI C++ {}.{}",__PGIC__,__PGIC_MINOR__);
 #elif __INTEL_COMPILER
   double version = static_cast<double>(__INTEL_COMPILER)*0.01;
-  buf = fmt::format("Intel C++ {:.2f}.{} / {}", version,
+  buf = fmt::format("Intel Classic C++ {:.2f}.{} / {}", version,
                     __INTEL_COMPILER_UPDATE, __VERSION__);
 #elif __GNUC__
   buf = fmt::format("GNU C++ {}",   __VERSION__);

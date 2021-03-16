@@ -663,7 +663,7 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
   // map style will be reset to array vs hash to by map_init()
 
   molecular = avec->molecular;
-  if (molecular && tag_enable == 0)
+  if ((molecular != Atom::ATOMIC) && (tag_enable == 0))
     error->all(FLERR,"Atom IDs must be used for molecular systems");
   if (molecular != Atom::ATOMIC) map_style = MAP_YES;
 }

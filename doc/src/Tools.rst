@@ -93,6 +93,7 @@ Miscellaneous tools
    * :ref:`i-pi <ipi>`
    * :ref:`kate <kate>`
    * :ref:`LAMMPS shell <lammps_shell>`
+   * :ref:`LAMMPS magic patterns for file(1) <magic>`
    * :ref:`singularity <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
@@ -638,6 +639,39 @@ files into a series of \*.cfg files which can be read into the
 the README file for more information.
 
 This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).
+
+----------
+
+.. _magic:
+
+Magic patterns for the "file" command
+-------------------------------------
+
+.. versionadded:: 10Mar2021
+
+The file ``magic`` contains patterns that are used by the
+`file program <https://en.wikipedia.org/wiki/File_(command)>`_
+available on most Unix-like operating systems which enables it
+to detect various LAMMPS files and print some useful information
+about them.  To enable these patterns, append or copy the contents
+of the file to either the file ``.magic`` in your home directory
+or (as administrator) to ``/etc/magic`` (for a system-wide
+installation).  Afterwards the ``file`` command should be able to
+detect most LAMMPS restarts, dump, data and log files. Examples:
+
+.. code-block:: bash
+
+   $ file *.*
+   dihedral-quadratic.restart:   LAMMPS binary restart file (rev 2), Version 10 Mar 2021, Little Endian
+   mol-pair-wf_cut.restart:      LAMMPS binary restart file (rev 2), Version 24 Dec 2020, Little Endian
+   atom.bin:                     LAMMPS atom style binary dump (rev 2), Little Endian, First time step: 445570
+   custom.bin:                   LAMMPS custom style binary dump (rev 2), Little Endian, First time step: 100
+   bn1.lammpstrj:                LAMMPS text mode dump, First time step: 5000
+   data.fourmol:                 LAMMPS data file written by LAMMPS
+   pnc.data:                     LAMMPS data file written by msi2lmp
+   data.spce:                    LAMMPS data file written by TopoTools
+   B.data:                       LAMMPS data file written by OVITO
+   log.lammps:                   LAMMPS log file written by version 10 Feb 2021
 
 ----------
 

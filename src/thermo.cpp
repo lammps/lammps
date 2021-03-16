@@ -1831,7 +1831,7 @@ void Thermo::compute_eimp()
 void Thermo::compute_emol()
 {
   double tmp = 0.0;
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) tmp += force->bond->energy;
     if (force->angle) tmp += force->angle->energy;
     if (force->dihedral) tmp += force->dihedral->energy;

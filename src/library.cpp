@@ -483,11 +483,15 @@ void lammps_commands_string(void *handle, const char *str)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
-  // make copy of str so can strtok() it
+  // copy str and convert from CR-LF (DOS-style) to LF (Unix style) line
+  int n = strlen(str);
+  char *ptr, *copy = new char[n+1];
 
-  int n = strlen(str) + 1;
-  char *copy = new char[n];
-  strcpy(copy,str);
+  for (ptr = copy; *str != '\0'; ++str) {
+    if ((str[0] == '\r') && (str[1] == '\n')) continue;
+    *ptr++ = *str;
+  }
+  *ptr = '\0';
 
   BEGIN_CAPTURE
   {
@@ -495,8 +499,9 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    char *ptr = copy;
-    for (int i=0; i < n-1; ++i) {
+    n = strlen(copy);
+    ptr = copy;
+    for (int i=0; i < n; ++i) {
 
       // handle continuation character as last character in line or string
       if ((copy[i] == '&') && (copy[i+1] == '\n'))

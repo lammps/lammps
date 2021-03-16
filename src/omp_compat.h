@@ -29,7 +29,9 @@
 // autodetect OpenMP compatibility if not explicitly set
 
 #ifndef LAMMPS_OMP_COMPAT
-#  if defined(__INTEL_COMPILER)
+#  if defined(__INTEL_LLVM_COMPILER)
+#      define LAMMPS_OMP_COMPAT 4
+#  elif defined(__INTEL_COMPILER)
 #    if __INTEL_COMPILER > 18
 #      define LAMMPS_OMP_COMPAT 4
 #    endif

@@ -585,10 +585,7 @@ void ComputeTempProfile::bin_assign()
 /* ---------------------------------------------------------------------- */
 
 void ComputeTempProfile::reset_extra_dof() {
-  extra_dof = 0.0;
-  if (xflag == 0) extra_dof++;
-  if (yflag == 0) extra_dof++;
-  if (zflag == 0 && domain->dimension == 3) extra_dof++;
+  extra_dof = domain->dimension - nstreaming;
 }
 
 /* ---------------------------------------------------------------------- */

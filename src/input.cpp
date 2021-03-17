@@ -1839,7 +1839,6 @@ void Input::suffix()
     if (strcmp(arg[0],"hybrid") == 0) {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
       lmp->suffix = utils::strdup(arg[1]);
-      n = strlen(arg[2]) + 1;
       lmp->suffix2 = utils::strdup(arg[2]);
     } else {
       if (narg != 1) error->all(FLERR,"Illegal suffix command");

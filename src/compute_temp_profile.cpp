@@ -339,12 +339,13 @@ void ComputeTempProfile::compute_array()
     totcount += array[i][0];
   }
   double nper = domain->dimension - (extra_dof + fix_dof)/totcount;
+  double dofbin, tfactorbin;
   for (i = 0; i < nbins; i++) {
     if (array[i][0] > 0.0) {
-      dof = nper*array[i][0] - domain->dimension;
-      if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
-      else tfactor = 0.0;
-      array[i][1] = tfactor*tbinall[i];
+      dofbin = nper*array[i][0] - domain->dimension;
+      if (dofbin > 0) tfactorbin = force->mvv2e / (dofbin * force->boltz);
+      else tfactorbin = 0.0;
+      array[i][1] = tfactorbin*tbinall[i];
     } else array[i][1] = 0.0;
   }
 }

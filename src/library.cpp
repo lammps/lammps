@@ -445,26 +445,14 @@ is passed to :cpp:func:`lammps_commands_string` for processing.
 void lammps_commands_list(void *handle, int ncmd, const char **cmds)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
-
-  int n = ncmd+1;
-  for (int i = 0; i < ncmd; i++) n += strlen(cmds[i]);
-
-  char *str = (char *) lmp->memory->smalloc(n,"lib/commands/list:str");
-  str[0] = '\0';
-  n = 0;
+  std::string allcmds;
 
   for (int i = 0; i < ncmd; i++) {
-    strcpy(&str[n],cmds[i]);
-    n += strlen(cmds[i]);
-    if (str[n-1] != '\n') {
-      str[n] = '\n';
-      str[n+1] = '\0';
-      n++;
-    }
+    allcmds.append(cmds[i]);
+    if (allcmds.back() != '\n') allcmds.append(1,'\n');
   }
 
-  lammps_commands_string(handle,str);
-  lmp->memory->sfree(str);
+  lammps_commands_string(handle,allcmds.c_str());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -495,11 +483,15 @@ void lammps_commands_string(void *handle, const char *str)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
-  // make copy of str so can strtok() it
+  // copy str and convert from CR-LF (DOS-style) to LF (Unix style) line
+  int n = strlen(str);
+  char *ptr, *copy = new char[n+1];
 
-  int n = strlen(str) + 1;
-  char *copy = new char[n];
-  strcpy(copy,str);
+  for (ptr = copy; *str != '\0'; ++str) {
+    if ((str[0] == '\r') && (str[1] == '\n')) continue;
+    *ptr++ = *str;
+  }
+  *ptr = '\0';
 
   BEGIN_CAPTURE
   {
@@ -507,8 +499,9 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    char *ptr = copy;
-    for (int i=0; i < n-1; ++i) {
+    n = strlen(copy);
+    ptr = copy;
+    for (int i=0; i < n; ++i) {
 
       // handle continuation character as last character in line or string
       if ((copy[i] == '&') && (copy[i+1] == '\n'))

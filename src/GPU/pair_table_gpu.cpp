@@ -229,7 +229,7 @@ void PairTableGPU::init_style()
   }
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = table_gpu_init(atom->ntypes+1, cutsq, table_coeffs, table_data,

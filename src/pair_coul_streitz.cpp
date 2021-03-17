@@ -164,9 +164,7 @@ void PairCoulStreitz::coeff(int narg, char **arg)
       if (strcmp(arg[i],elements[j]) == 0) break;
     map[i-2] = j;
     if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
+      elements[j] = utils::strdup(arg[i]);
       nelements++;
     }
   }

@@ -162,7 +162,7 @@ void PairLJCutGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = ljl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,

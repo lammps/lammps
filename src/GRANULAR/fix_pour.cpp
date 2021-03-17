@@ -371,6 +371,14 @@ void FixPour::init()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixPour::setup_pre_exchange()
+{
+  if (ninserted < ninsert) next_reneighbor = update->ntimestep + 1;
+  else next_reneighbor = 0;
+}
+
 /* ----------------------------------------------------------------------
    perform particle insertion
 ------------------------------------------------------------------------- */

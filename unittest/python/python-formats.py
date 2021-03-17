@@ -5,7 +5,7 @@ from lammps.formats import LogFile, AvgChunkFile
 EXAMPLES_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'examples'))
 
 DEFAULT_STYLE_EXAMPLE_LOG="melt/log.27Nov18.melt.g++.1"
-MULTI_STYLE_EXAMPLE_LOG="USER/fep/CC-CO/fep10/log.lammps"
+MULTI_STYLE_EXAMPLE_LOG="peptide/log.27Nov18.peptide.g++.1"
 AVG_CHUNK_FILE="VISCOSITY/profile.13Oct16.nemd.2d.g++.1"
 
 class Logfiles(unittest.TestCase):
@@ -34,11 +34,10 @@ class Logfiles(unittest.TestCase):
 
     def testMultiLogFile(self):
         log = LogFile(os.path.join(EXAMPLES_DIR, MULTI_STYLE_EXAMPLE_LOG))
-        self.assertEqual(len(log.runs), 2)
+        self.assertEqual(len(log.runs), 1)
         run0 = log.runs[0]
-        run1 = log.runs[1]
 
-        self.assertEqual(len(run0.keys()), 15)
+        self.assertEqual(len(run0.keys()), 14)
         self.assertIn("Step", run0)
         self.assertIn("CPU", run0)
         self.assertIn("TotEng", run0)
@@ -53,12 +52,11 @@ class Logfiles(unittest.TestCase):
         self.assertIn("E_coul", run0)
         self.assertIn("E_long", run0)
         self.assertIn("Press", run0)
-        self.assertIn("Volume", run0)
 
         for k in run0:
-            self.assertEqual(len(run0[k]), 51)
+            self.assertEqual(len(run0[k]), 7)
 
-        self.assertEqual(run0["Step"], list(range(0,255000, 5000)))
+        self.assertEqual(run0["Step"], list(range(0,350, 50)))
 
 
 class AvgChunkFiles(unittest.TestCase):

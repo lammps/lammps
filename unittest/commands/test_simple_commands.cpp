@@ -192,6 +192,29 @@ TEST_F(SimpleCommandsTest, Newton)
     ASSERT_EQ(lmp->force->newton_bond, 1);
 }
 
+TEST_F(SimpleCommandsTest, Partition)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("echo none");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    TEST_FAILURE(".*ERROR: Illegal partition command .*",
+                 lmp->input->one("partition xxx 1 echo none"););
+    TEST_FAILURE(".*ERROR: Numeric index 2 is out of bounds.*",
+                 lmp->input->one("partition yes 2 echo none"););
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("partition yes 1 print 'test'");
+    auto text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, StrEq("test\n"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("partition no 1 print 'test'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, StrEq(""));
+}
+
 TEST_F(SimpleCommandsTest, Quit)
 {
     ::testing::internal::CaptureStdout();

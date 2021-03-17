@@ -163,7 +163,7 @@ void PairZBLGPU::init_style()
   cut_globalsq = cut_global * cut_global;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = zbl_gpu_init(atom->ntypes+1, cutsq, sw1, sw2, sw3, sw4,

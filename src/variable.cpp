@@ -31,6 +31,7 @@
 #include "random_mars.h"
 #include "region.h"
 #include "thermo.h"
+#include "tokenizer.h"
 #include "universe.h"
 #include "update.h"
 
@@ -185,9 +186,7 @@ void Variable::set(int narg, char **arg)
       nlast = utils::inumeric(FLERR,arg[2],false,lmp);
       if (nlast <= 0) error->all(FLERR,"Illegal variable command");
       if (narg == 4 && strcmp(arg[3],"pad") == 0) {
-        char digits[12];
-        sprintf(digits,"%d",nlast);
-        pad[nvar] = strlen(digits);
+        pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
     } else if (narg == 4 || (narg == 5 && strcmp(arg[4],"pad") == 0)) {
       nfirst = utils::inumeric(FLERR,arg[2],false,lmp);
@@ -195,9 +194,7 @@ void Variable::set(int narg, char **arg)
       if (nfirst > nlast || nlast < 0)
         error->all(FLERR,"Illegal variable command");
       if (narg == 5 && strcmp(arg[4],"pad") == 0) {
-        char digits[12];
-        sprintf(digits,"%d",nlast);
-        pad[nvar] = strlen(digits);
+        pad[nvar] = fmt::format("{}",nlast).size();
       } else pad[nvar] = 0;
     } else error->all(FLERR,"Illegal variable command");
     num[nvar] = nlast;
@@ -5112,17 +5109,17 @@ int VarReader::read_scalar(char *str)
 
   if (me == 0) {
     while (1) {
-      if (fgets(str,MAXLINE,fp) == nullptr) n = 0;
-      else n = strlen(str);
-      if (n == 0) break;                                 // end of file
-      str[n-1] = '\0';                                   // strip newline
-      if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
-      if (strtok(str," \t\n\r\f") == nullptr) continue;     // skip if blank
-      n = strlen(str) + 1;
+      ptr = fgets(str,MAXLINE,fp);
+      if (!ptr) { n=0; break; }             // end of file
+      ptr[strcspn(ptr,"#")] = '\0';         // strip comment
+      ptr += strspn(ptr," \t\n\r\f");       // strip leading whitespace
+      ptr[strcspn(ptr," \t\n\r\f")] = '\0'; // strip trailing whitespace
+      n = strlen(ptr) + 1;
+      if (n == 1) continue;                 // skip if blank line
       break;
     }
+    memmove(str,ptr,n);                       // move trimmed string back
   }
-
   MPI_Bcast(&n,1,MPI_INT,0,world);
   if (n == 0) return 1;
   MPI_Bcast(str,n,MPI_CHAR,0,world);
@@ -5155,20 +5152,20 @@ int VarReader::read_peratom()
   char str[MAXLINE];
   if (me == 0) {
     while (1) {
-      if (fgets(str,MAXLINE,fp) == nullptr) n = 0;
-      else n = strlen(str);
-      if (n == 0) break;                                 // end of file
-      str[n-1] = '\0';                                   // strip newline
-      if ((ptr = strchr(str,'#'))) *ptr = '\0';          // strip comment
-      if (strtok(str," \t\n\r\f") == nullptr) continue;     // skip if blank
-      n = strlen(str) + 1;
+      ptr = fgets(str,MAXLINE,fp);
+      if (!ptr) { n=0; break; }             // end of file
+      ptr[strcspn(ptr,"#")] = '\0';         // strip comment
+      ptr += strspn(ptr," \t\n\r\f");       // strip leading whitespace
+      ptr[strcspn(ptr," \t\n\r\f")] = '\0'; // strip trailing whitespace
+      n = strlen(ptr) + 1;
+      if (n == 1) continue;                 // skip if blank line
       break;
     }
+    memmove(str,ptr,n);                     // move trimmed string back
   }
 
   MPI_Bcast(&n,1,MPI_INT,0,world);
   if (n == 0) return 1;
-
   MPI_Bcast(str,n,MPI_CHAR,0,world);
   bigint nlines = utils::bnumeric(FLERR,str,false,lmp);
   tagint map_tag_max = atom->map_tag_max;
@@ -5183,9 +5180,17 @@ int VarReader::read_peratom()
     for (i = 0; i < nchunk; i++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      int rv = sscanf(buf,TAGINT_FORMAT " %lg",&tag,&value);
-      if (tag <= 0 || tag > map_tag_max || rv != 2)
-        error->one(FLERR,"Invalid atom ID in variable file");
+      try {
+        ValueTokenizer words(buf);
+        tag = words.next_bigint();
+        value = words.next_double();
+      } catch (TokenizerException &e) {
+        error->all(FLERR,fmt::format("Invalid atomfile line '{}': {}",
+                                     buf,e.what()));
+      }
+      if ((tag <= 0) || (tag > map_tag_max))
+        error->all(FLERR,fmt::format("Invalid atom ID {} in variable "
+                                     "file", tag));
       if ((m = atom->map(tag)) >= 0) vstore[m] = value;
       buf = next + 1;
     }

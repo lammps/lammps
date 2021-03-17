@@ -234,6 +234,8 @@ LAMMPS.
          cmake ../cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_Fortran_COMPILER=gfortran
          # Building with Intel Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
+         # Building with Intel oneAPI Compilers:
+         cmake ../cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_Fortran_COMPILER=ifx
          # Building with LLVM/Clang Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
          # Building with PGI/Nvidia Compilers:
@@ -243,8 +245,10 @@ LAMMPS.
       provided that can be loaded with
       `-C ../cmake/presets/clang.cmake`.  Similarly,
       `-C ../cmake/presets/intel.cmake` should switch the compiler
-      toolchain to the Intel compilers and `-C ../cmake/presets/pgi.cmake`
-      should switch the compiler to the PGI compilers.
+      toolchain to the legacy Intel compilers, `-C ../cmake/presets/oneapi.cmake`
+      will switch to the LLVM based oneAPI Intel compilers,
+      and `-C ../cmake/presets/pgi.cmake`
+      will switch the compiler to the PGI compilers.
 
       In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
       compiler flags to tune for optimal performance on given hosts. By
@@ -525,6 +529,20 @@ you want to copy files to is protected.
          cmake -D CMAKE_INSTALL_PREFIX=path [options ...] ../cmake
          make                        # perform make after CMake command
          make install                # perform the installation into prefix
+
+      During the installation process CMake will by default remove any runtime
+      path settings for loading shared libraries.  Because of this you may
+      have to set or modify the ``LD_LIBRARY_PATH`` (or ``DYLD_LIBRARY_PATH``)
+      environment variable, if you are installing LAMMPS into a non-system
+      location and/or are linking to libraries in a non-system location that
+      depend on such runtime path settings.
+      As an alternative you may set the CMake variable ``LAMMPS_INSTALL_RPATH``
+      to ``on`` and then the runtime paths for any linked shared libraries
+      and the library installation folder for the LAMMPS library will be
+      embedded and thus the requirement to set environment variables is avoided.
+      The ``off`` setting is usually preferred for packaged binaries or when
+      setting up environment modules, the ``on`` setting is more convenient
+      for installing software into a non-system or personal folder.
 
    .. tab:: Traditional make
 

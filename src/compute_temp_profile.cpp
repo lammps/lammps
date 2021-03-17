@@ -118,8 +118,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   nbins = nbinx*nbiny*nbinz;
   if (nbins <= 0) error->all(FLERR,"Illegal compute temp/profile command");
 
-  nconstraints = (xflag==0 ? 0 : 1) + (yflag==0 ? 0 : 1) + (zflag==0 ? 0 : 1);
-  nconstraints *= nbins;
+  nstreaming = (xflag==0 ? 0 : 1) + (yflag==0 ? 0 : 1) + (zflag==0 ? 0 : 1);
   reset_extra_dof();
 
   memory->create(vbin,nbins,ncount,"temp/profile:vbin");
@@ -203,7 +202,7 @@ void ComputeTempProfile::dof_compute()
   // subtract additional Nbins DOF for each adjusted direction,
   // as in Evans and Morriss paper
 
-  dof -= extra_dof + fix_dof + nconstraints;
+  dof -= extra_dof + fix_dof + nstreaming*nbins;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
@@ -347,7 +346,7 @@ void ComputeTempProfile::compute_array()
   double dofbin, tfactorbin;
   for (i = 0; i < nbins; i++) {
     if (array[i][0] > 0.0) {
-      dofbin = nper*array[i][0] - nconstraints/nbins;
+      dofbin = nper*array[i][0] - nstreaming;
       if (dofbin > 0) tfactorbin = force->mvv2e / (dofbin * force->boltz);
       else tfactorbin = 0.0;
       array[i][1] = tfactorbin*tbinall[i];

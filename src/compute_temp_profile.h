@@ -48,7 +48,7 @@ class ComputeTempProfile : public Compute {
   int nbinx,nbiny,nbinz,nbins;
   int ivx,ivy,ivz;
   double tfactor;
-  double nconstraints;
+  double nstreaming;
 
   int box_change,triclinic;
   int *periodicity;

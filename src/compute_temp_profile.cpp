@@ -120,6 +120,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
 
   nconstraints = (xflag==0 ? 0 : 1) + (yflag==0 ? 0 : 1) + (zflag==0 ? 0 : 1);
   nconstraints *= nbins;
+  reset_extra_dof();
 
   memory->create(vbin,nbins,ncount,"temp/profile:vbin");
   memory->create(binave,nbins,ncount,"temp/profile:binave");

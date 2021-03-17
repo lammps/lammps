@@ -127,7 +127,7 @@ def displace(lmp, args, idir):
     c5pos = lmp.variables["d5"].value
     c6pos = lmp.variables["d6"].value
 
-    # Combine posiive and negative
+    # Combine positive and negative
     lmp.variable("C1{} equal {}".format(idir, 0.5*(c1neg+c1pos)))
     lmp.variable("C2{} equal {}".format(idir, 0.5*(c2neg+c2pos)))
     lmp.variable("C3{} equal {}".format(idir, 0.5*(c3neg+c3pos)))

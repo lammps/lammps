@@ -179,7 +179,7 @@ def elastic():
     L.box("tilt large") # to avoid termination if the final simulation box has a high tilt factor
 
     # use the OpenKIM model to set the energy interactions
-    L.kim_init(args.kim_model, "metal", "unit_conversion_mode")
+    L.kim("init", args.kim_model, "metal", "unit_conversion_mode")
 
     L.read_data(args.input_data_file)
 

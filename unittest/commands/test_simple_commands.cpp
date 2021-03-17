@@ -367,6 +367,7 @@ TEST_F(SimpleCommandsTest, Units)
     TEST_FAILURE(".*ERROR: Illegal units command.*", lmp->input->one("units unknown"););
 }
 
+#if defined(LMP_PLUGIN)
 TEST_F(SimpleCommandsTest, Plugin)
 {
 #if defined(__APPLE__)
@@ -437,6 +438,7 @@ TEST_F(SimpleCommandsTest, Plugin)
     if (verbose) std::cout << text;
     ASSERT_THAT(text, MatchesRegex(".*Currently loaded plugins.*"));
 }
+#endif
 
 TEST_F(SimpleCommandsTest, Shell)
 {

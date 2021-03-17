@@ -13,7 +13,7 @@ DEPFLAGS =	-M
 
 LINK =		mpicxx
 LINKFLAGS =	-g -O3
-LIB = -ldl
+LIB =
 SIZE =		size
 
 ARCHIVE =	ar

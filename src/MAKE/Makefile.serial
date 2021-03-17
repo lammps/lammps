@@ -13,7 +13,7 @@ DEPFLAGS =	-M
 
 LINK =		g++
 LINKFLAGS =	-g -O
-LIB = -ldl
+LIB =
 SIZE =		size
 
 ARCHIVE =	ar

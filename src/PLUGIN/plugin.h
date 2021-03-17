@@ -11,14 +11,26 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifdef COMMAND_CLASS
+
+CommandStyle(plugin,Plugin)
+
+#else
+
 #ifndef LMP_PLUGIN_H
 #define LMP_PLUGIN_H
 
 #include "lammpsplugin.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS
 {
-  class LAMMPS;
+
+  class Plugin : protected Pointers {
+  public:
+    Plugin(class LAMMPS *);
+    void command(int, char **);
+  };
 
   void plugin_load(const char *, LAMMPS *);
   void plugin_register(lammpsplugin_t *, void *);
@@ -32,4 +44,5 @@ namespace LAMMPS_NS
   const lammpsplugin_t *plugin_get_info(int);
 }
 
+#endif
 #endif

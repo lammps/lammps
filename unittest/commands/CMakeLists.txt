@@ -1,6 +1,6 @@
 
 # build LAMMPS plugins, but not on Windows
-if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND PKG_PLUGIN)
   ExternalProject_Add(plugins
                       SOURCE_DIR      "${LAMMPS_DIR}/examples/plugins"
                       BINARY_DIR      ${CMAKE_BINARY_DIR}/build-plugins

@@ -38,7 +38,9 @@
 #include "neighbor.h"
 #include "region.h"
 #include "output.h"
+#if defined(LMP_PLUGIN)
 #include "plugin.h"
+#endif
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -4590,7 +4592,11 @@ This function counts how many plugins are currently loaded.
  */
 int lammps_plugin_count()
 {
+#if defined(LMP_PLUGIN)
   return plugin_get_num_plugins();
+#else
+  return 0;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -4617,6 +4623,7 @@ set to an empty string, otherwise 1.
  */
 int lammps_plugin_name(int idx, char *stylebuf, char *namebuf, int buf_size)
 {
+#if defined(LMP_PLUGIN)
   stylebuf[0] = namebuf[0] = '\0';
 
   const lammpsplugin_t *plugin = plugin_get_info(idx);
@@ -4625,6 +4632,7 @@ int lammps_plugin_name(int idx, char *stylebuf, char *namebuf, int buf_size)
     strncpy(namebuf,plugin->name,buf_size);
     return 1;
   }
+#endif
   return 0;
 }
 

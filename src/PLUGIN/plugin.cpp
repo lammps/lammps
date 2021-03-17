@@ -38,9 +38,53 @@ namespace LAMMPS_NS
   // map for counting references to dso handles
   static std::map<void *, int> dso_refcounter;
 
+
+/* ---------------------------------------------------------------------- */
+
+  Plugin::Plugin(LAMMPS *lmp) : Pointers(lmp) {}
+
+/* ---------------------------------------------------------------------- */
+
+  void Plugin::command(int narg, char **arg)
+  {
+    if (narg < 1) error->all(FLERR,"Illegal plugin command");
+
+#if defined(LMP_PLUGIN)
+    std::string cmd = arg[0];
+    if (cmd == "load") {
+      if (narg < 2) error->all(FLERR,"Illegal plugin load command");
+      for (int i=1; i < narg; ++i)
+        plugin_load(arg[i],lmp);
+
+    } else if (cmd == "unload") {
+      if (narg != 3) error->all(FLERR,"Illegal plugin unload command");
+      plugin_unload(arg[1],arg[2],lmp);
+
+    } else if (cmd == "clear") {
+      plugin_clear(lmp);
+
+    } else if (cmd == "list") {
+      if (comm->me == 0) {
+        int num = plugin_get_num_plugins();
+        utils::logmesg(lmp,"Currently loaded plugins\n");
+        for (int i=0; i < num; ++i) {
+          auto entry = plugin_get_info(i);
+          utils::logmesg(lmp,fmt::format("{:4}: {} style plugin {}\n",
+                                         i+1,entry->style,entry->name));
+        }
+      }
+    } else error->all(FLERR,"Illegal plugin command");
+#else
+    if (comm->me == 0)
+      error->warning(FLERR,"Ignoring plugin command. LAMMPS must be built as "
+                     "a shared library for it to work.");
+#endif
+  }
+
   // load DSO and call included registration function
   void plugin_load(const char *file, LAMMPS *lmp)
   {
+#if defined(LMP_PLUGIN)
     int me = lmp->comm->me;
 #if defined(WIN32)
     lmp->error->all(FLERR,"Loading of plugins on Windows is not supported\n");
@@ -78,6 +122,7 @@ namespace LAMMPS_NS
     (*(lammpsplugin_initfunc)(initfunc))((void *)lmp, dso,
                                          (void *)&plugin_register);
 #endif
+#endif
   }
 
   /* --------------------------------------------------------------------
@@ -89,6 +134,7 @@ namespace LAMMPS_NS
 
   void plugin_register(lammpsplugin_t *plugin, void *ptr)
   {
+#if defined(LMP_PLUGIN)
     LAMMPS *lmp = (LAMMPS *)ptr;
     int me = lmp->comm->me;
 
@@ -158,6 +204,7 @@ namespace LAMMPS_NS
                                      "yet implemented\n",pstyle));
       pluginlist.pop_back();
     }
+#endif
   }
 
   /* --------------------------------------------------------------------
@@ -168,6 +215,7 @@ namespace LAMMPS_NS
 
   void plugin_unload(const char *style, const char *name, LAMMPS *lmp)
   {
+#if defined(LMP_PLUGIN)
     int me = lmp->comm->me;
 
     // ignore unload request from unsupported style categories
@@ -246,6 +294,7 @@ namespace LAMMPS_NS
       dlclose(handle);
 #endif
     }
+#endif
   }
 
   /* --------------------------------------------------------------------

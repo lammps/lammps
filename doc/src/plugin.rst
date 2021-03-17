@@ -60,7 +60,10 @@ The *clear* command will unload all currently loaded plugins.
 Restrictions
 """"""""""""
 
-Plugins are not available on Windows.
+The *plugin* command is part of the PLUGIN package.  It is
+only enabled if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` doc page for
+more info. Plugins are not available on Windows.
 
 For the loading of plugins to work the LAMMPS library must be
 :ref:`compiled as a shared library <library>`.  If plugins

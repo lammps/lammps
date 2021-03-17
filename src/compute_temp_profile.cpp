@@ -118,6 +118,9 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   nbins = nbinx*nbiny*nbinz;
   if (nbins <= 0) error->all(FLERR,"Illegal compute temp/profile command");
 
+  nconstraints = (xflag==0 ? 0 : 1) + (yflag==0 ? 0 : 1) + (zflag==0 ? 0 : 1);
+  nconstraints *= nbins;
+
   memory->create(vbin,nbins,ncount,"temp/profile:vbin");
   memory->create(binave,nbins,ncount,"temp/profile:binave");
 
@@ -196,9 +199,10 @@ void ComputeTempProfile::dof_compute()
   natoms_temp = group->count(igroup);
   dof = domain->dimension * natoms_temp;
 
-  // subtract additional d*Nbins DOF, as in Evans and Morriss paper
+  // subtract additional Nbins DOF for each adjusted direction,
+  // as in Evans and Morriss paper
 
-  dof -= extra_dof + fix_dof + domain->dimension*nbins;
+  dof -= extra_dof + fix_dof + nconstraints;
   if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
@@ -342,7 +346,7 @@ void ComputeTempProfile::compute_array()
   double dofbin, tfactorbin;
   for (i = 0; i < nbins; i++) {
     if (array[i][0] > 0.0) {
-      dofbin = nper*array[i][0] - domain->dimension;
+      dofbin = nper*array[i][0] - nconstraints/nbins;
       if (dofbin > 0) tfactorbin = force->mvv2e / (dofbin * force->boltz);
       else tfactorbin = 0.0;
       array[i][1] = tfactorbin*tbinall[i];
@@ -582,6 +586,9 @@ void ComputeTempProfile::bin_assign()
 
 void ComputeTempProfile::reset_extra_dof() {
   extra_dof = 0.0;
+  if (xflag == 0) extra_dof++;
+  if (yflag == 0) extra_dof++;
+  if (zflag == 0 && domain->dimension == 3) extra_dof++;
 }
 
 /* ---------------------------------------------------------------------- */

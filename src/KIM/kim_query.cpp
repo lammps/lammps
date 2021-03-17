@@ -223,8 +223,6 @@ void KimQuery::command(int narg, char **arg)
     if (available.empty())
       error->all(FLERR,
         fmt::format("There is no OpenKIM model installed on the system"));
-    input->write_echo(
-      fmt::format("# Installed OpenKIM models: {}\n\n", available));
 
     // replace results with available
     strcpy(value, available.c_str());  // available guaranteed to fit

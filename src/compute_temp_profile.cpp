@@ -333,11 +333,15 @@ void ComputeTempProfile::compute_array()
 
   MPI_Allreduce(tbin,tbinall,nbins,MPI_DOUBLE,MPI_SUM,world);
 
-  int nper = domain->dimension;
+  double totcount = 0.0;
   for (i = 0; i < nbins; i++) {
     array[i][0] = binave[i][ncount-1];
+    totcount += array[i][0];
+  }
+  double nper = domain->dimension - (extra_dof + fix_dof)/totcount;
+  for (i = 0; i < nbins; i++) {
     if (array[i][0] > 0.0) {
-      dof = nper*array[i][0] - extra_dof;
+      dof = nper*array[i][0] - domain->dimension;
       if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
       else tfactor = 0.0;
       array[i][1] = tfactor*tbinall[i];

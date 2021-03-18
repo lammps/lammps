@@ -2,13 +2,10 @@
                                     lj_smooth.h
                              -------------------
                             W. Michael Brown (ORNL)
-
   Class for acceleration of the lj/smooth pair style.
-
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
-
     begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
@@ -69,12 +66,12 @@ class LJSMOOTH : public BaseAtomic<numtyp, acctyp> {
 
   /// lj1.x = lj1, lj1.y = lj2, lj1.z = cutsq, lj1.w = cut_inner_sq
   UCL_D_Vec<numtyp4> lj1;
-  /// lj3.x = lj3, lj3.y = lj4, lj3.z = offset, lj3.w = cut_inner
+  /// lj3.x = lj3, lj3.y = lj4, lj3.z = offset
   UCL_D_Vec<numtyp4> lj3;
   /// ljsw.x = ljsw1, ljsw.y = ljsw2, ljsw.z = ljsw3, ljsw.w = ljsw4
   UCL_D_Vec<numtyp4> ljsw;
-  /// ljsw0
-  UCL_D_Vec<numtyp4> ljsw0;
+  /// ljsw0.x = ljsw0 ljsw0.y = cut_inner
+  UCL_D_Vec<numtyp2> ljsw0;
   /// Special LJ values
   UCL_D_Vec<numtyp> sp_lj;
 

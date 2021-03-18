@@ -2,13 +2,10 @@
                                    lj_smooth.cpp
                              -------------------
                             W. Michael Brown (ORNL)
-
   Class for acceleration of the lj/smooth pair style.
-
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
-
     begin                :
     email                : brownw@ornl.gov
  ***************************************************************************/
@@ -83,15 +80,14 @@ int LJSMOOTHT::init(const int ntypes,
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
-                         host_offset, cut_inner);
+                         host_offset);
   
   ljsw.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,ljsw,host_write,host_ljsw1,host_ljsw2,
                          host_ljsw3,host_ljsw4);
   
   ljsw0.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes,lj_types,ljsw0,host_write,host_ljsw0,cut_inner,host_ljsw2,
-                         host_ljsw3);
+  this->atom->type_pack2(ntypes,lj_types,ljsw0,host_write,host_ljsw0,cut_inner);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -118,13 +114,12 @@ void LJSMOOTHT::reinit(const int ntypes, double **host_cutsq, double **host_lj1,
     host_write[i]=0.0;
 
   this->atom->type_pack4(ntypes,_lj_types,lj1,host_write,host_lj1,host_lj2,
-                         host_cutsq, cut_inner_sq);
+                         host_cutsq,cut_inner_sq);
   this->atom->type_pack4(ntypes,_lj_types,lj3,host_write,host_lj3,host_lj4,
-                         host_offset, cut_inner);
+                         host_offset);
   this->atom->type_pack4(ntypes,_lj_types,ljsw,host_write,host_ljsw1,host_ljsw2,
                          host_ljsw3,host_ljsw4);
-  this->atom->type_pack4(ntypes,_lj_types,ljsw0,host_write,host_ljsw0, cut_inner, host_ljsw2,
-                         host_ljsw3);
+  this->atom->type_pack2(ntypes,_lj_types,ljsw0,host_write,host_ljsw0,cut_inner);
 }
 
 template <class numtyp, class acctyp>

@@ -28,7 +28,7 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
                    const __global numtyp4 *restrict lj1,
                    const __global numtyp4 *restrict lj3,
                    const __global numtyp4 *restrict ljsw,
-                   const __global numtyp4 *restrict ljsw0,
+                   const __global numtyp2 *restrict ljsw0,
                    const int lj_types,
                    const __global numtyp *restrict sp_lj,
                    const __global int * dev_nbor,
@@ -56,8 +56,9 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int itype=ix.w;
 
-    numtyp factor_lj;
+    numtyp force, r6inv, factor_lj, forcelj;
     numtyp r, t, tsq, fskin;
+    
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int j=dev_packed[nbor];
@@ -75,11 +76,11 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
       
       int mtype=itype*lj_types+jtype;
       if (rsq<lj1[mtype].z) {
-        numtyp force, r6inv;
+        
         numtyp r2inv=ucl_recip(rsq);
         if (rsq < lj1[mtype].w) {
           r6inv = r2inv*r2inv*r2inv;
-          force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+          forcelj = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         }
         else {
           r = sqrt(rsq);
@@ -87,8 +88,9 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
           tsq = t*t;
           fskin = ljsw[mtype].x + ljsw[mtype].y*t +
             ljsw[mtype].z*tsq + ljsw[mtype].w*tsq*t;
-          force = factor_lj*r2inv*fskin*r;
+          forcelj = fskin*r;
         }
+        force = factor_lj*r2inv*forcelj;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -101,7 +103,7 @@ __kernel void k_lj_smooth(const __global numtyp4 *restrict x_,
           else
             e = ljsw0[mtype].x - ljsw[mtype].x*t -
               ljsw[mtype].y*tsq/2.0 - ljsw[mtype].z*tsq*t/3.0 -
-              ljsw[mtype].z*tsq*tsq/4.0 - lj3[mtype].z;
+              ljsw[mtype].w*tsq*tsq/4.0 - lj3[mtype].z;
 
           //numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
           energy+=factor_lj*e;
@@ -126,7 +128,7 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
                         const __global numtyp4 *restrict lj1_in,
                         const __global numtyp4 *restrict lj3_in,
                         const __global numtyp4 *restrict ljsw,
-                        const __global numtyp4 *restrict ljsw0,
+                        const __global numtyp2 *restrict ljsw0,
                         const __global numtyp *restrict sp_lj_in,
                         const __global int * dev_nbor,
                         const __global int * dev_packed,
@@ -167,8 +169,9 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
-    numtyp factor_lj;
+    numtyp force, r6inv, factor_lj, forcelj;
     numtyp r, t, tsq, fskin;
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int j=dev_packed[nbor];
@@ -185,21 +188,20 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<lj1[mtype].z) {
-        numtyp force, r6inv;
         numtyp r2inv=ucl_recip(rsq);
         if (rsq < lj1[mtype].w) {
           r6inv = r2inv*r2inv*r2inv;
-          force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
+          forcelj = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);
         }
         else {
           r = sqrt(rsq);
           t = r - ljsw0[mtype].y; //?
-          //printf("%f\n", r - lj3[mtype].w);
           tsq = t*t;
           fskin = ljsw[mtype].x + ljsw[mtype].y*t +
             ljsw[mtype].z*tsq + ljsw[mtype].w*tsq*t;
-          force = factor_lj*r2inv*fskin*r;
+          forcelj = fskin*r;
         }
+        force = factor_lj*r2inv*forcelj;
 
         f.x+=delx*force;
         f.y+=dely*force;
@@ -212,9 +214,8 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
           else
             e = ljsw0[mtype].x - ljsw[mtype].x*t - 
               ljsw[mtype].y*tsq/2.0 - ljsw[mtype].z*tsq*t/3.0 -
-              ljsw[mtype].z*tsq*tsq/4.0 - lj3[mtype].z; //???
+              ljsw[mtype].w*tsq*tsq/4.0 - lj3[mtype].z; //???
 
-          //numtyp e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
           energy+=factor_lj*e;
         }
         if (vflag>0) {
@@ -232,4 +233,3 @@ __kernel void k_lj_smooth_fast(const __global numtyp4 *restrict x_,
                   ans,engv);
   } // if ii
 }
-

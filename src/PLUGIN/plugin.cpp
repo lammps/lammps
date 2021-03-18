@@ -19,7 +19,6 @@
 #include "force.h"
 #include "lammps.h"
 #include "modify.h"
-#include "pair.h"
 
 #include <map>
 #include <list>
@@ -179,6 +178,46 @@ namespace LAMMPS_NS
       }
       (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator.v1;
 
+    } else if (pstyle == "bond") {
+      auto bond_map = lmp->force->bond_map;
+      if (bond_map->find(plugin->name) != bond_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in bond "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+      (*bond_map)[plugin->name] = (Force::BondCreator)plugin->creator.v1;
+
+    } else if (pstyle == "angle") {
+      auto angle_map = lmp->force->angle_map;
+      if (angle_map->find(plugin->name) != angle_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in angle "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+      (*angle_map)[plugin->name] = (Force::AngleCreator)plugin->creator.v1;
+
+    } else if (pstyle == "dihedral") {
+      auto dihedral_map = lmp->force->dihedral_map;
+      if (dihedral_map->find(plugin->name) != dihedral_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in dihedral "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+      (*dihedral_map)[plugin->name] = (Force::DihedralCreator)plugin->creator.v1;
+
+    } else if (pstyle == "improper") {
+      auto improper_map = lmp->force->improper_map;
+      if (improper_map->find(plugin->name) != improper_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in improper "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+      (*improper_map)[plugin->name] = (Force::ImproperCreator)plugin->creator.v1;
+
     } else if (pstyle == "fix") {
       auto fix_map = lmp->modify->fix_map;
       if (fix_map->find(plugin->name) != fix_map->end()) {
@@ -219,8 +258,9 @@ namespace LAMMPS_NS
     int me = lmp->comm->me;
 
     // ignore unload request from unsupported style categories
-    if ((strcmp(style,"pair") != 0)
-        && (strcmp(style,"fix") != 0)
+    if ((strcmp(style,"pair") != 0) && (strcmp(style,"bond") != 0)
+        && (strcmp(style,"angle") != 0) && (strcmp(style,"dihedral") != 0)
+        && (strcmp(style,"improper") != 0) && (strcmp(style,"fix") != 0)
         && (strcmp(style,"command") != 0)) {
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Ignoring unload: {} is not a "
@@ -268,6 +308,54 @@ namespace LAMMPS_NS
             lmp->force->create_pair("none",0);
         }
       }
+
+    } else if (pstyle == "bond") {
+
+      auto found = lmp->force->bond_map->find(name);
+      if (found != lmp->force->bond_map->end())
+        lmp->force->bond_map->erase(found);
+
+      // must delete bond style instance if in use
+
+      if ((lmp->force->bond_style != nullptr)
+          && (lmp->force->bond_match(name) != nullptr))
+        lmp->force->create_bond("none",0);
+
+    } else if (pstyle == "angle") {
+
+      auto found = lmp->force->angle_map->find(name);
+      if (found != lmp->force->angle_map->end())
+        lmp->force->angle_map->erase(found);
+
+      // must delete angle style instance if in use
+
+      if ((lmp->force->angle_style != nullptr)
+          && (lmp->force->angle_match(name) != nullptr))
+        lmp->force->create_angle("none",0);
+
+    } else if (pstyle == "dihedral") {
+
+      auto found = lmp->force->dihedral_map->find(name);
+      if (found != lmp->force->dihedral_map->end())
+        lmp->force->dihedral_map->erase(found);
+
+      // must delete dihedral style instance if in use
+
+      if ((lmp->force->dihedral_style)
+          && (lmp->force->dihedral_match(name) != nullptr))
+        lmp->force->create_dihedral("none",0);
+
+    } else if (pstyle == "improper") {
+
+      auto found = lmp->force->improper_map->find(name);
+      if (found != lmp->force->improper_map->end())
+        lmp->force->improper_map->erase(found);
+
+      // must delete improper style instance if in use
+
+      if ((lmp->force->improper_style != nullptr)
+          && (lmp->force->improper_match(name) != nullptr))
+        lmp->force->create_improper("none",0);
 
     } else if (pstyle == "fix") {
 

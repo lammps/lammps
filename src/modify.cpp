@@ -1099,11 +1099,9 @@ int Modify::find_fix(const std::string &id)
 
 int Modify::find_fix_by_style(const char *style)
 {
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style,style)) break;
-  if (ifix == nfix) return -1;
-  return ifix;
+  for (int ifix = 0; ifix < nfix; ifix++)
+    if (utils::strmatch(fix[ifix]->style,style)) return ifix;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1359,11 +1357,9 @@ int Modify::find_compute(const std::string &id)
 
 int Modify::find_compute_by_style(const char *style)
 {
-  int icompute;
-  for (icompute = 0; icompute < ncompute; icompute++)
-    if (utils::strmatch(compute[icompute]->style,style)) break;
-  if (icompute == ncompute) return -1;
-  return icompute;
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (utils::strmatch(compute[icompute]->style,style)) return icompute;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

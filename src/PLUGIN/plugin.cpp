@@ -14,6 +14,7 @@
 #include "plugin.h"
 
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "input.h"
 #include "force.h"
@@ -238,6 +239,16 @@ namespace LAMMPS_NS
       }
       (*fix_map)[plugin->name] = (Modify::FixCreator)plugin->creator.v2;
 
+    } else if (pstyle == "region") {
+      auto region_map = lmp->domain->region_map;
+      if (region_map->find(plugin->name) != region_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in region "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+      (*region_map)[plugin->name] = (Domain::RegionCreator)plugin->creator.v2;
+
     } else if (pstyle == "command") {
       auto command_map = lmp->input->command_map;
       if (command_map->find(plugin->name) != command_map->end()) {
@@ -271,7 +282,7 @@ namespace LAMMPS_NS
     if ((strcmp(style,"pair") != 0) && (strcmp(style,"bond") != 0)
         && (strcmp(style,"angle") != 0) && (strcmp(style,"dihedral") != 0)
         && (strcmp(style,"improper") != 0) && (strcmp(style,"compute") != 0)
-        && (strcmp(style,"fix") != 0)
+        && (strcmp(style,"fix") != 0) && (strcmp(style,"region") != 0)
         && (strcmp(style,"command") != 0)) {
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Ignoring unload: {} is not a "
@@ -387,6 +398,16 @@ namespace LAMMPS_NS
       for (int ifix = lmp->modify->find_fix_by_style(name);
            ifix >= 0; ifix = lmp->modify->find_fix_by_style(name))
         lmp->modify->delete_fix(ifix);
+
+    } else if (pstyle == "region") {
+
+      auto region_map = lmp->domain->region_map;
+      auto found = region_map->find(name);
+      if (found != region_map->end()) region_map->erase(name);
+
+      for (int iregion = lmp->domain->find_region_by_style(name);
+           iregion >= 0; iregion = lmp->domain->find_region_by_style(name))
+        lmp->domain->delete_region(iregion);
 
     } else if (pstyle == "command") {
 

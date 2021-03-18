@@ -119,38 +119,36 @@ void KimQuery::command(int narg, char **arg)
     }
     ++arg;
     --narg;
-  // The “list” is the default setting
+  // The "list" is the default setting
   // the result is returned as a space-separated list of values in a variable
   } else format_arg = "list";
 
-  std::string query_function{arg[1]};
+  std::string query_function(arg[1]);
   if (query_function == "split" || query_function == "list" ||
-      query_function == "index") {
-    auto msg = fmt::format("Illegal 'kim query' command.\nThe '{}' keyword "
-      "can not be used after '{}'", query_function, format_arg);
-    error->all(FLERR, msg);
-  }
+      query_function == "index")
+    error->all(FLERR, fmt::format("Illegal 'kim query' command.\nThe '{}' "
+                                  "keyword can not be used after '{}'",
+                                  query_function, format_arg));
 
   std::string model_name;
 
   // check the query_args format (a series of keyword=value pairs)
   for (int i = 2; i < narg; ++i) {
-    if (!utils::strmatch(arg[i], "[=][\\[].*[\\]]")) {
-      auto msg = fmt::format("Illegal query format.\nInput argument "
-        "of `{}` to 'kim query' is wrong. The query format is the "
-        "keyword=[value], where value is always an array of one or "
-        "more comma-separated items", arg[i]);
-      error->all(FLERR, msg);
-    }
+    if (!utils::strmatch(arg[i], "[=][\\[].*[\\]]"))
+      error->all(FLERR, fmt::format("Illegal query format.\nInput argument "
+                                    "of `{}` to 'kim query' is wrong. The "
+                                    "query format is the keyword=[value], "
+                                    "where value is always an array of one or "
+                                    "more comma-separated items", arg[i]));
   }
 
   if (query_function != "get_available_models") {
     for (int i = 2; i < narg; ++i) {
       // check if the model is specified as an argument
       if (utils::strmatch(arg[i], "^model=")) {
-        ValueTokenizer values(arg[i], "=[]");
-        std::string key = values.next_string();
-        model_name = values.next_string();
+        Tokenizer values(arg[i], "=[]");
+        values.skip(1);
+        model_name = values.next();
         break;
       }
     }
@@ -161,12 +159,12 @@ void KimQuery::command(int narg, char **arg)
       if (ifix >= 0) {
         FixStoreKIM *fix_store = (FixStoreKIM *) modify->fix[ifix];
         char *model_name_c = (char *) fix_store->getptr("model_name");
-        model_name = fmt::format("{}", model_name_c);
+        model_name = model_name_c;
       } else {
-        auto msg = fmt::format("Illegal query format.\nMust use 'kim init' "
-         "before 'kim query' or must provide the model name after query "
-         "function with the format of 'model=[model_name]'");
-        error->all(FLERR, msg);
+        error->all(FLERR, "Illegal query format.\nMust use 'kim init' "
+                   "before 'kim query' or must provide the model name "
+                   "after query function with the format of "
+                   "'model=[model_name]'");
       }
     }
   }
@@ -185,31 +183,30 @@ void KimQuery::command(int narg, char **arg)
     error->all(FLERR, msg);
   } else if (strcmp(value, "EMPTY") == 0) {
     delete [] value;
-    error->all(FLERR, fmt::format("OpenKIM query returned no results"));
+    error->all(FLERR, "OpenKIM query returned no results");
   }
 
   input->write_echo("#=== BEGIN kim-query =================================="
                     "=======\n");
   // trim list of models to those that are installed on the system
   if (query_function == "get_available_models") {
-    ValueTokenizer vals(value, ", \"");
+    Tokenizer vals(value, ", \"");
     std::string available;
     std::string missing;
 
-    KIM_Collections * collections;
+    KIM_Collections *collections;
     KIM_CollectionItemType typ;
 
     if (KIM_Collections_Create(&collections)) {
       delete [] value;
-      error->all(FLERR,
-        fmt::format("Unable to access KIM Collections to find Model"));
+      error->all(FLERR, "Unable to access KIM Collections to find Model");
     }
 
     auto logID = fmt::format("{}_Collections", comm->me);
     KIM_Collections_SetLogID(collections, logID.c_str());
 
     while (vals.has_next()) {
-      auto svalue = vals.next_string();
+      auto svalue = vals.next();
       if (KIM_Collections_GetItemType(collections, svalue.c_str(), &typ))
         missing += fmt::format("{}, ", svalue);
       else
@@ -220,34 +217,34 @@ void KimQuery::command(int narg, char **arg)
     input->write_echo(
       fmt::format("# Missing OpenKIM models:   {}\n\n", missing));
 
-    if (available.empty())
-      error->all(FLERR,
-        fmt::format(
-            "There are no matching OpenKIM models installed on the system"));
+    if (available.empty()) {
+      delete [] value;
+      error->all(FLERR,"There are no matching OpenKIM models installed on the system");
+    }
 
     // replace results with available
     strcpy(value, available.c_str());  // available guaranteed to fit
   };
 
-  ValueTokenizer values(value, ",");
+  Tokenizer values(value, ",");
   if (format_arg == "split") {
     int counter = 1;
     while (values.has_next()) {
-      auto svalue = values.next_string();
+      auto svalue = values.next();
       auto setcmd = fmt::format("{}_{} string {}", var_name, counter++, svalue);
       input->variable->set(setcmd);
       input->write_echo(fmt::format("variable {}\n", setcmd));
     }
   } else {
     std::string setcmd;
-    auto svalue = utils::trim(values.next_string());
+    auto svalue = utils::trim(values.next());
     if (format_arg == "list") {
       setcmd = fmt::format("{} string \"", var_name);
       setcmd += (svalue.front() == '"' && svalue.back() == '"')
         ? fmt::format("{}", svalue.substr(1, svalue.size() - 2))
         : fmt::format("{}", svalue);
       while (values.has_next()) {
-        svalue = utils::trim(values.next_string());
+        svalue = utils::trim(values.next());
         setcmd += (svalue.front() == '"' && svalue.back() == '"')
           ? fmt::format(" {}", svalue.substr(1, svalue.size() - 2))
           : fmt::format(" {}", svalue);
@@ -257,7 +254,7 @@ void KimQuery::command(int narg, char **arg)
       // format_arg == "index"
       setcmd = fmt::format("{} index {}", var_name, svalue);
       while (values.has_next()) {
-        svalue = values.next_string();
+        svalue = values.next();
         setcmd += fmt::format(" {}", svalue);
       }
     }

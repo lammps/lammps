@@ -337,6 +337,7 @@ void Info::command(int narg, char **arg)
       mesg = "KOKKOS package API:";
       if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
       if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
+      if (has_accelerator_feature("KOKKOS","api","sycl"))     mesg += " SYCL";
       if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
       if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
       if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
@@ -1219,6 +1220,9 @@ bool Info::has_accelerator_feature(const std::string &package,
 #endif
 #if defined(KOKKOS_ENABLE_HIP)
       if (setting == "hip") return true;
+#endif
+#if defined(KOKKOS_ENABLE_SYCL)
+      if (setting == "sycl") return true;
 #endif
       return false;
     }

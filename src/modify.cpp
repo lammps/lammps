@@ -1069,10 +1069,12 @@ void Modify::delete_fix(const std::string &id)
 
 void Modify::delete_fix(int ifix)
 {
-  if (fix[ifix]) delete fix[ifix];
-  atom->update_callback(ifix);
+  if ((ifix < 0) || (ifix >= nfix)) return;
 
-  // move other Fixes and fmask down in list one slot
+  // delete instance and move other Fixes and fmask down in list one slot
+
+  delete fix[ifix];
+  atom->update_callback(ifix);
 
   for (int i = ifix+1; i < nfix; i++) fix[i-1] = fix[i];
   for (int i = ifix+1; i < nfix; i++) fmask[i-1] = fmask[i];
@@ -1329,10 +1331,11 @@ void Modify::delete_compute(const std::string &id)
 
 void Modify::delete_compute(int icompute)
 {
-  if (compute[icompute]) delete compute[icompute];
+  if ((icompute < 0) || (icompute >= ncompute)) return;
 
-  // move other Computes down in list one slot
+  // delete and move other Computes down in list one slot
 
+  delete compute[icompute];
   for (int i = icompute+1; i < ncompute; i++) compute[i-1] = compute[i];
   ncompute--;
 }

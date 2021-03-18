@@ -218,6 +218,16 @@ namespace LAMMPS_NS
       }
       (*improper_map)[plugin->name] = (Force::ImproperCreator)plugin->creator.v1;
 
+    } else if (pstyle == "compute") {
+      auto compute_map = lmp->modify->compute_map;
+      if (compute_map->find(plugin->name) != compute_map->end()) {
+        if (lmp->comm->me == 0)
+          lmp->error->warning(FLERR,fmt::format("Overriding built-in compute "
+                                                "style {} from plugin",
+                                                plugin->name));
+      }
+      (*compute_map)[plugin->name] = (Modify::ComputeCreator)plugin->creator.v2;
+
     } else if (pstyle == "fix") {
       auto fix_map = lmp->modify->fix_map;
       if (fix_map->find(plugin->name) != fix_map->end()) {
@@ -260,7 +270,8 @@ namespace LAMMPS_NS
     // ignore unload request from unsupported style categories
     if ((strcmp(style,"pair") != 0) && (strcmp(style,"bond") != 0)
         && (strcmp(style,"angle") != 0) && (strcmp(style,"dihedral") != 0)
-        && (strcmp(style,"improper") != 0) && (strcmp(style,"fix") != 0)
+        && (strcmp(style,"improper") != 0) && (strcmp(style,"compute") != 0)
+        && (strcmp(style,"fix") != 0)
         && (strcmp(style,"command") != 0)) {
       if (me == 0)
         utils::logmesg(lmp,fmt::format("Ignoring unload: {} is not a "
@@ -356,6 +367,16 @@ namespace LAMMPS_NS
       if ((lmp->force->improper_style != nullptr)
           && (lmp->force->improper_match(name) != nullptr))
         lmp->force->create_improper("none",0);
+
+    } else if (pstyle == "compute") {
+
+      auto compute_map = lmp->modify->compute_map;
+      auto found = compute_map->find(name);
+      if (found != compute_map->end()) compute_map->erase(name);
+
+      for (int icompute = lmp->modify->find_compute_by_style(name);
+           icompute >= 0; icompute = lmp->modify->find_compute_by_style(name))
+        lmp->modify->delete_compute(icompute);
 
     } else if (pstyle == "fix") {
 

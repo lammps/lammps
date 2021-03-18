@@ -85,9 +85,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     cstyle = ORIENT;
     if (narg != 6) error->all(FLERR,"Illegal compute coord/atom command");
 
-    int n = strlen(arg[4]) + 1;
-    id_orientorder = new char[n];
-    strcpy(id_orientorder,arg[4]);
+    id_orientorder = utils::strdup(arg[4]);
 
     int iorientorder = modify->find_compute(id_orientorder);
     if (iorientorder < 0)

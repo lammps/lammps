@@ -53,9 +53,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
-    int n = strlen(arg[3]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
+    id_temp = utils::strdup(arg[3]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -82,10 +80,10 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
       else if (strcmp(arg[iarg],"pair/hybrid") == 0) {
-        int n = strlen(arg[++iarg]) + 1;
-        if (lmp->suffix) n += strlen(lmp->suffix) + 1;
-        pstyle = new char[n];
-        strcpy(pstyle,arg[iarg++]);
+        if (lmp->suffix)
+          pstyle = utils::strdup(fmt::format("{}/{}",arg[++iarg],lmp->suffix));
+        else
+          pstyle = utils::strdup(arg[++iarg]);
 
         nsub = 0;
 
@@ -102,8 +100,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
 
         pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
         if (!pairhybrid && lmp->suffix) {
-          strcat(pstyle,"/");
-          strcat(pstyle,lmp->suffix);
+          pstyle[strlen(pstyle) - strlen(lmp->suffix) - 1] = '\0';
           pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
         }
 

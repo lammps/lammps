@@ -54,10 +54,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
-  int n = strlen(arg[3]) + 1;
-  group2 = new char[n];
-  strcpy(group2,arg[3]);
-
+  group2 = utils::strdup(arg[3]);
   jgroup = group->find(group2);
   if (jgroup == -1)
     error->all(FLERR,"Compute group/group group ID does not exist");

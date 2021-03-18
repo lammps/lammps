@@ -1326,7 +1326,12 @@ void Modify::delete_compute(const std::string &id)
 {
   int icompute = find_compute(id);
   if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
-  delete compute[icompute];
+  delete_compute(icompute);
+}
+
+void Modify::delete_compute(int icompute)
+{
+  if (compute[icompute]) delete compute[icompute];
 
   // move other Computes down in list one slot
 
@@ -1345,6 +1350,20 @@ int Modify::find_compute(const std::string &id)
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (id == compute[icompute]->id) return icompute;
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   find a compute by style
+   return index of compute or -1 if not found
+------------------------------------------------------------------------- */
+
+int Modify::find_compute_by_style(const char *style)
+{
+  int icompute;
+  for (icompute = 0; icompute < ncompute; icompute++)
+    if (utils::strmatch(compute[icompute]->style,style)) break;
+  if (icompute == ncompute) return -1;
+  return icompute;
 }
 
 /* ----------------------------------------------------------------------

@@ -409,7 +409,7 @@ void Neighbor::init()
           ri = collection2cut[i]*0.5;
           for(j = 0; j < ncollections; j++){
             rj = collection2cut[j]*0.5;
-            tmp = force->pair->radii2cut(ri, rj);
+            tmp = force->pair->radii2cut(ri, rj) + skin;
             cutcollectionsq[i][j] = tmp*tmp;                                            
           }
         }  
@@ -425,7 +425,8 @@ void Neighbor::init()
         
         double cuttmp;
         for(i = 1; i <= n; i++){
-          cuttmp = sqrt(cutneighsq[i][i]);
+          // Remove skin added to cutneighsq
+          cuttmp = sqrt(cutneighsq[i][i]) - skin;
           for(icollection = 0; icollection < ncollections; icollection ++){
             if(collection2cut[icollection] >= cuttmp) {
               type2collection[i] = icollection;

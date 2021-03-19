@@ -197,70 +197,60 @@ bool ValueTokenizer::contains(const std::string &value) const {
  *
  * \return   string with next token */
 std::string ValueTokenizer::next_string() {
-    if (has_next()) {
-        std::string value = tokens.next();
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string value = tokens.next();
+    return value;
 }
 
 /*! Retrieve next token and convert to int
  *
  * \return   value of next token */
 int ValueTokenizer::next_int() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        int value = atoi(current.c_str());
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string current = tokens.next();
+    if (utils::has_utf8(current)) current = utils::utf8_subst(current);
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
+    }
+    int value = atoi(current.c_str());
+    return value;
 }
 
 /*! Retrieve next token and convert to bigint
  *
  * \return   value of next token */
 bigint ValueTokenizer::next_bigint() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        bigint value = ATOBIGINT(current.c_str());
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string current = tokens.next();
+    if (utils::has_utf8(current)) current = utils::utf8_subst(current);
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
+    }
+    bigint value = ATOBIGINT(current.c_str());
+    return value;
 }
 
 /*! Retrieve next token and convert to tagint
  *
  * \return   value of next token */
 tagint ValueTokenizer::next_tagint() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        tagint value = ATOTAGINT(current.c_str());
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string current = tokens.next();
+    if (utils::has_utf8(current)) current = utils::utf8_subst(current);
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
+    }
+    tagint value = ATOTAGINT(current.c_str());
+    return value;
 }
 
 /*! Retrieve next token and convert to double
  *
  * \return   value of next token */
 double ValueTokenizer::next_double() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
-        if (!utils::is_double(current)) {
-            throw InvalidFloatException(current);
-        }
-        double value = atof(current.c_str());
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string current = tokens.next();
+    if (utils::has_utf8(current)) current = utils::utf8_subst(current);
+    if (!utils::is_double(current)) {
+        throw InvalidFloatException(current);
+    }
+    double value = atof(current.c_str());
+    return value;
 }
 
 /*! Skip over a given number of tokens

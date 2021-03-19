@@ -373,16 +373,18 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::compute(int eflag_in,
         //Compute beta = dE_i/dB_i for all i in list
         typename Kokkos::RangePolicy<DeviceType,TagPairSNAPBeta> policy_beta(0,chunk_size);
         Kokkos::parallel_for("ComputeBeta",policy_beta,*this);
-
-        //ComputeYi
-        // team_size_compute_yi is defined in `pair_snap_kokkos.h`
         const int idxz_max = snaKK.idxz_max;
-        Snap3DRangePolicy<DeviceType, tile_size_compute_yi, TagPairSNAPComputeYi>
-            policy_compute_yi({0,0,0},{vector_length,idxz_max,chunk_size_div},{vector_length,tile_size_compute_yi,1});
-        Kokkos::parallel_for("ComputeYi",policy_compute_yi,*this);
-
+        if (quadraticflag || eflag) {
+          Snap3DRangePolicy<DeviceType, tile_size_compute_yi, TagPairSNAPComputeYiWithZlist>
+              policy_compute_yi({0,0,0},{vector_length,idxz_max,chunk_size_div},{vector_length,tile_size_compute_yi,1});
+          Kokkos::parallel_for("ComputeYiWithZlist",policy_compute_yi,*this);
+        } else {
+          Snap3DRangePolicy<DeviceType, tile_size_compute_yi, TagPairSNAPComputeYi>
+              policy_compute_yi({0,0,0},{vector_length,idxz_max,chunk_size_div},{vector_length,tile_size_compute_yi,1});
+          Kokkos::parallel_for("ComputeYi",policy_compute_yi,*this);
+        }
       }
-
+        
       // Fused ComputeDuidrj, ComputeDeidrj
       {
         // team_size_compute_fused_deidrj is defined in `pair_snap_kokkos.h`
@@ -794,6 +796,19 @@ void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSN
   if (jjz >= my_sna.idxz_max) return;
 
   my_sna.compute_yi(iatom_mod,jjz,iatom_div,d_beta_pack);
+}
+
+template<class DeviceType, typename real_type, int vector_length>
+KOKKOS_INLINE_FUNCTION
+void PairSNAPKokkos<DeviceType, real_type, vector_length>::operator() (TagPairSNAPComputeYiWithZlist,const int iatom_mod, const int jjz, const int iatom_div) const {
+  SNAKokkos<DeviceType, real_type, vector_length> my_sna = snaKK;
+
+  const int iatom = iatom_mod + iatom_div * vector_length;
+  if (iatom >= chunk_size) return;
+
+  if (jjz >= my_sna.idxz_max) return;
+
+  my_sna.compute_yi_with_zlist(iatom_mod,jjz,iatom_div,d_beta_pack);
 }
 
 template<class DeviceType, typename real_type, int vector_length>

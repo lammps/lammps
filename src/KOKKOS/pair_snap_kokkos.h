@@ -50,6 +50,7 @@ struct TagPairSNAPBeta{};
 struct TagPairSNAPComputeBi{};
 struct TagPairSNAPTransformBi{}; // re-order blist from AoSoA to AoS
 struct TagPairSNAPComputeYi{};
+struct TagPairSNAPComputeYiWithZlist{};
 template<int dir>
 struct TagPairSNAPComputeFusedDeidrj{};
 
@@ -160,6 +161,9 @@ public:
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeYi,const int iatom_mod, const int idxz, const int iatom_div) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeYiWithZlist,const int iatom_mod, const int idxz, const int iatom_div) const;
 
   template<int dir>
   KOKKOS_INLINE_FUNCTION

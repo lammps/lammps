@@ -201,7 +201,6 @@ std::string ValueTokenizer::next_string() {
         std::string value = tokens.next();
         return value;
     } throw TokenizerException("Not enough tokens","");
-    return "";
 }
 
 /*! Retrieve next token and convert to int
@@ -217,7 +216,6 @@ int ValueTokenizer::next_int() {
         int value = atoi(current.c_str());
         return value;
     } throw TokenizerException("Not enough tokens","");
-    return 0;
 }
 
 /*! Retrieve next token and convert to bigint
@@ -233,7 +231,6 @@ bigint ValueTokenizer::next_bigint() {
         bigint value = ATOBIGINT(current.c_str());
         return value;
     } throw TokenizerException("Not enough tokens","");
-    return 0;
 }
 
 /*! Retrieve next token and convert to tagint
@@ -249,7 +246,6 @@ tagint ValueTokenizer::next_tagint() {
         tagint value = ATOTAGINT(current.c_str());
         return value;
     } throw TokenizerException("Not enough tokens","");
-    return 0;
 }
 
 /*! Retrieve next token and convert to double
@@ -265,7 +261,6 @@ double ValueTokenizer::next_double() {
         double value = atof(current.c_str());
         return value;
     } throw TokenizerException("Not enough tokens","");
-    return 0.0;
 }
 
 /*! Skip over a given number of tokens

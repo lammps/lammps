@@ -444,12 +444,11 @@ is passed to :cpp:func:`lammps_commands_string` for processing.
 
 void lammps_commands_list(void *handle, int ncmd, const char **cmds)
 {
-  LAMMPS *lmp = (LAMMPS *) handle;
   std::string allcmds;
 
   for (int i = 0; i < ncmd; i++) {
     allcmds.append(cmds[i]);
-    if (allcmds.back() != '\n') allcmds.append(1,'\n');
+    if (allcmds.empty() || (allcmds.back() != '\n')) allcmds.append(1,'\n');
   }
 
   lammps_commands_string(handle,allcmds.c_str());

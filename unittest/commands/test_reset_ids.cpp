@@ -482,8 +482,6 @@ TEST_F(ResetIDsTest, TopologyData)
 
     auto num_bond     = lmp->atom->num_bond;
     auto num_angle    = lmp->atom->num_angle;
-    auto num_dihedral = lmp->atom->num_dihedral;
-    auto num_improper = lmp->atom->num_improper;
     auto bond_atom    = lmp->atom->bond_atom;
     auto angle_atom1  = lmp->atom->angle_atom1;
     auto angle_atom2  = lmp->atom->angle_atom2;
@@ -568,8 +566,6 @@ TEST_F(ResetIDsTest, TopologyData)
 
     num_bond     = lmp->atom->num_bond;
     num_angle    = lmp->atom->num_angle;
-    num_dihedral = lmp->atom->num_dihedral;
-    num_improper = lmp->atom->num_improper;
     bond_atom    = lmp->atom->bond_atom;
     angle_atom1  = lmp->atom->angle_atom1;
     angle_atom2  = lmp->atom->angle_atom2;

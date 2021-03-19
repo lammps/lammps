@@ -473,6 +473,7 @@ int utils::expand_args(const char *file, int line, int narg, char **arg,
 
   for (iarg = 0; iarg < narg; iarg++) {
     std::string word(arg[iarg]);
+    expandflag = 0;
 
     // only match compute/fix reference with a '*' wildcard
     // number range in the first pair of square brackets

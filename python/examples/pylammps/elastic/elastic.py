@@ -6,7 +6,7 @@ def potential(lmp, args):
     """ set up potential and minimization """
     ff_string = ' '
     ff_string = ff_string.join(args.elements) # merge all element string to one string
-    lmp.kim_interactions(ff_string)
+    lmp.kim("interactions", ff_string)
 
     # Setup neighbor style
     lmp.neighbor(1.0, "nsq")
@@ -36,7 +36,7 @@ def displace(lmp, args, idir):
     # Reset box and simulation parameters
     lmp.clear()
     lmp.box("tilt large")
-    lmp.kim_init(args.kim_model, "metal", "unit_conversion_mode")
+    lmp.kim("init", args.kim_model, "metal", "unit_conversion_mode")
     lmp.read_restart("restart.equil")
     lmp.change_box("all triclinic")
     potential(lmp, args)
@@ -83,7 +83,7 @@ def displace(lmp, args, idir):
     # Reset box and simulation parameters
     lmp.clear()
     lmp.box("tilt large")
-    lmp.kim_init(args.kim_model, "metal", "unit_conversion_mode")
+    lmp.kim("init", args.kim_model, "metal", "unit_conversion_mode")
     lmp.read_restart("restart.equil")
     lmp.change_box("all triclinic")
     potential(lmp, args)

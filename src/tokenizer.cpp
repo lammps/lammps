@@ -35,12 +35,14 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
 /** Class for splitting text into words
  *
  * This tokenizer will break down a string into sub-strings (i.e words)
- * separated by the given separator characters.
+ * separated by the given separator characters. If the string contains
+ * certain known UTF-8 characters they will be replaced by their ASCII
+ * equivalents processing the string.
  *
 \verbatim embed:rst
 
 *See also*
-   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`
+   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`, :cpp:func:`utils::utf8_subst`
 
 \endverbatim
  *
@@ -50,6 +52,8 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
 Tokenizer::Tokenizer(const std::string &str, const std::string &separators) :
     text(str), separators(separators), start(0), ntokens(std::string::npos)
 {
+    // replace known UTF-8 characters with ASCII equivalents
+    if (utils::has_utf8(text)) text = utils::utf8_subst(text);
     reset();
 }
 
@@ -205,7 +209,6 @@ std::string ValueTokenizer::next_string() {
  * \return   value of next token */
 int ValueTokenizer::next_int() {
     std::string current = tokens.next();
-    if (utils::has_utf8(current)) current = utils::utf8_subst(current);
     if (!utils::is_integer(current)) {
         throw InvalidIntegerException(current);
     }
@@ -217,7 +220,6 @@ int ValueTokenizer::next_int() {
  * \return   value of next token */
 bigint ValueTokenizer::next_bigint() {
     std::string current = tokens.next();
-    if (utils::has_utf8(current)) current = utils::utf8_subst(current);
     if (!utils::is_integer(current)) {
         throw InvalidIntegerException(current);
     }
@@ -229,7 +231,6 @@ bigint ValueTokenizer::next_bigint() {
  * \return   value of next token */
 tagint ValueTokenizer::next_tagint() {
     std::string current = tokens.next();
-    if (utils::has_utf8(current)) current = utils::utf8_subst(current);
     if (!utils::is_integer(current)) {
         throw InvalidIntegerException(current);
     }
@@ -241,7 +242,6 @@ tagint ValueTokenizer::next_tagint() {
  * \return   value of next token */
 double ValueTokenizer::next_double() {
     std::string current = tokens.next();
-    if (utils::has_utf8(current)) current = utils::utf8_subst(current);
     if (!utils::is_double(current)) {
         throw InvalidFloatException(current);
     }

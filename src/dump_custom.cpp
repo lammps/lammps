@@ -285,7 +285,7 @@ void DumpCustom::init_style()
     else if (vtype[i] == Dump::DOUBLE && format_float_user)
       vformat[i] = utils::strdup(std::string(format_float_user) + " ");
     else if (vtype[i] == Dump::BIGINT && format_bigint_user)
-      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
     else vformat[i] = utils::strdup(word + " ");
 
     // remove trailing blank on last column's format

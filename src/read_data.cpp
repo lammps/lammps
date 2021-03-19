@@ -337,6 +337,12 @@ void ReadData::command(int narg, char **arg)
   Dihedral *saved_dihedral = nullptr;
   Improper *saved_improper = nullptr;
   KSpace *saved_kspace = nullptr;
+  char *saved_pair_style = nullptr;
+  char *saved_bond_style = nullptr;
+  char *saved_angle_style = nullptr;
+  char *saved_dihedral_style = nullptr;
+  char *saved_improper_style = nullptr;
+  char *saved_kspace_style = nullptr;
 
   if (coeffflag == 0) {
     char *coeffs[2];
@@ -344,33 +350,45 @@ void ReadData::command(int narg, char **arg)
     coeffs[1] = (char *) "nocoeff";
 
     saved_pair = force->pair;
+    saved_pair_style = force->pair_style;
     force->pair = nullptr;
+    force->pair_style = nullptr;
     force->create_pair("zero",0);
     if (force->pair) force->pair->settings(2,coeffs);
 
     coeffs[0] = coeffs[1];
     saved_bond = force->bond;
+    saved_bond_style = force->bond_style;
     force->bond = nullptr;
+    force->bond_style = nullptr;
     force->create_bond("zero",0);
     if (force->bond) force->bond->settings(1,coeffs);
 
     saved_angle = force->angle;
+    saved_angle_style = force->angle_style;
     force->angle = nullptr;
+    force->angle_style = nullptr;
     force->create_angle("zero",0);
     if (force->angle) force->angle->settings(1,coeffs);
 
     saved_dihedral = force->dihedral;
+    saved_dihedral_style = force->dihedral_style;
     force->dihedral = nullptr;
+    force->dihedral_style = nullptr;
     force->create_dihedral("zero",0);
     if (force->dihedral) force->dihedral->settings(1,coeffs);
 
     saved_improper = force->improper;
+    saved_improper_style = force->improper_style;
     force->improper = nullptr;
+    force->improper_style = nullptr;
     force->create_improper("zero",0);
     if (force->improper) force->improper->settings(1,coeffs);
 
     saved_kspace = force->kspace;
+    saved_kspace_style = force->kspace_style;
     force->kspace = nullptr;
+    force->kspace_style = nullptr;
   }
 
   // -----------------------------------------------------------------
@@ -873,20 +891,26 @@ void ReadData::command(int narg, char **arg)
   if (coeffflag == 0) {
     if (force->pair) delete force->pair;
     force->pair = saved_pair;
+    force->pair_style = saved_pair_style;
 
     if (force->bond) delete force->bond;
     force->bond = saved_bond;
+    force->bond_style = saved_bond_style;
 
     if (force->angle) delete force->angle;
     force->angle = saved_angle;
+    force->angle_style = saved_angle_style;
 
     if (force->dihedral) delete force->dihedral;
     force->dihedral = saved_dihedral;
+    force->dihedral_style = saved_dihedral_style;
 
     if (force->improper) delete force->improper;
     force->improper = saved_improper;
+    force->improper_style = saved_improper_style;
 
     force->kspace = saved_kspace;
+    force->kspace_style = saved_kspace_style;
   }
 
   // total time

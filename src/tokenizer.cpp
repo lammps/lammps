@@ -197,8 +197,7 @@ bool ValueTokenizer::contains(const std::string &value) const {
  *
  * \return   string with next token */
 std::string ValueTokenizer::next_string() {
-    std::string value = tokens.next();
-    return value;
+    return tokens.next();
 }
 
 /*! Retrieve next token and convert to int
@@ -210,8 +209,7 @@ int ValueTokenizer::next_int() {
     if (!utils::is_integer(current)) {
         throw InvalidIntegerException(current);
     }
-    int value = atoi(current.c_str());
-    return value;
+    return atoi(current.c_str());
 }
 
 /*! Retrieve next token and convert to bigint
@@ -223,8 +221,7 @@ bigint ValueTokenizer::next_bigint() {
     if (!utils::is_integer(current)) {
         throw InvalidIntegerException(current);
     }
-    bigint value = ATOBIGINT(current.c_str());
-    return value;
+    return ATOBIGINT(current.c_str());
 }
 
 /*! Retrieve next token and convert to tagint
@@ -236,8 +233,7 @@ tagint ValueTokenizer::next_tagint() {
     if (!utils::is_integer(current)) {
         throw InvalidIntegerException(current);
     }
-    tagint value = ATOTAGINT(current.c_str());
-    return value;
+    return ATOTAGINT(current.c_str());
 }
 
 /*! Retrieve next token and convert to double
@@ -249,8 +245,7 @@ double ValueTokenizer::next_double() {
     if (!utils::is_double(current)) {
         throw InvalidFloatException(current);
     }
-    double value = atof(current.c_str());
-    return value;
+    return atof(current.c_str());
 }
 
 /*! Skip over a given number of tokens

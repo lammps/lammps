@@ -965,7 +965,7 @@ void FixBondReact::post_integrate()
     // forward comm of partner, so ghosts have it
 
     commflag = 2;
-    comm->forward_comm_fix(this,2);
+    comm->forward_comm_fix(this,1);
 
     // consider for reaction:
     // only if both atoms list each other as winning bond partner

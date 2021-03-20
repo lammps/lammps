@@ -35,12 +35,14 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
 /** Class for splitting text into words
  *
  * This tokenizer will break down a string into sub-strings (i.e words)
- * separated by the given separator characters.
+ * separated by the given separator characters. If the string contains
+ * certain known UTF-8 characters they will be replaced by their ASCII
+ * equivalents processing the string.
  *
 \verbatim embed:rst
 
 *See also*
-   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`
+   :cpp:class:`ValueTokenizer`, :cpp:func:`utils::split_words`, :cpp:func:`utils::utf8_subst`
 
 \endverbatim
  *
@@ -50,6 +52,8 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
 Tokenizer::Tokenizer(const std::string &str, const std::string &separators) :
     text(str), separators(separators), start(0), ntokens(std::string::npos)
 {
+    // replace known UTF-8 characters with ASCII equivalents
+    if (utils::has_utf8(text)) text = utils::utf8_subst(text);
     reset();
 }
 
@@ -197,70 +201,51 @@ bool ValueTokenizer::contains(const std::string &value) const {
  *
  * \return   string with next token */
 std::string ValueTokenizer::next_string() {
-    if (has_next()) {
-        std::string value = tokens.next();
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    return tokens.next();
 }
 
 /*! Retrieve next token and convert to int
  *
  * \return   value of next token */
 int ValueTokenizer::next_int() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        int value = atoi(current.c_str());
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string current = tokens.next();
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
+    }
+    return atoi(current.c_str());
 }
 
 /*! Retrieve next token and convert to bigint
  *
  * \return   value of next token */
 bigint ValueTokenizer::next_bigint() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        bigint value = ATOBIGINT(current.c_str());
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string current = tokens.next();
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
+    }
+    return ATOBIGINT(current.c_str());
 }
 
 /*! Retrieve next token and convert to tagint
  *
  * \return   value of next token */
 tagint ValueTokenizer::next_tagint() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
-        if (!utils::is_integer(current)) {
-            throw InvalidIntegerException(current);
-        }
-        tagint value = ATOTAGINT(current.c_str());
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string current = tokens.next();
+    if (!utils::is_integer(current)) {
+        throw InvalidIntegerException(current);
+    }
+    return ATOTAGINT(current.c_str());
 }
 
 /*! Retrieve next token and convert to double
  *
  * \return   value of next token */
 double ValueTokenizer::next_double() {
-    if (has_next()) {
-        std::string current = tokens.next();
-        if (utils::has_utf8(current)) current = utils::utf8_subst(current);
-        if (!utils::is_double(current)) {
-            throw InvalidFloatException(current);
-        }
-        double value = atof(current.c_str());
-        return value;
-    } throw TokenizerException("Not enough tokens","");
+    std::string current = tokens.next();
+    if (!utils::is_double(current)) {
+        throw InvalidFloatException(current);
+    }
+    return atof(current.c_str());
 }
 
 /*! Skip over a given number of tokens

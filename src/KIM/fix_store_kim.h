@@ -13,7 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
+                         Ryan S. Elliott (UMN),
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -73,14 +74,14 @@ class FixStoreKIM : public Fix {
   ~FixStoreKIM();
   int setmask();
 
-  void  setptr(const char *, void *);
-  void *getptr(const char *);
+  void  setptr(const std::string &, void *);
+  void *getptr(const std::string &);
 
  private:
   void *simulator_model;        // pointer to KIM simulator model class
   void *model_name;             // string of KIM model name
-  void *model_units;            // string of unit conversion origin or NULL
-  void *user_units;             // string of unit conversion target or NULL
+  void *model_units;            // string of unit conversion origin or null pointer
+  void *user_units;             // string of unit conversion target or null pointer
 };
 
 }

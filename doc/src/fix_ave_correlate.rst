@@ -93,7 +93,7 @@ from a compute, fix, or variable, then see the :doc:`fix ave/chunk <fix_ave_chun
 :doc:`fix ave/histo <fix_ave_histo>` commands.  If you wish to convert a
 per-atom quantity into a single global value, see the :doc:`compute reduce <compute_reduce>` command.
 
-The input values must either be all scalars.  What kinds of
+The input values must be all scalars.  What kinds of
 correlations between input values are calculated is determined by the
 *type* keyword as discussed below.
 

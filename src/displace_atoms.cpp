@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,30 +12,28 @@
 ------------------------------------------------------------------------- */
 
 #include "displace_atoms.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "modify.h"
-#include "domain.h"
-#include "lattice.h"
-#include "comm.h"
-#include "irregular.h"
-#include "group.h"
-#include "math_const.h"
-#include "random_park.h"
-#include "force.h"
-#include "input.h"
-#include "variable.h"
+#include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "atom_vec_body.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "group.h"
+#include "input.h"
+#include "irregular.h"
+#include "lattice.h"
+#include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+#include "random_park.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -46,7 +44,7 @@ enum{MOVE,RAMP,RANDOM,ROTATE};
 
 DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp)
 {
-  mvec = NULL;
+  mvec = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -315,7 +313,7 @@ void DisplaceAtoms::command(int narg, char **arg)
         // quats for ellipsoids, tris, and bodies
 
         if (quat_flag) {
-          quat = NULL;
+          quat = nullptr;
           if (ellipsoid_flag && ellipsoid[i] >= 0)
             quat = avec_ellipsoid->bonus[ellipsoid[i]].quat;
           else if (tri_flag && tri[i] >= 0)
@@ -386,7 +384,7 @@ void DisplaceAtoms::move(int idim, char *arg, double scale)
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) x[i][idim] += delta;
     } else if (input->variable->atomstyle(ivar)) {
-      if (mvec == NULL) memory->create(mvec,nlocal,"displace_atoms:mvec");
+      if (mvec == nullptr) memory->create(mvec,nlocal,"displace_atoms:mvec");
       input->variable->compute_atom(ivar,igroup,mvec,1,0);
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) x[i][idim] += scale*mvec[i];

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,19 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_reflect_stochastic.h"
-#include <cstring>
-#include <cstdlib>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "lattice.h"
-#include "input.h"
-#include "variable.h"
 #include "random_mars.h"
-#include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +38,7 @@ enum{NONE,DIFFUSIVE,MAXWELL,CCL};
 
 FixWallReflectStochastic::
 FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
-  FixWallReflect(lmp, narg, arg), random(NULL)
+  FixWallReflect(lmp, narg, arg), random(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix wall/reflect/stochastic command");
 

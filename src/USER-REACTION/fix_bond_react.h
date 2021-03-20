@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing Author: Jacob Gissinger (jacob.gissinger@colorado.edu)
+   Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -31,7 +31,9 @@ namespace LAMMPS_NS {
 class FixBondReact : public Fix {
  public:
 
-  enum {MAXLINE=256};
+  enum {MAXLINE=256}; // max length of line read from files
+  enum {MAXCONIDS=4}; // max # of IDs used by any constraint
+  enum {MAXCONPAR=5}; // max # of constraint parameters
 
   FixBondReact(class LAMMPS *, int, char **);
   ~FixBondReact();
@@ -64,10 +66,15 @@ class FixBondReact : public Fix {
   int reset_mol_ids_flag;
   int custom_exclude_flag;
   int *stabilize_steps_flag;
-  int *update_edges_flag;
-  int nconstraints;
+  int *custom_charges_fragid;
+  int *create_atoms_flag;
+  int *modify_create_fragid;
+  double *overlapsq;
+  int *molecule_keyword;
+  int maxnconstraints;
+  int *nconstraints;
+  char **constraintstr;
   int narrhenius;
-  double **constraints;
   int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
   int *groupbits;
@@ -79,11 +86,11 @@ class FixBondReact : public Fix {
   int nmax; // max num local atoms
   int max_natoms; // max natoms in a molecule template
   tagint *partner,*finalpartner;
-  double **distsq,*probability;
-  int *ncreate;
-  int maxcreate;
-  int allncreate;
-  tagint ***created;
+  double **distsq;
+  int *nattempt;
+  int maxattempt;
+  int allnattempt;
+  tagint ***attempt;
 
   class Molecule *onemol; // pre-reacted molecule template
   class Molecule *twomol; // post-reacted molecule template
@@ -113,7 +120,7 @@ class FixBondReact : public Fix {
 
   int *ibonding,*jbonding;
   int *closeneigh; // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  int nedge,nequivalent,ncustom,ndelete,nchiral,nconstr; // # edge, equivalent, custom atoms in mapping file
+  int nedge,nequivalent,ndelete,ncreate,nchiral; // # edge, equivalent atoms in mapping file
   int attempted_rxn; // there was an attempt!
   int *local_rxn_count;
   int *ghostly_rxn_count;
@@ -127,8 +134,9 @@ class FixBondReact : public Fix {
   int ***equivalences; // relation between pre- and post-reacted templates
   int ***reverse_equiv; // re-ordered equivalences
   int **landlocked_atoms; // all atoms at least three bonds away from edge atoms
-  int **custom_edges; // atoms in molecule templates with incorrect valences
+  int **custom_charges; // atoms whose charge should be updated
   int **delete_atoms; // atoms in pre-reacted templates to delete
+  int **create_atoms; // atoms in post-reacted templates to create
   int ***chiral_atoms; // pre-react chiral atoms. 1) flag 2) orientation 3-4) ordered atom types
 
   int **nxspecial,**onemol_nxspecial,**twomol_nxspecial; // full number of 1-4 neighbors
@@ -151,10 +159,11 @@ class FixBondReact : public Fix {
   void read(int);
   void EdgeIDs(char *, int);
   void Equivalences(char *, int);
-  void CustomEdges(char *, int);
   void DeleteAtoms(char *, int);
+  void CreateAtoms(char *,int);
+  void CustomCharges(int, int);
   void ChiralCenters(char *, int);
-  void Constraints(char *, int);
+  void ReadConstraints(char *, int);
   void readID(char *, int, int, int);
 
   void make_a_guess ();
@@ -162,10 +171,10 @@ class FixBondReact : public Fix {
   void check_a_neighbor();
   void crosscheck_the_neighbor();
   void inner_crosscheck_loop();
-  void ring_check();
+  int ring_check();
   int check_constraints();
   void get_IDcoords(int, int, double *);
-  double get_temperature();
+  double get_temperature(tagint **, int, int);
   int get_chirality(double[12]); // get handedness given an ordered set of coordinates
 
   void open(char *);
@@ -181,6 +190,7 @@ class FixBondReact : public Fix {
   void glove_ghostcheck();
   void ghost_glovecast();
   void update_everything();
+  int insert_atoms(tagint **, int);
   void unlimit_bond();
   void limit_bond(int);
   void dedup_mega_gloves(int); //dedup global mega_glove
@@ -193,6 +203,14 @@ class FixBondReact : public Fix {
     int reaction_count_total;
   };
   Set *set;
+
+  struct Constraint {
+    int type;
+    int id[MAXCONIDS];
+    int idtype[MAXCONIDS];
+    double par[MAXCONPAR];
+  };
+  Constraint **constraints;
 
   // DEBUG
 

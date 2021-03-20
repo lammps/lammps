@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,18 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pair_local.h"
+
+#include "atom.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -36,7 +37,7 @@ enum{TYPE,RADIUS};
 
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pstyle(NULL), pindex(NULL), vlocal(NULL), alocal(NULL)
+  pstyle(nullptr), pindex(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pair/local command");
 
@@ -96,8 +97,8 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,7 +115,7 @@ ComputePairLocal::~ComputePairLocal()
 
 void ComputePairLocal::init()
 {
-  if (singleflag && force->pair == NULL)
+  if (singleflag && force->pair == nullptr)
     error->all(FLERR,"No pair style is defined for compute pair/local");
   if (singleflag && force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute pair/local");
@@ -321,6 +322,6 @@ void ComputePairLocal::reallocate(int n)
 
 double ComputePairLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

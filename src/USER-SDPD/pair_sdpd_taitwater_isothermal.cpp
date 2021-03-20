@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,18 +19,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_sdpd_taitwater_isothermal.h"
-#include <cmath>
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "update.h"
-#include "utils.h"
+
+#include <cmath>
+
 #ifndef USE_ZEST
 #include "random_mars.h"
 #endif
@@ -306,7 +307,7 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
 
 void PairSDPDTaitwaterIsothermal::init_style()
 {
-  if ((!atom->rho_flag) || (atom->drho == NULL))
+  if ((!atom->rho_flag) || (atom->drho == nullptr))
     error->all(FLERR,"Pair style dpd/taitwater/isothermal requires atom "
                "attributes rho and drho");
 

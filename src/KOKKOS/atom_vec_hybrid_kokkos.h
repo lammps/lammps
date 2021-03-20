@@ -65,7 +65,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos {
   void write_vel(FILE *, int, double **);
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
-  bigint memory_usage();
+  double memory_usage();
 
   int pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
                        const int & iswap,

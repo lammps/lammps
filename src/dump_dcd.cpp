@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -51,7 +51,7 @@ static inline void fwrite_int32(FILE* fd, uint32_t i)
 /* ---------------------------------------------------------------------- */
 
 DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
-  coords(NULL)
+  coords(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump dcd command");
   if (binary || compressed || multifile || multiproc)
@@ -62,7 +62,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   sortcol = 0;
 
   unwrap_flag = 0;
-  format_default = NULL;
+  format_default = nullptr;
 
   // allocate global array for atom coords
 
@@ -97,16 +97,19 @@ void DumpDCD::init_style()
     error->all(FLERR,"Dump dcd requires sorting by atom ID");
 
   // check that dump frequency has not changed and is not a variable
+  // but only when not being called from the "write_dump" command.
 
-  int idump;
-  for (idump = 0; idump < output->ndump; idump++)
-    if (strcmp(id,output->dump[idump]->id) == 0) break;
-  if (output->every_dump[idump] == 0)
-    error->all(FLERR,"Cannot use variable every setting for dump dcd");
+  if (strcmp(id,"WRITE_DUMP") != 0) {
+    int idump;
+    for (idump = 0; idump < output->ndump; idump++)
+      if (strcmp(id,output->dump[idump]->id) == 0) break;
+    if (output->every_dump[idump] == 0)
+      error->all(FLERR,"Cannot use variable every setting for dump dcd");
 
-  if (nevery_save == 0) nevery_save = output->every_dump[idump];
-  else if (nevery_save != output->every_dump[idump])
-    error->all(FLERR,"Cannot change dump_modify every for dump dcd");
+    if (nevery_save == 0) nevery_save = output->every_dump[idump];
+    else if (nevery_save != output->every_dump[idump])
+      error->all(FLERR,"Cannot change dump_modify every for dump dcd");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,7 +118,7 @@ void DumpDCD::openfile()
 {
   if (me == 0) {
     fp = fopen(filename,"wb");
-    if (fp == NULL) error->one(FLERR,"Cannot open dump file");
+    if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
   }
 }
 
@@ -263,9 +266,9 @@ int DumpDCD::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-bigint DumpDCD::memory_usage()
+double DumpDCD::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(coords,natoms*3);
   return bytes;
 }
@@ -342,7 +345,7 @@ void DumpDCD::write_dcd_header(const char *remarks)
   strncpy(title_string,remarks,80);
   title_string[79] = '\0';
   fwrite(title_string,80,1,fp);
-  cur_time=time(NULL);
+  cur_time=time(nullptr);
   tmbuf=localtime(&cur_time);
   memset(title_string,' ',81);
   strftime(title_string,80,"REMARKS Created %d %B,%Y at %H:%M",tmbuf);

@@ -56,7 +56,7 @@ class PairGranular : public Pair {
 
   // storage of rigid body masses for use in granular interactions
 
-  class Fix *fix_rigid;    // ptr to rigid body fix, NULL if none
+  class Fix *fix_rigid;    // ptr to rigid body fix, null pointer if none
   double *mass_rigid;      // rigid mass for owned+ghost atoms
   int nmax;                // allocated size of mass_rigid
 

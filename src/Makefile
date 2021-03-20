@@ -272,13 +272,15 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
-# include python package settings to
-#   automatically adapt name of python interpreter
+# include python package settings to automatically adapt name of
+# the python interpreter. must purge build folder to not install
+# unwanted outdated files.
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
+	@rm -rf ../python/build
 	@$(PYTHON) ../python/install.py -v ../src/version.h \
-		-m ../python/lammps.py -l ../src/liblammps.so
+		-p ../python/lammps -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 
@@ -364,7 +366,7 @@ yes-%:
 	@if [ ! -e Makefile.package.settings ]; \
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@if [ ! -e $(YESDIR) ]; then \
-	  echo "Package $(@:yes-%=%) does not exist"; \
+	  echo "Package $(YESDIR) does not exist"; exit 1; \
 	elif [ -e $(YESDIR)/Install.sh ]; then \
 	  echo "Installing package $(@:yes-%=%)"; \
 	  cd $(YESDIR); $(SHELL) Install.sh 1; cd ..; \
@@ -378,7 +380,7 @@ yes-%:
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \
-	  echo "Package $(@:no-%=%) does not exist"; \
+	  echo "Package $(NODIR) does not exist"; exit 1; \
 	elif [ -e $(NODIR)/Install.sh ]; then \
 	  echo "Uninstalling package $(@:no-%=%)"; \
 	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \

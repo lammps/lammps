@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_atom_swap.h"
-#include <mpi.h>
+
 #include <cmath>
 #include <cctype>
 #include <cfloat>
@@ -50,10 +50,10 @@ using namespace FixConst;
 
 FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(NULL), type_list(NULL), mu(NULL), qtype(NULL),
-  sqrt_mass_ratio(NULL), local_swap_iatom_list(NULL),
-  local_swap_jatom_list(NULL), local_swap_atom_list(NULL),
-  random_equal(NULL), random_unequal(NULL), c_pe(NULL)
+  idregion(nullptr), type_list(nullptr), mu(nullptr), qtype(nullptr),
+  sqrt_mass_ratio(nullptr), local_swap_iatom_list(nullptr),
+  local_swap_jatom_list(nullptr), local_swap_atom_list(nullptr),
+  random_equal(nullptr), random_unequal(nullptr), c_pe(nullptr)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix atom/swap command");
 
@@ -105,9 +105,9 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   nswap_successes = 0.0;
 
   atom_swap_nmax = 0;
-  local_swap_atom_list = NULL;
-  local_swap_iatom_list = NULL;
-  local_swap_jatom_list = NULL;
+  local_swap_atom_list = nullptr;
+  local_swap_iatom_list = nullptr;
+  local_swap_jatom_list = nullptr;
 
   // set comm size needed by this Fix
 
@@ -504,7 +504,7 @@ double FixAtomSwap::energy_full()
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -753,7 +753,7 @@ double FixAtomSwap::compute_vector(int n)
 
 double FixAtomSwap::memory_usage()
 {
-  double bytes = atom_swap_nmax * sizeof(int);
+  double bytes = (double)atom_swap_nmax * sizeof(int);
   return bytes;
 }
 

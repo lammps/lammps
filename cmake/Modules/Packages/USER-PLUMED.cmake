@@ -55,8 +55,8 @@ if(DOWNLOAD_PLUMED)
   endif()
   include(ExternalProject)
   ExternalProject_Add(plumed_build
-    URL https://github.com/plumed/plumed2/releases/download/v2.6.0/plumed-src-2.6.0.tgz
-    URL_MD5 204d2edae58d9b10ba3ad460cad64191
+    URL https://github.com/plumed/plumed2/releases/download/v2.7.0/plumed-src-2.7.0.tgz
+    URL_MD5 95f29dd0c067577f11972ff90dfc7d12
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                              ${CONFIGURE_REQUEST_PIC}

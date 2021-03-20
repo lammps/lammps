@@ -1,7 +1,7 @@
 ---
-lammps_version: 21 Jul 2020
-date_generated: Thu Aug 20 14:12:59 202
-epsilon: 2e-14
+lammps_version: 24 Aug 2020
+date_generated: Tue Sep 15 09:44:42 202
+epsilon: 1e-11
 prerequisites: ! |
   atom full
   fix spring/chunk

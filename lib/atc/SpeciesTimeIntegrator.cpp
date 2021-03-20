@@ -108,9 +108,9 @@ namespace ATC {
     timeFilter_(speciesTimeIntegrator->time_filter()),
     massDensity_(atc_->field(MASS_DENSITY)),
     nodalAtomicMassDensityOut_(atc_->nodal_atomic_field(MASS_DENSITY)),
-    nodalAtomicMassDensity_(NULL),
+    nodalAtomicMassDensity_(nullptr),
     speciesConcentration_(atc_->field(SPECIES_CONCENTRATION)),
-    nodalAtomicSpeciesConcentration_(NULL),
+    nodalAtomicSpeciesConcentration_(nullptr),
     nodalAtomicSpeciesConcentrationFiltered_(speciesTimeIntegrator->nodal_atomic_species_concentration_filtered()),
     moleculeIds_(moleculeIds)
   {

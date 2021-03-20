@@ -566,8 +566,8 @@ int colvarbias_meta::update_grid_params()
 int colvarbias_meta::update_bias()
 {
   // add a new hill if the required time interval has passed
-  if ((cvm::step_absolute() % new_hill_freq) == 0 &&
-      is_enabled(f_cvb_history_dependent)) {
+  if (((cvm::step_absolute() % new_hill_freq) == 0) &&
+      can_accumulate_data() && is_enabled(f_cvb_history_dependent)) {
 
     if (cvm::debug()) {
       cvm::log("Metadynamics bias \""+this->name+"\""+
@@ -883,7 +883,7 @@ void colvarbias_meta::project_hills(colvarbias_meta::hill_iter  h_first,
 
   // TODO: improve it by looping over a small subgrid instead of the whole grid
 
-  std::vector<colvarvalue> colvar_values(num_variables());
+  std::vector<colvarvalue> new_colvar_values(num_variables());
   std::vector<cvm::real> colvar_forces_scalar(num_variables());
 
   std::vector<int> he_ix = he->new_index();
@@ -902,17 +902,17 @@ void colvarbias_meta::project_hills(colvarbias_meta::hill_iter  h_first,
           count++) {
       size_t i;
       for (i = 0; i < num_variables(); i++) {
-        colvar_values[i] = hills_energy->bin_to_value_scalar(he_ix[i], i);
+        new_colvar_values[i] = hills_energy->bin_to_value_scalar(he_ix[i], i);
       }
 
       // loop over the hills and increment the energy grid locally
       hills_energy_here = 0.0;
-      calc_hills(h_first, h_last, hills_energy_here, &colvar_values);
+      calc_hills(h_first, h_last, hills_energy_here, &new_colvar_values);
       he->acc_value(he_ix, hills_energy_here);
 
       for (i = 0; i < num_variables(); i++) {
         hills_forces_here[i].reset();
-        calc_hills_force(i, h_first, h_last, hills_forces_here, &colvar_values);
+        calc_hills_force(i, h_first, h_last, hills_forces_here, &new_colvar_values);
         colvar_forces_scalar[i] = hills_forces_here[i].real_value;
       }
       hg->acc_force(hg_ix, &(colvar_forces_scalar.front()));
@@ -935,16 +935,18 @@ void colvarbias_meta::project_hills(colvarbias_meta::hill_iter  h_first,
 
   } else {
 
+    // TODO delete this (never used)
+
     // simpler version, with just the energy
 
     for ( ; (he->index_ok(he_ix)); ) {
 
       for (size_t i = 0; i < num_variables(); i++) {
-        colvar_values[i] = hills_energy->bin_to_value_scalar(he_ix[i], i);
+        new_colvar_values[i] = hills_energy->bin_to_value_scalar(he_ix[i], i);
       }
 
       hills_energy_here = 0.0;
-      calc_hills(h_first, h_last, hills_energy_here, &colvar_values);
+      calc_hills(h_first, h_last, hills_energy_here, &new_colvar_values);
       he->acc_value(he_ix, hills_energy_here);
 
       he->incr(he_ix);
@@ -1240,7 +1242,7 @@ void colvarbias_meta::read_replica_files()
 
           // test whether this is the end of the file
           is.seekg(0, std::ios::end);
-          if (is.tellg() > (replicas[ir])->replica_hills_file_pos+1) {
+          if (is.tellg() > (replicas[ir])->replica_hills_file_pos + ((std::streampos) 1)) {
             (replicas[ir])->update_status++;
           } else {
             (replicas[ir])->update_status = 0;
@@ -1324,7 +1326,7 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
       hills_energy_gradients        = new colvar_grid_gradient(colvars);
     }
 
-    size_t const hills_energy_pos = is.tellg();
+    std::streampos const hills_energy_pos = is.tellg();
     std::string key;
     if (!(is >> key)) {
       if (hills_energy_backup != NULL) {
@@ -1363,7 +1365,7 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
       }
     }
 
-    size_t const hills_energy_gradients_pos = is.tellg();
+    std::streampos const hills_energy_gradients_pos = is.tellg();
     if (!(is >> key)) {
       if (hills_energy_backup != NULL)  {
         delete hills_energy;
@@ -1511,7 +1513,7 @@ std::istream & colvarbias_meta::read_hill(std::istream &is)
 {
   if (!is) return is; // do nothing if failbit is set
 
-  size_t const start_pos = is.tellg();
+  std::streampos const start_pos = is.tellg();
   size_t i = 0;
 
   std::string data;
@@ -1958,11 +1960,12 @@ colvarbias_meta::hill::hill(cvm::step_number it_in,
 
 
 colvarbias_meta::hill::hill(colvarbias_meta::hill const &h)
-  : sW(1.0),
+  : it(h.it),
+    hill_value(0.0),
+    sW(1.0),
     W(h.W),
     centers(h.centers),
     sigmas(h.sigmas),
-    it(h.it),
     replica(h.replica)
 {}
 

@@ -124,7 +124,7 @@ at the cutoff distance :math:`r_c`.
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This pair styles does not support mixing.
+This pair style does not support mixing.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction. Note that as

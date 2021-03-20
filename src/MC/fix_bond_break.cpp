@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_break.h"
-#include <mpi.h>
+
 #include <cstring>
 #include "update.h"
 #include "respa.h"
@@ -33,8 +33,8 @@ using namespace FixConst;
 
 FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  partner(NULL), finalpartner(NULL), distsq(NULL), probability(NULL),
-  broken(NULL), copy(NULL), random(NULL)
+  partner(nullptr), finalpartner(nullptr), distsq(nullptr), probability(nullptr),
+  broken(nullptr), copy(nullptr), random(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
 
@@ -80,7 +80,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/break with non-molecular systems");
 
   // initialize Marsaglia RNG with processor-unique seed
@@ -849,6 +849,6 @@ double FixBondBreak::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 2*nmax * sizeof(tagint);
-  bytes += nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }

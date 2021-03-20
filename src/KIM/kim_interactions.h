@@ -56,17 +56,10 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_interactions,KimInteractions)
-
-#else
-
 #ifndef LMP_KIM_INTERACTIONS_H
 #define LMP_KIM_INTERACTIONS_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 
@@ -82,7 +75,6 @@ class KimInteractions : protected Pointers {
 
 }
 
-#endif
 #endif
 
 /* ERROR/WARNING messages:

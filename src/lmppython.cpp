@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,7 +26,7 @@ Python::Python(LAMMPS *lmp) : Pointers(lmp)
 {
   // implementation of Python interface is only loaded on demand
   // and only if PYTHON package has been installed and compiled into binary
-  impl = NULL;
+  impl = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

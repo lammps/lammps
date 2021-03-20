@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,6 +21,7 @@
 #include <cstring>
 #include "error.h"
 #include "math_extra.h"
+#include "math_eigen.h"
 #include "math_special.h"
 #include "modify.h"
 #include "update.h"
@@ -30,7 +31,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGyrationShape::ComputeGyrationShape(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_gyration(NULL)
+  Compute(lmp, narg, arg), id_gyration(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute gyration/shape command");
 
@@ -95,7 +96,7 @@ void ComputeGyrationShape::compute_vector()
   ione[1][2] = ione[2][1] = gyration_tensor[4];
   ione[0][2] = ione[2][0] = gyration_tensor[5];
 
-  int ierror = MathExtra::jacobi(ione,evalues,evectors);
+  int ierror = MathEigen::jacobi3(ione,evalues,evectors);
   if (ierror) error->all(FLERR, "Insufficient Jacobi rotations "
                          "for gyration/shape");
 

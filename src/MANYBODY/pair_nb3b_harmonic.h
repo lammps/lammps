@@ -34,7 +34,7 @@ class PairNb3bHarmonic : public Pair {
   double init_one(int, int);
   void init_style();
 
-  static const int NPARAMS_PER_LINE = 6;
+  static constexpr int NPARAMS_PER_LINE = 6;
 
  protected:
   struct Param {

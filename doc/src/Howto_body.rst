@@ -32,9 +32,9 @@ thus how they can be used to compute pairwise body/body or
 bond/non-body (point particle) interactions.  More details of each
 style are described below.
 
-More styles may be added in the future.  See the :doc:`Modify body
-<Modify_body>` doc page for details on how to add a new body style to
-the code.
+More styles may be added in the future.  See the
+:doc:`page on creating new body styles <Modify_body>` for details on
+how to add a new body style to the code.
 
 ----------
 

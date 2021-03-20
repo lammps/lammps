@@ -49,6 +49,10 @@ packages_ntopo.h
 # other auto-generated files
 lmpinstalledpkgs.h
 lmpgitversion.h
+mliap_model_python_couple.cpp
+mliap_model_python_couple.h
+# removed on 9 Sep 2020
+mergesort.h
 # renamed on 8 May 2020
 fix_meso.cpp
 fix_meso.h

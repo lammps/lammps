@@ -110,21 +110,21 @@ void SystemProcessor::processArray(int** links, int numLinks)
         do
         {
                 currentNode = findSingleLink(temp);                                             //find the start of the next available chain
-                if(currentNode != NULL)
+                if(currentNode != nullptr)
                 {
                         headsOfSystems.Append(AddNewChain(currentNode));                                                        //and add it to the headsOfSystems list of chains
                 }
         }
-        while(currentNode != NULL);                                                                     //repeat this until all chains have been added
+        while(currentNode != nullptr);                                                                     //repeat this until all chains have been added
 }
 
 POEMSChain * SystemProcessor::AddNewChain(POEMSNode * currentNode){
-        if(currentNode == NULL) //Termination condition; if the currentNode is null, then return null
+        if(currentNode == nullptr) //Termination condition; if the currentNode is null, then return null
         {
-                return NULL;
+                return nullptr;
         }
         int * tmp;
-        POEMSNode * nextNode = NULL;    //nextNode stores the proposed next node to add to the chain.  this will be checked to make sure no backtracking is occurring before being assigned as the current node.
+        POEMSNode * nextNode = nullptr;    //nextNode stores the proposed next node to add to the chain.  this will be checked to make sure no backtracking is occurring before being assigned as the current node.
         POEMSChain * newChain = new POEMSChain; //make a new POEMSChain object.  This will be the object returned
 
         if(currentNode->links.GetNumElements() == 0)    //if we have no links from this node, then the whole chain is only one node.  Add this node to the chain and return it; mark node as visited for future reference
@@ -168,8 +168,8 @@ POEMSChain * SystemProcessor::AddNewChain(POEMSNode * currentNode){
         newChain->listOfNodes.Append(tmp);              //append the last node before branch (node shared jointly with branch chains)
                                                                                                                                 //re-mark as visited, just to make sure
         ListElement<POEMSNode> * tempNode = currentNode->links.GetHeadElement();        //go through all of the links, one at a time that branch
-        POEMSChain * tempChain = NULL;                                                          //temporary variable to hold data
-        while(tempNode != NULL)                                                                         //when we have followed all links, stop
+        POEMSChain * tempChain = nullptr;                                                          //temporary variable to hold data
+        while(tempNode != nullptr)                                                                         //when we have followed all links, stop
         {
                 if(setLinkVisited(tempNode->value, currentNode))                //dont backtrack, or create closed loops
                 {
@@ -187,12 +187,12 @@ POEMSNode * SystemProcessor::findSingleLink(TreeNode * aNode)
 //This function takes the root of a search tree containing POEMSNodes and returns a POEMSNode corresponding to the start of a chain in the
 //system.  It finds a node that has not been visited before, and only has one link; this node will be used as the head of the chain.
 {
-        if(aNode == NULL)
+        if(aNode == nullptr)
         {
-                return NULL;
+                return nullptr;
         }
         POEMSNode * returnVal =  (POEMSNode *)aNode->GetAuxData();      //get the poemsnode data out of the treenode
-        POEMSNode * detectLoneLoops = NULL;                                                     //is used to handle a loop that has no protruding chains
+        POEMSNode * detectLoneLoops = nullptr;                                                     //is used to handle a loop that has no protruding chains
         if(returnVal->visited == false)
         {
                 detectLoneLoops = returnVal;                                                    //if we find any node that has not been visited yet, save it
@@ -202,15 +202,15 @@ POEMSNode * SystemProcessor::findSingleLink(TreeNode * aNode)
                 return returnVal;                                                                                                               //return the node is it meets this criteria
         }
         returnVal = findSingleLink(aNode->Left());                                                                      //otherwise, check the left subtree
-        if(returnVal == NULL)                                                                                                           //and if we find nothing...
+        if(returnVal == nullptr)                                                                                                           //and if we find nothing...
         {
                 returnVal = findSingleLink(aNode->Right());                                                             //check the right subtree
         }
-        if(returnVal == NULL)                                                                                                           //if we could not find any chains
+        if(returnVal == nullptr)                                                                                                           //if we could not find any chains
         {
                 returnVal = detectLoneLoops;                                                                                    //see if we found any nodes at all that havent been processed
         }
-        return returnVal;                                                                                                                       //return what we find (will be NULL if no new chains are
+        return returnVal;                                                                                                                       //return what we find (will be a null pointer if no new chains are
                                                                                                                                                                 //found)
 }
 
@@ -226,7 +226,7 @@ bool SystemProcessor::setLinkVisited(POEMSNode * firstNode, POEMSNode * secondNo
         //cout << "Checking link between nodes " << firstNode->idNumber << " and " << secondNode->idNumber << "... ";
         ListElement<POEMSNode> * tmp = firstNode->links.GetHeadElement();       //get the head element of the list of pointers for node 1
         ListElement<bool> * tmp2 = firstNode->taken.GetHeadElement();           //get the head element of the list of bool isVisited flags for node 1
-        while(tmp->value != NULL || tmp2->value != NULL)                                        //go through until we reach the end of the lists
+        while(tmp->value != nullptr || tmp2->value != nullptr)                                        //go through until we reach the end of the lists
         {
                 if(tmp->value == secondNode)                                                    //if we find the link to the other node
                 {
@@ -248,7 +248,7 @@ bool SystemProcessor::setLinkVisited(POEMSNode * firstNode, POEMSNode * secondNo
         tmp = secondNode->links.GetHeadElement();                       //now, if the link was unvisited, we need to go set the other node's list such that
                                                                                                                 //it also knows this link is being visited
         tmp2 = secondNode->taken.GetHeadElement();
-        while(tmp->value != NULL || tmp2->value != NULL)        //go through the list
+        while(tmp->value != nullptr || tmp2->value != nullptr)        //go through the list
         {
                 if(tmp->value == firstNode)                                             //if we find the link
                 {

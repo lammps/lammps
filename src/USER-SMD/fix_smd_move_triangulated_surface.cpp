@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,15 +23,16 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_move_triangulated_surface.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
 #include <Eigen/Eigen>
-#include "atom.h"
-#include "comm.h"
-#include "force.h"
-#include "update.h"
-#include "error.h"
-#include "math_const.h"
 
 using namespace Eigen;
 using namespace LAMMPS_NS;
@@ -205,8 +206,8 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
         // set comm sizes needed by this fix
         comm_forward = 12;
 
-        //atom->add_callback(0);
-        //atom->add_callback(1);
+        //atom->add_callback(Atom::GROW);
+        //atom->add_callback(Atom::RESTART);
 
         time_integrate = 1;
 }
@@ -216,8 +217,8 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
 FixSMDMoveTriSurf::~FixSMDMoveTriSurf()
 {
   // unregister callbacks to this fix from Atom class
-  //atom->delete_callback(id,0);
-  //atom->delete_callback(id,1);
+  //atom->delete_callback(id,Atom::GROW);
+  //atom->delete_callback(id,Atom::RESTART);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -87,6 +87,7 @@ accelerated styles exist.
 * :doc:`class2 <bond_class2>` - COMPASS (class 2) bond
 * :doc:`fene <bond_fene>` - FENE (finite-extensible non-linear elastic) bond
 * :doc:`fene/expand <bond_fene_expand>` - FENE bonds with variable size particles
+* :doc:`gaussian <bond_gaussian>` - multicentered Gaussian-based bond potential
 * :doc:`gromos <bond_gromos>` - GROMOS force field bond
 * :doc:`harmonic <bond_harmonic>` - harmonic bond
 * :doc:`harmonic/shift <bond_harmonic_shift>` - shifted harmonic bond

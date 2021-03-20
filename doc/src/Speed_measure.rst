@@ -14,7 +14,7 @@ timings; you can simply extrapolate from short runs.
 
 For the set of runs, look at the timing data printed to the screen and
 log file at the end of each LAMMPS run.  The
-:doc:`Run_output <Run_output>` doc page gives an overview.
+:doc:`screen and logfile output <Run_output>` page gives an overview.
 
 Running on one (or a few processors) should give a good estimate of
 the serial performance and what portions of the timestep are taking

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,25 +16,25 @@
 ------------------------------------------------------------------------- */
 
 #include "reset_mol_ids.h"
-#include <mpi.h>
+
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
+#include "compute_chunk_atom.h"
+#include "compute_fragment_atom.h"
+#include "domain.h"
+#include "error.h"
 #include "group.h"
 #include "modify.h"
-#include "compute_fragment_atom.h"
-#include "compute_chunk_atom.h"
-#include "utils.h"
-#include "error.h"
-#include "fmt/format.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {
-  cfa = NULL;
-  cca = NULL;
+  cfa = nullptr;
+  cca = nullptr;
 
   // default settings
 
@@ -64,7 +64,7 @@ void ResetMolIDs::command(int narg, char **arg)
     error->all(FLERR,"Reset_mol_ids command before simulation box is defined");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use reset_mol_ids unless atoms have IDs");
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Can only use reset_mol_ids on molecular systems");
 
   // process args

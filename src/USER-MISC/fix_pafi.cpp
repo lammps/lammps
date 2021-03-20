@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,25 +19,22 @@
 
 
 #include "fix_pafi.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include "math_extra.h"
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "domain.h"
-#include "respa.h"
+#include "citeme.h"
 #include "comm.h"
 #include "compute.h"
-#include "random_mars.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
-#include "citeme.h"
-#include "fmt/format.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -61,8 +58,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), random(NULL), computename(NULL),
-      h(NULL), step_respa(NULL)
+  Fix(lmp, narg, arg), computename(nullptr), random(nullptr),
+      h(nullptr), step_respa(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_pafi_package);
 
@@ -122,15 +119,15 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   }
   force_flag = 0;
 
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i=0; i<6; i++) {
+  for (int i=0; i<6; i++) {
     proj[i] = 0.0;
     proj_all[i] = 0.0;
   }
-  for(int i=0; i<5; i++) {
+  for (int i=0; i<5; i++) {
     results[i] = 0.0;
     results_all[i] = 0.0;
   }
@@ -208,14 +205,14 @@ void FixPAFI::setup(int vflag)
 
 void FixPAFI::min_setup(int vflag)
 {
-  if( utils::strmatch(update->minimize_style,"^fire")==0 &&
+  if (utils::strmatch(update->minimize_style,"^fire")==0 &&
           utils::strmatch(update->minimize_style,"^quickmin")==0 )
     error->all(FLERR,"fix pafi requires a damped dynamics minimizer");
   min_post_force(vflag);
 }
 
 
-void FixPAFI::post_force(int vflag)
+void FixPAFI::post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **v = atom->v;
@@ -236,23 +233,19 @@ void FixPAFI::post_force(int vflag)
   PathCompute->compute_peratom();
   double **path = PathCompute->array_atom;
 
-  double xum=0.;
-
   // proj 0,1,2 = f.n, v.n, h.n
   // proj 3,4,5 = psi, f.n**2, f*(1-psi)
   // c_v 0,1,2 = fxcom, fycom, fzcom etc
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
 
   double deviation[3] = {0.,0.,0.};
-
-  double fn;
 
   force_flag=0;
   for (int i = 0; i < nlocal; i++) {
@@ -293,7 +286,7 @@ void FixPAFI::post_force(int vflag)
     }
   }
 
-  if(com_flag == 0){
+  if (com_flag == 0) {
     c_v[9] += 1.0;
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -325,7 +318,7 @@ void FixPAFI::post_force(int vflag)
   results_all[4] = proj_all[5]; // dX.f
   force_flag = 1;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
 
       f[i][0] -= proj_all[0] * path[i][3] + c_v_all[0]/c_v_all[9];
@@ -343,9 +336,9 @@ void FixPAFI::post_force(int vflag)
   }
 
   if (od_flag == 0) {
-    for (int i = 0; i < nlocal; i++){
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        if(rmass) mass_f = sqrt(rmass[i]);
+        if (rmass) mass_f = sqrt(rmass[i]);
         else mass_f = sqrt(mass[type[i]]);
 
         f[i][0] += -gamma * mass_f * mass_f * v[i][0];
@@ -358,10 +351,10 @@ void FixPAFI::post_force(int vflag)
       }
     }
   } else {
-    for (int i = 0; i < nlocal; i++){
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 
-        if(rmass) mass_f = sqrt(rmass[i]);
+        if (rmass) mass_f = sqrt(rmass[i]);
         else mass_f = sqrt(mass[type[i]]);
 
         f[i][0] += sqrtD * h[i][0] * mass_f;
@@ -378,13 +371,12 @@ void FixPAFI::post_force(int vflag)
 
 };
 
-void FixPAFI::post_force_respa(int vflag, int ilevel, int iloop)
+void FixPAFI::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   // set force to desired value on requested level, 0.0 on other levels
 
   if (ilevel == ilevel_respa) post_force(vflag);
   else {
-    double **x = atom->x;
     double **f = atom->f;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
@@ -396,37 +388,30 @@ void FixPAFI::post_force_respa(int vflag, int ilevel, int iloop)
   }
 };
 
-void FixPAFI::min_post_force(int vflag)
+void FixPAFI::min_post_force(int /*vflag*/)
 {
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   PathCompute->compute_peratom();
   double **path = PathCompute->array_atom;
 
-  double xum=0.;
-
   // proj 0,1,2 = f.n, v.n, h.n
   // proj 3,4,5 = psi, f.n**2, f*(1-psi)
   // c_v 0,1,2 = fxcom, fycom, fzcom etc
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
 
   double deviation[3] = {0.,0.,0.};
-
-  double fn;
 
   force_flag=0;
   for (int i = 0; i < nlocal; i++) {
@@ -464,7 +449,7 @@ void FixPAFI::min_post_force(int vflag)
     }
   }
 
-  if(com_flag == 0){
+  if (com_flag == 0) {
     c_v[9] += 1.0;
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -497,7 +482,7 @@ void FixPAFI::min_post_force(int vflag)
   MPI_Bcast(results_all,5,MPI_DOUBLE,0,world);
   force_flag = 1;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
 
       f[i][0] -= proj_all[0] * path[i][3] + c_v_all[0]/c_v_all[9];
@@ -519,7 +504,7 @@ double FixPAFI::compute_vector(int n)
 
 
 
-void FixPAFI::initial_integrate(int vflag)
+void FixPAFI::initial_integrate(int /*vflag*/)
 {
   double dtfm;
 
@@ -539,11 +524,11 @@ void FixPAFI::initial_integrate(int vflag)
   PathCompute->compute_peratom();
   double **path = PathCompute->array_atom;
 
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -559,7 +544,7 @@ void FixPAFI::initial_integrate(int vflag)
       proj[1] += v[i][2] * path[i][5]; // v.n
     }
   }
-  if(com_flag == 0){
+  if (com_flag == 0) {
     c_v[9] += 1.0;
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -581,7 +566,7 @@ void FixPAFI::initial_integrate(int vflag)
   MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
-  if (od_flag == 0){
+  if (od_flag == 0) {
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -651,11 +636,11 @@ void FixPAFI::final_integrate()
   PathCompute->compute_peratom();
   double **path = PathCompute->array_atom;
 
-  for(int i = 0; i < 10; i++) {
+  for (int i = 0; i < 10; i++) {
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for(int i = 0; i < 6; i++) {
+  for (int i = 0; i < 6; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -665,7 +650,7 @@ void FixPAFI::final_integrate()
       proj[0] += f[i][1] * path[i][4]; // f.n
       proj[0] += f[i][2] * path[i][5]; // f.n
     }
-  if(com_flag == 0){
+  if (com_flag == 0) {
     c_v[9] += 1.0;
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -680,7 +665,7 @@ void FixPAFI::final_integrate()
   MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
-  if (od_flag == 0){
+  if (od_flag == 0) {
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -710,7 +695,7 @@ void FixPAFI::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPAFI::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixPAFI::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -724,7 +709,7 @@ void FixPAFI::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPAFI::final_integrate_respa(int ilevel, int iloop)
+void FixPAFI::final_integrate_respa(int ilevel, int /*iloop*/)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();

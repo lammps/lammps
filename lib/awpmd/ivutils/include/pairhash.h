@@ -146,7 +146,7 @@ public:
   public:
     iterator(const iterator &other):ptr(other.ptr),incr(other.incr){
     }
-    iterator():ptr(NULL),incr(0){}
+    iterator():ptr(nullptr),incr(0){}
     iterator &operator++(){ // prefix
       ptr+=incr;
       return *this;
@@ -173,13 +173,13 @@ public:
   size_t sizex, sizey;
 
   //e default constructor
-  recmatrix(): parr(NULL,1) {
+  recmatrix(): parr(nullptr,1) {
     sizey=sizex=0;
-    arr=NULL;
+    arr=nullptr;
   }
 
   //e copy constructor: makes a managed copy
-  recmatrix(const recmatrix &other):sizex(0),sizey(0),arr(NULL){
+  recmatrix(const recmatrix &other):sizex(0),sizey(0),arr(nullptr){
     *this=other;
   }
 
@@ -222,7 +222,7 @@ public:
   virtual int init(size_t nx, size_t ny, int smanaged=-1){
     int managed=parr.managed();
     if(managed && (sizex!=nx || sizey!=ny)){
-      parr.reset(NULL,0);
+      parr.reset(nullptr,0);
     }
     if(smanaged>=0){ // for changing the managed flag?
       parr.reset(parr.ptr(),smanaged ? smanaged|0x8 : 0  );
@@ -355,7 +355,7 @@ public:
   public:
     iterator(const iterator &other):ptr(other.ptr),incr(other.incr){
     }
-    iterator():ptr(NULL),incr(0){}
+    iterator():ptr(nullptr),incr(0){}
     iterator &operator++(){ // prefix
       ptr+=incr;
       return *this;
@@ -382,13 +382,13 @@ public:
   size_t size;
 
   //e default constructor
-  sqmatrix(): parr(NULL,1) {
+  sqmatrix(): parr(nullptr,1) {
     size=0;
-    arr=NULL;
+    arr=nullptr;
   }
 
   //e copy constructor: makes a managed copy
-  sqmatrix(const sqmatrix &other):size(0),arr(NULL){
+  sqmatrix(const sqmatrix &other):size(0),arr(nullptr){
     *this=other;
   }
 
@@ -430,7 +430,7 @@ public:
   virtual int init(size_t n, int smanaged=-1){
     int managed=parr.managed();
     if(managed && size!=n){
-      parr.reset(NULL,0);
+      parr.reset(nullptr,0);
     }
     if(smanaged>=0){ // for changing the managed flag?
       parr.reset(parr.ptr(),smanaged ? smanaged|0x8 : 0  );
@@ -600,9 +600,9 @@ class PairHash{
 public:
   //e find the value with indexes i, j
   //e @return 0 if not found, 1 otherwise
-  //e if retval is not NULL, puts the found value there
-  virtual int Find(long i, long j, T *retval=NULL)=0;
-  virtual int Find(long i, long j, T **retval=NULL)=0;
+  //e if retval is not a null pointer, puts the found value there
+  virtual int Find(long i, long j, T *retval=nullptr)=0;
+  virtual int Find(long i, long j, T **retval=nullptr)=0;
   virtual int Del(long i, long j)=0;
   virtual int Put(long i, long j, const T *value)=0;
   virtual int Put(long i, long j, const T& value)=0;
@@ -621,7 +621,7 @@ public:
     indm.Set(-1);
     arr= new T[n*(n+1)/2];
   }
-  int Find(long i, long j, T *retval=NULL){
+  int Find(long i, long j, T *retval=nullptr){
     long ind=indm(i,j);
     if(ind>=0){
       if(retval){

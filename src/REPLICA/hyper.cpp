@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,28 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #include "hyper.h"
-#include <mpi.h>
-#include <cstring>
-#include <string>
-#include "update.h"
-#include "domain.h"
-#include "region.h"
-#include "integrate.h"
-#include "min.h"
-#include "force.h"
-#include "neighbor.h"
-#include "modify.h"
+
 #include "compute_event_displace.h"
-#include "fix_hyper.h"
-#include "fix_event_hyper.h"
-#include "output.h"
+#include "domain.h"
 #include "dump.h"
-#include "finish.h"
-#include "timer.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "finish.h"
+#include "fix_event_hyper.h"
+#include "fix_hyper.h"
+#include "integrate.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "region.h"
+#include "timer.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -41,7 +38,7 @@ enum{NOHYPER,GLOBAL,LOCAL};
 
 /* ---------------------------------------------------------------------- */
 
-Hyper::Hyper(LAMMPS *lmp) : Pointers(lmp), dumplist(NULL) {}
+Hyper::Hyper(LAMMPS *lmp) : Pointers(lmp), dumplist(nullptr) {}
 
 /* ----------------------------------------------------------------------
    perform hyperdynamics simulation
@@ -94,7 +91,7 @@ void Hyper::command(int narg, char **arg)
     fix_hyper = (FixHyper *) modify->fix[ifix];
     int dim;
     int *hyperflag = (int *) fix_hyper->extract("hyperflag",dim);
-    if (hyperflag == NULL || *hyperflag == 0)
+    if (hyperflag == nullptr || *hyperflag == 0)
       error->all(FLERR,"Hyper fix is not a valid hyperdynamics fix");
     if (*hyperflag == 1) hyperstyle = GLOBAL;
     if (*hyperflag == 2) hyperstyle = LOCAL;
@@ -356,7 +353,7 @@ void Hyper::command(int narg, char **arg)
   delete finish;
   modify->delete_fix("hyper_event");
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -452,7 +449,7 @@ void Hyper::options(int narg, char **arg)
   maxeval = 50;
   dumpflag = 0;
   ndump = 0;
-  dumplist = NULL;
+  dumplist = nullptr;
   rebond = 0;
 
   int iarg = 0;

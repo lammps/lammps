@@ -49,7 +49,7 @@ class AtomVecLine : public AtomVec {
   int pack_restart_bonus(int, double *);
   int unpack_restart_bonus(int, double *);
   void data_atom_bonus(int, char **);
-  bigint memory_usage_bonus();
+  double memory_usage_bonus();
 
   void create_atom_post(int);
   void data_atom_post(int);

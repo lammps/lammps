@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_displace_atom.h"
+
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_store.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix_store.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 
@@ -32,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  displace(NULL), id_fix(NULL)
+  displace(nullptr), id_fix(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute displace/atom command");
 
@@ -43,7 +44,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // optional args
 
   refreshflag = 0;
-  rvar = NULL;
+  rvar = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -52,9 +53,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Illegal compute displace/atom command");
       refreshflag = 1;
       delete [] rvar;
-      int n = strlen(arg[iarg+1]) + 1;
-      rvar = new char[n];
-      strcpy(rvar,arg[iarg+1]);
+      rvar = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute displace/atom command");
   }
@@ -73,11 +72,9 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  std::string cmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[cmd.size()+1];
-  strcpy(id_fix,cmd.c_str());
-
-  cmd += fmt::format(" {} STORE peratom 1 3", group->names[igroup]);
+  id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
+  std::string cmd = id_fix + fmt::format(" {} STORE peratom 1 3",
+                                         group->names[igroup]);
   modify->add_fix(cmd);
   fix = (FixStore *) modify->fix[modify->nfix-1];
 
@@ -101,7 +98,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // per-atom displacement array
 
   nmax = nvmax = 0;
-  varatom = NULL;
+  varatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,7 +243,7 @@ void ComputeDisplaceAtom::refresh()
 
 double ComputeDisplaceAtom::memory_usage()
 {
-  double bytes = nmax*4 * sizeof(double);
-  bytes += nvmax * sizeof(double);
+  double bytes = (double)nmax*4 * sizeof(double);
+  bytes += (double)nvmax * sizeof(double);
   return bytes;
 }

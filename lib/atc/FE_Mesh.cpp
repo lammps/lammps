@@ -46,7 +46,7 @@ namespace ATC {
     partitioned_(false),
     nNodes_(0), 
     nNodesUnique_(0),
-    feElement_(NULL),
+    feElement_(nullptr),
     twoDimensional_(false),
     hasPlanarFaces_(false)
 
@@ -1708,7 +1708,7 @@ namespace ATC {
                        const Array< pair< string, set<int> > > *nodeSets):
     FE_Mesh(),
     minEltSize_(0),
-    tree_(NULL)
+    tree_(nullptr)
   {
     // Pick which element class to make
     if (elementType == "HEX8") {
@@ -1774,7 +1774,7 @@ namespace ATC {
     }
     
     // Insert nodes and elements into KD-tree for PIE search.
-    if (tree_ == NULL) {
+    if (tree_ == nullptr) {
       tree_ = KD_Tree::create_KD_tree(feElement_->num_elt_nodes(), nNodes_, 
         &nodalCoords_, nElts_, connectivity_);
     }
@@ -2107,7 +2107,7 @@ namespace ATC {
 
     // use the KD tree for partitioning, getting more blocks than
     // processors
-    if (tree_ == NULL) {
+    if (tree_ == nullptr) {
       tree_ = KD_Tree::create_KD_tree(feElement_->num_elt_nodes(), 
                                       nNodes_, &nodalCoords_, 
                                       nElts_, connectivity_);
@@ -2519,7 +2519,7 @@ namespace ATC {
                                      const double zscale)
     : hx_(hx), hy_(hy), hz_(hz)
   {
-    tree_ = NULL;
+    tree_ = nullptr;
     hasPlanarFaces_ = true;
     xscale_ = xscale;
     yscale_ = yscale;
@@ -2820,7 +2820,7 @@ namespace ATC {
                                      const double zscale)
   {
     hasPlanarFaces_ = true;
-    tree_ = NULL;
+    tree_ = nullptr;
     xscale_ = xscale;
     yscale_ = yscale;
     zscale_ = zscale;

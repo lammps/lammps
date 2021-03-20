@@ -167,8 +167,8 @@ class FixIntel : public Fix {
   inline void zero_timers() {}
   inline void start_watch(const int /*which*/) {}
   inline double stop_watch(const int /*which*/) { return 0.0; }
-  double * off_watch_pair() { return NULL; }
-  double * off_watch_neighbor() { return NULL; }
+  double * off_watch_pair() { return nullptr; }
+  double * off_watch_neighbor() { return nullptr; }
   inline void balance_stamp() {}
   inline void acc_timers() {}
   inline int separate_buffers() { return 0; }

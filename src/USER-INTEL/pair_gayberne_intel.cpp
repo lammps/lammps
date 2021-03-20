@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -93,7 +93,7 @@ void PairGayBerneIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -276,7 +276,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
   double *timer_compute = fix->off_watch_pair();
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(special_lj:length(0) alloc_if(0) free_if(0)) \
     in(ijc,lj34,ic:length(0) alloc_if(0) free_if(0)) \
     in(rsq_formi, delx_formi, dely_formi: length(0) alloc_if(0) free_if(0)) \
@@ -399,7 +399,7 @@ void PairGayBerneIntel::eval(const int offload, const int vflag,
 
         if (EFLAG) fwtmp = sevdwl = (acc_t)0.0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
 
         bool multiple_forms = false;
         int packed_j = 0;
@@ -958,7 +958,7 @@ void PairGayBerneIntel::pack_force_const(ForceConst<flt_t> &fc,
   FC_PACKED2_T *olj34 = fc.lj34[0];
   FC_PACKED3_T *oic = fc.ic;
   int tp1sq = tp1 * tp1;
-  if (oijc != NULL && oic != NULL) {
+  if (oijc != nullptr && oic != nullptr) {
     #pragma offload_transfer target(mic:_cop) \
       in(special_lj: length(4) alloc_if(0) free_if(0)) \
       in(oijc,olj34: length(tp1sq) alloc_if(0) free_if(0)) \
@@ -990,9 +990,9 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       int * ojtype_form = jtype_form[0];
       int * ojlist_form = jlist_form[0];
 
-      if (ospecial_lj != NULL && oijc != NULL && olj34 != NULL &&
-          orsq_form != NULL && odelx_form != NULL && odely_form != NULL &&
-          odelz_form != NULL && ojtype_form != NULL && ojlist_form != NULL &&
+      if (ospecial_lj != nullptr && oijc != nullptr && olj34 != nullptr &&
+          orsq_form != nullptr && odelx_form != nullptr && odely_form != nullptr &&
+          odelz_form != nullptr && ojtype_form != nullptr && ojlist_form != nullptr &&
           _cop >= 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(ospecial_lj, oijc, olj34, oic: alloc_if(0) free_if(1)) \
@@ -1048,10 +1048,10 @@ void PairGayBerneIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       int off_onel = one_length * nthreads;
 
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && oijc != NULL && olj34 != NULL &&
-          oic != NULL && orsq_form != NULL && odelx_form != NULL &&
-          odely_form != NULL && odelz_form != NULL && ojtype_form !=NULL &&
-          ojlist_form !=NULL && cop >= 0) {
+      if (ospecial_lj != nullptr && oijc != nullptr && olj34 != nullptr &&
+          oic != nullptr && orsq_form != nullptr && odelx_form != nullptr &&
+          odely_form != nullptr && odelz_form != nullptr && ojtype_form !=nullptr &&
+          ojlist_form !=nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
           nocopy(oijc,olj34: length(tp1sq) alloc_if(1) free_if(0)) \

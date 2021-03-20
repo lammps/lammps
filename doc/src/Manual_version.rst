@@ -1,5 +1,5 @@
 What does a LAMMPS version mean
-===============================
+-------------------------------
 
 The LAMMPS "version" is the date when it was released, such as 1 May
 2014. LAMMPS is updated continuously.  Whenever we fix a bug or add a
@@ -17,7 +17,7 @@ run LAMMPS. It is also in the file src/version.h and in the LAMMPS
 directory name created when you unpack a tarball.  And it is on the
 first page of the :doc:`manual <Manual>`.
 
-* If you browse the HTML doc pages on the LAMMPS WWW site, they always
+* If you browse the HTML pages on the LAMMPS WWW site, they always
   describe the most current patch release of LAMMPS.
-* If you browse the HTML doc pages included in your tarball, they
+* If you browse the HTML pages included in your tarball, they
   describe the version you have, which may be older.

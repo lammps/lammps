@@ -39,7 +39,7 @@ class PairLCBOP : public Pair {
 
  protected:
   int **pages;                     // neighbor list pages
-  int *map;                        // 0 (C) or -1 (NULL) for each type
+  int *map;                        // 0 (C) or -1 ("NULL") for each type
 
   int me;
 

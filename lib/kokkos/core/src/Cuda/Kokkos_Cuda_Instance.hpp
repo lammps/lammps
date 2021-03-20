@@ -34,7 +34,9 @@ struct CudaTraits {
   enum : CudaSpace::size_type {
     KernelArgumentLimit = 0x001000 /*  4k bytes */
   };
-
+  enum : CudaSpace::size_type {
+    MaxHierarchicalParallelism = 1024 /* team_size * vector_length */
+  };
   using ConstantGlobalBufferType =
       unsigned long[ConstantMemoryUsage / sizeof(unsigned long)];
 
@@ -104,10 +106,12 @@ class CudaInternal {
 
   cudaDeviceProp m_deviceProp;
 
+  // Scratch Spaces for Reductions
   mutable size_type m_scratchSpaceCount;
   mutable size_type m_scratchFlagsCount;
   mutable size_type m_scratchUnifiedCount;
   mutable size_type m_scratchFunctorSize;
+
   size_type m_scratchUnifiedSupported;
   size_type m_streamCount;
   mutable size_type* m_scratchSpace;
@@ -116,6 +120,10 @@ class CudaInternal {
   mutable size_type* m_scratchFunctor;
   uint32_t* m_scratchConcurrentBitset;
   cudaStream_t m_stream;
+
+  // Team Scratch Level 1 Space
+  mutable int64_t m_team_scratch_current_size;
+  mutable void* m_team_scratch_ptr;
 
   bool was_initialized = false;
   bool was_finalized   = false;
@@ -172,12 +180,19 @@ class CudaInternal {
         m_scratchUnified(nullptr),
         m_scratchFunctor(nullptr),
         m_scratchConcurrentBitset(nullptr),
-        m_stream(nullptr) {}
+        m_stream(nullptr),
+        m_team_scratch_current_size(0),
+        m_team_scratch_ptr(nullptr) {}
 
+  // Resizing of reduction related scratch spaces
   size_type* scratch_space(const size_type size) const;
   size_type* scratch_flags(const size_type size) const;
   size_type* scratch_unified(const size_type size) const;
   size_type* scratch_functor(const size_type size) const;
+
+  // Resizing of team level 1 scratch
+  void* resize_team_scratch_space(std::int64_t bytes,
+                                  bool force_shrink = false);
 };
 
 }  // Namespace Impl

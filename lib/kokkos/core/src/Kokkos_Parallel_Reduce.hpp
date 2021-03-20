@@ -855,31 +855,30 @@ struct ParallelReduceAdaptor {
                              const FunctorType& functor,
                              ReturnType& return_value) {
     uint64_t kpID = 0;
-    if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Impl::ParallelConstructName<FunctorType,
-                                          typename PolicyType::work_tag>
-          name(label);
-      Kokkos::Profiling::beginParallelReduce(name.get(), 0, &kpID);
-    }
+
+    PolicyType inner_policy = policy;
+    Kokkos::Tools::Impl::begin_parallel_reduce<
+        typename return_value_adapter::reducer_type>(inner_policy, functor,
+                                                     label, kpID);
 
     Kokkos::Impl::shared_allocation_tracking_disable();
 #ifdef KOKKOS_IMPL_NEED_FUNCTOR_WRAPPER
     Impl::ParallelReduce<typename functor_adaptor::functor_type, PolicyType,
                          typename return_value_adapter::reducer_type>
-        closure(functor_adaptor::functor(functor), policy,
+        closure(functor_adaptor::functor(functor), inner_policy,
                 return_value_adapter::return_value(return_value, functor));
 #else
     Impl::ParallelReduce<FunctorType, PolicyType,
                          typename return_value_adapter::reducer_type>
-        closure(functor, policy,
+        closure(functor, inner_policy,
                 return_value_adapter::return_value(return_value, functor));
 #endif
     Kokkos::Impl::shared_allocation_tracking_enable();
     closure.execute();
 
-    if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::endParallelReduce(kpID);
-    }
+    Kokkos::Tools::Impl::end_parallel_reduce<
+        typename return_value_adapter::reducer_type>(inner_policy, functor,
+                                                     label, kpID);
   }
 };
 }  // namespace Impl
@@ -912,23 +911,50 @@ struct ReducerHasTestReferenceFunction {
   };
 };
 
-template <class ExecutionSpace, class T,
-          bool is_reducer = ReducerHasTestReferenceFunction<T>::value>
-struct ParallelReduceFence {
-  static void fence(const ExecutionSpace& execution_space, const T&) {
-    execution_space.fence();
-  }
-};
+template <class ExecutionSpace, class Arg>
+constexpr std::enable_if_t<
+    // constraints only necessary because SFINAE lacks subsumption
+    !ReducerHasTestReferenceFunction<Arg>::value &&
+        !Kokkos::is_view<Arg>::value,
+    // return type:
+    bool>
+parallel_reduce_needs_fence(ExecutionSpace const&, Arg const&) {
+  return true;
+}
+
+template <class ExecutionSpace, class Reducer>
+constexpr std::enable_if_t<
+    // equivalent to:
+    // (requires (Reducer const& r) {
+    //   { reducer.references_scalar() } -> std::convertible_to<bool>;
+    // })
+    ReducerHasTestReferenceFunction<Reducer>::value,
+    // return type:
+    bool>
+parallel_reduce_needs_fence(ExecutionSpace const&, Reducer const& reducer) {
+  return reducer.references_scalar();
+}
+
+template <class ExecutionSpace, class ViewLike>
+constexpr std::enable_if_t<
+    // requires Kokkos::ViewLike<ViewLike>
+    Kokkos::is_view<ViewLike>::value,
+    // return type:
+    bool>
+parallel_reduce_needs_fence(ExecutionSpace const&, ViewLike const&) {
+  return false;
+}
+
 template <class ExecutionSpace, class... Args>
-struct ParallelReduceFence<ExecutionSpace, View<Args...>, false> {
-  static void fence(const ExecutionSpace&, const View<Args...>){};
-};
-template <class ExecutionSpace, class T>
-struct ParallelReduceFence<ExecutionSpace, T, true> {
-  static void fence(const ExecutionSpace& execution_space, const T& reducer) {
-    if (reducer.references_scalar()) execution_space.fence();
+struct ParallelReduceFence {
+  template <class... ArgsDeduced>
+  static void fence(const ExecutionSpace& ex, ArgsDeduced&&... args) {
+    if (Impl::parallel_reduce_needs_fence(ex, (ArgsDeduced &&) args...)) {
+      ex.fence();
+    }
   }
 };
+
 }  // namespace Impl
 
 /** \brief  Parallel reduction

@@ -31,14 +31,14 @@ send an e-mail to ``slack@lammps.org`` explaining what part of LAMMPS
 you are working on.  Only discussions related to LAMMPS development are
 tolerated, so this is **NOT** for people that look for help with compiling,
 installing, or using LAMMPS. Please contact the `lammps-users mailing
-list <https://lammps.sandia.gov>`_ for those purposes instead.
+list <https://lammps.sandia.gov/mail.html>`_ for those purposes instead.
 
 How quickly your contribution will be integrated depends largely on how
 much effort it will cause to integrate and test it, how much it requires
 changes to the core codebase, and of how much interest it is to the
 larger LAMMPS community.  Please see below for a checklist of typical
-requirements. Once you have prepared everything, see the :doc:`Using
-GitHub with LAMMPS Howto <Howto_github>` doc page for instructions on
+requirements. Once you have prepared everything, see the :doc:`LAMMPS GitHub
+Tutorial <Howto_github>` page for instructions on
 how to submit your changes or new files through a GitHub pull
 request. If you prefer to submit patches or full files, you should first
 make certain, that your code works correctly with the latest patch-level
@@ -58,8 +58,8 @@ are listed and described on the :doc:`Packages details <Packages_details>` doc p
 
 Note that by providing us files to release, you are agreeing to make
 them open-source, i.e. we can release them under the terms of the GPL,
-used as a license for the rest of LAMMPS.  See the `Open source <https://lammps.sandia.gov/open_source.html>`_ page on the LAMMPS
-website for details.
+used as a license for the rest of LAMMPS.  See the :doc:`LAMMPS license
+<Intro_opensource>` doc page for details.
 
 With user packages and files, all we are really providing (aside from
 the fame and fortune that accompanies having your name in the source
@@ -206,16 +206,22 @@ packages in the src directory for examples. If you are uncertain, please ask.
   algorithm/science behind the feature itself, or its initial usage, or
   its implementation in LAMMPS), you can add the citation to the \*.cpp
   source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
-  A LaTeX citation is stored in a variable at the top of the file and a
-  single line of code that references the variable is added to the
-  constructor of the class.  Whenever a user invokes your feature from
-  their input script, this will cause LAMMPS to output the citation to a
-  log.cite file and prompt the user to examine the file.  Note that you
-  should only use this for a paper you or your group authored.
-  E.g. adding a cite in the code for a paper by Nose and Hoover if you
-  write a fix that implements their integrator is not the intended
-  usage.  That kind of citation should just be in the doc page you
-  provide.
+  A LaTeX citation is stored in a variable at the top of the file and
+  a single line of code registering this variable is added to the
+  constructor of the class.  If there is additional functionality (which
+  may have been added later) described in a different publication,
+  additional citation descriptions may be added for as long as they
+  are only registered when the corresponding keyword activating this
+  functionality is used.  With these options it is possible to have
+  LAMMPS output a specific citation reminder whenever a user invokes
+  your feature from their input script.  Note that you should only use
+  this for the most relevant paper for a feature and a publication that
+  you or your group authored.  E.g. adding a citation in the code for
+  a paper by Nose and Hoover if you write a fix that implements their
+  integrator is not the intended usage.  That kind of citation should
+  just be included in the documentation page you provide describing
+  your contribution.  If you are not sure what the best option would
+  be, please contact the LAMMPS developers for advice.
 
 Finally, as a general rule-of-thumb, the more clear and
 self-explanatory you make your documentation and README files, and the

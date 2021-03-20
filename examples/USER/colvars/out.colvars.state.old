@@ -1,7 +1,7 @@
 configuration {
   step          100
   dt 2.000000e+00
-  version 2018-11-16
+  version 2020-07-07
 }
 
 colvar {

@@ -48,7 +48,7 @@ class Set : protected Pointers {
   void set(int);
   void setrandom(int);
   void topology(int);
-  void varparse(char *, int);
+  void varparse(const char *, int);
 };
 
 }

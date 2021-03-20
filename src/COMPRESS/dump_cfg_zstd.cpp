@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,15 +16,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef LAMMPS_ZSTD
-#include "dump_cfg_zstd.h"
+
 #include "atom.h"
 #include "domain.h"
+#include "dump_cfg_zstd.h"
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cstring>
-#include "fmt/format.h"
 
 using namespace LAMMPS_NS;
 #define UNWRAPEXPAND 10.0
@@ -79,14 +79,12 @@ void DumpCFGZstd::openfile()
     *ptr = '*';
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[numfiles],filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
         remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[fileidx],filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -101,7 +99,7 @@ void DumpCFGZstd::openfile()
 
     try {
       writer.open(filecurrent);
-    } catch (FileWriterException & e) {
+    } catch (FileWriterException &e) {
       error->one(FLERR, e.what());
     }
   }
@@ -173,7 +171,7 @@ void DumpCFGZstd::write()
 int DumpCFGZstd::modify_param(int narg, char **arg)
 {
   int consumed = DumpCFG::modify_param(narg, arg);
-  if(consumed == 0) {
+  if (consumed == 0) {
     try {
       if (strcmp(arg[0],"checksum") == 0) {
         if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
@@ -187,7 +185,7 @@ int DumpCFGZstd::modify_param(int narg, char **arg)
         writer.setCompressionLevel(compression_level);
         return 2;
       }
-    } catch (FileWriterException & e) {
+    } catch (FileWriterException &e) {
       error->one(FLERR, e.what());
     }
   }

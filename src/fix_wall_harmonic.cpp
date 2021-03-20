@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -67,7 +67,7 @@ void FixWallHarmonic::wall_particle(int m, int which, double coord)
       if (evflag) {
         if (side < 0) vn = -fwall*delta;
         else vn = fwall*delta;
-        v_tally(dim, i, vn);
+        v_tally(dim,i,vn);
       }
     }
 

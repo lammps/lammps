@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,12 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_oneway.h"
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "region.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,7 +35,7 @@ FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   direction = NONE;
   regionidx = 0;
-  regionstr = NULL;
+  regionstr = nullptr;
 
   if (narg < 6) error->all(FLERR,"Illegal fix oneway command");
 

@@ -121,7 +121,7 @@ class FixRxKokkos : public FixRX {
     value_type *m_data;
 
     KOKKOS_INLINE_FUNCTION
-    StridedArrayType() : m_data(NULL) {}
+    StridedArrayType() : m_data(nullptr) {}
     KOKKOS_INLINE_FUNCTION
     StridedArrayType(value_type *ptr) : m_data(ptr) {}
 

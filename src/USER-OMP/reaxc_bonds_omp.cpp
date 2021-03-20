@@ -23,7 +23,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_bonds_omp.h"
@@ -88,7 +88,7 @@ void BondsOMP( reax_system *system, control_params * /* control */,
   pair_reax_ptr->ev_setup_thr_proxy(system->pair_ptr->eflag_either,
                                     system->pair_ptr->vflag_either, system->N,
                                     system->pair_ptr->eatom,
-                                    system->pair_ptr->vatom, NULL, thr);
+                                    system->pair_ptr->vatom, nullptr, thr);
 
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
@@ -174,7 +174,7 @@ void BondsOMP( reax_system *system, control_params * /* control */,
         }
       }
     }
-  } // for(i)
+  } // for (i)
 
  } // omp
 

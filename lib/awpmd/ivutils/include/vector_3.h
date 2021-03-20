@@ -374,7 +374,7 @@ struct Vector_Nt {
   }
 
 
-  T maxcoord(int *ind=NULL) const {
+  T maxcoord(int *ind=nullptr) const {
     int im=0;
     T vv=v[0];
     for (int i=1; i<N; i++) {
@@ -389,7 +389,7 @@ struct Vector_Nt {
 
 
   //e returns the corrd having maximal absolute value
-  T maxabscoord(int *ind=NULL) const {
+  T maxabscoord(int *ind=nullptr) const {
     int im=0;
     T vv=fabs(v[0]);
     for (int i=1; i<N; i++) {
@@ -403,7 +403,7 @@ struct Vector_Nt {
   }
 
   //e returns the corrd having minimal absolute value
-  T minabscoord(int *ind=NULL) const {
+  T minabscoord(int *ind=nullptr) const {
     int im=0;
     T vv=fabs(v[0]);
     for (int i=1; i<N; i++) {
@@ -417,7 +417,7 @@ struct Vector_Nt {
   }
 
 
-  T mincoord(int *ind=NULL) const {
+  T mincoord(int *ind=nullptr) const {
     int im=0;
     T vv=v[0];
     for (int i=1; i<N; i++) {
@@ -485,7 +485,7 @@ vec_type dist_av(Vector_3 *va1,Vector_3 *va2,int n);
 
 //e finds the average difference norm between two vector sets of the same length
 /*e optionally gives the indexes for maximal and minimal difference
- va2 can be NULL, then the norm of va1 is used */
+ va2 can be nullptr, then the norm of va1 is used */
 
 vec_type diff_av(Vector_3 *va1,Vector_3 *va2,int n, int *minind=0, int *maxind=0);
 
@@ -615,9 +615,9 @@ inline Vector_3 randdir(){
 
 ///\en Calculates extent of the vector container.
 ///    \return the center of the vector set, optionally
-///    (if arguments are not NULL) fills the bounding box in \a box_min, \a box_max.
+///    (if arguments are not null pointers) fills the bounding box in \a box_min, \a box_max.
 template<class vec_inp_it>
-Vector_3 get_extent(vec_inp_it beg,vec_inp_it end, Vector_3* box_min=NULL,Vector_3* box_max=NULL){
+Vector_3 get_extent(vec_inp_it beg,vec_inp_it end, Vector_3* box_min=nullptr,Vector_3* box_max=nullptr){
   if(beg==end)
     return Vector_3();
   Vector_3 center(*beg++);

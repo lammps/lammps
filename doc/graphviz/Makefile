@@ -1,6 +1,5 @@
 # Makefile for generating images with graphviz
 #
-SHELL      = /bin/bash
 BUILDDIR   = ${CURDIR}/..
 IMGDIR     = $(BUILDDIR)/src/JPG
 IMGSRC     = $(wildcard *.dot)
@@ -18,7 +17,7 @@ clean:
 
 ifeq ($(HAS_DOT),YES)
 $(IMGDIR)/%.png: %.dot
-	dot -Tpng -o $@ $<
+	dot -Tpng -Kneato -o $@ $<
 endif
 
 ifeq ($(HAS_DOT),NO)

@@ -170,6 +170,12 @@ void *HostSpace::allocate(const char *arg_label, const size_t arg_alloc_size,
                           const size_t
 
                               arg_logical_size) const {
+  return impl_allocate(arg_label, arg_alloc_size, arg_logical_size);
+}
+void *HostSpace::impl_allocate(
+    const char *arg_label, const size_t arg_alloc_size,
+    const size_t arg_logical_size,
+    const Kokkos::Tools::SpaceHandle arg_handle) const {
   const size_t reported_size =
       (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
   static_assert(sizeof(void *) == sizeof(uintptr_t),
@@ -281,9 +287,7 @@ void *HostSpace::allocate(const char *arg_label, const size_t arg_alloc_size,
         arg_alloc_size, alignment, failure_mode, alloc_mec);
   }
   if (Kokkos::Profiling::profileLibraryLoaded()) {
-    Kokkos::Profiling::allocateData(
-        Kokkos::Profiling::make_space_handle(name()), arg_label, ptr,
-        reported_size);
+    Kokkos::Profiling::allocateData(arg_handle, arg_label, ptr, reported_size);
   }
   return ptr;
 }
@@ -298,13 +302,18 @@ void HostSpace::deallocate(const char *arg_label, void *const arg_alloc_ptr,
                            const size_t
 
                                arg_logical_size) const {
+  impl_deallocate(arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size);
+}
+void HostSpace::impl_deallocate(
+    const char *arg_label, void *const arg_alloc_ptr,
+    const size_t arg_alloc_size, const size_t arg_logical_size,
+    const Kokkos::Tools::SpaceHandle arg_handle) const {
   if (arg_alloc_ptr) {
     size_t reported_size =
         (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
     if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::deallocateData(
-          Kokkos::Profiling::make_space_handle(name()), arg_label,
-          arg_alloc_ptr, reported_size);
+      Kokkos::Profiling::deallocateData(arg_handle, arg_label, arg_alloc_ptr,
+                                        reported_size);
     }
     if (m_alloc_mech == STD_MALLOC) {
       void *alloc_ptr = *(reinterpret_cast<void **>(arg_alloc_ptr) - 1);
@@ -338,7 +347,7 @@ void HostSpace::deallocate(const char *arg_label, void *const arg_alloc_ptr,
 namespace Kokkos {
 namespace Impl {
 
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
 SharedAllocationRecord<void, void>
     SharedAllocationRecord<Kokkos::HostSpace, void>::s_root_record;
 #endif
@@ -391,7 +400,7 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::SharedAllocationRecord(
     // Pass through allocated [ SharedAllocationHeader , user_memory ]
     // Pass through deallocation function
     : SharedAllocationRecord<void, void>(
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
           &SharedAllocationRecord<Kokkos::HostSpace, void>::s_root_record,
 #endif
           Impl::checked_allocation_with_header(arg_space, arg_label,
@@ -468,7 +477,7 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::get_record(void *alloc_ptr) {
 }
 
 // Iterate records to print orphaned memory ...
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
 void SharedAllocationRecord<Kokkos::HostSpace, void>::print_records(
     std::ostream &s, const Kokkos::HostSpace &, bool detail) {
   SharedAllocationRecord<void, void>::print_host_accessible_records(
@@ -479,7 +488,7 @@ void SharedAllocationRecord<Kokkos::HostSpace, void>::print_records(
     std::ostream &, const Kokkos::HostSpace &, bool) {
   throw_runtime_exception(
       "SharedAllocationRecord<HostSpace>::print_records only works with "
-      "KOKKOS_DEBUG enabled");
+      "KOKKOS_ENABLE_DEBUG enabled");
 }
 #endif
 

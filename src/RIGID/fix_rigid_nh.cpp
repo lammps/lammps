@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,13 +42,15 @@ using namespace RigidConst;
 /* ---------------------------------------------------------------------- */
 
 FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
-  FixRigid(lmp, narg, arg), conjqm(NULL), w(NULL),
-  wdti1(NULL), wdti2(NULL), wdti4(NULL), q_t(NULL), q_r(NULL),
-  eta_t(NULL), eta_r(NULL), eta_dot_t(NULL), eta_dot_r(NULL),
-  f_eta_t(NULL), f_eta_r(NULL), q_b(NULL), eta_b(NULL),
-  eta_dot_b(NULL), f_eta_b(NULL), rfix(NULL), id_temp(NULL),
-  id_press(NULL), temperature(NULL), pressure(NULL)
+  FixRigid(lmp, narg, arg), conjqm(nullptr), w(nullptr),
+  wdti1(nullptr), wdti2(nullptr), wdti4(nullptr), q_t(nullptr), q_r(nullptr),
+  eta_t(nullptr), eta_r(nullptr), eta_dot_t(nullptr), eta_dot_r(nullptr),
+  f_eta_t(nullptr), f_eta_r(nullptr), q_b(nullptr), eta_b(nullptr),
+  eta_dot_b(nullptr), f_eta_b(nullptr), rfix(nullptr), id_temp(nullptr),
+  id_press(nullptr), temperature(nullptr), pressure(nullptr)
 {
+  if (tstat_flag || pstat_flag) ecouple_flag = 1;
+
   // error checks: could be moved up to FixRigid
 
   if ((p_flag[0] == 1 && p_period[0] <= 0.0) ||
@@ -145,7 +147,7 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
   // rigid body pointers
 
   nrigidfix = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   vol0 = 0.0;
   t0 = 1.0;
@@ -153,8 +155,8 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
   tcomputeflag = 0;
   pcomputeflag = 0;
 
-  id_temp = NULL;
-  id_press = NULL;
+  id_temp = nullptr;
+  id_press = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -186,8 +188,6 @@ int FixRigidNH::setmask()
 {
   int mask = 0;
   mask = FixRigid::setmask();
-  if (tstat_flag || pstat_flag) mask |= THERMO_ENERGY;
-
   return mask;
 }
 
@@ -304,7 +304,7 @@ void FixRigidNH::init()
 
     if (rfix) delete [] rfix;
     nrigidfix = 0;
-    rfix = NULL;
+    rfix = nullptr;
 
     for (int i = 0; i < modify->nfix; i++)
       if (modify->fix[i]->rigid_flag) nrigidfix++;
@@ -565,8 +565,7 @@ void FixRigidNH::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // remap simulation box by 1/2 step
 

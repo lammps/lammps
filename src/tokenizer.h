@@ -18,10 +18,11 @@
 #ifndef LMP_TOKENIZER_H
 #define LMP_TOKENIZER_H
 
-#include <string>
-#include <vector>
 #include "lmptype.h"
-#include <exception>
+
+#include <exception>  // IWYU pragma: export
+#include <string>     // IWYU pragma: export
+#include <vector>     // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

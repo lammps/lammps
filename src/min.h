@@ -14,7 +14,7 @@
 #ifndef LMP_MIN_H
 #define LMP_MIN_H
 
-#include "pointers.h"
+#include "pointers.h"           // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -36,7 +36,7 @@ class Min : protected Pointers {
   virtual void run(int);
   void cleanup();
   int request(class Pair *, int, double);
-  virtual bigint memory_usage() {return 0;}
+  virtual double memory_usage() {return 0;}
   void modify_params(int, char **);
   virtual int modify_param(int, char **) {return 0;}
   virtual double fnorm_sqr();

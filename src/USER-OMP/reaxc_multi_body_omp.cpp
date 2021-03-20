@@ -23,17 +23,19 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_multi_body_omp.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "fix_omp.h"
-#include <cstring>
 #include "pair_reaxc_omp.h"
+
 #include "reaxc_defs.h"
 #include "reaxc_list.h"
+
+#include <cmath>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include  <omp.h>
@@ -104,7 +106,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
 #endif
   for ( i = 0; i < system->n; ++i) {
     type_i = system->my_atoms[i].type;
-    if(type_i < 0) continue;
+    if (type_i < 0) continue;
     sbp_i = &(system->reax_param.sbp[ type_i ]);
 
     /* lone-pair Energy */
@@ -114,11 +116,11 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
 
     numbonds = 0;
     e_lp = 0.0;
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
       numbonds ++;
 
     /* calculate the energy */
-    if(numbonds > 0)
+    if (numbonds > 0)
       total_Elp += e_lp =
         p_lp2 * workspace->Delta_lp[i] * inv_expvd2;
 
@@ -126,7 +128,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
       75 * p_lp2 * workspace->Delta_lp[i] * expvd2 * SQR(inv_expvd2);
     CElp = dElp * workspace->dDelta_lp[i];
 
-    if(numbonds > 0) workspace->CdDelta[i] += CElp;  // lp - 1st term
+    if (numbonds > 0) workspace->CdDelta[i] += CElp;  // lp - 1st term
 
     /* tally into per-atom energy */
     if (system->pair_ptr->evflag)
@@ -135,10 +137,10 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
 
     /* correction for C2 */
     if (p_lp3 > 0.001 && !strcmp(system->reax_param.sbp[type_i].name, "C"))
-      for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj ) {
+      for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
         j = bonds->select.bond_list[pj].nbr;
         type_j = system->my_atoms[j].type;
-        if(type_j < 0) continue;
+        if (type_j < 0) continue;
 
         if (!strcmp( system->reax_param.sbp[type_j].name, "C" )) {
           twbp = &( system->reax_param.tbp[type_i][type_j]);
@@ -169,7 +171,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
 #endif
   for (i = 0; i < system->n; ++i) {
     type_i = system->my_atoms[i].type;
-    if(type_i < 0) continue;
+    if (type_i < 0) continue;
     sbp_i = &(system->reax_param.sbp[ type_i ]);
 
     /* over-coordination energy */
@@ -182,7 +184,7 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
     for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
       j = bonds->select.bond_list[pj].nbr;
       type_j = system->my_atoms[j].type;
-      if(type_j < 0) continue;
+      if (type_j < 0) continue;
       bo_ij = &(bonds->select.bond_list[pj].bo_data);
       twbp = &(system->reax_param.tbp[ type_i ][ type_j ]);
 
@@ -225,10 +227,10 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
 
     numbonds = 0;
     e_un = 0.0;
-    for( pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj )
+    for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
       numbonds ++;
 
-    if(numbonds > 0) total_Eun += e_un =
+    if (numbonds > 0) total_Eun += e_un =
                        -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
     CEunder1 = inv_exp_ovun2n *
@@ -242,14 +244,14 @@ void Atom_EnergyOMP( reax_system *system, control_params * /* control */,
     /* tally into per-atom energy */
     if (system->pair_ptr->evflag) {
       eng_tmp = e_ov;
-      if(numbonds > 0) eng_tmp+= e_un;
+      if (numbonds > 0) eng_tmp+= e_un;
       pair_reax_ptr->ev_tally_thr_proxy(system->pair_ptr, i, i, system->n, 1,
                                         eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
     }
 
     /* forces */
     workspace->CdDelta[i] += CEover3;   // OvCoor - 2nd term
-    if(numbonds > 0) workspace->CdDelta[i] += CEunder3;  // UnCoor - 1st term
+    if (numbonds > 0) workspace->CdDelta[i] += CEunder3;  // UnCoor - 1st term
 
     for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
       pbond = &(bonds->select.bond_list[pj]);

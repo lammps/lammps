@@ -40,7 +40,7 @@ class PairAIREBO : public Pair {
   enum { AIREBO, REBO_2, AIREBO_M }; // for telling class variants apart in shared code
 
 protected:
-  int *map;                        // 0 (C), 1 (H), or -1 (NULL) for each type
+  int *map;                        // 0 (C), 1 (H), or -1 ("NULL") for each type
 
   int variant;
   int ljflag,torflag;              // 0/1 if LJ/Morse,torsion terms included

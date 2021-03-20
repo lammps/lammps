@@ -1,5 +1,5 @@
 LAMMPS features
-===============
+---------------
 
 LAMMPS is a classical molecular dynamics (MD) code with these general
 classes of functionality:
@@ -21,7 +21,7 @@ classes of functionality:
 .. _general:
 
 General features
-------------------------------
+^^^^^^^^^^^^^^^^
 
 * runs on a single processor or in parallel
 * distributed-memory message-passing parallelism (MPI)
@@ -41,9 +41,9 @@ General features
 .. _particle:
 
 Particle and model types
----------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-(:doc:`atom style <atom_style>` command)
+(See :doc:`atom style <atom_style>` command)
 
 * atoms
 * coarse-grained particles (e.g. bead-spring polymers)
@@ -61,9 +61,9 @@ Particle and model types
 .. _ff:
 
 Interatomic potentials (force fields)
-----------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-(:doc:`pair style <pair_style>`, :doc:`bond style <bond_style>`,
+(See :doc:`pair style <pair_style>`, :doc:`bond style <bond_style>`,
 :doc:`angle style <angle_style>`, :doc:`dihedral style <dihedral_style>`,
 :doc:`improper style <improper_style>`, :doc:`kspace style <kspace_style>`
 commands)
@@ -85,16 +85,16 @@ commands)
 * water potentials: TIP3P, TIP4P, SPC
 * implicit solvent potentials: hydrodynamic lubrication, Debye
 * force-field compatibility with common CHARMM, AMBER, DREIDING,     OPLS, GROMACS, COMPASS options
-* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim_init, kim_interactions, and kim_query <kim_commands>` commands
+* access to the `OpenKIM Repository <http://openkim.org>`_ of potentials via     :doc:`kim command <kim_commands>`
 * hybrid potentials: multiple pair, bond, angle, dihedral, improper     potentials can be used in one simulation
 * overlaid potentials: superposition of multiple pair potentials
 
 .. _create:
 
 Atom creation
---------------------------
+^^^^^^^^^^^^^
 
-(:doc:`read_data <read_data>`, :doc:`lattice <lattice>`,
+(See :doc:`read_data <read_data>`, :doc:`lattice <lattice>`,
 :doc:`create_atoms <create_atoms>`, :doc:`delete_atoms <delete_atoms>`,
 :doc:`displace_atoms <displace_atoms>`, :doc:`replicate <replicate>` commands)
 
@@ -107,9 +107,9 @@ Atom creation
 .. _ensemble:
 
 Ensembles, constraints, and boundary conditions
---------------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-(:doc:`fix <fix>` command)
+(See :doc:`fix <fix>` command)
 
 * 2d or 3d systems
 * orthogonal or non-orthogonal (triclinic symmetry) simulation domains
@@ -129,9 +129,9 @@ Ensembles, constraints, and boundary conditions
 .. _integrate:
 
 Integrators
----------------------------
+^^^^^^^^^^^
 
-(:doc:`run <run>`, :doc:`run_style <run_style>`, :doc:`minimize <minimize>` commands)
+(See :doc:`run <run>`, :doc:`run_style <run_style>`, :doc:`minimize <minimize>` commands)
 
 * velocity-Verlet integrator
 * Brownian dynamics
@@ -143,14 +143,14 @@ Integrators
 .. _diag:
 
 Diagnostics
-----------------------
+^^^^^^^^^^^
 
 * see various flavors of the :doc:`fix <fix>` and :doc:`compute <compute>` commands
 
 .. _output:
 
 Output
--------------------
+^^^^^^
 
 (:doc:`dump <dump>`, :doc:`restart <restart>` commands)
 
@@ -167,7 +167,7 @@ Output
 .. _replica1:
 
 Multi-replica models
------------------------------------
+^^^^^^^^^^^^^^^^^^^^
 
 * :doc:`nudged elastic band <neb>`
 * :doc:`parallel replica dynamics <prd>`
@@ -177,11 +177,11 @@ Multi-replica models
 .. _prepost:
 
 Pre- and post-processing
---------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 * A handful of pre- and post-processing tools are packaged with LAMMPS,
   some of which can convert input and output files to/from formats used
-  by other codes; see the :doc:`Toos <Tools>` doc page.
+  by other codes; see the :doc:`Tools <Tools>` page.
 * Our group has also written and released a separate toolkit called
   `Pizza.py <pizza_>`_ which provides tools for doing setup, analysis,
   plotting, and visualization for LAMMPS simulations.  Pizza.py is
@@ -194,10 +194,10 @@ Pre- and post-processing
 .. _special:
 
 Specialized features
-----------------------------------
+^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS can be built with optional packages which implement a variety
-of additional capabilities.  See the :doc:`Packages <Packages>` doc
+of additional capabilities.  See the :doc:`Optional Packages <Packages>`
 page for details.
 
 These are LAMMPS capabilities which you may not think of as typical
@@ -214,7 +214,7 @@ classical MD options:
 * Monte Carlo via :doc:`GCMC <fix_gcmc>` and :doc:`tfMC <fix_tfmc>` and :doc:`atom swapping <fix_atom_swap>`
 * :doc:`path-integral molecular dynamics (PIMD) <fix_ipi>` and :doc:`this as well <fix_pimd>`
 * :doc:`Direct Simulation Monte Carlo <pair_dsmc>` for low-density fluids
-* :doc:`Peridynamics mesoscale modeling <pair_peri>`
+* :doc:`Peridynamics modeling <pair_peri>`
 * :doc:`Lattice Boltzmann fluid <fix_lb_fluid>`
 * :doc:`targeted <fix_tmd>` and :doc:`steered <fix_smd>` molecular dynamics
 * :doc:`two-temperature electron model <fix_ttm>`

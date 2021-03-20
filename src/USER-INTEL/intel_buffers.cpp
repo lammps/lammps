@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,8 +12,8 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "intel_buffers.h"
+
 #include "force.h"
 #include "memory.h"
 
@@ -123,9 +123,9 @@ void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal,
     _buf_local_size = static_cast<double>(nlocal) * 1.1 + 1;
   const int f_stride = get_stride(_buf_local_size);
   lmp->memory->create(_x, _buf_size,"intel_x");
-  if (lmp->atom->q != NULL)
+  if (lmp->atom->q != nullptr)
     lmp->memory->create(_q, _buf_size, "intel_q");
-  if (lmp->atom->ellipsoid != NULL)
+  if (lmp->atom->ellipsoid != nullptr)
     lmp->memory->create(_quat, _buf_size, "intel_quat");
   #ifdef _LMP_INTEL_OFFLOAD
   if (lmp->force->newton_pair)
@@ -139,9 +139,9 @@ void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal,
   #ifdef _LMP_INTEL_OFFLOAD
   if (_separate_buffers) {
     lmp->memory->create(_host_x, _buf_size,"intel_host_x");
-    if (lmp->atom->q != NULL)
+    if (lmp->atom->q != nullptr)
       lmp->memory->create(_host_q, _buf_size, "intel_host_q");
-    if (lmp->atom->ellipsoid != NULL)
+    if (lmp->atom->ellipsoid != nullptr)
       lmp->memory->create(_host_quat, _buf_size, "intel_host_quat");
   }
 
@@ -154,24 +154,24 @@ void IntelBuffers<flt_t, acc_t>::_grow(const int nall, const int nlocal,
     const flt_t * const q = get_q();
     const vec3_acc_t * f_start = get_off_f();
     acc_t * ev_global = get_ev_global();
-    if (lmp->atom->q != NULL) {
-      if (x != NULL && q != NULL && f_start != NULL && ev_global != NULL) {
+    if (lmp->atom->q != nullptr) {
+      if (x != nullptr && q != nullptr && f_start != nullptr && ev_global != nullptr) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(x,q:length(_buf_size) alloc_if(1) free_if(0)) \
           nocopy(f_start:length(f_stride*fm) alloc_if(1) free_if(0))\
           nocopy(ev_global:length(8) alloc_if(1) free_if(0))
       }
     } else {
-      if (x != NULL && f_start != NULL && ev_global != NULL) {
+      if (x != nullptr && f_start != nullptr && ev_global != nullptr) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(x:length(_buf_size) alloc_if(1) free_if(0)) \
           nocopy(f_start:length(f_stride*fm) alloc_if(1) free_if(0))\
           nocopy(ev_global:length(8) alloc_if(1) free_if(0))
       }
     }
-    if (lmp->atom->ellipsoid != NULL) {
+    if (lmp->atom->ellipsoid != nullptr) {
       const quat_t * const quat = get_quat();
-      if (quat != NULL) {
+      if (quat != nullptr) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(quat:length(_buf_size) alloc_if(1) free_if(0))
       }
@@ -252,7 +252,7 @@ void IntelBuffers<flt_t, acc_t>::free_list_local()
       int * cnumneigh = _neigh_list_ptrs[0].cnumneigh;
       _neigh_list_ptrs[0].cnumneigh = 0;
       #ifdef _LMP_INTEL_OFFLOAD
-      if (_off_map_ilist != NULL) {
+      if (_off_map_ilist != nullptr) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(cnumneigh:alloc_if(0) free_if(1))
       }
@@ -261,11 +261,11 @@ void IntelBuffers<flt_t, acc_t>::free_list_local()
     }
 
     #ifdef _LMP_INTEL_OFFLOAD
-    if (_off_map_ilist != NULL) {
+    if (_off_map_ilist != nullptr) {
       const int * ilist = _off_map_ilist;
       const int * numneigh = _off_map_numneigh;
       const int ** firstneigh = (const int **)_off_map_firstneigh;
-      _off_map_ilist = NULL;
+      _off_map_ilist = nullptr;
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ilist,firstneigh,numneigh:alloc_if(0) free_if(1))
     }
@@ -402,7 +402,7 @@ void IntelBuffers<flt_t, acc_t>::_grow_nbor_list(NeighList * /*list*/,
   if (offload_end > 0) {
     int * list_alloc =_list_alloc;
 
-    if (list_alloc != NULL) {
+    if (list_alloc != nullptr) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(list_alloc:length(list_alloc_size) alloc_if(1) free_if(0))
       _off_list_alloc = true;
@@ -497,8 +497,8 @@ void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
     int *ccachei = _ccachei;
     int *ccachej = _ccachej;
 
-    if (ccachex != NULL && ccachey !=NULL && ccachez != NULL &&
-        ccachew != NULL && ccachei != NULL && ccachej !=NULL) {
+    if (ccachex != nullptr && ccachey !=nullptr && ccachez != nullptr &&
+        ccachew != nullptr && ccachei != nullptr && ccachej !=nullptr) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ccachex,ccachey:length(vsize) alloc_if(1) free_if(0)) \
         nocopy(ccachez,ccachew:length(vsize) alloc_if(1) free_if(0)) \
@@ -506,7 +506,7 @@ void IntelBuffers<flt_t, acc_t>::grow_ccache(const int off_flag,
         in(ccachej:length(vsize) alloc_if(1) free_if(0))
     }
     #ifdef LMP_USE_AVXCD
-    if (ccachef != NULL) {
+    if (ccachef != nullptr) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ccachef:length(_ccache_stride3 * nt) alloc_if(1) free_if(0))
     }
@@ -595,8 +595,8 @@ void IntelBuffers<flt_t, acc_t>::grow_ncache(const int off_flag,
     int *ncachej = _ncachej;
     int *ncachejtype = _ncachejtype;
 
-    if (ncachex != NULL && ncachey !=NULL && ncachez != NULL &&
-        ncachej != NULL && ncachejtype != NULL) {
+    if (ncachex != nullptr && ncachey !=nullptr && ncachez != nullptr &&
+        ncachej != nullptr && ncachejtype != nullptr) {
       #pragma offload_transfer target(mic:_cop) \
         nocopy(ncachex,ncachey:length(vsize) alloc_if(1) free_if(0)) \
         nocopy(ncachez,ncachej:length(vsize) alloc_if(1) free_if(0)) \
@@ -674,13 +674,13 @@ void IntelBuffers<flt_t, acc_t>::set_ntypes(const int ntypes,
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * cutneighsqo = _cutneighsq[0];
       const int ntypes2 = ntypes * ntypes;
-      if (_off_threads > 0 && cutneighsqo != NULL) {
+      if (_off_threads > 0 && cutneighsqo != nullptr) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(cutneighsqo:length(ntypes2) alloc_if(1) free_if(0))
       }
       if (use_ghost_cut) {
         flt_t * cutneighghostsqo = _cutneighghostsq[0];
-        if (_off_threads > 0 && cutneighghostsqo != NULL) {
+        if (_off_threads > 0 && cutneighghostsqo != nullptr) {
           #pragma offload_transfer target(mic:_cop) \
             nocopy(cutneighghostsqo:length(ntypes2) alloc_if(1) free_if(0))
         }

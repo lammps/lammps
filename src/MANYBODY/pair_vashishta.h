@@ -34,7 +34,7 @@ class PairVashishta : public Pair {
   double init_one(int, int);
   void init_style();
 
-  static const int NPARAMS_PER_LINE = 17;
+  static constexpr int NPARAMS_PER_LINE = 17;
 
   struct Param {
     double bigb,gamma,r0,bigc,costheta;

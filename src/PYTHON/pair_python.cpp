@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_python.h"
-#include <Python.h>  // IWYU pragma: keep
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
-#include "memory.h"
-#include "update.h"
-#include "neigh_list.h"
-#include "lmppython.h"
 #include "error.h"
+#include "force.h"
+#include "lmppython.h"
+#include "memory.h"
+#include "neigh_list.h"
 #include "python_compat.h"
+#include "update.h"
+
+#include <cstring>
+#include <Python.h>  // IWYU pragma: export
 
 using namespace LAMMPS_NS;
 
@@ -40,22 +41,27 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   one_coeff = 1;
   reinitflag = 0;
   cut_global = 0.0;
-  centroidstressflag = 1;
+  centroidstressflag = CENTROID_SAME;
 
-  py_potential = NULL;
-  skip_types = NULL;
+  py_potential = nullptr;
+  skip_types = nullptr;
 
   python->init();
 
   // add current directory to PYTHONPATH
-  PyObject * py_path = PySys_GetObject((char *)"path");
+
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyObject *py_path = PySys_GetObject((char *)"path");
   PyList_Append(py_path, PY_STRING_FROM_STRING("."));
 
-  // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
-  const char * potentials_path = getenv("LAMMPS_POTENTIALS");
-  if (potentials_path != NULL) {
+  // if LAMMPS_POTENTIALS environment variable is set,
+  // add it to PYTHONPATH as well
+
+  const char *potentials_path = getenv("LAMMPS_POTENTIALS");
+  if (potentials_path != nullptr) {
     PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
   }
+  PyGILState_Release(gstate);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -258,7 +264,7 @@ void PairPython::coeff(int narg, char **arg)
   char * full_cls_name = arg[2];
   char * lastpos = strrchr(full_cls_name, '.');
 
-  if (lastpos == NULL) {
+  if (lastpos == nullptr) {
     error->all(FLERR,"Python pair style requires fully qualified class name");
   }
 
@@ -296,7 +302,7 @@ void PairPython::coeff(int narg, char **arg)
   delete [] module_name;
   delete [] cls_name;
 
-  PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, NULL);
+  PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, nullptr);
   if (!py_pair_instance) {
     PyErr_Print();
     PyErr_Clear();

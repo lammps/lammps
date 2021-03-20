@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,24 +16,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_peri_ves.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "domain.h"
-#include "lattice.h"
-#include "force.h"
-#include "modify.h"
-#include "fix.h"
-#include "fix_peri_neigh.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "utils.h"
+#include "fix_peri_neigh.h"
+#include "force.h"
+#include "lattice.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -48,15 +45,15 @@ PairPeriVES::PairPeriVES(LAMMPS *lmp) : Pair(lmp)
   ifix_peri = -1;
 
   nmax = 0;
-  s0_new = NULL;
-  theta = NULL;
+  s0_new = nullptr;
+  theta = nullptr;
 
-  bulkmodulus = NULL;
-  shearmodulus = NULL;
-  s00 = alpha = NULL;
-  cut = NULL;
-  m_lambdai = NULL;
-  m_taubi = NULL;
+  bulkmodulus = nullptr;
+  shearmodulus = nullptr;
+  s00 = alpha = nullptr;
+  cut = nullptr;
+  m_lambdai = nullptr;
+  m_taubi = nullptr;
 
   // set comm size needed by this Pair
   // comm_reverse not needed
@@ -484,10 +481,10 @@ void PairPeriVES::init_style()
 
   if (!atom->peri_flag)
     error->all(FLERR,"Pair style peri requires atom style peri");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair peri requires an atom map, see atom_modify");
 
-  if (domain->lattice == NULL)
+  if (domain->lattice == nullptr)
     error->all(FLERR,"Pair peri requires a lattice be defined");
   if (domain->lattice->xlattice != domain->lattice->ylattice ||
       domain->lattice->xlattice != domain->lattice->zlattice ||
@@ -542,17 +539,17 @@ void PairPeriVES::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&bulkmodulus[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&shearmodulus[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&m_lambdai[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&m_taubi[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&bulkmodulus[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&shearmodulus[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&s00[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&alpha[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&m_lambdai[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&m_taubi[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&bulkmodulus[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&shearmodulus[i][j],1,MPI_DOUBLE,0,world);

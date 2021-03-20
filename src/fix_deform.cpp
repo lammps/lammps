@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,7 +42,7 @@ enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
 /* ---------------------------------------------------------------------- */
 
 FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-rfix(NULL), irregular(NULL), set(NULL)
+rfix(nullptr), irregular(nullptr), set(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix deform command");
 
@@ -126,12 +126,8 @@ rfix(NULL), irregular(NULL), set(NULL)
           error->all(FLERR,"Illegal fix deform command");
         delete [] set[index].hstr;
         delete [] set[index].hratestr;
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        set[index].hstr = new char[n];
-        strcpy(set[index].hstr,&arg[iarg+2][2]);
-        n = strlen(&arg[iarg+3][2]) + 1;
-        set[index].hratestr = new char[n];
-        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        set[index].hstr = utils::strdup(&arg[iarg+2][2]);
+        set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 
@@ -188,12 +184,8 @@ rfix(NULL), irregular(NULL), set(NULL)
           error->all(FLERR,"Illegal fix deform command");
         delete [] set[index].hstr;
         delete [] set[index].hratestr;
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        set[index].hstr = new char[n];
-        strcpy(set[index].hstr,&arg[iarg+2][2]);
-        n = strlen(&arg[iarg+3][2]) + 1;
-        set[index].hratestr = new char[n];
-        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        set[index].hstr = utils::strdup(&arg[iarg+2][2]);
+        set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 
@@ -353,7 +345,7 @@ rfix(NULL), irregular(NULL), set(NULL)
   flip = 0;
 
   if (force_reneighbor) irregular = new Irregular(lmp);
-  else irregular = NULL;
+  else irregular = nullptr;
 
   TWOPI = 2.0*MY_PI;
 }
@@ -362,7 +354,7 @@ rfix(NULL), irregular(NULL), set(NULL)
 
 FixDeform::~FixDeform()
 {
-  if(set) {
+  if (set) {
     for (int i = 0; i < 6; i++) {
       delete [] set[i].hstr;
       delete [] set[i].hratestr;
@@ -618,7 +610,7 @@ void FixDeform::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;

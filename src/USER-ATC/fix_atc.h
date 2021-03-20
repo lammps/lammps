@@ -8,7 +8,6 @@ FixStyle(atc,FixATC)
 #define FIX_ATC_H
 
 #include "fix.h"
-#include "pointers.h" // access to lammps pointers
 
 namespace ATC {
   class ATC_Method;

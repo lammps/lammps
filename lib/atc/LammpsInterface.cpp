@@ -58,14 +58,14 @@ const static int MAX_GROUP_BIT = 2147483647; //4294967295; // pow(2,31)-1;
 
 double norm(double * v) {return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); }
 
-LammpsInterface * LammpsInterface::myInstance_ = NULL;
+LammpsInterface * LammpsInterface::myInstance_ = nullptr;
 
 // -----------------------------------------------------------------
 //  instance()
 // -----------------------------------------------------------------
 LammpsInterface * LammpsInterface::instance()
 {
-  if (myInstance_ == NULL) {
+  if (myInstance_ == nullptr) {
     myInstance_ = new LammpsInterface();
   }
   return myInstance_;
@@ -77,7 +77,7 @@ LammpsInterface * LammpsInterface::instance()
 void LammpsInterface::Destroy()
 {
   if (myInstance_) delete myInstance_;
-  myInstance_ = NULL;
+  myInstance_ = nullptr;
 }
 
 
@@ -85,13 +85,13 @@ void LammpsInterface::Destroy()
 //  constructor
 // -----------------------------------------------------------------
 LammpsInterface::LammpsInterface()
-  : lammps_(NULL),
-    fixPointer_(NULL),
+  : lammps_(nullptr),
+    fixPointer_(nullptr),
     commRank_(0),
-    atomPE_(NULL),
+    atomPE_(nullptr),
     refBoxIsSet_(false),
-    random_(NULL),
-    globalrandom_(NULL)
+    random_(nullptr),
+    globalrandom_(nullptr)
 {
 }
 
@@ -225,7 +225,7 @@ void LammpsInterface::sparse_allsum(SparseMatrix<double> &toShare) const
 
 std::string LammpsInterface::read_file(std::string filename) const
 {
-  FILE *fp = NULL;
+  FILE *fp = nullptr;
   if (! comm_rank()) {
     fp = fopen(filename.c_str(),"r");
     if (!fp) throw ATC_Error("can't open file: "+filename);
@@ -343,7 +343,7 @@ double * LammpsInterface::atom_scalar(FundamentalAtomQuantity quantityType) cons
   }
   else
     throw ATC_Error("BAD type requested in atom_scalar");
-  return NULL;
+  return nullptr;
 }
 
 double ** LammpsInterface::atom_vector(FundamentalAtomQuantity quantityType) const
@@ -356,7 +356,7 @@ double ** LammpsInterface::atom_vector(FundamentalAtomQuantity quantityType) con
     return fatom();
   else
     throw ATC_Error("BAD type requested in atom_vector");
-  return NULL;
+  return nullptr;
 }
 
 int LammpsInterface::atom_quantity_ndof(FundamentalAtomQuantity quantityType) const
@@ -948,10 +948,10 @@ POTENTIAL LammpsInterface::potential() const
                           "lj/cut/coul/long",
                           "lj/cut/coul/cut",
                           "lj/charmm/coul/long"};
-  LAMMPS_NS::Pair *pair = NULL;
+  LAMMPS_NS::Pair *pair = nullptr;
   for (int i = 0; i < nStyles; i++){ 
     pair = lammps_->force->pair_match(pairStyles[i].c_str(),1);
-    if (pair != NULL) break;
+    if (pair != nullptr) break;
   }
   return pair;
 }
@@ -979,8 +979,8 @@ bool LammpsInterface::epsilons(int itype, POTENTIAL pair, double * epsilon0) con
   int dim = 2; // a return value for extract
   double ** epsilons = (double**) ( pair->extract(pair_parameter,dim) );
   delete [] pair_parameter;
-  if (epsilons == NULL) return false;
-  //if (epsilons == NULL) error->all(FLERR,"Fix concentration adapted pair style parameter not supported");
+  if (epsilons == nullptr) return false;
+  //if (epsilons == nullptr) error->all(FLERR,"Fix concentration adapted pair style parameter not supported");
   int i1,i2;
   for (int i=1; i < ntypes()+1; i++) {
     if (i < itype) { i1 = i; i2 = itype; }
@@ -998,8 +998,8 @@ bool LammpsInterface::set_epsilons(int itype, POTENTIAL pair, double * epsilon) 
   int dim = 2; // a return value for extract
   double ** epsilons = (double**) ( pair->extract(pair_parameter,dim) );
   delete [] pair_parameter;
-  if (epsilons == NULL) return false;
-  //if (epsilons == NULL) error->all(FLERR,"Fix concentration adapted pair style parameter not supported");
+  if (epsilons == nullptr) return false;
+  //if (epsilons == nullptr) error->all(FLERR,"Fix concentration adapted pair style parameter not supported");
   // scale interactions 
   int i1,i2;
   for (int i = 1; i < ntypes()+1; i++) {
@@ -1498,7 +1498,7 @@ double * LammpsInterface::compute_pe_peratom(void) const
     return atomPE_->vector_atom;
   }
   else {
-    return NULL;
+    return nullptr;
   }
 }
 
@@ -1542,7 +1542,7 @@ LAMMPS_NS::PairEAM* LammpsInterface::pair_eam() const
   //  return lammps_->force->pair;
   //}
   LAMMPS_NS::PairEAM* pair_eam = dynamic_cast<LAMMPS_NS::PairEAM*> (lammps_->force->pair);
-  if (pair_eam != NULL) {
+  if (pair_eam != nullptr) {
     return pair_eam;
   }
   else {

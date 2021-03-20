@@ -39,7 +39,7 @@ class NStencil : protected Pointers {
   void post_constructor(class NeighRequest *);
   void copy_neighbor_info();
   virtual void create_setup();
-  bigint memory_usage();
+  double memory_usage();
 
   virtual void create() = 0;
 

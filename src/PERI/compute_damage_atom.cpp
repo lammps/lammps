@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeDamageAtom::ComputeDamageAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), damage(NULL)
+  Compute(lmp, narg, arg), damage(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute damage/atom command");
 
@@ -120,6 +120,6 @@ void ComputeDamageAtom::compute_peratom()
 
 double ComputeDamageAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

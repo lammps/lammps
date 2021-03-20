@@ -15,10 +15,12 @@
 #define LMP_OUTPUT_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
+
+class Dump;
 
 class Output : protected Pointers {
  public:
@@ -27,7 +29,7 @@ class Output : protected Pointers {
   bigint next_thermo;          // next timestep for thermo output
   int thermo_every;            // output freq for thermo, 0 if first/last only
   bigint last_thermo;          // last timestep thermo was output
-  char *var_thermo;            // variable name for thermo freq, NULL if every
+  char *var_thermo;            // variable name for thermo freq, null pointer if every
   int ivar_thermo;             // variable index for thermo frequency
   class Thermo *thermo;        // Thermodynamic computations
 
@@ -39,7 +41,7 @@ class Output : protected Pointers {
   bigint *last_dump;           // last timestep each snapshot was output
   char **var_dump;             // variable name for dump frequency
   int *ivar_dump;              // variable index for dump frequency
-  class Dump **dump;           // list of defined Dumps
+  Dump **dump;                 // list of defined Dumps
 
   int restart_flag;            // 1 if any restart files are written
   int restart_flag_single;     // 1 if single restart files are written

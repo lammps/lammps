@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,11 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "region_cone.h"
-#include <cmath>
-#include <cstring>
+
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -507,7 +508,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
 
     distsq = BIG;
 
-    if (!open_faces[2]){
+    if (!open_faces[2]) {
       point_on_line_segment(corner1,corner2,x,xp);
       distsq = closest(x,xp,nearest,distsq);
       crad = -2.0*(radiuslo + (nearest[1]-lo)*(radiushi-radiuslo)/(hi-lo));
@@ -572,7 +573,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
 
     distsq = BIG;
 
-    if (!open_faces[2]){
+    if (!open_faces[2]) {
       point_on_line_segment(corner1,corner2,x,xp);
       distsq = closest(x,xp,nearest,distsq);
       crad = -2.0*(radiuslo + (nearest[2]-lo)*(radiushi-radiuslo)/(hi-lo));

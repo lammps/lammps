@@ -1,0 +1,123 @@
+#!/bin/sh
+
+if [ ! -f tcllammps.so ]
+then \
+    echo "Need to compile 'tcllammps.so' first for this script to work"
+    exit 1
+fi
+
+cat > example.tcl <<EOF
+load ./tcllammps.so
+
+set osinfo [lammps_get_os_info 512]
+puts "[lindex \$osinfo 0] [lindex \$osinfo 1]"
+
+set lmp [lammps_open_no_mpi 0 NULL NULL ]
+set ver [lammps_version \$lmp]
+
+set npair_styles [lammps_style_count \$lmp "pair"]
+puts "LAMMPS includes \$npair_styles pair styles"
+for {set i 0} {\$i < 10} {incr i} {
+    set style [lammps_style_name \$lmp "pair" \$i 128]
+    if {[lindex \$style 0]} {puts "Style \$i: [lindex \$style 1]"}
+}
+
+lammps_command \$lmp "units real"
+lammps_command \$lmp "lattice fcc 2.5"
+lammps_command \$lmp "region box block -5 5 -5 5 -5 5"
+lammps_command \$lmp "create_box 1 box"
+lammps_command \$lmp "create_atoms 1 box"
+
+set boxlo_p [new_double_1d 3]
+set boxhi_p [new_double_1d 3]
+set xy_p [new_double_p]
+set yz_p [new_double_p]
+set xz_p [new_double_p]
+set pflags_p [new_int_1d 3]
+set boxflag_p [new_int_p]
+
+lammps_extract_box \$lmp \$boxlo_p \$boxhi_p \$xy_p \$yz_p \$xz_p \$pflags_p \$boxflag_p
+
+puts [format "boxlo:    %g %g %g" [double_1d_getitem \$boxlo_p 0] [double_1d_getitem \$boxlo_p 1] [double_1d_getitem \$boxlo_p 2]]
+puts [format "boxhi:    %g %g %g" [double_1d_getitem \$boxhi_p 0] [double_1d_getitem \$boxhi_p 1] [double_1d_getitem \$boxhi_p 2]]
+puts [format "xy/yz/xz: %g %g %g" [double_p_value \$xy_p] [double_p_value \$yz_p] [double_p_value \$xz_p]]
+puts [format "periodicity: %d %d %d" [int_1d_getitem \$pflags_p 0] [int_1d_getitem \$pflags_p 1] [int_1d_getitem \$pflags_p 2]]
+puts [format "boxflag:  %d" [int_p_value \$boxflag_p]]
+delete_double_1d \$boxlo_p
+delete_double_1d \$boxhi_p
+delete_int_1d \$pflags_p
+delete_double_p \$xy_p
+delete_double_p \$yz_p
+delete_double_p \$xz_p
+delete_int_p \$boxflag_p
+
+set dt [double_p_value [void_p_to_double_p [lammps_extract_global \$lmp dt]]]
+puts "LAMMPS version \$ver"
+puts [format "Number of created atoms: %g" [lammps_get_natoms \$lmp]]
+puts "Current size of timestep: \$dt"
+lammps_close \$lmp
+EOF
+
+@TCL_TCLSH@ example.tcl
+
+# now try again with static extended shell
+echo '====================================================================='
+
+if [ ! -f tcllmpsh ]
+then \
+    echo "Need to compile 'tcllmpsh' first for this script to work"
+    exit 1
+fi
+
+cat > example.tcllmp <<EOF
+
+set osinfo [lammps_get_os_info 512]
+puts "[lindex \$osinfo 0] [lindex \$osinfo 1]"
+
+set lmp [lammps_open_no_mpi 0 NULL NULL ]
+set ver [lammps_version \$lmp]
+
+set npair_styles [lammps_style_count \$lmp "pair"]
+puts "LAMMPS includes \$npair_styles pair styles"
+for {set i 0} {\$i < 10} {incr i} {
+    set style [lammps_style_name \$lmp "pair" \$i 128]
+    if {[lindex \$style 0]} {puts "Style \$i: [lindex \$style 1]"}
+}
+
+lammps_command \$lmp "units real"
+lammps_command \$lmp "lattice fcc 2.5"
+lammps_command \$lmp "region box block -5 5 -5 5 -5 5"
+lammps_command \$lmp "create_box 1 box"
+lammps_command \$lmp "create_atoms 1 box"
+
+set boxlo_p [new_double_1d 3]
+set boxhi_p [new_double_1d 3]
+set xy_p [new_double_p]
+set yz_p [new_double_p]
+set xz_p [new_double_p]
+set pflags_p [new_int_1d 3]
+set boxflag_p [new_int_p]
+
+lammps_extract_box \$lmp \$boxlo_p \$boxhi_p \$xy_p \$yz_p \$xz_p \$pflags_p \$boxflag_p
+
+puts [format "boxlo:    %g %g %g" [double_1d_getitem \$boxlo_p 0] [double_1d_getitem \$boxlo_p 1] [double_1d_getitem \$boxlo_p 2]]
+puts [format "boxhi:    %g %g %g" [double_1d_getitem \$boxhi_p 0] [double_1d_getitem \$boxhi_p 1] [double_1d_getitem \$boxhi_p 2]]
+puts [format "xy/yz/xz: %g %g %g" [double_p_value \$xy_p] [double_p_value \$yz_p] [double_p_value \$xz_p]]
+puts [format "periodicity: %d %d %d" [int_1d_getitem \$pflags_p 0] [int_1d_getitem \$pflags_p 1] [int_1d_getitem \$pflags_p 2]]
+puts [format "boxflag:  %d" [int_p_value \$boxflag_p]]
+delete_double_1d \$boxlo_p
+delete_double_1d \$boxhi_p
+delete_int_1d \$pflags_p
+delete_double_p \$xy_p
+delete_double_p \$yz_p
+delete_double_p \$xz_p
+delete_int_p \$boxflag_p
+
+set dt [double_p_value [void_p_to_double_p [lammps_extract_global \$lmp dt]]]
+puts "LAMMPS version \$ver"
+puts [format "Number of created atoms: %g" [lammps_get_natoms \$lmp]]
+puts "Current size of timestep: \$dt"
+lammps_close \$lmp
+EOF
+
+${PWD}/tcllmpsh example.tcllmp

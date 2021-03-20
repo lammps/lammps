@@ -17,6 +17,11 @@ ways through the :doc:`compute chunk/atom <compute_chunk_atom>` command
 and then averaging is done using :doc:`fix ave/chunk <fix_ave_chunk>`.
 Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 
+Reset_ids command
+-----------------
+
+The reset_ids command has been renamed to :doc:`reset_atom_ids <reset_atom_ids>`.
+
 MEAM package
 ------------
 
@@ -27,7 +32,7 @@ which removes several restrictions (e.g. there can be multiple instances
 in hybrid pair styles) and allows for some optimizations leading
 to better performance.  The new pair style :doc:`meam/c <pair_meamc>` has
 the exact same syntax as the old "meam" pair style and thus pair style
-:doc:`meam <pair_meamc>` is an alias to the new style and backward
+meam is an alias to the new style and backward
 compatibility of old inputs is preserved.
 
 REAX package

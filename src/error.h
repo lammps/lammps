@@ -15,7 +15,6 @@
 #define LMP_ERROR_H
 
 #include "pointers.h"
-#include <string>
 
 #ifdef LAMMPS_EXCEPTIONS
 #include "exceptions.h"

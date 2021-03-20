@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,9 +20,9 @@ using namespace LAMMPS_NS;
 
 AtomVecMolecular::AtomVecMolecular(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 1;
+  molecular = Atom::MOLECULAR;
   bonds_allow = angles_allow = dihedrals_allow = impropers_allow = 1;
-  mass_type = 1;
+  mass_type = PER_TYPE;
 
   atom->molecule_flag = 1;
 
@@ -75,7 +75,7 @@ AtomVecMolecular::AtomVecMolecular(LAMMPS *lmp) : AtomVec(lmp)
   setup_fields();
 
   bond_per_atom = angle_per_atom = dihedral_per_atom = improper_per_atom = 0;
-  bond_negative = angle_negative = dihedral_negative = improper_negative = NULL;
+  bond_negative = angle_negative = dihedral_negative = improper_negative = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

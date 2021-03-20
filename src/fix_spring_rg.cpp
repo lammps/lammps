@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,15 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_spring_rg.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "group.h"
-#include "respa.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+#include "group.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,7 +67,7 @@ void FixSpringRG::init()
 {
   masstotal = group->mass(igroup);
 
-  // if rg0 was specified as NULL, compute current Rg
+  // Compute current Rg
   // only occurs on 1st run
 
   if (rg0_flag) {

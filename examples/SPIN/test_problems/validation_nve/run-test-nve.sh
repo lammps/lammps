@@ -13,4 +13,4 @@ en="$(echo "$en-$in" | bc -l)"
 tail -n +$in log.lammps | head -n $en > res_lammps.dat
 
 # plot results
-python3 -m plot_nve.py res_lammps.dat res_llg.dat
+python3 plot_nve.py res_lammps.dat res_llg.dat

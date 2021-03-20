@@ -287,7 +287,7 @@ void get_crs_transpose_counts(
 template <class OutRowMap, class InCounts>
 typename OutRowMap::value_type get_crs_row_map_from_counts(
     OutRowMap& out, InCounts const& in, std::string const& name) {
-  out = OutRowMap(ViewAllocateWithoutInitializing(name), in.size() + 1);
+  out = OutRowMap(view_alloc(WithoutInitializing, name), in.size() + 1);
   Kokkos::Impl::CrsRowMapFromCounts<InCounts, OutRowMap> functor(in, out);
   return functor.execute();
 }

@@ -28,7 +28,7 @@ class NTopo : protected Pointers {
 
   virtual void build() = 0;
 
-  bigint memory_usage();
+  double memory_usage();
 
  protected:
   int me,nprocs;

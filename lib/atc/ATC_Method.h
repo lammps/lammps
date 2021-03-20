@@ -423,7 +423,7 @@ namespace ATC {
     bool use_md_mass_normalization() const { return mdMassNormalization_;}  
     bool kernel_based() { return kernelBased_; }
     bool kernel_on_the_fly() const { return kernelOnTheFly_;}
-    bool has_kernel_function() { return kernelFunction_ != NULL; }
+    bool has_kernel_function() { return kernelFunction_ != nullptr; }
     KernelFunction * kernel_function() { return kernelFunction_; }
     std::vector<int> & type_list() { return typeList_; }
     std::vector<int> & group_list() { return groupList_; }

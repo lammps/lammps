@@ -35,7 +35,7 @@ class Pair : protected Pointers {
   static int instance_total;     // # of Pair classes ever instantiated
 
   double eng_vdwl,eng_coul;      // accumulated energies
-  double virial[6];              // accumulated virial
+  double virial[6];              // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;         // accumulated per-atom energy/virial
   double **cvatom;               // accumulated per-atom centroid virial
 
@@ -68,10 +68,10 @@ class Pair : protected Pointers {
   int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
-  int centroidstressflag;        // compatibility with centroid atomic stress
-                                 // 1 if same as two-body atomic stress
-                                 // 2 if implemented and different from two-body
-                                 // 4 if not compatible/implemented
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections
@@ -115,6 +115,7 @@ class Pair : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
+  int kokkosable; // 1 if Kokkos pair
 
   Pair(class LAMMPS *);
   virtual ~Pair();
@@ -197,7 +198,7 @@ class Pair : protected Pointers {
 
   // specific child-class methods for certain Pair styles
 
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
   virtual void swap_eam(double *, double **) {}
   virtual void reset_dt() {}
   virtual void min_xf_pointers(int, double **, double **) {}

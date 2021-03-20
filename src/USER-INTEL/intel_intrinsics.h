@@ -35,114 +35,10 @@
 #include <fvec.h>
 #endif
 
-// Vector classes for Cilk array notation
-// This is experimental and doesn't yield good code yet
-template<int VL, typename fscal>
-struct lmp_intel_an_fvec {
-    fscal data[VL];
-    lmp_intel_an_fvec() {}
-    explicit lmp_intel_an_fvec(const fscal f) { data[:] = f; }
-    explicit lmp_intel_an_fvec(fscal f[VL]) { data[:] = f[:]; }
-    lmp_intel_an_fvec(const lmp_intel_an_fvec &a) { data[:] = a.data[:]; }
-    lmp_intel_an_fvec& operator =(const lmp_intel_an_fvec &a) { data[:] = a.data[:]; return *this; }
-    const lmp_intel_an_fvec operator +(const lmp_intel_an_fvec &b) const {
-        lmp_intel_an_fvec ret = *this;
-        ret.data[:] += b.data[:];
-        return ret;
-    }
-    const lmp_intel_an_fvec operator -(const lmp_intel_an_fvec &b) const {
-        lmp_intel_an_fvec ret = *this;
-        ret.data[:] -= b.data[:];
-        return ret;
-    }
-    const lmp_intel_an_fvec operator *(const lmp_intel_an_fvec &b) const {
-        lmp_intel_an_fvec ret = *this;
-        ret.data[:] *= b.data[:];
-        return ret;
-    }
-    const lmp_intel_an_fvec operator /(const lmp_intel_an_fvec &b) const {
-        lmp_intel_an_fvec ret = *this;
-        ret.data[:] /= b.data[:];
-        return ret;
-    }
-    lmp_intel_an_fvec& operator +=(const lmp_intel_an_fvec &b) {
-        data[:] += b.data[:]; return *this;
-    }
-    lmp_intel_an_fvec& operator -=(const lmp_intel_an_fvec &b) {
-        data[:] -= b.data[:]; return *this;
-    }
-    lmp_intel_an_fvec& operator *=(const lmp_intel_an_fvec &b) {
-        data[:] *= b.data[:]; return *this;
-    }
-    lmp_intel_an_fvec& operator /=(const lmp_intel_an_fvec &b) {
-        data[:] /= b.data[:]; return *this;
-    }
-    friend lmp_intel_an_fvec sqrt(const lmp_intel_an_fvec &a) __attribute__((always_inline)) {
-        lmp_intel_an_fvec ret; ret.data[:] = sqrt(a.data[:]); return ret;
-    }
-    friend lmp_intel_an_fvec exp(const lmp_intel_an_fvec &a) __attribute__((always_inline)) {
-        lmp_intel_an_fvec ret; ret.data[:] = exp(a.data[:]); return ret;
-    }
-    friend lmp_intel_an_fvec sin(const lmp_intel_an_fvec &a) __attribute__((always_inline)) {
-        lmp_intel_an_fvec ret; ret.data[:] = sin(a.data[:]); return ret;
-    }
-    friend lmp_intel_an_fvec invsqrt(const lmp_intel_an_fvec &a) __attribute__((always_inline)) {
-        lmp_intel_an_fvec ret; ret.data[:] = ((fscal)1.) / sqrt(a.data[:]); return ret;
-    }
-    friend lmp_intel_an_fvec pow(const lmp_intel_an_fvec &a, const lmp_intel_an_fvec &b) __attribute__((always_inline)) {
-        lmp_intel_an_fvec ret; ret.data[:] = pow(a.data[:], b.data[:]); return ret;
-    }
-    lmp_intel_an_fvec operator - () const {
-        lmp_intel_an_fvec ret; ret.data[:] = - data[:]; return ret;
-    }
-};
-template<int VL>
-struct lmp_intel_an_ivec {
-    int data[VL];
-    lmp_intel_an_ivec() {}
-    explicit lmp_intel_an_ivec(int i) { data[:] = i; }
-    explicit lmp_intel_an_ivec(const int * a) { data[:] = a[0:VL]; }
-    const lmp_intel_an_ivec operator &(const lmp_intel_an_ivec &b) {
-        lmp_intel_an_ivec ret = *this;
-        ret.data[:] &= b.data[:];
-        return ret;
-    }
-    const lmp_intel_an_ivec operator |(const lmp_intel_an_ivec &b) {
-        lmp_intel_an_ivec ret = *this;
-        ret.data[:] |= b.data[:];
-        return ret;
-    }
-    const lmp_intel_an_ivec operator +(const lmp_intel_an_ivec &b) {
-        lmp_intel_an_ivec ret = *this;
-        ret.data[:] += b.data[:];
-        return ret;
-    }
-};
-template<int VL>
-struct lmp_intel_an_bvec {
-    bool data[VL];
-    lmp_intel_an_bvec() {}
-    lmp_intel_an_bvec(const lmp_intel_an_bvec &a) { data[:] = a.data[:]; }
-    lmp_intel_an_bvec& operator =(const lmp_intel_an_bvec &a) { data[:] = a.data[:]; return *this; }
-    explicit lmp_intel_an_bvec(int i) { data[:] = i; }
-    friend lmp_intel_an_bvec operator &(const lmp_intel_an_bvec &a, const lmp_intel_an_bvec &b) __attribute__((always_inline)) {
-        lmp_intel_an_bvec ret; ret.data[:] = a.data[:] & b.data[:]; return ret;
-    }
-    friend lmp_intel_an_bvec operator |(const lmp_intel_an_bvec &a, const lmp_intel_an_bvec &b) __attribute__((always_inline)) {
-        lmp_intel_an_bvec ret; ret.data[:] = a.data[:] | b.data[:]; return ret;
-    }
-    friend lmp_intel_an_bvec operator ~(const lmp_intel_an_bvec &a) __attribute__((always_inline)) {
-        lmp_intel_an_bvec ret; ret.data[:] = ! a.data[:]; return ret;
-    }
-    lmp_intel_an_bvec& operator &=(const lmp_intel_an_bvec &a) __attribute__((always_inline)) {
-        data[:] &= a.data[:]; return *this;
-    }
-};
-
 namespace lmp_intel {
 
-// Self explanatory mostly, KNC=IMCI and AVX-512, NONE=Scalar, AN=Array Not.
-enum CalculationMode { KNC, AVX, AVX2, SSE, NONE, AN };
+// Self explanatory mostly, KNC=IMCI and AVX-512, NONE=Scalar.
+enum CalculationMode {KNC, AVX, AVX2, SSE, NONE};
 #ifdef __MIC__
   #ifdef LMP_INTEL_VECTOR_MIC
   static const CalculationMode mode = LMP_INTEL_VECTOR_MIC;
@@ -1916,148 +1812,6 @@ struct vector_ops<flt_t, NONE> {
     }
 };
 
-// Array notation implementation
-template<class flt_t>
-struct vector_ops<flt_t, AN> {
-    static const int VL = 4;
-    typedef flt_t fscal;
-    typedef lmp_intel_an_fvec<VL, fscal> fvec;
-    typedef lmp_intel_an_ivec<VL> ivec;
-    typedef lmp_intel_an_bvec<VL> bvec;
-    typedef flt_t farr[VL];
-    typedef int iarr[VL];
-    static fvec recip(const fvec &a) {
-        fvec ret; ret.data[:] = ((fscal)1.) / a.data[:]; return ret;
-    }
-    template<int scale>
-    static void gather_prefetch_t0(const ivec &idx, const bvec &mask, const void *base) {
-      // nop
-    }
-    template<int scale>
-    static fvec gather(const fvec &from, const bvec &mask, const ivec &idx, const void *base) {
-      fvec ret = from;
-      if (mask.data[:]) ret.data[:] = *reinterpret_cast<const fscal *>(reinterpret_cast<const char*>(base) + scale * idx.data[:]);
-      return ret;
-    }
-    template<class T>
-    static void gather_x(const ivec &idxs, const bvec &mask, const T *base, fvec *x, fvec *y, fvec *z, ivec *w) {
-      *x = gather<1>(*x, mask, idxs, &base->x);
-      *y = gather<1>(*y, mask, idxs, &base->y);
-      *z = gather<1>(*z, mask, idxs, &base->z);
-      *w = int_gather<1>(*w, mask, idxs, &base->w);
-    }
-    static void gather_8(const ivec &idxs, const bvec &mask, const void *base,
-        fvec *r0, fvec *r1, fvec *r2, fvec *r3, fvec *r4, fvec *r5, fvec *r6, fvec *r7) {
-      fvec a = zero(), b = zero(), c = zero(), d = zero();
-      gather_4(idxs, mask, base, r0, r1, r2, r3);
-      gather_4(idxs, mask, reinterpret_cast<const char*>(base) + 4 * sizeof(fscal), r4, r5, r6, r7);
-    }
-    static void gather_4(const ivec &idxs, const bvec &mask, const void *base,
-        fvec *r0, fvec *r1, fvec *r2, fvec *r3) {
-      *r0 = gather<4>(*r0, mask, idxs, reinterpret_cast<const char*>(base) +  0 * sizeof(fscal));
-      *r1 = gather<4>(*r1, mask, idxs, reinterpret_cast<const char*>(base) +  1 * sizeof(fscal));
-      *r2 = gather<4>(*r2, mask, idxs, reinterpret_cast<const char*>(base) +  2 * sizeof(fscal));
-      *r3 = gather<4>(*r3, mask, idxs, reinterpret_cast<const char*>(base) +  3 * sizeof(fscal));
-    }
-    static fvec blend(const bvec &mask, const fvec &a, const fvec &b) {
-      fvec ret = a;
-      if (mask.data[:]) ret.data[:] = b.data[:];
-      return ret;
-    }
-    static ivec int_blend(const bvec &mask, const ivec &a, const ivec &b) {
-      fvec ret = a;
-      if (mask.data[:]) ret.data[:] = b.data[:];
-      return ret;
-    }
-    static fvec fmadd(const fvec &a, const fvec &b, const fvec &c) {
-      fvec ret; ret.data[:] = a.data[:] * b.data[:] + c.data[:]; return ret;
-    }
-    static fvec zero() {
-      return fvec(0.);
-    }
-    static bvec cmpeq(const fvec &a, const fvec &b) {
-      bvec ret; ret.data[:] = a.data[:] == b.data[:]; return ret;
-    }
-    static bvec cmpnle(const fvec &a, const fvec &b) {
-      bvec ret; ret.data[:] = !(a.data[:] <= b.data[:]); return ret;
-    }
-    static bvec cmple(const fvec &a, const fvec &b) {
-      bvec ret; ret.data[:] = a.data[:] <= b.data[:]; return ret;
-    }
-    static bvec cmplt(const fvec &a, const fvec &b) {
-      bvec ret; ret.data[:] = a.data[:] < b.data[:]; return ret;
-    }
-    static bvec int_cmpneq(const ivec &a, const ivec &b) {
-      bvec ret; ret.data[:] = a.data[:] != b.data[:]; return ret;
-    }
-    static bvec int_cmplt(const ivec &a, const ivec &b) {
-      bvec ret; ret.data[:] = a.data[:] < b.data[:]; return ret;
-    }
-    static fvec invsqrt(const fvec &a) {
-      fvec ret; ret.data[:] = ((fscal)1.) / sqrt(a.data[:]); return ret;
-    }
-    static fvec sincos(fvec *c, const fvec &a) {
-      c->data[:] = cos(a.data[:]);
-      fvec ret; ret.data[:] = sin(a.data[:]); return ret;
-    }
-    static fscal reduce_add(const fvec &a) {
-      return __sec_reduce_add(a.data[:]);
-    }
-    static ivec int_mullo(const ivec &a, const ivec &b) {
-      ivec ret; ret.data[:] = a.data[:] * b.data[:]; return ret;
-    }
-    static ivec int_mask_add(const ivec &src, const bvec &mask, const ivec &a, const ivec &b) {
-      ivec ret = src;
-      if (mask.data[:]) ret.data[:] = a.data[:] + b.data[:];
-      return ret;
-    }
-    template<int scale>
-    static ivec int_gather(const ivec &from, bvec mask, const ivec &idx, const void *base) {
-      ivec ret = from;
-      if (mask.data[:]) ret.data[:] = reinterpret_cast<const int*>(base)[scale * idx.data[:] / sizeof(int)];
-      return ret;
-    }
-    static fvec mask_add(const fvec &src, const bvec &mask, const fvec &a, const fvec &b) {
-      fvec ret = src;
-      if (mask.data[:]) ret.data[:] = a.data[:] + b.data[:];
-      return ret;
-    }
-    static void store(void *at, const fvec &a) {
-      reinterpret_cast<fscal*>(at)[0:VL] = a.data[:];
-    }
-    static void int_store(int *at, const ivec &a) {
-      reinterpret_cast<int*>(at)[0:VL] = a.data[:];
-    }
-    static void mask_store(int *at, const bvec &a) {
-      at[0:VL] = a.data[:];
-    }
-    static fvec min(const fvec &a, const fvec &b) {
-      fvec ret = b;
-      if (a.data[:] < b.data[:]) ret.data[:] = a.data[:];
-      return ret;
-    }
-    static bool mask_test_at(const bvec &mask, int at) {
-      return mask.data[at];
-    }
-    static bool mask_testz(const bvec &mask) {
-      return ! __sec_reduce_or(mask.data[:]);
-    }
-    static bvec mask_enable_lower(int n) {
-      bvec ret; ret.data[:] = __sec_implicit_index(0) < n; return ret;
-    }
-    static ivec int_load_vl(const int *a) {
-      return ivec(a);
-    }
-    static void int_clear_arr(int *a) {
-      a[0:VL] = 0;
-    }
-    static bvec full_mask() {
-      return bvec(1);
-    }
-    static void int_print(const ivec &a) {
-    }
-};
-
 // Mixins to implement mixed precision and single/single and double/double
 // This one is for single/single and double/double
 template<class BASE_flt_t, CalculationMode BASE_mic>
@@ -2138,7 +1892,7 @@ struct AccumulatorTwiceMixin {
 };
 
 // For cases where vector_ops<float,x>::VL == vector_ops<double,x>::VL
-// i.e. scalar & AN
+
 template<class BASE_flt_t, class HIGH_flt_t, CalculationMode mic>
 struct AccumulatorTwiceMixinNone {
   typedef vector_ops<BASE_flt_t, mic> BASE;
@@ -2177,11 +1931,8 @@ struct vector_routines<float,float,mic> : public vector_ops<float, mic>, public 
 template<CalculationMode mic>
 struct vector_routines<float,double,mic> : public vector_ops<float, mic>, public AccumulatorTwiceMixin<float,double, mic> {};
 
-// Specialize for AN and scalar
+// Specialize for scalar
 template<>
 struct vector_routines<float,double,NONE> : public vector_ops<float, NONE>, public AccumulatorTwiceMixinNone<float,double, NONE> {};
-
-template<>
-struct vector_routines<float,double,AN> : public vector_ops<float, AN>, public AccumulatorTwiceMixinNone<float,double, AN> {};
 
 } // namespace lmp_intel

@@ -11,6 +11,7 @@ letter abbreviation can be used:
 * :ref:`-k or -kokkos <run-kokkos>`
 * :ref:`-l or -log <log>`
 * :ref:`-m or -mpicolor <mpicolor>`
+* :ref:`-c or -cite <cite>`
 * :ref:`-nc or -nocite <nocite>`
 * :ref:`-pk or -package <package>`
 * :ref:`-p or -partition <partition>`
@@ -62,15 +63,18 @@ used.
 
 **-in file**
 
-Specify a file to use as an input script.  This is an optional switch
-when running LAMMPS in one-partition mode.  If it is not specified,
-LAMMPS reads its script from standard input, typically from a script
-via I/O redirection; e.g. lmp_linux < in.run.  I/O redirection should
-also work in parallel, but if it does not (in the unlikely case that
-an MPI implementation does not support it), then use the -in flag.
+Specify a file to use as an input script.  This is an optional but
+recommended switch when running LAMMPS in one-partition mode.  If it
+is not specified, LAMMPS reads its script from standard input, typically
+from a script via I/O redirection; e.g. lmp_linux < in.run.
+With many MPI implementations I/O redirection also works in parallel,
+but using the -in flag will always work.
+
 Note that this is a required switch when running LAMMPS in
 multi-partition mode, since multiple processors cannot all read from
-stdin.
+stdin concurrently.  The file name may be "none" for starting
+multi-partition calculations without reading an initial input file
+from the library interface.
 
 ----------
 
@@ -80,7 +84,7 @@ stdin.
 
 Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, as described
-in :doc:`Speed kokkos <Speed_kokkos>`, this switch must be set to enable
+in the :doc:`the KOKKOS package page <Speed_kokkos>`, this switch must be set to enable
 running with KOKKOS-enabled styles the package provides.  If the
 switch is not set (the default), LAMMPS will operate as if the KOKKOS
 package were not installed; i.e. you can run standard LAMMPS or with
@@ -98,7 +102,8 @@ Either the full word or an abbreviation can be used for the keywords.
 Note that the keywords do not use a leading minus sign.  I.e. the
 keyword is "t", not "-t".  Also note that each of the keywords has a
 default setting.  Examples of when to use these options and what
-settings to use on different platforms is given on the :doc:`Speed kokkos <Speed_kokkos>` doc page.
+settings to use on different platforms is given on the :doc:`KOKKOS package <Speed_kokkos>`
+doc page.
 
 * d or device
 * g or gpus
@@ -216,14 +221,31 @@ links with from the lib/message directory.  See the
 
 ----------
 
+.. _cite:
+
+**-cite style or file name**
+
+Select how and where to output a reminder about citing contributions
+to the LAMMPS code that were used during the run. Available styles are
+"both", "none", "screen", or "log".  Any flag will be considered a file
+name to write the detailed citation info to.  Default is the "log" style
+where there is a short summary in the screen output and detailed citations
+in BibTeX format in the logfile.  The option "both" selects the detailed
+output for both, "none", the short output for both, and "screen" will
+write the detailed info to the screen and the short version to the log
+file.  If a dedicated citation info file is requested, the screen and
+log file output will be in the short format (same as with "none").
+
+See the :doc:`citation page <Intro_citing>` for more details on
+how to correctly reference and cite LAMMPS.
+
+----------
+
 .. _nocite:
 
 **-nocite**
 
-Disable writing the log.cite file which is normally written to list
-references for specific cite-able features used during a LAMMPS run.
-See the `citation page <https://lammps.sandia.gov/cite.html>`_ for more
-details.
+Disable generating a citation reminder (see above) at all.
 
 ----------
 
@@ -268,7 +290,7 @@ machine (e.g. your desktop), you can run on more (virtual) processors
 than you have physical processors.
 
 To run multiple independent simulations from one input script, using
-multiple partitions, see the :doc:`Howto multiple <Howto_multiple>` doc
+multiple partitions, see the :doc:`Howto multiple <Howto_multiple>`
 page.  World- and universe-style :doc:`variables <variable>` are useful
 in this context.
 
@@ -295,7 +317,7 @@ command-line option.
 **-pscreen file**
 
 Specify the base name for the partition screen file, so partition N
-writes screen information to file.N. If file is none, then no
+writes screen information to file.N. If file is "none", then no
 partition screen files are created.  This overrides the filename
 specified in the -screen command-line option.  This option is useful
 when working with large numbers of partitions, allowing the partition
@@ -326,7 +348,7 @@ cores within each node are ranked in a desired order.  Or when using
 the :doc:`run_style verlet/split <run_style>` command with 2 partitions
 to insure that a specific Kspace processor (in the second partition) is
 matched up with a specific set of processors in the first partition.
-See the :doc:`Speed tips <Speed_tips>` doc page for more details.
+See the :doc:`General tips <Speed_tips>` page for more details.
 
 If the keyword *nth* is used with a setting *N*\ , then it means every
 Nth processor will be moved to the end of the ranking.  This is useful
@@ -385,7 +407,7 @@ implementations, either by environment variables that specify how to
 order physical processors, or by config files that specify what
 physical processors to assign to each MPI rank.  The -reorder switch
 simply gives you a portable way to do this without relying on MPI
-itself.  See the :doc:`processors out <processors>` command for how
+itself.  See the :doc:`processors file <processors>` command for how
 to output info on the final assignment of physical processors to
 the LAMMPS simulation domain.
 
@@ -523,10 +545,10 @@ lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A variant style
 can be specified explicitly in your input script, e.g. pair_style
 lj/cut/gpu.  If the -suffix switch is used the specified suffix
 (gpu,intel,kk,omp,opt) is automatically appended whenever your input
-script command creates a new :doc:`atom <atom_style>`,
-:doc:`pair <pair_style>`, :doc:`fix <fix>`, :doc:`compute <compute>`, or
-:doc:`run <run_style>` style.  If the variant version does not exist,
-the standard version is created.
+script command creates a new :doc:`atom style <atom_style>`,
+:doc:`pair style <pair_style>`, :doc:`fix <fix>`,
+:doc:`compute <compute>`, or :doc:`run style <run_style>`.  If the
+variant version does not exist, the standard version is created.
 
 For the GPU package, using this command-line switch also invokes the
 default GPU settings, as if the command "package gpu 1" were used at
@@ -579,8 +601,8 @@ index variable in the input script, since index variables cannot be
 re-defined.
 
 See the :doc:`variable <variable>` command for more info on defining
-index and other kinds of variables and the :doc:`Commands parse <Commands_parse>` page for more info on using variables in
-input scripts.
+index and other kinds of variables and the :doc:`Parsing rules <Commands_parse>`
+page for more info on using variables in input scripts.
 
 .. note::
 

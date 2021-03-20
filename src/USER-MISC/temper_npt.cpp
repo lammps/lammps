@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,22 +18,23 @@
 ------------------------------------------------------------------------- */
 
 #include "temper_npt.h"
-#include <cmath>
-#include <cstring>
-#include "universe.h"
-#include "domain.h"
+
 #include "atom.h"
-#include "update.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "fix.h"
+#include "force.h"
 #include "integrate.h"
 #include "modify.h"
-#include "compute.h"
-#include "force.h"
-#include "fix.h"
 #include "random_park.h"
-#include "finish.h"
 #include "timer.h"
-#include "error.h"
-#include "utils.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -147,7 +148,7 @@ void TemperNPT::command(int narg, char **arg)
   // warm up Boltzmann RNG
 
   if (seed_swap) ranswap = new RanPark(lmp,seed_swap);
-  else ranswap = NULL;
+  else ranswap = nullptr;
   ranboltz = new RanPark(lmp,seed_boltz + me_universe);
   for (int i = 0; i < 100; i++) ranboltz->uniform();
 

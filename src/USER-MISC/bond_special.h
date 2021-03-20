@@ -22,7 +22,6 @@ BondStyle(special,BondSpecial)
 #ifndef LMP_BOND_SPECIAL_H
 #define LMP_BOND_SPECIAL_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

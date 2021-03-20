@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,12 +16,13 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_peri.h"
-#include <cfloat>
-#include <cstring>
+
 #include "atom.h"
 #include "citeme.h"
-#include "memory.h"
 #include "error.h"
+
+#include <cfloat>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -42,7 +43,7 @@ AtomVecPeri::AtomVecPeri(LAMMPS *lmp) : AtomVec(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_peri_package);
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
 
   atom->rmass_flag = 1;
   atom->peri_flag = 1;

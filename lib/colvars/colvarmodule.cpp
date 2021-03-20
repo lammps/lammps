@@ -50,7 +50,7 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   cvm::log("Initializing the collective variables module, version "+
            cvm::to_str(COLVARS_VERSION)+".\n");
   cvm::log("Please cite Fiorin et al, Mol Phys 2013:\n "
-           "https://doi.org/10.1080/00268976.2013.813594\n"
+           "https://dx.doi.org/10.1080/00268976.2013.813594\n"
            "in any publication based on this calculation.\n");
 
   if (proxy->smp_enabled() == COLVARS_OK) {
@@ -80,7 +80,7 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
   colvarmodule::rotation::crossing_threshold = 1.0e-02;
 
   cv_traj_freq = 100;
-  restart_out_freq = proxy->restart_frequency();
+  restart_out_freq = proxy->default_restart_frequency();
 
   // by default overwrite the existing trajectory file
   cv_traj_append = false;
@@ -91,7 +91,7 @@ colvarmodule::colvarmodule(colvarproxy *proxy_in)
 
 colvarmodule * colvarmodule::main()
 {
-  return proxy->colvars;
+  return proxy ? proxy->colvars : NULL;
 }
 
 
@@ -245,9 +245,6 @@ int colvarmodule::parse_config(std::string &conf)
   // Update any necessary proxy data
   proxy->setup();
 
-  // configuration might have changed, better redo the labels
-  cv_traj_write_labels = true;
-
   return get_error();
 }
 
@@ -262,6 +259,12 @@ int colvarmodule::append_new_config(std::string const &new_conf)
 {
   extra_conf += new_conf;
   return COLVARS_OK;
+}
+
+
+void colvarmodule::config_changed()
+{
+  cv_traj_write_labels = true;
 }
 
 
@@ -332,8 +335,13 @@ int colvarmodule::parse_global_params(std::string const &conf)
                     scripting_after_biases, scripting_after_biases);
 
   if (use_scripted_forces && !proxy->force_script_defined) {
-    return cvm::error("User script for scripted colvar forces not found.",
-                      INPUT_ERROR);
+    if (proxy->simulation_running()) {
+      return cvm::error("User script for scripted colvar forces not found.",
+                        INPUT_ERROR);
+    } else {
+      // Not necessary if we are not applying biases in a real simulation (eg. VMD)
+      cvm::log("Warning: User script for scripted colvar forces not found.");
+    }
   }
 
   return cvm::get_error();
@@ -367,6 +375,11 @@ int colvarmodule::parse_colvars(std::string const &conf)
     }
     cvm::decrease_depth();
     colvar_conf = "";
+  }
+
+  if (pos > 0) {
+    // One or more new variables were added
+    config_changed();
   }
 
   if (!colvars.size()) {
@@ -418,6 +431,10 @@ int colvarmodule::parse_biases_type(std::string const &conf,
       return COLVARS_ERROR;
     }
     bias_conf = "";
+  }
+  if (conf_saved_pos > 0) {
+    // One or more new biases were added
+    config_changed();
   }
   return COLVARS_OK;
 }
@@ -656,6 +673,7 @@ std::string colvarmodule::read_colvar(std::string const &name)
   return ss.str();
 }
 
+
 cvm::real colvarmodule::energy_difference(std::string const &bias_name,
                                           std::string const &conf)
 {
@@ -672,75 +690,6 @@ cvm::real colvarmodule::energy_difference(std::string const &bias_name,
   return energy_diff;
 }
 
-int colvarmodule::bias_current_bin(std::string const &bias_name)
-{
-  cvm::increase_depth();
-  int ret;
-  colvarbias *b = bias_by_name(bias_name);
-
-  if (b != NULL) {
-    ret = b->current_bin();
-  } else {
-    cvm::error("Error: bias not found.\n");
-    ret = COLVARS_ERROR;
-  }
-
-  cvm::decrease_depth();
-  return ret;
-}
-
-int colvarmodule::bias_bin_num(std::string const &bias_name)
-{
-  cvm::increase_depth();
-  int ret;
-  colvarbias *b = bias_by_name(bias_name);
-
-  if (b != NULL) {
-    ret = b->bin_num();
-  } else {
-    cvm::error("Error: bias not found.\n");
-    ret = COLVARS_ERROR;
-  }
-
-  cvm::decrease_depth();
-  return ret;
-}
-
-int colvarmodule::bias_bin_count(std::string const &bias_name, size_t bin_index)
-{
-  cvm::increase_depth();
-  int ret;
-  colvarbias *b = bias_by_name(bias_name);
-
-  if (b != NULL) {
-    ret = b->bin_count(bin_index);
-  } else {
-    cvm::error("Error: bias not found.\n");
-    ret = COLVARS_ERROR;
-  }
-
-  cvm::decrease_depth();
-  return ret;
-}
-
-int colvarmodule::bias_share(std::string const &bias_name)
-{
-  cvm::increase_depth();
-  int ret;
-  colvarbias *b = bias_by_name(bias_name);
-
-  if (b != NULL) {
-    b->replica_share();
-    ret = COLVARS_OK;
-  } else {
-    cvm::error("Error: bias not found.\n");
-    ret = COLVARS_ERROR;
-  }
-
-  cvm::decrease_depth();
-  return ret;
-}
-
 
 int colvarmodule::calc()
 {
@@ -753,11 +702,6 @@ int colvarmodule::calc()
   }
 
   error_code |= calc_colvars();
-  // set biasing forces to zero before biases are calculated and summed over
-  for (std::vector<colvar *>::iterator cvi = colvars.begin();
-       cvi != colvars.end(); cvi++) {
-    (*cvi)->reset_bias_force();
-  }
   error_code |= calc_biases();
   error_code |= update_colvar_forces();
 
@@ -768,17 +712,45 @@ int colvarmodule::calc()
     error_code |= write_traj_files();
   }
 
-  // write restart files, if needed
+  // write restart files and similar data
   if (restart_out_freq && (cvm::step_relative() > 0) &&
       ((cvm::step_absolute() % restart_out_freq) == 0) ) {
+
     if (restart_out_name.size()) {
       // Write restart file, if different from main output
       error_code |= write_restart_file(restart_out_name);
     } else {
       error_code |= write_restart_file(output_prefix()+".colvars.state");
     }
-    write_output_files();
+
+    cvm::increase_depth();
+    for (std::vector<colvar *>::iterator cvi = colvars.begin();
+         cvi != colvars.end();
+         cvi++) {
+      // TODO remove this when corrFunc becomes a bias
+      error_code |= (*cvi)->write_output_files();
+    }
+    for (std::vector<colvarbias *>::iterator bi = biases.begin();
+         bi != biases.end();
+         bi++) {
+      error_code |= (*bi)->write_state_to_replicas();
+    }
+    cvm::decrease_depth();
   }
+
+  // Write output files for biases, at the specified frequency for each
+  cvm::increase_depth();
+  for (std::vector<colvarbias *>::iterator bi = biases.begin();
+       bi != biases.end();
+       bi++) {
+    if ((*bi)->output_freq > 0) {
+      if ((cvm::step_relative() > 0) &&
+          ((cvm::step_absolute() % (*bi)->output_freq) == 0) ) {
+        error_code |= (*bi)->write_output_files();
+      }
+    }
+  }
+  cvm::decrease_depth();
 
   error_code |= end_of_step();
 
@@ -884,6 +856,12 @@ int colvarmodule::calc_biases()
   // variables
   if (cvm::debug() && num_biases())
     cvm::log("Updating collective variable biases.\n");
+
+  // set biasing forces to zero before biases are calculated and summed over
+  for (std::vector<colvar *>::iterator cvi = colvars.begin();
+       cvi != colvars.end(); cvi++) {
+    (*cvi)->reset_bias_force();
+  }
 
   std::vector<colvarbias *>::iterator bi;
   int error_code = COLVARS_OK;
@@ -1031,12 +1009,32 @@ int colvarmodule::write_restart_file(std::string const &out_name)
     return cvm::error("Error: in writing restart file.\n", FILE_ERROR);
   }
   proxy->close_output_stream(out_name);
+  if (cv_traj_os != NULL) {
+    // Take the opportunity to flush colvars.traj
+    proxy->flush_output_stream(cv_traj_os);
+  }
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
+}
+
+
+int colvarmodule::write_restart_string(std::string &output)
+{
+  cvm::log("Saving state to output buffer.\n");
+  std::ostringstream os;
+  if (!write_restart(os)) {
+    return cvm::error("Error: in writing restart to buffer.\n", FILE_ERROR);
+  }
+  output = os.str();
+  return COLVARS_OK;
 }
 
 
 int colvarmodule::write_traj_files()
 {
+  if (cvm::debug()) {
+    cvm::log("colvarmodule::write_traj_files()\n");
+  }
+
   if (cv_traj_os == NULL) {
     if (open_traj_file(cv_traj_name) != COLVARS_OK) {
       return cvm::get_error();
@@ -1057,14 +1055,11 @@ int colvarmodule::write_traj_files()
     write_traj(*cv_traj_os);
   }
 
-  if (restart_out_freq && (cv_traj_os != NULL)) {
-    // flush the trajectory file if we are at the restart frequency
-    if ( (cvm::step_relative() > 0) &&
-         ((cvm::step_absolute() % restart_out_freq) == 0) ) {
-      cvm::log("Synchronizing (emptying the buffer of) trajectory file \""+
-               cv_traj_name+"\".\n");
-      proxy->flush_output_stream(cv_traj_os);
-    }
+  if (restart_out_freq && (cv_traj_os != NULL) &&
+      ((cvm::step_absolute() % restart_out_freq) == 0)) {
+    cvm::log("Synchronizing (emptying the buffer of) trajectory file \""+
+             cv_traj_name+"\".\n");
+    proxy->flush_output_stream(cv_traj_os);
   }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
@@ -1182,12 +1177,8 @@ int colvarmodule::reset()
 
   reset_index_groups();
 
+  proxy->flush_output_streams();
   proxy->reset();
-
-  if (cv_traj_os != NULL) {
-    // Do not close traj file here, as we might not be done with it yet.
-    proxy->flush_output_stream(cv_traj_os);
-  }
 
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
@@ -1195,39 +1186,54 @@ int colvarmodule::reset()
 
 int colvarmodule::setup_input()
 {
-  std::string restart_in_name("");
-
-  // read the restart configuration, if available
   if (proxy->input_prefix().size()) {
-    // read the restart file
-    restart_in_name = proxy->input_prefix();
+    // Read a state file
+    std::string restart_in_name(proxy->input_prefix()+
+                                std::string(".colvars.state"));
     std::ifstream input_is(restart_in_name.c_str());
     if (!input_is.good()) {
-      // try by adding the suffix
+      // Try without the suffix
       input_is.clear();
-      restart_in_name = restart_in_name+std::string(".colvars.state");
+      restart_in_name = proxy->input_prefix();
       input_is.open(restart_in_name.c_str());
     }
 
+    // Now that the file has been opened, clear this for the next round
+    proxy->input_prefix().clear();
+
     if (!input_is.good()) {
-      cvm::error("Error: in opening input file \""+
-                 std::string(restart_in_name)+"\".\n",
-                 FILE_ERROR);
-      return COLVARS_ERROR;
+      return cvm::error("Error: in opening input state file \""+
+                        std::string(restart_in_name)+"\".\n",
+                        FILE_ERROR);
     } else {
       cvm::log(cvm::line_marker);
-      cvm::log("Restarting from file \""+restart_in_name+"\".\n");
+      cvm::log("Loading state from file \""+restart_in_name+"\".\n");
       read_restart(input_is);
-      if (cvm::get_error() != COLVARS_OK) {
-        return COLVARS_ERROR;
-      } else {
-        proxy->input_prefix().clear();
-      }
       cvm::log(cvm::line_marker);
+      return cvm::get_error();
     }
   }
 
-  return cvm::get_error();
+  if (proxy->input_buffer() != NULL) {
+    // Read a string buffer
+    char const *buffer = proxy->input_buffer();
+    size_t const buffer_size = strlen(proxy->input_buffer());
+    // Clear proxy pointer for the next round
+    proxy->input_buffer() = NULL;
+    if (buffer_size > 0) {
+      std::istringstream input_is;
+      // Replace the buffer of input_is; work around the lack of const in
+      // pubsetbuf's prototype (which also needs to support output streams)
+      input_is.rdbuf()->pubsetbuf(const_cast<char *>(buffer), buffer_size);
+      cvm::log(cvm::line_marker);
+      cvm::log("Loading state from input buffer.\n");
+      read_restart(input_is);
+      cvm::log(cvm::line_marker);
+      return cvm::get_error();
+    }
+  }
+
+  return COLVARS_OK;
 }
 
 
@@ -1275,6 +1281,20 @@ int colvarmodule::setup_output()
 
   return cvm::get_error();
 }
+
+
+std::string colvarmodule::state_file_prefix(char const *filename)
+{
+  std::string const filename_str(filename);
+  std::string const prefix =
+    filename_str.substr(0, filename_str.find(".colvars.state"));
+  if (prefix.size() == 0) {
+    cvm::error("Error: invalid filename/prefix value \""+filename_str+"\".",
+               INPUT_ERROR);
+  }
+  return prefix;
+}
+
 
 
 std::istream & colvarmodule::read_restart(std::istream &is)
@@ -1340,7 +1360,7 @@ std::istream & colvarmodule::read_restart(std::istream &is)
 
 std::istream & colvarmodule::read_objects_state(std::istream &is)
 {
-  size_t pos = 0;
+  std::streampos pos = 0;
   std::string word;
 
   while (is.good()) {
@@ -1365,7 +1385,7 @@ std::istream & colvarmodule::read_objects_state(std::istream &is)
                        "collective variable \""+(*cvi)->name+"\".\n",
                        INPUT_ERROR);
           }
-          if (static_cast<size_t>(is.tellg()) > pos) break; // found it
+          if (is.tellg() > pos) break; // found it
         }
         cvm::decrease_depth();
 
@@ -1386,13 +1406,13 @@ std::istream & colvarmodule::read_objects_state(std::istream &is)
                        (*bi)->name+"\".\n",
                        INPUT_ERROR);
           }
-          if (static_cast<size_t>(is.tellg()) > pos) break; // found it
+          if (is.tellg() > pos) break; // found it
         }
         cvm::decrease_depth();
       }
     }
 
-    if (static_cast<size_t>(is.tellg()) == pos) {
+    if (is.tellg() == pos) {
       // This block has not been read by any object: discard it and move on
       // to the next one
       is >> colvarparse::read_block(word, NULL);
@@ -1438,32 +1458,19 @@ int colvarmodule::backup_file(char const *filename)
 int colvarmodule::write_output_files()
 {
   int error_code = COLVARS_OK;
-
-  cvm::increase_depth();
-  for (std::vector<colvar *>::iterator cvi = colvars.begin();
-       cvi != colvars.end();
-       cvi++) {
-    error_code |= (*cvi)->write_output_files();
-  }
-  cvm::decrease_depth();
-
   cvm::increase_depth();
   for (std::vector<colvarbias *>::iterator bi = biases.begin();
        bi != biases.end();
        bi++) {
-    error_code |= (*bi)->write_output_files();
+    // Only write output files if they have not already been written this time step
+    if ((*bi)->output_freq == 0 || (cvm::step_absolute() % (*bi)->output_freq) != 0) {
+      error_code |= (*bi)->write_output_files();
+    }
     error_code |= (*bi)->write_state_to_replicas();
   }
   cvm::decrease_depth();
-
-  if (cv_traj_os != NULL) {
-    // do not close, there may be another run command
-    proxy->flush_output_stream(cv_traj_os);
-  }
-
   return (cvm::get_error() ? COLVARS_ERROR : COLVARS_OK);
 }
-
 
 
 int colvarmodule::read_traj(char const *traj_filename,
@@ -1581,12 +1588,10 @@ int colvarmodule::open_traj_file(std::string const &file_name)
 
   // (re)open trajectory file
   if (cv_traj_append) {
-    cvm::log("Appending to colvar trajectory file \""+file_name+
-             "\".\n");
+    cvm::log("Appending to trajectory file \""+file_name+"\".\n");
     cv_traj_os = (cvm::proxy)->output_stream(file_name, std::ios::app);
   } else {
-    cvm::log("Writing to colvar trajectory file \""+file_name+
-             "\".\n");
+    cvm::log("Opening trajectory file \""+file_name+"\".\n");
     proxy->backup_file(file_name.c_str());
     cv_traj_os = (cvm::proxy)->output_stream(file_name);
   }
@@ -1603,6 +1608,7 @@ int colvarmodule::open_traj_file(std::string const &file_name)
 int colvarmodule::close_traj_file()
 {
   if (cv_traj_os != NULL) {
+    cvm::log("Closing trajectory file \""+cv_traj_name+"\".\n");
     proxy->close_output_stream(cv_traj_name);
     cv_traj_os = NULL;
   }
@@ -1668,7 +1674,7 @@ std::ostream & colvarmodule::write_traj(std::ostream &os)
 }
 
 
-void cvm::log(std::string const &message, int min_log_level)
+void colvarmodule::log(std::string const &message, int min_log_level)
 {
   if (cvm::log_level() < min_log_level) return;
   // allow logging when the module is not fully initialized
@@ -1681,13 +1687,13 @@ void cvm::log(std::string const &message, int min_log_level)
 }
 
 
-void cvm::increase_depth()
+void colvarmodule::increase_depth()
 {
   (depth())++;
 }
 
 
-void cvm::decrease_depth()
+void colvarmodule::decrease_depth()
 {
   if (depth() > 0) {
     (depth())--;
@@ -1695,7 +1701,7 @@ void cvm::decrease_depth()
 }
 
 
-size_t & cvm::depth()
+size_t & colvarmodule::depth()
 {
   // NOTE: do not call log() or error() here, to avoid recursion
   colvarmodule *cv = cvm::main();
@@ -1726,16 +1732,19 @@ void colvarmodule::set_error_bits(int code)
   proxy->smp_unlock();
 }
 
+
 bool colvarmodule::get_error_bit(int code)
 {
   return bool(errorCode & code);
 }
+
 
 void colvarmodule::clear_error()
 {
   proxy->smp_lock();
   errorCode = COLVARS_OK;
   proxy->smp_unlock();
+  proxy->clear_error_msgs();
 }
 
 
@@ -1749,9 +1758,7 @@ int colvarmodule::error(std::string const &message, int code)
 
 int colvarmodule::fatal_error(std::string const &message)
 {
-  set_error_bits(FATAL_ERROR);
-  proxy->fatal_error(message);
-  return get_error();
+  return error(message, FATAL_ERROR);
 }
 
 
@@ -1793,7 +1800,7 @@ int cvm::read_index_file(char const *filename)
     std::vector<int> *new_index_group = new std::vector<int>();
 
     int atom_number = 1;
-    size_t pos = is.tellg();
+    std::streampos pos = is.tellg();
     while ( (is >> atom_number) && (atom_number > 0) ) {
       new_index_group->push_back(atom_number);
       pos = is.tellg();

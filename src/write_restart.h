@@ -21,7 +21,6 @@ CommandStyle(write_restart,WriteRestart)
 #define LMP_WRITE_RESTART_H
 
 #include "pointers.h"
-#include <string>
 
 namespace LAMMPS_NS {
 

@@ -136,7 +136,7 @@ extern "C" {
     //! @param data  uninitialized pointer, returned initialized and pointing to
     //!        the data read
     //! @param len  number of data elements in data, -1 on error
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -152,7 +152,7 @@ extern "C" {
     //! @param data  uninitialized pointer, returned initialized and pointing to
     //!        the data read
     //! @param len  number of data elements in data, -1 on error
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -168,7 +168,7 @@ extern "C" {
     //! @param data  uninitialized pointer, returned initialized and pointing to
     //!        the data read
     //! @param len  number of data elements in data, -1 on error
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -183,7 +183,7 @@ extern "C" {
     //! @param data  uninitialized pointer, returned initialized and pointing to
     //!        the data read
     //! @param len  number of data elements in data, -1 on error
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -199,7 +199,7 @@ extern "C" {
     //! @param data  uninitialized pointer, returned initialized and pointing to
     //!        the data read
     //! @param len  number of data elements in data, -1 on error
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -215,7 +215,7 @@ extern "C" {
     //! @param data  uninitialized pointer, returned initialized and pointing to
     //!        the data read
     //! @param len  number of data elements in data, -1 on error
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -307,7 +307,7 @@ extern "C" {
     //! @param data  handle to the data read
     //! @param w     width of the image
     //! @param h     height of the image
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -350,7 +350,7 @@ extern "C" {
     //! @param data  handle to the data read
     //! @param w     width of the image
     //! @param h     height of the image
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -366,7 +366,7 @@ extern "C" {
     //! @param data  handle to the data read
     //! @param w     width of the image
     //! @param h     height of the image
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////
@@ -381,7 +381,7 @@ extern "C" {
     //! @param data  handle to the data read
     //! @param w     width of the image
     //! @param h     height of the image
-    //! @note If a NULL pointer is passed to this function and it is
+    //! @note If a nullptr pointer is passed to this function and it is
     //!       initialized within Cutil then cutFree() has to be used to
     //!       deallocate the memory
     ////////////////////////////////////////////////////////////////////////////

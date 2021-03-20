@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,18 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_tri.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "math_const.h"
+#include "math_extra.h"
+#include "math_eigen.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
+#include "modify.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -34,7 +35,7 @@ using namespace MathConst;
 
 AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   size_forward_bonus = 4;
@@ -49,7 +50,7 @@ AtomVecTri::AtomVecTri(LAMMPS *lmp) : AtomVec(lmp)
   atom->sphere_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -538,7 +539,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
   double area = 0.5 * MathExtra::len3(norm);
   rmass[m] *= area;
 
-  // inertia = inertia tensor of triangle as 6-vector in Voigt notation
+  // inertia = inertia tensor of triangle as 6-vector in Voigt ordering
 
   double inertia[6];
   MathExtra::inertia_triangle(c1,c2,c3,rmass[m],inertia);
@@ -555,7 +556,7 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
   tensor[0][2] = tensor[2][0] = inertia[4];
   tensor[0][1] = tensor[1][0] = inertia[5];
 
-  int ierror = MathExtra::jacobi(tensor,bonus[nlocal_bonus].inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,bonus[nlocal_bonus].inertia,evectors);
   if (ierror) error->one(FLERR,"Insufficient Jacobi rotations for triangle");
 
   double ex_space[3],ey_space[3],ez_space[3];
@@ -601,10 +602,10 @@ void AtomVecTri::data_atom_bonus(int m, char **values)
    return # of bytes of allocated bonus memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecTri::memory_usage_bonus()
+double AtomVecTri::memory_usage_bonus()
 {
-  bigint bytes = 0;
-  bytes += nmax_bonus*sizeof(Bonus);
+  double bytes = 0;
+  bytes += (double)nmax_bonus*sizeof(Bonus);
   return bytes;
 }
 
@@ -688,7 +689,7 @@ void AtomVecTri::pack_data_post(int ilocal)
 
 /* ----------------------------------------------------------------------
    pack bonus tri info for writing to data file
-   if buf is NULL, just return buffer size
+   if buf is nullptr, just return buffer size
 ------------------------------------------------------------------------- */
 
 int AtomVecTri::pack_data_bonus(double *buf, int /*flag*/)

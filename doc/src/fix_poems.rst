@@ -39,14 +39,15 @@ useful for treating a large biomolecule as a collection of connected,
 coarse-grained particles.
 
 The coupling, associated motion constraints, and time integration is
-performed by the software package `Parallelizable Open source Efficient Multibody Software (POEMS)` which computes the
-constrained rigid-body motion of articulated (jointed) multibody
-systems :ref:`(Anderson) <Anderson>`.  POEMS was written and is distributed
-by Prof Kurt Anderson, his graduate student Rudranarayan Mukherjee,
-and other members of his group at Rensselaer Polytechnic Institute
-(RPI).  Rudranarayan developed the LAMMPS/POEMS interface.  For
-copyright information on POEMS and other details, please refer to the
-documents in the poems directory distributed with LAMMPS.
+performed by the software package `Parallelizable Open source
+Efficient Multibody Software (POEMS)` which computes the constrained
+rigid-body motion of articulated (jointed) multibody systems
+:ref:`(Anderson) <Anderson>`.  POEMS was written and is distributed by
+Prof Kurt Anderson, his graduate student Rudranarayan Mukherjee, and
+other members of his group at Rensselaer Polytechnic Institute (RPI).
+Rudranarayan developed the LAMMPS/POEMS interface.  For copyright
+information on POEMS and other details, please refer to the documents
+in the poems directory distributed with LAMMPS.
 
 This fix updates the positions and velocities of the rigid atoms with
 a constant-energy time integration, so you should not update the same
@@ -107,7 +108,16 @@ off, and there is only a single fix poems defined.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the added forces and torques
+on atoms to both the global pressure and per-atom stress of the system
+via the :doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *bodyforces* option is supported by
 this fix style to set whether per-body forces and torques are computed
@@ -115,16 +125,18 @@ early or late in a timestep, i.e. at the post-force stage or at the
 final-integrate stage, respectively.
 
 No global or per-atom quantities are stored by this fix for access by
-various :doc:`output commands <Howto_output>`.  No parameter of this fix
-can be used with the *start/stop* keywords of the :doc:`run <run>`
-command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+various :doc:`output commands <Howto_output>`.  No parameter of this
+fix can be used with the *start/stop* keywords of the :doc:`run <run>`
+command.  This fix is not invoked during :doc:`energy minimization
+<minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the :ref:`POEMS <PKG-POEMS>` package.  It is only enabled if LAMMPS
-was built with that package, which also requires the POEMS library be
-built and linked with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the :ref:`POEMS <PKG-POEMS>` package.  It is only
+enabled if LAMMPS was built with that package, which also requires the
+POEMS library be built and linked with LAMMPS.  See the :doc:`Build
+package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

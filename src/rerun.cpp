@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,17 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #include "rerun.h"
-#include <cstring>
-#include "read_dump.h"
+
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "finish.h"
 #include "integrate.h"
 #include "modify.h"
 #include "output.h"
-#include "finish.h"
+#include "read_dump.h"
 #include "timer.h"
-#include "error.h"
-#include "force.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -119,9 +120,9 @@ void Rerun::command(int narg, char **arg)
   rd->store_files(nfile,arg);
   if (nremain)
     nremain = rd->fields_and_keywords(nremain,&arg[narg-nremain]);
-  else nremain = rd->fields_and_keywords(0,NULL);
+  else nremain = rd->fields_and_keywords(0,nullptr);
   if (nremain) rd->setup_reader(nremain,&arg[narg-nremain]);
-  else rd->setup_reader(0,NULL);
+  else rd->setup_reader(0,nullptr);
 
   // perform the pseudo run
   // invoke lmp->init() only once

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,30 +12,30 @@
 ------------------------------------------------------------------------- */
 
 #include "group.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "dump.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "input.h"
+#include "math_extra.h"
+#include "math_eigen.h"
+#include "memory.h"
+#include "modify.h"
+#include "output.h"
+#include "region.h"
+#include "tokenizer.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include <string>
-#include <utility>
-#include "domain.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "region.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
-#include "output.h"
-#include "input.h"
-#include "variable.h"
-#include "dump.h"
-#include "math_extra.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-#include "fmt/format.h"
-
 #include <map>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -60,17 +60,14 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
   inversemask = new int[MAX_GROUP];
   dynamic = new int[MAX_GROUP];
 
-  for (int i = 0; i < MAX_GROUP; i++) names[i] = NULL;
+  for (int i = 0; i < MAX_GROUP; i++) names[i] = nullptr;
   for (int i = 0; i < MAX_GROUP; i++) bitmask[i] = 1 << i;
   for (int i = 0; i < MAX_GROUP; i++) inversemask[i] = bitmask[i] ^ ~0;
   for (int i = 0; i < MAX_GROUP; i++) dynamic[i] = 0;
 
   // create "all" group
 
-  char *str = (char *) "all";
-  int n = strlen(str) + 1;
-  names[0] = new char[n];
-  strcpy(names[0],str);
+  names[0] = utils::strdup("all");
   ngroup = 1;
 }
 
@@ -103,6 +100,7 @@ void Group::assign(int narg, char **arg)
   // clear mask of each atom assigned to this group
 
   if (strcmp(arg[1],"delete") == 0) {
+    if (narg != 2) error->all(FLERR,"Illegal group command");
     int igroup = find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
@@ -128,7 +126,7 @@ void Group::assign(int narg, char **arg)
       modify->delete_fix(std::string("GROUP_") + names[igroup]);
 
     delete [] names[igroup];
-    names[igroup] = NULL;
+    names[igroup] = nullptr;
     dynamic[igroup] = 0;
     ngroup--;
 
@@ -158,9 +156,7 @@ void Group::assign(int narg, char **arg)
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
-    int n = strlen(arg[0]) + 1;
-    names[igroup] = new char[n];
-    strcpy(names[igroup],arg[0]);
+    names[igroup] = utils::strdup(arg[0]);
     ngroup++;
   }
 
@@ -189,7 +185,8 @@ void Group::assign(int narg, char **arg)
 
   } else if (strcmp(arg[1],"empty") == 0) {
 
-    ; // nothing to do here
+    if (narg != 2) error->all(FLERR,"Illegal group command");
+    // nothing else to do here
 
   // style = type, molecule, id
   // add to group if atom matches type/molecule/id or condition
@@ -204,7 +201,7 @@ void Group::assign(int narg, char **arg)
     else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
     else if (strcmp(arg[1],"id") == 0) category = ID;
 
-    if ((category == MOLECULE) && (!atom->molecular))
+    if ((category == MOLECULE) && (!atom->molecule_flag))
       error->all(FLERR,"Group command requires atom attribute molecule");
 
     if ((category == ID) && (!atom->tag_enable))
@@ -237,8 +234,8 @@ void Group::assign(int narg, char **arg)
         bound2 = utils::tnumeric(FLERR,arg[4],false,lmp);
       } else if (narg != 4) error->all(FLERR,"Illegal group command");
 
-      int *attribute = NULL;
-      tagint *tattribute = NULL;
+      int *attribute = nullptr;
+      tagint *tattribute = nullptr;
       if (category == TYPE) attribute = atom->type;
       else if (category == MOLECULE) tattribute = atom->molecule;
       else if (category == ID) tattribute = atom->tag;
@@ -298,26 +295,30 @@ void Group::assign(int narg, char **arg)
     // args = list of values
 
     } else {
-      int *attribute = NULL;
-      tagint *tattribute = NULL;
+      int *attribute = nullptr;
+      tagint *tattribute = nullptr;
       if (category == TYPE) attribute = atom->type;
       else if (category == MOLECULE) tattribute = atom->molecule;
       else if (category == ID) tattribute = atom->tag;
 
-      char *ptr;
       tagint start,stop,delta;
 
       for (int iarg = 2; iarg < narg; iarg++) {
         delta = 1;
-        if (strchr(arg[iarg],':')) {
-          ptr = strtok(arg[iarg],":");
-          start = utils::tnumeric(FLERR,ptr,false,lmp);
-          ptr = strtok(NULL,":");
-          stop = utils::tnumeric(FLERR,ptr,false,lmp);
-          ptr = strtok(NULL,":");
-          if (ptr) delta = utils::tnumeric(FLERR,ptr,false,lmp);
-        } else {
-          start = stop = utils::tnumeric(FLERR,arg[iarg],false,lmp);
+        try {
+          ValueTokenizer values(arg[iarg],":");
+          start = values.next_tagint();
+          if (utils::strmatch(arg[iarg],"^-?\\d+$")) {
+            stop = start;
+          } else if (utils::strmatch(arg[iarg],"^-?\\d+:-?\\d+$")) {
+            stop = values.next_tagint();
+          } else if (utils::strmatch(arg[iarg],"^-?\\d+:-?\\d+:\\d+$")) {
+            stop = values.next_tagint();
+            delta = values.next_tagint();
+          } else throw TokenizerException("Syntax error","");
+        } catch (TokenizerException &e) {
+          error->all(FLERR,fmt::format("Incorrect range string "
+                                       "'{}': {}",arg[iarg],e.what()));
         }
         if (delta < 1)
           error->all(FLERR,"Illegal range increment value");
@@ -366,7 +367,7 @@ void Group::assign(int narg, char **arg)
 
     if (narg != 3) error->all(FLERR,"Illegal group command");
     if (strcmp(arg[2],"molecule") == 0) {
-      if (!atom->molecular)
+      if (!atom->molecule_flag)
         error->all(FLERR,"Group command requires atom attribute molecule");
 
       add_molecules(igroup,bit);
@@ -538,7 +539,7 @@ void Group::assign(int narg, char **arg)
 
 void Group::assign(const std::string &groupcmd)
 {
-  std::vector<std::string> args = utils::split_words(groupcmd);
+  auto args = utils::split_words(groupcmd);
   char **newarg = new char*[args.size()];
   int i=0;
   for (const auto &arg : args) {
@@ -552,7 +553,7 @@ void Group::assign(const std::string &groupcmd)
    add flagged atoms to a new or existing group
 ------------------------------------------------------------------------- */
 
-void Group::create(char *name, int *flag)
+void Group::create(const char *name, int *flag)
 {
   int i;
 
@@ -564,9 +565,7 @@ void Group::create(char *name, int *flag)
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
-    int n = strlen(name) + 1;
-    names[igroup] = new char[n];
-    strcpy(names[igroup],name);
+    names[igroup] = utils::strdup(name);
     ngroup++;
   }
 
@@ -603,9 +602,7 @@ int Group::find_or_create(const char *name)
 
   if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
   igroup = find_unused();
-  int n = strlen(name) + 1;
-  names[igroup] = new char[n];
-  strcpy(names[igroup],name);
+  names[igroup] = utils::strdup(name);
   ngroup++;
 
   return igroup;
@@ -619,7 +616,7 @@ int Group::find_or_create(const char *name)
 int Group::find_unused()
 {
   for (int igroup = 0; igroup < MAX_GROUP; igroup++)
-    if (names[igroup] == NULL) return igroup;
+    if (names[igroup] == nullptr) return igroup;
   return -1;
 }
 
@@ -656,7 +653,7 @@ void Group::add_molecules(int /*igroup*/, int bit)
   for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
 
   molbit = bit;
-  comm->ring(n,sizeof(tagint),list,1,molring,NULL,(void *)this);
+  comm->ring(n,sizeof(tagint),list,1,molring,nullptr,(void *)this);
 
   delete hash;
   memory->destroy(list);
@@ -726,7 +723,7 @@ void Group::read_restart(FILE *fp)
 
   for (i = 0; i < MAX_GROUP; i++) delete [] names[i];
 
-  if (me == 0) utils::sfread(FLERR,&ngroup,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&ngroup,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&ngroup,1,MPI_INT,0,world);
 
   // use count to not change restart format with deleted groups
@@ -735,17 +732,17 @@ void Group::read_restart(FILE *fp)
   int count = 0;
   for (i = 0; i < MAX_GROUP; i++) {
     if (count == ngroup) {
-      names[i] = NULL;
+      names[i] = nullptr;
       continue;
     }
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
       names[i] = new char[n];
-      if (me == 0) utils::sfread(FLERR,names[i],sizeof(char),n,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,names[i],sizeof(char),n,fp,nullptr,error);
       MPI_Bcast(names[i],n,MPI_CHAR,0,world);
       count++;
-    } else names[i] = NULL;
+    } else names[i] = nullptr;
   }
 }
 
@@ -1729,11 +1726,11 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
 
   // handle (nearly) singular I matrix
   // typically due to 2-atom group or linear molecule
-  // use jacobi() and angmom_to_omega() to calculate valid omega
+  // use jacobi3() and angmom_to_omega() to calculate valid omega
   // less exact answer than matrix inversion, due to iterative Jacobi method
 
   } else {
-    int ierror = MathExtra::jacobi(inertia,idiag,evectors);
+    int ierror = MathEigen::jacobi3(inertia, idiag, evectors);
     if (ierror) error->all(FLERR,
                            "Insufficient Jacobi rotations for group::omega");
 

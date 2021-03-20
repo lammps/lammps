@@ -54,7 +54,7 @@ context of your application.
    invoked with minimal overhead (no setup or clean-up) if you wish to
    do multiple short runs, driven by another program.  Details about
    using the library interface are given in the :doc:`library API
-   <pg_library>` documentation.
+   <Library>` documentation.
 
 .. spacer
 

@@ -240,17 +240,17 @@ the following table:
 |     1 | 1.0 if particle is in contact with wall,           |                |
 |       | 0.0 otherwise                                      |                |
 +-------+----------------------------------------------------+----------------+
-|     2 | Force :math:`f_x` exerted on the wall              | force units    |
+|     2 | Force :math:`f_x` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     3 | Force :math:`f_y` exerted on the wall              | force units    |
+|     3 | Force :math:`f_y` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     4 | Force :math:`f_z` exerted on the wall              | force units    |
+|     4 | Force :math:`f_z` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     5 | :math:`\Delta x` between wall surface and particle | distance units |
+|     5 | :math:`x`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
-|     6 | :math:`\Delta y` between wall surface and particle | distance units |
+|     6 | :math:`y`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
-|     7 | :math:`\Delta z` between wall surface and particle | distance units |
+|     7 | :math:`z`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+
 |     8 | Radius :math:`r` of atom                           | distance units |
 +-------+----------------------------------------------------+----------------+

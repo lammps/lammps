@@ -78,14 +78,16 @@ or particles and thus indirectly the computational cost (load) more
 evenly across processors.  The load balancing is "static" in the sense
 that this command performs the balancing once, before or between
 simulations.  The processor sub-domains will then remain static during
-the subsequent run.  To perform "dynamic" balancing, see the :doc:`fix balance <fix_balance>` command, which can adjust processor
-sub-domain sizes and shapes on-the-fly during a :doc:`run <run>`.
+the subsequent run.  To perform "dynamic" balancing, see the :doc:`fix
+balance <fix_balance>` command, which can adjust processor sub-domain
+sizes and shapes on-the-fly during a :doc:`run <run>`.
 
 Load-balancing is typically most useful if the particles in the
 simulation box have a spatially-varying density distribution or when
 the computational cost varies significantly between different
 particles.  E.g. a model of a vapor/liquid interface, or a solid with
-an irregular-shaped geometry containing void regions, or :doc:`hybrid pair style simulations <pair_hybrid>` which combine pair styles with
+an irregular-shaped geometry containing void regions, or :doc:`hybrid
+pair style simulations <pair_hybrid>` which combine pair styles with
 different computational cost.  In these cases, the LAMMPS default of
 dividing the simulation box volume into a regular-spaced grid of 3d
 bricks, with one equal-volume sub-domain per processor, may assign
@@ -101,13 +103,14 @@ which typically induces a different number of atoms assigned to each
 processor.  Details on the various weighting options and examples for
 how they can be used are :ref:`given below <weighted_balance>`.
 
-Note that the :doc:`processors <processors>` command allows some control
-over how the box volume is split across processors.  Specifically, for
-a Px by Py by Pz grid of processors, it allows choice of Px, Py, and
-Pz, subject to the constraint that Px \* Py \* Pz = P, the total number
-of processors.  This is sufficient to achieve good load-balance for
-some problems on some processor counts.  However, all the processor
-sub-domains will still have the same shape and same volume.
+Note that the :doc:`processors <processors>` command allows some
+control over how the box volume is split across processors.
+Specifically, for a Px by Py by Pz grid of processors, it allows
+choice of Px, Py, and Pz, subject to the constraint that Px \* Py \*
+Pz = P, the total number of processors.  This is sufficient to achieve
+good load-balance for some problems on some processor counts.
+However, all the processor sub-domains will still have the same shape
+and same volume.
 
 The requested load-balancing operation is only performed if the
 current "imbalance factor" in particles owned by each processor
@@ -170,12 +173,12 @@ The method used to perform a load balance is specified by one of the
 listed styles (or more in the case of *x*\ ,\ *y*\ ,\ *z*\ ), which are
 described in detail below.  There are 2 kinds of styles.
 
-The *x*\ , *y*\ , *z*\ , and *shift* styles are "grid" methods which produce
-a logical 3d grid of processors.  They operate by changing the cutting
-planes (or lines) between processors in 3d (or 2d), to adjust the
-volume (area in 2d) assigned to each processor, as in the following 2d
-diagram where processor sub-domains are shown and particles are
-colored by the processor that owns them.
+The *x*\ , *y*\ , *z*\ , and *shift* styles are "grid" methods which
+produce a logical 3d grid of processors.  They operate by changing the
+cutting planes (or lines) between processors in 3d (or 2d), to adjust
+the volume (area in 2d) assigned to each processor, as in the
+following 2d diagram where processor sub-domains are shown and
+particles are colored by the processor that owns them.
 
 .. |balance1| image:: img/balance_uniform.jpg
    :width: 32%
@@ -190,20 +193,20 @@ colored by the processor that owns them.
 
 The leftmost diagram is the default partitioning of the simulation box
 across processors (one sub-box for each of 16 processors); the middle
-diagram is after a "grid" method has been applied.  The *rcb* style is a
-"tiling" method which does not produce a logical 3d grid of processors.
-Rather it tiles the simulation domain with rectangular sub-boxes of
-varying size and shape in an irregular fashion so as to have equal
-numbers of particles (or weight) in each sub-box, as in the rightmost
-diagram above.
+diagram is after a "grid" method has been applied.  The *rcb* style is
+a "tiling" method which does not produce a logical 3d grid of
+processors.  Rather it tiles the simulation domain with rectangular
+sub-boxes of varying size and shape in an irregular fashion so as to
+have equal numbers of particles (or weight) in each sub-box, as in the
+rightmost diagram above.
 
-The "grid" methods can be used with either of the
-:doc:`comm_style <comm_style>` command options, *brick* or *tiled*\ .  The
-"tiling" methods can only be used with :doc:`comm_style tiled <comm_style>`.  Note that it can be useful to use a "grid"
-method with :doc:`comm_style tiled <comm_style>` to return the domain
-partitioning to a logical 3d grid of processors so that "comm_style
-brick" can afterwords be specified for subsequent :doc:`run <run>`
-commands.
+The "grid" methods can be used with either of the :doc:`comm_style
+<comm_style>` command options, *brick* or *tiled*\ .  The "tiling"
+methods can only be used with :doc:`comm_style tiled <comm_style>`.
+Note that it can be useful to use a "grid" method with
+:doc:`comm_style tiled <comm_style>` to return the domain partitioning
+to a logical 3d grid of processors so that "comm_style brick" can
+afterwords be specified for subsequent :doc:`run <run>` commands.
 
 When a "grid" method is specified, the current domain partitioning can
 be either a logical 3d grid or a tiled partitioning.  In the former
@@ -280,6 +283,14 @@ information, so that they become closer together over time.  Thus as
 the recursion progresses, the count of particles on either side of the
 plane gets closer to the target value.
 
+After the balanced plane positions are determined, if any pair of
+adjacent planes are closer together than the neighbor skin distance
+(as specified by the :doc`neigh_modify <neigh_modify>` command), then
+the plane positions are shifted to separate them by at least this
+amount.  This is to prevent particles being lost when dynamics are run
+with processor sub-domains that are too narrow in one or more
+dimensions.
+
 Once the re-balancing is complete and final processor sub-domains
 assigned, particles are migrated to their new owning processor, and
 the balance procedure ends.
@@ -293,7 +304,7 @@ the balance procedure ends.
    *Niter* is specified as 10, the cutting plane will typically be
    positioned to 1 part in 1000 accuracy (relative to the perfect target
    position).  For *Niter* = 20, it will be accurate to 1 part in a
-   million.  Thus there is no need ot set *Niter* to a large value.
+   million.  Thus there is no need to set *Niter* to a large value.
    LAMMPS will check if the threshold accuracy is reached (in a
    dimension) is less iterations than *Niter* and exit early.  However,
    *Niter* should also not be set too small, since it will take roughly
@@ -416,7 +427,8 @@ The *time* weight style uses :doc:`timer data <timer>` to estimate
 weights.  It assigns the same weight to each particle owned by a
 processor based on the total computational time spent by that
 processor.  See details below on what time window is used.  It uses
-the same timing information as is used for the :doc:`MPI task timing breakdown <Run_output>`, namely, for sections *Pair*\ , *Bond*\ ,
+the same timing information as is used for the :doc:`MPI task timing
+breakdown <Run_output>`, namely, for sections *Pair*\ , *Bond*\ ,
 *Kspace*\ , and *Neigh*\ .  The time spent in those portions of the
 timestep are measured for each MPI rank, summed, then divided by the
 number of particles owned by that processor.  I.e. the weight is an

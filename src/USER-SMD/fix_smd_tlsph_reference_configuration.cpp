@@ -13,7 +13,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +25,7 @@
  ------------------------------------------------------------------------- */
 
 #include "fix_smd_tlsph_reference_configuration.h"
-#include <mpi.h>
+
 #include <Eigen/Eigen>
 #include "atom.h"
 #include "comm.h"
@@ -55,18 +55,18 @@ using namespace SMD_Math;
 FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS *lmp, int narg, char **arg) :
                 Fix(lmp, narg, arg) {
 
-        if (atom->map_style == 0)
+        if (atom->map_style == Atom::MAP_NONE)
                 error->all(FLERR, "Pair tlsph with partner list requires an atom map, see atom_modify");
 
         maxpartner = 1;
-        npartner = NULL;
-        partner = NULL;
-        wfd_list = NULL;
-        wf_list = NULL;
-        energy_per_bond = NULL;
-        degradation_ij = NULL;
+        npartner = nullptr;
+        partner = nullptr;
+        wfd_list = nullptr;
+        wf_list = nullptr;
+        energy_per_bond = nullptr;
+        degradation_ij = nullptr;
         grow_arrays(atom->nmax);
-        atom->add_callback(0);
+        atom->add_callback(Atom::GROW);
 
         // initialize npartner to 0 so neighbor list creation is OK the 1st time
         int nlocal = atom->nlocal;
@@ -83,7 +83,7 @@ FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS 
 FixSMD_TLSPH_ReferenceConfiguration::~FixSMD_TLSPH_ReferenceConfiguration() {
         // unregister this fix so atom class doesn't invoke it any more
 
-        atom->delete_callback(id, 0);
+        atom->delete_callback(id,Atom::GROW);
 // delete locally stored arrays
 
         memory->destroy(npartner);
@@ -130,13 +130,13 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
         }
 
         int *updateFlag_ptr = (int *) force->pair->extract("smd/tlsph/updateFlag_ptr", itmp);
-        if (updateFlag_ptr == NULL) {
+        if (updateFlag_ptr == nullptr) {
                 error->one(FLERR,
                                 "fix FixSMD_TLSPH_ReferenceConfiguration failed to access updateFlag pointer. Check if a pair style exist which calculates this quantity.");
         }
 
         int *nn = (int *) force->pair->extract("smd/tlsph/numNeighsRefConfig_ptr", itmp);
-        if (nn == NULL) {
+        if (nn == nullptr) {
                 error->all(FLERR, "FixSMDIntegrateTlsph::updateReferenceConfiguration() failed to access numNeighsRefConfig_ptr array");
         }
 
@@ -355,11 +355,11 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int /*vflag*/) {
 double FixSMD_TLSPH_ReferenceConfiguration::memory_usage() {
         int nmax = atom->nmax;
         int bytes = nmax * sizeof(int);
-        bytes += nmax * maxpartner * sizeof(tagint); // partner array
-        bytes += nmax * maxpartner * sizeof(float); // wf_list
-        bytes += nmax * maxpartner * sizeof(float); // wfd_list
-        bytes += nmax * maxpartner * sizeof(float); // damage_per_interaction array
-        bytes += nmax * sizeof(int); // npartner array
+        bytes += (double)nmax * maxpartner * sizeof(tagint); // partner array
+        bytes += (double)nmax * maxpartner * sizeof(float); // wf_list
+        bytes += (double)nmax * maxpartner * sizeof(float); // wfd_list
+        bytes += (double)nmax * maxpartner * sizeof(float); // damage_per_interaction array
+        bytes += (double)nmax * sizeof(int); // npartner array
         return bytes;
 
 }
@@ -468,7 +468,7 @@ int FixSMD_TLSPH_ReferenceConfiguration::pack_restart(int i, double *buf) {
  ------------------------------------------------------------------------- */
 
 void FixSMD_TLSPH_ReferenceConfiguration::unpack_restart(int /*nlocal*/, int /*nth*/) {
-// ipage = NULL if being called from granular pair style init()
+// ipage = nullptr if being called from granular pair style init()
 
 // skip to Nth set of extra values
 // unpack the Nth first values this way because other fixes pack them

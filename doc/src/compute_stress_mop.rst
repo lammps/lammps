@@ -28,14 +28,16 @@ Syntax
        origin = *lower* or *center* or *upper* or coordinate value (distance units) is the position of the first plane
        delta = value (distance units) is the distance between planes
 
+.. code-block:: LAMMPS
+
    compute 1 all stress/mop x lower total
    compute 1 liquid stress/mop z 0.0 kin conf
-   fix 1 all ave/time 10 1000 10000 c_1[\*] file mop.time
+   fix 1 all ave/time 10 1000 10000 c_1[*] file mop.time
    fix 1 all ave/time 10 1000 10000 c_1[2] file mop.time
 
    compute 1 all stress/mop/profile x lower 0.1 total
    compute 1 liquid stress/mop/profile z 0.0 0.25 kin conf
-   fix 1 all ave/time 500 20 10000 c_1[\*] ave running overwrite file mopp.time mode vector
+   fix 1 all ave/time 500 20 10000 c_1[*] ave running overwrite file mopp.time mode vector
 
 Description
 """""""""""

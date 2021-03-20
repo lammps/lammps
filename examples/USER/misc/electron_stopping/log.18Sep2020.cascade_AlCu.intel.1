@@ -1,0 +1,115 @@
+LAMMPS (18 Sep 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
+# ***
+# Example input for including electronic stopping effects using fix electron/stopping/fit
+# Al lattice with a single incident Cu atom - multiple species simulation
+# ***
+
+units            metal
+boundary         p p p
+
+lattice          fcc 4.0495
+Lattice spacing in x,y,z = 4.0495000 4.0495000 4.0495000
+
+region           box block -10 10 -10 10 -10 10
+create_box       2 box
+Created orthogonal box = (-40.495000 -40.495000 -40.495000) to (40.495000 40.495000 40.495000)
+  1 by 1 by 1 MPI processor grid
+create_atoms     1 box
+Created 32000 atoms
+  create_atoms CPU = 0.004 seconds
+
+pair_style	 eam/alloy
+pair_coeff	 * * ../../../../potentials/AlCu.eam.alloy Al Cu
+Reading eam/alloy potential file ../../../../potentials/AlCu.eam.alloy with DATE: 2008-10-01
+
+mass             1 26.982
+mass             2 63.546
+
+velocity         all create 300 42534 mom yes rot yes
+
+set              atom 1 type 2
+Setting atom values ...
+  1 settings made for type
+group            pka id 1
+1 atoms in group pka
+velocity         pka set 1120 1620 400
+
+fix              1 all nve
+fix              2 all dt/reset 1 NULL 0.001 0.05 emax 10.0
+fix              3 all electron/stopping/fit 3.49 1.8e-3 9.0e-8 7.57 4.2e-3 5.0e-8
+
+thermo           5
+thermo_style     custom step dt time temp pe ke f_3
+thermo_modify    lost warn flush yes
+
+#dump             0 all custom 10 dump.pka_* id type x y z vx vy vz fx fy fz
+#dump_modify      0 first yes
+
+run              100
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.6825
+  ghost atom cutoff = 8.6825
+  binsize = 4.34125, bins = 19 19 19
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/alloy, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 23.27 | 23.27 | 23.27 Mbytes
+Step Dt Time Temp PotEng KinEng f_3 
+       0 2.4879625e-05            0    53029.167   -106186.96       219339            0 
+       5 2.4881895e-05 0.00012440247    53019.542    -106184.2    219299.18    36.968257 
+      10 1.0341799e-05 0.00021830163    53006.803   -106159.67    219246.49    64.866504 
+      15 5.6753071e-06 0.0002583636     52996.09   -106127.26    219202.18    76.766363 
+      20 4.0862476e-06 0.0002830119    52987.566   -106099.31    219166.93    84.086344 
+      25 3.3677164e-06 0.00030179992     52980.99   -106077.67    219139.73    89.665096 
+      30 3.0218093e-06 0.00031784053    52976.302   -106063.03    219120.34    94.427505 
+      35 2.8935922e-06 0.00033262008    52973.489   -106055.77     219108.7    98.815168 
+      40 2.9394209e-06 0.00034711037    52972.541   -106056.15    219104.78    103.11678 
+      45 3.1822694e-06 0.00036220043    52973.425    -106064.3    219108.44    107.59642 
+      50 3.743784e-06 0.00037905999    52976.072   -106080.26    219119.38    112.60152 
+      55 5.0685177e-06 0.0003999287    52980.344   -106104.15    219137.05    118.79722 
+      60 1.0189784e-05 0.00043198334    52985.861   -106136.52    219159.88    128.31484 
+      65 1.8636384e-05 0.00052946777    52985.275   -106162.53    219157.45     157.2625 
+      70 1.844772e-05 0.00061001061    52977.927   -106155.89    219127.06    181.17691 
+      75 2.4893022e-05 0.00072690857    52972.391   -106168.08    219104.16    215.88136 
+      80 7.390618e-06 0.00081149431    52959.379   -106139.89    219050.34    240.98969 
+      85 4.1547853e-06 0.00084037647    52948.078   -106101.74    219003.59    249.56079 
+      90 2.9763749e-06 0.00085843347     52938.03   -106065.54    218962.03    254.91825 
+      95 2.3727508e-06 0.00087197081    52929.043   -106032.37    218924.86    258.93397 
+     100 2.0138478e-06 0.00088304936    52921.103   -106002.81    218892.02    262.21977 
+Loop time of 9.53154 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 0.002 ns/day, 13147.213 hours/ns, 10.491 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.815      | 8.815      | 8.815      |   0.0 | 92.48
+Neigh   | 0.38408    | 0.38408    | 0.38408    |   0.0 |  4.03
+Comm    | 0.029049   | 0.029049   | 0.029049   |   0.0 |  0.30
+Output  | 0.0025912  | 0.0025912  | 0.0025912  |   0.0 |  0.03
+Modify  | 0.28624    | 0.28624    | 0.28624    |   0.0 |  3.00
+Other   |            | 0.01456    |            |       |  0.15
+
+Nlocal:        32000.0 ave       32000 max       32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        26825.0 ave       26825 max       26825 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.81599e+06 ave 2.81599e+06 max 2.81599e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2815993
+Ave neighs/atom = 87.999781
+Neighbor list builds = 5
+Dangerous builds = 3
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:09

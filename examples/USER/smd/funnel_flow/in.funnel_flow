@@ -1,0 +1,127 @@
+####################################################################################################
+#
+# ULSPH example: water flow through a complex geometry read from a .STL file
+#
+# The boundary dump file (see below) can be converted into VTK format using the conversion
+# tool dump2vtk_tris from the tools/smd directory.
+#
+# unit system: GPa / mm / ms
+#
+####################################################################################################
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        c0 equal 10.0 # speed of sound for fluid
+variable        rho equal 1.0e-6 # initial mass density
+variable        q1 equal 0.06 # standard artificial viscosity linear coefficient
+variable        q2 equal 0.0  # standard artificial viscosity quadratic coefficient
+variable        hg equal 0.0 # hourglass control coefficient
+variable        cp equal 1.0 # heat capacity of material -- not used here
+variable        K equal ${c0}*${rho}^2
+variable        contact_stiffness equal 0.1*${K}
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+dimension       3
+units           si
+boundary        f f f # simulation box boundaries
+atom_style      smd
+atom_modify	map array
+comm_modify     vel yes
+comm_style      tiled
+neigh_modify    every 10 delay 0 check yes exclude type 2 2 one 10000
+newton          off
+
+####################################################################################################
+# CREATE INITIAL GEOMETRY
+####################################################################################################
+variable        l0 equal 5.0 # lattice spacing for creating particles
+lattice         sc ${l0}
+region          box block -110 60 -30 220 -90 130 units box
+create_box      2 box
+region          particles cylinder y 0 -30 47 135 200 units box
+create_atoms    1 region particles
+group           water type 1
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        h equal 2.01*${l0} # SPH smoothing kernel radius
+variable        vol_one equal ${l0}^3 # volume of one particle -- assuming unit thickness
+variable        skin equal 0.1*${h} # Verlet list range
+neighbor        ${skin} bin
+variable        cr equal ${l0}/2
+set             group all smd/contact/radius ${cr}
+set             group all volume ${vol_one}
+set             group all smd/mass/density ${rho}
+set             group all diameter ${h} # set SPH kernel radius
+
+####################################################################################################
+# DEFINE GRAVITY BOUNDARY CONDITION
+####################################################################################################
+fix             gfix all gravity 0.01 vector 0.0 -1. 0.0
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+# We use polynomial EOS for the pressure and the Johnson Cook strength model
+# An integration point fails (cannot support tension anymore) if the plastic strain exceeds 0.5.
+####################################################################################################
+pair_style      hybrid/overlay smd/tri_surface 1.0 &
+                smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
+pair_coeff      1 1 smd/ulsph *COMMON ${rho} ${c0} ${q1} ${cp} ${hg} &
+                *EOS_TAIT 2 &
+                *END
+pair_coeff      2 2 none
+pair_coeff      1 2 smd/tri_surface ${contact_stiffness}
+
+####################################################################################################
+# LOAD STL SURFACE
+####################################################################################################
+fix             stl_surface_fix all smd/wall_surface boundary.stl 2 65535
+run             0 # This is important! Always run for 0 timesteps directly after loading STL file!
+group           surface type 2
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             force_fix surface setforce 0 0 0
+fix             dtfix all smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix all smd/integrate_ulsph adjust_radius 1.01 10 15
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+variable        dumpFreq equal 100
+compute         rho all smd/rho
+compute         nn all smd/ulsph/num/neighs # number of neighbors for each particle
+compute         contact_radius all smd/contact/radius
+compute         surface_coords surface smd/triangle/vertices
+
+
+dump            dump_id water custom ${dumpFreq} dump.LAMMPS id type x y z vx vy vz &
+                c_rho c_nn c_contact_radius proc
+dump_modify     dump_id first yes
+
+dump            surf_dump surface custom 999999999 surface.LAMMPS id type mol x y z  &
+                  c_surface_coords[1] c_surface_coords[2] c_surface_coords[3]          &
+                  c_surface_coords[4] c_surface_coords[5] c_surface_coords[6]          &
+                  c_surface_coords[7] c_surface_coords[8] c_surface_coords[9]
+dump_modify 	surf_dump first yes
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+compute         eint all smd/internal/energy
+compute         alleint all reduce sum c_eint
+variable        etot equal pe+ke+c_alleint+f_gfix # total energy of the system
+thermo          100
+thermo_style    custom step dt f_dtfix pe ke v_etot
+
+####################################################################################################
+# RUN SIMULATION
+####################################################################################################
+balance          1.1 rcb
+fix              balance_fix all balance 200 1.1 rcb
+run              5000

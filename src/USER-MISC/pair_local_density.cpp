@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,22 +18,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_local_density.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <string>
+
 #include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
 #include "citeme.h"
-#include "utils.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -67,28 +62,28 @@ PairLocalDensity::PairLocalDensity(LAMMPS *lmp) : Pair(lmp)
   // stuff read from tabulated file
   nLD = 0;
   nrho = 0;
-  rho_min = NULL;
-  rho_max = NULL;
-  a = NULL;
-  b = NULL;
-  c0 = NULL;
-  c2 = NULL;
-  c4 = NULL;
-  c6 = NULL;
-  uppercut = NULL;
-  lowercut = NULL;
-  uppercutsq = NULL;
-  lowercutsq = NULL;
-  frho = NULL;
-  rho = NULL;
+  rho_min = nullptr;
+  rho_max = nullptr;
+  a = nullptr;
+  b = nullptr;
+  c0 = nullptr;
+  c2 = nullptr;
+  c4 = nullptr;
+  c6 = nullptr;
+  uppercut = nullptr;
+  lowercut = nullptr;
+  uppercutsq = nullptr;
+  lowercutsq = nullptr;
+  frho = nullptr;
+  rho = nullptr;
 
   // splined arrays
-  frho_spline = NULL;
+  frho_spline = nullptr;
 
   // per-atom arrays
   nmax = 0;
-  fp = NULL;
-  localrho = NULL;
+  fp = nullptr;
+  localrho = nullptr;
 
   // set comm size needed by this pair
   comm_forward = 1;
@@ -144,10 +139,8 @@ void PairLocalDensity::compute(int eflag, int vflag)
   double p, *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
+  ev_init(eflag,vflag);
   phi = uLD = evdwl = fpair = rsqinv = 0.0;
-
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   /* localrho = LD at each atom
      fp = derivative of embedding energy at each atom for each LD potential
@@ -187,7 +180,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
     }
   }
   else {
-    for (k = 0; k < nLD; k++){
+    for (k = 0; k < nLD; k++) {
         for (i = 0; i < nlocal; i++) {
             localrho[k][i] = 0.0;
             fp[k][i] = 0.0;
@@ -599,7 +592,7 @@ void PairLocalDensity::interpolate_cbspl(int n, double delta,
      fpa = 0.;
      fpb = 0.;
 
-     for ( i = 0; i < n-1; i++ ) {
+     for (i = 0; i < n-1; i++) {
          dl[i] = du[i] = delta;
      }
 
@@ -607,32 +600,32 @@ void PairLocalDensity::interpolate_cbspl(int n, double delta,
      dd[n-1] = 2.0 * delta;
      coeff_c[0] = ( 3.0 / delta ) * ( f[1] - f[0] ) - 3.0 * fpa;
      coeff_c[n-1] = 3.0 * fpb - ( 3.0 / delta ) * ( f[n-1] - f[n-2] );
-     for ( i = 0; i < n-2; i++ ) {
+     for (i = 0; i < n-2; i++) {
          dd[i+1] = 4.0 * delta;
          coeff_c[i+1] = ( 3.0 / delta ) * ( f[i+2] - f[i+1] ) -
                         ( 3.0 / delta ) * ( f[i+1] - f[i] );
      }
 
      // tridiagonal solver
-     for ( i = 0; i < n-1; i++ ) {
+     for (i = 0; i < n-1; i++) {
          du[i] /= dd[i];
          dd[i+1] -= dl[i]*du[i];
      }
 
      coeff_c[0] /= dd[0];
-     for ( i = 1; i < n; i++ )
+     for (i = 1; i < n; i++)
          coeff_c[i] = ( coeff_c[i] - dl[i-1] * coeff_c[i-1] ) / dd[i];
 
-     for ( i = n-2; i >= 0; i-- )
+     for (i = n-2; i >= 0; i--)
          coeff_c[i] -= coeff_c[i+1] * du[i];
 
-     for ( i = 0; i < n-1; i++ ) {
+     for (i = 0; i < n-1; i++) {
          coeff_d[i] = ( coeff_c[i+1] - coeff_c[i] ) / ( 3.0 * delta );
          coeff_b[i] = ( f[i+1] - f[i] ) / delta - delta * ( coeff_c[i+1] + 2.0*coeff_c[i] ) / 3.0;
      }
 
      // normalize
-     for ( i = 0; i < n-1; i++ ) {
+     for (i = 0; i < n-1; i++) {
          coeff_b[i] = coeff_b[i] * delta ;
          coeff_c[i] = coeff_c[i] * delta*delta ;
          coeff_d[i] = coeff_d[i] * delta*delta*delta;
@@ -672,7 +665,7 @@ void PairLocalDensity::parse_file(char *filename) {
 
   if (me == 0) {
     fptr = fopen(filename, "r");
-    if (fptr == NULL) {
+    if (fptr == nullptr) {
       char str[128];
       sprintf(str,"Cannot open Local Density potential file %s",filename);
       error->one(FLERR,str);
@@ -715,7 +708,7 @@ void PairLocalDensity::parse_file(char *filename) {
   memory->create(a, nLD, atom->ntypes+1 , "pairLD:a");
   memory->create(b, nLD, atom->ntypes+1, "pairLD:b");
   if (me == 0) {
-    for (n = 1; n <= atom->ntypes; n++){
+    for (n = 1; n <= atom->ntypes; n++) {
         for (k = 0; k < nLD; k++) {
             a[k][n] = 0;
             b[k][n] = 0;
@@ -729,23 +722,23 @@ void PairLocalDensity::parse_file(char *filename) {
     for (k = 0; k < nLD; k++) {
 
         // parse upper and lower cut values
-        if (fgets(line,MAXLINE,fptr)==NULL) break;
+        if (fgets(line,MAXLINE,fptr)==nullptr) break;
         sscanf(line, "%lf %lf", &lowercut[k], &uppercut[k]);
 
         // parse and broadcast central atom filter
         utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         char *tmp = strtok(line, " /t/n/r/f");
-        while (tmp != NULL) {
+        while (tmp != nullptr) {
             a[k][atoi(tmp)] = 1;
-            tmp = strtok(NULL, " /t/n/r/f");
+            tmp = strtok(nullptr, " /t/n/r/f");
         }
 
         // parse neighbor atom filter
         utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
         tmp = strtok(line, " /t/n/r/f");
-        while (tmp != NULL) {
+        while (tmp != nullptr) {
             b[k][atoi(tmp)] = 1;
-            tmp = strtok(NULL, " /t/n/r/f");
+            tmp = strtok(nullptr, " /t/n/r/f");
         }
 
         // parse min, max and delta rho values
@@ -886,9 +879,9 @@ void PairLocalDensity::unpack_reverse_comm(int n, int *list, double *buf) {
 
 double PairLocalDensity::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * (nmax*nLD) * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * (nmax*nLD) * sizeof(double);
   return bytes;
 }
 

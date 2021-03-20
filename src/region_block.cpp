@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "region_block.h"
-#include <cstring>
-#include "force.h"
+
 #include "domain.h"
-#include "math_extra.h"
 #include "error.h"
+#include "math_extra.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -319,7 +320,7 @@ int RegBlock::surface_exterior(double *x, double cutoff)
     else zp = x[2];
   } else {
     mindist = BIG;
-    for (int i = 0; i < 6; i++){
+    for (int i = 0; i < 6; i++) {
       if (open_faces[i]) continue;
       dist = find_closest_point(i,x,xc,yc,zc);
       if (dist < mindist) {
@@ -360,7 +361,7 @@ double RegBlock::find_closest_point(int i, double *x,
 
   // check if point projects inside of face
 
-  if (inside_face(xproj, i)){
+  if (inside_face(xproj, i)) {
     d2 = d2min = dot*dot;
     xc = xproj[0] + corners[i][0][0];
     yc = xproj[1] + corners[i][0][1];

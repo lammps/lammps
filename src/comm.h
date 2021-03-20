@@ -104,7 +104,7 @@ class Comm : protected Pointers {
 
   // memory usage
 
-  virtual bigint memory_usage() = 0;
+  virtual double memory_usage() = 0;
 
   // non-virtual functions common to all Comm styles
 
@@ -118,7 +118,7 @@ class Comm : protected Pointers {
   int read_lines_from_file_universe(FILE *, int, int, char *);
 
   // extract data useful to other classes
-  virtual void *extract(const char *, int &) {return NULL;}
+  virtual void *extract(const char *, int &) {return nullptr;}
 
  protected:
   int bordergroup;           // only communicate this group in borders
@@ -242,7 +242,7 @@ E: Processor count in z must be 1 for 2d simulation
 
 Self-explanatory.
 
-E: Cannot put data on ring from NULL pointer
+E: Cannot put data on ring from nullptr pointer
 
 W: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost.
 

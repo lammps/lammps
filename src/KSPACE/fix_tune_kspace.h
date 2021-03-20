@@ -21,7 +21,7 @@ FixStyle(tune/kspace,FixTuneKspace)
 #define LMP_FIX_TUNE_KSPACE_H
 
 #include "fix.h"
-#include <string>
+
 
 namespace LAMMPS_NS {
 

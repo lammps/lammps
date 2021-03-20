@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,7 +19,7 @@
 #include "modify.h"
 #include "respa.h"
 #include "error.h"
-#include "fmt/format.h"
+
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -28,7 +28,7 @@ using namespace FixConst;
 
 FixEnforce2D::FixEnforce2D(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  flist(NULL)
+  flist(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix enforce2d command");
 

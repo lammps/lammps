@@ -41,10 +41,16 @@ The layout and formatting of added files should follow the example
 of the existing files.  Since those are directly derived from their
 former .txt format versions and the manual has been maintained in
 that format for many years, there is a large degree of consistency
-already, so comparision with similar files should give you a good
+already, so comparison with similar files should give you a good
 idea what kind of information and sections are needed.
 
 ## Formatting conventions
+
+For headlines we try to follow the conventions posted here:
+https://documentation-style-guide-sphinx.readthedocs.io/en/latest/style-guide.html#headings
+It seems to be sufficient to have this consistent only within
+any single file and it is not (yet) enforced strictly, but making
+this globally consistent makes it easier to move sections around.
 
 Filenames, folders, paths, (shell) commands, definitions, makefile
 settings and similar should be formatted as "literals" with
@@ -67,8 +73,19 @@ a `.. parsed-literal::` block can be used, which allows some
 formatting directives, which means that related characters need
 to be escaped with a preceding backslash: `\*`.
 
+For more compact display of alternatives (e.g. compilation or
+configuration directions for CMake versus GNU make) a `.. tabs::`
+block can be used, followed by multiple `.. tab::` blocks, one
+for each alternative. This is only used for HTML output. For other
+outputs, the `.. tabs::` directive is transparently removed and
+the individual `.. tab::` blocks will be replaced with an
+`.. admonition::`` block. Thus in PDF and ePUB output those will
+be realized as sequential and plain notes.
+
 Special remarks can be highlighted with a `.. note::` block and
 strong warnings can be put into a `.. warning::` block.
+For notes with a title, use `.. admonition:: title text` followed
+by `   :class: note`.
 
 ## Required steps when adding a custom style to LAMMPS
 

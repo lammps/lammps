@@ -76,7 +76,7 @@ class PairEAMIntel : public PairEAM {
     fc_packed2 *z2r_spline_t;
 
     ForceConst() : _ntypes(0), _nr(0)  {}
-    ~ForceConst() { set_ntypes(0, 0, 0, NULL, _cop); }
+    ~ForceConst() { set_ntypes(0, 0, 0, nullptr, _cop); }
 
     void set_ntypes(const int ntypes, const int nr, const int nrho,
                     Memory *memory, const int cop);

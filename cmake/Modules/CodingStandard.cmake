@@ -8,7 +8,7 @@ else()
     find_package(Python3 COMPONENTS Interpreter QUIET)
 endif()
 
-if (Python3_EXECUTABLE)
+if(Python3_EXECUTABLE)
     if(Python3_VERSION VERSION_GREATER_EQUAL 3.5)
         add_custom_target(
           check-whitespace

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,10 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "rcb.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "irregular.h"
 #include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -38,19 +39,19 @@ RCB::RCB(LAMMPS *lmp) : Pointers(lmp)
   MPI_Comm_size(world,&nprocs);
 
   ndot = maxdot = 0;
-  dots = NULL;
+  dots = nullptr;
 
   nlist = maxlist = 0;
-  dotlist = dotmark = dotmark_select = NULL;
+  dotlist = dotmark = dotmark_select = nullptr;
 
   maxbuf = 0;
-  buf = NULL;
+  buf = nullptr;
 
   maxrecv = maxsend = 0;
-  recvproc = recvindex = sendproc = sendindex = NULL;
+  recvproc = recvindex = sendproc = sendindex = nullptr;
 
-  tree = NULL;
-  irregular = NULL;
+  tree = nullptr;
+  irregular = nullptr;
 
   // create MPI data and function types for box and median AllReduce ops
 
@@ -94,7 +95,7 @@ RCB::~RCB()
    NEW version: each RCB cut is tested in all dimensions
      dimeension that produces 2 boxes with largest min size is selected
      this is to prevent very narrow boxes from being produced
-   if wt = NULL, ignore per-particle weights
+   if wt = nullptr, ignore per-particle weights
    if wt defined, per-particle weights > 0.0
    dimension = 2 or 3
    as documented in rcb.h:
@@ -572,10 +573,10 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
     // handshake before sending dots to insure recvs have been posted
 
     if (readnumber > 0) {
-      MPI_Send(NULL,0,MPI_INT,procpartner,0,world);
-      if (readnumber == 2) MPI_Send(NULL,0,MPI_INT,procpartner2,0,world);
+      MPI_Send(nullptr,0,MPI_INT,procpartner,0,world);
+      if (readnumber == 2) MPI_Send(nullptr,0,MPI_INT,procpartner2,0,world);
     }
-    MPI_Recv(NULL,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
+    MPI_Recv(nullptr,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
 
     // send dots to partner
 
@@ -631,7 +632,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
 /* ----------------------------------------------------------------------
    perform RCB balancing of N particles at coords X in bounding box LO/HI
    OLD version: each RCB cut is made in longest dimension of sub-box
-   if wt = NULL, ignore per-particle weights
+   if wt = nullptr, ignore per-particle weights
    if wt defined, per-particle weights > 0.0
    dimension = 2 or 3
    as documented in rcb.h:
@@ -1064,10 +1065,10 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
     // handshake before sending dots to insure recvs have been posted
 
     if (readnumber > 0) {
-      MPI_Send(NULL,0,MPI_INT,procpartner,0,world);
-      if (readnumber == 2) MPI_Send(NULL,0,MPI_INT,procpartner2,0,world);
+      MPI_Send(nullptr,0,MPI_INT,procpartner,0,world);
+      if (readnumber == 2) MPI_Send(nullptr,0,MPI_INT,procpartner2,0,world);
     }
-    MPI_Recv(NULL,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
+    MPI_Recv(nullptr,0,MPI_INT,procpartner,0,world,MPI_STATUS_IGNORE);
 
     // send dots to partner
 
@@ -1260,9 +1261,9 @@ void RCB::invert(int sortflag)
    memory use of Irregular
 ------------------------------------------------------------------------- */
 
-bigint RCB::memory_usage()
+double RCB::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   if (irregular) bytes += irregular->memory_usage();
   return bytes;
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,14 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin_kokkos.h"
-#include "neighbor.h"
+
 #include "atom_kokkos.h"
-#include "group.h"
-#include "domain.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "update.h"
-#include "error.h"
-#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -33,11 +30,7 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
   atoms_per_bin = 16;
 
   d_resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
-#ifndef KOKKOS_USE_CUDA_UVM
   h_resize = Kokkos::create_mirror_view(d_resize);
-#else
-  h_resize = d_resize;
-#endif
   h_resize() = 1;
 
   kokkos = 1;
@@ -95,7 +88,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
 
   h_resize() = 1;
 
-  while(h_resize() > 0) {
+  while (h_resize() > 0) {
     h_resize() = 0;
     deep_copy(d_resize, h_resize);
 
@@ -114,7 +107,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
 
     deep_copy(h_resize, d_resize);
-    if(h_resize()) {
+    if (h_resize()) {
 
       atoms_per_bin += 16;
       k_bins = DAT::tdual_int_2d("bins", mbins, atoms_per_bin);
@@ -138,7 +131,7 @@ void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 
   atom2bin(i) = ibin;
   const int ac = Kokkos::atomic_fetch_add(&bincount[ibin], (int)1);
-  if(ac < (int)bins.extent(1)) {
+  if (ac < (int)bins.extent(1)) {
     bins(ibin, ac) = i;
   } else {
     d_resize() = 1;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,7 +45,7 @@ using namespace MathConst;
 
 ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  distsq(NULL), nearest(NULL), qnarray(NULL)
+  distsq(nullptr), nearest(nullptr), qnarray(nullptr)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute hexorder/atom command");
 
@@ -104,7 +104,7 @@ ComputeHexOrderAtom::~ComputeHexOrderAtom()
 
 void ComputeHexOrderAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute hexorder/atom requires a pair style be defined");
   if (cutsq == 0.0) cutsq = force->pair->cutforce * force->pair->cutforce;
   else if (sqrt(cutsq) > force->pair->cutforce)
@@ -260,8 +260,8 @@ inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, doubl
 
 inline void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
   double ntheta;
-  if(fabs(delx) <= MY_EPSILON) {
-    if(dely > 0.0) ntheta = ndegree * MY_PI / 2.0;
+  if (fabs(delx) <= MY_EPSILON) {
+    if (dely > 0.0) ntheta = ndegree * MY_PI / 2.0;
     else ntheta = ndegree * 3.0 * MY_PI / 2.0;
   } else ntheta = ndegree * atan(dely / delx);
   u = cos(ntheta);
@@ -338,9 +338,9 @@ void ComputeHexOrderAtom::select2(int k, int n, double *arr, int *iarr)
 
 double ComputeHexOrderAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
-  bytes += maxneigh * sizeof(double);
-  bytes += maxneigh * sizeof(int);
+  double bytes = (double)ncol*nmax * sizeof(double);
+  bytes += (double)maxneigh * sizeof(double);
+  bytes += (double)maxneigh * sizeof(int);
 
   return bytes;
 }

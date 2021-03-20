@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,9 +37,9 @@ NPairHalfBinNewtonSSA::NPairHalfBinNewtonSSA(LAMMPS *lmp) : NPair(lmp)
   ssa_maxPhaseCt = 0;
   ssa_maxPhaseLen = 0;
   ssa_phaseCt = 0;
-  ssa_phaseLen = NULL;
-  ssa_itemLoc = NULL;
-  ssa_itemLen = NULL;
+  ssa_phaseLen = nullptr;
+  ssa_itemLoc = nullptr;
+  ssa_itemLen = nullptr;
   ssa_gphaseCt = 7;
   memory->create(ssa_gphaseLen,ssa_gphaseCt,"NPairHalfBinNewtonSSA:ssa_gphaseLen");
   memory->create(ssa_gitemLoc,ssa_gphaseCt,1,"NPairHalfBinNewtonSSA:ssa_gitemLoc");
@@ -88,7 +88,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
   int *molatom = atom->molatom;
   Molecule **onemols = atom->avec->onemols;
   int molecular = atom->molecular;
-  if (molecular == 2) moltemplate = 1;
+  if (molecular == Atom::TEMPLATE) moltemplate = 1;
   else moltemplate = 0;
 
   int *ilist = list->ilist;
@@ -198,7 +198,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
             delz = ztmp - x[j][2];
             rsq = delx*delx + dely*dely + delz*delz;
             if (rsq <= cutneighsq[itype][jtype]) {
-              if (molecular) {
+              if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(special[i],nspecial[i],tag[j]);
                 else if (imol >= 0)
@@ -279,7 +279,7 @@ void NPairHalfBinNewtonSSA::build(NeighList *list)
           rsq = delx*delx + dely*dely + delz*delz;
 
           if (rsq <= cutneighsq[itype][jtype]) {
-            if (molecular) {
+            if (molecular != Atom::ATOMIC) {
               if (!moltemplate)
                 which = find_special(special[j],nspecial[j],tag[i]);
               else {

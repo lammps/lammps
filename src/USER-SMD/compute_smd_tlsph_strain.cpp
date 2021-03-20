@@ -12,7 +12,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,16 +24,18 @@
  ------------------------------------------------------------------------- */
 
 #include "compute_smd_tlsph_strain.h"
-#include <cstring>
-#include <Eigen/Eigen>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <Eigen/Eigen>          // IWYU pragma: export
 
 using namespace Eigen;
 using namespace std;
@@ -50,7 +52,7 @@ ComputeSMDTLSPHstrain::ComputeSMDTLSPHstrain(LAMMPS *lmp, int narg, char **arg) 
         size_peratom_cols = 6;
 
         nmax = 0;
-        strainVector = NULL;
+        strainVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,7 +92,7 @@ void ComputeSMDTLSPHstrain::compute_peratom() {
         // copy data to output array
         int itmp = 0;
         Matrix3d *Fincr = (Matrix3d *) force->pair->extract("smd/tlsph/Fincr_ptr", itmp);
-        if (Fincr == NULL) {
+        if (Fincr == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_strain failed to access Fincr array");
         }
 
@@ -137,6 +139,6 @@ void ComputeSMDTLSPHstrain::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDTLSPHstrain::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

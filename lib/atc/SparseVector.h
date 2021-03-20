@@ -88,7 +88,7 @@ protected:
   //@{
   SparseVector(const Matrix<T> &c);
   SparseVector<T>& operator=(Matrix<T> &c);
-  T* ptr() const {return NULL; } 
+  T* ptr() const {return nullptr; } 
   //@}
   
   STORE data_;  //*> sparse data structure

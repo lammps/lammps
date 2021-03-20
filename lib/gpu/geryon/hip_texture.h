@@ -99,12 +99,43 @@ class UCL_Texture {
       else
         CU_SAFE_CALL(hipTexRefSetFormat(_tex,HIP_AD_FORMAT_SIGNED_INT32,numel*2));
     }
-    CU_SAFE_CALL(hipTexRefSetAddress(NULL, _tex, vec.cbegin(), vec.numel()*vec.element_size()));
+    CU_SAFE_CALL(hipTexRefSetAddress(nullptr, _tex, vec.cbegin(), vec.numel()*vec.element_size()));
 #else
     void* data_ptr = (void*)vec.cbegin();
     CU_SAFE_CALL(hipMemcpyHtoD(hipDeviceptr_t(_device_ptr_to_global_var), &data_ptr, sizeof(void*)));
 #endif
   }
+};
+
+/// Class storing a const global memory reference
+class UCL_Const {
+ public:
+  UCL_Const() {}
+  ~UCL_Const() {}
+  /// Construct with a specified global reference
+  inline UCL_Const(UCL_Program &prog, const char *global_name)
+    { get_global(prog,global_name); }
+  /// Set the global reference for this object
+  inline void get_global(UCL_Program &prog, const char *global_name) {
+    _cq=prog.cq();
+    CU_SAFE_CALL(hipModuleGetGlobal(&_global, &_global_bytes, prog._module,
+				    global_name)); 
+  }
+  /// Copy from array on host to const memory
+  template <class numtyp>
+  inline void update_device(UCL_H_Vec<numtyp> &src, const int numel) {
+    CU_SAFE_CALL(hipMemcpyHtoDAsync(_global, src.begin(), numel*sizeof(numtyp),
+				    _cq));
+  }
+  /// Get device ptr associated with object
+  inline const void* begin() const { return &_global; }
+  inline void clear() {}
+
+ private:
+  hipStream_t _cq;
+  void* _global;
+  size_t _global_bytes;
+  friend class UCL_Kernel;
 };
 
 } // namespace

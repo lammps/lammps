@@ -20,7 +20,14 @@ Syntax
 * cutlo,cuthi = lo and hi cutoff for Taper radius
 * tolerance = precision to which charges will be equilibrated
 * params = reax/c or a filename
-* args   = *dual* (optional)
+* one or more keywords or keyword/value pairs may be appended
+
+  .. parsed-literal::
+
+     keyword = *dual* or *maxiter*
+       *dual* = process S and T matrix in parallel (only for qeq/reax/omp)
+       *maxiter* N = limit the number of iterations to *N*
+
 
 Examples
 """"""""
@@ -28,7 +35,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
-   fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq
+   fix 1 all qeq/reax 1 0.0 10.0 1.0e-6 param.qeq maxiter 500
 
 Description
 """""""""""
@@ -69,6 +76,9 @@ The optional *dual* keyword allows to perform the optimization
 of the S and T matrices in parallel. This is only supported for
 the *qeq/reax/omp* style. Otherwise they are processed separately.
 
+The optional *maxiter* keyword allows changing the max number
+of iterations in the linear solver. The default value is 200.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -102,7 +112,7 @@ Related commands
 Default
 """""""
 
-none
+maxiter 200
 
 ----------
 

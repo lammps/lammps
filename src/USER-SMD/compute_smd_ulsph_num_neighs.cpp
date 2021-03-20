@@ -12,7 +12,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,7 +47,7 @@ ComputeSMDULSPHNumNeighs::ComputeSMDULSPHNumNeighs(LAMMPS *lmp, int narg, char *
     size_peratom_cols = 0;
 
     nmax = 0;
-    numNeighsOutput = NULL;
+    numNeighsOutput = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -84,7 +84,7 @@ void ComputeSMDULSPHNumNeighs::compute_peratom() {
 
     int itmp = 0;
     int *numNeighs = (int *) force->pair->extract("smd/ulsph/numNeighs_ptr", itmp);
-    if (numNeighs == NULL) {
+    if (numNeighs == nullptr) {
         error->all(FLERR, "compute smd/ulsph_num_neighs failed to access numNeighs array");
     }
 
@@ -102,6 +102,6 @@ void ComputeSMDULSPHNumNeighs::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDULSPHNumNeighs::memory_usage() {
-    double bytes = nmax * sizeof(double);
+    double bytes = (double)nmax * sizeof(double);
     return bytes;
 }

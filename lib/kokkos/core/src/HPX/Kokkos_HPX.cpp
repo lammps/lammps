@@ -42,7 +42,7 @@
 //@HEADER
 */
 
-#include <Kokkos_Macros.hpp>
+#include <Kokkos_Core.hpp>
 
 #ifdef KOKKOS_ENABLE_HPX
 #include <Kokkos_HPX.hpp>
@@ -79,7 +79,7 @@ void HPX::impl_initialize(int thread_count) {
   if (rt == nullptr) {
     std::vector<std::string> config = {
         "hpx.os_threads=" + std::to_string(thread_count),
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         "--hpx:attach-debugger=exception",
 #endif
     };
@@ -110,7 +110,7 @@ void HPX::impl_initialize() {
   hpx::runtime *rt = hpx::get_runtime_ptr();
   if (rt == nullptr) {
     std::vector<std::string> config = {
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         "--hpx:attach-debugger=exception",
 #endif
     };
@@ -153,6 +153,56 @@ void HPX::impl_finalize() {
 }
 
 }  // namespace Experimental
+
+namespace Impl {
+
+int g_hpx_space_factory_initialized =
+    initialize_space_factory<HPXSpaceInitializer>("060_HPX");
+
+void HPXSpaceInitializer::initialize(const InitArguments &args) {
+  const int num_threads = args.num_threads;
+
+  if (std::is_same<Kokkos::Experimental::HPX,
+                   Kokkos::DefaultExecutionSpace>::value ||
+      std::is_same<Kokkos::Experimental::HPX,
+                   Kokkos::HostSpace::execution_space>::value) {
+    if (num_threads > 0) {
+      Kokkos::Experimental::HPX::impl_initialize(num_threads);
+    } else {
+      Kokkos::Experimental::HPX::impl_initialize();
+    }
+    // std::cout << "Kokkos::initialize() fyi: HPX enabled and initialized" <<
+    // std::endl ;
+  } else {
+    // std::cout << "Kokkos::initialize() fyi: HPX enabled but not initialized"
+    // << std::endl ;
+  }
+}
+
+void HPXSpaceInitializer::finalize(const bool all_spaces) {
+  if (std::is_same<Kokkos::Experimental::HPX,
+                   Kokkos::DefaultExecutionSpace>::value ||
+      std::is_same<Kokkos::Experimental::HPX,
+                   Kokkos::HostSpace::execution_space>::value ||
+      all_spaces) {
+    if (Kokkos::Experimental::HPX::impl_is_initialized())
+      Kokkos::Experimental::HPX::impl_finalize();
+  }
+}
+
+void HPXSpaceInitializer::fence() { Kokkos::Experimental::HPX().fence(); }
+
+void HPXSpaceInitializer::print_configuration(std::ostream &msg,
+                                              const bool detail) {
+  msg << "HPX Execution Space:" << std::endl;
+  msg << "  KOKKOS_ENABLE_HPX: ";
+  msg << "yes" << std::endl;
+
+  msg << "\nHPX Runtime Configuration:" << std::endl;
+  Kokkos::Experimental::HPX::print_configuration(msg, detail);
+}
+
+}  // namespace Impl
 }  // namespace Kokkos
 
 #else

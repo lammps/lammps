@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -236,7 +236,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     YamlWriter writer(outfile);
 
     // lammps_version
-    writer.emit("lammps_version", lmp->universe->version);
+    writer.emit("lammps_version", lmp->version);
 
     // date_generated
     std::time_t now = time(NULL);
@@ -308,7 +308,6 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // init_forces
     block.clear();
     auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -329,7 +328,6 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     block.clear();
     f   = lmp->atom->f;
-    tag = lmp->atom->tag;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -762,7 +760,7 @@ TEST(BondStyle, single)
     // gather some information and skip if unsupported
     int nbondtypes = lmp->atom->nbondtypes;
     int molecular  = lmp->atom->molecular;
-    if (molecular != 1) {
+    if (molecular != Atom::MOLECULAR) {
         std::cerr << "Only simple molecular atom styles are supported\n";
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

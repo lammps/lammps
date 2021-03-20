@@ -34,8 +34,8 @@ class ReadData : protected Pointers {
   int me,compressed;
   char *line,*keyword,*buffer,*style;
   FILE *fp;
-  char **arg;
-  int narg,maxarg;
+  char **coeffarg;
+  int ncoeffarg,maxcoeffarg;
   char argoffset1[8],argoffset2[8];
 
   bigint id_offset, mol_offset;

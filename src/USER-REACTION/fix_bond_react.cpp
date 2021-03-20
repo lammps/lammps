@@ -2566,6 +2566,7 @@ void FixBondReact::unlimit_bond()
   }
 
   // really should only communicate this per-atom property, not entire reneighboring
+  MPI_Allreduce(MPI_IN_PLACE,&unlimitflag,1,MPI_INT,MPI_MAX,world);
   if (unlimitflag) next_reneighbor = update->ntimestep;
 }
 

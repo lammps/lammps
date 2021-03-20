@@ -140,10 +140,11 @@ void ComputeFragmentAtom::compute_peratom()
   MPI_Allreduce(MPI_IN_PLACE,&max_onetwo,1,MPI_INT,MPI_MAX,world);
 
   // xspecials are first neighs, also listed for ghosts (unlike specials)
-  double **nxspecial; // N first-neighbors (includes ghosts)
-  double **xspecial; // first-neighbor list (includes ghosts)
-  memory->create(nxspecial,nall,1,"reset_mol_ids:nxspecial"); // only first neighs
-  memory->create(xspecial,nall,max_onetwo,"reset_mol_ids:xspecial"); // only need space for first neighs
+
+  double **nxspecial;
+  double **xspecial;
+  memory->create(nxspecial,nmax,1,"reset_mol_ids:nxspecial");
+  memory->create(xspecial,nmax,max_onetwo,"reset_mol_ids:xspecial");
   for (int i = 0; i < nlocal; i++) {
     nxspecial[i][0] = nspecial[i][0];
     for (int j = 0; j < nspecial[i][0]; j++) {
@@ -151,7 +152,7 @@ void ComputeFragmentAtom::compute_peratom()
     }
   }
   comm->forward_comm_array(1,nxspecial);
-  comm->forward_comm_array(max_onetwo,xspecial); // only need first neighs
+  comm->forward_comm_array(max_onetwo,xspecial);
 
   for (i = 0; i < nall; i++) {
     if (mask[i] & groupbit) fragmentID[i] = tag[i];

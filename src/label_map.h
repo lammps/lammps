@@ -48,7 +48,7 @@ class LabelMap : protected Pointers {
    int find_or_create(std::string, std::vector<std::string> &, int); // look up type or create new type
    int find(std::string, int);                                       // find numeric type of type label
    int search(std::string, std::vector<std::string>, int);           // look up type index
-   int is_complete();                                                // check if all types are assigned
+   int is_complete(int);                                             // check if all types are assigned
 
    // input/output for atom class label map
 

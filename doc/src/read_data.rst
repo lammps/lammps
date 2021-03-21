@@ -623,10 +623,10 @@ integers (1, not 1.0).
 
 Type labels can be used to make data files more general, by defining
 atom, bond, etc. types in terms of user-provided strings instead of
-numbers.  If a type label section exists for any one interaction
+numbers.  If a type label section exists for a given interaction
 (atom, bond, angle, dihedral or improper), then all types must be
-assigned a type label for all interactions.  All type label sections
-must come before any section that includes types.  The numeric types
+assigned a type label for that interaction.  Type label sections must
+come before any section that utilizes that type.  The numeric types
 listed in the *Atoms*, *Bonds*, etc. section are first converted into
 their corresponding type label before being read into LAMMPS; type
 labels cannot be directly substituted for numeric types used in data

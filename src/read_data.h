@@ -67,7 +67,8 @@ class ReadData : protected Pointers {
 
   // optional args
 
-  int addflag,offsetflag,shiftflag,coeffflag,settypeflag,labelflag;
+  int addflag,offsetflag,shiftflag,coeffflag,settypeflag;
+  int tlabelflag,blabelflag,alabelflag,dlabelflag,ilabelflag;
   tagint addvalue;
   int toffset,boffset,aoffset,doffset,ioffset;
   double shift[3];
@@ -88,7 +89,7 @@ class ReadData : protected Pointers {
   void header(int);
   void parse_keyword(int);
   void skip_lines(bigint);
-  void parse_coeffs(char *, const char *, int, int, int, int *);
+  void parse_coeffs(char *, const char *, int, int, int, int, int *);
   int style_match(const char *, const char *);
 
   void atoms();

@@ -241,24 +241,25 @@ int LabelMap::search(std::string mylabel, std::vector<std::string> labels, int n
    check if all types have been assigned a type label
 ------------------------------------------------------------------------- */
 
-int LabelMap::is_complete()
+int LabelMap::is_complete(int mode)
 {
+  if (mode == Atom::ATOM)
   for (int i = 0; i < natomtypes; i++)
     if (typelabel[i].empty()) return 0;
 
-  if (force->bond)
+  if (force->bond && mode == Atom::BOND)
     for (int i = 0; i < nbondtypes; i++)
       if (btypelabel[i].empty()) return 0;
 
-  if (force->angle)
+  if (force->angle && mode == Atom::ANGLE)
     for (int i = 0; i < nangletypes; i++)
       if (atypelabel[i].empty()) return 0;
 
-  if (force->dihedral)
+  if (force->dihedral && mode == Atom::DIHEDRAL)
     for (int i = 0; i < ndihedraltypes; i++)
       if (dtypelabel[i].empty()) return 0;
 
-  if (force->improper)
+  if (force->improper && mode == Atom::IMPROPER)
     for (int i = 0; i < nimpropertypes; i++)
       if (itypelabel[i].empty()) return 0;
 
@@ -271,35 +272,31 @@ int LabelMap::is_complete()
 
 void LabelMap::write_data(FILE *fp)
 {
-  if (!is_complete()) {
-    error->warning(FLERR,"Default label map is incomplete. "
-                   "Assign all type labels to write to data file.");
-    return;
+  if (is_complete(Atom::ATOM)) {
+    fmt::print(fp,"\nAtom Type Labels\n\n");
+    for (int i = 0; i < natomtypes; i++)
+      fmt::print(fp,"{} {}\n",i+1,typelabel[i]);
   }
 
-  fmt::print(fp,"\nAtom Type Labels\n\n");
-  for (int i = 0; i < natomtypes; i++)
-    fmt::print(fp,"{} {}\n",i+1,typelabel[i]);
-
-  if (force->bond) {
+  if (force->bond && is_complete(Atom::BOND)) {
     fmt::print(fp,"\nBond Type Labels\n\n");
     for (int i = 0; i < nbondtypes; i++)
       fmt::print(fp,"{} {}\n",i+1,btypelabel[i]);
   }
 
-  if (force->angle) {
+  if (force->angle && is_complete(Atom::ANGLE)) {
     fmt::print(fp,"\nAngle Type Labels\n\n");
     for (int i = 0; i < nangletypes; i++)
       fmt::print(fp,"{} {}\n",i+1,atypelabel[i]);
   }
 
-  if (force->dihedral) {
+  if (force->dihedral && is_complete(Atom::DIHEDRAL)) {
     fmt::print(fp,"\nDihedral Type Labels\n\n");
     for (int i = 0; i < ndihedraltypes; i++)
       fmt::print(fp,"{} {}\n",i+1,dtypelabel[i]);
   }
 
-  if (force->improper) {
+  if (force->improper && is_complete(Atom::IMPROPER)) {
     fmt::print(fp,"\nImproper Type Labels\n\n");
     for (int i = 0; i < nimpropertypes; i++)
       fmt::print(fp,"{} {}\n",i+1,itypelabel[i]);

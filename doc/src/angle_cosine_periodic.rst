@@ -24,9 +24,8 @@ Examples
 Description
 """""""""""
 
-The *cosine/periodic* angle style uses the following potential, which
-is commonly used in the :doc:`DREIDING <Howto_bioFF>` force field,
-particularly for organometallic systems where :math:`n` = 4 might be used
+The *cosine/periodic* angle style uses the following potential, which may be
+particularly used for organometallic systems where :math:`n` = 4 might be used
 for an octahedral complex and :math:`n` = 3 might be used for a trigonal
 center:
 
@@ -35,8 +34,6 @@ center:
    E = 2.0*C \left[ 1 - B(-1)^n\cos\left( n\theta\right) \right]
 
 where :math:`C`, :math:`B` and :math:`n` are coefficients defined for each angle type.
-
-See :ref:`(Mayo) <cosine-Mayo>` for a description of the DREIDING force field
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the example above, or in

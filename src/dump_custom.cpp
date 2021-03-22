@@ -285,7 +285,7 @@ void DumpCustom::init_style()
     else if (vtype[i] == Dump::DOUBLE && format_float_user)
       vformat[i] = utils::strdup(std::string(format_float_user) + " ");
     else if (vtype[i] == Dump::BIGINT && format_bigint_user)
-      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
     else vformat[i] = utils::strdup(word + " ");
 
     // remove trailing blank on last column's format
@@ -1562,9 +1562,7 @@ int DumpCustom::add_compute(const char *id)
   delete [] compute;
   compute = new Compute*[ncompute+1];
 
-  int n = strlen(id) + 1;
-  id_compute[ncompute] = new char[n];
-  strcpy(id_compute[ncompute],id);
+  id_compute[ncompute] = utils::strdup(id);
   ncompute++;
   return ncompute-1;
 }
@@ -1587,9 +1585,7 @@ int DumpCustom::add_fix(const char *id)
   delete [] fix;
   fix = new Fix*[nfix+1];
 
-  int n = strlen(id) + 1;
-  id_fix[nfix] = new char[n];
-  strcpy(id_fix[nfix],id);
+  id_fix[nfix] = utils::strdup(id);
   nfix++;
   return nfix-1;
 }
@@ -1616,9 +1612,7 @@ int DumpCustom::add_variable(const char *id)
   vbuf = new double*[nvariable+1];
   for (int i = 0; i <= nvariable; i++) vbuf[i] = nullptr;
 
-  int n = strlen(id) + 1;
-  id_variable[nvariable] = new char[n];
-  strcpy(id_variable[nvariable],id);
+  id_variable[nvariable] = utils::strdup(id);
   nvariable++;
   return nvariable-1;
 }
@@ -1642,9 +1636,7 @@ int DumpCustom::add_custom(const char *id, int flag)
   flag_custom = (int *)
     memory->srealloc(flag_custom,(ncustom+1)*sizeof(int),"dump:flag_custom");
 
-  int n = strlen(id) + 1;
-  id_custom[ncustom] = new char[n];
-  strcpy(id_custom[ncustom],id);
+  id_custom[ncustom] = utils::strdup(id);
   flag_custom[ncustom] = flag;
 
   ncustom++;
@@ -1663,9 +1655,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       if (iregion == -1)
         error->all(FLERR,"Dump_modify region ID does not exist");
       delete [] idregion;
-      int n = strlen(arg[1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[1]);
+      idregion = utils::strdup(arg[1]);
     }
     return 2;
   }
@@ -1686,11 +1676,9 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     if (strcmp(arg[1],"int") == 0) {
       delete [] format_int_user;
-      int n = strlen(arg[2]) + 1;
-      format_int_user = new char[n];
-      strcpy(format_int_user,arg[2]);
+      format_int_user = utils::strdup(arg[2]);
       delete [] format_bigint_user;
-      n = strlen(format_int_user) + 8;
+      int n = strlen(format_int_user) + 8;
       format_bigint_user = new char[n];
       // replace "d" in format_int_user with bigint format specifier
       // use of &str[1] removes leading '%' from BIGINT_FORMAT string
@@ -1706,18 +1694,14 @@ int DumpCustom::modify_param(int narg, char **arg)
 
     } else if (strcmp(arg[1],"float") == 0) {
       delete [] format_float_user;
-      int n = strlen(arg[2]) + 1;
-      format_float_user = new char[n];
-      strcpy(format_float_user,arg[2]);
+      format_float_user = utils::strdup(arg[2]);
 
     } else {
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
       if (format_column_user[i]) delete [] format_column_user[i];
-      int n = strlen(arg[2]) + 1;
-      format_column_user[i] = new char[n];
-      strcpy(format_column_user[i],arg[2]);
+      format_column_user[i] = utils::strdup(arg[2]);
     }
     return 3;
   }
@@ -1730,9 +1714,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     delete [] typenames;
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
-      int n = strlen(arg[itype]) + 1;
-      typenames[itype] = new char[n];
-      strcpy(typenames[itype],arg[itype]);
+      typenames[itype] = utils::strdup(arg[itype]);
     }
     return ntypes+1;
   }
@@ -1998,8 +1980,7 @@ int DumpCustom::modify_param(int narg, char **arg)
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
-      thresh_fixID[nthreshlast] = new char[threshid.size()+1];
-      strcpy(thresh_fixID[nthreshlast],threshid.c_str());
+      thresh_fixID[nthreshlast] = utils::strdup(threshid);
       modify->add_fix(fmt::format("{} {} STORE peratom 1 1",threshid,
                                   group->names[igroup]));
       thresh_fix[nthreshlast] = (FixStore *) modify->fix[modify->nfix-1];

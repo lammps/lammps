@@ -31,7 +31,7 @@ center:
 
 .. math::
 
-   E = 2.0*C \left[ 1 - B(-1)^n\cos\left( n\theta\right) \right]
+   E = \frac{2.0}{n^2} * C \left[ 1 - B(-1)^n\cos\left( n\theta\right) \right]
 
 where :math:`C`, :math:`B` and :math:`n` are coefficients defined for each angle type.
 

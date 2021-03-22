@@ -1251,6 +1251,7 @@ The Journal of Chemical Physics 130, 134706, (2009).
 * :doc:`min_style cac/cg <min_style>`
 * :doc:`min_style cac/fire <min_style>`
 * :doc:`fix cac/nve <fix_cac_nve>`
+* :doc:`fix cac/nve/limit <fix_cac_nve_limit>`
 * :doc:`fix cac/momentum <fix_cac_momentum>`
 * :doc:`fix cac/viscous <fix_cac_viscous>`
 * :doc:`fix cac/setvelocity <fix_cac_setvelocity>`
@@ -1271,8 +1272,8 @@ The Journal of Chemical Physics 130, 134706, (2009).
 * :doc:`dump cac/nodal/virial <dump_cac_nodal_virial>`
 * :doc:`dump cac/kinetic/energy <dump_cac_kinetic>`
 * :doc:`dump cac/xyz <dump_cac_xyz>`
-* :doc:`dump cac/atom <dump_cac_atom>`
-* :doc:`dump cac/atom/flux <dump_cac_atom_flux>`
+* :doc:`dump cac/xyz <dump_cac_atom>`
+* :doc:`dump cac/xyz <dump_cac_atom_flux>`
 
 Example inputs are in the examples/USER/CAC folder.
 

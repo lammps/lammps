@@ -49,6 +49,7 @@ OPT.
    * :doc:`cac/addforce <fix_cac_addforce>`
    * :doc:`cac/momentum <fix_cac_momentum>`
    * :doc:`cac/nve <fix_cac_nve>`
+   * :doc:`cac/nve/limit <fix_cac_nve_limit>`
    * :doc:`cac/oneway <fix_cac_oneway>`
    * :doc:`cac/setvelocity <fix_cac_setvelocity>`
    * :doc:`cac/setforce <fix_cac_setforce>`

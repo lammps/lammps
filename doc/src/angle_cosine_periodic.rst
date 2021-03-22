@@ -45,7 +45,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`n` = 1, 2, 3, 4, 5 or 6 for periodicity
 
 Note that the prefactor :math:`C` is specified as coefficient and not the overall force
-constant :math:`K = \frac{C}{n^2}`.  When :math:`B = 1`, it leads to a minimum for the
+constant :math:`K = \frac{2 C}{n^2}`.  When :math:`B = 1`, it leads to a minimum for the
 linear geometry.  When :math:`B = -1`, it leads to a maximum for the linear geometry.
 
 ----------

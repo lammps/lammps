@@ -32,7 +32,7 @@ center:
 
 .. math::
 
-   E = C \left[ 1 - B(-1)^n\cos\left( n\theta\right) \right]
+   E = 2.0*C \left[ 1 - B(-1)^n\cos\left( n\theta\right) \right]
 
 where :math:`C`, :math:`B` and :math:`n` are coefficients defined for each angle type.
 
@@ -47,10 +47,9 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`B` = 1 or -1
 * :math:`n` = 1, 2, 3, 4, 5 or 6 for periodicity
 
-Note that the prefactor :math:`C` is specified and not the overall force
+Note that the prefactor :math:`C` is specified as coefficient and not the overall force
 constant :math:`K = \frac{C}{n^2}`.  When :math:`B = 1`, it leads to a minimum for the
-linear geometry.  When :math:`B = -1`, it leads to a maximum for the linear
-geometry.
+linear geometry.  When :math:`B = -1`, it leads to a maximum for the linear geometry.
 
 ----------
 

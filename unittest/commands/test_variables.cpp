@@ -37,8 +37,8 @@ const bool have_openmpi = true;
 const bool have_openmpi = false;
 #endif
 
-using LAMMPS_NS::utils::split_words;
 using LAMMPS_NS::MathConst::MY_PI;
+using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
 using ::testing::ExitedWithCode;
@@ -227,13 +227,13 @@ TEST_F(VariableTest, Expressions)
     ASSERT_FALSE(variable->equalstyle(ivar));
     ivar = variable->find("two");
     ASSERT_TRUE(variable->equalstyle(ivar));
-    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),2.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 2.0);
     ivar = variable->find("three");
-    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),3.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 3.0);
     ivar = variable->find("four");
-    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),MY_PI);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), MY_PI);
     ivar = variable->find("five");
-    ASSERT_GE(variable->compute_equal(ivar),20210310);
+    ASSERT_GE(variable->compute_equal(ivar), 20210310);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););
@@ -249,14 +249,17 @@ TEST_F(VariableTest, Functions)
     command("variable one    index     1");
     command("variable two    equal     random(1,2,643532)");
     command("variable three  equal     atan2(v_one,1)");
+    command("variable four   equal     atan2()");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 3);
+    ASSERT_EQ(variable->nvar, 4);
 
     int ivar = variable->find("two");
-    ASSERT_GT(variable->compute_equal(ivar),0.99);
-    ASSERT_LT(variable->compute_equal(ivar),2.01);
+    ASSERT_GT(variable->compute_equal(ivar), 0.99);
+    ASSERT_LT(variable->compute_equal(ivar), 2.01);
     ivar = variable->find("three");
-    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),0.25*MY_PI);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 0.25 * MY_PI);
+    TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
+                 command("print \"${four}\""););
 }
 } // namespace LAMMPS_NS
 

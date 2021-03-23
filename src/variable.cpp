@@ -1234,6 +1234,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
   int i = 0;
   int expect = ARG;
 
+  if (str == nullptr)
+    print_var_error(FLERR,"Invalid syntax in variable formula",ivar);
+
   while (1) {
     onechar = str[i];
 
@@ -4688,9 +4691,11 @@ void Variable::atom_vector(char *word, Tree **tree,
    max allowed # of args = MAXFUNCARG
 ------------------------------------------------------------------------- */
 
-int Variable::parse_args(char *str, char **args)
+int Variable::parse_args(const std::string &str, char **args)
 {
   int   narg = 0;
+  args[0] = nullptr;
+
   Tokenizer values(str,",");
 
   while (values.has_next() && narg < MAXFUNCARG) {

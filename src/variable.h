@@ -122,8 +122,6 @@ class Variable : protected Pointers {
                       Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
-  int is_constant(char *);
-  double constant(char *);
   int parse_args(char *, char **);
   void print_var_error(const std::string &, int, const std::string &,
                        int, int global=1);

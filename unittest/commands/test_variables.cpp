@@ -211,14 +211,17 @@ TEST_F(VariableTest, AtomicSystem)
 
 TEST_F(VariableTest, Expressions)
 {
+    atomic_system();
     ASSERT_EQ(variable->nvar, 0);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1");
     command("variable two    equal     2");
     command("variable three  equal     v_one+v_two");
     command("variable four   equal     PI");
+    command("variable five   equal     version");
+    command("variable six    equal     XXX");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 4);
+    ASSERT_EQ(variable->nvar, 6);
 
     int ivar = variable->find("one");
     ASSERT_FALSE(variable->equalstyle(ivar));
@@ -229,11 +232,18 @@ TEST_F(VariableTest, Expressions)
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),3.0);
     ivar = variable->find("four");
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),MY_PI);
+    ivar = variable->find("five");
+    ASSERT_GE(variable->compute_equal(ivar),20210310);
+
+    TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
+                 command("print \"${six}\""););
 }
 
 TEST_F(VariableTest, Functions)
 {
+    atomic_system();
     file_vars();
+
     ASSERT_EQ(variable->nvar, 0);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1");

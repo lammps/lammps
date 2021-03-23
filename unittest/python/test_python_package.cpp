@@ -34,11 +34,14 @@ using LAMMPS_NS::utils::split_words;
 namespace LAMMPS_NS {
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
+using ::testing::HasSubstr;
 
 class PythonPackageTest : public ::testing::Test {
 protected:
     LAMMPS *lmp;
     Info *info;
+
+    void command(const std::string &line) { lmp->input->one(line.c_str()); }
 
     void SetUp() override
     {
@@ -51,16 +54,16 @@ protected:
         ASSERT_NE(lmp, nullptr);
         info = new Info(lmp);
         if (!verbose) ::testing::internal::CaptureStdout();
-        lmp->input->one("units real");
-        lmp->input->one("dimension 3");
-        lmp->input->one("region box block -4 4 -4 4 -4 4");
-        lmp->input->one("create_box 1 box");
-        lmp->input->one("create_atoms 1 single  0.0  0.0 0.0    units box");
-        lmp->input->one("create_atoms 1 single  1.9 -1.9 1.9999 units box");
-        lmp->input->one("pair_style zero 2.0");
-        lmp->input->one("pair_coeff * *");
-        lmp->input->one("mass * 1.0");
-        lmp->input->one("variable input_dir index " + INPUT_FOLDER);
+        command("units real");
+        command("dimension 3");
+        command("region box block -4 4 -4 4 -4 4");
+        command("create_box 1 box");
+        command("create_atoms 1 single  0.0  0.0 0.0    units box");
+        command("create_atoms 1 single  1.9 -1.9 1.9999 units box");
+        command("pair_style zero 2.0");
+        command("pair_coeff * *");
+        command("mass * 1.0");
+        command("variable input_dir index " + INPUT_FOLDER);
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
@@ -75,49 +78,49 @@ protected:
 
 TEST_F(PythonPackageTest, python_invoke)
 {
-    if (!info->has_style("command", "python")) GTEST_SKIP();
+    if (!info->has_package("PYTHON")) GTEST_SKIP();
     // execute python function from file
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("python printnum file ${input_dir}/func.py");
+    command("python printnum file ${input_dir}/func.py");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ::testing::internal::CaptureStdout();
-    lmp->input->one("python printnum invoke");
+    command("python printnum invoke");
     std::string output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex("python.*2.25.*"));
+    if(verbose) std::cout << output;
+    ASSERT_THAT(output, HasSubstr("2.25\n"));
 
     // execute another python function from same file
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("python printtxt exists");
+    command("python printtxt exists");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ::testing::internal::CaptureStdout();
-    lmp->input->one("python printtxt invoke");
+    command("python printtxt invoke");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex("python.*sometext.*"));
+    ASSERT_THAT(output, HasSubstr("sometext\n"));
 
     // execute python function that uses the LAMMPS python module
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("variable idx equal 2.25");
-    lmp->input->one("python getidxvar input 1 SELF format p exists");
+    command("variable idx equal 2.25");
+    command("python getidxvar input 1 SELF format p exists");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ::testing::internal::CaptureStdout();
-    lmp->input->one("python getidxvar invoke");
+    command("python getidxvar invoke");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex("python.*2.25.*"));
+    ASSERT_THAT(output, HasSubstr("2.25\n"));
 }
 
 TEST_F(PythonPackageTest, python_variable)
 {
-    if (!info->has_style("command", "python")) GTEST_SKIP();
+    if (!info->has_package("PYTHON")) GTEST_SKIP();
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("variable sq python square");
-    lmp->input->one("variable val index 1.5");
-    lmp->input->one("python square input 1 v_val return v_sq format ff file ${input_dir}/func.py");
+    command("variable sq python square");
+    command("variable val index 1.5");
+    command("python square input 1 v_val return v_sq format ff file ${input_dir}/func.py");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ::testing::internal::CaptureStdout();
-    lmp->input->one("print \"${sq}\"");
+    command("print \"${sq}\"");
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     ASSERT_THAT(output, MatchesRegex("print.*2.25.*"));

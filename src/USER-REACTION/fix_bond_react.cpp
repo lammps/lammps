@@ -965,7 +965,7 @@ void FixBondReact::post_integrate()
     // forward comm of partner, so ghosts have it
 
     commflag = 2;
-    comm->forward_comm_fix(this,2);
+    comm->forward_comm_fix(this,1);
 
     // consider for reaction:
     // only if both atoms list each other as winning bond partner
@@ -2566,6 +2566,7 @@ void FixBondReact::unlimit_bond()
   }
 
   // really should only communicate this per-atom property, not entire reneighboring
+  MPI_Allreduce(MPI_IN_PLACE,&unlimitflag,1,MPI_INT,MPI_MAX,world);
   if (unlimitflag) next_reneighbor = update->ntimestep;
 }
 

@@ -1183,10 +1183,8 @@ void DihedralTable::spline_table(Table *tb)
       }
     } // for (int i=0; i<tb->ninput; i++)
 
-    if ((num_disagreements > tb->ninput/2) && (num_disagreements > 2)) {
-      std::string msg("Dihedral table has inconsistent forces and energies. (Try \"NOF\".)\n");
-      error->all(FLERR, msg);
-    }
+    if ((num_disagreements > tb->ninput/2) && (num_disagreements > 2))
+      error->all(FLERR,"Dihedral table has inconsistent forces and energies. (Try \"NOF\".)\n");
 
   } // check for consistency if (! tb->f_unspecified)
 

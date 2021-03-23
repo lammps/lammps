@@ -215,9 +215,10 @@ TEST_F(VariableTest, Expressions)
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1");
     command("variable two    equal     2");
-    command("variable three  equal    v_one+v_two");
+    command("variable three  equal     v_one+v_two");
+    command("variable four   equal     PI");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 3);
+    ASSERT_EQ(variable->nvar, 4);
 
     int ivar = variable->find("one");
     ASSERT_FALSE(variable->equalstyle(ivar));
@@ -226,6 +227,8 @@ TEST_F(VariableTest, Expressions)
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),2.0);
     ivar = variable->find("three");
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),3.0);
+    ivar = variable->find("four");
+    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),MY_PI);
 }
 
 TEST_F(VariableTest, Functions)
@@ -234,12 +237,15 @@ TEST_F(VariableTest, Functions)
     ASSERT_EQ(variable->nvar, 0);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1");
-    command("variable two    equal     PI");
+    command("variable two    equal     random(1,2,643532)");
     command("variable three  equal     atan2(v_one,1)");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(variable->nvar, 3);
 
-    int ivar = variable->find("three");
+    int ivar = variable->find("two");
+    ASSERT_GT(variable->compute_equal(ivar),0.99);
+    ASSERT_LT(variable->compute_equal(ivar),2.01);
+    ivar = variable->find("three");
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),0.25*MY_PI);
 }
 } // namespace LAMMPS_NS

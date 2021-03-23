@@ -4708,41 +4708,18 @@ double Variable::constant(char *word)
 
 int Variable::parse_args(char *str, char **args)
 {
-  char *ptrnext;
   int   narg = 0;
-  char *ptr = str;
+  Tokenizer values(str,",");
 
-  while (ptr && narg < MAXFUNCARG) {
-    ptrnext = find_next_comma(ptr);
-    if (ptrnext) *ptrnext = '\0';
-    args[narg] = utils::strdup(ptr);
+  while (values.has_next() && narg < MAXFUNCARG) {
+    args[narg] = utils::strdup(values.next());
     narg++;
-    ptr = ptrnext;
-    if (ptr) ptr++;
   }
 
-  if (ptr) error->all(FLERR,"Too many args in variable function");
+  if (values.has_next())
+    error->all(FLERR,"Too many args in variable function");
   return narg;
 }
-
-
-/* ----------------------------------------------------------------------
-   find next comma in str
-   skip commas inside one or more nested parenthesis
-   only return ptr to comma at level 0, else nullptr if not found
-------------------------------------------------------------------------- */
-
-char *Variable::find_next_comma(char *str)
-{
-  int level = 0;
-  for (char *p = str; *p; ++p) {
-    if ('(' == *p) level++;
-    else if (')' == *p) level--;
-    else if (',' == *p && !level) return p;
-  }
-  return nullptr;
-}
-
 
 /* ----------------------------------------------------------------------
    helper routine for printing variable name with error message

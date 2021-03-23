@@ -75,8 +75,8 @@ protected:
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         if (!verbose) ::testing::internal::GetCapturedStdout();
-        group = lmp->group;
-        domain = lmp->domain;
+        group    = lmp->group;
+        domain   = lmp->domain;
         variable = lmp->input->variable;
     }
 
@@ -86,6 +86,8 @@ protected:
         delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
         std::cout.flush();
+        unlink("test_variable.file");
+        unlink("test_variable.atomfile");
     }
 
     void command(const std::string &cmd) { lmp->input->one(cmd); }
@@ -122,39 +124,87 @@ protected:
         command("set type 2*4 mass 2.0");
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
+
+    void file_vars()
+    {
+        FILE *fp = fopen("test_variable.file", "w");
+        fputs("# test file for file style variable\n\n\none\n  two  \n\n"
+              "three  # with comment\nfour   ! with non-comment\n"
+              "# comments only\n	five\n#END\n",
+              fp);
+        fclose(fp);
+        fp = fopen("test_variable.atomfile", "w");
+
+        fputs("# test file for atomfile style variable\n\n"
+              "4  # four lines\n4 0.5   #with comment\n"
+              "2 -0.5         \n3 1.5\n1 -1.5\n\n"
+              "2\n10 1.0 # test\n13 1.0\n\n######\n"
+              "4\n1 4.0 # test\n2 3.0\n3 2.0\n4 1.0\n#END\n",
+              fp);
+        fclose(fp);
+    }
 };
 
-TEST_F(VariableTest, NoBox)
+TEST_F(VariableTest, CreateDelete)
 {
+    file_vars();
     ASSERT_EQ(variable->nvar, 0);
     if (!verbose) ::testing::internal::CaptureStdout();
-    command("variable one   index  1");
-    command("variable two   equal  2");
-    command("variable three string three");
-    command("variable four  loop   4");
-    command("variable five  loop   100 pad");
-    command("variable six   world  one");
-    command("variable seven format two \"%5.2f\"");
-    command("variable eight getenv HOME");
-    command("variable dummy index  0");
+    command("variable one    index     1 2 3 4");
+    command("variable two    equal     1");
+    command("variable two    equal     2");
+    command("variable three  string    four");
+    command("variable three  string    three");
+    command("variable four1  loop      4");
+    command("variable four2  loop      2 4");
+    command("variable five1  loop      100 pad");
+    command("variable five2  loop      100 200 pad");
+    command("variable six    world     one");
+    command("variable seven  format    two \"%5.2f\"");
+    command("variable eight  getenv    PWD");
+    command("variable eight  getenv    HOME");
+    command("variable nine   file      test_variable.file");
+    command("variable dummy  index     0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 9);
+    ASSERT_EQ(variable->nvar, 12);
     if (!verbose) ::testing::internal::CaptureStdout();
-    command("variable dummy delete");
+    command("variable dummy  delete");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 8);
-    
+    ASSERT_EQ(variable->nvar, 11);
+
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable"););
+    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy index"););
+    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy delete xxx"););
+    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+                 command("variable two string xxx"););
+    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+                 command("variable two getenv xxx"););
+    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+                 command("variable one equal 2"););
+    TEST_FAILURE(".*ERROR: Cannot use atomfile-style variable unless an atom map exists.*",
+                 command("variable ten    atomfile  test_variable.atomfile"););
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
+                 command("variable nine1  file      test_variable.xxx"););
 }
 
 TEST_F(VariableTest, AtomicSystem)
 {
+    command("atom_modify map array");
     atomic_system();
+    file_vars();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    command("variable id atom id");
+    command("variable  one  index     1 2 3 4");
+    command("variable  id   atom      type");
+    command("variable  id   atom      id");
+    command("variable  ten  atomfile  test_variable.atomfile");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 1);
+    ASSERT_EQ(variable->nvar, 3);
+
+    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+                 command("variable one atom x"););
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
+                 command("variable ten1   atomfile  test_variable.xxx"););
 }
 } // namespace LAMMPS_NS
 

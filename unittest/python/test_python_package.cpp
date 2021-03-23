@@ -77,7 +77,7 @@ protected:
 
 TEST_F(PythonPackageTest, python_invoke)
 {
-    if (!info->has_style("command", "python")) GTEST_SKIP();
+    if (!info->has_package("PYTHON")) GTEST_SKIP();
     // execute python function from file
     if (!verbose) ::testing::internal::CaptureStdout();
     command("python printnum file ${input_dir}/func.py");
@@ -112,7 +112,7 @@ TEST_F(PythonPackageTest, python_invoke)
 
 TEST_F(PythonPackageTest, python_variable)
 {
-    if (!info->has_style("command", "python")) GTEST_SKIP();
+    if (!info->has_package("PYTHON")) GTEST_SKIP();
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable sq python square");
     command("variable val index 1.5");

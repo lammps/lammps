@@ -4497,12 +4497,12 @@ void PairAIREBO::spline_init()
 double PairAIREBO::memory_usage()
 {
   double bytes = 0.0;
-  bytes += maxlocal * sizeof(int);
-  bytes += maxlocal * sizeof(int *);
+  bytes += (double)maxlocal * sizeof(int);
+  bytes += (double)maxlocal * sizeof(int *);
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
-  bytes += 2*maxlocal * sizeof(double);
+  bytes += (double)2*maxlocal * sizeof(double);
   return bytes;
 }

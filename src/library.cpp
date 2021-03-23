@@ -444,27 +444,14 @@ is passed to :cpp:func:`lammps_commands_string` for processing.
 
 void lammps_commands_list(void *handle, int ncmd, const char **cmds)
 {
-  LAMMPS *lmp = (LAMMPS *) handle;
-
-  int n = ncmd+1;
-  for (int i = 0; i < ncmd; i++) n += strlen(cmds[i]);
-
-  char *str = (char *) lmp->memory->smalloc(n,"lib/commands/list:str");
-  str[0] = '\0';
-  n = 0;
+  std::string allcmds;
 
   for (int i = 0; i < ncmd; i++) {
-    strcpy(&str[n],cmds[i]);
-    n += strlen(cmds[i]);
-    if (str[n-1] != '\n') {
-      str[n] = '\n';
-      str[n+1] = '\0';
-      n++;
-    }
+    allcmds.append(cmds[i]);
+    if (allcmds.empty() || (allcmds.back() != '\n')) allcmds.append(1,'\n');
   }
 
-  lammps_commands_string(handle,str);
-  lmp->memory->sfree(str);
+  lammps_commands_string(handle,allcmds.c_str());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -495,11 +482,15 @@ void lammps_commands_string(void *handle, const char *str)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
-  // make copy of str so can strtok() it
+  // copy str and convert from CR-LF (DOS-style) to LF (Unix style) line
+  int n = strlen(str);
+  char *ptr, *copy = new char[n+1];
 
-  int n = strlen(str) + 1;
-  char *copy = new char[n];
-  strcpy(copy,str);
+  for (ptr = copy; *str != '\0'; ++str) {
+    if ((str[0] == '\r') && (str[1] == '\n')) continue;
+    *ptr++ = *str;
+  }
+  *ptr = '\0';
 
   BEGIN_CAPTURE
   {
@@ -507,8 +498,9 @@ void lammps_commands_string(void *handle, const char *str)
       lmp->error->all(FLERR,"Library error: issuing LAMMPS command during run");
     }
 
-    char *ptr = copy;
-    for (int i=0; i < n-1; ++i) {
+    n = strlen(copy);
+    ptr = copy;
+    for (int i=0; i < n; ++i) {
 
       // handle continuation character as last character in line or string
       if ((copy[i] == '&') && (copy[i+1] == '\n'))
@@ -2693,7 +2685,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2726,7 +2718,7 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2756,9 +2748,10 @@ void lammps_gather(void *handle, char *name, int type, int count, void *data)
 
 
     }
+
     // property / atom
-    if ( (vptr == nullptr) && ((strstr(name,"d_") == name)
-                               || (strstr(name,"i_") == name))) {
+
+    if ((vptr == nullptr) && (utils::strmatch(name,"^[di]_"))) {
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
         if (lmp->comm->me == 0)
@@ -2912,7 +2905,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -2946,7 +2939,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -2977,7 +2970,7 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3154,7 +3147,7 @@ void lammps_gather_subset(void *handle, char *name,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3187,7 +3180,7 @@ void lammps_gather_subset(void *handle, char *name,
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3218,7 +3211,7 @@ void lammps_gather_subset(void *handle, char *name,
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3392,7 +3385,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3418,7 +3411,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3449,7 +3442,7 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data)
 
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -3590,7 +3583,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
 
     void *vptr = lmp->atom->extract(name);
 
-    if (vptr==nullptr && strstr(name,"f_") == name) { // fix
+    if (vptr==nullptr && utils::strmatch(name,"^f_")) { // fix
 
       fcid = lmp->modify->find_fix(&name[2]);
       if (fcid < 0) {
@@ -3616,7 +3609,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       else vptr = (void *) lmp->modify->fix[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"c_") == name) { // compute
+    if (vptr==nullptr && utils::strmatch(name,"^c_")) { // compute
 
       fcid = lmp->modify->find_compute(&name[2]);
       if (fcid < 0) {
@@ -3645,7 +3638,7 @@ void lammps_scatter_subset(void *handle, char *name,int type, int count,
       else vptr = (void *) lmp->modify->compute[fcid]->array_atom;
     }
 
-    if (vptr==nullptr && strstr(name,"d_") == name) { // property / atom
+    if (vptr==nullptr && utils::strmatch(name,"^[di]_")) { // property / atom
 
       fcid = lmp->atom->find_custom(&name[2], ltype);
       if (fcid < 0) {
@@ -4127,16 +4120,18 @@ void lammps_get_os_info(char *buffer, int buf_size)
 /* ---------------------------------------------------------------------- */
 
 /** This function is used to query whether LAMMPS was compiled with
- *  a real MPI library or in serial.
+ *  a real MPI library or in serial. For the real MPI library it
+ *  reports the size of the MPI communicator in bytes (4 or 8),
+ *  which allows to check for compatibility with a hosting code.
  *
- * \return 0 when compiled with MPI STUBS, otherwise 1 */
+ * \return 0 when compiled with MPI STUBS, otherwise the MPI_Comm size in bytes */
 
 int lammps_config_has_mpi_support()
 {
 #ifdef MPI_STUBS
   return 0;
 #else
-  return 1;
+  return sizeof(MPI_Comm);
 #endif
 }
 

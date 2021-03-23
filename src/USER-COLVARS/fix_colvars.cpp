@@ -282,6 +282,7 @@ int FixColvars::instances=0;
   tstat   <fix label>       (label of thermostatting fix)
 
  ***************************************************************/
+
 FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
@@ -297,6 +298,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
   nevery = 1;
   extscalar = 1;
   restart_global = 1;
+  energy_global_flag = 1;
 
   me = comm->me;
   root2root = MPI_COMM_NULL;
@@ -360,6 +362,7 @@ FixColvars::FixColvars(LAMMPS *lmp, int narg, char **arg) :
 /*********************************
  * Clean up on deleting the fix. *
  *********************************/
+
 FixColvars::~FixColvars()
 {
   memory->sfree(conf_file);
@@ -386,7 +389,6 @@ FixColvars::~FixColvars()
 int FixColvars::setmask()
 {
   int mask = 0;
-  mask |= THERMO_ENERGY;
   mask |= MIN_POST_FORCE;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
@@ -1000,6 +1002,6 @@ double FixColvars::compute_scalar()
 double FixColvars::memory_usage(void)
 {
   double bytes = (double) (num_coords * (2*sizeof(int)+3*sizeof(double)));
-  bytes += (double) (nmax*size_one) + sizeof(this);
+  bytes += (double)(double) (nmax*size_one) + sizeof(this);
   return bytes;
 }

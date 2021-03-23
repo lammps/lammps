@@ -6,6 +6,10 @@ add_executable(test_mempool test_mempool.cpp)
 target_link_libraries(test_mempool PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
 add_test(MemPool test_mempool)
 
+add_executable(test_argutils test_argutils.cpp)
+target_link_libraries(test_argutils PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
+add_test(ArgUtils test_argutils)
+
 add_executable(test_utils test_utils.cpp)
 target_link_libraries(test_utils PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
 add_test(Utils test_utils)

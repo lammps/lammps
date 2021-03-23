@@ -51,6 +51,8 @@ FixRigidNHSmall::FixRigidNHSmall(LAMMPS *lmp, int narg, char **arg) :
   f_eta_b(nullptr), rfix(nullptr), id_temp(nullptr), id_press(nullptr),
   temperature(nullptr), pressure(nullptr)
 {
+  if (tstat_flag || pstat_flag) ecouple_flag = 1;
+
   // error checks
 
   if ((p_flag[0] == 1 && p_period[0] <= 0.0) ||
@@ -199,8 +201,6 @@ int FixRigidNHSmall::setmask()
 {
   int mask = 0;
   mask = FixRigidSmall::setmask();
-  if (tstat_flag || pstat_flag) mask |= THERMO_ENERGY;
-
   return mask;
 }
 
@@ -591,8 +591,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // remap simulation box by 1/2 step
 

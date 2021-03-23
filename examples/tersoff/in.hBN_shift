@@ -23,9 +23,9 @@ neigh_modify    delay 0
 neigh_modify    check yes
 
 #### Simulation settings ####
-timestep  	0.001
-velocity  	all create 300.0 4928459 loop geom
-fix       	thermostat all nve
+timestep        0.001
+velocity        all create 300.0 4928459 loop geom
+fix             thermostat all nve
 
 ############# Output ###############
 thermo          100
@@ -34,4 +34,4 @@ thermo_style    custom step etotal pe ke temp
 thermo_modify   line one format float %20.16g lost warn
 
 ###### Run molecular dynamics ######
-run 		1000
+run             1000

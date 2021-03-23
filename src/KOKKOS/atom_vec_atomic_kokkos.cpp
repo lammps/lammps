@@ -413,9 +413,9 @@ void AtomVecAtomicKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
-    atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -423,6 +423,8 @@ void AtomVecAtomicKokkos::unpack_border(int n, int first, double *buf)
     h_type(i) = (int) ubuf(buf[m++]).i;
     h_mask(i) = (int) ubuf(buf[m++]).i;
   }
+
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
@@ -438,9 +440,9 @@ void AtomVecAtomicKokkos::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
-    atomKK->modified(Host,X_MASK|V_MASK|TAG_MASK|TYPE_MASK|MASK_MASK);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -451,6 +453,8 @@ void AtomVecAtomicKokkos::unpack_border_vel(int n, int first, double *buf)
     h_v(i,1) = buf[m++];
     h_v(i,2) = buf[m++];
   }
+
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|V_MASK);
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)

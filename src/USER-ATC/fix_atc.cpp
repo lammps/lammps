@@ -479,8 +479,6 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   // we write our own restart file
   restart_global = 0;
 
-
-
   // Set output computation data based on transfer info
   scalar_flag = atc_->scalar_flag();
   vector_flag = atc_->vector_flag();
@@ -489,13 +487,13 @@ FixATC::FixATC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   extscalar = atc_->extscalar();
   extvector = atc_->extvector();
   extlist = atc_->extlist();
+  energy_global_flag = 1;
   thermo_energy = atc_->thermo_energy_flag();
 
   // set pointer for output
   peratom_flag = atc_->peratom_flag();
   size_peratom_cols = atc_->size_peratom_cols();
   peratom_freq = atc_->peratom_freq();
-
 
   // set comm size needed by this fix
   comm_forward = atc_->comm_forward();
@@ -527,7 +525,6 @@ int FixATC::setmask()
   mask |= MIN_PRE_NEIGHBOR;
   mask |= MIN_PRE_FORCE;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_RUN;
   mask |= END_OF_STEP;
   return mask;
@@ -627,7 +624,7 @@ void FixATC::min_pre_exchange()
 
 double FixATC::memory_usage()
 {
-  double bytes = (double) atc_->memory_usage() * sizeof(double);
+  double bytes =  atc_->memory_usage() * sizeof(double);
   return bytes;
 }
 

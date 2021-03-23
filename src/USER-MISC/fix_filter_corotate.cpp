@@ -1810,17 +1810,17 @@ double FixFilterCorotate::memory_usage()
 {
   double bytes = 0;
   //GROW:
-  bytes += 3*sizeof(double) + 5*sizeof(tagint) + 5*sizeof(int);
+  bytes += (double)3*sizeof(double) + 5*sizeof(tagint) + 5*sizeof(int);
   //clist
-  bytes += 13*atom->nlocal*sizeof(int);
-  bytes += 15*16*nlocal*sizeof(double);
+  bytes += (double)13*atom->nlocal*sizeof(int);
+  bytes += (double)15*16*nlocal*sizeof(double);
 
   //fixed:
   int nb = atom->nbondtypes+1;
   int na = atom->nangletypes+1;
   int nt = atom->ntypes+1;
-  bytes += (nb+na+nt)*sizeof(int);
-  bytes += (nt-1+nb+na+15*15+18+10*15)*sizeof(double);
+  bytes += (double)(nb+na+nt)*sizeof(int);
+  bytes += (double)(nt-1+nb+na+15*15+18+10*15)*sizeof(double);
 
   return bytes;
 }

@@ -135,6 +135,6 @@ void FixStoreForce::min_post_force(int vflag)
 
 double FixStoreForce::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }

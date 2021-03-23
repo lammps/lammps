@@ -47,9 +47,6 @@
 
 #include <Kokkos_Core.hpp>
 
-#ifdef KOKKOS_ENABLE_ROCM
-#include <rocm/TestROCm_Category.hpp>
-#endif
 #ifdef KOKKOS_ENABLE_CUDA
 #include <cuda/TestCuda_Category.hpp>
 #endif

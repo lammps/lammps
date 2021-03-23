@@ -2098,15 +2098,15 @@ void PairComb::Short_neigh()
 
 double PairComb::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += nmax * sizeof(int *);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int *);
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH*nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)MAXNEIGH*nmax * sizeof(double);
   return bytes;
 }

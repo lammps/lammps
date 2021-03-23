@@ -20,6 +20,7 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
+#include "tokenizer.h"
 
 #include <cstring>
 
@@ -30,7 +31,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
+MLIAPModel::MLIAPModel(LAMMPS *lmp, char *) : Pointers(lmp)
 {
   nparams = 0;
   nelements = 0;
@@ -43,7 +44,6 @@ MLIAPModel::MLIAPModel(LAMMPS* lmp, char* coefffilename) : Pointers(lmp)
 MLIAPModel::~MLIAPModel()
 {
 }
-
 
 /* ----------------------------------------------------------------------
    placeholder
@@ -74,7 +74,7 @@ void MLIAPModel::set_ndescriptors(int ndescriptors_in)
 /* ---------------------------------------------------------------------- */
 
 
-MLIAPModelSimple::MLIAPModelSimple(LAMMPS* lmp, char* coefffilename) : MLIAPModel(lmp, coefffilename)
+MLIAPModelSimple::MLIAPModelSimple(LAMMPS *lmp, char *coefffilename) : MLIAPModel(lmp, coefffilename)
 {
   coeffelem = nullptr;
   if (coefffilename) read_coeffs(coefffilename);
@@ -87,6 +87,7 @@ MLIAPModelSimple::~MLIAPModelSimple()
   memory->destroy(coeffelem);
 }
 
+/* ---------------------------------------------------------------------- */
 
 void MLIAPModelSimple::read_coeffs(char *coefffilename)
 {
@@ -130,14 +131,14 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
   // words = ptrs to all words in line
   // strip single and double quotes from words
 
-  char* words[MAXWORD];
-  int iword = 0;
-  words[iword] = strtok(line,"' \t\n\r\f");
-  iword = 1;
-  words[iword] = strtok(nullptr,"' \t\n\r\f");
-
-  nelements = atoi(words[0]);
-  nparams = atoi(words[1]);
+  try {
+    ValueTokenizer coeffs(line);
+    nelements = coeffs.next_int();
+    nparams = coeffs.next_int();
+  } catch (TokenizerException &e) {
+    error->all(FLERR,fmt::format("Incorrect format in MLIAPModel coefficient "
+                                 "file: {}",e.what()));
+  }
 
   // set up coeff lists
 
@@ -157,19 +158,19 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
 
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof)
-        error->all(FLERR,"Incorrect format in  coefficient file");
+        error->all(FLERR,"Incorrect format in MLIAPModel coefficient file");
       MPI_Bcast(&n,1,MPI_INT,0,world);
       MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-      nwords = utils::trim_and_count_words(line);
-      if (nwords != 1)
-        error->all(FLERR,"Incorrect format in  coefficient file");
-
-      iword = 0;
-      words[iword] = strtok(line,"' \t\n\r\f");
-
-      coeffelem[ielem][icoeff] = atof(words[0]);
-
+      try {
+        ValueTokenizer coeffs(utils::trim_comment(line));
+        if (coeffs.count() != 1)
+          throw TokenizerException("Wrong number of items","");
+        coeffelem[ielem][icoeff] = coeffs.next_double();
+      } catch (TokenizerException &e) {
+        error->all(FLERR,fmt::format("Incorrect format in MLIAPModel "
+                                     "coefficient file: {}",e.what()));
+      }
     }
   }
 
@@ -184,7 +185,7 @@ double MLIAPModelSimple::memory_usage()
 {
   double bytes = 0;
 
-  bytes += nelements*nparams*sizeof(double);  // coeffelem
+  bytes += (double)nelements*nparams*sizeof(double);  // coeffelem
   return bytes;
 }
 

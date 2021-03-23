@@ -47,6 +47,7 @@ ImproperFourier::~ImproperFourier()
     memory->destroy(C0);
     memory->destroy(C1);
     memory->destroy(C2);
+    memory->destroy(all);
   }
 }
 

@@ -54,27 +54,27 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int clcs_gpu_init(const int ntypes, double **scale,
-                const int nlocal, const int nall, const int max_nbors,
-                const int maxspecial, const double cell_size, int &gpu_mode,
-                FILE *screen, double host_cut_coulsq, double *host_special_coul,
-                const double qqrd2e, const double g_ewald);
+int clcs_gpu_init(const int ntypes, double **scale, const int nlocal,
+                  const int nall, const int max_nbors, const int maxspecial,
+                  const double cell_size, int &gpu_mode, FILE *screen,
+                  double host_cut_coulsq, double *host_special_coul,
+                  const double qqrd2e, const double g_ewald);
 void clcs_gpu_reinit(const int ntypes, double **scale);
 void clcs_gpu_clear();
 int ** clcs_gpu_compute_n(const int ago, const int inum,
-                        const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, tagint *tag,
-                        int **nspecial, tagint **special, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom,
-                        int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *host_q,
-                        double *boxlo, double *prd);
+                          const int nall, double **host_x, int *host_type,
+                          double *sublo, double *subhi, tagint *tag,
+                          int **nspecial, tagint **special, const bool eflag,
+                          const bool vflag, const bool eatom, const bool vatom,
+                          int &host_start, int **ilist, int **jnum,
+                          const double cpu_time, bool &success, double *host_q,
+                          double *boxlo, double *prd);
 void clcs_gpu_compute(const int ago, const int inum, const int nall,
-                    double **host_x, int *host_type, int *ilist, int *numj,
-                    int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start,
-                    const double cpu_time, bool &success, double *host_q,
-                    const int nlocal, double *boxlo, double *prd);
+                      double **host_x, int *host_type, int *ilist, int *numj,
+                      int **firstneigh, const bool eflag, const bool vflag,
+                      const bool eatom, const bool vatom, int &host_start,
+                      const double cpu_time, bool &success, double *host_q,
+                      const int nlocal, double *boxlo, double *prd);
 double clcs_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
@@ -184,10 +184,11 @@ void PairCoulLongCSGPU::init_style()
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = clcs_gpu_init(atom->ntypes+1, scale,
-                            atom->nlocal, atom->nlocal+atom->nghost, 300,
+                            atom->nlocal, atom->nlocal+atom->nghost, mnf,
                             maxspecial, cell_size, gpu_mode, screen, cut_coulsq,
                             force->special_coul, force->qqrd2e, g_ewald);
 

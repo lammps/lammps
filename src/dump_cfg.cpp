@@ -17,11 +17,14 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_cfg.h"
-#include <cstring>
+
+#include "arg_info.h"
 #include "atom.h"
 #include "domain.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -67,21 +70,14 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
 
   int i = 0;
   for (int iarg = 5; iarg < nfield; iarg++, i++) {
-    if ((strncmp(earg[iarg],"c_",2) == 0 ||
-         strncmp(earg[iarg],"f_",2) == 0 ||
-         strncmp(earg[iarg],"v_",2) == 0) && strchr(earg[iarg],'[')) {
-      char *ptr = strchr(earg[iarg],'[');
-      char *ptr2 = strchr(ptr,']');
-      auxname[i] = new char[strlen(earg[iarg])];
-      *ptr = '\0';
-      *ptr2 = '\0';
-      strcpy(auxname[i],earg[iarg]);
-      strcat(auxname[i],"_");
-      strcat(auxname[i],ptr+1);
+    ArgInfo argi(earg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
+                 |ArgInfo::DNAME|ArgInfo::INAME);
 
+    if (argi.get_dim() == 1) {
+      std::string newarg = fmt::format("{}_{}_{}", earg[iarg][0], argi.get_name(), argi.get_index1());
+      auxname[i] = utils::strdup(newarg);
     } else {
-      auxname[i] = new char[strlen(earg[iarg]) + 1];
-      strcpy(auxname[i],earg[iarg]);
+      auxname[i] = utils::strdup(earg[iarg]);
     }
   }
 }

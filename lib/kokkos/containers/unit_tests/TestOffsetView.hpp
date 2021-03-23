@@ -95,10 +95,6 @@ void test_offsetview_construction() {
   ASSERT_EQ(ov.extent(1), 5);
 
 #if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
-  const int ovmin0 = ov.begin(0);
-  const int ovend0 = ov.end(0);
-  const int ovmin1 = ov.begin(1);
-  const int ovend1 = ov.end(1);
   {
     Kokkos::Experimental::OffsetView<Scalar*, Device> offsetV1("OneDOffsetView",
                                                                range0);
@@ -133,6 +129,13 @@ void test_offsetview_construction() {
       }
     }
   }
+
+  // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
+  const int ovmin0 = ov.begin(0);
+  const int ovend0 = ov.end(0);
+  const int ovmin1 = ov.begin(1);
+  const int ovend1 = ov.end(1);
 
   using range_type =
       Kokkos::MDRangePolicy<Device, Kokkos::Rank<2>, Kokkos::IndexType<int> >;
@@ -176,6 +179,7 @@ void test_offsetview_construction() {
 
   ASSERT_EQ(OVResult, answer) << "Bad data found in OffsetView";
 #endif
+#endif
 
   {
     offset_view_type ovCopy(ov);
@@ -211,6 +215,8 @@ void test_offsetview_construction() {
                                   point3_type{{extent0, extent1, extent2}});
 
 #if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
+    // FIXME_SYCL requires MDRange policy
+#ifdef KOKKOS_ENABLE_SYCL
     int view3DSum = 0;
     Kokkos::parallel_reduce(
         rangePolicy3DZero,
@@ -233,6 +239,7 @@ void test_offsetview_construction() {
 
     ASSERT_EQ(view3DSum, offsetView3DSum)
         << "construction of OffsetView from View and begins array broken.";
+#endif
 #endif
   }
   view_type viewFromOV = ov.view();
@@ -259,6 +266,8 @@ void test_offsetview_construction() {
     Kokkos::deep_copy(aView, ov);
 
 #if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
+    // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
     int sum = 0;
     Kokkos::parallel_reduce(
         rangePolicy2D,
@@ -269,6 +278,7 @@ void test_offsetview_construction() {
 
     ASSERT_EQ(sum, 0) << "deep_copy(view, offsetView) broken.";
 #endif
+#endif
   }
 
   {  // test view to  offsetview deep copy
@@ -278,6 +288,8 @@ void test_offsetview_construction() {
     Kokkos::deep_copy(ov, aView);
 
 #if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
+    // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
     int sum = 0;
     Kokkos::parallel_reduce(
         rangePolicy2D,
@@ -287,6 +299,7 @@ void test_offsetview_construction() {
         sum);
 
     ASSERT_EQ(sum, 0) << "deep_copy(offsetView, view) broken.";
+#endif
 #endif
   }
 }
@@ -458,6 +471,8 @@ void test_offsetview_subview() {
       ASSERT_EQ(offsetSubview.end(1), 9);
 
 #if defined(KOKKOS_ENABLE_CUDA_LAMBDA) || !defined(KOKKOS_ENABLE_CUDA)
+      // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
       using range_type = Kokkos::MDRangePolicy<Device, Kokkos::Rank<2>,
                                                Kokkos::IndexType<int> >;
       using point_type = typename range_type::point_type;
@@ -483,6 +498,7 @@ void test_offsetview_subview() {
           sum);
 
       ASSERT_EQ(sum, 6 * (e0 - b0) * (e1 - b1));
+#endif
 #endif
     }
 
@@ -685,9 +701,12 @@ void test_offsetview_offsets_rank3() {
 }
 #endif
 
+// FIXME_SYCL needs MDRangePolicy
+#ifndef KOKKOS_ENABLE_SYCL
 TEST(TEST_CATEGORY, offsetview_construction) {
   test_offsetview_construction<int, TEST_EXECSPACE>();
 }
+#endif
 
 TEST(TEST_CATEGORY, offsetview_unmanaged_construction) {
   test_offsetview_unmanaged_construction<int, TEST_EXECSPACE>();

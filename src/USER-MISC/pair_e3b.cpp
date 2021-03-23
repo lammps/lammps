@@ -97,13 +97,12 @@ void PairE3B::compute(int eflag, int vflag)
   if (natoms != atom->natoms)
     error->all(FLERR,"pair E3B requires a fixed number of atoms");
 
+  ev_init(eflag,vflag);
   //clear sumExp array
   memset(sumExp,0.0,nbytes);
 
   evdwl = 0.0;
   pvector[0]=pvector[1]=pvector[2]=pvector[3]=0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;

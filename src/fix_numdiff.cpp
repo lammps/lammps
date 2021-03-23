@@ -292,7 +292,7 @@ double FixNumDiff::update_energy()
 
   if (pair_compute_flag) force->pair->compute(eflag,0);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,0);
     if (force->angle) force->angle->compute(eflag,0);
     if (force->dihedral) force->dihedral->compute(eflag,0);
@@ -339,6 +339,6 @@ void FixNumDiff::reallocate()
 double FixNumDiff::memory_usage()
 {
   double bytes = 0.0;
-  bytes += 3 * maxatom*3 * sizeof(double);
+  bytes += (double)3 * maxatom*3 * sizeof(double);
   return bytes;
 }

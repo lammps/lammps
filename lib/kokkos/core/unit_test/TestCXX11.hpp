@@ -149,9 +149,10 @@ double AddTestLambda() {
 
     Kokkos::parallel_for(
         policy, KOKKOS_LAMBDA(const team_member& dev) {
-          const int begin = dev.league_rank() * 4;
-          const int end   = begin + 4;
-          for (int i = begin + dev.team_rank(); i < end; i += dev.team_size()) {
+          const unsigned int begin = dev.league_rank() * 4;
+          const unsigned int end   = begin + 4;
+          for (unsigned int i = begin + dev.team_rank(); i < end;
+               i += dev.team_size()) {
             b(i, 0) = a(i, 1) + a(i, 2);
             b(i, 1) = a(i, 0) - a(i, 3);
             b(i, 2) = a(i, 4) + a(i, 0);
@@ -288,9 +289,10 @@ double ReduceTestLambda() {
     Kokkos::parallel_reduce(
         policy_type(25, Kokkos::AUTO),
         KOKKOS_LAMBDA(const team_member& dev, double& sum) {
-          const int begin = dev.league_rank() * 4;
-          const int end   = begin + 4;
-          for (int i = begin + dev.team_rank(); i < end; i += dev.team_size()) {
+          const unsigned int begin = dev.league_rank() * 4;
+          const unsigned int end   = begin + 4;
+          for (unsigned int i = begin + dev.team_rank(); i < end;
+               i += dev.team_size()) {
             sum += a(i, 1) + a(i, 2);
             sum += a(i, 0) - a(i, 3);
             sum += a(i, 4) + a(i, 0);

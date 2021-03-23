@@ -23,15 +23,6 @@ EXE = 03_vectorization.host
 KOKKOS_DEVICES = "OpenMP"
 KOKKOS_ARCH = "SNB"
 endif
-ifneq (,$(findstring ROCm,$(KOKKOS_DEVICES)))
-CXX = /opt/rocm/hcc/bin/clang++
-CXXFLAGS = -O3
-LINK = ${CXX}
-LDFLAGS =
-EXE = 03_vectorization.rocm
-KOKKOS_DEVICES = "ROCm"
-KOKKOS_ARCH = "Fiji"
-endif
 
 
 DEPFLAGS = -M
@@ -50,7 +41,7 @@ $(EXE): $(OBJ) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ) $(KOKKOS_LIBS) $(LIB) -o $(EXE)
 
 clean: kokkos-clean 
-	rm -f *.o *.cuda *.host *.rocm
+	rm -f *.o *.cuda *.host
 
 # Compilation rules
 

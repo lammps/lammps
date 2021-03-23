@@ -12,29 +12,29 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Contributing author: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
 #include "compute_fep.h"
-#include <cstring>
-#include <cmath>
 
-#include "comm.h"
-#include "update.h"
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "fix.h"
 #include "force.h"
+#include "input.h"
+#include "kspace.h"
+#include "memory.h"
+#include "modify.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "kspace.h"
-#include "input.h"
-#include "fix.h"
-#include "modify.h"
-#include "variable.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -89,20 +89,14 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
       perturb[npert].which = PAIR;
-      int n = strlen(arg[iarg+1]) + 1;
-      perturb[npert].pstyle = new char[n];
-      strcpy(perturb[npert].pstyle,arg[iarg+1]);
-      n = strlen(arg[iarg+2]) + 1;
-      perturb[npert].pparam = new char[n];
-      strcpy(perturb[npert].pparam,arg[iarg+2]);
+      perturb[npert].pstyle = utils::strdup(arg[iarg+1]);
+      perturb[npert].pparam = utils::strdup(arg[iarg+2]);
       utils::bounds(FLERR,arg[iarg+3],1,atom->ntypes,
                     perturb[npert].ilo,perturb[npert].ihi,error);
       utils::bounds(FLERR,arg[iarg+4],1,atom->ntypes,
                     perturb[npert].jlo,perturb[npert].jhi,error);
-      if (strstr(arg[iarg+5],"v_") == arg[iarg+5]) {
-        n = strlen(&arg[iarg+5][2]) + 1;
-        perturb[npert].var = new char[n];
-        strcpy(perturb[npert].var,&arg[iarg+5][2]);
+      if (utils::strmatch(arg[iarg+5],"^v_")) {
+        perturb[npert].var = utils::strdup(arg[iarg+5]+2);
       } else error->all(FLERR,"Illegal variable in compute fep");
       npert++;
       iarg += 6;
@@ -114,10 +108,8 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) :
       } else error->all(FLERR,"Illegal atom argument in compute fep");
       utils::bounds(FLERR,arg[iarg+2],1,atom->ntypes,
                     perturb[npert].ilo,perturb[npert].ihi,error);
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        perturb[npert].var = new char[n];
-        strcpy(perturb[npert].var,&arg[iarg+3][2]);
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
+        perturb[npert].var = utils::strdup(arg[iarg+3]+2);
       } else error->all(FLERR,"Illegal variable in compute fep");
       npert++;
       iarg += 4;
@@ -264,10 +256,11 @@ void ComputeFEP::init()
       for (int m = 0; m < npert; m++) {
         Perturb *pert = &perturb[m];
         if (pert->which == PAIR)
-          fprintf(screen, "  %s %s %d-%d %d-%d\n", pert->pstyle, pert->pparam,
+          fprintf(screen, "  pair %s %s %d-%d %d-%d\n", pert->pstyle,
+                  pert->pparam,
                   pert->ilo, pert->ihi, pert->jlo, pert->jhi);
         else if (pert->which == ATOM)
-          fprintf(screen, "  %d-%d charge\n", pert->ilo, pert->ihi);
+          fprintf(screen, "  atom charge %d-%d\n", pert->ilo, pert->ihi);
       }
     }
     if (logfile) {
@@ -277,10 +270,11 @@ void ComputeFEP::init()
       for (int m = 0; m < npert; m++) {
         Perturb *pert = &perturb[m];
         if (pert->which == PAIR)
-          fprintf(logfile, "  %s %s %d-%d %d-%d\n", pert->pstyle, pert->pparam,
+          fprintf(logfile, "  pair %s %s %d-%d %d-%d\n", pert->pstyle,
+                  pert->pparam,
                   pert->ilo, pert->ihi, pert->jlo, pert->jhi);
         else if (pert->which == ATOM)
-          fprintf(logfile, "  %d-%d charge\n", pert->ilo, pert->ihi);
+          fprintf(logfile, "  atom charge %d-%d\n", pert->ilo, pert->ihi);
       }
     }
   }

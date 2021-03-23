@@ -17,8 +17,6 @@
 
 #if defined(LMP_HAS_NETCDF)
 
-#include <unistd.h>
-
 #include <cstring>
 #include <netcdf.h>
 #include "dump_netcdf.h"
@@ -286,9 +284,12 @@ void DumpNetCDF::openfile()
   }
 
   if (filewriter) {
-    if (append_flag && !multifile && access(filecurrent, F_OK) != -1) {
+    if (append_flag && !multifile) {
       // Fixme! Perform checks if dimensions and variables conform with
       // data structure standard.
+      if (not utils::file_is_readable(filecurrent))
+        error->all(FLERR, fmt::format("cannot append to non-existent file {}",
+                                      filecurrent));
 
       if (singlefile_opened) return;
       singlefile_opened = 1;

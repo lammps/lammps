@@ -206,6 +206,23 @@ struct DefaultContribution<Kokkos::Experimental::HIP,
 };
 #endif
 
+#ifdef KOKKOS_ENABLE_SYCL
+template <>
+struct DefaultDuplication<Kokkos::Experimental::SYCL> {
+  using type = Kokkos::Experimental::ScatterNonDuplicated;
+};
+template <>
+struct DefaultContribution<Kokkos::Experimental::SYCL,
+                           Kokkos::Experimental::ScatterNonDuplicated> {
+  using type = Kokkos::Experimental::ScatterAtomic;
+};
+template <>
+struct DefaultContribution<Kokkos::Experimental::SYCL,
+                           Kokkos::Experimental::ScatterDuplicated> {
+  using type = Kokkos::Experimental::ScatterAtomic;
+};
+#endif
+
 // FIXME All these scatter values need overhaul:
 //   - like should they be copyable at all?
 //   - what is the internal handle type
@@ -636,19 +653,10 @@ struct ReduceDuplicatesBase {
                        size_t stride_in, size_t start_in, size_t n_in,
                        std::string const& name)
       : src(src_in), dst(dest_in), stride(stride_in), start(start_in), n(n_in) {
-    uint64_t kpID = 0;
-    if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::beginParallelFor(std::string("reduce_") + name, 0,
-                                          &kpID);
-    }
-    using policy_type  = RangePolicy<ExecSpace, size_t>;
-    using closure_type = Kokkos::Impl::ParallelFor<Derived, policy_type>;
-    const closure_type closure(*(static_cast<Derived*>(this)),
-                               policy_type(0, stride));
-    closure.execute();
-    if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::endParallelFor(kpID);
-    }
+    parallel_for(
+        std::string("Kokkos::ScatterView::ReduceDuplicates [") + name + "]",
+        RangePolicy<ExecSpace, size_t>(0, stride),
+        static_cast<Derived const&>(*this));
   }
 };
 
@@ -682,19 +690,10 @@ struct ResetDuplicatesBase {
   ResetDuplicatesBase(ValueType* data_in, size_t size_in,
                       std::string const& name)
       : data(data_in) {
-    uint64_t kpID = 0;
-    if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::beginParallelFor(std::string("reduce_") + name, 0,
-                                          &kpID);
-    }
-    using policy_type  = RangePolicy<ExecSpace, size_t>;
-    using closure_type = Kokkos::Impl::ParallelFor<Derived, policy_type>;
-    const closure_type closure(*(static_cast<Derived*>(this)),
-                               policy_type(0, size_in));
-    closure.execute();
-    if (Kokkos::Profiling::profileLibraryLoaded()) {
-      Kokkos::Profiling::endParallelFor(kpID);
-    }
+    parallel_for(
+        std::string("Kokkos::ScatterView::ResetDuplicates [") + name + "]",
+        RangePolicy<ExecSpace, size_t>(0, size_in),
+        static_cast<Derived const&>(*this));
   }
 };
 
@@ -931,8 +930,8 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
   ScatterView(View<RT, RP...> const& original_view)
       : unique_token(),
         internal_view(
-            Kokkos::ViewAllocateWithoutInitializing(std::string("duplicated_") +
-                                                    original_view.label()),
+            view_alloc(WithoutInitializing,
+                       std::string("duplicated_") + original_view.label()),
             unique_token.size(),
             original_view.rank_dynamic > 0 ? original_view.extent(0)
                                            : KOKKOS_IMPL_CTOR_DEFAULT_ARG,
@@ -955,7 +954,7 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
 
   template <typename... Dims>
   ScatterView(std::string const& name, Dims... dims)
-      : internal_view(Kokkos::ViewAllocateWithoutInitializing(name),
+      : internal_view(view_alloc(WithoutInitializing, name),
                       unique_token.size(), dims...) {
     reset();
   }
@@ -1094,8 +1093,8 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
                        KOKKOS_IMPL_CTOR_DEFAULT_ARG};
     arg_N[internal_view_type::rank - 1] = unique_token.size();
     internal_view                       = internal_view_type(
-        Kokkos::ViewAllocateWithoutInitializing(std::string("duplicated_") +
-                                                original_view.label()),
+        view_alloc(WithoutInitializing,
+                   std::string("duplicated_") + original_view.label()),
         arg_N[0], arg_N[1], arg_N[2], arg_N[3], arg_N[4], arg_N[5], arg_N[6],
         arg_N[7]);
     reset();
@@ -1121,9 +1120,9 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
                        KOKKOS_IMPL_CTOR_DEFAULT_ARG};
     Kokkos::Impl::Experimental::args_to_array(arg_N, 0, dims...);
     arg_N[internal_view_type::rank - 1] = unique_token.size();
-    internal_view                       = internal_view_type(
-        Kokkos::ViewAllocateWithoutInitializing(name), arg_N[0], arg_N[1],
-        arg_N[2], arg_N[3], arg_N[4], arg_N[5], arg_N[6], arg_N[7]);
+    internal_view = internal_view_type(view_alloc(WithoutInitializing, name),
+                                       arg_N[0], arg_N[1], arg_N[2], arg_N[3],
+                                       arg_N[4], arg_N[5], arg_N[6], arg_N[7]);
     reset();
   }
 

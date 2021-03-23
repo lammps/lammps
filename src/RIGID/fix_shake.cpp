@@ -33,8 +33,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -61,7 +59,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
@@ -571,8 +569,7 @@ void FixShake::post_force(int vflag)
 
   // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // loop over clusters to add constraint forces
 
@@ -618,7 +615,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   //   and if pressure is requested
   // virial accumulation happens via evflag at last iteration of each level
 
-  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_setup(vflag);
+  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_init(vflag);
   if (iloop == loop_respa[ilevel]-1) evflag = 1;
   else evflag = 0;
 
@@ -2678,11 +2675,11 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 double FixShake::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax*4 * sizeof(int);
-  bytes += nmax*3 * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax*4 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
   return bytes;
 }
 

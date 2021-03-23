@@ -309,7 +309,6 @@ double FixEHEX::compute_scalar()
   return scale;
 }
 
-
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
@@ -317,7 +316,7 @@ double FixEHEX::compute_scalar()
 double FixEHEX::memory_usage()
 {
   double bytes = 0.0;
-  bytes += atom->nmax * sizeof(double);
+  bytes += (double)atom->nmax * sizeof(double);
   return bytes;
 }
 

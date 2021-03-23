@@ -83,7 +83,7 @@ int FixReaxC::setmask()
 double FixReaxC::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * 2 * sizeof(int);
+  double bytes = (double)nmax * 2 * sizeof(int);
   return bytes;
 }
 

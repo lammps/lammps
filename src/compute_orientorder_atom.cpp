@@ -258,7 +258,7 @@ void ComputeOrientOrderAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
-  memset(&qnarray[0][0],0,nmax*ncol*sizeof(double));
+  memset(&qnarray[0][0],0,sizeof(double)*nmax*ncol);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -331,9 +331,9 @@ void ComputeOrientOrderAtom::compute_peratom()
 
 double ComputeOrientOrderAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
-  bytes += (qmax*(2*qmax+1)+maxneigh*4) * sizeof(double);
-  bytes += (nqlist+maxneigh) * sizeof(int);
+  double bytes = (double)ncol*nmax * sizeof(double);
+  bytes += (double)(qmax*(2*qmax+1)+maxneigh*4) * sizeof(double);
+  bytes += (double)(nqlist+maxneigh) * sizeof(int);
   return bytes;
 }
 

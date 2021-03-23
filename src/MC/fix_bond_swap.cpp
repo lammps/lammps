@@ -80,7 +80,7 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/swap with non-molecular systems");
 
   // create a new compute temp style
@@ -727,6 +727,6 @@ double FixBondSwap::compute_vector(int n)
 
 double FixBondSwap::memory_usage()
 {
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   return bytes;
 }

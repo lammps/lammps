@@ -26,7 +26,14 @@ find_package(Git)
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "default install path" FORCE )
+  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Default install path" FORCE)
+endif()
+
+# If enabled, no need to use LD_LIBRARY_PATH / DYLD_LIBRARY_PATH when installed
+option(LAMMPS_INSTALL_RPATH "Set runtime path for shared libraries linked to LAMMPS binaries" OFF)
+if (LAMMPS_INSTALL_RPATH)
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 endif()
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
@@ -107,13 +114,15 @@ option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
   GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MLIAP MOLECULE PERI POEMS
   QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
-  USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK USER-COLVARS
-  USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD USER-LB
-  USER-MANIFOLD USER-MEAMC USER-MESONT USER-MGPT USER-MISC USER-MOFFF USER-MOLFILE
-  USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB USER-REACTION
-  USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH USER-TALLY
-  USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-ADIOS)
-set(SUFFIX_PACKAGES CORESHELL USER-OMP KOKKOS OPT USER-INTEL GPU)
+  USER-ADIOS USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK
+  USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD
+  USER-LB USER-MANIFOLD USER-MEAMC USER-MESONT USER-MGPT USER-MISC USER-MOFFF
+  USER-MOLFILE USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB
+  USER-REACTION USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH
+  USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF)
+
+set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT USER-INTEL USER-OMP)
+
 foreach(PKG ${STANDARD_PACKAGES} ${SUFFIX_PACKAGES})
   option(PKG_${PKG} "Build ${PKG} Package" OFF)
 endforeach()
@@ -154,8 +163,7 @@ if(BUILD_MPI)
     endif()
   endif()
 else()
-  enable_language(C)
-  file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
+  file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.cpp)
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   set_target_properties(mpi_stubs PROPERTIES OUTPUT_NAME lammps_mpi_stubs${LAMMPS_MACHINE})
   target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
@@ -650,7 +658,7 @@ install(
 if(BUILD_SHARED_LIBS)
   if(CMAKE_VERSION VERSION_LESS 3.12)
     # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
-    set(Python_ADDITIONAL_VERSIONS 3.8 3.7 3.6 3.5)
+    set(Python_ADDITIONAL_VERSIONS 3.9 3.8 3.7 3.6 3.5)
     find_package(PythonInterp) # Deprecated since version 3.12
     if(PYTHONINTERP_FOUND)
         set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
@@ -660,10 +668,10 @@ if(BUILD_SHARED_LIBS)
   endif()
   if (Python_EXECUTABLE)
     add_custom_target(
-      install-python
-      ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
+      install-python ${CMAKE_COMMAND} -E remove_directory build
+      COMMAND ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
       -p ${LAMMPS_PYTHON_DIR}/lammps
-      -l ${CMAKE_BINARY_DIR}/liblammps${CMAKE_SHARED_LIBRARY_SUFFIX}
+      -l ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX}
       WORKING_DIRECTORY  ${LAMMPS_PYTHON_DIR}
       COMMENT "Installing LAMMPS Python module")
   else()
@@ -776,9 +784,7 @@ if(PKG_GPU)
   message(STATUS "<<< GPU package settings >>>
 -- GPU API:          ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
-    message(STATUS "GPU architecture: ${GPU_ARCH}")
-  elseif(GPU_API STREQUAL "OPENCL")
-    message(STATUS "OpenCL tuning:    ${OCL_TUNE}")
+    message(STATUS "GPU default architecture: ${GPU_ARCH}")
   elseif(GPU_API STREQUAL "HIP")
     message(STATUS "HIP platform:     ${HIP_PLATFORM}")
     message(STATUS "HIP architecture: ${HIP_ARCH}")

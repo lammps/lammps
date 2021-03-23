@@ -32,6 +32,7 @@ kate                   add-ons to Kate editor for editing LAMMPS input scripts
 lammps-shell           LAMMPS executable enhanced for interactive use
 lmp2arc                convert LAMMPS output to Accelrys Insight format
 lmp2cfg                convert LAMMPS output to CFG files for AtomEye viz
+magic                  patterns to detect LAMMPS files with the file(1) command
 matlab                 MatLab scripts for post-processing LAMMPS output
 mesont                 Tools for use with the USER-MESONT package
 micelle2d              create a data file of small lipid chains in solvent

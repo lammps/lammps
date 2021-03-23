@@ -106,6 +106,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   label_active = 0;
   labelstr = nullptr;
   jump_skip = 0;
+  utf8_warn = true;
 
   if (me == 0) {
     nfile = 1;
@@ -419,6 +420,16 @@ void Input::parse()
       else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
     }
     ptr++;
+  }
+
+  if (utils::has_utf8(copy)) {
+    std::string buf = utils::utf8_subst(copy);
+    strcpy(copy,buf.c_str());
+    if (utf8_warn && (comm->me == 0))
+      error->warning(FLERR,"Detected non-ASCII characters in input. "
+                     "Will try to continue by replacing with ASCII "
+                     "equivalents where known.");
+    utf8_warn = false;
   }
 
   // perform $ variable substitution (print changes)
@@ -1002,9 +1013,7 @@ void Input::jump()
   if (narg == 2) {
     label_active = 1;
     if (labelstr) delete [] labelstr;
-    int n = strlen(arg[1]) + 1;
-    labelstr = new char[n];
-    strcpy(labelstr,arg[1]);
+    labelstr = utils::strdup(arg[1]);
   }
 }
 
@@ -1065,22 +1074,20 @@ void Input::partition()
   int ilo,ihi;
   utils::bounds(FLERR,arg[1],1,universe->nworlds,ilo,ihi,error);
 
-  // copy original line to copy, since will use strtok() on it
-  // ptr = start of 4th word
+  // new command starts at the 3rd argument,
+  // which must not be another partition command
 
-  strcpy(copy,line);
-  char *ptr = strtok(copy," \t\n\r\f");
-  ptr = strtok(nullptr," \t\n\r\f");
-  ptr = strtok(nullptr," \t\n\r\f");
-  ptr += strlen(ptr) + 1;
-  ptr += strspn(ptr," \t\n\r\f");
+  if (strcmp(arg[2],"partition") == 0)
+    error->all(FLERR,"Illegal partition command");
+
+  char *cmd = strstr(line,arg[2]);
 
   // execute the remaining command line on requested partitions
 
   if (yesflag) {
-    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(ptr);
+    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(cmd);
   } else {
-    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(ptr);
+    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(cmd);
   }
 }
 
@@ -1831,17 +1838,11 @@ void Input::suffix()
 
     if (strcmp(arg[0],"hybrid") == 0) {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
-      int n = strlen(arg[1]) + 1;
-      lmp->suffix = new char[n];
-      strcpy(lmp->suffix,arg[1]);
-      n = strlen(arg[2]) + 1;
-      lmp->suffix2 = new char[n];
-      strcpy(lmp->suffix2,arg[2]);
+      lmp->suffix = utils::strdup(arg[1]);
+      lmp->suffix2 = utils::strdup(arg[2]);
     } else {
       if (narg != 1) error->all(FLERR,"Illegal suffix command");
-      int n = strlen(arg[0]) + 1;
-      lmp->suffix = new char[n];
-      strcpy(lmp->suffix,arg[0]);
+      lmp->suffix = utils::strdup(arg[0]);
     }
   }
 }

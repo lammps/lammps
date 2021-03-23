@@ -84,13 +84,11 @@ void FixWallEES::wall_particle(int m, int which, double coord)
   double **f = atom->f;
   double **tor = atom->torque;
 
-
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
 
   int dim = which / 2;
   int side = which % 2;

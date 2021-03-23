@@ -127,3 +127,24 @@ foreach(TEST ${FIX_TIMESTEP_TESTS})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
 endforeach()
 
+# dihedral style tester
+add_executable(test_dihedral_style test_dihedral_style.cpp)
+target_link_libraries(test_dihedral_style PRIVATE lammps style_tests)
+
+file(GLOB DIHEDRAL_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/dihedral-*.yaml)
+foreach(TEST ${DIHEDRAL_TESTS})
+  string(REGEX REPLACE "^.*dihedral-(.*)\.yaml" "DihedralStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND test_dihedral_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+endforeach()
+
+# improper style tester
+add_executable(test_improper_style test_improper_style.cpp)
+target_link_libraries(test_improper_style PRIVATE lammps style_tests)
+
+file(GLOB IMPROPER_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/improper-*.yaml)
+foreach(TEST ${IMPROPER_TESTS})
+  string(REGEX REPLACE "^.*improper-(.*)\.yaml" "ImproperStyle:\\1" TNAME ${TEST})
+  add_test(NAME ${TNAME} COMMAND test_improper_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+endforeach()

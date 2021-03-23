@@ -48,13 +48,13 @@ int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                   const int maxspecial, const double cell_size,
                   int &gpu_mode, FILE *screen);
 void born_gpu_reinit(const int ntypes, double **host_rhoinv,
-                     double **host_born1, double **host_born2, double **host_born3,
-                     double **host_a, double **host_c, double **host_d,
-                     double **offset);
+                     double **host_born1, double **host_born2,
+                     double **host_born3, double **host_a, double **host_c,
+                     double **host_d, double **offset);
 void born_gpu_clear();
-int ** born_gpu_compute_n(const int ago, const int inum_full,
-                          const int nall, double **host_x, int *host_type,
-                          double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** born_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                          double **host_x, int *host_type, double *sublo,
+                          double *subhi, tagint *tag, int **nspecial,
                           tagint **special, const bool eflag, const bool vflag,
                           const bool eatom, const bool vatom, int &host_start,
                           int **ilist, int **jnum, const double cpu_time,
@@ -161,12 +161,13 @@ void PairBornGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = born_gpu_init(atom->ntypes+1, cutsq, rhoinv,
                               born1, born2, born3, a, c, d, sigma,
                               offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              atom->nlocal+atom->nghost, mnf, maxspecial,
               cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

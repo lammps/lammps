@@ -71,10 +71,19 @@ and parsing files or arguments.
 
 ----------
 
+.. doxygenfunction:: strdup
+   :project: progguide
+
 .. doxygenfunction:: trim
    :project: progguide
 
 .. doxygenfunction:: trim_comment
+   :project: progguide
+
+.. doxygenfunction:: has_utf8
+   :project: progguide
+
+.. doxygenfunction:: utf8_subst
    :project: progguide
 
 .. doxygenfunction:: count_words(const char *text)
@@ -93,6 +102,9 @@ and parsing files or arguments.
    :project: progguide
 
 .. doxygenfunction:: strmatch
+   :project: progguide
+
+.. doxygenfunction:: strfind
    :project: progguide
 
 .. doxygenfunction:: is_integer
@@ -283,6 +295,50 @@ This code example should produce the following output:
 .. doxygenclass:: LAMMPS_NS::InvalidFloatException
    :project: progguide
    :members: what
+
+----------
+
+
+Argument parsing classes
+---------------------------
+
+The purpose of argument parsing classes it to simplify and unify how
+arguments of commands in LAMMPS are parsed and to make abstractions of
+repetitive tasks.
+
+The :cpp:class:`LAMMPS_NS::ArgInfo` class provides an abstraction
+for parsing references to compute or fix styles or variables. These
+would start with a "c\_", "f\_", "v\_" followed by the ID or name of
+than instance and may be postfixed with one or two array indices
+"[<number>]" with numbers > 0.
+
+A typical code segment would look like this:
+
+.. code-block:: C++
+   :caption: Usage example for ArgInfo class
+
+   int nvalues = 0;
+   for (iarg = 0; iarg < nargnew; iarg++) {
+     ArgInfo argi(arg[iarg]);
+
+     which[nvalues] = argi.get_type();
+     argindex[nvalues] = argi.get_index1();
+     ids[nvalues] = argi.copy_name();
+
+     if ((which[nvalues] == ArgInfo::UNKNOWN)
+          || (which[nvalues] == ArgInfo::NONE)
+          || (argi.get_dim() > 1))
+       error->all(FLERR,"Illegal compute XXX command");
+
+     nvalues++;
+   }
+
+----------
+
+.. doxygenclass:: LAMMPS_NS::ArgInfo
+   :project: progguide
+   :members:
+
 
 ----------
 

@@ -105,6 +105,6 @@ void ComputeErotateSphereAtom::compute_peratom()
 
 double ComputeErotateSphereAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

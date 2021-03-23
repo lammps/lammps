@@ -3524,10 +3524,10 @@ void PairSMTBQ::reverse_int(int *tab)
 
 double PairSMTBQ::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH * nmax * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)MAXNEIGH * nmax * sizeof(int);
   return bytes;
 }
 

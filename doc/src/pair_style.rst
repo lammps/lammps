@@ -227,6 +227,7 @@ accelerated styles exist.
 * :doc:`lj/long/dipole/long <pair_dipole>` - long-range LJ and long-range point dipoles
 * :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
 * :doc:`lj/mdf <pair_mdf>` - LJ potential with a taper function
+* :doc:`lj/relres <pair_lj_relres>` - LJ using multiscale Relative Resolution (RelRes) methodology :ref:`(Chaimovich) <Chaimovich2>`.
 * :doc:`lj/sdk <pair_sdk>` - LJ for SDK coarse-graining
 * :doc:`lj/sdk/coul/long <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb
 * :doc:`lj/sdk/coul/msm <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb via MSM
@@ -327,6 +328,7 @@ accelerated styles exist.
 * :doc:`ufm <pair_ufm>` -
 * :doc:`vashishta <pair_vashishta>` - Vashishta 2-body and 3-body potential
 * :doc:`vashishta/table <pair_vashishta>` -
+* :doc:`wf/cut <pair_wf_cut>` - Wang-Frenkel Potential for short-ranged interactions
 * :doc:`yukawa <pair_yukawa>` - Yukawa potential
 * :doc:`yukawa/colloid <pair_yukawa_colloid>` - screened Yukawa potential for finite-size particles
 * :doc:`zbl <pair_zbl>` - Ziegler-Biersack-Littmark potential

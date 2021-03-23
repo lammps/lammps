@@ -142,32 +142,36 @@ ensemble.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-These fixes write the cumulative global energy change and the
-random number generator states to :doc:`binary restart files <restart>`.
-See the :doc:`read_restart <read_restart>` command for info on how to
-re-specify a fix in an input script that reads a restart file,
-so that the selected fix continues in an uninterrupted fashion.  The
-random number generator state can only be restored when the number
-of processors remains unchanged from what is recorded in the restart file.
-
-No information about these fixes are written to :doc:`binary restart files <restart>`.
+These fixes write the cumulative global energy change and the random
+number generator states to :doc:`binary restart files <restart>`.  See
+the :doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the selected fix continues in an uninterrupted fashion.  The random
+number generator state can only be restored when the number of
+processors remains unchanged from what is recorded in the restart
+file.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by these
-fixes.  You can use it to assign a temperature :doc:`compute <compute>`
-you have defined to these fixes which will be used in its thermostatting
-procedure, as described above.  For consistency, the group used by
-these fixes and by the compute should be the same.
+fixes.  You can use it to assign a temperature :doc:`compute
+<compute>` you have defined to these fixes which will be used in its
+thermostatting procedure, as described above.  For consistency, the
+group used by these fixes and by the compute should be the same.
 
-These fixes can ramp its target temperature over multiple runs, using
-the *start* and *stop* keywords of the :doc:`run <run>` command.  See the
-:doc:`run <run>` command for details of how to do this.
-
-These fixes are not invoked during :doc:`energy minimization <minimize>`.
+The cumulative energy change in the system imposed by these fixes is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 These fixes compute a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to the fix.  The scalar value calculated by this fix
-is "extensive".
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+
+These fixes can ramp their target temperature over multiple runs,
+using the *start* and *stop* keywords of the :doc:`run <run>` command.
+See the :doc:`run <run>` command for details of how to do this.
+
+These fixes are not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

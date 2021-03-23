@@ -470,3 +470,13 @@ double PairBuckCoulCut::single(int i, int j, int itype, int jtype,
   }
   return eng;
 }
+
+/* ---------------------------------------------------------------------- */
+
+void *PairBuckCoulCut::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str,"a") == 0) return (void *) a;
+  if (strcmp(str,"c") == 0) return (void *) c;
+  return nullptr;
+}

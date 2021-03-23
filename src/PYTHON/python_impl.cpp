@@ -55,6 +55,16 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 
   nfunc = 0;
   pfuncs = nullptr;
+
+  // check for PYTHONUNBUFFERED environment variable
+  const char * PYTHONUNBUFFERED = getenv("PYTHONUNBUFFERED");
+
+  if (PYTHONUNBUFFERED != nullptr && strcmp(PYTHONUNBUFFERED, "1") == 0) {
+    // Python Global configuration variable
+    // Force the stdout and stderr streams to be unbuffered.
+    Py_UnbufferedStdioFlag = 1;
+  }
+
   // one-time initialization of Python interpreter
   // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();

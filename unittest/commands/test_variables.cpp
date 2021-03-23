@@ -18,6 +18,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "math_const.h"
 #include "region.h"
 #include "variable.h"
 
@@ -37,6 +38,7 @@ const bool have_openmpi = false;
 #endif
 
 using LAMMPS_NS::utils::split_words;
+using LAMMPS_NS::MathConst::MY_PI;
 
 namespace LAMMPS_NS {
 using ::testing::ExitedWithCode;
@@ -205,6 +207,40 @@ TEST_F(VariableTest, AtomicSystem)
                  command("variable one atom x"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
+}
+
+TEST_F(VariableTest, Expressions)
+{
+    ASSERT_EQ(variable->nvar, 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("variable one    index     1");
+    command("variable two    equal     2");
+    command("variable three  equal    v_one+v_two");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(variable->nvar, 3);
+
+    int ivar = variable->find("one");
+    ASSERT_FALSE(variable->equalstyle(ivar));
+    ivar = variable->find("two");
+    ASSERT_TRUE(variable->equalstyle(ivar));
+    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),2.0);
+    ivar = variable->find("three");
+    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),3.0);
+}
+
+TEST_F(VariableTest, Functions)
+{
+    file_vars();
+    ASSERT_EQ(variable->nvar, 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("variable one    index     1");
+    command("variable two    equal     PI");
+    command("variable three  equal     atan2(v_one,1)");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_EQ(variable->nvar, 3);
+
+    int ivar = variable->find("three");
+    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar),0.25*MY_PI);
 }
 } // namespace LAMMPS_NS
 

@@ -126,13 +126,16 @@ class lammps(object):
       lib_ext = ".dll"
       modpath = winpath
     else:
+      """ 
       import platform
-      if platform.system() == "Darwin":
+      if platform.system() == "Darwin": # this flags an error on MacOSX
         lib_ext = ".dylib"
       elif platform.system() == "Windows":
         lib_ext = ".dll"
       else:
         lib_ext = ".so"
+      """
+      lib_ext = ".so"
 
     if not self.lib:
       if name:

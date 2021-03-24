@@ -165,7 +165,7 @@ TEST_F(VariableTest, CreateDelete)
     command("variable six    world     one");
     command("variable seven  format    two \"%5.2f\"");
     command("variable eight  getenv    PWD");
-    command("variable eight  getenv    HOME");
+    command("variable eight  getenv    XXXXX");
     command("variable nine   file      test_variable.file");
     command("variable ten    internal  1.0");
     command("variable ten    internal  10.0");
@@ -186,6 +186,9 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("five1"), StrEq("001"));
     ASSERT_THAT(variable->retrieve("seven"), StrEq(" 2.00"));
     ASSERT_THAT(variable->retrieve("ten"), StrEq("1"));
+    ASSERT_THAT(variable->retrieve("eight"), StrEq(""));
+    variable->internal_set(variable->find("ten"), 2.5);
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("2.5"));
 
     ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);
@@ -220,6 +223,10 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable ten11  format    two \"%08f\""););
     TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only alphanumeric characters or.*",
                  command("variable ten@12  index    one two three"););
+    TEST_FAILURE(".*ERROR: Variable evaluation before simulation box is defined.*",
+                 variable->compute_equal("c_thermo_press"););
+    TEST_FAILURE(".*ERROR: Invalid variable reference v_unknown in variable formula.*",
+                 variable->compute_equal("v_unknown"););
 }
 
 TEST_F(VariableTest, AtomicSystem)
@@ -233,16 +240,29 @@ TEST_F(VariableTest, AtomicSystem)
     command("variable  id   atom      type");
     command("variable  id   atom      id");
     command("variable  ten  atomfile  test_variable.atomfile");
-    command("compute   press all pressure NULL pair");
-    command("fix       press all ave/time 1 1 1 c_press mode vector");
-    command("variable  press  vector   f_press");
-    command("variable  press vector    f_press+vol");
-    command("variable  pmax equal   max(v_press)");
-    command("variable  psum equal   sum(v_press)");
-    command("run 0 post no");
 
+    command("compute  press all pressure NULL pair");
+    command("compute  rg    all gyration");
+    command("compute  vacf  all vacf");
+    command("fix  press all ave/time 1 1 1 c_press mode vector");
+    command("fix  rg    all ave/time 1 1 1 c_rg mode vector");
+    command("fix  vacf  all ave/time 1 1 1 c_vacf mode vector");
+
+    command("variable  press  vector  f_press");
+    command("variable  rg     vector  f_rg");
+    command("variable  vacf   vector  f_vacf");
+    command("variable  press  vector  f_press+0.0");
+    command("variable  self   vector  v_self+f_press");
+    command("variable  circle vector  f_press+v_circle");
+    command("variable  sum    vector  v_press+v_rg");
+    command("variable  sum2   vector  v_vacf+v_rg");
+    command("variable  pmax   equal   max(v_press)");
+    command("variable  psum   equal   sum(v_press)");
+    command("variable  rgmax  equal   max(v_rg)");
+    command("variable  rgsum  equal   sum(v_rg)");
+    command("variable  loop   equal   v_loop+1");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 7);
 
     ASSERT_EQ(variable->atomstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->atomstyle(variable->find("id")), 1);
@@ -251,8 +271,11 @@ TEST_F(VariableTest, AtomicSystem)
     ASSERT_EQ(variable->vectorstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->vectorstyle(variable->find("press")), 1);
 
-    ASSERT_DOUBLE_EQ(variable->compute_equal("v_pmax"), 64.0);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("v_psum"), 6 * 64.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_pmax"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_psum"), 0.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_rgmax"), 1.25);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_rgsum"), 3.75);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_sum[1]"), 1.25);
 
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable one atom x"););
@@ -260,12 +283,17 @@ TEST_F(VariableTest, AtomicSystem)
                  command("variable one vector f_press"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
+    TEST_FAILURE(".*ERROR: Variable loop: has a circular dependency.*",
+                 variable->compute_equal("v_loop"););
+    TEST_FAILURE(".*Variable self: Vector-style variable in equal-style variable formula.*",
+                 variable->compute_equal("v_self"););
+    TEST_FAILURE(".*ERROR: Variable sum2: Inconsistent lengths in vector-style variable.*",
+                 variable->compute_equal("max(v_sum2)"););
 }
 
 TEST_F(VariableTest, Expressions)
 {
     atomic_system();
-    ASSERT_EQ(variable->nvar, 1);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1");
     command("variable two    equal     2");
@@ -286,9 +314,13 @@ TEST_F(VariableTest, Expressions)
     command("variable ten7   equal     !(1<v_two)");
     command("variable ten8   equal     1|^0");
     command("variable ten9   equal     v_one-v_ten9");
+    command("variable ten10  internal  100.0");
+    command("variable ten11  equal     (1!=1)+(2<1)+(2<=1)+(1>2)+(1>=2)+(1&&0)+(0||0)+(1|^1)+10^0");
+    command("variable err1   equal     v_one/v_ten7");
+    command("variable err2   equal     v_one%v_ten7");
+    command("variable err3   equal     v_ten7^-v_one");
     variable->set("dummy  index     1 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 21);
 
     int ivar = variable->find("one");
     ASSERT_FALSE(variable->equalstyle(ivar));
@@ -310,11 +342,19 @@ TEST_F(VariableTest, Expressions)
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten6"), 1);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten7"), 0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten8"), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten10"), 100);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten11"), 1);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););
     TEST_FAILURE(".*ERROR: Variable ten9: has a circular dependency.*",
                  command("print \"${ten9}\""););
+    TEST_FAILURE(".*ERROR on proc 0: Variable err1: Divide by 0 in variable formula.*",
+                 command("print \"${err1}\""););
+    TEST_FAILURE(".*ERROR on proc 0: Variable err2: Modulo 0 in variable formula.*",
+                 command("print \"${err2}\""););
+    TEST_FAILURE(".*ERROR on proc 0: Variable err3: Invalid power expression in variable formula.*",
+                 command("print \"${err3}\""););
 }
 
 TEST_F(VariableTest, Functions)
@@ -322,14 +362,12 @@ TEST_F(VariableTest, Functions)
     atomic_system();
     file_vars();
 
-    ASSERT_EQ(variable->nvar, 1);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1");
     command("variable two    equal     random(1,2,643532)");
     command("variable three  equal     atan2(v_one,1)");
     command("variable four   equal     atan2()");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 5);
 
     int ivar = variable->find("two");
     ASSERT_GT(variable->compute_equal(ivar), 0.99);

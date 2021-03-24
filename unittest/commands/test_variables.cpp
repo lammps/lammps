@@ -71,7 +71,8 @@ protected:
 
     void SetUp() override
     {
-        const char *args[] = {"VariableTest", "-log", "none", "-echo", "screen", "-nocite"};
+        const char *args[] = {"VariableTest", "-log", "none", "-echo", "screen",
+                              "-nocite",      "-v",   "num",  "1"};
         char **argv        = (char **)args;
         int argc           = sizeof(args) / sizeof(char *);
         if (!verbose) ::testing::internal::CaptureStdout();
@@ -150,7 +151,7 @@ protected:
 TEST_F(VariableTest, CreateDelete)
 {
     file_vars();
-    ASSERT_EQ(variable->nvar, 0);
+    ASSERT_EQ(variable->nvar, 1);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1 2 3 4");
     command("variable two    equal     1");
@@ -160,7 +161,7 @@ TEST_F(VariableTest, CreateDelete)
     command("variable four1  loop      4");
     command("variable four2  loop      2 4");
     command("variable five1  loop      100 pad");
-    command("variable five2  loop      100 200 pad");
+    command("variable five2  loop      10 200 pad");
     command("variable six    world     one");
     command("variable seven  format    two \"%5.2f\"");
     command("variable eight  getenv    PWD");
@@ -173,17 +174,32 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten3   uloop     4 pad");
     command("variable dummy  index     0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 16);
+    ASSERT_EQ(variable->nvar, 17);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable dummy  delete");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 15);
+    ASSERT_EQ(variable->nvar, 16);
+    ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
+    variable->set_string("three", "four");
+    ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
+    ASSERT_THAT(variable->retrieve("four2"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("five1"), StrEq("001"));
+    ASSERT_THAT(variable->retrieve("seven"), StrEq(" 2.00"));
+    ASSERT_THAT(variable->retrieve("ten"), StrEq("1"));
+
+    ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
+    ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);
+    ASSERT_EQ(variable->equalstyle(variable->find("ten")), 1);
+
+    ASSERT_EQ(variable->internalstyle(variable->find("two")), 0);
+    ASSERT_EQ(variable->internalstyle(variable->find("ten")), 1);
 
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy index"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy delete xxx"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy loop -1"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy loop 10 1"););
+    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy xxxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable two string xxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
@@ -202,6 +218,8 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable ten4   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
                  command("variable ten11  format    two \"%08f\""););
+    TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only alphanumeric characters or.*",
+                 command("variable ten@12  index    one two three"););
 }
 
 TEST_F(VariableTest, AtomicSystem)
@@ -218,16 +236,28 @@ TEST_F(VariableTest, AtomicSystem)
     command("compute   press all pressure NULL pair");
     command("fix       press all ave/time 1 1 1 c_press mode vector");
     command("variable  press  vector   f_press");
-    command("variable  stress vector   v_press+vol");
-    command("variable  pmax equal   max(f_press)");
+    command("variable  press vector    f_press+vol");
+    command("variable  pmax equal   max(v_press)");
+    command("variable  psum equal   sum(v_press)");
     command("run 0 post no");
 
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 6);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("v_pmax"), 0.0);
+    ASSERT_EQ(variable->nvar, 7);
+
+    ASSERT_EQ(variable->atomstyle(variable->find("one")), 0);
+    ASSERT_EQ(variable->atomstyle(variable->find("id")), 1);
+    ASSERT_EQ(variable->atomstyle(variable->find("ten")), 1);
+
+    ASSERT_EQ(variable->vectorstyle(variable->find("one")), 0);
+    ASSERT_EQ(variable->vectorstyle(variable->find("press")), 1);
+
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_pmax"), 64.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_psum"), 6 * 64.0);
 
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable one atom x"););
+    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+                 command("variable one vector f_press"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
 }
@@ -235,7 +265,7 @@ TEST_F(VariableTest, AtomicSystem)
 TEST_F(VariableTest, Expressions)
 {
     atomic_system();
-    ASSERT_EQ(variable->nvar, 0);
+    ASSERT_EQ(variable->nvar, 1);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1");
     command("variable two    equal     2");
@@ -255,9 +285,10 @@ TEST_F(VariableTest, Expressions)
     command("variable ten6   equal     (1<=v_one)&&(v_ten>=0.2)");
     command("variable ten7   equal     !(1<v_two)");
     command("variable ten8   equal     1|^0");
-
+    command("variable ten9   equal     v_one-v_ten9");
+    variable->set("dummy  index     1 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 18);
+    ASSERT_EQ(variable->nvar, 21);
 
     int ivar = variable->find("one");
     ASSERT_FALSE(variable->equalstyle(ivar));
@@ -282,6 +313,8 @@ TEST_F(VariableTest, Expressions)
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););
+    TEST_FAILURE(".*ERROR: Variable ten9: has a circular dependency.*",
+                 command("print \"${ten9}\""););
 }
 
 TEST_F(VariableTest, Functions)
@@ -289,14 +322,14 @@ TEST_F(VariableTest, Functions)
     atomic_system();
     file_vars();
 
-    ASSERT_EQ(variable->nvar, 0);
+    ASSERT_EQ(variable->nvar, 1);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable one    index     1");
     command("variable two    equal     random(1,2,643532)");
     command("variable three  equal     atan2(v_one,1)");
     command("variable four   equal     atan2()");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 4);
+    ASSERT_EQ(variable->nvar, 5);
 
     int ivar = variable->find("two");
     ASSERT_GT(variable->compute_equal(ivar), 0.99);

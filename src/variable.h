@@ -53,6 +53,10 @@ class Variable : protected Pointers {
   int nvar;                // # of defined variables
   char **names;            // name of each variable
 
+  // must match "varstyles" array in info.cpp
+  enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
+     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
+
  private:
   int me;
   int maxvar;              // max # of variables following lists can hold

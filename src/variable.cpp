@@ -54,8 +54,6 @@ using namespace MathConst;
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
-enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
 enum{ARG,OP};
 
 // customize by adding a function
@@ -5023,7 +5021,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
   id_fix = nullptr;
   buffer = nullptr;
 
-  if (style == ATOMFILE) {
+  if (style == Variable::ATOMFILE) {
     if (atom->map_style == Atom::MAP_NONE)
       error->all(FLERR,"Cannot use atomfile-style "
                  "variable unless an atom map exists");

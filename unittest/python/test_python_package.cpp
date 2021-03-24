@@ -34,6 +34,7 @@ using LAMMPS_NS::utils::split_words;
 namespace LAMMPS_NS {
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
+using ::testing::HasSubstr;
 
 class PythonPackageTest : public ::testing::Test {
 protected:
@@ -86,7 +87,7 @@ TEST_F(PythonPackageTest, python_invoke)
     command("python printnum invoke");
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex("python.*2.25.*"));
+    ASSERT_THAT(output, HasSubstr("2.25\n"));
 
     // execute another python function from same file
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -96,7 +97,7 @@ TEST_F(PythonPackageTest, python_invoke)
     command("python printtxt invoke");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex("python.*sometext.*"));
+    ASSERT_THAT(output, HasSubstr("sometext\n"));
 
     // execute python function that uses the LAMMPS python module
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -107,7 +108,7 @@ TEST_F(PythonPackageTest, python_invoke)
     command("python getidxvar invoke");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    ASSERT_THAT(output, MatchesRegex("python.*2.25.*"));
+    ASSERT_THAT(output, HasSubstr("2.25\n"));
 }
 
 TEST_F(PythonPackageTest, python_variable)

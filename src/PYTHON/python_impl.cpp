@@ -506,6 +506,7 @@ int PythonImpl::create_entry(char *name)
                  "cannot be used unless output is a string");
     pfuncs[ifunc].length_longstr = length_longstr;
     pfuncs[ifunc].longstr = new char[length_longstr+1];
+    pfuncs[ifunc].longstr[length_longstr] = '\0';
   }
 
   if (strstr(ostr,"v_") != ostr) error->all(FLERR,"Invalid python command");

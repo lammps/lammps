@@ -15,6 +15,7 @@
 #include "info.h"
 #include "input.h"
 #include "variable.h"
+#include "library.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -31,11 +32,14 @@ std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+const char * LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent metus.";
+
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
+using ::testing::Eq;
 using ::testing::HasSubstr;
 
 class PythonPackageTest : public ::testing::Test {
@@ -44,6 +48,8 @@ protected:
     Info *info;
 
     void command(const std::string &line) { lmp->input->one(line.c_str()); }
+
+    void command_string(const std::string &lines) { lammps_commands_string(lmp, lines.c_str()); }
 
     void HIDE_OUTPUT(std::function<void()> f) {
         if (!verbose) ::testing::internal::CaptureStdout();
@@ -64,6 +70,10 @@ protected:
         double value = lmp->input->variable->compute_equal(str);
         delete [] str;
         return value;
+    }
+
+    std::string get_variable_string(const std::string & name) {
+        return lmp->input->variable->retrieve(name.c_str());
     }
 
     void SetUp() override
@@ -121,6 +131,7 @@ TEST_F(PythonPackageTest, InvokeFunctionPassInt)
     HIDE_OUTPUT([&] {
         command("variable sq python square");
         command("python square input 1 2 format ii return v_sq file ${input_dir}/func.py");
+        command("python square invoke");
     });
 
     ASSERT_EQ(get_variable_value("sq"), 4.0);
@@ -169,6 +180,38 @@ TEST_F(PythonPackageTest, InvokeFunctionPassStringVariable)
     ASSERT_EQ(get_variable_value("val"), 0.0);
 }
 
+TEST_F(PythonPackageTest, InvokeStringFunction)
+{
+    // execute python function, passing string variable as argument
+    HIDE_OUTPUT([&] {
+        command("variable str python val_to_bool");
+        command("python val_to_bool input 1 v_val format is return v_str file ${input_dir}/func.py");
+    });
+
+    HIDE_OUTPUT([&] {
+        command("variable val equal 0");
+    });
+
+    ASSERT_THAT(get_variable_string("str"), StrEq("False"));
+
+    HIDE_OUTPUT([&] {
+        command("variable val equal 1");
+    });
+
+    ASSERT_THAT(get_variable_string("str"), StrEq("True"));
+}
+
+TEST_F(PythonPackageTest, InvokeLongStringFunction)
+{
+    // execute python function, passing string variable as argument
+    HIDE_OUTPUT([&] {
+        command("variable str python longstr");
+        command("python longstr format s length 72 return v_str file ${input_dir}/func.py");
+    });
+
+    ASSERT_THAT(get_variable_string("str"), StrEq(LOREM_IPSUM));
+}
+
 TEST_F(PythonPackageTest, InvokeOtherFunctionFromFile)
 {
     // execute another python function from same file
@@ -211,6 +254,61 @@ TEST_F(PythonPackageTest, python_variable)
     ASSERT_THAT(output, MatchesRegex("print.*2.25.*"));
 }
 
+TEST_F(PythonPackageTest, InlineFunction)
+{
+    // define variable that evaluates a python function
+    HIDE_OUTPUT([&] {
+        command("variable fact python factorial");
+        command("python factorial input 1 v_n return v_fact format ii here \"\"\"\n"
+                "def factorial(n):\n"
+                "  if n == 0 or n == 1: return 1\n"
+                "  return n*factorial(n-1)\n"
+                "\"\"\"");
+    });
+
+    HIDE_OUTPUT([&] {
+        command("variable n equal 1");
+    });
+
+    ASSERT_EQ(get_variable_value("fact"), 1.0);
+
+    HIDE_OUTPUT([&] {
+        command("variable n equal 2");
+    });
+
+    ASSERT_EQ(get_variable_value("fact"), 2.0);
+
+    HIDE_OUTPUT([&] {
+        command("variable n equal 3");
+    });
+
+    ASSERT_EQ(get_variable_value("fact"), 6.0);
+}
+
+TEST_F(PythonPackageTest, RunSource)
+{
+    // execute python script from file
+    auto output = CAPTURE_OUTPUT([&] {
+        command("python xyz source ${input_dir}/run.py");
+    });
+
+    ASSERT_THAT(output, HasSubstr(LOREM_IPSUM));
+}
+
+TEST_F(PythonPackageTest, RunSourceInline)
+{
+    // execute inline python script
+    auto output = CAPTURE_OUTPUT([&] {
+        command("python xyz source \"\"\"\n"
+                "from __future__ import print_function\n"
+                "print(2+2)\n"
+                "\"\"\""
+        );
+    });
+
+    ASSERT_THAT(output, HasSubstr("4"));
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
@@ -220,7 +318,7 @@ int main(int argc, char **argv)
 
     // handle arguments passed via environment variable
     if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = split_words(var);
+        auto env = split_words(var);
         for (auto arg : env) {
             if (arg == "-v") {
                 verbose = true;

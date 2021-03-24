@@ -9,6 +9,11 @@ def bool_to_val(txt):
         return 1.0
     return 0.0
 
+def val_to_bool(val):
+    if val != 0:
+        return "True"
+    return "False"
+
 def printnum():
     print("2.25")
 
@@ -20,3 +25,6 @@ def getidxvar(lmpptr):
     lmp = lammps(ptr=lmpptr)
     val = lmp.extract_variable("idx")
     print(val)
+
+def longstr():
+    return "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent metus."

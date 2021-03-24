@@ -248,18 +248,18 @@ TEST_F(VariableTest, Expressions)
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_three"), 3.0);
     ASSERT_FLOAT_EQ(variable->compute_equal("v_four"), MY_PI);
     ASSERT_GE(variable->compute_equal("v_five"), 20210310);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_seven"), -1);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_eight"), 2.5);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_nine"), 8);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten"), 0.25);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_eleven"), 1);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_twelve"), 0);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten3"), 1);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten4"), 1);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten5"), 1);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten6"), 1);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten7"), 0);
-    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten8"), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_seven"), -1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_eight"), 2.5);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_nine"), 8);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten"), 0.25);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_eleven"), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_twelve"), 0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten3"), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten4"), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten5"), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten6"), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten7"), 0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten8"), 1);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););
@@ -287,6 +287,53 @@ TEST_F(VariableTest, Functions)
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););
 }
+
+TEST_F(VariableTest, IfCommand)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("variable one index 1");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    ::testing::internal::CaptureStdout();
+    command("if 1>0 then 'print \".*bingo!\"'");
+    auto text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text,MatchesRegex(".*bingo!.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if (1>=0) then 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text,MatchesRegex(".*bingo!.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if (-1.0e-1<0.0E+0) then 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text,MatchesRegex(".*bingo!.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if (${one}==1.0)&&(2>=1) then 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text,MatchesRegex(".*bingo!.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if !((${one}!=1.0)||(2|^1)) then 'print \"missed\"' else 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text,MatchesRegex(".*bingo!.*"));
+
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if () then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if (1)( then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if (1)1 then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if (v_one==1.0)&&(2>=1) then 'print \"bingo!\"'"););
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

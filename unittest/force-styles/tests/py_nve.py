@@ -1,5 +1,5 @@
 from __future__ import print_function
-from lammps import lammps, LAMMPS_INT, LAMMPS_DOUBLE
+from lammps import lammps
 
 class LAMMPSFix(object):
     def __init__(self, ptr, group_name="all"):

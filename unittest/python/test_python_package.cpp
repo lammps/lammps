@@ -14,6 +14,7 @@
 #include "atom.h"
 #include "info.h"
 #include "input.h"
+#include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -58,6 +59,13 @@ protected:
         return output;
     }
 
+    double get_variable_value(const std::string & name) {
+        char * str = utils::strdup(fmt::format("v_{}", name));
+        double value = lmp->input->variable->compute_equal(str);
+        delete [] str;
+        return value;
+    }
+
     void SetUp() override
     {
         const char *args[] = {"PythonPackageTest", "-log", "none", "-echo", "screen", "-nocite"};
@@ -100,11 +108,65 @@ TEST_F(PythonPackageTest, InvokeFunctionFromFile)
     HIDE_OUTPUT([&] {
         command("python printnum file ${input_dir}/func.py");
     });
-    
+
     auto output = CAPTURE_OUTPUT([&]() {
         command("python printnum invoke");
     });
     ASSERT_THAT(output, HasSubstr("2.25\n"));
+}
+
+TEST_F(PythonPackageTest, InvokeFunctionPassInt)
+{
+    // execute python function, passing integer as argument
+    HIDE_OUTPUT([&] {
+        command("variable sq python square");
+        command("python square input 1 2 format ii return v_sq file ${input_dir}/func.py");
+    });
+
+    ASSERT_EQ(get_variable_value("sq"), 4.0);
+}
+
+TEST_F(PythonPackageTest, InvokeFunctionPassFloat)
+{
+    // execute python function, passing float as argument
+    HIDE_OUTPUT([&] {
+        command("variable sq python square");
+        command("python square input 1 2.5 format ff return v_sq file ${input_dir}/func.py");
+    });
+
+    ASSERT_EQ(get_variable_value("sq"), 6.25);
+}
+
+TEST_F(PythonPackageTest, InvokeFunctionPassString)
+{
+    // execute python function, passing string as argument
+    HIDE_OUTPUT([&] {
+        command("variable val python bool_to_val");
+        command("python bool_to_val input 1 \"true\" format sf return v_val file ${input_dir}/func.py");
+    });
+
+    ASSERT_EQ(get_variable_value("val"), 1.0);
+}
+
+TEST_F(PythonPackageTest, InvokeFunctionPassStringVariable)
+{
+    // execute python function, passing string variable as argument
+    HIDE_OUTPUT([&] {
+        command("variable val python bool_to_val");
+        command("python bool_to_val input 1 v_str format sf return v_val file ${input_dir}/func.py");
+    });
+
+    HIDE_OUTPUT([&] {
+        command("variable str string \"true\"");
+    });
+
+    ASSERT_EQ(get_variable_value("val"), 1.0);
+
+    HIDE_OUTPUT([&] {
+        command("variable str string \"false\"");
+    });
+
+    ASSERT_EQ(get_variable_value("val"), 0.0);
 }
 
 TEST_F(PythonPackageTest, InvokeOtherFunctionFromFile)
@@ -137,6 +199,7 @@ TEST_F(PythonPackageTest, InvokeFunctionThatUsesLAMMPSModule)
 
 TEST_F(PythonPackageTest, python_variable)
 {
+    // define variable that evaluates a python function
     HIDE_OUTPUT([&] {
         command("variable sq python square");
         command("variable val index 1.5");

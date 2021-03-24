@@ -81,12 +81,14 @@ protected:
         delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
+
+    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 TEST_F(LatticeRegionTest, lattice_none)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice none 2.0");
+    command("lattice none 2.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::NONE);
@@ -96,14 +98,14 @@ TEST_F(LatticeRegionTest, lattice_none)
     ASSERT_EQ(lattice->nbasis, 0);
     ASSERT_EQ(lattice->basis, nullptr);
 
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*", lmp->input->one("lattice"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*", lmp->input->one("lattice xxx"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*", lmp->input->one("lattice none 1.0 origin"););
-    TEST_FAILURE(".*ERROR: Expected floating point.*", lmp->input->one("lattice none xxx"););
+    TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice"););
+    TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice xxx"););
+    TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice none 1.0 origin"););
+    TEST_FAILURE(".*ERROR: Expected floating point.*", command("lattice none xxx"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units lj");
-    lmp->input->one("lattice none 1.0");
+    command("units lj");
+    command("lattice none 1.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->xlattice, 1.0);
@@ -114,7 +116,7 @@ TEST_F(LatticeRegionTest, lattice_none)
 TEST_F(LatticeRegionTest, lattice_sc)
 {
     ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice sc 1.0 spacing 1.5 2.0 3.0");
+    command("lattice sc 1.0 spacing 1.5 2.0 3.0");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     ASSERT_THAT(output, MatchesRegex(".*Lattice spacing in x,y,z = 1.50* 2.0* 3.0*.*"));
@@ -125,7 +127,7 @@ TEST_F(LatticeRegionTest, lattice_sc)
     ASSERT_EQ(lattice->zlattice, 3.0);
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice sc 2.0");
+    command("lattice sc 2.0");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     ASSERT_THAT(output, MatchesRegex(".*Lattice spacing in x,y,z = 2.0* 2.0* 2.0*.*"));
@@ -151,25 +153,24 @@ TEST_F(LatticeRegionTest, lattice_sc)
     ASSERT_EQ(lattice->basis[0][2], 0.0);
 
     TEST_FAILURE(".*ERROR: Illegal lattice command.*",
-                 lmp->input->one("lattice sc 1.0 origin 1.0 1.0 1.0"););
+                 command("lattice sc 1.0 origin 1.0 1.0 1.0"););
+    TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice sc 1.0 origin 1.0"););
     TEST_FAILURE(".*ERROR: Illegal lattice command.*",
-                 lmp->input->one("lattice sc 1.0 origin 1.0"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*",
-                 lmp->input->one("lattice sc 1.0 origin 0.0 0.0 0.0 xxx"););
+                 command("lattice sc 1.0 origin 0.0 0.0 0.0 xxx"););
     TEST_FAILURE(".*ERROR: Expected floating point.*",
-                 lmp->input->one("lattice sc 1.0 origin xxx 1.0 1.0"););
+                 command("lattice sc 1.0 origin xxx 1.0 1.0"););
     TEST_FAILURE(".*ERROR: Lattice orient vectors are not orthogonal.*",
-                 lmp->input->one("lattice sc 1.0 orient x 2 2 0"););
+                 command("lattice sc 1.0 orient x 2 2 0"););
     TEST_FAILURE(".*ERROR: Lattice orient vectors are not right-handed.*",
-                 lmp->input->one("lattice sc 1.0 orient y 0 -1 0"););
+                 command("lattice sc 1.0 orient y 0 -1 0"););
     TEST_FAILURE(".*ERROR: Lattice spacings are invalid.*",
-                 lmp->input->one("lattice sc 1.0 spacing 0.0 1.0 1.0"););
+                 command("lattice sc 1.0 spacing 0.0 1.0 1.0"););
     TEST_FAILURE(".*ERROR: Lattice spacings are invalid.*",
-                 lmp->input->one("lattice sc 1.0 spacing 1.0 -0.1 1.0"););
+                 command("lattice sc 1.0 spacing 1.0 -0.1 1.0"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units lj");
-    lmp->input->one("lattice sc 2.0");
+    command("units lj");
+    command("lattice sc 2.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     lattice = lmp->domain->lattice;
     ASSERT_DOUBLE_EQ(lattice->xlattice, pow(0.5, 1.0 / 3.0));
@@ -177,16 +178,16 @@ TEST_F(LatticeRegionTest, lattice_sc)
     ASSERT_DOUBLE_EQ(lattice->zlattice, pow(0.5, 1.0 / 3.0));
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
+    command("dimension 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
-                 lmp->input->one("lattice sc 1.0"););
+                 command("lattice sc 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_bcc)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice bcc 4.2 orient x 1 1 0 orient y -1 1 0");
+    command("lattice bcc 4.2 orient x 1 1 0 orient y -1 1 0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::BCC);
@@ -202,16 +203,16 @@ TEST_F(LatticeRegionTest, lattice_bcc)
     ASSERT_EQ(lattice->basis[1][2], 0.5);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
+    command("dimension 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
-                 lmp->input->one("lattice bcc 1.0"););
+                 command("lattice bcc 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_fcc)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice fcc 3.5 origin 0.5 0.5 0.5");
+    command("lattice fcc 3.5 origin 0.5 0.5 0.5");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::FCC);
@@ -233,23 +234,22 @@ TEST_F(LatticeRegionTest, lattice_fcc)
     ASSERT_EQ(lattice->basis[3][2], 0.5);
 
     TEST_FAILURE(".*ERROR: Invalid option in lattice command for non-custom style.*",
-                 lmp->input->one("lattice fcc 1.0 basis 0.0 0.0 0.0"););
+                 command("lattice fcc 1.0 basis 0.0 0.0 0.0"););
     TEST_FAILURE(".*ERROR: Invalid option in lattice command for non-custom style.*",
-                 lmp->input->one("lattice fcc 1.0 a1 0.0 1.0 0.0"););
-    TEST_FAILURE(".*ERROR: Illegal lattice command.*",
-                 lmp->input->one("lattice fcc 1.0 orient w 1 0 0"););
+                 command("lattice fcc 1.0 a1 0.0 1.0 0.0"););
+    TEST_FAILURE(".*ERROR: Illegal lattice command.*", command("lattice fcc 1.0 orient w 1 0 0"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
+    command("dimension 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
-                 lmp->input->one("lattice fcc 1.0"););
+                 command("lattice fcc 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_hcp)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice hcp 3.0 orient z 0 0 1");
+    command("lattice hcp 3.0 orient z 0 0 1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::HCP);
@@ -280,20 +280,20 @@ TEST_F(LatticeRegionTest, lattice_hcp)
     ASSERT_DOUBLE_EQ(lattice->a3[2], sqrt(8.0 / 3.0));
 
     TEST_FAILURE(".*ERROR: Invalid option in lattice command for non-custom style.*",
-                 lmp->input->one("lattice hcp 1.0 a2 0.0 1.0 0.0"););
+                 command("lattice hcp 1.0 a2 0.0 1.0 0.0"););
     TEST_FAILURE(".*ERROR: Invalid option in lattice command for non-custom style.*",
-                 lmp->input->one("lattice hcp 1.0 a3 0.0 1.0 0.0"););
+                 command("lattice hcp 1.0 a3 0.0 1.0 0.0"););
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
+    command("dimension 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
-                 lmp->input->one("lattice hcp 1.0"););
+                 command("lattice hcp 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_diamond)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice diamond 4.1 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1");
+    command("lattice diamond 4.1 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::DIAMOND);
@@ -336,17 +336,17 @@ TEST_F(LatticeRegionTest, lattice_diamond)
     ASSERT_EQ(lattice->a3[2], 1.0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
+    command("dimension 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
-                 lmp->input->one("lattice diamond 1.0"););
+                 command("lattice diamond 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_sq)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
-    lmp->input->one("lattice sq 3.0");
+    command("dimension 2");
+    command("lattice sq 3.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::SQ);
@@ -358,22 +358,21 @@ TEST_F(LatticeRegionTest, lattice_sq)
     ASSERT_EQ(lattice->basis[0][1], 0.0);
     ASSERT_EQ(lattice->basis[0][2], 0.0);
 
-    TEST_FAILURE(
-        ".*ERROR: Lattice settings are not compatible with 2d simulation.*",
-        lmp->input->one("lattice sq 1.0 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1"););
+    TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
+                 command("lattice sq 1.0 orient x 1 1 2 orient y -1 1 0 orient z -1 -1 1"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 3");
+    command("dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
-                 lmp->input->one("lattice sq 1.0"););
+                 command("lattice sq 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_sq2)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
-    lmp->input->one("lattice sq2 2.0");
+    command("dimension 2");
+    command("lattice sq2 2.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::SQ2);
@@ -389,17 +388,17 @@ TEST_F(LatticeRegionTest, lattice_sq2)
     ASSERT_EQ(lattice->basis[1][2], 0.0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 3");
+    command("dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
-                 lmp->input->one("lattice sq2 1.0"););
+                 command("lattice sq2 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_hex)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
-    lmp->input->one("lattice hex 2.0");
+    command("dimension 2");
+    command("lattice hex 2.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::HEX);
@@ -424,32 +423,32 @@ TEST_F(LatticeRegionTest, lattice_hex)
     ASSERT_EQ(lattice->a3[2], 1.0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 3");
+    command("dimension 3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Lattice style incompatible with simulation dimension.*",
-                 lmp->input->one("lattice hex 1.0"););
+                 command("lattice hex 1.0"););
 }
 
 TEST_F(LatticeRegionTest, lattice_custom)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("variable a equal 4.34");
-    lmp->input->one("variable b equal $a*sqrt(3.0)");
-    lmp->input->one("variable c equal $a*sqrt(8.0/3.0)");
-    lmp->input->one("variable t equal 1.0/3.0");
-    lmp->input->one("variable f equal 5.0/6.0");
-    lmp->input->one("lattice custom  1.0     "
-                    "a1      $a   0.0  0.0   "
-                    "a2      0.0  $b   0.0   "
-                    "a3      0.0  0.0  $c    "
-                    "basis   0.0  0.0  0.0   "
-                    "basis   0.5  0.5  0.0   "
-                    "basis   $t   0.0  0.5   "
-                    "basis   $f   0.5  0.5   "
-                    "basis   0.0  0.0  0.625 "
-                    "basis   0.5  0.5  0.625 "
-                    "basis   $t   0.0  0.125 "
-                    "basis   $f   0.5  0.125 ");
+    command("variable a equal 4.34");
+    command("variable b equal $a*sqrt(3.0)");
+    command("variable c equal $a*sqrt(8.0/3.0)");
+    command("variable t equal 1.0/3.0");
+    command("variable f equal 5.0/6.0");
+    command("lattice custom  1.0     "
+            "a1      $a   0.0  0.0   "
+            "a2      0.0  $b   0.0   "
+            "a3      0.0  0.0  $c    "
+            "basis   0.0  0.0  0.0   "
+            "basis   0.5  0.5  0.0   "
+            "basis   $t   0.0  0.5   "
+            "basis   $f   0.5  0.5   "
+            "basis   0.0  0.0  0.625 "
+            "basis   0.5  0.5  0.625 "
+            "basis   $t   0.0  0.125 "
+            "basis   $f   0.5  0.125 ");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     auto lattice = lmp->domain->lattice;
     ASSERT_EQ(lattice->style, Lattice::CUSTOM);
@@ -492,47 +491,47 @@ TEST_F(LatticeRegionTest, lattice_custom)
     ASSERT_DOUBLE_EQ(lattice->a3[2], 4.34 * sqrt(8.0 / 3.0));
 
     TEST_FAILURE(".*ERROR: Illegal lattice command.*",
-                 lmp->input->one("lattice custom 1.0 basis -0.1 0 0"););
+                 command("lattice custom 1.0 basis -0.1 0 0"););
     TEST_FAILURE(".*ERROR: Illegal lattice command.*",
-                 lmp->input->one("lattice custom 1.0 basis 0.0 1.0 0"););
+                 command("lattice custom 1.0 basis 0.0 1.0 0"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("dimension 2");
+    command("dimension 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    TEST_FAILURE(".*ERROR: No basis atoms in lattice.*", lmp->input->one("lattice custom 1.0"););
+    TEST_FAILURE(".*ERROR: No basis atoms in lattice.*", command("lattice custom 1.0"););
     TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
-                 lmp->input->one("lattice custom 1.0 origin 0.5 0.5 0.5 basis 0.0 0.0 0.0"););
+                 command("lattice custom 1.0 origin 0.5 0.5 0.5 basis 0.0 0.0 0.0"););
     TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
-                 lmp->input->one("lattice custom 1.0 a1 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
+                 command("lattice custom 1.0 a1 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
     TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
-                 lmp->input->one("lattice custom 1.0 a2 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
+                 command("lattice custom 1.0 a2 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
     TEST_FAILURE(".*ERROR: Lattice settings are not compatible with 2d simulation.*",
-                 lmp->input->one("lattice custom 1.0 a3 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
+                 command("lattice custom 1.0 a3 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
 }
 
 TEST_F(LatticeRegionTest, region_fail)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice none 2.0");
-    lmp->input->one("region box block 0 1 0 1 0 1");
+    command("lattice none 2.0");
+    command("region box block 0 1 0 1 0 1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR: Create_atoms command before simulation box is defined.*",
-                 lmp->input->one("create_atoms 1 box"););
+                 command("create_atoms 1 box"););
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("create_box 1 box");
+    command("create_box 1 box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     TEST_FAILURE(".*ERROR: Cannot create atoms with undefined lattice.*",
-                 lmp->input->one("create_atoms 1 box"););
+                 command("create_atoms 1 box"););
 }
 
 TEST_F(LatticeRegionTest, region_block_lattice)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice sc 1.5");
-    lmp->input->one("region box block 0 2 0 2 0 2 units lattice");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 box");
+    command("lattice sc 1.5");
+    command("region box block 0 2 0 2 0 2 units lattice");
+    command("create_box 1 box");
+    command("create_atoms 1 box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ASSERT_EQ(lmp->domain->triclinic, 0);
@@ -555,10 +554,10 @@ TEST_F(LatticeRegionTest, region_block_lattice)
 TEST_F(LatticeRegionTest, region_block_box)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice sc 1.5 origin 0.75 0.75 0.75");
-    lmp->input->one("region box block 0 2 0 2 0 2 units box");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 box");
+    command("lattice sc 1.5 origin 0.75 0.75 0.75");
+    command("region box block 0 2 0 2 0 2 units box");
+    command("create_box 1 box");
+    command("create_atoms 1 box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
 
@@ -572,11 +571,11 @@ TEST_F(LatticeRegionTest, region_block_box)
 TEST_F(LatticeRegionTest, region_cone)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
-    lmp->input->one("region box cone x 1.0 1.0 0.5 2.1 0.0 2.0");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 region box");
-    lmp->input->one("write_dump all atom init.lammpstrj");
+    command("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    command("region box cone x 1.0 1.0 0.5 2.1 0.0 2.0");
+    command("create_box 1 box");
+    command("create_atoms 1 region box");
+    command("write_dump all atom init.lammpstrj");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
     ASSERT_EQ(lmp->atom->natoms, 42);
@@ -585,10 +584,10 @@ TEST_F(LatticeRegionTest, region_cone)
 TEST_F(LatticeRegionTest, region_cylinder)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
-    lmp->input->one("region box cylinder z 1.0 1.0 2.1 0.0 2.0 ");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 region box");
+    command("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    command("region box cylinder z 1.0 1.0 2.1 0.0 2.0 ");
+    command("create_box 1 box");
+    command("create_atoms 1 region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
     ASSERT_EQ(lmp->atom->natoms, 114);
@@ -597,10 +596,10 @@ TEST_F(LatticeRegionTest, region_cylinder)
 TEST_F(LatticeRegionTest, region_prism)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice bcc 2.5 origin 0.75 0.75 0.75");
-    lmp->input->one("region box prism 0 2 0 2 0 2 0.5 0.0 0.0");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 box");
+    command("lattice bcc 2.5 origin 0.75 0.75 0.75");
+    command("region box prism 0 2 0 2 0 2 0.5 0.0 0.0");
+    command("create_box 1 box");
+    command("create_atoms 1 box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 1);
     ASSERT_EQ(lmp->atom->natoms, 16);
@@ -609,10 +608,10 @@ TEST_F(LatticeRegionTest, region_prism)
 TEST_F(LatticeRegionTest, region_sphere)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
-    lmp->input->one("region box sphere 1.0 1.0 1.0 1.1");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 region box");
+    command("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    command("region box sphere 1.0 1.0 1.0 1.1");
+    command("create_box 1 box");
+    command("create_atoms 1 region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
     ASSERT_EQ(lmp->atom->natoms, 14);
@@ -621,12 +620,12 @@ TEST_F(LatticeRegionTest, region_sphere)
 TEST_F(LatticeRegionTest, region_union)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
-    lmp->input->one("region part1 sphere 2.0 1.0 1.0 1.1");
-    lmp->input->one("region part2 block 0.0 2.0 0.0 2.0 0.0 2.0");
-    lmp->input->one("region box union 2 part1 part2");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 region box");
+    command("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    command("region part1 sphere 2.0 1.0 1.0 1.1");
+    command("region part2 block 0.0 2.0 0.0 2.0 0.0 2.0");
+    command("region box union 2 part1 part2");
+    command("create_box 1 box");
+    command("create_atoms 1 region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
     ASSERT_EQ(lmp->atom->natoms, 67);
@@ -635,12 +634,12 @@ TEST_F(LatticeRegionTest, region_union)
 TEST_F(LatticeRegionTest, region_intersect)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
-    lmp->input->one("region part1 sphere 2.0 1.0 1.0 1.8");
-    lmp->input->one("region part2 block 0.0 2.0 0.0 2.0 0.0 2.0");
-    lmp->input->one("region box intersect 2 part1 part2");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 region box");
+    command("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    command("region part1 sphere 2.0 1.0 1.0 1.8");
+    command("region part2 block 0.0 2.0 0.0 2.0 0.0 2.0");
+    command("region box intersect 2 part1 part2");
+    command("create_box 1 box");
+    command("create_atoms 1 region box");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
     ASSERT_EQ(lmp->atom->natoms, 21);
@@ -649,14 +648,14 @@ TEST_F(LatticeRegionTest, region_intersect)
 TEST_F(LatticeRegionTest, region_plane)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("lattice fcc 2.5 origin 0.5 0.5 0.5");
-    lmp->input->one("region box block 0.0 2.0 0.0 2.0 0.0 2.0");
-    lmp->input->one("region part1 plane 0.5 1.0 0.0  0.75 0.0 0.0");
-    lmp->input->one("region part2 plane 1.5 1.0 0.0  0.75 0.0 0.0 side out");
-    lmp->input->one("region atoms intersect 2 part1 part2");
-    lmp->input->one("create_box 1 box");
-    lmp->input->one("create_atoms 1 region atoms");
-    lmp->input->one("write_dump all atom init.lammpstrj");
+    command("lattice fcc 2.5 origin 0.5 0.5 0.5");
+    command("region box block 0.0 2.0 0.0 2.0 0.0 2.0");
+    command("region part1 plane 0.5 1.0 0.0  0.75 0.0 0.0");
+    command("region part2 plane 1.5 1.0 0.0  0.75 0.0 0.0 side out");
+    command("region atoms intersect 2 part1 part2");
+    command("create_box 1 box");
+    command("create_atoms 1 region atoms");
+    command("write_dump all atom init.lammpstrj");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->domain->triclinic, 0);
     ASSERT_EQ(lmp->atom->natoms, 16);

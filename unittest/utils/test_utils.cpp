@@ -533,10 +533,12 @@ TEST(Utils, strfind_dot)
 
 TEST(Utils, strfind_kim)
 {
-    ASSERT_THAT(utils::strfind("n3409jfse MO_004835508849_000 aslfjiaf",
-                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"), StrEq("MO_004835508849_000"));
+    ASSERT_THAT(
+        utils::strfind("n3409jfse MO_004835508849_000 aslfjiaf", "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"),
+        StrEq("MO_004835508849_000"));
     ASSERT_THAT(utils::strfind("VanDuinChakraborty_2003_CHNO__SM_107643900657_000",
-                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"), StrEq("SM_107643900657_000"));
+                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"),
+                StrEq("SM_107643900657_000"));
 }
 
 TEST(Utils, bounds_case1)

@@ -59,19 +59,19 @@ protected:
         ASSERT_NE(lmp, nullptr);
         if (!verbose) ::testing::internal::CaptureStdout();
         info = new Info(lmp);
-        lmp->input->one("units metal");
-        lmp->input->one("dimension 3");
-        lmp->input->one("region box block -4 4 -4 4 -4 4");
-        lmp->input->one("create_box 2 box");
-        lmp->input->one("create_atoms 1 single -1.1  1.2  0.0 units box");
-        lmp->input->one("create_atoms 1 single -1.2 -1.1  0.0 units box");
-        lmp->input->one("create_atoms 2 single  0.9  1.0  0.0 units box");
-        lmp->input->one("create_atoms 2 single  1.0 -0.9  0.0 units box");
-        lmp->input->one("pair_style zero 4.0");
-        lmp->input->one("pair_coeff * *");
-        lmp->input->one("mass * 1.0");
-        lmp->input->one("write_data test_pair_unit_convert.data nocoeff");
-        lmp->input->one("clear");
+        command("units metal");
+        command("dimension 3");
+        command("region box block -4 4 -4 4 -4 4");
+        command("create_box 2 box");
+        command("create_atoms 1 single -1.1  1.2  0.0 units box");
+        command("create_atoms 1 single -1.2 -1.1  0.0 units box");
+        command("create_atoms 2 single  0.9  1.0  0.0 units box");
+        command("create_atoms 2 single  1.0 -0.9  0.0 units box");
+        command("pair_style zero 4.0");
+        command("pair_coeff * *");
+        command("mass * 1.0");
+        command("write_data test_pair_unit_convert.data nocoeff");
+        command("clear");
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
@@ -83,6 +83,8 @@ protected:
         if (!verbose) ::testing::internal::GetCapturedStdout();
         remove("test_pair_unit_convert.data");
     }
+
+    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 TEST_F(PairUnitConvertTest, zero)
@@ -91,11 +93,11 @@ TEST_F(PairUnitConvertTest, zero)
     if (!info->has_style("pair", "zero")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style zero 6.0");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style zero 6.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -108,12 +110,12 @@ TEST_F(PairUnitConvertTest, zero)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style zero 6.0");
-    lmp->input->one("pair_coeff * *");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style zero 6.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -134,15 +136,15 @@ TEST_F(PairUnitConvertTest, lj_cut)
     if (!info->has_style("pair", "lj/cut")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style lj/cut 6.0");
-    lmp->input->one("pair_coeff * * 0.01014286346782117 2.0");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style lj/cut 6.0");
+    command("pair_coeff * * 0.01014286346782117 2.0");
     remove("test.table.metal");
-    lmp->input->one("pair_write 1 1 1000 r 0.1 6.0 test.table.metal lj_1_1");
-    lmp->input->one("pair_write 1 2 1000 r 0.1 6.0 test.table.metal lj_1_2");
-    lmp->input->one("pair_write 2 2 1000 r 0.1 6.0 test.table.metal lj_2_2");
-    lmp->input->one("run 0 post no");
+    command("pair_write 1 1 1000 r 0.1 6.0 test.table.metal lj_1_1");
+    command("pair_write 1 2 1000 r 0.1 6.0 test.table.metal lj_1_2");
+    command("pair_write 2 2 1000 r 0.1 6.0 test.table.metal lj_2_2");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -155,16 +157,16 @@ TEST_F(PairUnitConvertTest, lj_cut)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style lj/cut 6.0");
-    lmp->input->one("pair_coeff * * 0.2339 2.0");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style lj/cut 6.0");
+    command("pair_coeff * * 0.2339 2.0");
     remove("test.table.real");
-    lmp->input->one("pair_write 1 1 1000 r 0.1 6.0 test.table.real lj_1_1");
-    lmp->input->one("pair_write 1 2 1000 r 0.1 6.0 test.table.real lj_1_2");
-    lmp->input->one("pair_write 2 2 1000 r 0.1 6.0 test.table.real lj_2_2");
-    lmp->input->one("run 0 post no");
+    command("pair_write 1 1 1000 r 0.1 6.0 test.table.real lj_1_1");
+    command("pair_write 1 2 1000 r 0.1 6.0 test.table.real lj_1_2");
+    command("pair_write 2 2 1000 r 0.1 6.0 test.table.real lj_2_2");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -185,11 +187,11 @@ TEST_F(PairUnitConvertTest, eam)
     if (!info->has_style("pair", "eam")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eam");
-    lmp->input->one("pair_coeff * * Cu_u3.eam");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eam");
+    command("pair_coeff * * Cu_u3.eam");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -202,12 +204,12 @@ TEST_F(PairUnitConvertTest, eam)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eam");
-    lmp->input->one("pair_coeff * * Cu_u3.eam");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eam");
+    command("pair_coeff * * Cu_u3.eam");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -228,11 +230,11 @@ TEST_F(PairUnitConvertTest, eam_alloy)
     if (!info->has_style("pair", "eam/alloy")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eam/alloy");
-    lmp->input->one("pair_coeff * * AlCu.eam.alloy Al Cu");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eam/alloy");
+    command("pair_coeff * * AlCu.eam.alloy Al Cu");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -245,12 +247,12 @@ TEST_F(PairUnitConvertTest, eam_alloy)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eam/alloy");
-    lmp->input->one("pair_coeff * * AlCu.eam.alloy Al Cu");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eam/alloy");
+    command("pair_coeff * * AlCu.eam.alloy Al Cu");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -271,11 +273,11 @@ TEST_F(PairUnitConvertTest, eam_fs)
     if (!info->has_style("pair", "eam/fs")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eam/fs");
-    lmp->input->one("pair_coeff * * FeP_mm.eam.fs Fe P");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eam/fs");
+    command("pair_coeff * * FeP_mm.eam.fs Fe P");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -288,12 +290,12 @@ TEST_F(PairUnitConvertTest, eam_fs)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eam/fs");
-    lmp->input->one("pair_coeff * * FeP_mm.eam.fs Fe P");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eam/fs");
+    command("pair_coeff * * FeP_mm.eam.fs Fe P");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -314,11 +316,11 @@ TEST_F(PairUnitConvertTest, eam_cd)
     if (!info->has_style("pair", "eam/cd")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eam/cd");
-    lmp->input->one("pair_coeff * * FeCr.cdeam Cr Fe");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eam/cd");
+    command("pair_coeff * * FeCr.cdeam Cr Fe");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -331,12 +333,12 @@ TEST_F(PairUnitConvertTest, eam_cd)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eam/cd");
-    lmp->input->one("pair_coeff * * FeCr.cdeam Cr Fe");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eam/cd");
+    command("pair_coeff * * FeCr.cdeam Cr Fe");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -357,11 +359,11 @@ TEST_F(PairUnitConvertTest, eim)
     if (!info->has_style("pair", "eim")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eim");
-    lmp->input->one("pair_coeff * * Na Cl ffield.eim Na Cl");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eim");
+    command("pair_coeff * * Na Cl ffield.eim Na Cl");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -374,12 +376,12 @@ TEST_F(PairUnitConvertTest, eim)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style eim");
-    lmp->input->one("pair_coeff * * Na Cl ffield.eim Na Cl");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style eim");
+    command("pair_coeff * * Na Cl ffield.eim Na Cl");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -400,11 +402,11 @@ TEST_F(PairUnitConvertTest, gw)
     if (!info->has_style("pair", "gw")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style gw");
-    lmp->input->one("pair_coeff * * SiC.gw Si C");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style gw");
+    command("pair_coeff * * SiC.gw Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -417,12 +419,12 @@ TEST_F(PairUnitConvertTest, gw)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style gw");
-    lmp->input->one("pair_coeff * * SiC.gw Si C");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style gw");
+    command("pair_coeff * * SiC.gw Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -443,11 +445,11 @@ TEST_F(PairUnitConvertTest, gw_zbl)
     if (!info->has_style("pair", "gw/zbl")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style gw/zbl");
-    lmp->input->one("pair_coeff * * SiC.gw.zbl Si C");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style gw/zbl");
+    command("pair_coeff * * SiC.gw.zbl Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -460,12 +462,12 @@ TEST_F(PairUnitConvertTest, gw_zbl)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style gw/zbl");
-    lmp->input->one("pair_coeff * * SiC.gw.zbl Si C");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style gw/zbl");
+    command("pair_coeff * * SiC.gw.zbl Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -486,11 +488,11 @@ TEST_F(PairUnitConvertTest, nb3b_harmonic)
     if (!info->has_style("pair", "nb3b/harmonic")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style nb3b/harmonic");
-    lmp->input->one("pair_coeff * * MOH.nb3b.harmonic M O");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style nb3b/harmonic");
+    command("pair_coeff * * MOH.nb3b.harmonic M O");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -503,12 +505,12 @@ TEST_F(PairUnitConvertTest, nb3b_harmonic)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style nb3b/harmonic");
-    lmp->input->one("pair_coeff * * MOH.nb3b.harmonic M O");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style nb3b/harmonic");
+    command("pair_coeff * * MOH.nb3b.harmonic M O");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -529,11 +531,11 @@ TEST_F(PairUnitConvertTest, sw)
     if (!info->has_style("pair", "sw")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style sw");
-    lmp->input->one("pair_coeff * * GaN.sw Ga N");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style sw");
+    command("pair_coeff * * GaN.sw Ga N");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -546,12 +548,12 @@ TEST_F(PairUnitConvertTest, sw)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style sw");
-    lmp->input->one("pair_coeff * * GaN.sw Ga N");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style sw");
+    command("pair_coeff * * GaN.sw Ga N");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -572,13 +574,13 @@ TEST_F(PairUnitConvertTest, table_metal2real)
     if (!info->has_style("pair", "table")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style table linear 1000");
-    lmp->input->one("pair_coeff 1 1 test.table.metal lj_1_1");
-    lmp->input->one("pair_coeff 1 2 test.table.metal lj_1_2");
-    lmp->input->one("pair_coeff 2 2 test.table.metal lj_2_2");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style table linear 1000");
+    command("pair_coeff 1 1 test.table.metal lj_1_1");
+    command("pair_coeff 1 2 test.table.metal lj_1_2");
+    command("pair_coeff 2 2 test.table.metal lj_2_2");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -591,14 +593,14 @@ TEST_F(PairUnitConvertTest, table_metal2real)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style table linear 1000");
-    lmp->input->one("pair_coeff 1 1 test.table.metal lj_1_1");
-    lmp->input->one("pair_coeff 1 2 test.table.metal lj_1_2");
-    lmp->input->one("pair_coeff 2 2 test.table.metal lj_2_2");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style table linear 1000");
+    command("pair_coeff 1 1 test.table.metal lj_1_1");
+    command("pair_coeff 1 2 test.table.metal lj_1_2");
+    command("pair_coeff 2 2 test.table.metal lj_2_2");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -619,13 +621,13 @@ TEST_F(PairUnitConvertTest, table_real2metal)
     if (!info->has_style("pair", "table")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style table linear 1000");
-    lmp->input->one("pair_coeff 1 1 test.table.real lj_1_1");
-    lmp->input->one("pair_coeff 1 2 test.table.real lj_1_2");
-    lmp->input->one("pair_coeff 2 2 test.table.real lj_2_2");
-    lmp->input->one("run 0 post no");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style table linear 1000");
+    command("pair_coeff 1 1 test.table.real lj_1_1");
+    command("pair_coeff 1 2 test.table.real lj_1_2");
+    command("pair_coeff 2 2 test.table.real lj_2_2");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -638,14 +640,14 @@ TEST_F(PairUnitConvertTest, table_real2metal)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style table linear 1000");
-    lmp->input->one("pair_coeff 1 1 test.table.real lj_1_1");
-    lmp->input->one("pair_coeff 1 2 test.table.real lj_1_2");
-    lmp->input->one("pair_coeff 2 2 test.table.real lj_2_2");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style table linear 1000");
+    command("pair_coeff 1 1 test.table.real lj_1_1");
+    command("pair_coeff 1 2 test.table.real lj_1_2");
+    command("pair_coeff 2 2 test.table.real lj_2_2");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -666,11 +668,11 @@ TEST_F(PairUnitConvertTest, tersoff)
     if (!info->has_style("pair", "tersoff")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff");
-    lmp->input->one("pair_coeff * * SiC.tersoff Si C");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff");
+    command("pair_coeff * * SiC.tersoff Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -683,12 +685,12 @@ TEST_F(PairUnitConvertTest, tersoff)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff");
-    lmp->input->one("pair_coeff * * SiC.tersoff Si C");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff");
+    command("pair_coeff * * SiC.tersoff Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -709,11 +711,11 @@ TEST_F(PairUnitConvertTest, tersoff_mod)
     if (!info->has_style("pair", "tersoff/mod")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/mod");
-    lmp->input->one("pair_coeff * * Si.tersoff.mod Si Si");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/mod");
+    command("pair_coeff * * Si.tersoff.mod Si Si");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -726,12 +728,12 @@ TEST_F(PairUnitConvertTest, tersoff_mod)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/mod");
-    lmp->input->one("pair_coeff * * Si.tersoff.mod Si Si");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/mod");
+    command("pair_coeff * * Si.tersoff.mod Si Si");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -752,11 +754,11 @@ TEST_F(PairUnitConvertTest, tersoff_mod_c)
     if (!info->has_style("pair", "tersoff/mod/c")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/mod/c");
-    lmp->input->one("pair_coeff * * Si.tersoff.modc Si Si");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/mod/c");
+    command("pair_coeff * * Si.tersoff.modc Si Si");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -769,12 +771,12 @@ TEST_F(PairUnitConvertTest, tersoff_mod_c)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/mod/c");
-    lmp->input->one("pair_coeff * * Si.tersoff.modc Si Si");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/mod/c");
+    command("pair_coeff * * Si.tersoff.modc Si Si");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -795,11 +797,11 @@ TEST_F(PairUnitConvertTest, tersoff_table)
     if (!info->has_style("pair", "tersoff/table")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/table");
-    lmp->input->one("pair_coeff * * SiC.tersoff Si C");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/table");
+    command("pair_coeff * * SiC.tersoff Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -812,12 +814,12 @@ TEST_F(PairUnitConvertTest, tersoff_table)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/table");
-    lmp->input->one("pair_coeff * * SiC.tersoff Si C");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/table");
+    command("pair_coeff * * SiC.tersoff Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -838,11 +840,11 @@ TEST_F(PairUnitConvertTest, tersoff_zbl)
     if (!info->has_style("pair", "tersoff/zbl")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/zbl");
-    lmp->input->one("pair_coeff * * SiC.tersoff.zbl Si C");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/zbl");
+    command("pair_coeff * * SiC.tersoff.zbl Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -855,12 +857,12 @@ TEST_F(PairUnitConvertTest, tersoff_zbl)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/zbl");
-    lmp->input->one("pair_coeff * * SiC.tersoff.zbl Si C");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/zbl");
+    command("pair_coeff * * SiC.tersoff.zbl Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -881,12 +883,12 @@ TEST_F(PairUnitConvertTest, tersoff_zbl_omp)
     if (!info->has_style("pair", "tersoff/zbl/omp")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("package omp 4");
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/zbl/omp");
-    lmp->input->one("pair_coeff * * SiC.tersoff.zbl Si C");
-    lmp->input->one("run 0 post no");
+    command("package omp 4");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/zbl/omp");
+    command("pair_coeff * * SiC.tersoff.zbl Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -899,13 +901,13 @@ TEST_F(PairUnitConvertTest, tersoff_zbl_omp)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("package omp 4");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style tersoff/zbl/omp");
-    lmp->input->one("pair_coeff * * SiC.tersoff.zbl Si C");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("package omp 4");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style tersoff/zbl/omp");
+    command("pair_coeff * * SiC.tersoff.zbl Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;
@@ -926,11 +928,11 @@ TEST_F(PairUnitConvertTest, vashishta)
     if (!info->has_style("pair", "vashishta")) GTEST_SKIP();
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style vashishta");
-    lmp->input->one("pair_coeff * * SiC.vashishta Si C");
-    lmp->input->one("run 0 post no");
+    command("units metal");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style vashishta");
+    command("pair_coeff * * SiC.vashishta Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     // copy pressure, energy, and force from first step
@@ -943,12 +945,12 @@ TEST_F(PairUnitConvertTest, vashishta)
             fold[i][j] = f[i][j];
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
-    lmp->input->one("units real");
-    lmp->input->one("read_data test_pair_unit_convert.data");
-    lmp->input->one("pair_style vashishta");
-    lmp->input->one("pair_coeff * * SiC.vashishta Si C");
-    lmp->input->one("run 0 post no");
+    command("clear");
+    command("units real");
+    command("read_data test_pair_unit_convert.data");
+    command("pair_style vashishta");
+    command("pair_coeff * * SiC.vashishta Si C");
+    command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     double pnew;

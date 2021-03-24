@@ -73,7 +73,7 @@ protected:
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         if (!verbose) ::testing::internal::GetCapturedStdout();
-        group = lmp->group;
+        group  = lmp->group;
         domain = lmp->domain;
     }
 

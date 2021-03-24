@@ -82,11 +82,13 @@ protected:
         delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
+
+    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 TEST_F(SimpleCommandsTest, UnknownCommand)
 {
-    TEST_FAILURE(".*ERROR: Unknown command.*", lmp->input->one("XXX one two"););
+    TEST_FAILURE(".*ERROR: Unknown command.*", command("XXX one two"););
 }
 
 TEST_F(SimpleCommandsTest, Echo)
@@ -95,31 +97,31 @@ TEST_F(SimpleCommandsTest, Echo)
     ASSERT_EQ(lmp->input->echo_log, 0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("echo none");
+    command("echo none");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->input->echo_screen, 0);
     ASSERT_EQ(lmp->input->echo_log, 0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("echo both");
+    command("echo both");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->input->echo_screen, 1);
     ASSERT_EQ(lmp->input->echo_log, 1);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("echo screen");
+    command("echo screen");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->input->echo_screen, 1);
     ASSERT_EQ(lmp->input->echo_log, 0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("echo log");
+    command("echo log");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->input->echo_screen, 0);
     ASSERT_EQ(lmp->input->echo_log, 1);
 
-    TEST_FAILURE(".*ERROR: Illegal echo command.*", lmp->input->one("echo"););
-    TEST_FAILURE(".*ERROR: Illegal echo command.*", lmp->input->one("echo xxx"););
+    TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo"););
+    TEST_FAILURE(".*ERROR: Illegal echo command.*", command("echo xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Log)
@@ -127,13 +129,13 @@ TEST_F(SimpleCommandsTest, Log)
     ASSERT_EQ(lmp->logfile, nullptr);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("log simple_command_test.log");
-    lmp->input->one("print 'test1'");
+    command("log simple_command_test.log");
+    command("print 'test1'");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_NE(lmp->logfile, nullptr);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("log none");
+    command("log none");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->logfile, nullptr);
 
@@ -145,12 +147,12 @@ TEST_F(SimpleCommandsTest, Log)
     ASSERT_THAT(text, StrEq("test1"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("log simple_command_test.log append");
-    lmp->input->one("print 'test2'");
+    command("log simple_command_test.log append");
+    command("print 'test2'");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_NE(lmp->logfile, nullptr);
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("log none");
+    command("log none");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->logfile, nullptr);
 
@@ -162,7 +164,7 @@ TEST_F(SimpleCommandsTest, Log)
     in.close();
     remove("simple_command_test.log");
 
-    TEST_FAILURE(".*ERROR: Illegal log command.*", lmp->input->one("log"););
+    TEST_FAILURE(".*ERROR: Illegal log command.*", command("log"););
 }
 
 TEST_F(SimpleCommandsTest, Newton)
@@ -171,22 +173,22 @@ TEST_F(SimpleCommandsTest, Newton)
     ASSERT_EQ(lmp->force->newton_pair, 1);
     ASSERT_EQ(lmp->force->newton_bond, 1);
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("newton off");
+    command("newton off");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->force->newton_pair, 0);
     ASSERT_EQ(lmp->force->newton_bond, 0);
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("newton on off");
+    command("newton on off");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->force->newton_pair, 1);
     ASSERT_EQ(lmp->force->newton_bond, 0);
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("newton off on");
+    command("newton off on");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->force->newton_pair, 0);
     ASSERT_EQ(lmp->force->newton_bond, 1);
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("newton on");
+    command("newton on");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->force->newton_pair, 1);
     ASSERT_EQ(lmp->force->newton_bond, 1);
@@ -195,21 +197,20 @@ TEST_F(SimpleCommandsTest, Newton)
 TEST_F(SimpleCommandsTest, Partition)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("echo none");
+    command("echo none");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    TEST_FAILURE(".*ERROR: Illegal partition command .*",
-                 lmp->input->one("partition xxx 1 echo none"););
+    TEST_FAILURE(".*ERROR: Illegal partition command .*", command("partition xxx 1 echo none"););
     TEST_FAILURE(".*ERROR: Numeric index 2 is out of bounds.*",
-                 lmp->input->one("partition yes 2 echo none"););
+                 command("partition yes 2 echo none"););
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one("partition yes 1 print 'test'");
+    command("partition yes 1 print 'test'");
     auto text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, StrEq("test\n"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one("partition no 1 print 'test'");
+    command("partition no 1 print 'test'");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, StrEq(""));
@@ -218,14 +219,14 @@ TEST_F(SimpleCommandsTest, Partition)
 TEST_F(SimpleCommandsTest, Quit)
 {
     ::testing::internal::CaptureStdout();
-    lmp->input->one("echo none");
+    command("echo none");
     ::testing::internal::GetCapturedStdout();
-    TEST_FAILURE(".*ERROR: Expected integer .*", lmp->input->one("quit xxx"););
+    TEST_FAILURE(".*ERROR: Expected integer .*", command("quit xxx"););
 
     // the following tests must be skipped with OpenMPI due to using threads
     if (have_openmpi) GTEST_SKIP();
-    ASSERT_EXIT(lmp->input->one("quit"), ExitedWithCode(0), "");
-    ASSERT_EXIT(lmp->input->one("quit 9"), ExitedWithCode(9), "");
+    ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
+    ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }
 
 TEST_F(SimpleCommandsTest, ResetTimestep)
@@ -233,19 +234,19 @@ TEST_F(SimpleCommandsTest, ResetTimestep)
     ASSERT_EQ(lmp->update->ntimestep, 0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_timestep 10");
+    command("reset_timestep 10");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->update->ntimestep, 10);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("reset_timestep 0");
+    command("reset_timestep 0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->update->ntimestep, 0);
 
-    TEST_FAILURE(".*ERROR: Timestep must be >= 0.*", lmp->input->one("reset_timestep -10"););
-    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", lmp->input->one("reset_timestep"););
-    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", lmp->input->one("reset_timestep 10 10"););
-    TEST_FAILURE(".*ERROR: Expected integer .*", lmp->input->one("reset_timestep xxx"););
+    TEST_FAILURE(".*ERROR: Timestep must be >= 0.*", command("reset_timestep -10"););
+    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep"););
+    TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep 10 10"););
+    TEST_FAILURE(".*ERROR: Expected integer .*", command("reset_timestep xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Suffix)
@@ -254,39 +255,38 @@ TEST_F(SimpleCommandsTest, Suffix)
     ASSERT_EQ(lmp->suffix, nullptr);
     ASSERT_EQ(lmp->suffix2, nullptr);
 
-    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*",
-                 lmp->input->one("suffix on"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix on"););
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("suffix one");
+    command("suffix one");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(lmp->suffix, StrEq("one"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("suffix hybrid two three");
+    command("suffix hybrid two three");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(lmp->suffix, StrEq("two"));
     ASSERT_THAT(lmp->suffix2, StrEq("three"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("suffix four");
+    command("suffix four");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(lmp->suffix, StrEq("four"));
     ASSERT_EQ(lmp->suffix2, nullptr);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("suffix off");
+    command("suffix off");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->suffix_enable, 0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("suffix on");
+    command("suffix on");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->suffix_enable, 1);
 
-    TEST_FAILURE(".*ERROR: Illegal suffix command.*", lmp->input->one("suffix"););
-    TEST_FAILURE(".*ERROR: Illegal suffix command.*", lmp->input->one("suffix hybrid"););
-    TEST_FAILURE(".*ERROR: Illegal suffix command.*", lmp->input->one("suffix hybrid one"););
+    TEST_FAILURE(".*ERROR: Illegal suffix command.*", command("suffix"););
+    TEST_FAILURE(".*ERROR: Illegal suffix command.*", command("suffix hybrid"););
+    TEST_FAILURE(".*ERROR: Illegal suffix command.*", command("suffix hybrid one"););
 }
 
 TEST_F(SimpleCommandsTest, Thermo)
@@ -294,53 +294,53 @@ TEST_F(SimpleCommandsTest, Thermo)
     ASSERT_EQ(lmp->output->thermo_every, 0);
     ASSERT_EQ(lmp->output->var_thermo, nullptr);
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("thermo 2");
+    command("thermo 2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->output->thermo_every, 2);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("variable step equal logfreq(10,3,10)");
-    lmp->input->one("thermo v_step");
+    command("variable step equal logfreq(10,3,10)");
+    command("thermo v_step");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(lmp->output->var_thermo, StrEq("step"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("thermo 10");
+    command("thermo 10");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->output->thermo_every, 10);
     ASSERT_EQ(lmp->output->var_thermo, nullptr);
 
-    TEST_FAILURE(".*ERROR: Illegal thermo command.*", lmp->input->one("thermo"););
-    TEST_FAILURE(".*ERROR: Illegal thermo command.*", lmp->input->one("thermo -1"););
-    TEST_FAILURE(".*ERROR: Expected integer.*", lmp->input->one("thermo xxx"););
+    TEST_FAILURE(".*ERROR: Illegal thermo command.*", command("thermo"););
+    TEST_FAILURE(".*ERROR: Illegal thermo command.*", command("thermo -1"););
+    TEST_FAILURE(".*ERROR: Expected integer.*", command("thermo xxx"););
 }
 
 TEST_F(SimpleCommandsTest, TimeStep)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("timestep 1");
+    command("timestep 1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->update->dt, 1.0);
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("timestep 0.1");
+    command("timestep 0.1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->update->dt, 0.1);
 
     // zero timestep is legal and works (atoms don't move)
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("timestep 0.0");
+    command("timestep 0.0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->update->dt, 0.0);
 
     // negative timestep also creates a viable MD.
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("timestep -0.1");
+    command("timestep -0.1");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_EQ(lmp->update->dt, -0.1);
 
-    TEST_FAILURE(".*ERROR: Illegal timestep command.*", lmp->input->one("timestep"););
-    TEST_FAILURE(".*ERROR: Expected floating point.*", lmp->input->one("timestep xxx"););
+    TEST_FAILURE(".*ERROR: Illegal timestep command.*", command("timestep"););
+    TEST_FAILURE(".*ERROR: Expected floating point.*", command("timestep xxx"););
 }
 
 TEST_F(SimpleCommandsTest, Units)
@@ -353,24 +353,24 @@ TEST_F(SimpleCommandsTest, Units)
     ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
     for (std::size_t i = 0; i < num; ++i) {
         if (!verbose) ::testing::internal::CaptureStdout();
-        lmp->input->one(fmt::format("units {}", names[i]));
+        command(fmt::format("units {}", names[i]));
         if (!verbose) ::testing::internal::GetCapturedStdout();
         ASSERT_THAT(lmp->update->unit_style, StrEq(names[i]));
         ASSERT_EQ(lmp->update->dt, dt[i]);
     }
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("clear");
+    command("clear");
     if (!verbose) ::testing::internal::GetCapturedStdout();
     ASSERT_THAT(lmp->update->unit_style, StrEq("lj"));
 
-    TEST_FAILURE(".*ERROR: Illegal units command.*", lmp->input->one("units unknown"););
+    TEST_FAILURE(".*ERROR: Illegal units command.*", command("units unknown"););
 }
 
 TEST_F(SimpleCommandsTest, Shell)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("shell putenv TEST_VARIABLE=simpletest");
+    command("shell putenv TEST_VARIABLE=simpletest");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     char *test_var = getenv("TEST_VARIABLE");
@@ -378,8 +378,8 @@ TEST_F(SimpleCommandsTest, Shell)
     ASSERT_THAT(test_var, StrEq("simpletest"));
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("shell putenv TEST_VARIABLE=simpletest");
-    lmp->input->one("shell putenv TEST_VARIABLE2=simpletest2 OTHER_VARIABLE=2");
+    command("shell putenv TEST_VARIABLE=simpletest");
+    command("shell putenv TEST_VARIABLE2=simpletest2 OTHER_VARIABLE=2");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     char *test_var2 = getenv("TEST_VARIABLE2");

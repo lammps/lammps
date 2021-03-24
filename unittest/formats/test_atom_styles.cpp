@@ -102,9 +102,6 @@ class AtomStyleTest : public ::testing::Test {
 protected:
     LAMMPS *lmp;
 
-    // convenience...
-    void command(const std::string cmd) { lmp->input->one(cmd); }
-
     void SetUp() override
     {
         const char *args[] = {"SimpleCommandsTest", "-log", "none", "-echo", "screen", "-nocite"};
@@ -131,6 +128,8 @@ protected:
         remove("input_atom_styles.data");
         remove("test_atom_styles.restart");
     }
+
+    void command(const std::string cmd) { lmp->input->one(cmd); }
 };
 
 // default class Atom state

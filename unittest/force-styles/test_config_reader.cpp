@@ -53,17 +53,17 @@ TestConfigReader::TestConfigReader(TestConfig &config) : YamlReader(), config(co
     consumers["global_scalar"] = &TestConfigReader::global_scalar;
     consumers["global_vector"] = &TestConfigReader::global_vector;
 
-    consumers["bond_style"]  = &TestConfigReader::bond_style;
-    consumers["bond_coeff"]  = &TestConfigReader::bond_coeff;
-    consumers["angle_style"] = &TestConfigReader::angle_style;
-    consumers["angle_coeff"] = &TestConfigReader::angle_coeff;
+    consumers["bond_style"]     = &TestConfigReader::bond_style;
+    consumers["bond_coeff"]     = &TestConfigReader::bond_coeff;
+    consumers["angle_style"]    = &TestConfigReader::angle_style;
+    consumers["angle_coeff"]    = &TestConfigReader::angle_coeff;
     consumers["dihedral_style"] = &TestConfigReader::dihedral_style;
     consumers["dihedral_coeff"] = &TestConfigReader::dihedral_coeff;
     consumers["improper_style"] = &TestConfigReader::improper_style;
     consumers["improper_coeff"] = &TestConfigReader::improper_coeff;
-    consumers["init_energy"] = &TestConfigReader::init_energy;
-    consumers["run_energy"]  = &TestConfigReader::run_energy;
-    consumers["equilibrium"] = &TestConfigReader::equilibrium;
+    consumers["init_energy"]    = &TestConfigReader::init_energy;
+    consumers["run_energy"]     = &TestConfigReader::run_energy;
+    consumers["equilibrium"]    = &TestConfigReader::equilibrium;
 }
 
 void TestConfigReader::prerequisites(const yaml_event_t &event)

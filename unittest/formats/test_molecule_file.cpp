@@ -131,19 +131,20 @@ protected:
         lmp->input->one(fmt::format("molecule {} {} {}", name, file, args));
         remove(file.c_str());
     }
+
+    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 TEST_F(MoleculeFileTest, nofile)
 {
-    TEST_FAILURE(".*Cannot open molecule file nofile.mol.*",
-                 lmp->input->one("molecule 1 nofile.mol"););
+    TEST_FAILURE(".*Cannot open molecule file nofile.mol.*", command("molecule 1 nofile.mol"););
 }
 
 TEST_F(MoleculeFileTest, badid)
 {
     TEST_FAILURE(".*Molecule template ID must have only "
                  "alphanumeric or underscore characters.*",
-                 lmp->input->one("molecule @mol nofile.mol"););
+                 command("molecule @mol nofile.mol"););
 }
 
 TEST_F(MoleculeFileTest, badargs)
@@ -223,7 +224,7 @@ TEST_F(MoleculeFileTest, twomols)
 TEST_F(MoleculeFileTest, twofiles)
 {
     ::testing::internal::CaptureStdout();
-    lmp->input->one("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     auto output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     ASSERT_THAT(output, MatchesRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
@@ -237,10 +238,10 @@ TEST_F(MoleculeFileTest, twofiles)
 TEST_F(MoleculeFileTest, bonds)
 {
     ::testing::internal::CaptureStdout();
-    lmp->input->one("atom_style bond");
-    lmp->input->one("region box block 0 1 0 1 0 1");
-    lmp->input->one("create_box 2 box bond/types 2 extra/bond/per/atom 2 "
-                    "extra/special/per/atom 4");
+    command("atom_style bond");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 2 box bond/types 2 extra/bond/per/atom 2 "
+            "extra/special/per/atom 4");
     run_mol_cmd(test_name, "",
                 "Comment\n"
                 "4 atoms\n"
@@ -264,8 +265,8 @@ TEST_F(MoleculeFileTest, bonds)
                                      "2 bonds.*type.*2.*0 angles.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one("mass * 2.0");
-    lmp->input->one("create_atoms 0 single 0.5 0.5 0.5 mol bonds 67235");
+    command("mass * 2.0");
+    command("create_atoms 0 single 0.5 0.5 0.5 mol bonds 67235");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
     ASSERT_THAT(output, MatchesRegex(".*Created 4 atoms.*"));

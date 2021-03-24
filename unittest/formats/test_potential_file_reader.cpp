@@ -96,13 +96,15 @@ protected:
         delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
+
+    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 // open for native units
 TEST_F(PotentialFileReaderTest, Sw_native)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -114,7 +116,7 @@ TEST_F(PotentialFileReaderTest, Sw_native)
 TEST_F(PotentialFileReaderTest, Sw_conv)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units real");
+    command("units real");
     PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::METAL2REAL);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -126,7 +128,7 @@ TEST_F(PotentialFileReaderTest, Sw_conv)
 TEST_F(PotentialFileReaderTest, Sw_noconv)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units real");
+    command("units real");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     TEST_FAILURE(".*ERROR on proc.*potential.*requires metal units but real.*",
@@ -136,7 +138,7 @@ TEST_F(PotentialFileReaderTest, Sw_noconv)
 TEST_F(PotentialFileReaderTest, Comb)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "ffield.comb", "COMB");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -147,7 +149,7 @@ TEST_F(PotentialFileReaderTest, Comb)
 TEST_F(PotentialFileReaderTest, Comb3)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "ffield.comb3", "COMB3");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -158,7 +160,7 @@ TEST_F(PotentialFileReaderTest, Comb3)
 TEST_F(PotentialFileReaderTest, Tersoff)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "Si.tersoff", "Tersoff");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -169,7 +171,7 @@ TEST_F(PotentialFileReaderTest, Tersoff)
 TEST_F(PotentialFileReaderTest, TersoffMod)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "Si.tersoff.mod", "Tersoff/Mod");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -180,7 +182,7 @@ TEST_F(PotentialFileReaderTest, TersoffMod)
 TEST_F(PotentialFileReaderTest, TersoffModC)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "Si.tersoff.modc", "Tersoff/ModC");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -191,7 +193,7 @@ TEST_F(PotentialFileReaderTest, TersoffModC)
 TEST_F(PotentialFileReaderTest, TersoffTable)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "Si.tersoff", "TersoffTable");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -202,7 +204,7 @@ TEST_F(PotentialFileReaderTest, TersoffTable)
 TEST_F(PotentialFileReaderTest, TersoffZBL)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "SiC.tersoff.zbl", "Tersoff/ZBL");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -213,7 +215,7 @@ TEST_F(PotentialFileReaderTest, TersoffZBL)
 TEST_F(PotentialFileReaderTest, GW)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "SiC.gw", "GW");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -224,7 +226,7 @@ TEST_F(PotentialFileReaderTest, GW)
 TEST_F(PotentialFileReaderTest, GWZBL)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "SiC.gw.zbl", "GW/ZBL");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -235,7 +237,7 @@ TEST_F(PotentialFileReaderTest, GWZBL)
 TEST_F(PotentialFileReaderTest, Nb3bHarmonic)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units real");
+    command("units real");
     PotentialFileReader reader(lmp, "MOH.nb3b.harmonic", "NB3B Harmonic");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -246,7 +248,7 @@ TEST_F(PotentialFileReaderTest, Nb3bHarmonic)
 TEST_F(PotentialFileReaderTest, Vashishta)
 {
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     PotentialFileReader reader(lmp, "SiC.vashishta", "Vashishta");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -260,7 +262,7 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
     int unit_convert, flag;
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    lmp->input->one("units metal");
+    command("units metal");
     reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
@@ -288,7 +290,7 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
 
     if (!verbose) ::testing::internal::CaptureStdout();
     flag = utils::get_supported_conversions(utils::ENERGY);
-    lmp->input->one("units real");
+    command("units real");
     reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 

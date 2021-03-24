@@ -84,6 +84,8 @@ protected:
         if (!verbose) ::testing::internal::GetCapturedStdout();
         remove("safe_file_read_test.txt");
     }
+
+    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 #define MAX_BUF_SIZE 128
@@ -155,13 +157,13 @@ TEST_F(FileOperationsTest, logmesg)
 {
     char buf[8];
     ::testing::internal::CaptureStdout();
-    lmp->input->one("echo none");
+    command("echo none");
     ::testing::internal::GetCapturedStdout();
     ::testing::internal::CaptureStdout();
     utils::logmesg(lmp, "one\n");
-    lmp->input->one("log test_logmesg.log");
+    command("log test_logmesg.log");
     utils::logmesg(lmp, "two\n");
-    lmp->input->one("log none");
+    command("log none");
     std::string out = ::testing::internal::GetCapturedStdout();
     memset(buf, 0, 8);
     FILE *fp = fopen("test_logmesg.log", "r");

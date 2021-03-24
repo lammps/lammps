@@ -401,6 +401,47 @@ TEST_F(VariableTest, IfCommand)
                  command("if (v_one==1.0)&&(2>=1) then 'print \"bingo!\"'"););
 }
 
+TEST_F(VariableTest, NextCommand)
+{
+    file_vars();
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("variable one    index  1 2");
+    command("variable two    equal  2");
+    command("variable three  file   test_variable.file");
+    command("variable four   loop   2 4");
+    command("variable five   index  1 2");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_one"), 1);
+    ASSERT_THAT(variable->retrieve("three"), StrEq("one"));
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("next one");
+    command("next three");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_one"), 2);
+    ASSERT_THAT(variable->retrieve("three"), StrEq("two"));
+    ASSERT_GE(variable->find("one"), 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("next one");
+    command("next three");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    // index style variable is deleted if no more next element
+    ASSERT_EQ(variable->find("one"), -1);
+    ASSERT_GE(variable->find("three"), 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    command("next three");
+    command("next three");
+    command("next three");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    // file style variable is deleted if no more next element
+    ASSERT_EQ(variable->find("three"), -1);
+
+    TEST_FAILURE(".*ERROR: Illegal next command.*", command("next"););
+    TEST_FAILURE(".*ERROR: Invalid variable 'xxx' in next command.*", command("next xxx"););
+    TEST_FAILURE(".*ERROR: Invalid variable style with next command.*", command("next two"););
+    TEST_FAILURE(".*ERROR: All variables in next command must have same style.*",
+                 command("next five four"););
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

@@ -295,19 +295,25 @@ TEST_F(VariableTest, IfCommand)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     ::testing::internal::CaptureStdout();
-    command("if 1>0 then 'print \".*bingo!\"'");
+    command("if 1>0 then 'print \"bingo!\"'");
     auto text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
     ::testing::internal::CaptureStdout();
-    command("if (1>=0) then 'print \"bingo!\"'");
+    command("if 1>2 then 'print \"bingo!\"' else 'print \"nope?\"'");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, MatchesRegex(".*nope\?.*"));
 
     ::testing::internal::CaptureStdout();
-    command("if (-1.0e-1<0.0E+0) then 'print \"bingo!\"'");
+    command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*nope\?.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if (-1.0e-1<0.0E+0)|^(1<0) then 'print \"bingo!\"'");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
@@ -324,8 +330,50 @@ TEST_F(VariableTest, IfCommand)
     if (verbose) std::cout << text;
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
+    ::testing::internal::CaptureStdout();
+    command("if (1>=2)&&(0&&1) then 'print \"missed\"' else 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if !1 then 'print \"missed\"' else 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if !(a==b) then 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if x==x|^1==0 then 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+
+    ::testing::internal::CaptureStdout();
+    command("if x!=x|^a!=b then 'print \"bingo!\"'");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if () then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if \"1 1\" then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if 1a then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if 1=<2 then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if 1!=a then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if 1&<2 then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+                 command("if 1|<2 then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if (1)( then 'print \"bingo!\"'"););
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",

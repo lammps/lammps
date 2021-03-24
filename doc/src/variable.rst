@@ -429,7 +429,7 @@ argument.  For *equal*\ -style variables the formula computes a scalar
 quantity, which becomes the value of the variable whenever it is
 evaluated.  For *vector*\ -style variables the formula must compute a
 vector of quantities, which becomes the value of the variable whenever
-it is evaluated.  The calculated vector can be on length one, but it
+it is evaluated.  The calculated vector can be of length one, but it
 cannot be a simple scalar value like that produced by an equal-style
 compute.  I.e. the formula for a vector-style variable must have at
 least one quantity in it that refers to a global vector produced by a

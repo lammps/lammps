@@ -534,12 +534,10 @@ void Variable::set(int narg, char **arg)
 
   if (replaceflag) return;
 
+  if (!utils::is_id(arg[0]))
+    error->all(FLERR,fmt::format("Variable name '{}' must have only alphanu"
+                                 "meric characters or underscores",arg[0]));
   names[nvar] = utils::strdup(arg[0]);
-  for (auto c : std::string(arg[0]))
-         if (!isalnum(c) && (c != '_'))
-      error->all(FLERR,fmt::format("Variable name '{}' must have only "
-                                   "alphanumeric characters or underscores",
-                                   names[nvar]));
   nvar++;
 }
 
@@ -983,9 +981,12 @@ double Variable::compute_equal(int ivar)
    don't need to flag eval_in_progress since is an immediate variable
 ------------------------------------------------------------------------- */
 
-double Variable::compute_equal(char *str)
+double Variable::compute_equal(const std::string &str)
 {
-  return evaluate(str,nullptr,-1);
+  char *ptr = utils::strdup(str);
+  double val = evaluate(ptr,nullptr,-1);
+  delete[] ptr;
+  return val;
 }
 
 /* ----------------------------------------------------------------------

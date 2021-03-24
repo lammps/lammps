@@ -166,13 +166,15 @@ TEST_F(VariableTest, CreateDelete)
     command("variable eight  getenv    PWD");
     command("variable eight  getenv    HOME");
     command("variable nine   file      test_variable.file");
+    command("variable ten    internal  1.0");
+    command("variable ten    internal  10.0");
     command("variable dummy  index     0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 12);
+    ASSERT_EQ(variable->nvar, 13);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable dummy  delete");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 11);
+    ASSERT_EQ(variable->nvar, 12);
 
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy index"););
@@ -183,8 +185,10 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable two getenv xxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable one equal 2"););
+    TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
+                 command("variable one internal 2"););
     TEST_FAILURE(".*ERROR: Cannot use atomfile-style variable unless an atom map exists.*",
-                 command("variable ten    atomfile  test_variable.atomfile"););
+                 command("variable eleven    atomfile  test_variable.atomfile"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
                  command("variable nine1  file      test_variable.xxx"););
 }
@@ -220,20 +224,42 @@ TEST_F(VariableTest, Expressions)
     command("variable four   equal     PI");
     command("variable five   equal     version");
     command("variable six    equal     XXX");
+    command("variable seven  equal     -v_one");
+    command("variable eight  equal     v_three-0.5");
+    command("variable nine   equal     v_two*(v_one+v_three)");
+    command("variable ten    equal     (1.0/v_two)^2");
+    command("variable eleven equal     v_three%2");
+    command("variable twelve equal     1==2");
+    command("variable ten3   equal     1!=v_two");
+    command("variable ten4   equal     1<2");
+    command("variable ten5   equal     2>1");
+    command("variable ten6   equal     (1<=v_one)&&(v_ten>=0.2)");
+    command("variable ten7   equal     !(1<v_two)");
+    command("variable ten8   equal     1|^0");
+
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 6);
+    ASSERT_EQ(variable->nvar, 18);
 
     int ivar = variable->find("one");
     ASSERT_FALSE(variable->equalstyle(ivar));
     ivar = variable->find("two");
     ASSERT_TRUE(variable->equalstyle(ivar));
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 2.0);
-    ivar = variable->find("three");
-    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 3.0);
-    ivar = variable->find("four");
-    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), MY_PI);
-    ivar = variable->find("five");
-    ASSERT_GE(variable->compute_equal(ivar), 20210310);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_three"), 3.0);
+    ASSERT_FLOAT_EQ(variable->compute_equal("v_four"), MY_PI);
+    ASSERT_GE(variable->compute_equal("v_five"), 20210310);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_seven"), -1);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_eight"), 2.5);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_nine"), 8);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten"), 0.25);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_eleven"), 1);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_twelve"), 0);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten3"), 1);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten4"), 1);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten5"), 1);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten6"), 1);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten7"), 0);
+    EXPECT_DOUBLE_EQ(variable->compute_equal("v_ten8"), 1);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););

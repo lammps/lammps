@@ -41,7 +41,7 @@ class Variable : protected Pointers {
 
   char *retrieve(const char *);
   double compute_equal(int);
-  double compute_equal(char *);
+  double compute_equal(const std::string &);
   void compute_atom(int, int, double *, int, int);
   int compute_vector(int, double **);
   void internal_set(int, double);

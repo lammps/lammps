@@ -168,17 +168,22 @@ TEST_F(VariableTest, CreateDelete)
     command("variable nine   file      test_variable.file");
     command("variable ten    internal  1.0");
     command("variable ten    internal  10.0");
+    command("variable ten1   universe  1 2 3 4");
+    command("variable ten2   uloop     4");
+    command("variable ten3   uloop     4 pad");
     command("variable dummy  index     0");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 13);
+    ASSERT_EQ(variable->nvar, 16);
     if (!verbose) ::testing::internal::CaptureStdout();
     command("variable dummy  delete");
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 12);
+    ASSERT_EQ(variable->nvar, 15);
 
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy index"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy delete xxx"););
+    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy loop -1"););
+    TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable dummy loop 10 1"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable two string xxx"););
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
@@ -191,6 +196,12 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable eleven    atomfile  test_variable.atomfile"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open file variable file test_variable.xxx.*",
                  command("variable nine1  file      test_variable.xxx"););
+    TEST_FAILURE(".*ERROR: World variable count doesn't match # of partitions.*",
+                 command("variable ten10 world xxx xxx"););
+    TEST_FAILURE(".*ERROR: All universe/uloop variables must have same # of values.*",
+                 command("variable ten4   uloop     2"););
+    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+                 command("variable ten11  format    two \"%08f\""););
 }
 
 TEST_F(VariableTest, AtomicSystem)
@@ -204,8 +215,16 @@ TEST_F(VariableTest, AtomicSystem)
     command("variable  id   atom      type");
     command("variable  id   atom      id");
     command("variable  ten  atomfile  test_variable.atomfile");
+    command("compute   press all pressure NULL pair");
+    command("fix       press all ave/time 1 1 1 c_press mode vector");
+    command("variable  press  vector   f_press");
+    command("variable  stress vector   v_press+vol");
+    command("variable  pmax equal   max(f_press)");
+    command("run 0 post no");
+
     if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(variable->nvar, 3);
+    ASSERT_EQ(variable->nvar, 6);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_pmax"), 0.0);
 
     TEST_FAILURE(".*ERROR: Cannot redefine variable as a different style.*",
                  command("variable one atom x"););

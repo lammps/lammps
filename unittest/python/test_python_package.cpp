@@ -24,13 +24,13 @@
 #include <vector>
 #include <functional>
 
+#include "../testing/core.h"
+#include "../testing/systems/melt.h"
+
 // location of '*.py' files required by tests
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
-
-// whether to print verbose output (i.e. not capturing LAMMPS screen output).
-bool verbose = false;
 
 const char * LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent metus.";
 
@@ -42,51 +42,12 @@ using ::testing::StrEq;
 using ::testing::Eq;
 using ::testing::HasSubstr;
 
-class PythonPackageTest : public ::testing::Test {
+class PythonPackageTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
-    Info *info;
-
-    void command(const std::string &line) { lmp->input->one(line.c_str()); }
-
-    void command_string(const std::string &lines) { lammps_commands_string(lmp, lines.c_str()); }
-
-    void HIDE_OUTPUT(std::function<void()> f) {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        f();
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-    }
-
-    std::string CAPTURE_OUTPUT(std::function<void()> f) {
-        ::testing::internal::CaptureStdout();
-        f();
-        auto output = ::testing::internal::GetCapturedStdout();
-        if (verbose) std::cout << output;
-        return output;
-    }
-
-    double get_variable_value(const std::string & name) {
-        char * str = utils::strdup(fmt::format("v_{}", name));
-        double value = lmp->input->variable->compute_equal(str);
-        delete [] str;
-        return value;
-    }
-
-    std::string get_variable_string(const std::string & name) {
-        return lmp->input->variable->retrieve(name.c_str());
-    }
-
-    void SetUp() override
+    void InitSystem() override
     {
-        const char *args[] = {"PythonPackageTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        HIDE_OUTPUT([&] {
-            lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        });
-        ASSERT_NE(lmp, nullptr);
-        info = new Info(lmp);
         if (!info->has_package("PYTHON")) GTEST_SKIP();
+
         HIDE_OUTPUT([&] {
             command("units real");
             command("dimension 3");
@@ -100,15 +61,15 @@ protected:
             command("variable input_dir index " + INPUT_FOLDER);
         });
     }
+};
 
-    void TearDown() override
+class FixPythonInvokeTest : public MeltTest {
+protected:
+    void InitSystem() override
     {
-        HIDE_OUTPUT([&] {
-            delete info;
-            delete lmp;
-            info = nullptr;
-            lmp = nullptr;
-        });
+        if (!info->has_package("PYTHON")) GTEST_SKIP();
+
+        MeltTest::InitSystem();
     }
 };
 
@@ -307,6 +268,56 @@ TEST_F(PythonPackageTest, RunSourceInline)
     });
 
     ASSERT_THAT(output, HasSubstr("4"));
+}
+
+TEST_F(FixPythonInvokeTest, end_of_step)
+{
+    HIDE_OUTPUT([&] {
+        command("python end_of_step_callback here \"\"\"\n"
+                "from __future__ import print_function\n"
+                "def end_of_step_callback(ptr):\n"
+                "    print(\"PYTHON_END_OF_STEP\")\n"
+                "\"\"\"");
+        command("fix eos all python/invoke 10 end_of_step end_of_step_callback");
+    });
+
+    auto output = CAPTURE_OUTPUT([&] {
+        command("run 50");
+    });
+
+    auto lines = utils::split_lines(output);
+    int count = 0;
+
+    for(auto & line : lines) {
+        if (line == "PYTHON_END_OF_STEP") ++count;
+    }
+
+    ASSERT_EQ(count, 5);
+}
+
+TEST_F(FixPythonInvokeTest, post_force)
+{
+    HIDE_OUTPUT([&] {
+        command("python post_force_callback here \"\"\"\n"
+                "from __future__ import print_function\n"
+                "def post_force_callback(ptr, vflag):\n"
+                "    print(\"PYTHON_POST_FORCE\")\n"
+                "\"\"\"");
+        command("fix pf all python/invoke 10 post_force post_force_callback");
+    });
+
+    auto output = CAPTURE_OUTPUT([&] {
+        command("run 50");
+    });
+
+    auto lines = utils::split_lines(output);
+    int count = 0;
+
+    for(auto & line : lines) {
+        if (line == "PYTHON_POST_FORCE") ++count;
+    }
+
+    ASSERT_EQ(count, 5);
 }
 
 } // namespace LAMMPS_NS

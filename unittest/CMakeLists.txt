@@ -2,7 +2,7 @@ include(GTest)
 
 # check if we can run the compiled executable and whether it prints
 # the LAMMPS version header in the output for an empty input
-file(TOUCH ${CMAKE_CURRENT_BINARY_DIR}/in.empty)
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/in.empty "")
 add_test(NAME RunLammps
          COMMAND $<TARGET_FILE:lmp> -log none -echo none -in in.empty
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

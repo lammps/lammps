@@ -31,12 +31,14 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "integrate.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "region.h"
+#include "respa.h"
 #include "output.h"
 #include "thermo.h"
 #include "timer.h"
@@ -984,12 +986,14 @@ to then decide how to cast the (void*) pointer and access the data.
  * \return          integer constant encoding the data type of the property
  *                  or -1 if not found. */
 
-int lammps_extract_global_datatype(void *handle, const char *name)
+int lammps_extract_global_datatype(void * /*handle*/, const char *name)
 {
   if (strcmp(name,"dt") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ntimestep") == 0) return LAMMPS_BIGINT;
   if (strcmp(name,"atime") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"atimestep") == 0) return LAMMPS_BIGINT;
+  if (strcmp(name,"respa_levels") == 0) return LAMMPS_INT;
+  if (strcmp(name,"respa_dt") == 0) return LAMMPS_DOUBLE;
 
   if (strcmp(name,"boxlo") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"boxhi") == 0) return LAMMPS_DOUBLE;
@@ -1116,6 +1120,14 @@ report the "native" data type.  The following tables are provided:
      - bigint
      - 1
      - the number of the timestep when "atime" was last updated.
+   * - respa_levels
+     - int
+     - 1
+     - number of r-RESPA levels. See :doc:`run_style`.
+   * - respa_dt
+     - double
+     - number of r-RESPA levels
+     - length of the time steps with r-RESPA. See :doc:`run_style`.
 
 .. _extract_box_settings:
 
@@ -1366,6 +1378,11 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"atime") == 0) return (void *) &lmp->update->atime;
   if (strcmp(name,"atimestep") == 0) return (void *) &lmp->update->atimestep;
 
+  if (utils::strmatch(lmp->update->integrate_style,"^respa")) {
+    Respa *respa = (Respa *)lmp->update->integrate;
+    if (strcmp(name,"respa_levels") == 0) return (void *) &respa->nlevels;
+    if (strcmp(name,"respa_dt") == 0) return (void *) respa->step;
+  }
   if (strcmp(name,"boxlo") == 0) return (void *) lmp->domain->boxlo;
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
   if (strcmp(name,"sublo") == 0) return (void *) lmp->domain->sublo;

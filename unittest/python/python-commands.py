@@ -274,6 +274,16 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("subhi"), [1.0, 2.0, 3.0])
         self.assertEqual(self.lmp.extract_global("periodicity"), [1,1,1])
         # only valid for triclinic box
+        self.assertEqual(self.lmp.extract_global("respa_levels"), None)
+        self.assertEqual(self.lmp.extract_global("respa_dt"), None)
+
+        # set and initialize r-RESPA
+        self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")
+        self.lmp.command("mass * 1.0")
+        self.lmp.command("run 1 post no")
+        self.assertEqual(self.lmp.extract_global("ntimestep"), 1)
+        self.assertEqual(self.lmp.extract_global("respa_levels"), 3)
+        self.assertEqual(self.lmp.extract_global("respa_dt"), [0.0005, 0.0025, 0.005])
         self.lmp.command("change_box all triclinic")
         self.assertEqual(self.lmp.extract_global("sublo_lambda"), [0.0, 0.0, 0.0])
         self.assertEqual(self.lmp.extract_global("subhi_lambda"), [1.0, 1.0, 1.0])

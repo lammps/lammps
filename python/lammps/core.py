@@ -758,6 +758,8 @@ class lammps(object):
                  'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3 }
     if name in vec_dict:
       veclen = vec_dict[name]
+    elif name == 'respa_dt':
+      veclen = self.extract_global('respa_levels',LAMMPS_INT)
     else:
       veclen = 1
 

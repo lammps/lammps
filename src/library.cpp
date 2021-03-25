@@ -1387,8 +1387,13 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"boxhi") == 0) return (void *) lmp->domain->boxhi;
   if (strcmp(name,"sublo") == 0) return (void *) lmp->domain->sublo;
   if (strcmp(name,"subhi") == 0) return (void *) lmp->domain->subhi;
-  if (strcmp(name,"sublo_lambda") == 0) return (void *) lmp->domain->sublo_lamda;
-  if (strcmp(name,"subhi_lambda") == 0) return (void *) lmp->domain->subhi_lamda;
+  // these are only valid for a triclinic cell
+  if (lmp->domain->triclinic) {
+    if (strcmp(name,"sublo_lambda") == 0)
+      return (void *) lmp->domain->sublo_lamda;
+    if (strcmp(name,"subhi_lambda") == 0)
+      return (void *) lmp->domain->subhi_lamda;
+  }
   if (strcmp(name,"boxxlo") == 0) return (void *) &lmp->domain->boxlo[0];
   if (strcmp(name,"boxxhi") == 0) return (void *) &lmp->domain->boxhi[0];
   if (strcmp(name,"boxylo") == 0) return (void *) &lmp->domain->boxlo[1];

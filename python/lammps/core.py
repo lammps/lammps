@@ -777,10 +777,11 @@ class lammps(object):
       target_type = float
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
-      target_type = lambda x: str(x, 'ascii')
 
     ptr = self.lib.lammps_extract_global(self.lmp, name)
     if ptr:
+      if dtype == LAMMPS_STRING:
+        return ptr.decode('utf-8')
       if veclen > 1:
         result = []
         for i in range(0,veclen):

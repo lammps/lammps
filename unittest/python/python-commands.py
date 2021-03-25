@@ -259,9 +259,13 @@ create_atoms 1 single &
             result = self.lmp.get_thermo(key)
             self.assertEqual(value, result, key)
 
-    def test_extract_global_double(self):
+    def test_extract_global(self):
         self.lmp.command("region box block -1 1 -2 2 -3 3")
         self.lmp.command("create_box 1 box")
+        self.assertEqual(self.lmp.extract_global("units"), "lj")
+        self.assertEqual(self.lmp.extract_global("ntimestep"), 0)
+        self.assertEqual(self.lmp.extract_global("dt"), 0.005)
+
         self.assertEqual(self.lmp.extract_global("boxxlo"), -1.0)
         self.assertEqual(self.lmp.extract_global("boxxhi"), 1.0)
         self.assertEqual(self.lmp.extract_global("boxylo"), -2.0)
@@ -273,7 +277,9 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("sublo"), [-1.0, -2.0, -3.0])
         self.assertEqual(self.lmp.extract_global("subhi"), [1.0, 2.0, 3.0])
         self.assertEqual(self.lmp.extract_global("periodicity"), [1,1,1])
-        # only valid for triclinic box
+        self.assertEqual(self.lmp.extract_global("triclinic"), 0)
+        self.assertEqual(self.lmp.extract_global("sublo_lambda"), None)
+        self.assertEqual(self.lmp.extract_global("subhi_lambda"), None)
         self.assertEqual(self.lmp.extract_global("respa_levels"), None)
         self.assertEqual(self.lmp.extract_global("respa_dt"), None)
 
@@ -284,7 +290,10 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("ntimestep"), 1)
         self.assertEqual(self.lmp.extract_global("respa_levels"), 3)
         self.assertEqual(self.lmp.extract_global("respa_dt"), [0.0005, 0.0025, 0.005])
+
+        # checks only for triclinic boxes
         self.lmp.command("change_box all triclinic")
+        self.assertEqual(self.lmp.extract_global("triclinic"), 1)
         self.assertEqual(self.lmp.extract_global("sublo_lambda"), [0.0, 0.0, 0.0])
         self.assertEqual(self.lmp.extract_global("subhi_lambda"), [1.0, 1.0, 1.0])
 

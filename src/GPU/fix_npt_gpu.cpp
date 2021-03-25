@@ -35,7 +35,7 @@ FixNPTGPU::FixNPTGPU(LAMMPS *lmp, int narg, char **arg) :
   // and thus its KE/temperature contribution should use group all
 
   id_temp = utils::strdup(std::string(id)+"_temp");
-  modify->add_compute(id_temp+" all temp");
+  modify->add_compute(std::string(id_temp)+" all temp");
   tcomputeflag = 1;
 
   // create a new compute pressure style

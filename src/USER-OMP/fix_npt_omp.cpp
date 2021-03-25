@@ -34,7 +34,6 @@ FixNPTOMP::FixNPTOMP(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-
   id_temp = utils::strdup(std::string(id)+"_temp");
   modify->add_compute(std::string(id_temp)+" all temp");
   tcomputeflag = 1;

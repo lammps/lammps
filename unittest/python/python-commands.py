@@ -268,6 +268,15 @@ create_atoms 1 single &
         self.assertEqual(self.lmp.extract_global("boxyhi"), 2.0)
         self.assertEqual(self.lmp.extract_global("boxzlo"), -3.0)
         self.assertEqual(self.lmp.extract_global("boxzhi"), 3.0)
+        self.assertEqual(self.lmp.extract_global("boxlo"), [-1.0, -2.0, -3.0])
+        self.assertEqual(self.lmp.extract_global("boxhi"), [1.0, 2.0, 3.0])
+        self.assertEqual(self.lmp.extract_global("sublo"), [-1.0, -2.0, -3.0])
+        self.assertEqual(self.lmp.extract_global("subhi"), [1.0, 2.0, 3.0])
+        self.assertEqual(self.lmp.extract_global("periodicity"), [1,1,1])
+        # only valid for triclinic box
+        self.lmp.command("change_box all triclinic")
+        self.assertEqual(self.lmp.extract_global("sublo_lambda"), [0.0, 0.0, 0.0])
+        self.assertEqual(self.lmp.extract_global("subhi_lambda"), [1.0, 1.0, 1.0])
 
 ##############################
 if __name__ == "__main__":

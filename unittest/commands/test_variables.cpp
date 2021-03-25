@@ -316,6 +316,7 @@ TEST_F(VariableTest, Expressions)
     command("variable ten9   equal     v_one-v_ten9");
     command("variable ten10  internal  100.0");
     command("variable ten11  equal     (1!=1)+(2<1)+(2<=1)+(1>2)+(1>=2)+(1&&0)+(0||0)+(1|^1)+10^0");
+    command("variable ten12  equal     yes+no+on+off+true+false");
     command("variable err1   equal     v_one/v_ten7");
     command("variable err2   equal     v_one%v_ten7");
     command("variable err3   equal     v_ten7^-v_one");
@@ -344,6 +345,7 @@ TEST_F(VariableTest, Expressions)
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten8"), 1);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten10"), 100);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten11"), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_ten12"), 3);
 
     TEST_FAILURE(".*ERROR: Variable six: Invalid thermo keyword 'XXX' in variable formula.*",
                  command("print \"${six}\""););
@@ -367,13 +369,27 @@ TEST_F(VariableTest, Functions)
     command("variable two    equal     random(1,2,643532)");
     command("variable three  equal     atan2(v_one,1)");
     command("variable four   equal     atan2()");
+    command("variable five   equal     sqrt(v_one+v_one)");
+    command("variable six    equal     exp(ln(0.1))");
+    command("variable seven  equal     abs(log(1.0/100.0))");
+    command("variable eight  equal     0.5*PI");
+    command("variable nine   equal     round(sin(v_eight)+cos(v_eight))");
+    command("variable ten    equal     floor(1.85)+ceil(1.85)");
+    command("variable ten1   equal     tan(v_eight/2.0)");
+    command("variable ten2   equal     asin(-1.0)+acos(0.0)");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int ivar = variable->find("two");
-    ASSERT_GT(variable->compute_equal(ivar), 0.99);
-    ASSERT_LT(variable->compute_equal(ivar), 2.01);
-    ivar = variable->find("three");
-    ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 0.25 * MY_PI);
+    ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
+    ASSERT_LT(variable->compute_equal(variable->find("two")), 2.01);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("three")), 0.25 * MY_PI);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("five")), sqrt(2.0));
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("six")), 0.1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("seven")), 2);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("nine")), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten")), 3);
+    ASSERT_FLOAT_EQ(variable->compute_equal(variable->find("ten1")), 1);
+    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten2")), 0);
+
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););
 }

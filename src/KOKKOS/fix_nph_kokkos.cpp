@@ -29,45 +29,26 @@ FixNPHKokkos<DeviceType>::FixNPHKokkos(LAMMPS *lmp, int narg, char **arg) :
 {
   this->kokkosable = 1;
   if (this->tstat_flag)
-    this->error->all(FLERR,"Temperature control can not be used with fix nph");
+    this->error->all(FLERR,"Temperature control can not be used with fix nph/kk");
   if (!this->pstat_flag)
-    this->error->all(FLERR,"Pressure control must be used with fix nph");
+    this->error->all(FLERR,"Pressure control must be used with fix nph/kk");
 
   // create a new compute temp style
   // id = fix-ID + temp
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-  int n = strlen(this->id) + 6;
-  this->id_temp = new char[n];
-  strcpy(this->id_temp,this->id);
-  strcat(this->id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = this->id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp/kk";
-
-  this->modify->add_compute(3,newarg);
-  delete [] newarg;
+  this->id_temp = utils::strdup(std::string(this->id)+"_temp");
+  this->modify->add_compute(std::string(this->id_temp)+" all temp/kk");
   this->tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(this->id) + 7;
-  this->id_press = new char[n];
-  strcpy(this->id_press,this->id);
-  strcat(this->id_press,"_press");
-
-  newarg = new char*[4];
-  newarg[0] = this->id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = this->id_temp;
-  this->modify->add_compute(4,newarg);
-  delete [] newarg;
+  this->id_press = utils::strdup(std::string(this->id)+"_press");
+  this->modify->add_compute(std::string(this->id_press)
+                      +" all pressure "+this->id_temp);
   this->pcomputeflag = 1;
 }
 

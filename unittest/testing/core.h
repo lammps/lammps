@@ -16,8 +16,12 @@
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
+#include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "exceptions.h"
+
+#include <functional>
 
 using namespace LAMMPS_NS;
 
@@ -45,29 +49,86 @@ class LAMMPSTest : public ::testing::Test {
 public:
     void command(const std::string &line) { lmp->input->one(line.c_str()); }
 
+    void BEGIN_HIDE_OUTPUT() {
+        if (!verbose) ::testing::internal::CaptureStdout();
+    }
+
+    void END_HIDE_OUTPUT() {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+    }
+
+    void BEGIN_CAPTURE_OUTPUT() {
+        if (!verbose) ::testing::internal::CaptureStdout();
+    }
+
+    std::string END_CAPTURE_OUTPUT() {
+        auto output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        return output;
+    }
+
+    void HIDE_OUTPUT(std::function<void()> f) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        try {
+            f();
+        } catch(LAMMPSException & e) {
+            if (!verbose) std::cout << ::testing::internal::GetCapturedStdout();
+            throw e;
+        }
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+    }
+
+    std::string CAPTURE_OUTPUT(std::function<void()> f) {
+        ::testing::internal::CaptureStdout();
+        try {
+            f();
+        } catch(LAMMPSException & e) {
+            if (verbose) std::cout << ::testing::internal::GetCapturedStdout();
+            throw e;
+        }
+        auto output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        return output;
+    }
+
+    double get_variable_value(const std::string & name) {
+        char * str = utils::strdup(fmt::format("v_{}", name));
+        double value = lmp->input->variable->compute_equal(str);
+        delete [] str;
+        return value;
+    }
+
+    std::string get_variable_string(const std::string & name) {
+        return lmp->input->variable->retrieve(name.c_str());
+    }
+
 protected:
     const char *testbinary = "LAMMPSTest";
     LAMMPS *lmp;
+    Info *info;
 
     void SetUp() override
     {
         const char *args[] = {testbinary, "-log", "none", "-echo", "screen", "-nocite"};
         char **argv        = (char **)args;
         int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+        HIDE_OUTPUT([&] {
+            lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+            info = new Info(lmp);
+        });
         InitSystem();
-        if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
     virtual void InitSystem() {}
 
     void TearDown() override
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        lmp = nullptr;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        HIDE_OUTPUT([&] {
+            delete info;
+            delete lmp;
+            info = nullptr;
+            lmp = nullptr;
+        });
     }
 };
 

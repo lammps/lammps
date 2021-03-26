@@ -28,36 +28,16 @@
 #include "potential_file_reader.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "../testing/core.h"
 
 #include <cstring>
 #include <iostream>
 #include <mpi.h>
 #include <vector>
 
-#if defined(OMPI_MAJOR_VERSION)
-const bool have_openmpi = true;
-#else
-const bool have_openmpi = false;
-#endif
-
 using namespace LAMMPS_NS;
 using ::testing::MatchesRegex;
 using utils::split_words;
-
-#define TEST_FAILURE(errmsg, ...)                                 \
-    if (Info::has_exceptions()) {                                 \
-        ::testing::internal::CaptureStdout();                     \
-        ASSERT_ANY_THROW({__VA_ARGS__});                          \
-        auto mesg = ::testing::internal::GetCapturedStdout();     \
-        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
-    } else {                                                      \
-        if (!have_openmpi) {                                      \
-            ::testing::internal::CaptureStdout();                 \
-            ASSERT_DEATH({__VA_ARGS__}, "");                      \
-            auto mesg = ::testing::internal::GetCapturedStdout(); \
-            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
-        }                                                         \
-    }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
@@ -75,38 +55,16 @@ const int LAMMPS_NS::PairNb3bHarmonic::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairVashishta::NPARAMS_PER_LINE;
 const int LAMMPS_NS::PairTersoffTable::NPARAMS_PER_LINE;
 
-class PotentialFileReaderTest : public ::testing::Test {
-protected:
-    LAMMPS *lmp;
-
-    void SetUp() override
-    {
-        const char *args[] = {
-            "PotentialFileReaderTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-    }
-
-    void TearDown() override
-    {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-    }
-
-    void command(const std::string &cmd) { lmp->input->one(cmd); }
+class PotentialFileReaderTest : public LAMMPSTest {
 };
 
 // open for native units
 TEST_F(PotentialFileReaderTest, Sw_native)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairSW::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairSW::NPARAMS_PER_LINE);
@@ -115,10 +73,10 @@ TEST_F(PotentialFileReaderTest, Sw_native)
 // open with supported conversion enabled
 TEST_F(PotentialFileReaderTest, Sw_conv)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units real");
     PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::METAL2REAL);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairSW::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairSW::NPARAMS_PER_LINE);
@@ -127,9 +85,9 @@ TEST_F(PotentialFileReaderTest, Sw_conv)
 // open without conversion enabled
 TEST_F(PotentialFileReaderTest, Sw_noconv)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units real");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*ERROR on proc.*potential.*requires metal units but real.*",
                  PotentialFileReader reader(lmp, "Si.sw", "Stillinger-Weber", utils::REAL2METAL););
@@ -137,10 +95,10 @@ TEST_F(PotentialFileReaderTest, Sw_noconv)
 
 TEST_F(PotentialFileReaderTest, Comb)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "ffield.comb", "COMB");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairComb::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairComb::NPARAMS_PER_LINE);
@@ -148,10 +106,10 @@ TEST_F(PotentialFileReaderTest, Comb)
 
 TEST_F(PotentialFileReaderTest, Comb3)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "ffield.comb3", "COMB3");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairComb3::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairComb3::NPARAMS_PER_LINE);
@@ -159,10 +117,10 @@ TEST_F(PotentialFileReaderTest, Comb3)
 
 TEST_F(PotentialFileReaderTest, Tersoff)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "Si.tersoff", "Tersoff");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairTersoff::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairTersoff::NPARAMS_PER_LINE);
@@ -170,10 +128,10 @@ TEST_F(PotentialFileReaderTest, Tersoff)
 
 TEST_F(PotentialFileReaderTest, TersoffMod)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "Si.tersoff.mod", "Tersoff/Mod");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairTersoffMOD::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairTersoffMOD::NPARAMS_PER_LINE);
@@ -181,10 +139,10 @@ TEST_F(PotentialFileReaderTest, TersoffMod)
 
 TEST_F(PotentialFileReaderTest, TersoffModC)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "Si.tersoff.modc", "Tersoff/ModC");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairTersoffMODC::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairTersoffMODC::NPARAMS_PER_LINE);
@@ -192,10 +150,10 @@ TEST_F(PotentialFileReaderTest, TersoffModC)
 
 TEST_F(PotentialFileReaderTest, TersoffTable)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "Si.tersoff", "TersoffTable");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairTersoffTable::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairTersoffTable::NPARAMS_PER_LINE);
@@ -203,10 +161,10 @@ TEST_F(PotentialFileReaderTest, TersoffTable)
 
 TEST_F(PotentialFileReaderTest, TersoffZBL)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "SiC.tersoff.zbl", "Tersoff/ZBL");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairTersoffZBL::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairTersoffZBL::NPARAMS_PER_LINE);
@@ -214,10 +172,10 @@ TEST_F(PotentialFileReaderTest, TersoffZBL)
 
 TEST_F(PotentialFileReaderTest, GW)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "SiC.gw", "GW");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairGW::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairGW::NPARAMS_PER_LINE);
@@ -225,10 +183,10 @@ TEST_F(PotentialFileReaderTest, GW)
 
 TEST_F(PotentialFileReaderTest, GWZBL)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "SiC.gw.zbl", "GW/ZBL");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairGWZBL::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairGWZBL::NPARAMS_PER_LINE);
@@ -236,10 +194,10 @@ TEST_F(PotentialFileReaderTest, GWZBL)
 
 TEST_F(PotentialFileReaderTest, Nb3bHarmonic)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units real");
     PotentialFileReader reader(lmp, "MOH.nb3b.harmonic", "NB3B Harmonic");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairNb3bHarmonic::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairNb3bHarmonic::NPARAMS_PER_LINE);
@@ -247,10 +205,10 @@ TEST_F(PotentialFileReaderTest, Nb3bHarmonic)
 
 TEST_F(PotentialFileReaderTest, Vashishta)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     PotentialFileReader reader(lmp, "SiC.vashishta", "Vashishta");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto line = reader.next_line(PairVashishta::NPARAMS_PER_LINE);
     ASSERT_EQ(utils::count_words(line), PairVashishta::NPARAMS_PER_LINE);
@@ -261,38 +219,38 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
     PotentialFileReader *reader;
     int unit_convert, flag;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("units metal");
     reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     unit_convert = reader->get_unit_convert();
     ASSERT_EQ(unit_convert, 0);
     delete reader;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     flag   = utils::get_supported_conversions(utils::UNKNOWN);
     reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     unit_convert = reader->get_unit_convert();
     ASSERT_EQ(unit_convert, 0);
     delete reader;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     flag   = utils::get_supported_conversions(utils::ENERGY);
     reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     unit_convert = reader->get_unit_convert();
     ASSERT_EQ(unit_convert, 0);
     delete reader;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     flag = utils::get_supported_conversions(utils::ENERGY);
     command("units real");
     reader = new PotentialFileReader(lmp, "Si.sw", "Stillinger-Weber", flag);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     unit_convert = reader->get_unit_convert();
     ASSERT_EQ(unit_convert, utils::METAL2REAL);
@@ -304,7 +262,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

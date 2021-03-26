@@ -129,6 +129,7 @@ protected:
             info = nullptr;
             lmp = nullptr;
         });
+        std::cout.flush();
     }
 };
 

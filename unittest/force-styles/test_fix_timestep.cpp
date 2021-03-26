@@ -521,8 +521,7 @@ TEST(FixTimestep, plain)
     // fix python/move implementation is missing library interface access to Repsa::step
     ifix = lmp->modify->find_fix("test");
     if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid") &&
-        !utils::strmatch(lmp->modify->fix[ifix]->style, "^nve/limit") &&
-        !utils::strmatch(lmp->modify->fix[ifix]->style, "^python/move")
+        !utils::strmatch(lmp->modify->fix[ifix]->style, "^nve/limit")
         ) {
 
         if (!verbose) ::testing::internal::CaptureStdout();

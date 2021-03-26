@@ -34,6 +34,7 @@ class NVE(LAMMPSFixMove):
     def __init__(self, ptr, group_name="all"):
         super(NVE, self).__init__(ptr)
         assert(self.group_name == "all")
+        self._step_respa = None
 
     def init(self):
         dt = self.lmp.extract_global("dt")
@@ -41,6 +42,12 @@ class NVE(LAMMPSFixMove):
         self.ntypes = self.lmp.extract_global("ntypes")
         self.dtv = dt
         self.dtf = 0.5 * dt * ftm2v
+
+    @property
+    def step_respa(self):
+        if not self._step_respa:
+            self._step_respa = self.lmp.extract_global("respa_dt")
+        return self._step_respa
 
     def initial_integrate(self, vflag):
         nlocal = self.lmp.extract_global("nlocal")
@@ -72,4 +79,26 @@ class NVE(LAMMPSFixMove):
             v[i][1] += dtfm * f[i][1]
             v[i][2] += dtfm * f[i][2]
 
+    def initial_integrate_respa(self, vflag, ilevel, iloop):
+        ftm2v = self.lmp.extract_global("ftm2v")
+        self.dtv = self.step_respa[ilevel]
+        self.dtf = 0.5 * self.step_respa[ilevel] * ftm2v
 
+        # innermost level - NVE update of v and x
+        # all other levels - NVE update of v
+
+        if ilevel == 0:
+            self.initial_integrate(vflag)
+        else:
+            self.final_integrate()
+
+    def final_integrate_respa(self, ilevel, iloop):
+        ftm2v = self.lmp.extract_global("ftm2v")
+        self.dtf = 0.5 * self.step_respa[ilevel] * ftm2v
+        self.final_integrate()
+
+    def reset_dt(self):
+        dt = self.lmp.extract_global("dt")
+        ftm2v = self.lmp.extract_global("ftm2v")
+        self.dtv = dt;
+        self.dtf = 0.5 * dt * ftm2v;

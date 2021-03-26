@@ -21,6 +21,8 @@
 
 using ::testing::Eq;
 
+bool verbose = false;
+
 class DumpCfgTest : public MeltTest {
     std::string dump_style = "cfg";
 

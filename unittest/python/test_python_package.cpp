@@ -33,6 +33,7 @@
 std::string INPUT_FOLDER = STRINGIFY(TEST_INPUT_FOLDER);
 
 const char * LOREM_IPSUM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent metus.";
+bool verbose = false;
 
 using LAMMPS_NS::utils::split_words;
 

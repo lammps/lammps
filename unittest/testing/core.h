@@ -39,7 +39,7 @@ using ::testing::MatchesRegex;
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
-bool verbose = false;
+extern bool verbose;
 
 class LAMMPSTest : public ::testing::Test {
 public:

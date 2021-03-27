@@ -69,7 +69,6 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   BOP_index3 = nullptr;
   BOP_total = nullptr;
   BOP_total3 = nullptr;
-  map = nullptr;
   pi_a = nullptr;
   pro_delta = nullptr;
   pi_delta = nullptr;
@@ -184,7 +183,6 @@ PairBOP::~PairBOP()
   if (allocated) {
     memory_theta_destroy();
     if (otfly==0) memory->destroy(cos_index);
-    delete [] map;
 
     memory->destroy(BOP_index);
     memory->destroy(BOP_total);
@@ -620,11 +618,6 @@ void PairBOP::coeff(int narg, char **arg)
   if (narg != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // ensure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
   // read the potential file
   nr=2000;
   nBOt=2000;
@@ -657,6 +650,7 @@ void PairBOP::coeff(int narg, char **arg)
     if (elements) {
       for (i = 0; i < bop_types; i++) delete [] elements[i];
       delete [] elements;
+      elements = nullptr;
     }
   }
   // clear setflag since coeff() called once with I,J = * *
@@ -4922,10 +4916,7 @@ void _noopt PairBOP::read_table(char *filename)
         ValueTokenizer values = reader.next_values(3);
         values.next_int();
         values.next_double();
-        std::string name = values.next_string();
-
-        elements[i] = new char[name.length()+1];
-        strcpy(elements[i], name.c_str());
+        elements[i] = utils::strdup(values.next_string());
       }
 
       ValueTokenizer values = reader.next_values(2);

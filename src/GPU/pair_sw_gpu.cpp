@@ -186,7 +186,7 @@ void PairSWGPU::init_style()
       if (i < 0 || j < 0)
         continue;
       else {
-        int ijparam = elem2param[i][j][j];
+        int ijparam = elem3param[i][j][j];
         ncutsq[ii][jj] = params[ijparam].cutsq;
         ncut[ii][jj] = params[ijparam].cut;
         sigma[ii][jj] = params[ijparam].sigma;
@@ -206,7 +206,7 @@ void PairSWGPU::init_style()
         if (k < 0)
           continue;
         else {
-          int ijkparam = elem2param[i][j][k];
+          int ijkparam = elem3param[i][j][k];
           costheta[ii][jj][kk] = params[ijkparam].costheta;
           lambda_epsilon[ii][jj][kk] = params[ijkparam].lambda_epsilon;
         }
@@ -218,7 +218,7 @@ void PairSWGPU::init_style()
   int success = sw_gpu_init(tp1, atom->nlocal, atom->nlocal+atom->nghost, mnf,
                             cell_size, gpu_mode, screen, ncutsq, ncut, sigma,
                             powerp, powerq, sigma_gamma,  c1, c2, c3, c4, c5,
-                            c6, lambda_epsilon, costheta, map, elem2param);
+                            c6, lambda_epsilon, costheta, map, elem3param);
 
   memory->destroy(ncutsq);
   memory->destroy(ncut);

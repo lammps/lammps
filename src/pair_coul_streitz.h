@@ -45,14 +45,8 @@ class PairCoulStreitz : public Pair {
   };
 
   int nmax;
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int *elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
   double precision;
-  Param *params;                // parameter set for an I-J-K interaction
+  Param *params;                // parameter sets for elements
 
   // Kspace parameters
   int kspacetype;

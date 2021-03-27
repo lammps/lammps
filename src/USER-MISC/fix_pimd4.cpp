@@ -49,7 +49,7 @@ using namespace MathConst;
 enum{PIMD,NMPIMD,CMD};
 enum{baoab};
 enum{SVR, PILE_L, PILE_G};
-enum{nve, nvt};
+enum{nve, nvt, nph, npt};
 enum{MSTI, SCTI};
 
 #define INVOKED_SCALAR 1
@@ -58,7 +58,7 @@ enum{MSTI, SCTI};
 
 FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) : 
   Fix(lmp, narg, arg),
-  random(nullptr), c_pe(nullptr)
+  random(nullptr), c_pe(nullptr), c_press(nullptr)
 {
   method       = PIMD;
   integrator   = baoab;
@@ -73,6 +73,7 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   tiflag       = 0;
   timethod     = MSTI;
   lambda       = 0.0;
+  pextflag     = 0;
 
   for(int i=3; i<narg-1; i+=2)
   {
@@ -94,6 +95,8 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
     {
       if(strcmp(arg[i+1], "nve")==0) ensemble=nve;
       else if(strcmp(arg[i+1], "nvt")==0) ensemble=nvt;
+      else if(strcmp(arg[i+1], "nph")==0) {ensemble=nph; pextflag=1;}
+      else if(strcmp(arg[i+1], "npt")==0) {ensemble=npt; pextflag=1;}
       else error->universe_all(FLERR, "Unknown ensemble parameter for fix pimd. Only nve and nvt ensembles are supported!");
     }
 
@@ -114,6 +117,18 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
       temp = atof(arg[i+1]);
       if(temp<0.0) error->universe_all(FLERR,"Invalid temp value for fix pimd");
     } 
+
+    else if(strcmp(arg[i], "press")==0)
+    {
+      Pext = atof(arg[i+1]);
+      if(Pext<0.0) error->universe_all(FLERR,"Invalid press value for fix pimd");
+    }
+
+    else if(strcmp(arg[i], "taup")==0)
+    {
+      tau_p = atof(arg[i+1]);
+      if(tau_p<=0.0) error->universe_all(FLERR, "Invalid tau_p value for fix pimd");
+    }
 
     else if(strcmp(arg[i], "thermostat")==0)
     {
@@ -195,8 +210,7 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   total_spring_energy = 0.0;
   t_prim = 0.0;
 
-  tote = 0.0;
-  totke = 0.0;
+  tote = totke = totenthalpy = 0.0;
 
   dfdl = 0.0;
   x_scaled = nullptr;
@@ -204,6 +218,7 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   M_x2xp = M_xp2x = nullptr; // M_f2fp = M_fp2f = nullptr;
   lam = nullptr;
   mode_index = nullptr;
+  x_unwrap = nullptr;
 
   mass = nullptr;
 
@@ -220,7 +235,8 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   thermo_energy = 1;
   vector_flag = 1;
-  size_vector = 9;
+  size_vector = 11;
+  scalar_flag = 1;
   extvector   = 1;
   comm_forward = 3;
 
@@ -235,17 +251,25 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   r1 = 0.0;
   r2 = 0.0;
 
-  if(!harmonicflag)
-  {
-    id_pe = new char[8];
-    strcpy(id_pe, "pimd_pe");
-    char **newarg = new char*[3];
-    newarg[0] = id_pe;
-    newarg[1] = (char *) "all";
-    newarg[2] = (char *) "pe";
-    modify->add_compute(3,newarg);
-    delete [] newarg;
-  }
+  id_pe = new char[8];
+  strcpy(id_pe, "pimd_pe");
+  char **newarg = new char*[3];
+  newarg[0] = id_pe;
+  newarg[1] = (char *) "all";
+  newarg[2] = (char *) "pe";
+  modify->add_compute(3,newarg);
+  delete [] newarg;
+
+  id_press = new char[12];
+  strcpy(id_press, "pimd_press");
+  newarg = new char*[4];
+  newarg[0] = id_press;
+  newarg[1] = (char*) "all";
+  newarg[2] = (char*) "pressure";
+  newarg[3] = (char*) "thermo_temp";
+  modify->add_compute(4, newarg);
+  delete [] newarg;
+  
   domain->set_global_box();
 }
 
@@ -280,11 +304,13 @@ void FixPIMD4::end_of_step()
 {
   compute_totke();
   compute_tote();
+  if(pextflag) compute_totenthalpy();
   if(update->ntimestep % 10000 == 0)
   {
   if(universe->me==0) printf("This is the end of step %ld.\n", update->ntimestep);
   }
   //if(universe->iworld==0) printf("This is the end of step %ld.\n\n\n", update->ntimestep);
+  //printf("vol_=%f\n",vol_); 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -328,7 +354,9 @@ void FixPIMD4::init()
   double _fbond = 1.0 * np*np / (beta*beta*hbar*hbar) ;
 
   omega_np = np / (hbar * beta) * sqrt(force->mvv2e);
-  fbond = - _fbond * force->mvv2e;
+  fbond = _fbond * force->mvv2e;
+
+  beta_np = 1.0 / force->boltz / baoab_temp / np;
 
   if(universe->me==0)
     printf("Fix pimd -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
@@ -360,12 +388,24 @@ void FixPIMD4::init()
   }
   else error->universe_all(FLERR,"Unknown integrator parameter for fix pimd");
 
+  if(pextflag)
+  {
+    W = (3*atom->natoms + 1) * tau_p * tau_p / beta_np;
+    //W = 4 * tau_p * tau_p / beta_np;
+    printf("N=%d, tau_p=%f, beta=%f, W=%f\n", atom->natoms, tau_p, beta_np, W);
+    Vcoeff = 1.0;
+    vw = 0.0;
+  }
 
   // initialize compute pe 
   int ipe = modify->find_compute(id_pe);
   c_pe = modify->compute[ipe];
+  
+  // initialize compute press
+  int ipress = modify->find_compute(id_press);
+  c_press = modify->compute[ipress];
 
-  t_prim = t_vir = t_cv = p_prim = p_cv = 0.0;
+  t_prim = t_vir = t_cv = p_prim = p_vir = p_cv = 0.0;
 
   if(universe->me==0) fprintf(screen, "Fix pimd successfully initialized!\n");
 }
@@ -442,19 +482,42 @@ void FixPIMD4::setup(int vflag)
   post_force(vflag);
   end_of_step();
   c_pe->addstep(update->ntimestep+1); 
+  c_press->addstep(update->ntimestep+1);
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
   //fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
 
   //fprintf(stdout, "x=%.4e.\n", atom->x[0][0]);  
+  vol_ = domain->xprd * domain->yprd * domain->zprd;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD4::initial_integrate(int /*vflag*/)
 {
-  char x_tmp[8];
   int nlocal = atom->nlocal;
+  double **x = atom->x;
+  imageint *image = atom->image;
+  //xc = (double*) memory->srealloc(xc, sizeof(double) * nlocal * 3, "FixPIMD4:xc");
+
+  //x_unwrap = new double* [nlocal];
+  //for(int i=0; i<nlocal; i++) 
+  //{
+    //x_unwrap[i] = nullptr;
+    //x_unwrap[i] = new double [3];
+    //memory->srealloc(x_unwrap[i], sizeof(double)*3, "FixPIMD4:x_unwrap[i]");
+  //}
+
+  for(int i=0; i<nlocal; i++)
+  {
+    //memcpy(x_unwrap[i][0], &(x[i][0]), sizeof(double)*3);
+    //fprintf(stdout, "before unmap, image=%d, x=%.6e.\n", image[i], x[i][0]);
+    //domain->unmap(x[i], image[i], x_unwrap[i]);
+    domain->unmap(x[i], image[i]);
+    //fprintf(stdout, "after unmap, image=%d, x=%.6e, x_unwrp=%.6e.\n", image[i], x[i][0], x_unwrap[i][0]);
+  }
+  
+  char x_tmp[8];
   for(int i=0; i<nlocal; i++)
   {
     for(int j=0; j<3; j++)
@@ -468,19 +531,22 @@ void FixPIMD4::initial_integrate(int /*vflag*/)
 
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
-  char xdim[8], ydim[8], zdim[8];
-  double xdimd, ydimd, zdimd;
-  sprintf(xdim, "%.3f", domain->xprd);
-  sprintf(ydim, "%.3f", domain->yprd);
-  sprintf(zdim, "%.3f", domain->zprd);
-  xdimd = (double)(atof(xdim));
-  ydimd = (double)(atof(ydim));
-  zdimd = (double)(atof(zdim));
+  //char xdim[8], ydim[8], zdim[8];
+  //double xdimd, ydimd, zdimd;
+  //sprintf(xdim, "%.3f", domain->xprd);
+  //sprintf(ydim, "%.3f", domain->yprd);
+  //sprintf(zdim, "%.3f", domain->zprd);
+  //xdimd = (double)(atof(xdim));
+  //ydimd = (double)(atof(ydim));
+  //zdimd = (double)(atof(zdim));
   // fprintf(stdout, "%.8e, %.8e, %.8e, %.8e, %.8e, %.8e\n", boxlo[0], boxlo[1], boxlo[2], boxhi[0], boxhi[1], boxhi[2]);
   // fprintf(stdout, "%.8e, %.8e, %.8e.\n", xdimd, ydimd, zdimd);
-  boxlo[0] = -0.5 * xdimd;
-  boxlo[1] = -0.5 * ydimd;
-  boxlo[2] = -0.5 * zdimd;
+  //boxlo[0] = -0.5 * xdimd;
+  //boxlo[1] = -0.5 * ydimd;
+  //boxlo[2] = -0.5 * zdimd;
+  boxlo[0] = -0.5 * domain->xprd;
+  boxlo[1] = -0.5 * domain->yprd;
+  boxlo[2] = -0.5 * domain->zprd;
   boxhi[0] = -boxlo[0];
   boxhi[1] = -boxlo[1];
   boxhi[2] = -boxlo[2];
@@ -501,16 +567,15 @@ void FixPIMD4::initial_integrate(int /*vflag*/)
     if(method==NMPIMD)
     {
       nmpimd_fill(atom->x);
-      // printf("filled\n");
       comm_exec(atom->x);
-      // printf("executed\n");
+      //nmpimd_fill(x_unwrap);
+      //comm_exec(x_unwrap);
       nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
       // printf("transformed\n");
     }
     // printf("nm trans finished\n");
   // if(universe->iworld==0) printf("after x2xp, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], mass[atom->type[0]], dtf, dtv, dtf, _omega_np, baoab_c, baoab_s);
 
-   a_step();
   }
 
   else
@@ -528,17 +593,40 @@ void FixPIMD4::post_integrate()
   {
     if(ensemble==nvt)
     {
+      a_step();
       o_step();
       a_step();
     }
     else if(ensemble==nve)
     {
       a_step();
+      a_step();
+    }
+    else if(ensemble==nph)
+    {
+      //printf("before v_step, vw=%f.\n", vw);
+      //press_v_step();
+      //printf("after v_step, vw=%f.\n", vw);
+      press_x_step();
+      press_x_step();
+      //printf("after x_step, x=%f.\n", atom->x[0][0]);
+      //press_v_step();
+    }
+    else if(ensemble==npt)
+    {
+      //press_v_step();
+      press_x_step();
+      o_step();
+      press_o_step();
+      press_x_step();
+      //press_v_step();
     }
     else
     {
       error->universe_all(FLERR, "Unknown ensemble parameter for fix pimd. Only nve and nvt are supported!\n");
     }
+
+    compute_spring_energy();
 
     if(method==NMPIMD)
     {
@@ -550,6 +638,20 @@ void FixPIMD4::post_integrate()
 
   char x_tmp[8];
   int nlocal = atom->nlocal;
+  double **x = atom->x;
+  imageint *image = atom->image;
+
+  //fprintf(stdout, "before pbc, image=%d, x=%.6e.\n", image[0], x[0][0]);
+  //domain->pbc();
+  //fprintf(stdout, "after pbc, image=%d, x=%.6e.\n", image[0], x[0][0]);
+  for(int i=0; i<nlocal; i++)
+  {
+    //fprintf(stdout, "before remap, image=%d, x=%.6e.\n", image[i], x[i][0]);
+    //domain->remap(x[i]);
+    domain->remap(x[i], image[i]);
+    //fprintf(stdout, "after remap, image=%d, x=%.6e.\n", image[i], x[i][0]);
+  }
+
   for(int i=0; i<nlocal; i++)
   {
     for(int j=0; j<3; j++)
@@ -566,12 +668,14 @@ void FixPIMD4::post_integrate()
   {
     error->universe_all(FLERR, "Unknown integrator parameter for fix pimd");
   }
+  //fprintf(stdout, "end post_i, IMGMASK=%d, image=%x, x=%.6e.\n", IMGMASK, atom->image[0], atom->x[0][0]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD4::final_integrate()
 {
+  //fprintf(stdout, "starting final_i, image=%d, x=%.6e.\n", atom->image[0], atom->x[0][0]);
   if(integrator==baoab)
   {
     b_step();
@@ -599,8 +703,9 @@ void FixPIMD4::post_force(int /*flag*/)
   //  }
   //}  
   inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+  //vol_ = domain->xprd * domain->yprd * domain->zprd;
   comm_exec(atom->x);
-  compute_spring_energy();
+  //compute_spring_energy();
   comm_coords();
   comm_forces();
   compute_xc();
@@ -634,6 +739,7 @@ void FixPIMD4::post_force(int /*flag*/)
   }
   // if(universe->iworld==0) printf("after f2fp, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e, %.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], mass[atom->type[0]], dtf, dtv, dtf, _omega_np, baoab_c, baoab_s);
   c_pe->addstep(update->ntimestep+1); 
+  c_press->addstep(update->ntimestep+1); 
 }
 
 /* ----------------------------------------------------------------------
@@ -696,7 +802,10 @@ void FixPIMD4::b_step()
   }
 
   double dtfm = dtf / mass[type[0]];
+  //printf("before v_step, vw = %.6e.\n", vw);
   //printf("end of b_step, x=%.8e, v=%.6e, f=%.6e, dtf=%.6e, mass=%.6e, dtfm=%.6e, o_np=%.6e, c=%.6e, s=%.6e.\n", atom->x[0][0], atom->v[0][0], atom->f[0][0], dtf, mass[type[0]], dtfm, _omega_np, baoab_c[1], baoab_s[1]);
+  if(pextflag) press_v_step();
+  //printf("after v_step, vw = %.6e.\n", vw);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -782,6 +891,51 @@ void FixPIMD4::svr_step()
     }
   }
 
+}
+
+void FixPIMD4::press_v_step()
+{
+  double volume = domain->xprd * domain->yprd * domain->zprd;
+  //vol_ = domain->xprd * domain->yprd * domain->zprd;
+  compute_totke();
+  compute_p_vir();
+  //printf("volume=%f, p_vir=%f, Pext=%f, Vcoeff=%f, beta_np=%f, W=%f.\n", volume, p_vir, Pext, Vcoeff, beta_np, W);
+  //vw += dtv * 3 * (volume * (p_vir - Pext) + Vcoeff / beta_np) / W;
+  vw += dtv * 3 * (vol_ * (p_vir - Pext) + Vcoeff / beta_np) / W;
+  //printf("vw=%f.\n", vw); 
+}
+
+void FixPIMD4::press_x_step()
+{
+  double **x = atom->x;
+  double **v = atom->v;
+  int nlocal = atom->nlocal;
+  //vw += (3. / inv_volume * (p_vir - Pext) + totke / atom->natoms * 2) * dtv;
+  //printf("vw=%f, dtv=%f.\n", vw, dtv);
+  double expq = exp(dtv * vw);
+  //double expv = exp(-(1. + 1./atom->natoms) * dtv * vw);
+  double expv = exp(-dtv * vw);
+  for(int i=0; i<nlocal; i++)
+  {
+    for(int j=0; j<3; j++)
+    {
+      x[i][j] = expq * x[i][j] + (expq - expv) / 2. / vw * v[i][j];
+      v[i][j] = expv * v[i][j];
+    } 
+  }
+  //printf("before xprd=%f, expq=%f.\n", domain->xprd, expq);
+  //domain->xprd *= expq;
+  //printf("after xprd=%f, expq=%f.\n", domain->xprd, expq);
+  //domain->yprd *= expq;
+  //domain->zprd *= expq;
+  //vol_ = domain->xprd * domain->yprd * domain->zprd;
+  vol_ *= expq * expq * expq;
+}
+
+void FixPIMD4::press_o_step()
+{
+  r1 = random->gaussian();
+  vw = c1 * vw + c2 * sqrt(1. / W / beta_np) * r1;
 }
 
 void FixPIMD4::o_step()
@@ -1370,6 +1524,13 @@ void FixPIMD4::compute_p_cv()
   p_cv = 3 * atom->natoms * force->boltz * temp * inv_volume + 1.0 / np * inv_volume * centroid_vir; 
 }
 
+void FixPIMD4::compute_p_vir()
+{
+  //inv_volume = 1. / (domain->xprd * domain->yprd * domain->zprd);
+  inv_volume = 1. / vol_;
+  p_vir = 2.  / 3 * inv_volume * totke + 1. / 3 * inv_volume * vir * force->nktv2p;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixPIMD4::compute_totke()
@@ -1392,6 +1553,9 @@ void FixPIMD4::compute_totke()
   // printf("iworld = %d, totke = %.6e.\n", universe->iworld, totke);
   // if(universe->iworld==0) printf("mvv2e = %.6e.\n", force->mvv2e);
   totke *= force->mvv2e / np;
+  //c_press->compute_scalar();
+  //p_vir = c_press->scalar;
+  //p_cv = 2.  / 3 * inv_volume * totke + 1. / 3 * inv_volume * vir * force->nktv2p;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1420,6 +1584,7 @@ void FixPIMD4::compute_spring_energy()
   int* type = atom->type;
   int nlocal = atom->nlocal;
 
+/*
   double* xlast = buf_beads[x_last];
   double* xnext = buf_beads[x_next];
 
@@ -1448,6 +1613,13 @@ void FixPIMD4::compute_spring_energy()
   MPI_Allreduce(&spring_energy, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   total_spring_energy *= 0.25;
   total_spring_energy /= np;
+*/
+  for(int i=0; i<nlocal; i++)
+  {
+    spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] * (x[i][0]*x[i][0] + x[i][1]*x[i][1] + x[i][2]*x[i][2]); 
+  }
+  MPI_Allreduce(&spring_energy, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  total_spring_energy /= np;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1456,6 +1628,15 @@ void FixPIMD4::compute_tote()
 {
   // tote = totke + hope;
   tote = totke + pote + total_spring_energy;
+  //printf("totke=%f.\n", totke);
+}
+
+void FixPIMD4::compute_totenthalpy()
+{
+  //double volume = domain->xprd * domain->yprd * domain->zprd;
+  //totenthalpy = tote + 0.5*W*vw*vw + Pext * volume - Vcoeff/beta_np * log(volume);
+  totenthalpy = tote + 0.5*W*vw*vw + Pext * vol_ ;
+  //printf("vol=%f, enth=%f.\n", volume, totenthalpy);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1463,13 +1644,26 @@ void FixPIMD4::compute_tote()
 double FixPIMD4::compute_vector(int n)
 {
   if(n==0) { return totke; }
-  if(n==1) { return total_spring_energy; }
-  if(n==2) { return pote; }
-  if(n==3) { return tote; }
-  if(n==4) { return t_prim; }
+  //if(n==1) { return total_spring_energy; }
+  if(n==1) { return atom->v[0][0]; }
+  //if(n==2) { return pote; }
+  if(n==2) { return atom->x[0][0]; }
+  //if(n==3) { if(!pextflag) {return tote;} else {return totenthalpy;} }
+  if(n==3) { return totenthalpy; }
+  //if(n==4) { return t_prim; }
+  //if(n==4) { printf("returning vol_=%f\n", vol_);  return vol_; }
+  if(n==4) { return vol_; }
   if(n==5) { return t_vir; }
   if(n==6) { return t_cv; }
   if(n==7) { return p_prim; }
-  if(n==8) { return p_cv; }
+  if(n==8) { return p_vir; }
+  if(n==9) { return p_cv; }
+  //if(pextflag) size_vector = 11;
+  if(pextflag && n==10) {return vw;}
   return 0.0;
+}
+
+double FixPIMD4::compute_scalar()
+{
+  return vol_;
 }

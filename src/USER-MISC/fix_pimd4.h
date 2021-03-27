@@ -42,13 +42,15 @@ class FixPIMD4 : public Fix {
   void end_of_step();
 
   double compute_vector(int);
+  double compute_scalar();
 
 
   int method;
   int np;
   double inverse_np;
-  double temp;
+  double temp, beta_np;
   int thermostat;
+  int barostat;
   int integrator;
   int ensemble;
 
@@ -90,15 +92,16 @@ class FixPIMD4 : public Fix {
   void comm_forces();
 
   /* centroid-virial estimator computation */
-  double inv_volume;
+  double inv_volume, vol_;
   double *xc, *fc;
   void compute_xc();
   void compute_fc();
   void compute_vir();
-  double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_cv;
+  double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv;
   
   void compute_t_vir();  // centroid-virial kinetic energy estimator
   void compute_p_cv();  // centroid-virial pressure estimator
+  void compute_p_vir();  // centroid-virial pressure estimator
 
   /* primitive kinetic energy estimator computation */
   double total_spring_energy;
@@ -115,6 +118,8 @@ class FixPIMD4 : public Fix {
   void nmpimd_init();
   void nmpimd_fill(double**);
   void nmpimd_transform(double**, double**, double*);
+
+  double **x_unwrap;
 
   /* Langevin thermostat BAOAB integration */
 
@@ -141,6 +146,15 @@ class FixPIMD4 : public Fix {
 
   double _omega_np, *_omega_k, *baoab_s, *baoab_c; // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
   
+  /* Bussi-Zykova-Parrinello barostat */
+
+  void press_v_step();
+  void press_x_step();
+  void press_o_step();
+  int pextflag;
+  double W, tau_p, vw, Pext, totenthalpy, Vcoeff;
+  void compute_totenthalpy();
+
   /* harmonic oscillator model system */
   int harmonicflag;
   double omega;
@@ -154,7 +168,9 @@ class FixPIMD4 : public Fix {
 
   /* add a new compute pe to compute pote */
   char *id_pe;
+  char *id_press;
   class Compute *c_pe;
+  class Compute *c_press;
 
   /* thermodynamic integration */
   int tiflag;

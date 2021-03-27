@@ -13,26 +13,26 @@
 
 #include "fix_bond_swap.h"
 
-#include <cmath>
-#include <cstring>
-#include "atom.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
 #include "angle.h"
-#include "neighbor.h"
+#include "atom.h"
+#include "bond.h"
+#include "citeme.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "domain.h"
-#include "modify.h"
-#include "compute.h"
+#include "neighbor.h"
+#include "pair.h"
 #include "random_mars.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -642,9 +642,7 @@ int FixBondSwap::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)

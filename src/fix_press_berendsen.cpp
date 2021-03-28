@@ -12,19 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_press_berendsen.h"
-#include <cstring>
-#include <cmath>
 
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "modify.h"
-#include "fix_deform.h"
 #include "compute.h"
-#include "kspace.h"
-#include "update.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "kspace.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -218,24 +219,16 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   //   and thus its KE/temperature contribution should use group all
 
-  std::string tcmd = id + std::string("_temp");
-  id_temp = new char[tcmd.size()+1];
-  strcpy(id_temp,tcmd.c_str());
-
-  tcmd += " all temp";
-  modify->add_compute(tcmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  std::string pcmd = id + std::string("_press");
-  id_press = new char[pcmd.size()+1];
-  strcpy(id_press,pcmd.c_str());
-
-  pcmd += " all pressure " + std::string(id_temp);
-  modify->add_compute(pcmd);
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure {}",id_press, id_temp));
   pflag = 1;
 
   nrigid = 0;

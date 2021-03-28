@@ -11,11 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nvt_gpu.h"
+
+#include "error.h"
 #include "group.h"
 #include "modify.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,7 +35,7 @@ FixNVTGPU::FixNVTGPU(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp
 
-  id_temp = utils::strdup(std::string(id)+"_temp");
+  id_temp = utils::strdup(std::string(id) + "_temp");
   modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   tcomputeflag = 1;
 }

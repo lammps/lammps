@@ -387,14 +387,9 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   bcast_table(tb);
 
   nspecies = atom->nspecies_dpd;
-  int n;
-  n = strlen(arg[4]) + 1;
-  site1 = new char[n];
-  strcpy(site1,arg[4]);
 
-  n = strlen(arg[5]) + 1;
-  site2 = new char[n];
-  strcpy(site2,arg[5]);
+  site1 = utils::strdup(arg[4]);
+  site2 = utils::strdup(arg[5]);
 
   // set table cutoff
 

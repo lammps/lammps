@@ -11,10 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_npt_omp.h"
-#include "modify.h"
+
 #include "error.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -34,15 +34,15 @@ FixNPTOMP::FixNPTOMP(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-  id_temp = utils::strdup(std::string(id)+"_temp");
-  modify->add_compute(std::string(id_temp)+" all temp");
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  id_press = utils::strdup(std::string(id)+"_press");
-  modify->add_compute(std::string(id_press)+" all pressure "+id_temp);
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure {}",id_press, id_temp));
   pcomputeflag = 1;
 }

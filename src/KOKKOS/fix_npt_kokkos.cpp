@@ -16,8 +16,6 @@
 #include "modify.h"
 #include "error.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -38,17 +36,17 @@ FixNPTKokkos<DeviceType>::FixNPTKokkos(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-  this->id_temp = utils::strdup(std::string(this->id)+"_temp");
-  this->modify->add_compute(std::string(this->id_temp)+" all temp/kk");
+  this->id_temp = utils::strdup(std::string(this->id) + "_temp");
+  this->modify->add_compute(fmt::format("{} all temp/kk",this->id_temp));
   this->tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  this->id_press = utils::strdup(std::string(this->id)+"_press");
-  this->modify->add_compute(std::string(this->id_press)
-                      +" all pressure "+this->id_temp);
+  this->id_press = utils::strdup(std::string(this->id) + "_press");
+  this->modify->add_compute(fmt::format("{} all pressure {}",
+                                        this->id_press, this->id_temp));
   this->pcomputeflag = 1;
 }
 

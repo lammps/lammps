@@ -38,7 +38,7 @@ FixNVTKokkos<DeviceType>::FixNVTKokkos(LAMMPS *lmp, int narg, char **arg) :
   // id = fix-ID + temp
 
   this->id_temp = utils::strdup(std::string(this->id)+"_temp");
-  this->modify->add_compute(std::string(this->id_temp)+" all temp/kk");
+  this->modify->add_compute(fmt::format("{} all temp/kk",this->id_temp));
   this->tcomputeflag = 1;
 }
 

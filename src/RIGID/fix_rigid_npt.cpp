@@ -18,9 +18,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_npt.h"
-#include <cstring>
-#include "modify.h"
+
 #include "error.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -66,7 +66,7 @@ FixRigidNPT::FixRigidNPT(LAMMPS *lmp, int narg, char **arg) :
   //   and thus its KE/temperature contribution should use group all
 
   id_temp = utils::strdup(std::string(id)+"_temp");
-  modify->add_compute(std::string(id_temp)+" all temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style

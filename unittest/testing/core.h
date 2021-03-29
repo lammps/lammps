@@ -22,6 +22,8 @@
 #include "exceptions.h"
 
 #include <functional>
+#include <vector>
+#include <string>
 
 using namespace LAMMPS_NS;
 
@@ -103,20 +105,31 @@ public:
     }
 
 protected:
-    const char *testbinary = "LAMMPSTest";
+    std::string testbinary = "LAMMPSTest";
+    std::vector<std::string> args = {"-log", "none", "-echo", "screen", "-nocite"};
     LAMMPS *lmp;
     Info *info;
 
     void SetUp() override
     {
-        const char *args[] = {testbinary, "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
+        int argc = args.size() + 1;
+        char ** argv = new char*[argc];
+        argv[0] = utils::strdup(testbinary);
+        for(int i = 1; i < argc; i++) {
+            argv[i] = utils::strdup(args[i-1]);
+        }
+
         HIDE_OUTPUT([&] {
             lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
             info = new Info(lmp);
         });
         InitSystem();
+
+        for(int i = 0; i < argc; i++) {
+            delete [] argv[i];
+            argv[i] = nullptr;
+        }
+        delete [] argv;
     }
 
     virtual void InitSystem() {}

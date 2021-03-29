@@ -19,6 +19,7 @@
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "../testing/core.h"
 
 #include <cstdio>
 #include <mpi.h>
@@ -33,26 +34,6 @@ using utils::split_words;
 
 #define test_name test_info_->name()
 
-#if defined(OMPI_MAJOR_VERSION)
-const bool have_openmpi = true;
-#else
-const bool have_openmpi = false;
-#endif
-
-#define TEST_FAILURE(errmsg, ...)                                 \
-    if (Info::has_exceptions()) {                                 \
-        ::testing::internal::CaptureStdout();                     \
-        ASSERT_ANY_THROW({__VA_ARGS__});                          \
-        auto mesg = ::testing::internal::GetCapturedStdout();     \
-        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
-    } else {                                                      \
-        if (!have_openmpi) {                                      \
-            ::testing::internal::CaptureStdout();                 \
-            ASSERT_DEATH({__VA_ARGS__}, "");                      \
-            auto mesg = ::testing::internal::GetCapturedStdout(); \
-            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
-        }                                                         \
-    }
 
 static void create_molecule_files()
 {
@@ -96,27 +77,21 @@ static void create_molecule_files()
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-class MoleculeFileTest : public ::testing::Test {
+class MoleculeFileTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
-
     void SetUp() override
     {
-        const char *args[] = {"MoleculeFileTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        create_molecule_files();
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        testbinary = "MoleculeFileTest";
+        LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
+        BEGIN_HIDE_OUTPUT();
+        create_molecule_files();
+        END_HIDE_OUTPUT();
     }
 
     void TearDown() override
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        LAMMPSTest::TearDown();
         remove("h2o.mol");
         remove("co2.mol");
     }
@@ -128,11 +103,9 @@ protected:
         fputs(content.c_str(), fp);
         fclose(fp);
 
-        lmp->input->one(fmt::format("molecule {} {} {}", name, file, args));
+        command(fmt::format("molecule {} {} {}", name, file, args));
         remove(file.c_str());
     }
-
-    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 TEST_F(MoleculeFileTest, nofile)
@@ -292,7 +265,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

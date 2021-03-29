@@ -15,6 +15,7 @@
 #include "input.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "../testing/core.h"
 
 #include <cmath>
 #include <cstring>
@@ -28,20 +29,14 @@ using LAMMPS_NS::utils::split_words;
 namespace LAMMPS_NS {
 using ::testing::Eq;
 
-class ImageFlagsTest : public ::testing::Test {
+class ImageFlagsTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
-
     void SetUp() override
     {
-        const char *args[] = {"ImageFlagsTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        testbinary = "ImageFlagsTest";
+        LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("units real");
         command("dimension 3");
         command("region box block -2 2 -2 2 -2 2");
@@ -54,18 +49,14 @@ protected:
         command("set atom 1 image -1 2 3");
         command("set atom 2 image -2 1 -1");
         command("write_data test_image_flags.data");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void TearDown() override
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        LAMMPSTest::TearDown();
         remove("test_image_flags.data");
     }
-
-    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 TEST_F(ImageFlagsTest, change_box)
@@ -87,9 +78,9 @@ TEST_F(ImageFlagsTest, change_box)
     ASSERT_EQ(imy, 1);
     ASSERT_EQ(imz, -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("change_box all boundary f p p");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     image = lmp->atom->image;
     imx   = (image[0] & IMGMASK) - IMGMAX;
@@ -108,9 +99,9 @@ TEST_F(ImageFlagsTest, change_box)
     ASSERT_EQ(imy, 1);
     ASSERT_EQ(imz, -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("change_box all boundary f s p");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     image = lmp->atom->image;
     imx   = (image[0] & IMGMASK) - IMGMAX;
@@ -129,9 +120,9 @@ TEST_F(ImageFlagsTest, change_box)
     ASSERT_EQ(imy, 0);
     ASSERT_EQ(imz, -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("change_box all boundary p p m");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     image = lmp->atom->image;
     imx   = (image[0] & IMGMASK) - IMGMAX;
@@ -153,14 +144,14 @@ TEST_F(ImageFlagsTest, change_box)
 
 TEST_F(ImageFlagsTest, read_data)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("clear");
     command("units real");
     command("dimension 3");
     command("boundary p p p");
     command("pair_style zero 2.0");
     command("read_data test_image_flags.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto image = lmp->atom->image;
     int imx    = (image[0] & IMGMASK) - IMGMAX;
@@ -179,14 +170,14 @@ TEST_F(ImageFlagsTest, read_data)
     ASSERT_EQ(imy, 1);
     ASSERT_EQ(imz, -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("clear");
     command("units real");
     command("dimension 3");
     command("boundary f p p");
     command("pair_style zero 2.0");
     command("read_data test_image_flags.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     image = lmp->atom->image;
     imx   = (image[0] & IMGMASK) - IMGMAX;
@@ -205,14 +196,14 @@ TEST_F(ImageFlagsTest, read_data)
     ASSERT_EQ(imy, 1);
     ASSERT_EQ(imz, -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("clear");
     command("units real");
     command("dimension 3");
     command("boundary p s p");
     command("pair_style zero 2.0");
     command("read_data test_image_flags.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     image = lmp->atom->image;
     imx   = (image[0] & IMGMASK) - IMGMAX;
@@ -231,14 +222,14 @@ TEST_F(ImageFlagsTest, read_data)
     ASSERT_EQ(imy, 0);
     ASSERT_EQ(imz, -1);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("clear");
     command("units real");
     command("dimension 3");
     command("boundary p p m");
     command("pair_style zero 2.0");
     command("read_data test_image_flags.data");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     image = lmp->atom->image;
     imx   = (image[0] & IMGMASK) - IMGMAX;

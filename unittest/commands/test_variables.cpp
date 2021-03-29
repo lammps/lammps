@@ -24,18 +24,13 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "../testing/core.h"
 
 #include <cstring>
 #include <vector>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
-
-#if defined(OMPI_MAJOR_VERSION)
-const bool have_openmpi = true;
-#else
-const bool have_openmpi = false;
-#endif
 
 using LAMMPS_NS::MathConst::MY_PI;
 using LAMMPS_NS::utils::split_words;
@@ -45,39 +40,18 @@ using ::testing::ExitedWithCode;
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
-#define TEST_FAILURE(errmsg, ...)                                 \
-    if (Info::has_exceptions()) {                                 \
-        ::testing::internal::CaptureStdout();                     \
-        ASSERT_ANY_THROW({__VA_ARGS__});                          \
-        auto mesg = ::testing::internal::GetCapturedStdout();     \
-        if (verbose) std::cout << mesg;                           \
-        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
-    } else {                                                      \
-        if (!have_openmpi) {                                      \
-            ::testing::internal::CaptureStdout();                 \
-            ASSERT_DEATH({__VA_ARGS__}, "");                      \
-            auto mesg = ::testing::internal::GetCapturedStdout(); \
-            if (verbose) std::cout << mesg;                       \
-            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
-        }                                                         \
-    }
 
-class VariableTest : public ::testing::Test {
+class VariableTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
     Group *group;
     Domain *domain;
     Variable *variable;
 
     void SetUp() override
     {
-        const char *args[] = {"VariableTest", "-log", "none", "-echo", "screen",
-                              "-nocite",      "-v",   "num",  "1"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        testbinary = "VariableTest";
+        args = {"-log", "none", "-echo", "screen", "-nocite", "-v",   "num",  "1"};
+        LAMMPSTest::SetUp();
         group    = lmp->group;
         domain   = lmp->domain;
         variable = lmp->input->variable;
@@ -85,19 +59,14 @@ protected:
 
     void TearDown() override
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        std::cout.flush();
+        LAMMPSTest::TearDown();
         unlink("test_variable.file");
         unlink("test_variable.atomfile");
     }
 
-    void command(const std::string &cmd) { lmp->input->one(cmd); }
-
     void atomic_system()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("units real");
         command("lattice sc 1.0 origin 0.125 0.125 0.125");
         command("region box block -2 2 -2 2 -2 2");
@@ -109,23 +78,23 @@ protected:
         command("region top block INF INF -2.0 -1.0 INF INF");
         command("set region left type 2");
         command("set region right type 3");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void molecular_system()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("fix props all property/atom mol rmass q");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
         atomic_system();
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("variable molid atom floor(id/4)+1");
         command("variable charge atom 2.0*sin(PI/32*id)");
         command("set atom * mol v_molid");
         command("set atom * charge v_charge");
         command("set type 1 mass 0.5");
         command("set type 2*4 mass 2.0");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void file_vars()
@@ -152,7 +121,7 @@ TEST_F(VariableTest, CreateDelete)
 {
     file_vars();
     ASSERT_EQ(variable->nvar, 1);
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("variable one    index     1 2 3 4");
     command("variable two    equal     1");
     command("variable two    equal     2");
@@ -173,11 +142,11 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten2   uloop     4");
     command("variable ten3   uloop     4 pad");
     command("variable dummy  index     0");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(variable->nvar, 17);
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(variable->nvar, 16);
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
@@ -235,7 +204,7 @@ TEST_F(VariableTest, AtomicSystem)
     atomic_system();
     file_vars();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("variable  one  index     1 2 3 4");
     command("variable  id   atom      type");
     command("variable  id   atom      id");
@@ -262,7 +231,7 @@ TEST_F(VariableTest, AtomicSystem)
     command("variable  rgsum  equal   sum(v_rg)");
     command("variable  loop   equal   v_loop+1");
     command("run 0 post no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     ASSERT_EQ(variable->atomstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->atomstyle(variable->find("id")), 1);
@@ -294,7 +263,7 @@ TEST_F(VariableTest, AtomicSystem)
 TEST_F(VariableTest, Expressions)
 {
     atomic_system();
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("variable one    index     1");
     command("variable two    equal     2");
     command("variable three  equal     v_one+v_two");
@@ -321,7 +290,7 @@ TEST_F(VariableTest, Expressions)
     command("variable err2   equal     v_one%v_ten7");
     command("variable err3   equal     v_ten7^-v_one");
     variable->set("dummy  index     1 2");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     int ivar = variable->find("one");
     ASSERT_FALSE(variable->equalstyle(ivar));
@@ -364,7 +333,7 @@ TEST_F(VariableTest, Functions)
     atomic_system();
     file_vars();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("variable one    index     1");
     command("variable two    equal     random(1,2,643532)");
     command("variable three  equal     atan2(v_one,1)");
@@ -377,7 +346,7 @@ TEST_F(VariableTest, Functions)
     command("variable ten    equal     floor(1.85)+ceil(1.85)");
     command("variable ten1   equal     tan(v_eight/2.0)");
     command("variable ten2   equal     asin(-1.0)+acos(0.0)");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
     ASSERT_LT(variable->compute_equal(variable->find("two")), 2.01);
@@ -396,74 +365,64 @@ TEST_F(VariableTest, Functions)
 
 TEST_F(VariableTest, IfCommand)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("variable one index 1");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if 1>0 then 'print \"bingo!\"'");
-    auto text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    auto text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if 1>2 then 'print \"bingo!\"' else 'print \"nope?\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*nope\?.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*nope\?.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if (-1.0e-1<0.0E+0)|^(1<0) then 'print \"bingo!\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if (${one}==1.0)&&(2>=1) then 'print \"bingo!\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if !((${one}!=1.0)||(2|^1)) then 'print \"missed\"' else 'print \"bingo!\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if (1>=2)&&(0&&1) then 'print \"missed\"' else 'print \"bingo!\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if !1 then 'print \"missed\"' else 'print \"bingo!\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if !(a==b) then 'print \"bingo!\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if x==x|^1==0 then 'print \"bingo!\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("if x!=x|^a!=b then 'print \"bingo!\"'");
-    text = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << text;
+    text = END_CAPTURE_OUTPUT();
+    
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
@@ -492,34 +451,34 @@ TEST_F(VariableTest, NextCommand)
 {
     file_vars();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("variable one    index  1 2");
     command("variable two    equal  2");
     command("variable three  file   test_variable.file");
     command("variable four   loop   2 4");
     command("variable five   index  1 2");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_one"), 1);
     ASSERT_THAT(variable->retrieve("three"), StrEq("one"));
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("next one");
     command("next three");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_one"), 2);
     ASSERT_THAT(variable->retrieve("three"), StrEq("two"));
     ASSERT_GE(variable->find("one"), 0);
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("next one");
     command("next three");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     // index style variable is deleted if no more next element
     ASSERT_EQ(variable->find("one"), -1);
     ASSERT_GE(variable->find("three"), 0);
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("next three");
     command("next three");
     command("next three");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     // file style variable is deleted if no more next element
     ASSERT_EQ(variable->find("three"), -1);
 
@@ -536,7 +495,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

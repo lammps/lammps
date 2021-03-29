@@ -1,19 +1,24 @@
 .. index:: dihedral_style table
 .. index:: dihedral_style table/omp
+.. index:: dihedral_style table/cut
 
 dihedral_style table command
 ============================
 
 Accelerator Variants: *table/omp*
 
+dihedral_style table/cut command
+================================
+
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   dihedral_style table style Ntable
+   dihedral_style style interp Ntable
 
-* style = *linear* or *spline* = method of interpolation
+* style = *table* or *table/cut*
+* interp = *linear* or *spline* = method of interpolation
 * Ntable = size of the internal lookup table
 
 Examples
@@ -26,13 +31,21 @@ Examples
    dihedral_coeff 1 file.table DIH_TABLE1
    dihedral_coeff 2 file.table DIH_TABLE2
 
+   dihedral_style table/cut spline 400
+   dihedral_style table/cut linear 1000
+   dihedral_coeff 1 aat 1.0 177 180 file.table DIH_TABLE1
+   dihedral_coeff 2 aat 0.5 170 180 file.table DIH_TABLE2
+
 Description
 """""""""""
 
-The *table* dihedral style creates interpolation tables of length
-*Ntable* from dihedral potential and derivative values listed in a
-file(s) as a function of the dihedral angle "phi".  The files are read
-by the :doc:`dihedral_coeff <dihedral_coeff>` command.
+The *table* and *table/cut* dihedral styles create interpolation tables
+of length *Ntable* from dihedral potential and derivative values listed
+in a file(s) as a function of the dihedral angle "phi".  The files are
+read by the :doc:`dihedral_coeff <dihedral_coeff>` command.  For
+dihedral style *table/cut* additionally an analytic cutoff that is
+quadratic in the bond-angle (theta) is applied in order to regularize
+the dihedral interaction.
 
 The interpolation tables are created by fitting cubic splines to the
 file values and interpolating energy and derivative values at each of
@@ -51,16 +64,53 @@ interpolated table.  For a given dihedral angle (phi), the appropriate
 coefficients are chosen from this list, and a cubic polynomial is used
 to compute the energy and the derivative at this angle.
 
-The following coefficients must be defined for each dihedral type via
-the :doc:`dihedral_coeff <dihedral_coeff>` command as in the example
-above.
+For dihedral style *table* the following coefficients must be defined
+for each dihedral type via the :doc:`dihedral_coeff <dihedral_coeff>`
+command as in the example above.
 
 * filename
 * keyword
 
-The filename specifies a file containing tabulated energy and
-derivative values. The keyword specifies a section of the file.  The
-format of this file is described below.
+The filename specifies a file containing tabulated energy and derivative
+values. The keyword specifies which section of the file to read.  The
+format of this file is the same for both dihedral styles and described
+below.
+
+For dihedral style *table/cut* the following coefficients must be
+defined for each dihedral type via the :doc:`dihedral_coeff
+<dihedral_coeff>` command as in the example above.
+
+* style (aat)
+* cutoff prefactor
+* cutoff angle1
+* cutoff angle2
+* filename
+* keyword
+
+The cutoff dihedral style uses a tabulated dihedral interaction with a
+cutoff function:
+
+.. math::
+
+   f(\theta) & = K \qquad\qquad\qquad\qquad\qquad\qquad \theta < \theta_1 \\
+   f(\theta) & = K \left(1-\frac{(\theta - \theta_1)^2}{(\theta_2 - \theta_1)^2}\right) \qquad \theta_1 < \theta < \theta_2
+
+The cutoff specifies an prefactor to the cutoff function.  While this
+value would ordinarily equal 1 there may be situations where the value
+should change.
+
+The cutoff :math:`\theta_1` specifies the angle (in degrees) below which
+the dihedral interaction is unmodified, i.e. the cutoff function is 1.
+
+The cutoff function is applied between :math:`\theta_1` and
+:math:`\theta_2`, which is the angle at which the cutoff function drops
+to zero.  The value of zero effectively "turns off" the dihedral
+interaction.
+
+The filename specifies a file containing tabulated energy and derivative
+values. The keyword specifies which section of the file to read.  The
+format of this file is the same for both dihedral styles and described
+below.
 
 ----------
 
@@ -182,18 +232,19 @@ that matches the specified keyword.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This dihedral style writes the settings for the "dihedral_style table"
-command to :doc:`binary restart files <restart>`, so a dihedral_style
-command does not need to specified in an input script that reads a
-restart file.  However, the coefficient information is not stored in
-the restart file, since it is tabulated in the potential files.  Thus,
+These dihedral styles write the settings for the "dihedral_style table"
+or "dihedral_style table/cut" command to :doc:`binary restart files
+<restart>`, so a dihedral_style command does not need to specified in an
+input script that reads a restart file.  However, the coefficient
+information loaded from the table file(s) is not stored in the restart
+file, since it is tabulated in the potential files.  Thus, suitable
 dihedral_coeff commands do need to be specified in the restart input
-script.
+script after reading the restart file.
 
 Restrictions
 """"""""""""
 
-This dihedral style can only be used if LAMMPS was built with the
+These dihedral styles can only be used if LAMMPS was built with the
 USER-MISC package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 

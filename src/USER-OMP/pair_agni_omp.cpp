@@ -101,7 +101,7 @@ void PairAGNIOMP::eval(int iifrom, int iito, ThrData * const thr)
     ztmp = x[i].z;
     fxtmp = fytmp = fztmp = 0.0;
 
-    const Param &iparam = params[elem2param[itype]];
+    const Param &iparam = params[elem1param[itype]];
     Vx = new double[iparam.numeta];
     Vy = new double[iparam.numeta];
     Vz = new double[iparam.numeta];

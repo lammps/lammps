@@ -54,9 +54,6 @@ public:
         double memory_usage();
 
 protected:
-  char **elements;              // names of unique elements
-  int *map;                     // mapping from atom types to elements
-  int nelements;                // # of unique elements
 
         class SplineFunction {
         public:

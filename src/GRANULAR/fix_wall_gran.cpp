@@ -338,9 +338,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[iarg],"region") == 0) {
     if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = REGION;
-    int n = strlen(arg[iarg+1]) + 1;
-    idregion = new char[n];
-    strcpy(idregion,arg[iarg+1]);
+    idregion = utils::strdup(arg[iarg+1]);
     iarg += 2;
   }
 

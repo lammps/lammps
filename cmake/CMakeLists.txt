@@ -31,7 +31,7 @@ endif()
 
 # If enabled, no need to use LD_LIBRARY_PATH / DYLD_LIBRARY_PATH when installed
 option(LAMMPS_INSTALL_RPATH "Set runtime path for shared libraries linked to LAMMPS binaries" OFF)
-if (LAMMPS_INSTALL_RPATH)
+if(LAMMPS_INSTALL_RPATH)
   set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
   set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 endif()

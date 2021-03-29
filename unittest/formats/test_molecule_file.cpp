@@ -174,32 +174,29 @@ TEST_F(MoleculeFileTest, nospecial)
 
 TEST_F(MoleculeFileTest, minimal)
 {
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, twomols)
 {
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     run_mol_cmd(test_name, "",
                 "Comment\n2 atoms\n\n"
                 " Coords\n\n 1 0.0 0.0 0.0\n 2 0.0 0.0 1.0\n"
                 " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*2 molecules.*2 atoms "
                                      "with max type 2.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, twofiles)
 {
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, MatchesRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
                                      "with max type 2.*2 bonds with max type 1.*"
                                      "1 angles with max type 1.*0 dihedrals.*"
@@ -210,7 +207,7 @@ TEST_F(MoleculeFileTest, twofiles)
 
 TEST_F(MoleculeFileTest, bonds)
 {
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("atom_style bond");
     command("region box block 0 1 0 1 0 1");
     command("create_box 2 box bond/types 2 extra/bond/per/atom 2 "
@@ -232,19 +229,17 @@ TEST_F(MoleculeFileTest, bonds)
                 " Bonds\n\n"
                 " 1 1 1 2\n"
                 " 2 2 1 3\n\n");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*4 atoms.*type.*2.*"
                                      "2 bonds.*type.*2.*0 angles.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("mass * 2.0");
     command("create_atoms 0 single 0.5 0.5 0.5 mol bonds 67235");
-    output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, MatchesRegex(".*Created 4 atoms.*"));
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     Molecule *mol = lmp->atom->molecules[0];
     ASSERT_EQ(mol->natoms, 4);
     ASSERT_EQ(lmp->atom->natoms, 4);
@@ -256,8 +251,7 @@ TEST_F(MoleculeFileTest, bonds)
     EXPECT_DOUBLE_EQ(mol->com[2], 0.5);
     EXPECT_DOUBLE_EQ(mol->maxextent, sqrt(2));
     EXPECT_EQ(mol->comatom, 1);
-    output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    END_HIDE_OUTPUT();
 }
 
 int main(int argc, char **argv)

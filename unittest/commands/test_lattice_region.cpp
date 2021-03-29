@@ -81,10 +81,9 @@ TEST_F(LatticeRegionTest, lattice_none)
 
 TEST_F(LatticeRegionTest, lattice_sc)
 {
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("lattice sc 1.0 spacing 1.5 2.0 3.0");
-    auto output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, MatchesRegex(".*Lattice spacing in x,y,z = 1.50* 2.0* 3.0*.*"));
 
     auto lattice = lmp->domain->lattice;
@@ -92,10 +91,9 @@ TEST_F(LatticeRegionTest, lattice_sc)
     ASSERT_EQ(lattice->ylattice, 2.0);
     ASSERT_EQ(lattice->zlattice, 3.0);
 
-    ::testing::internal::CaptureStdout();
+    BEGIN_CAPTURE_OUTPUT();
     command("lattice sc 2.0");
-    output = ::testing::internal::GetCapturedStdout();
-    if (verbose) std::cout << output;
+    output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, MatchesRegex(".*Lattice spacing in x,y,z = 2.0* 2.0* 2.0*.*"));
 
     lattice = lmp->domain->lattice;

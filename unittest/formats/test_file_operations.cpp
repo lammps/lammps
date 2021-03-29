@@ -127,15 +127,15 @@ TEST_F(FileOperationsTest, safe_fread)
 TEST_F(FileOperationsTest, logmesg)
 {
     char buf[8];
-    ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("echo none");
-    ::testing::internal::GetCapturedStdout();
-    ::testing::internal::CaptureStdout();
+    END_HIDE_OUTPUT();
+    BEGIN_CAPTURE_OUTPUT();
     utils::logmesg(lmp, "one\n");
     command("log test_logmesg.log");
     utils::logmesg(lmp, "two\n");
     command("log none");
-    std::string out = ::testing::internal::GetCapturedStdout();
+    std::string out = END_CAPTURE_OUTPUT();
     memset(buf, 0, 8);
     FILE *fp = fopen("test_logmesg.log", "r");
     fread(buf, 1, 8, fp);

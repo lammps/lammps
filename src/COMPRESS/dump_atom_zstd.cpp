@@ -90,12 +90,8 @@ void DumpAtomZstd::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
-    if (append_flag) {
-      error->one(FLERR, "dump/zstd currently doesn't support append");
-    }
-
     try {
-      writer.open(filecurrent);
+      writer.open(filecurrent, append_flag);
     } catch (FileWriterException &e) {
       error->one(FLERR, e.what());
     }

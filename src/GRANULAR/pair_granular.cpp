@@ -446,9 +446,9 @@ void PairGranular::compute(int eflag, int vflag)
             if (tangential_model[itype][jtype] == TANGENTIAL_MINDLIN_FORCE ||
                 tangential_model[itype][jtype] ==
                 TANGENTIAL_MINDLIN_RESCALE_FORCE)
-              frameupdate = fabs(rsht) < EPSILON*Fscrit;
+              frameupdate = fabs(rsht) > EPSILON*Fscrit;
             else
-              frameupdate = fabs(rsht)*k_tangential < EPSILON*Fscrit;
+              frameupdate = fabs(rsht)*k_tangential > EPSILON*Fscrit;
             if (frameupdate) {
               shrmag = sqrt(history[0]*history[0] + history[1]*history[1] +
                                                history[2]*history[2]);
@@ -568,7 +568,7 @@ void PairGranular::compute(int eflag, int vflag)
 
           if (historyupdate) {
             rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
-            frameupdate = fabs(rolldotn)*k_roll < EPSILON*Frcrit;
+            frameupdate = fabs(rolldotn)*k_roll > EPSILON*Frcrit;
             if (frameupdate) { // rotate into tangential plane
               rollmag = sqrt(history[rhist0]*history[rhist0] +
                             history[rhist1]*history[rhist1] +

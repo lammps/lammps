@@ -87,9 +87,7 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
   // read reference orientations from file
   // work on rank 0 only
 
-  int n = strlen(arg[6]) + 1;
-  dir_filename = new char[n];
-  strcpy(dir_filename, arg[6]);
+  dir_filename = utils::strdup(arg[6]);
   if (me == 0) {
     char line[IMGMAX];
     char *result;

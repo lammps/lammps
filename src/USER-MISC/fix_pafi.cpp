@@ -74,9 +74,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   com_flag = 1;
   time_integrate = 1;
 
-  int n = strlen(arg[3])+1;
-  computename = new char[n];
-  strcpy(computename,&arg[3][0]);
+  computename = utils::strdup(&arg[3][0]);
 
   icompute = modify->find_compute(computename);
   if (icompute == -1)

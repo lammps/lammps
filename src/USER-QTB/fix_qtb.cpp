@@ -18,20 +18,20 @@
 
 #include "fix_qtb.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "respa.h"
 #include "comm.h"
-#include "random_mars.h"
+#include "compute.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -345,9 +345,7 @@ int FixQTB::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");

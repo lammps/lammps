@@ -19,17 +19,17 @@
 #include "fix_qbmsst.h"
 
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "comm.h"
-#include "random_mars.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
 #include "kspace.h"
 #include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -869,9 +869,7 @@ int FixQBMSST::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");
@@ -891,9 +889,7 @@ int FixQBMSST::modify_param(int narg, char **arg)
       pflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_press);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

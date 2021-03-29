@@ -619,14 +619,11 @@ void PairRANN::read_screening(std::vector<std::string> line,std::vector<std::str
   j = atomtypes[1];
   k = atomtypes[2];
   int index = i*nelements*nelements+j*nelements+k;
-  int index1 = i*nelements*nelements+k*nelements+j;
   if (line[4].compare("Cmin")==0)  {
     screening_min[index] = utils::numeric(filename,linenum,line1[0].c_str(),1,lmp);
-    screening_min[index1] = screening_min[index];
   }
   else if (line[4].compare("Cmax")==0) {
     screening_max[index] = utils::numeric(filename,linenum,line1[0].c_str(),1,lmp);
-    screening_max[index1] = screening_max[index];
   }
   else error->one(filename,linenum-1,"unrecognized screening keyword");
 }

@@ -45,7 +45,6 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   fp = nullptr;
   mu = nullptr;
   lambda = nullptr;
-  map = nullptr;
 
   setfl = nullptr;
 
@@ -86,7 +85,6 @@ PairADP::~PairADP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);

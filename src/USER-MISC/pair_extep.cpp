@@ -52,18 +52,13 @@ PairExTeP::PairExTeP(LAMMPS *lmp) : Pair(lmp)
   centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
 
-  nelements = 0;
-  elements = nullptr;
-  nparams = maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
 
   maxlocal = 0;
   SR_numneigh = nullptr;
   SR_firstneigh = nullptr;
   ipage = nullptr;
   pgsize = oneatom = 0;
-  map = nullptr;
 
   Nt = nullptr;
   Nd = nullptr;
@@ -75,11 +70,8 @@ PairExTeP::PairExTeP(LAMMPS *lmp) : Pair(lmp)
 
 PairExTeP::~PairExTeP()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   memory->destroy(params);
-  memory->destroy(elem2param);
+  memory->destroy(elem3param);
 
   memory->destroy(SR_numneigh);
   memory->sfree(SR_firstneigh);
@@ -91,7 +83,6 @@ PairExTeP::~PairExTeP()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
-    delete [] map;
   }
 }
 
@@ -159,7 +150,7 @@ void PairExTeP::SR_neigh()
       rsq = delx*delx + dely*dely + delz*delz;
 
       jtype=map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       if (rsq < params[iparam_ij].cutsq) {
         neighptr[n++] = j;
@@ -246,7 +237,7 @@ void PairExTeP::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
@@ -270,7 +261,7 @@ void PairExTeP::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtag = tag[j];
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
@@ -337,7 +328,7 @@ void PairExTeP::compute(int eflag, int vflag)
         k = jlist[kk];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -352,7 +343,7 @@ void PairExTeP::compute(int eflag, int vflag)
         /* F_IJ (2) */
         // compute force components due to spline derivatives
         // uses only the part with FXY_x (FXY_y is done when i and j are inversed)
-        int iparam_ik = elem2param[itype][ktype][0];
+        int iparam_ik = elem3param[itype][ktype][0];
         double fc_ik_d = ters_fc_d(r2,&params[iparam_ik]);
         double fc_prefac_ik_0 = 1.0 * fc_ik_d * fa / r2;
         double fc_prefac_ik = dFc_dNtij * fc_prefac_ik_0;
@@ -396,7 +387,7 @@ void PairExTeP::compute(int eflag, int vflag)
         k = jlist[kk];
         k &= NEIGHMASK;
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -455,71 +446,15 @@ void PairExTeP::settings(int narg, char **/*arg*/)
 
 void PairExTeP::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3,arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   spline_init();
   setup();
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -818,12 +753,12 @@ void PairExTeP::setup()
 {
   int i,j,k,m,n;
 
-  // set elem2param for all element triplet combinations
+  // set elem3param for all element triplet combinations
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
+  memory->destroy(elem3param);
+  memory->create(elem3param,nelements,nelements,nelements,"pair:elem3param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
@@ -837,7 +772,7 @@ void PairExTeP::setup()
           }
         }
         if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-        elem2param[i][j][k] = n;
+        elem3param[i][j][k] = n;
       }
 
   // compute parameter values derived from inputs

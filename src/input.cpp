@@ -1697,6 +1697,9 @@ void Input::pair_coeff()
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
   if (force->pair == nullptr)
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
+  if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
+                                               || (strcmp(arg[1],"*") != 0))))
+    error->all(FLERR,"Incorrect args for pair coefficients");
   force->pair->coeff(narg,arg);
 }
 

@@ -189,7 +189,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   k_bins.sync<DeviceType>();
   k_atom2bin.sync<DeviceType>();
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (exclude)
       atomKK->sync(Device,X_MASK|RADIUS_MASK|TYPE_MASK|MASK_MASK|MOLECULE_MASK|TAG_MASK|SPECIAL_MASK);
     else
@@ -545,14 +545,11 @@ __device__ __forceinline__ int __syncthreads_count(int predicate) {
 
 #ifdef LMP_KOKKOS_GPU
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
-__device__ inline
-void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const
+LAMMPS_DEVICE_FUNCTION inline
+void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                                                      size_t sharedsize) const
 {
-#ifdef KOKKOS_ENABLE_HIP
-  HIP_DYNAMIC_SHARED(X_FLOAT, sharedmem);
-#else
-  extern __shared__ X_FLOAT sharedmem[];
-#endif
+  auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
   /* loop over atoms in i's bin,
   */
   const int atoms_per_bin = c_bins.extent(1);
@@ -594,9 +591,13 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
     other_x[MY_II + 3 * atoms_per_bin] = itype;
   }
   other_id[MY_II] = i;
+#ifndef KOKKOS_ENABLE_SYCL
   int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
 
   if (test) return;
+#else
+  dev.team_barrier();
+#endif
 
   if (i >= 0 && i < nlocal) {
     #pragma unroll 4
@@ -657,7 +658,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
     }
   }
-  __syncthreads();
+  dev.team_barrier();
 
   const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
     = d_stencil;
@@ -678,7 +679,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
     other_id[MY_II] = j;
 
-    __syncthreads();
+    dev.team_barrier();
 
     if (i >= 0 && i < nlocal) {
       #pragma unroll 8
@@ -735,7 +736,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemCuda(typename Kokkos::TeamPoli
 
       }
     }
-    __syncthreads();
+    dev.team_barrier();
   }
 
   if (i >= 0 && i < nlocal) {
@@ -988,14 +989,11 @@ void NeighborKokkosExecute<DeviceType>::
 
 #ifdef LMP_KOKKOS_GPU
 template<class DeviceType> template<int HalfNeigh,int Newton,int Tri>
-__device__ inline
-void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const
+LAMMPS_DEVICE_FUNCTION inline
+void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                                                          size_t sharedsize) const
 {
-#ifdef KOKKOS_ENABLE_HIP
-  HIP_DYNAMIC_SHARED(X_FLOAT, sharedmem);
-#else
-  extern __shared__ X_FLOAT sharedmem[];
-#endif
+  auto* sharedmem = static_cast<X_FLOAT *>(dev.team_shmem().get_shmem(sharedsize));
   /* loop over atoms in i's bin,
    */
   const int atoms_per_bin = c_bins.extent(1);
@@ -1041,9 +1039,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
       other_x[MY_II + 4 * atoms_per_bin] = radi;
     }
     other_id[MY_II] = i;
+    // FIXME_SYCL
+#ifndef KOKKOS_ENABLE_SYCL
     int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
 
     if (test) return;
+#else
+    dev.team_barrier();
+#endif
 
     if (i >= 0 && i < nlocal) {
       #pragma unroll 4
@@ -1086,7 +1089,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
         }
       }
     }
-    __syncthreads();
+    dev.team_barrier();
 
     const typename ArrayTypes<DeviceType>::t_int_1d_const_um stencil
       = d_stencil;
@@ -1108,7 +1111,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
 
       other_id[MY_II] = j;
 
-      __syncthreads();
+      dev.team_barrier();
 
       if (i >= 0 && i < nlocal) {
         #pragma unroll 8
@@ -1147,7 +1150,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeCuda(typename Kokkos::Team
           }
         }
       }
-      __syncthreads();
+      dev.team_barrier();
     }
 
     if (i >= 0 && i < nlocal) {

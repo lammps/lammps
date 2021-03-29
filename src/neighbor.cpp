@@ -1479,7 +1479,8 @@ void Neighbor::print_pairwise_info()
     rq = requests[i];
     if (rq->pair) {
       char *pname = force->pair_match_ptr((Pair *) rq->requestor);
-      out += fmt::format("  ({}) pair {}",i+1,pname);
+      if (pname) out += fmt::format("  ({}) pair {}",i+1,pname);
+      else out += fmt::format("  ({}) pair (none)",i+1);
     } else if (rq->fix) {
       out += fmt::format("  ({}) fix {}",i+1,((Fix *) rq->requestor)->style);
     } else if (rq->compute) {

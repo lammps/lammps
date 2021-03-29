@@ -70,6 +70,9 @@ static bool file_exists(const std::string &filename)
 }
 
 #define ASSERT_FILE_EXISTS(NAME) ASSERT_TRUE(file_exists(NAME))
+#define ASSERT_FILE_NOT_EXISTS(NAME) ASSERT_FALSE(file_exists(NAME))
 #define ASSERT_FILE_EQUAL(FILE_A, FILE_B) ASSERT_TRUE(equal_lines(FILE_A, FILE_B))
+
+
 
 #endif

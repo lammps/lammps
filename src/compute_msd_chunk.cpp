@@ -44,9 +44,7 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   firstflag = 1;
   init();
@@ -58,11 +56,9 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   //   potentially re-populate the fix array (and change it to correct size)
   // otherwise size reset and init will be done in setup()
 
-  std::string fixcmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fixcmd.c_str());
-
-  fixcmd += fmt::format(" {} STORE global 1 1",group->names[igroup]);
+  id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
+  std::string fixcmd = id_fix
+    + fmt::format(" {} STORE global 1 1",group->names[igroup]);
   modify->add_fix(fixcmd);
   fix = (FixStore *) modify->fix[modify->nfix-1];
 }

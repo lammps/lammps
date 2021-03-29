@@ -70,13 +70,13 @@ class KimInit : protected Pointers {
  public:
   KimInit(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
- private:
   enum model_type_enum {MO, SM};
+  static void write_log_cite(class LAMMPS *, model_type_enum, char *);
+ private:
   model_type_enum model_type;
   bool unit_conversion_mode;
 
   void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
-  void write_log_cite(char *);
   void do_init(char *, char *, char *, KIM_Model *&);
   void do_variables(const std::string &, const std::string &);
 };

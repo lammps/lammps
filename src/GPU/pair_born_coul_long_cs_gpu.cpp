@@ -194,7 +194,7 @@ void PairBornCoulLongCSGPU::init_style()
   g_ewald = force->kspace->g_ewald;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = bornclcs_gpu_init(atom->ntypes+1, cutsq,  rhoinv,

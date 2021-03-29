@@ -2318,7 +2318,7 @@ double FixGCMC::energy_full()
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -2330,7 +2330,9 @@ double FixGCMC::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c GCMC does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
+  // but Modify::pre_reverse() is needed for USER-INTEL
 
+  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_post_force) modify->post_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
 

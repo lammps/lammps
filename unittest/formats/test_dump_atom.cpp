@@ -24,6 +24,7 @@
 using ::testing::Eq;
 
 char *BINARY2TXT_BINARY = nullptr;
+bool verbose = false;
 
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";

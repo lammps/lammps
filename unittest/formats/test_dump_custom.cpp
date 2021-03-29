@@ -22,6 +22,7 @@
 using ::testing::Eq;
 
 char *BINARY2TXT_BINARY = nullptr;
+bool verbose = false;
 
 class DumpCustomTest : public MeltTest {
     std::string dump_style = "custom";

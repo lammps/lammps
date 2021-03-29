@@ -88,7 +88,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   int i,j,k,ii,jj,kk,jnum,iparam_i;
   tagint itag,jtag;
   int itype,jtype,ktype,iparam_ij,iparam_ijk;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
   double delr1[3],delr2[3],fi[3],fj[3],fk[3];
   double zeta_ij,prefactor;
@@ -102,7 +102,7 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   double vionij,fvionij,sr1,sr2,sr3,Eov,Fov;
   int sht_jnum, *sht_jlist, nj;
 
-  evdwl = ecoul = 0.0;
+  evdwl = 0.0;
 
   const double * const * const x = atom->x;
   double * const * const f = thr->get_f();
@@ -419,7 +419,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 #pragma omp parallel for private(ii) LMP_DEFAULT_NONE LMP_SHARED(potal,fac11e)
 #endif
   for (ii = 0; ii < inum; ii ++) {
-    double fqi,fqj,fqij,fqji,fqjj,delr1[3];
+    double fqi,fqij,fqji,fqjj,delr1[3];
     double sr1,sr2,sr3;
     int mr1,mr2,mr3;
 
@@ -428,7 +428,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
     int nj = 0;
 
     if (mask[i] & groupbit) {
-      fqi = fqj = fqij = fqji = fqjj = 0.0; // should not be needed.
+      fqi = fqij = fqji = fqjj = 0.0; // should not be needed.
       int itype = map[type[i]];
       const double xtmp = x[i][0];
       const double ytmp = x[i][1];

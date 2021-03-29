@@ -80,7 +80,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/break with non-molecular systems");
 
   // initialize Marsaglia RNG with processor-unique seed

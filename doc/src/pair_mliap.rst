@@ -16,7 +16,7 @@ Syntax
   .. parsed-literal::
 
        *model* values = style filename
-         style = *linear* or *quadratic* or *mliappy*
+         style = *linear* or *quadratic* or *nn* or *mliappy*
          filename = name of file containing model definitions
        *descriptor* values = style filename
          style = *sna*
@@ -45,7 +45,7 @@ pair style currently supports just one descriptor style, but it is
 is straightforward to add new descriptor styles.
 The SNAP descriptor style *sna* is the same as that used by :doc:`pair_style snap <pair_snap>`,
 including the linear, quadratic, and chem variants.
-The available models are *linear*, *quadratic*, and *mliappy*.
+The available models are *linear*, *quadratic*, *nn*, and *mliappy*.
 The *mliappy* style can be used to couple python models,
 e.g. PyTorch neural network energy models, and requires building
 LAMMPS with the PYTHON package (see below).
@@ -77,12 +77,31 @@ line must contain two integers:
 * nelems  = Number of elements
 * nparams = Number of parameters
 
-This is followed by one block for each of the *nelem* elements.
+When the *model* keyword is *linear* or *quadratic*,
+this is followed by one block for each of the *nelem* elements.
 Each block consists of *nparams* parameters, one per line.
 Note that this format is similar, but not identical to that used
 for the :doc:`pair_style snap <pair_snap>` coefficient file.
 Specifically, the line containing the element weight and radius is omitted,
 since these are handled by the *descriptor*.
+
+When the *model* keyword is *nn* (neural networks), the model file can contain
+blank and comment lines (start with #) anywhere. The second non-blank non-comment
+line must contain the string NET, followed by two integers:
+
+* ndescriptors = Number of descriptors
+* nlayers      = Number of layers (including the hidden layers and the output layer)
+
+and followed by a sequence of a string and an integer for each layer:
+
+* Activation function (linear, sigmoid, tanh or relu)
+* nnodes = Number of nodes
+
+This is followed by one block for each of the *nelem* elements. Each block consists
+of *scale0* minimum value, *scale1* (maximum - minimum) value,
+in order to normalize the descriptors, followed by *nparams* parameters,
+including *bias* and *weights* of the model, starting with the first node of the first layer
+and so on, with a maximum of 30 values per line.
 
 Notes on mliappy models:
 When the *model* keyword is *mliappy*, the filename should end in '.pt',

@@ -54,9 +54,7 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/region does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
+  idregion = utils::strdup(arg[3]);
 
   if (strcmp(arg[4],"lj93") == 0) style = LJ93;
   else if (strcmp(arg[4],"lj126") == 0) style = LJ126;

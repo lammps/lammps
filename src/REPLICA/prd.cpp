@@ -310,7 +310,7 @@ void PRD::command(int narg, char **arg)
       dynamics(t_event,time_dynamics);
       fix_event->store_state_quench();
       quench();
-      clock = clock + t_event*universe->nworlds;
+      clock += (bigint)t_event*universe->nworlds;
       ireplica = check_event();
       if (ireplica >= 0) break;
       fix_event->restore_state_quench();

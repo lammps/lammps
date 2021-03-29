@@ -13,6 +13,7 @@
 
 #include "minimize.h"
 
+#include "citeme.h"
 #include "domain.h"
 #include "error.h"
 #include "finish.h"
@@ -46,6 +47,7 @@ void Minimize::command(int narg, char **arg)
   if (update->etol < 0.0 || update->ftol < 0.0)
     error->all(FLERR,"Illegal minimize command");
 
+  if (lmp->citeme) lmp->citeme->flush();
   update->whichflag = 2;
   update->beginstep = update->firststep = update->ntimestep;
   update->endstep = update->laststep = update->firststep + update->nsteps;

@@ -122,7 +122,7 @@ OPT.
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf <pair_mdf>`
    * :doc:`line/lj <pair_line_lj>`
-   * :doc:`lj/charmm/coul/charmm (iko) <pair_charmm>`
+   * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
    * :doc:`lj/charmm/coul/long/soft (o) <pair_fep_soft>`
@@ -163,6 +163,7 @@ OPT.
    * :doc:`lj/long/dipole/long <pair_dipole>`
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
+   * :doc:`lj/relres (o) <pair_lj_relres>`
    * :doc:`lj/sdk (gko) <pair_sdk>`
    * :doc:`lj/sdk/coul/long (go) <pair_sdk>`
    * :doc:`lj/sdk/coul/msm (o) <pair_sdk>`
@@ -264,6 +265,7 @@ OPT.
    * :doc:`ufm (got) <pair_ufm>`
    * :doc:`vashishta (gko) <pair_vashishta>`
    * :doc:`vashishta/table (o) <pair_vashishta>`
+   * :doc:`wf/cut <pair_wf_cut>`
    * :doc:`yukawa (gko) <pair_yukawa>`
    * :doc:`yukawa/colloid (go) <pair_yukawa_colloid>`
    * :doc:`zbl (gko) <pair_zbl>`

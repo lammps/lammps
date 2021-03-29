@@ -20,6 +20,7 @@
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
+#include "mliap_model_nn.h"
 #include "mliap_descriptor_snap.h"
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
@@ -152,6 +153,10 @@ void PairMLIAP::settings(int narg, char ** arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
+      } else if (strcmp(arg[iarg+1],"nn") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        model = new MLIAPModelNN(lmp,arg[iarg+2]);
+        iarg += 3;
 #ifdef MLIAP_PYTHON
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
           if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
@@ -250,7 +255,7 @@ void PairMLIAP::e_tally(MLIAPData* data)
 {
   if (eflag_global) eng_vdwl += data->energy;
   if (eflag_atom)
-    for (int ii = 0; ii < data->natoms; ii++) {
+    for (int ii = 0; ii < data->nlistatoms; ii++) {
       const int i = data->iatoms[ii];
       eatom[i] += data->eatoms[ii];
     }
@@ -336,9 +341,9 @@ double PairMLIAP::memory_usage()
   double bytes = Pair::memory_usage();
 
   int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);            // setflag
-  bytes += n*n*sizeof(int);            // cutsq
-  bytes += n*sizeof(int);              // map
+  bytes += (double)n*n*sizeof(int);            // setflag
+  bytes += (double)n*n*sizeof(int);            // cutsq
+  bytes += (double)n*sizeof(int);              // map
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object
   bytes += data->memory_usage();       // Data object

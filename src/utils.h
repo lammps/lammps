@@ -37,6 +37,14 @@ namespace LAMMPS_NS {
 
     bool strmatch(const std::string &text, const std::string &pattern);
 
+    /** Find sub-string that matches a simplified regex pattern
+     *
+     *  \param text the text to be matched against the pattern
+     *  \param pattern the search pattern, which may contain regexp markers
+     *  \return the string that matches the patters or an empty one */
+
+    std::string strfind(const std::string &text, const std::string &pattern);
+
     /** Send message to screen and logfile, if available
      *
      *  \param lmp   pointer to LAMMPS class instance
@@ -195,19 +203,73 @@ namespace LAMMPS_NS {
     int expand_args(const char *file, int line, int narg, char **arg,
                     int mode, char **&earg, LAMMPS *lmp);
 
+    /** Make C-style copy of string in new storage
+     *
+     * This allocates a storage buffer and copies the C-style or
+     * C++ style string into it.  The buffer is allocated with "new"
+     * and thus needs to be deallocated with "delete[]".
+     *
+     * \param text  string that should be copied
+     * \return new buffer with copy of string */
+
+    char *strdup(const std::string &text);
+
     /** Trim leading and trailing whitespace. Like TRIM() in Fortran.
      *
-     * \param line string that should be trimmed
+     * \param line  string that should be trimmed
      * \return new string without whitespace (string) */
 
     std::string trim(const std::string &line);
 
     /** Return string with anything from '#' onward removed
      *
-     * \param line string that should be trimmed
+     * \param line  string that should be trimmed
      * \return new string without comment (string) */
 
     std::string trim_comment(const std::string &line);
+
+    /** Check if a string will likely have UTF-8 encoded characters
+     *
+     * UTF-8 uses the 7-bit standard ASCII table for the first 127 characters and
+     * all other characters are encoded as multiple bytes.  For the multi-byte
+     * characters the first byte has either the highest two, three, or four bits
+     * set followed by a zero bit and followed by one, two, or three more bytes,
+     * respectively, where the highest bit is set and the second highest bit set
+     * to 0.  The remaining bits combined are the character code, which is thus
+     * limited to 21-bits.
+     *
+     * For the sake of efficiency this test only checks if a character in the string
+     * has the highest bit set and thus is very likely an UTF-8 character.  It will
+     * not be able to tell this this is a valid UTF-8 character or whether it is a
+     * 2-byte, 3-byte, or 4-byte character.
+     *
+\verbatim embed:rst
+
+*See also*
+   :cpp:func:`utils::utf8_subst`
+
+\endverbatim
+     * \param line  string that should be checked
+     * \return true if string contains UTF-8 encoded characters (bool) */
+
+    inline bool has_utf8(const std::string &line)
+    {
+      for (auto c : line) if (c & 0x80U) return true;
+      return false;
+    }
+
+    /** Replace known UTF-8 characters with ASCII equivalents
+     *
+\verbatim embed:rst
+
+*See also*
+   :cpp:func:`utils::has_utf8`
+
+\endverbatim
+     * \param line  string that should be converted
+     * \return new string with ascii replacements (string) */
+
+    std::string utf8_subst(const std::string &line);
 
     /** Count words in string with custom choice of separating characters
      *
@@ -243,9 +305,9 @@ namespace LAMMPS_NS {
      *
      * This can handle strings with single and double quotes, escaped quotes,
      * and escaped codes within quotes, but due to using an STL container and
-     * STL strings is rather slow because of making copies. Designed for parsing
-     * command lines and similar text and not for time critical processing.
-     * Use a tokenizer class for that.
+     * STL strings is rather slow because of making copies. Designed for
+     * parsing command lines and similar text and not for time critical
+     * processing.  Use a tokenizer class if performance matters.
      *
 \verbatim embed:rst
 
@@ -272,6 +334,14 @@ namespace LAMMPS_NS {
      * \return true, if string contains valid number, false otherwise */
 
     bool is_double(const std::string &str);
+
+    /** Check if string is a valid ID
+     * ID strings may contain only letters, numbers, and underscores.
+     *
+     * \param str string that should be checked
+     * \return true, if string contains valid id, false otherwise */
+
+    bool is_id(const std::string &str);
 
     /** Try to detect pathname from FILE pointer.
      *

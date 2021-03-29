@@ -462,6 +462,6 @@ void ComputeAcklandAtom::select2(int k, int n, double *arr, int *iarr)
 
 double ComputeAcklandAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

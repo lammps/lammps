@@ -1045,7 +1045,7 @@ double FixWidom::energy_full()
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -1057,13 +1057,15 @@ double FixWidom::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c Widom does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
+  // but Modify::pre_reverse() is needed for USER-INTEL
 
+  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_pre_force) modify->pre_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
 
-  // NOTE: all fixes with THERMO_ENERGY mask set and which
+  // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force() or end_of_step()
-  //   and which user has enable via fix_modify thermo yes,
+  //   and which user has enabled via fix_modify energy yes,
   //   will contribute to total MC energy via pe->compute_scalar()
 
   update->eflag_global = update->ntimestep;
@@ -1177,7 +1179,7 @@ double FixWidom::compute_vector(int n)
 
 double FixWidom::memory_usage()
 {
-  double bytes = widom_nmax * sizeof(int);
+  double bytes = (double)widom_nmax * sizeof(int);
   return bytes;
 }
 

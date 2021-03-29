@@ -126,12 +126,8 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
           error->all(FLERR,"Illegal fix deform command");
         delete [] set[index].hstr;
         delete [] set[index].hratestr;
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        set[index].hstr = new char[n];
-        strcpy(set[index].hstr,&arg[iarg+2][2]);
-        n = strlen(&arg[iarg+3][2]) + 1;
-        set[index].hratestr = new char[n];
-        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        set[index].hstr = utils::strdup(&arg[iarg+2][2]);
+        set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 
@@ -188,12 +184,8 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
           error->all(FLERR,"Illegal fix deform command");
         delete [] set[index].hstr;
         delete [] set[index].hratestr;
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        set[index].hstr = new char[n];
-        strcpy(set[index].hstr,&arg[iarg+2][2]);
-        n = strlen(&arg[iarg+3][2]) + 1;
-        set[index].hratestr = new char[n];
-        strcpy(set[index].hratestr,&arg[iarg+3][2]);
+        set[index].hstr = utils::strdup(&arg[iarg+2][2]);
+        set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
       } else error->all(FLERR,"Illegal fix deform command");
 

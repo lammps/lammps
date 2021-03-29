@@ -73,8 +73,8 @@ ReadData::ReadData(LAMMPS *lmp) : Pointers(lmp)
   keyword = new char[MAXLINE];
   style = new char[MAXLINE];
   buffer = new char[CHUNK*MAXLINE];
-  narg = maxarg = 0;
-  arg = nullptr;
+  ncoeffarg = maxcoeffarg = 0;
+  coeffarg = nullptr;
   fp = nullptr;
 
   // customize for new sections
@@ -98,7 +98,7 @@ ReadData::~ReadData()
   delete [] keyword;
   delete [] style;
   delete [] buffer;
-  memory->sfree(arg);
+  memory->sfree(coeffarg);
 
   for (int i = 0; i < nfix; i++) {
     delete [] fix_header[i];
@@ -221,7 +221,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/bond/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No bonds allowed with this atom style");
       atom->extra_bond_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_bond_per_atom < 0)
@@ -229,7 +229,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/angle/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No angles allowed with this atom style");
       atom->extra_angle_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_angle_per_atom < 0)
@@ -237,7 +237,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/dihedral/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No dihedrals allowed with this atom style");
       atom->extra_dihedral_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_dihedral_per_atom < 0)
@@ -245,7 +245,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/improper/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No impropers allowed with this atom style");
       atom->extra_improper_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (atom->extra_improper_per_atom < 0)
@@ -253,7 +253,7 @@ void ReadData::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"extra/special/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_data command");
-      if (! atom->molecular)
+      if (atom->molecular == Atom::ATOMIC)
         error->all(FLERR,"No bonded interactions allowed with this atom style");
       force->special_extra = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (force->special_extra < 0)
@@ -278,14 +278,8 @@ void ReadData::command(int narg, char **arg)
       if (fix_index[nfix] < 0)
         error->all(FLERR,"Fix ID for read_data does not exist");
       if (strcmp(arg[iarg+2],"NULL") == 0) fix_header[nfix] = nullptr;
-      else {
-        int n = strlen(arg[iarg+2]) + 1;
-        fix_header[nfix] = new char[n];
-        strcpy(fix_header[nfix],arg[iarg+2]);
-      }
-      int n = strlen(arg[iarg+3]) + 1;
-      fix_section[nfix] = new char[n];
-      strcpy(fix_section[nfix],arg[iarg+3]);
+      else fix_header[nfix] = utils::strdup(arg[iarg+2]);
+      fix_section[nfix] = utils::strdup(arg[iarg+3]);
       nfix++;
       iarg += 4;
 
@@ -343,6 +337,12 @@ void ReadData::command(int narg, char **arg)
   Dihedral *saved_dihedral = nullptr;
   Improper *saved_improper = nullptr;
   KSpace *saved_kspace = nullptr;
+  char *saved_pair_style = nullptr;
+  char *saved_bond_style = nullptr;
+  char *saved_angle_style = nullptr;
+  char *saved_dihedral_style = nullptr;
+  char *saved_improper_style = nullptr;
+  char *saved_kspace_style = nullptr;
 
   if (coeffflag == 0) {
     char *coeffs[2];
@@ -350,33 +350,45 @@ void ReadData::command(int narg, char **arg)
     coeffs[1] = (char *) "nocoeff";
 
     saved_pair = force->pair;
+    saved_pair_style = force->pair_style;
     force->pair = nullptr;
+    force->pair_style = nullptr;
     force->create_pair("zero",0);
     if (force->pair) force->pair->settings(2,coeffs);
 
     coeffs[0] = coeffs[1];
     saved_bond = force->bond;
+    saved_bond_style = force->bond_style;
     force->bond = nullptr;
+    force->bond_style = nullptr;
     force->create_bond("zero",0);
     if (force->bond) force->bond->settings(1,coeffs);
 
     saved_angle = force->angle;
+    saved_angle_style = force->angle_style;
     force->angle = nullptr;
+    force->angle_style = nullptr;
     force->create_angle("zero",0);
     if (force->angle) force->angle->settings(1,coeffs);
 
     saved_dihedral = force->dihedral;
+    saved_dihedral_style = force->dihedral_style;
     force->dihedral = nullptr;
+    force->dihedral_style = nullptr;
     force->create_dihedral("zero",0);
     if (force->dihedral) force->dihedral->settings(1,coeffs);
 
     saved_improper = force->improper;
+    saved_improper_style = force->improper_style;
     force->improper = nullptr;
+    force->improper_style = nullptr;
     force->create_improper("zero",0);
     if (force->improper) force->improper->settings(1,coeffs);
 
     saved_kspace = force->kspace;
+    saved_kspace_style = force->kspace_style;
     force->kspace = nullptr;
+    force->kspace_style = nullptr;
   }
 
   // -----------------------------------------------------------------
@@ -879,20 +891,26 @@ void ReadData::command(int narg, char **arg)
   if (coeffflag == 0) {
     if (force->pair) delete force->pair;
     force->pair = saved_pair;
+    force->pair_style = saved_pair_style;
 
     if (force->bond) delete force->bond;
     force->bond = saved_bond;
+    force->bond_style = saved_bond_style;
 
     if (force->angle) delete force->angle;
     force->angle = saved_angle;
+    force->angle_style = saved_angle_style;
 
     if (force->dihedral) delete force->dihedral;
     force->dihedral = saved_dihedral;
+    force->dihedral_style = saved_dihedral_style;
 
     if (force->improper) delete force->improper;
     force->improper = saved_improper;
+    force->improper_style = saved_improper_style;
 
     force->kspace = saved_kspace;
+    force->kspace_style = saved_kspace_style;
   }
 
   // total time
@@ -1760,9 +1778,9 @@ void ReadData::paircoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,nullptr,1,2,toffset);
-    if (narg == 0)
+    if (ncoeffarg == 0)
       error->all(FLERR,"Unexpected empty line in PairCoeffs section");
-    force->pair->coeff(narg,arg);
+    force->pair->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -1787,9 +1805,9 @@ void ReadData::pairIJcoeffs()
       next = strchr(buf,'\n');
       *next = '\0';
       parse_coeffs(buf,nullptr,0,2,toffset);
-      if (narg == 0)
+      if (ncoeffarg == 0)
         error->all(FLERR,"Unexpected empty line in PairCoeffs section");
-      force->pair->coeff(narg,arg);
+      force->pair->coeff(ncoeffarg,coeffarg);
       buf = next + 1;
     }
   delete [] original;
@@ -1812,9 +1830,9 @@ void ReadData::bondcoeffs()
     next = strchr(buf,'\n');
     *next = '\0';
     parse_coeffs(buf,nullptr,0,1,boffset);
-    if (narg == 0)
+    if (ncoeffarg == 0)
       error->all(FLERR,"Unexpected empty line in BondCoeffs section");
-    force->bond->coeff(narg,arg);
+    force->bond->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -1839,8 +1857,8 @@ void ReadData::anglecoeffs(int which)
     if (which == 0) parse_coeffs(buf,nullptr,0,1,aoffset);
     else if (which == 1) parse_coeffs(buf,"bb",0,1,aoffset);
     else if (which == 2) parse_coeffs(buf,"ba",0,1,aoffset);
-    if (narg == 0) error->all(FLERR,"Unexpected empty line in AngleCoeffs section");
-    force->angle->coeff(narg,arg);
+    if (ncoeffarg == 0) error->all(FLERR,"Unexpected empty line in AngleCoeffs section");
+    force->angle->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -1868,9 +1886,9 @@ void ReadData::dihedralcoeffs(int which)
     else if (which == 3) parse_coeffs(buf,"at",0,1,doffset);
     else if (which == 4) parse_coeffs(buf,"aat",0,1,doffset);
     else if (which == 5) parse_coeffs(buf,"bb13",0,1,doffset);
-    if (narg == 0)
+    if (ncoeffarg == 0)
       error->all(FLERR,"Unexpected empty line in DihedralCoeffs section");
-    force->dihedral->coeff(narg,arg);
+    force->dihedral->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -1894,8 +1912,8 @@ void ReadData::impropercoeffs(int which)
     *next = '\0';
     if (which == 0) parse_coeffs(buf,nullptr,0,1,ioffset);
     else if (which == 1) parse_coeffs(buf,"aa",0,1,ioffset);
-    if (narg == 0) error->all(FLERR,"Unexpected empty line in ImproperCoeffs section");
-    force->improper->coeff(narg,arg);
+    if (ncoeffarg == 0) error->all(FLERR,"Unexpected empty line in ImproperCoeffs section");
+    force->improper->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
   delete [] original;
@@ -2053,7 +2071,7 @@ void ReadData::skip_lines(bigint n)
 }
 
 /* ----------------------------------------------------------------------
-   parse a line of coeffs into words, storing them in narg,arg
+   parse a line of coeffs into words, storing them in ncoeffarg,coeffarg
    trim anything from '#' onward
    word strings remain in line, are not copied
    if addstr != nullptr, add addstr as extra arg for class2 angle/dihedral/improper
@@ -2069,33 +2087,38 @@ void ReadData::parse_coeffs(char *line, const char *addstr,
   char *ptr;
   if ((ptr = strchr(line,'#'))) *ptr = '\0';
 
-  narg = 0;
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (narg == maxarg) {
-      maxarg += DELTA;
-      arg = (char **)
-        memory->srealloc(arg,maxarg*sizeof(char *),"read_data:arg");
+  ncoeffarg = 0;
+  char *word = line;
+  char *end = line + strlen(line)+1;
+
+  while (word < end) {
+    word += strspn(word," \t\r\n\f");
+    word[strcspn(word," \t\r\n\f")] = '\0';
+    if (strlen(word) == 0) break;
+    if (ncoeffarg == maxcoeffarg) {
+      maxcoeffarg += DELTA;
+      coeffarg = (char **)
+        memory->srealloc(coeffarg,maxcoeffarg*sizeof(char *),"read_data:coeffarg");
     }
-    if (addstr && narg == 1 && !islower(word[0])) arg[narg++] = (char *) addstr;
-    arg[narg++] = word;
-    if (addstr && narg == 2 && islower(word[0])) arg[narg++] = (char *) addstr;
-    if (dupflag && narg == 1) arg[narg++] = word;
-    word = strtok(nullptr," \t\n\r\f");
+    if (addstr && ncoeffarg == 1 && !islower(word[0])) coeffarg[ncoeffarg++] = (char *) addstr;
+    coeffarg[ncoeffarg++] = word;
+    if (addstr && ncoeffarg == 2 && islower(word[0])) coeffarg[ncoeffarg++] = (char *) addstr;
+    if (dupflag && ncoeffarg == 1) coeffarg[ncoeffarg++] = word;
+    word += strlen(word)+1;
   }
 
   // to avoid segfaults on empty lines
 
-  if (narg == 0) return;
+  if (ncoeffarg == 0) return;
 
   if (noffset) {
-    int value = utils::inumeric(FLERR,arg[0],false,lmp);
+    int value = utils::inumeric(FLERR,coeffarg[0],false,lmp);
     sprintf(argoffset1,"%d",value+offset);
-    arg[0] = argoffset1;
+    coeffarg[0] = argoffset1;
     if (noffset == 2) {
-      value = utils::inumeric(FLERR,arg[1],false,lmp);
+      value = utils::inumeric(FLERR,coeffarg[1],false,lmp);
       sprintf(argoffset2,"%d",value+offset);
-      arg[1] = argoffset2;
+      coeffarg[1] = argoffset2;
     }
   }
 }

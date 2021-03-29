@@ -13,29 +13,30 @@
 
 #include "dump_image.h"
 
+#include "atom.h"
+#include "atom_vec.h"
+#include "atom_vec_body.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
+#include "body.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "image.h"
+#include "input.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "tokenizer.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cctype>
 #include <cstring>
-#include "image.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "atom_vec_line.h"
-#include "atom_vec_tri.h"
-#include "atom_vec_body.h"
-#include "body.h"
-#include "molecule.h"
-#include "domain.h"
-#include "force.h"
-#include "comm.h"
-#include "modify.h"
-#include "fix.h"
-#include "input.h"
-#include "variable.h"
-#include "math_const.h"
-#include "math_extra.h"
-#include "error.h"
-#include "memory.h"
-
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -225,10 +226,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"view") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal dump image command");
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        thetastr = new char[n];
-        strcpy(thetastr,&arg[iarg+1][2]);
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
+        thetastr = utils::strdup(arg[iarg+1]+2);
       } else {
         double theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (theta < 0.0 || theta > 180.0)
@@ -236,10 +235,8 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         theta *= MY_PI/180.0;
         image->theta = theta;
       }
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        phistr = new char[n];
-        strcpy(phistr,&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        phistr = utils::strdup(arg[iarg+2]+2);
       } else {
         double phi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         phi *= MY_PI/180.0;
@@ -252,51 +249,37 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"s") == 0) cflag = STATIC;
       else if (strcmp(arg[iarg+1],"d") == 0) cflag = DYNAMIC;
       else error->all(FLERR,"Illegal dump image command");
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        cxstr = new char[n];
-        strcpy(cxstr,&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        cxstr = utils::strdup(arg[iarg+2]+2);
         cflag = DYNAMIC;
       } else cx = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        cystr = new char[n];
-        strcpy(cystr,&arg[iarg+3][2]);
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
+        cystr = utils::strdup(arg[iarg+3]+2);
         cflag = DYNAMIC;
       } else cy = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (strstr(arg[iarg+4],"v_") == arg[iarg+4]) {
-        int n = strlen(&arg[iarg+4][2]) + 1;
-        czstr = new char[n];
-        strcpy(czstr,&arg[iarg+4][2]);
+      if (utils::strmatch(arg[iarg+4],"^v_")) {
+        czstr = utils::strdup(arg[iarg+4]+2);
         cflag = DYNAMIC;
       } else cz = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"up") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal dump image command");
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        upxstr = new char[n];
-        strcpy(upxstr,&arg[iarg+1][2]);
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
+        upxstr = utils::strdup(arg[iarg+1]+2);
       } else image->up[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        upystr = new char[n];
-        strcpy(upystr,&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        upystr = utils::strdup(arg[iarg+2]+2);
       } else image->up[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        upzstr = new char[n];
-        strcpy(upzstr,&arg[iarg+3][2]);
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
+        upzstr = utils::strdup(arg[iarg+3]+2);
       } else image->up[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"zoom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump image command");
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        zoomstr = new char[n];
-        strcpy(zoomstr,&arg[iarg+1][2]);
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
+        zoomstr = utils::strdup(arg[iarg+1]+2);
       } else {
         double zoom = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (zoom <= 0.0) error->all(FLERR,"Illegal dump image command");
@@ -1225,32 +1208,19 @@ int DumpImage::modify_param(int narg, char **arg)
     int nlo,nhi;
     utils::bounds(FLERR,arg[1],1,atom->ntypes,nlo,nhi,error);
 
-    // ptrs = list of ncount colornames separated by '/'
+    // get list of colors
+    auto colors = Tokenizer(arg[2],"/").as_vector();
+    const int ncolors = colors.size();
 
-    int ncount = 1;
-    char *nextptr;
-    char *ptr = arg[2];
-    while ((nextptr = strchr(ptr,'/'))) {
-      ptr = nextptr + 1;
-      ncount++;
-    }
-    char **ptrs = new char*[ncount+1];
-    ncount = 0;
-    ptrs[ncount++] = strtok(arg[2],"/");
-    while ((ptrs[ncount++] = strtok(nullptr,"/")));
-    ncount--;
-
-    // assign each of ncount colors in round-robin fashion to types
+    // assign colors in round-robin fashion to types
 
     int m = 0;
     for (int i = nlo; i <= nhi; i++) {
-      colortype[i] = image->color2rgb(ptrs[m%ncount]);
+      colortype[i] = image->color2rgb(colors[m%ncolors].c_str());
       if (colortype[i] == nullptr)
         error->all(FLERR,"Invalid color in dump_modify command");
       m++;
     }
-
-    delete [] ptrs;
     return 3;
   }
 

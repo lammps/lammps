@@ -738,7 +738,7 @@ void FixBoxRelax::couple()
   if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
     error->all(FLERR,"Non-numeric pressure - simulation unstable");
 
-  // switch order from xy-xz-yz to Voigt
+  // switch order from xy-xz-yz to Voigt ordering
 
   if (pstyle == TRICLINIC) {
     p_current[3] = tensor[5];
@@ -761,9 +761,7 @@ int FixBoxRelax::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -792,9 +790,7 @@ int FixBoxRelax::modify_param(int narg, char **arg)
       pflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

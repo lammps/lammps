@@ -689,9 +689,9 @@ void PPPMDisp::setup()
             vg[n][3] = 0.0;
             vg[n][4] = 0.0;
             vg[n][5] = 0.0;
-	    vg2[n][0] = 0.0;
-	    vg2[n][1] = 0.0;
-	    vg2[n][2] = 0.0;
+            vg2[n][0] = 0.0;
+            vg2[n][1] = 0.0;
+            vg2[n][2] = 0.0;
           } else {
             vterm = -2.0 * (1.0/sqk + 0.25*gew2inv);
             vg[n][0] = 1.0 + vterm*fkx[i]*fkx[i];
@@ -742,8 +742,8 @@ void PPPMDisp::setup()
       fkz2_6[i] = unitkz*per;
     }
     double sqk,vterm;
-    long double erft,expt,nom,denom;
-    long double b,bs,bt;
+    double erft,expt,nom,denom;
+    double b,bs,bt;
     double rtpi = sqrt(MY_PI);
     double gewinv = 1/g_ewald_6;
     n = 0;
@@ -1048,7 +1048,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     make_rho_a();
 
     gc6->reverse_comm_kspace(this,7,sizeof(FFT_SCALAR),REVERSE_RHO_ARITH,
-			     gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+                             gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_a();
 
@@ -1143,7 +1143,7 @@ void PPPMDisp::compute(int eflag, int vflag)
     make_rho_none();
 
     gc6->reverse_comm_kspace(this,nsplit_alloc,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
-			     gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+                             gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     brick2fft_none();
 
@@ -1158,14 +1158,14 @@ void PPPMDisp::compute(int eflag, int vflag)
       }
 
       gc6->forward_comm_kspace(this,1*nsplit_alloc,sizeof(FFT_SCALAR),
-			       FORWARD_AD_NONE,
+                               FORWARD_AD_NONE,
                                gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ad();
 
       if (vflag_atom)
         gc6->forward_comm_kspace(this,6*nsplit_alloc,sizeof(FFT_SCALAR),
-				 FORWARD_AD_PERATOM_NONE,
+                                 FORWARD_AD_PERATOM_NONE,
                                  gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
     } else {
@@ -1180,14 +1180,14 @@ void PPPMDisp::compute(int eflag, int vflag)
       }
 
       gc6->forward_comm_kspace(this,3*nsplit_alloc,sizeof(FFT_SCALAR),
-			       FORWARD_IK_NONE,
+                               FORWARD_IK_NONE,
                                gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
 
       fieldforce_none_ik();
 
       if (evflag_atom)
         gc6->forward_comm_kspace(this,7*nsplit_alloc,sizeof(FFT_SCALAR),
-				 FORWARD_IK_PERATOM_NONE,
+                                 FORWARD_IK_PERATOM_NONE,
                                  gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
     }
 
@@ -1321,7 +1321,7 @@ void PPPMDisp::init_coeffs()
       converged = qr_alg(A,Q,n);
       if (function[3] && !converged) {
         error->all(FLERR,
-		   "Matrix factorization to split dispersion coefficients failed");
+                   "Matrix factorization to split dispersion coefficients failed");
       }
 
       // determine number of used eigenvalues
@@ -1409,8 +1409,8 @@ void PPPMDisp::init_coeffs()
         utils::logmesg(lmp,fmt::format("  Using {} structure factors\n",
                                        nsplit));
       if (nsplit > 9)
-	error->warning(FLERR,"Simulations might be very slow "
-		       "because of large number of structure factors");
+        error->warning(FLERR,"Simulations might be very slow "
+                       "because of large number of structure factors");
     }
 
     memory->destroy(A);
@@ -4564,11 +4564,11 @@ void PPPMDisp::make_rho_none()
         my = m+ny;
         x0 = y0*rho1d_6[1][m];
         for (l = nlower_6; l <= nupper_6; l++) {
-	  mx = l+nx;
+          mx = l+nx;
           w = x0*rho1d_6[0][l];
           for (k = 0; k < nsplit; k++) {
             density_brick_none[k][mz][my][mx] += w*B[nsplit*type + k];
-	  }
+          }
         }
       }
     }
@@ -4813,13 +4813,13 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
 ------------------------------------------------------------------------- */
 
 void PPPMDisp::poisson_peratom(FFT_SCALAR* wk1, FFT_SCALAR* wk2, LAMMPS_NS::FFT3d* ft2,
-			       double** vcoeff, double** vcoeff2, int nft,
-			       int nxlo_i, int nylo_i, int nzlo_i,
-			       int nxhi_i, int nyhi_i, int nzhi_i,
-			       FFT_SCALAR*** v0_pa, FFT_SCALAR*** v1_pa,
-			       FFT_SCALAR*** v2_pa,
-			       FFT_SCALAR*** v3_pa, FFT_SCALAR*** v4_pa,
-			       FFT_SCALAR*** v5_pa)
+                               double** vcoeff, double** vcoeff2, int nft,
+                               int nxlo_i, int nylo_i, int nzlo_i,
+                               int nxhi_i, int nyhi_i, int nzhi_i,
+                               FFT_SCALAR*** v0_pa, FFT_SCALAR*** v1_pa,
+                               FFT_SCALAR*** v2_pa,
+                               FFT_SCALAR*** v3_pa, FFT_SCALAR*** v4_pa,
+                               FFT_SCALAR*** v5_pa)
 {
  // v0 & v1 term
 
@@ -5227,8 +5227,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
 
   if (vflag_atom)
     poisson_none_peratom(n1,n2,
-			 v0_pa[n1],v1_pa[n1],v2_pa[n1],v3_pa[n1],v4_pa[n1],v5_pa[n1],
-			 v0_pa[n2],v1_pa[n2],v2_pa[n2],v3_pa[n2],v4_pa[n2],v5_pa[n2]);
+                         v0_pa[n1],v1_pa[n1],v2_pa[n1],v3_pa[n1],v4_pa[n1],v5_pa[n1],
+                         v0_pa[n2],v1_pa[n2],v2_pa[n2],v3_pa[n2],v4_pa[n2],v5_pa[n2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -5429,8 +5429,8 @@ poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
 
   if (vflag_atom)
     poisson_none_peratom(n1,n2,
-			 v0_pa[n1],v1_pa[n1],v2_pa[n1],v3_pa[n1],v4_pa[n1],v5_pa[n1],
-			 v0_pa[n2],v1_pa[n2],v2_pa[n2],v3_pa[n2],v4_pa[n2],v5_pa[n2]);
+                         v0_pa[n1],v1_pa[n1],v2_pa[n1],v3_pa[n1],v4_pa[n1],v5_pa[n1],
+                         v0_pa[n2],v1_pa[n2],v2_pa[n2],v3_pa[n2],v4_pa[n2],v5_pa[n2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -8298,7 +8298,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
 
 double PPPMDisp::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
 
   int mixing = 1;
   int diff = 3;     //depends on differentiation
@@ -8314,27 +8314,27 @@ double PPPMDisp::memory_usage()
   if (function[0]) {
     int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
       (nzhi_out-nzlo_out+1);
-    bytes += (1 + diff +  per) * nbrick * sizeof(FFT_SCALAR);     //brick memory
-    bytes += 6 * nfft_both * sizeof(double);      // vg
-    bytes += nfft_both * sizeof(double);          // greensfn
-    bytes += nfft_both * 3 * sizeof(FFT_SCALAR);    // density_FFT, work1, work2
+    bytes += (double)(1 + diff +  per) * nbrick * sizeof(FFT_SCALAR);     //brick memory
+    bytes += (double)6 * nfft_both * sizeof(double);      // vg
+    bytes += (double)nfft_both * sizeof(double);          // greensfn
+    bytes += (double)nfft_both * 3 * sizeof(FFT_SCALAR);    // density_FFT, work1, work2
   }
 
   if (function[1] + function[2] + function[3]) {
     int nbrick = (nxhi_out_6-nxlo_out_6+1) * (nyhi_out_6-nylo_out_6+1) *
       (nzhi_out_6-nzlo_out_6+1);
     // density_brick + vd_brick + per atom bricks
-    bytes += (1 + diff + per ) * nbrick * sizeof(FFT_SCALAR) * mixing;
-    bytes += 6 * nfft_both_6 * sizeof(double);      // vg
-    bytes += nfft_both_6 * sizeof(double);          // greensfn
+    bytes += (double)(1 + diff + per ) * nbrick * sizeof(FFT_SCALAR) * mixing;
+    bytes += (double)6 * nfft_both_6 * sizeof(double);      // vg
+    bytes += (double)nfft_both_6 * sizeof(double);          // greensfn
     // density_FFT, work1, work2
-    bytes += nfft_both_6 * (mixing + 2) * sizeof(FFT_SCALAR);
+    bytes += (double)nfft_both_6 * (mixing + 2) * sizeof(FFT_SCALAR);
   }
 
   // four GridComm bufs
 
-  bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
-  bytes += (ngc6_buf1 + ngc6_buf2) * npergrid6 * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc6_buf1 + ngc6_buf2) * npergrid6 * sizeof(FFT_SCALAR);
 
   return bytes;
 }

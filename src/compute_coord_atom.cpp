@@ -32,7 +32,6 @@
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,9 +53,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
     int iarg = 5;
     if ((narg > 6) && (strcmp(arg[5],"group") == 0)) {
-      int len = strlen(arg[6])+1;
-      group2 = new char[len];
-      strcpy(group2,arg[6]);
+      group2 = utils::strdup(arg[6]);
       iarg += 2;
       jgroup = group->find(group2);
       if (jgroup == -1)
@@ -88,9 +85,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     cstyle = ORIENT;
     if (narg != 6) error->all(FLERR,"Illegal compute coord/atom command");
 
-    int n = strlen(arg[4]) + 1;
-    id_orientorder = new char[n];
-    strcpy(id_orientorder,arg[4]);
+    id_orientorder = utils::strdup(arg[4]);
 
     int iorientorder = modify->find_compute(id_orientorder);
     if (iorientorder < 0)
@@ -198,9 +193,9 @@ void ComputeCoordAtom::compute_peratom()
   }
 
   if (cstyle == ORIENT) {
-    if (!(c_orientorder->invoked_flag & INVOKED_PERATOM)) {
+    if (!(c_orientorder->invoked_flag & Compute::INVOKED_PERATOM)) {
       c_orientorder->compute_peratom();
-      c_orientorder->invoked_flag |= INVOKED_PERATOM;
+      c_orientorder->invoked_flag |= Compute::INVOKED_PERATOM;
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;
@@ -356,6 +351,6 @@ void ComputeCoordAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeCoordAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
+  double bytes = (double)ncol*nmax * sizeof(double);
   return bytes;
 }

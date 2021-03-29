@@ -1,0 +1,34 @@
+# GitHub action to build LAMMPS on MacOS and run unit tests
+name: "Unittest for MacOS"
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  build:
+    name: MacOS Unit Test
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Building LAMMPS via CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: |
+        cmake -C $GITHUB_WORKSPACE/cmake/presets/most.cmake $GITHUB_WORKSPACE/cmake \
+              -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON -DLAMMPS_EXCEPTIONS=ON
+        cmake --build . --parallel 2
+
+    - name: Run Tests
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: ctest -V

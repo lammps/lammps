@@ -43,6 +43,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   tempflag = 0;
   scaleflag = 1;
   roughflag = 0;
+  roughdist = 0.0;
   rampflag = 0;
   rampNL1flag = 0;
   rampNL2flag = 0;

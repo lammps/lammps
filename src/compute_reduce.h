@@ -26,6 +26,9 @@ namespace LAMMPS_NS {
 
 class ComputeReduce : public Compute {
  public:
+  enum {SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};
+  enum {PERATOM,LOCAL};
+
   ComputeReduce(class LAMMPS *, int, char **);
   virtual ~ComputeReduce();
   void init();

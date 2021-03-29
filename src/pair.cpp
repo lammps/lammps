@@ -221,7 +221,7 @@ void Pair::init()
   // for manybody potentials
   // check if bonded exclusions could invalidate the neighbor list
 
-  if (manybody_flag && atom->molecular) {
+  if (manybody_flag && (atom->molecular != Atom::ATOMIC)) {
     int flag = 0;
     if (atom->nbonds > 0 && force->special_lj[1] == 0.0 &&
         force->special_coul[1] == 0.0) flag = 1;
@@ -1836,9 +1836,9 @@ void Pair::hessian_twobody(double fforce, double dfac, double delr[3], double ph
 
 double Pair::memory_usage()
 {
-  double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
-  bytes += comm->nthreads*maxcvatom*9 * sizeof(double);
+  double bytes = (double)comm->nthreads*maxeatom * sizeof(double);
+  bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += (double)comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;
 }
 

@@ -1950,8 +1950,9 @@ void AtomVecSphereKokkos::unpack_border(int n, int first, double *buf)
 {
   int m = 0;
   const int last = first + n;
+  while (last > nmax) grow(0);
+
   for (int i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1962,12 +1963,12 @@ void AtomVecSphereKokkos::unpack_border(int n, int first, double *buf)
     h_rmass[i] = buf[m++];
   }
 
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK);
+
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
       m += modify->fix[atom->extra_border[iextra]]->
         unpack_border(n,first,&buf[m]);
-
-  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK);
 }
 
 
@@ -2060,8 +2061,9 @@ void AtomVecSphereKokkos::unpack_border_vel(int n, int first, double *buf)
 {
   int m = 0;
   const int last = first + n;
+  while (last > nmax) grow(0);
+
   for (int i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -2078,12 +2080,12 @@ void AtomVecSphereKokkos::unpack_border_vel(int n, int first, double *buf)
     h_omega(i,2) = buf[m++];
   }
 
+  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK|V_MASK|OMEGA_MASK);
+
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
       m += modify->fix[atom->extra_border[iextra]]->
         unpack_border(n,first,&buf[m]);
-
-  atomKK->modified(Host,X_MASK|TAG_MASK|TYPE_MASK|MASK_MASK|RADIUS_MASK|RMASS_MASK|V_MASK|OMEGA_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

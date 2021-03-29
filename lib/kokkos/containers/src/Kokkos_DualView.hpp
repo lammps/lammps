@@ -162,7 +162,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
   /// \brief The type of a const, random-access View host mirror of
   ///   \c t_dev_const_randomread.
   using t_host_const_randomread_um =
-      typename t_dev_const_randomread::HostMirror;
+      typename t_dev_const_randomread_um::HostMirror;
 
   //@}
   //! \name Counters to keep track of changes ("modified" flags)
@@ -244,21 +244,6 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
         d_view(arg_prop, n0, n1, n2, n3, n4, n5, n6, n7),
         h_view(create_mirror_view(d_view))  // without UVM, host View mirrors
   {}
-
-  explicit inline DualView(const ViewAllocateWithoutInitializing& arg_prop,
-                           const size_t arg_N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                           const size_t arg_N1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                           const size_t arg_N2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                           const size_t arg_N3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                           const size_t arg_N4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                           const size_t arg_N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                           const size_t arg_N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                           const size_t arg_N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : DualView(Impl::ViewCtorProp<std::string,
-                                    Kokkos::Impl::WithoutInitializing_t>(
-                     arg_prop.label, Kokkos::WithoutInitializing),
-                 arg_N0, arg_N1, arg_N2, arg_N3, arg_N4, arg_N5, arg_N6,
-                 arg_N7) {}
 
   //! Copy constructor (shallow copy)
   template <class SS, class LS, class DS, class MS>
@@ -457,7 +442,27 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     }
     return dev;
   }
-
+  static constexpr const int view_header_size = 128;
+  void impl_report_host_sync() const noexcept {
+    if (Kokkos::Tools::Experimental::get_callbacks().sync_dual_view !=
+        nullptr) {
+      Kokkos::Tools::syncDualView(
+          h_view.label(),
+          reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(h_view.data()) -
+                                  view_header_size),
+          false);
+    }
+  }
+  void impl_report_device_sync() const noexcept {
+    if (Kokkos::Tools::Experimental::get_callbacks().sync_dual_view !=
+        nullptr) {
+      Kokkos::Tools::syncDualView(
+          d_view.label(),
+          reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(d_view.data()) -
+                                  view_header_size),
+          true);
+    }
+  }
   /// \brief Update data on device or host only if data in the other
   ///   space has been marked as modified.
   ///
@@ -499,6 +504,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
         deep_copy(d_view, h_view);
         modified_flags(0) = modified_flags(1) = 0;
+        impl_report_device_sync();
       }
     }
     if (dev == 0) {  // hopefully Device is the same as DualView's host type
@@ -515,6 +521,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
         deep_copy(h_view, d_view);
         modified_flags(0) = modified_flags(1) = 0;
+        impl_report_host_sync();
       }
     }
     if (std::is_same<typename t_host::memory_space,
@@ -539,12 +546,14 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
         Impl::throw_runtime_exception(
             "Calling sync on a DualView with a const datatype.");
       }
+      impl_report_device_sync();
     }
     if (dev == 0) {  // hopefully Device is the same as DualView's host type
       if ((modified_flags(1) > 0) && (modified_flags(1) >= modified_flags(0))) {
         Impl::throw_runtime_exception(
             "Calling sync on a DualView with a const datatype.");
       }
+      impl_report_host_sync();
     }
   }
 
@@ -567,6 +576,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
       deep_copy(h_view, d_view);
       modified_flags(1) = modified_flags(0) = 0;
+      impl_report_host_sync();
     }
   }
 
@@ -589,6 +599,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
 
       deep_copy(d_view, h_view);
       modified_flags(1) = modified_flags(0) = 0;
+      impl_report_device_sync();
     }
   }
 
@@ -619,7 +630,26 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
     if (modified_flags.data() == nullptr) return false;
     return modified_flags(1) < modified_flags(0);
   }
-
+  void impl_report_device_modification() {
+    if (Kokkos::Tools::Experimental::get_callbacks().modify_dual_view !=
+        nullptr) {
+      Kokkos::Tools::modifyDualView(
+          d_view.label(),
+          reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(d_view.data()) -
+                                  view_header_size),
+          true);
+    }
+  }
+  void impl_report_host_modification() {
+    if (Kokkos::Tools::Experimental::get_callbacks().modify_dual_view !=
+        nullptr) {
+      Kokkos::Tools::modifyDualView(
+          h_view.label(),
+          reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(h_view.data()) -
+                                  view_header_size),
+          false);
+    }
+  }
   /// \brief Mark data as modified on the given device \c Device.
   ///
   /// If \c Device is the same as this DualView's device type, then
@@ -636,6 +666,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
           (modified_flags(1) > modified_flags(0) ? modified_flags(1)
                                                  : modified_flags(0)) +
           1;
+      impl_report_device_modification();
     }
     if (dev == 0) {  // hopefully Device is the same as DualView's host type
       // Increment the host's modified count.
@@ -643,6 +674,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
           (modified_flags(1) > modified_flags(0) ? modified_flags(1)
                                                  : modified_flags(0)) +
           1;
+      impl_report_host_modification();
     }
 
 #ifdef KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK
@@ -663,6 +695,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
           (modified_flags(1) > modified_flags(0) ? modified_flags(1)
                                                  : modified_flags(0)) +
           1;
+      impl_report_host_modification();
 #ifdef KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK
       if (modified_flags(0) && modified_flags(1)) {
         std::string msg = "Kokkos::DualView::modify_host ERROR: ";
@@ -682,6 +715,7 @@ class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
           (modified_flags(1) > modified_flags(0) ? modified_flags(1)
                                                  : modified_flags(0)) +
           1;
+      impl_report_device_modification();
 #ifdef KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK
       if (modified_flags(0) && modified_flags(1)) {
         std::string msg = "Kokkos::DualView::modify_device ERROR: ";

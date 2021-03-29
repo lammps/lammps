@@ -108,6 +108,6 @@ void ComputeSMDULSPHstrain::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDULSPHstrain::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

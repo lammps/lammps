@@ -61,20 +61,12 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   improper = nullptr;
   kspace = nullptr;
 
-  char *str = (char *) "none";
-  int n = strlen(str) + 1;
-  pair_style = new char[n];
-  strcpy(pair_style,str);
-  bond_style = new char[n];
-  strcpy(bond_style,str);
-  angle_style = new char[n];
-  strcpy(angle_style,str);
-  dihedral_style = new char[n];
-  strcpy(dihedral_style,str);
-  improper_style = new char[n];
-  strcpy(improper_style,str);
-  kspace_style = new char[n];
-  strcpy(kspace_style,str);
+  pair_style = utils::strdup("none");
+  bond_style = utils::strdup("none");
+  angle_style = utils::strdup("none");
+  dihedral_style = utils::strdup("none");
+  improper_style = utils::strdup("none");
+  kspace_style = utils::strdup("none");
 
   pair_restart = nullptr;
   create_factories();
@@ -849,11 +841,11 @@ void Force::set_special(int narg, char **arg)
 double Force::memory_usage()
 {
   double bytes = 0;
-  if (pair) bytes += static_cast<bigint> (pair->memory_usage());
-  if (bond) bytes += static_cast<bigint> (bond->memory_usage());
-  if (angle) bytes += static_cast<bigint> (angle->memory_usage());
-  if (dihedral) bytes += static_cast<bigint> (dihedral->memory_usage());
-  if (improper) bytes += static_cast<bigint> (improper->memory_usage());
-  if (kspace) bytes += static_cast<bigint> (kspace->memory_usage());
+  if (pair) bytes += pair->memory_usage();
+  if (bond) bytes += bond->memory_usage();
+  if (angle) bytes += angle->memory_usage();
+  if (dihedral) bytes += dihedral->memory_usage();
+  if (improper) bytes += improper->memory_usage();
+  if (kspace) bytes += kspace->memory_usage();
   return bytes;
 }

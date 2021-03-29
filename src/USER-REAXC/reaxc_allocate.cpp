@@ -302,10 +302,10 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
 
   // storage for reductions with multiple threads
 #ifdef LMP_USER_OMP
-  workspace->CdDeltaReduction = (double *) scalloc(control->error_ptr, sizeof(double), total_cap*control->nthreads,
+  workspace->CdDeltaReduction = (double *) scalloc(control->error_ptr, sizeof(double), (rc_bigint)total_cap*control->nthreads,
                                                  "cddelta_reduce");
 
-  workspace->forceReduction = (rvec *) scalloc(control->error_ptr, sizeof(rvec), total_cap*control->nthreads,
+  workspace->forceReduction = (rvec *) scalloc(control->error_ptr, sizeof(rvec), (rc_bigint)total_cap*control->nthreads,
                                                "forceReduction");
 
   workspace->valence_angle_atom_myoffset = (int *) scalloc(control->error_ptr, sizeof(int), total_cap, "valence_angle_atom_myoffset");

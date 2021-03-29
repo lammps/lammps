@@ -3057,32 +3057,32 @@ int PPPM::timing_3d(int n, double &time3d)
 
 double PPPM::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
 
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   if (differentiation_flag == 1) {
-    bytes += 2 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)2 * nbrick * sizeof(FFT_SCALAR);
   } else {
-    bytes += 4 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)4 * nbrick * sizeof(FFT_SCALAR);
   }
 
-  if (triclinic) bytes += 3 * nfft_both * sizeof(double);
-  bytes += 6 * nfft_both * sizeof(double);
-  bytes += nfft_both * sizeof(double);
-  bytes += nfft_both*5 * sizeof(FFT_SCALAR);
+  if (triclinic) bytes += (double)3 * nfft_both * sizeof(double);
+  bytes += (double)6 * nfft_both * sizeof(double);
+  bytes += (double)nfft_both * sizeof(double);
+  bytes += (double)nfft_both*5 * sizeof(FFT_SCALAR);
 
   if (peratom_allocate_flag)
-    bytes += 6 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)6 * nbrick * sizeof(FFT_SCALAR);
 
   if (group_allocate_flag) {
-    bytes += 2 * nbrick * sizeof(FFT_SCALAR);
-    bytes += 2 * nfft_both * sizeof(FFT_SCALAR);;
+    bytes += (double)2 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)2 * nfft_both * sizeof(FFT_SCALAR);;
   }
 
   // two GridComm bufs
 
-  bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 
   return bytes;
 }

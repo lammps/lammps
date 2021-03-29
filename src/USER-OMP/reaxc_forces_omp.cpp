@@ -145,7 +145,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
 
   int natoms = system->N;
   int nthreads = control->nthreads;
-  long totalReductionSize = system->N * nthreads;
+  long totalReductionSize = (bigint)system->N * nthreads;
   reax_list *bonds = (*lists) + BONDS;
 
 #if defined(_OPENMP)
@@ -381,8 +381,8 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 #else
     int tid = 0;
 #endif
-    long reductionOffset = system->N * tid;
-    long totalReductionSize = system->N * nthreads;
+    long reductionOffset = (bigint)system->N * tid;
+    long totalReductionSize = (bigint)system->N * nthreads;
 
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50) reduction(+:num_bonds)

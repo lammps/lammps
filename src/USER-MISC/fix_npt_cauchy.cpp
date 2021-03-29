@@ -61,6 +61,7 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix npt/cauchy command");
 
   dynamic_group_allow = 1;
+  ecouple_flag = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;
@@ -686,7 +687,6 @@ int FixNPTCauchy::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;

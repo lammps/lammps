@@ -9,7 +9,7 @@ if [[ ${USE_CUDA} > 0 ]]; then
   BAF_EXE=bytes_and_flops.cuda
   TEAM_SIZE=256
 else
-  BAF_EXE=bytes_and_flops.host
+  BAF_EXE=bytes_and_flops.exe
   TEAM_SIZE=1
 fi
 

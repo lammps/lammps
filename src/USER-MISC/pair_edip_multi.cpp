@@ -72,7 +72,7 @@ static inline void costheta_d(const double *dr_ij, const double r_ij,
 
 /* ---------------------------------------------------------------------- */
 
-PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp)
+PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp), preForceCoord(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edip);
 
@@ -105,9 +105,8 @@ PairEDIPMulti::~PairEDIPMulti()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] map;
-
-    deallocatePreLoops();
   }
+  deallocatePreLoops();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -603,8 +602,9 @@ void PairEDIPMulti::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // allocate tables and internal structures
+  // (re-)allocate tables and internal structures
 
+  deallocatePreLoops();
   allocatePreLoops();
 }
 

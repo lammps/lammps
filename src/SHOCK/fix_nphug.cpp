@@ -32,7 +32,6 @@ enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg), pe(nullptr), id_pe(nullptr)
 {
-
   // Prevent masses from being updated every timestep
 
   eta_mass_flag = 0;
@@ -171,13 +170,11 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
 
 FixNPHug::~FixNPHug()
 {
-
   // temp and press computes handled by base class
   // delete pe compute
 
   if (peflag) modify->delete_compute(id_pe);
   delete [] id_pe;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -247,9 +244,10 @@ void FixNPHug::compute_temp_target()
 
 double FixNPHug::compute_etotal()
 {
+  if (!pe) return 0.0;
+
   double epot,ekin,etot;
   epot = pe->compute_scalar();
-  if (thermo_energy) epot -= compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * tdof * force->boltz;
   etot = epot+ekin;
@@ -273,6 +271,8 @@ double FixNPHug::compute_vol()
 
 double FixNPHug::compute_hugoniot()
 {
+  if (!temperature) return 0.0;
+
   double v,e,p;
   double dhugo;
 
@@ -303,6 +303,8 @@ double FixNPHug::compute_hugoniot()
 
 double FixNPHug::compute_us()
 {
+  if (!temperature) return 0.0;
+
   double v,p;
   double eps,us;
 
@@ -345,6 +347,8 @@ double FixNPHug::compute_up()
 
   return up;
 }
+
+/* ----------------------------------------------------------------------- */
 
 // look for index in local class
 // if index not found, look in base class

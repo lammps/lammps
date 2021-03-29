@@ -106,9 +106,9 @@ inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,
   mat.cbegin()=clCreateBuffer(context,buffer_perm,n,nullptr,&error_flag);
   if (error_flag != CL_SUCCESS)
     return UCL_MEMORY_ERROR;
-    *mat.host_ptr() = (typename mat_type::data_type*)
-                      clEnqueueMapBuffer(cm.cq(),mat.cbegin(),CL_TRUE,
-                                         map_perm,0,n,0,nullptr,nullptr,nullptr);
+  *mat.host_ptr() = (typename mat_type::data_type*)
+    clEnqueueMapBuffer(cm.cq(),mat.cbegin(),CL_TRUE,
+		       map_perm,0,n,0,NULL,NULL,NULL);
 
   mat.cq()=cm.cq();
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
@@ -116,18 +116,15 @@ inline int _host_alloc(mat_type &mat, copy_type &cm, const size_t n,
 }
 
 template <class mat_type, class copy_type>
-inline int _host_view(mat_type &mat, copy_type &cm, const size_t n) {
+inline int _host_view(mat_type &mat, copy_type &cm, const size_t o,
+                      const size_t n) {
   cl_int error_flag;
-  cl_context context;
-  CL_SAFE_CALL(clGetMemObjectInfo(cm.cbegin(),CL_MEM_CONTEXT,sizeof(context),
-                                  &context,nullptr));
-  cl_mem_flags orig_flags;
-  CL_SAFE_CALL(clGetMemObjectInfo(cm.cbegin(),CL_MEM_FLAGS,sizeof(orig_flags),
-                                  &orig_flags,nullptr));
-  orig_flags=orig_flags & ~CL_MEM_ALLOC_HOST_PTR;
-
-  mat.cbegin()=clCreateBuffer(context, CL_MEM_USE_HOST_PTR | orig_flags, n,
-                              *mat.host_ptr(), &error_flag);
+  cl_buffer_region subbuffer;
+  subbuffer.origin = o;
+  subbuffer.size = n;
+  mat.cbegin()=clCreateSubBuffer(cm.cbegin(), 0,
+                                 CL_BUFFER_CREATE_TYPE_REGION, &subbuffer,
+                                 &error_flag);
 
   CL_CHECK_ERR(error_flag);
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
@@ -470,6 +467,9 @@ inline void _device_zero(mat_type &mat, const size_t n, command_queue &cq) {
   size_t kn=n/sizeof(typename mat_type::data_type);
   CL_SAFE_CALL(clEnqueueNDRangeKernel(cq,kzero,1,0,&kn,0,0,0,0));
   #endif
+  #ifdef GERYON_OCL_FLUSH
+  ucl_flush(cq);
+  #endif
 }
 
 // --------------------------------------------------------------------------
@@ -585,7 +585,10 @@ template <> struct _ucl_memcpy<1,0> {
     std::cerr << "UCL_COPY 1NS\n";
     #endif
     CL_SAFE_CALL(clEnqueueReadBuffer(cq,src.cbegin(),block,src_offset,n,
-                                     dst.begin(),0,nullptr,nullptr));
+                                     dst.begin(),0,NULL,NULL));
+    #ifdef GERYON_OCL_FLUSH
+    if (block==CL_FALSE) ucl_flush(cq);
+    #endif
   }
   template <class p1, class p2>
   static inline void mc(p1 &dst, const size_t dpitch, const p2 &src,
@@ -617,6 +620,9 @@ template <> struct _ucl_memcpy<1,0> {
         src_offset+=spitch;
         dst_offset+=dpitch;
       }
+    #ifdef GERYON_OCL_FLUSH
+    if (block==CL_FALSE) ucl_flush(cq);
+    #endif
   }
 };
 
@@ -637,7 +643,10 @@ template <> struct _ucl_memcpy<0,1> {
     std::cerr << "UCL_COPY 3NS\n";
     #endif
     CL_SAFE_CALL(clEnqueueWriteBuffer(cq,dst.cbegin(),block,dst_offset,n,
-                                      src.begin(),0,nullptr,nullptr));
+                                      src.begin(),0,NULL,NULL));
+    #ifdef GERYON_OCL_FLUSH
+    if (block==CL_FALSE) ucl_flush(cq);
+    #endif
   }
   template <class p1, class p2>
   static inline void mc(p1 &dst, const size_t dpitch, const p2 &src,
@@ -669,6 +678,9 @@ template <> struct _ucl_memcpy<0,1> {
         src_offset+=spitch;
         dst_offset+=dpitch;
       }
+    #ifdef GERYON_OCL_FLUSH
+    if (block==CL_FALSE) ucl_flush(cq);
+    #endif
   }
 };
 
@@ -690,6 +702,9 @@ template <int mem1, int mem2> struct _ucl_memcpy {
     #endif
 
     if (block==CL_TRUE) ucl_sync(cq);
+    #ifdef GERYON_OCL_FLUSH
+    else ucl_flush(cq);
+    #endif
   }
   template <class p1, class p2>
   static inline void mc(p1 &dst, const size_t dpitch, const p2 &src,
@@ -720,6 +735,9 @@ template <int mem1, int mem2> struct _ucl_memcpy {
     #endif
 
     if (block==CL_TRUE) ucl_sync(cq);
+    #ifdef GERYON_OCL_FLUSH
+    else ucl_flush(cq);
+    #endif
   }
 };
 

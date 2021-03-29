@@ -18,6 +18,7 @@
 #include "mliap_data.h"
 
 #include "atom.h"
+#include "error.h"
 #include "memory.h"
 #include "mliap_descriptor.h"
 #include "mliap_model.h"
@@ -50,12 +51,18 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
   ndims_virial = 6;
   yoffset = nparams*nelements;
   zoffset = 2*yoffset;
-  natoms_array = atom->natoms;
-  size_array_rows = 1+ndims_force*natoms_array+ndims_virial;
+  natoms = atom->natoms;
+
+  // must check before assigning bigint expression to regular int
+
+  if (1+ndims_force*natoms+ndims_virial > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for MLIAP package");
+
+  size_array_rows = 1+ndims_force*natoms+ndims_virial;
   size_array_cols = nparams*nelements+1;
   size_gradforce = ndims_force*nparams*nelements;
 
-  natoms_max = 0;
+  nlistatoms_max = 0;
   natomneigh_max = 0;
   nneigh_max = 0;
   nmax = 0;
@@ -102,6 +109,7 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
   double **x = atom->x;
   int *type = atom->type;
 
+  int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
 
@@ -115,39 +123,38 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
 
   // clear gradforce array
 
-  int ntotal = atom->nlocal + atom->nghost;
-  for (int i = 0; i < ntotal; i++)
+  int nall = atom->nlocal + atom->nghost;
+  for (int i = 0; i < nall; i++)
     for (int j = 0; j < size_gradforce; j++) {
       gradforce[i][j] = 0.0;
     }
 
+  // grow arrays if necessary
+
+  nlistatoms = list->inum;
+  if (nlistatoms_max < nlistatoms) {
+    memory->grow(betas,nlistatoms,ndescriptors,"MLIAPData:betas");
+    memory->grow(descriptors,nlistatoms,ndescriptors,"MLIAPData:descriptors");
+    memory->grow(eatoms,nlistatoms,"MLIAPData:eatoms");
+    nlistatoms_max = nlistatoms;
+  }
+
   // grow gamma arrays if necessary
 
   if (gradgradflag == 1) {
-    const int natomgamma = list->inum;
-    if (natomgamma_max < natomgamma) {
-      memory->grow(gamma_row_index,natomgamma,gamma_nnz,"MLIAPData:gamma_row_index");
-      memory->grow(gamma_col_index,natomgamma,gamma_nnz,"MLIAPData:gamma_col_index");
-      memory->grow(gamma,natomgamma,gamma_nnz,"MLIAPData:gamma");
-      natomgamma_max = natomgamma;
+    if (natomgamma_max < nlistatoms) {
+      memory->grow(gamma_row_index,nlistatoms,gamma_nnz,"MLIAPData:gamma_row_index");
+      memory->grow(gamma_col_index,nlistatoms,gamma_nnz,"MLIAPData:gamma_col_index");
+      memory->grow(gamma,nlistatoms,gamma_nnz,"MLIAPData:gamma");
+      natomgamma_max = nlistatoms;
     }
-  }
-
-  // grow arrays if necessary
-
-  natoms = list->inum;
-  if (natoms_max < natoms) {
-    memory->grow(betas,natoms,ndescriptors,"MLIAPData:betas");
-    memory->grow(descriptors,natoms,ndescriptors,"MLIAPData:descriptors");
-    memory->grow(eatoms,natoms,"MLIAPData:eatoms");
-    natoms_max = natoms;
   }
 
   grow_neigharrays();
 
   int ij = 0;
-  for (int ii = 0; ii < list->inum; ii++) {
-    const int i = list->ilist[ii];
+  for (int ii = 0; ii < nlistatoms; ii++) {
+    const int i = ilist[ii];
 
     const double xtmp = x[i][0];
     const double ytmp = x[i][1];
@@ -197,30 +204,24 @@ void MLIAPData::grow_neigharrays()
 
   // grow neighbor atom arrays if necessary
 
-  const int natomneigh = list->inum;
-  if (natomneigh_max < natomneigh) {
-    memory->grow(iatoms,natomneigh,"MLIAPData:iatoms");
-    memory->grow(ielems,natomneigh,"MLIAPData:ielems");
-    memory->grow(numneighs,natomneigh,"MLIAPData:numneighs");
-    natomneigh_max = natomneigh;
+  if (natomneigh_max < nlistatoms) {
+    memory->grow(iatoms,nlistatoms,"MLIAPData:iatoms");
+    memory->grow(ielems,nlistatoms,"MLIAPData:ielems");
+    memory->grow(numneighs,nlistatoms,"MLIAPData:numneighs");
+    natomneigh_max = nlistatoms;
   }
 
   // grow neighbor arrays if necessary
 
+  int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
-
-  int iilast = list->inum-1;
-  int ilast = list->ilist[iilast];
-  int upperbound = firstneigh[ilast] - firstneigh[0] + numneigh[ilast];
-  if (nneigh_max >= upperbound) return;
-
   double **x = atom->x;
   int *type = atom->type;
 
   int nneigh = 0;
-  for (int ii = 0; ii < list->inum; ii++) {
-    const int i = list->ilist[ii];
+  for (int ii = 0; ii < nlistatoms; ii++) {
+    const int i = ilist[ii];
 
     const double xtmp = x[i][0];
     const double ytmp = x[i][1];
@@ -260,32 +261,32 @@ double MLIAPData::memory_usage()
 {
   double bytes = 0.0;
 
-  bytes += nelements*nparams*sizeof(double);     // egradient
-  bytes += nmax*size_gradforce*sizeof(double);   // gradforce
+  bytes += (double)nelements*nparams*sizeof(double);     // egradient
+  bytes += (double)nmax*size_gradforce*sizeof(double);   // gradforce
 
   if (gradgradflag == 1) {
-    bytes += natomgamma_max*
+    bytes += (double)natomgamma_max*
       gamma_nnz*sizeof(int);                     //gamma_row_index
-    bytes += natomgamma_max*
+    bytes += (double)natomgamma_max*
       gamma_nnz*sizeof(int);                     // gamma_col_index
-    bytes += natomgamma_max*
+    bytes += (double)natomgamma_max*
       gamma_nnz*sizeof(double);                  // gamma
   }
 
-  bytes += natoms*ndescriptors*sizeof(int);      // betas
-  bytes += natoms*ndescriptors*sizeof(int);      // descriptors
-  bytes += natoms*sizeof(double);                // eatoms
+  bytes += (double)nlistatoms*ndescriptors*sizeof(int);      // betas
+  bytes += (double)nlistatoms*ndescriptors*sizeof(int);      // descriptors
+  bytes += (double)nlistatoms*sizeof(double);                // eatoms
 
-  bytes += natomneigh_max*sizeof(int);               // iatoms
-  bytes += natomneigh_max*sizeof(int);               // ielems
-  bytes += natomneigh_max*sizeof(int);               // numneighs
+  bytes += (double)natomneigh_max*sizeof(int);               // iatoms
+  bytes += (double)natomneigh_max*sizeof(int);               // ielems
+  bytes += (double)natomneigh_max*sizeof(int);               // numneighs
 
-  bytes += nneigh_max*sizeof(int);                   // jatoms
-  bytes += nneigh_max*sizeof(int);                   // jelems
-  bytes += nneigh_max*3*sizeof(double);              // rij"
+  bytes += (double)nneigh_max*sizeof(int);                   // jatoms
+  bytes += (double)nneigh_max*sizeof(int);                   // jelems
+  bytes += (double)nneigh_max*3*sizeof(double);              // rij"
 
   if (gradgradflag == 0)
-    bytes += nneigh_max*ndescriptors*3*sizeof(double);// graddesc
+    bytes += (double)nneigh_max*ndescriptors*3*sizeof(double);// graddesc
 
   return bytes;
 }

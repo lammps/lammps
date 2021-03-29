@@ -164,9 +164,7 @@ void PairCoulStreitz::coeff(int narg, char **arg)
       if (strcmp(arg[i],elements[j]) == 0) break;
     map[i-2] = j;
     if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
+      elements[j] = utils::strdup(arg[i]);
       nelements++;
     }
   }
@@ -736,10 +734,10 @@ void PairCoulStreitz::ewald_sum(double qi, double qj, double zj, double r,
 
 double PairCoulStreitz::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH * nmax * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)MAXNEIGH * nmax * sizeof(int);
   return bytes;
 }
 

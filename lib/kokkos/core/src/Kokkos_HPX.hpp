@@ -65,11 +65,13 @@
 #include <Kokkos_Parallel.hpp>
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_TaskScheduler.hpp>
+#include <impl/Kokkos_ConcurrentBitset.hpp>
 #include <impl/Kokkos_FunctorAdapter.hpp>
 #include <impl/Kokkos_FunctorAnalysis.hpp>
 #include <impl/Kokkos_Tools.hpp>
 #include <impl/Kokkos_Tags.hpp>
 #include <impl/Kokkos_TaskQueue.hpp>
+#include <impl/Kokkos_ExecSpaceInitializer.hpp>
 
 #include <KokkosExp_MDRangePolicy.hpp>
 
@@ -454,6 +456,17 @@ struct DeviceTypeTraits<Kokkos::Experimental::HPX> {
 }  // namespace Tools
 
 namespace Impl {
+
+class HPXSpaceInitializer : public ExecSpaceInitializerBase {
+ public:
+  HPXSpaceInitializer()  = default;
+  ~HPXSpaceInitializer() = default;
+  void initialize(const InitArguments &args) final;
+  void finalize(const bool) final;
+  void fence() final;
+  void print_configuration(std::ostream &msg, const bool detail) final;
+};
+
 #if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
 template <typename Closure>
 inline void dispatch_execute_task(Closure *closure,
@@ -505,16 +518,16 @@ namespace Impl {
 template <>
 struct MemorySpaceAccess<Kokkos::Experimental::HPX::memory_space,
                          Kokkos::Experimental::HPX::scratch_memory_space> {
-  enum { assignable = false };
-  enum { accessible = true };
-  enum { deepcopy = false };
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = false };
 };
 
 template <>
 struct VerifyExecutionCanAccessMemorySpace<
     Kokkos::Experimental::HPX::memory_space,
     Kokkos::Experimental::HPX::scratch_memory_space> {
-  enum { value = true };
+  enum : bool { value = true };
   inline static void verify(void) {}
   inline static void verify(const void *) {}
 };
@@ -718,7 +731,13 @@ class TeamPolicyInternal<Kokkos::Experimental::HPX, Properties...>
   int m_chunk_size;
 
  public:
+  //! Tag this class as a kokkos execution policy
+  using execution_policy = TeamPolicyInternal;
+
   using member_type = HPXTeamMember;
+
+  //! Execution space of this execution policy:
+  using execution_space = Kokkos::Experimental::HPX;
 
   // NOTE: Max size is 1 for simplicity. In most cases more than 1 is not
   // necessary on CPU. Implement later if there is a need.
@@ -769,6 +788,14 @@ class TeamPolicyInternal<Kokkos::Experimental::HPX, Properties...>
                             const ParallelReduceTag &) const {
     return 1;
   }
+
+  static int vector_length_max() { return 1; }
+
+  inline int impl_vector_length() noexcept { return 1; }
+  inline bool impl_auto_team_size() noexcept { return false; }
+  inline bool impl_auto_vector_length() noexcept { return false; }
+  inline void impl_set_vector_length(int) noexcept {}
+  inline void impl_set_team_size(int) noexcept {}
 
  private:
   inline void init(const int league_size_request, const int team_size_request) {
@@ -854,6 +881,44 @@ class TeamPolicyInternal<Kokkos::Experimental::HPX, Properties...>
         m_thread_scratch_size{0, 0},
         m_chunk_size(0) {
     init(league_size_request, 1);
+  }
+
+  TeamPolicyInternal(const typename traits::execution_space &space,
+                     int league_size_request,
+                     const Kokkos::AUTO_t &, /* team_size_request */
+                     const Kokkos::AUTO_t & /* vector_length_request */)
+      : m_team_scratch_size{0, 0},
+        m_thread_scratch_size{0, 0},
+        m_chunk_size(0) {
+    init(league_size_request, 1);
+  }
+
+  TeamPolicyInternal(const typename traits::execution_space &space,
+                     int league_size_request, int team_size_request,
+                     const Kokkos::AUTO_t & /* vector_length_request */
+                     )
+      : m_team_scratch_size{0, 0},
+        m_thread_scratch_size{0, 0},
+        m_chunk_size(0) {
+    init(league_size_request, team_size_request);
+  }
+
+  TeamPolicyInternal(int league_size_request,
+                     const Kokkos::AUTO_t &, /* team_size_request */
+                     const Kokkos::AUTO_t & /* vector_length_request */)
+      : m_team_scratch_size{0, 0},
+        m_thread_scratch_size{0, 0},
+        m_chunk_size(0) {
+    init(league_size_request, 1);
+  }
+
+  TeamPolicyInternal(int league_size_request, int team_size_request,
+                     const Kokkos::AUTO_t & /* vector_length_request */
+                     )
+      : m_team_scratch_size{0, 0},
+        m_thread_scratch_size{0, 0},
+        m_chunk_size(0) {
+    init(league_size_request, team_size_request);
   }
 
   TeamPolicyInternal(int league_size_request, int team_size_request,
@@ -2398,7 +2463,7 @@ Impl::VectorSingleStruct<Impl::HPXTeamMember> PerThread(
  * i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all threads of the the calling thread team.
- * This functionality requires C++11 support.*/
+ */
 template <typename iType, class Lambda>
 KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::HPXTeamMember>
@@ -2413,8 +2478,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
  * ValueType & val) for each i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all threads of the the calling thread team
- * and a summation of val is performed and put into result. This functionality
- * requires C++11 support.*/
+ * and a summation of val is performed and put into result.
+ */
 template <typename iType, class Lambda, typename ValueType>
 KOKKOS_INLINE_FUNCTION void parallel_reduce(
     const Impl::TeamThreadRangeBoundariesStruct<iType, Impl::HPXTeamMember>
@@ -2431,7 +2496,7 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
  * i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all vector lanes of the the calling thread.
- * This functionality requires C++11 support.*/
+ */
 template <typename iType, class Lambda>
 KOKKOS_INLINE_FUNCTION void parallel_for(
     const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HPXTeamMember>
@@ -2450,8 +2515,8 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
  * ValueType & val) for each i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all vector lanes of the the calling thread
- * and a summation of val is performed and put into result. This functionality
- * requires C++11 support.*/
+ * and a summation of val is performed and put into result.
+ */
 template <typename iType, class Lambda, typename ValueType>
 KOKKOS_INLINE_FUNCTION void parallel_reduce(
     const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HPXTeamMember>
@@ -2530,7 +2595,7 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
  * needs to be added to val no matter whether final==true or not. In a serial
  * execution (i.e. team_size==1) the operator is only called once with
  * final==true. Scan_val will be set to the final sum value over all vector
- * lanes. This functionality requires C++11 support.*/
+ */
 template <typename iType, class FunctorType>
 KOKKOS_INLINE_FUNCTION void parallel_scan(
     const Impl::ThreadVectorRangeBoundariesStruct<iType, Impl::HPXTeamMember>

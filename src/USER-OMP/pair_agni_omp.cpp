@@ -58,15 +58,20 @@ void PairAGNIOMP::compute(int eflag, int vflag)
     thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
-    if (evflag) eval<1>(ifrom, ito, thr);
-    else eval<0>(ifrom, ito, thr);
+    if (atomic_feature_version == AGNI_VERSION_1) {
+      if (evflag) eval<AGNI_VERSION_1,1>(ifrom, ito, thr);
+      else eval<AGNI_VERSION_1,0>(ifrom, ito, thr);
+    } else if (atomic_feature_version == AGNI_VERSION_2) {
+      if (evflag) eval<AGNI_VERSION_2,1>(ifrom, ito, thr);
+      else eval<AGNI_VERSION_2,0>(ifrom, ito, thr);
+    }
 
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
 
-template <int EVFLAG>
+template <int ATOMIC_FEATURE_VERSION, int EVFLAG>
 void PairAGNIOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,itype,jnum;
@@ -124,7 +129,14 @@ void PairAGNIOMP::eval(int iifrom, int iito, ThrData * const thr)
         const double wZ = cF*delz/r;
 
         for (k = 0; k < iparam.numeta; ++k) {
-          const double e = fm_exp(-(iparam.eta[k]*rsq));
+          double e = 0.0;
+
+          if (ATOMIC_FEATURE_VERSION == AGNI_VERSION_1)
+            e = fm_exp(-(iparam.eta[k]*rsq));
+          else if (ATOMIC_FEATURE_VERSION == AGNI_VERSION_2)
+            e = (1.0 / (square(iparam.eta[k]) * iparam.gwidth * sqrt(MathConst::MY_2PI)))
+              * fm_exp(-(square(r - iparam.eta[k])) / (2.0 * square(iparam.gwidth)));
+
           Vx[k] += wX*e;
           Vy[k] += wY*e;
           Vz[k] += wZ*e;

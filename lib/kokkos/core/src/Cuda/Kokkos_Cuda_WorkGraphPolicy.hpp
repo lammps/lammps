@@ -77,6 +77,8 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
   }
 
  public:
+  Policy const& get_policy() const { return m_policy; }
+
   __device__ inline void operator()() const noexcept {
     if (0 == (threadIdx.y % 16)) {
       // Spin until COMPLETED_TOKEN.

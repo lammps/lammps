@@ -41,9 +41,7 @@ ComputeVCMChunk::ComputeVCMChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   init();
 
@@ -234,6 +232,6 @@ void ComputeVCMChunk::allocate()
 double ComputeVCMChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
   return bytes;
 }

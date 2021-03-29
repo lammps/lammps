@@ -42,11 +42,12 @@ Examples
 Description
 """""""""""
 
-This fix applies a precession torque to each magnetic spin in the group.
+This fix applies a precession torque to each magnetic spin in the
+group.
 
-Style *zeeman* is used for the simulation of the interaction
-between the magnetic spins in the defined group and an external
-magnetic field:
+Style *zeeman* is used for the simulation of the interaction between
+the magnetic spins in the defined group and an external magnetic
+field:
 
 .. math::
 
@@ -62,17 +63,17 @@ with:
 
 The field value in Tesla is multiplied by the gyromagnetic
 ratio, :math:`g \cdot \mu_B/\hbar`, converting it into a precession frequency in
-rad.THz (in metal units and with :math:`\mu_B = 5.788\cdot 10^{-5}` eV/T).
+rad.THz (in metal units and with :math:`\mu_B = 5.788\cdot 10^{-5}`
+eV/T).
 
-As a comparison, the figure below displays the simulation of a
-single spin (of norm :math:`\mu_i = 1.0`) submitted to an external
-magnetic field of :math:`\vert B_{ext}\vert = 10.0\; \mathrm{Tesla}` (and oriented along the z
-axis).
-The upper plot shows the average magnetization along the
-external magnetic field axis and the lower plot the Zeeman
-energy, both as a function of temperature.
-The reference result is provided by the plot of the Langevin
-function for the same parameters.
+As a comparison, the figure below displays the simulation of a single
+spin (of norm :math:`\mu_i = 1.0`) submitted to an external magnetic
+field of :math:`\vert B_{ext}\vert = 10.0\; \mathrm{Tesla}` (and
+oriented along the z axis).  The upper plot shows the average
+magnetization along the external magnetic field axis and the lower
+plot the Zeeman energy, both as a function of temperature.  The
+reference result is provided by the plot of the Langevin function for
+the same parameters.
 
 .. image:: JPG/zeeman_langevin.jpg
    :align: center
@@ -88,10 +89,12 @@ for the magnetic spins in the defined group:
 
 .. math::
 
-   H_{aniso}  = -\sum_{{ i}=1}^{N} K_{an}(\mathbf{r}_{i})\, \left( \vec{s}_{i} \cdot \vec{n}_{i} \right)^2
+   H_{aniso} = -\sum_{{ i}=1}^{N} K_{an}(\mathbf{r}_{i})\, \left(
+   \vec{s}_{i} \cdot \vec{n}_{i} \right)^2
 
-with :math:`n` defining the direction of the anisotropy, and :math:`K` (in eV) its intensity.
-If :math:`K > 0`, an easy axis is defined, and if :math:`K < 0`, an easy plane is defined.
+with :math:`n` defining the direction of the anisotropy, and :math:`K`
+(in eV) its intensity.  If :math:`K > 0`, an easy axis is defined, and
+if :math:`K < 0`, an easy plane is defined.
 
 Style *cubic* is used to simulate a cubic anisotropy, with three
 possible easy axis for the magnetic spins in the defined group:
@@ -110,17 +113,17 @@ possible easy axis for the magnetic spins in the defined group:
    \left(\vec{s}_{i} \cdot \vec{n_2} \right)^2
    \left(\vec{s}_{i} \cdot \vec{n_3} \right)^2
 
-with :math:`K_1` and :math:`K_{2c}` (in eV) the intensity coefficients and
-:math:`\vec{n}_1`, :math:`\vec{n}_2` and :math:`\vec{n}_3` defining the three anisotropic directions
-defined by the command (from *n1x* to *n3z*).
-For :math:`\vec{n}_1 = (1 0 0)`, :math:`\vec{n}_2 = (0 1 0)`, and :math:`\vec{n}_3 = (0 0 1)`, :math:`K_1 < 0` defines an
+with :math:`K_1` and :math:`K_{2c}` (in eV) the intensity coefficients
+and :math:`\vec{n}_1`, :math:`\vec{n}_2` and :math:`\vec{n}_3`
+defining the three anisotropic directions defined by the command (from
+*n1x* to *n3z*).  For :math:`\vec{n}_1 = (1 0 0)`, :math:`\vec{n}_2 =
+(0 1 0)`, and :math:`\vec{n}_3 = (0 0 1)`, :math:`K_1 < 0` defines an
 iron type anisotropy (easy axis along the :math:`(0 0 1)`-type cube
-edges), and :math:`K_1 > 0` defines a nickel type anisotropy (easy axis
-along the :math:`(1 1 1)`-type cube diagonals).
-:math:`K_2^c > 0` also defines easy axis along the :math:`(1 1 1)`-type cube
-diagonals.
-See chapter 2 of :ref:`(Skomski) <Skomski1>` for more details on cubic
-anisotropies.
+edges), and :math:`K_1 > 0` defines a nickel type anisotropy (easy
+axis along the :math:`(1 1 1)`-type cube diagonals).  :math:`K_2^c >
+0` also defines easy axis along the :math:`(1 1 1)`-type cube
+diagonals.  See chapter 2 of :ref:`(Skomski) <Skomski1>` for more
+details on cubic anisotropies.
 
 In all cases, the choice of :math:`(x y z)` only imposes the vector
 directions for the forces. Only the direction of the vector is
@@ -134,32 +137,35 @@ Those styles can be combined within one single command line.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-By default, the energy associated to this fix is not added to the potential
-energy of the system.
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this fix
-to add this magnetic potential energy to the potential energy of the system,
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-.. code-block:: LAMMPS
-
-   fix             1 all precession/spin zeeman 1.0 0.0 0.0 1.0
-   fix_modify      1 energy yes
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy associated with the spin precession
+torque to the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify energy no <fix_modify>`.
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.
+:doc:`output commands <Howto_output>`.  The scalar is the potential
+energy (in energy units) discussed in the previous paragraph.  The
+scalar value is an "extensive" quantity.
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
 Restrictions
 """"""""""""
 
 The *precession/spin* style is part of the SPIN package.  This style
 is only enabled if LAMMPS was built with this package, and if the
-atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
+atom_style "spin" was declared.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
-The *precession/spin* style can only be declared once. If more
-than one precession type (for example combining an anisotropy and a Zeeman interactions)
-has to be declared, they have to be chained in the same command
-line (as shown in the examples above).
+The *precession/spin* style can only be declared once. If more than
+one precession type (for example combining an anisotropy and a Zeeman
+interactions) has to be declared, they have to be chained in the same
+command line (as shown in the examples above).
 
 Related commands
 """"""""""""""""

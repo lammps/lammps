@@ -240,17 +240,9 @@ create_atoms 1 single &
 
         state = {
             "step": 0,
-            "elapsed" : 0.0,
-            "elaplong": 0,
             "dt" : 0.005,
             "time" : 0.0,
             "atoms" : 2.0,
-            "temp" : 0,
-            "press" : 0,
-            "pe" : 0.0,
-            "ke" : 0.0,
-            "etotal" : 0.0,
-            "enthalpy" : 0.0,
             "vol" : 8.0,
             "lx" : 2.0,
             "ly" : 2.0,

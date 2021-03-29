@@ -40,9 +40,8 @@ void PairCoulSlaterCut::compute(int eflag, int vflag)
   double rsq,r2inv,r,rinv,forcecoul,factor_coul,bracket_term;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
+  ev_init(eflag,vflag);
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
 
   double **x = atom->x;
   double **f = atom->f;

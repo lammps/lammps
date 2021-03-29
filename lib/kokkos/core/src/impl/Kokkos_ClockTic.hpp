@@ -76,9 +76,6 @@ uint64_t clock_tic(void) noexcept {
 
   return clock64();
 
-#elif defined(__HCC_ACCELERATOR__)
-  // Get clock register
-  return hc::__clock_u64();
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
   return uint64_t(omp_get_wtime() * 1.e9);
 #elif defined(__i386__) || defined(__x86_64)

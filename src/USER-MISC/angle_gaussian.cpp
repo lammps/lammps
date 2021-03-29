@@ -32,7 +32,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AngleGaussian::AngleGaussian(LAMMPS *lmp) : Angle(lmp)
+AngleGaussian::AngleGaussian(LAMMPS *lmp)
+  : Angle(lmp), nterms(nullptr), angle_temperature(nullptr),
+    alpha(nullptr), width(nullptr), theta0(nullptr)
 {
 }
 
@@ -45,9 +47,9 @@ AngleGaussian::~AngleGaussian()
     memory->destroy(nterms);
     memory->destroy(angle_temperature);
     for (int i = 1; i <= atom->nangletypes; i++) {
-      if (alpha[i]) delete [] alpha[i];
-      if (width[i]) delete [] width[i];
-      if (theta0[i]) delete [] theta0[i];
+      delete [] alpha[i];
+      delete [] width[i];
+      delete [] theta0[i];
     }
     delete [] alpha;
     delete [] width;
@@ -180,11 +182,9 @@ void AngleGaussian::allocate()
   alpha = new double *[n+1];
   width = new double *[n+1];
   theta0 = new double *[n+1];
-  for (int i = 1; i <= n; i++) {
-    alpha[i] = 0;
-    width[i] = 0;
-    theta0[i] = 0;
-  }
+  memset(alpha,0,sizeof(double)*(n+1));
+  memset(width,0,sizeof(double)*(n+1));
+  memset(theta0,0,sizeof(double)*(n+1));
 
   memory->create(setflag,n+1,"angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
@@ -214,8 +214,11 @@ void AngleGaussian::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     angle_temperature[i] = angle_temperature_one;
     nterms[i] = n;
+    delete[] alpha[i];
     alpha[i] = new double [n];
+    delete[] width[i];
     width[i] = new double [n];
+    delete[] theta0[i];
     theta0[i] = new double [n];
     for (int j = 0; j < n; j++) {
       alpha[i][j] = utils::numeric(FLERR,arg[3+3*j],false,lmp);

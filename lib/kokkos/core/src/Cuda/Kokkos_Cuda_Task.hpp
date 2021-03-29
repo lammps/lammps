@@ -390,7 +390,7 @@ class TaskQueueSpecializationConstrained<
       ((int*)&task_ptr)[0] = KOKKOS_IMPL_CUDA_SHFL(((int*)&task_ptr)[0], 0, 32);
       ((int*)&task_ptr)[1] = KOKKOS_IMPL_CUDA_SHFL(((int*)&task_ptr)[1], 0, 32);
 
-#if defined(KOKKOS_DEBUG)
+#if defined(KOKKOS_ENABLE_DEBUG)
       KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN("TaskQueue CUDA task_ptr");
 #endif
 
@@ -799,7 +799,6 @@ namespace Kokkos {
  * i=0..N-1.
  *
  * The range i=0..N-1 is mapped to all threads of the the calling thread team.
- * This functionality requires C++11 support.
  */
 template <typename iType, class Lambda, class Scheduler>
 KOKKOS_INLINE_FUNCTION void parallel_for(

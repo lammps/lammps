@@ -145,9 +145,7 @@ void Run::command(int narg, char **arg)
     commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
-      commands[ncommands] = new char[n];
-      strcpy(commands[ncommands],arg[i]);
+      commands[ncommands] = utils::strdup(arg[i]);
       ncommands++;
     }
   }

@@ -31,10 +31,8 @@
 
 ------------------------------------------------------------------------- */
 
-
 #include "fix_nve_manifold_rattle.h"
 
-#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
@@ -44,17 +42,16 @@
 #include "citeme.h"
 #include "comm.h"
 
+#include <cstring>
+
 #include "manifold_factory.h"
 #include "manifold.h"
-
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace user_manifold;
 
-
 enum { CONST, EQUAL }; // For treating the variables.
-
 
 static const char* cite_fix_nve_manifold_rattle =
   "fix nve/manifold/rattle command:\n\n"

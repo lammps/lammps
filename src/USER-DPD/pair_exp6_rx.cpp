@@ -13,20 +13,19 @@
 
 #include "pair_exp6_rx.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <cfloat>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
+#include "fix.h"
 #include "force.h"
-#include "neigh_list.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
-
 #include "modify.h"
-#include "fix.h"
+#include "neigh_list.h"
+
+#include <cfloat>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;

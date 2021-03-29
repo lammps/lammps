@@ -13,28 +13,26 @@
 
 #include "fix_rx.h"
 
-
-#include <cstring>
-#include <cmath>
-#include <cfloat> // DBL_EPSILON
 #include "atom.h"
-#include "error.h"
-#include "group.h"
-#include "modify.h"
-#include "force.h"
-#include "memory.h"
 #include "comm.h"
-#include "update.h"
 #include "domain.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "math_special.h"
+#include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "math_special.h"
+#include "neighbor.h"
 #include "pair_dpd_fdt_energy.h"
+#include "update.h"
 
-
-#include <vector> // std::vector<>
 #include <algorithm> // std::max
+#include <cfloat> // DBL_EPSILON
+#include <cmath>
+#include <cstring>
+#include <vector> // std::vector<>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

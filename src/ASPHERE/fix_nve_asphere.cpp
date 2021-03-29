@@ -16,10 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_asphere.h"
-#include "math_extra.h"
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "error.h"
+#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

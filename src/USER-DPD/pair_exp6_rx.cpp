@@ -13,20 +13,19 @@
 
 #include "pair_exp6_rx.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <cfloat>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
+#include "fix.h"
 #include "force.h"
-#include "neigh_list.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
-
 #include "modify.h"
-#include "fix.h"
+#include "neigh_list.h"
+
+#include <cfloat>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -596,9 +595,7 @@ void PairExp6rx::coeff(int narg, char **arg)
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
   read_file(arg[2]);
 
-  n = strlen(arg[3]) + 1;
-  site1 = new char[n];
-  strcpy(site1,arg[3]);
+  site1 = utils::strdup(arg[3]);
 
   int ispecies;
   for (ispecies = 0; ispecies < nspecies; ispecies++) {
@@ -607,9 +604,7 @@ void PairExp6rx::coeff(int narg, char **arg)
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
 
-  n = strlen(arg[4]) + 1;
-  site2 = new char[n];
-  strcpy(site2,arg[4]);
+  site2 = utils::strdup(arg[4]);
 
   for (ispecies = 0; ispecies < nspecies; ispecies++) {
     if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
@@ -806,17 +801,12 @@ void PairExp6rx::read_file(char *file)
 
     params[nparams].ispecies = ispecies;
 
-    n = strlen(&atom->dname[ispecies][0]) + 1;
-    params[nparams].name = new char[n];
-    strcpy(params[nparams].name,&atom->dname[ispecies][0]);
-
-    n = strlen(words[1]) + 1;
-    params[nparams].potential = new char[n];
-    strcpy(params[nparams].potential,words[1]);
+    params[nparams].name = utils::strdup(&atom->dname[ispecies][0]);
+    params[nparams].potential = utils::strdup(words[1]);
     if (strcmp(params[nparams].potential,"exp6") == 0) {
-      params[nparams].alpha = atof(words[2]);
-      params[nparams].epsilon = atof(words[3]);
-      params[nparams].rm = atof(words[4]);
+      params[nparams].alpha = utils::numeric(FLERR,words[2],false,lmp);
+      params[nparams].epsilon = utils::numeric(FLERR,words[3],false,lmp);
+      params[nparams].rm = utils::numeric(FLERR,words[4],false,lmp);
       if (params[nparams].epsilon <= 0.0 || params[nparams].rm <= 0.0 ||
           params[nparams].alpha < 0.0)
         error->all(FLERR,"Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.");
@@ -842,11 +832,9 @@ void PairExp6rx::read_file2(char *file)
   fp = nullptr;
   if (comm->me == 0) {
     fp = fopen(file,"r");
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open polynomial file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,fmt::format("Cannot open polynomial file {}: {}",
+                                   file,utils::getsyserror()));
   }
 
   // one set of params can span multiple lines

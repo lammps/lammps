@@ -72,8 +72,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
       if (strcmp(arg[iarg],keywords[i]) == 0)
         error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
     styles[nstyles] = atom->new_avec(arg[iarg],1,dummy);
-    keywords[nstyles] = new char[strlen(arg[iarg])+1];
-    strcpy(keywords[nstyles],arg[iarg]);
+    keywords[nstyles] = utils::strdup(arg[iarg]);
     jarg = iarg + 1;
     while (jarg < narg && !known_style(arg[jarg])) jarg++;
     styles[nstyles]->process_args(jarg-iarg-1,&arg[iarg+1]);
@@ -1175,10 +1174,8 @@ void AtomVecHybridKokkos::build_styles()
   int n;
   nallstyles = 0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class)                \
-  n = strlen(#key) + 1;                     \
-  allstyles[nallstyles] = new char[n];      \
-  strcpy(allstyles[nallstyles],#key);       \
+#define AtomStyle(key,Class)                   \
+  allstyles[nallstyles] = utils::strdup(#key); \
   nallstyles++;
 #include "style_atom.h"         // IWYU pragma: keep
 #undef AtomStyle

@@ -16,12 +16,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nvt_body.h"
-#include <cstring>
 
+#include "error.h"
 #include "group.h"
 #include "modify.h"
-#include "error.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -39,11 +39,8 @@ FixNVTBody::FixNVTBody(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp
 
-  std::string tcmd = id + std::string("_temp");
-  id_temp = new char[tcmd.size()+1];
-  strcpy(id_temp,tcmd.c_str());
-
-  tcmd += fmt::format(" {} temp/body",group->names[igroup]);
-  modify->add_compute(tcmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp/body",
+                                  id_temp,group->names[igroup]));
   tcomputeflag = 1;
 }

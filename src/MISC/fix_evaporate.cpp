@@ -44,9 +44,7 @@ FixEvaporate::FixEvaporate(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   nflux = utils::inumeric(FLERR,arg[4],false,lmp);
   iregion = domain->find_region(arg[5]);
-  int n = strlen(arg[5]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[5]);
+  idregion = utils::strdup(arg[5]);
   int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   if (nevery <= 0 || nflux <= 0)

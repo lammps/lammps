@@ -21,21 +21,19 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
+#include "pair_multi_lucy.h"
+
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neigh_list.h"
 
 #include <cmath>
-#include "math_const.h"
-
 #include <cstring>
-#include "pair_multi_lucy.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-
-#include "citeme.h"
-
 
 using namespace LAMMPS_NS;
 

@@ -17,6 +17,7 @@
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "../testing/core.h"
 
 #include <cstdio>
 #include <mpi.h>
@@ -31,43 +32,17 @@ using utils::sfgets;
 using utils::sfread;
 using utils::split_words;
 
-#if defined(OMPI_MAJOR_VERSION)
-const bool have_openmpi = true;
-#else
-const bool have_openmpi = false;
-#endif
-
-#define TEST_FAILURE(errmsg, ...)                                 \
-    if (Info::has_exceptions()) {                                 \
-        ::testing::internal::CaptureStdout();                     \
-        ASSERT_ANY_THROW({__VA_ARGS__});                          \
-        auto mesg = ::testing::internal::GetCapturedStdout();     \
-        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
-    } else {                                                      \
-        if (!have_openmpi) {                                      \
-            ::testing::internal::CaptureStdout();                 \
-            ASSERT_DEATH({__VA_ARGS__}, "");                      \
-            auto mesg = ::testing::internal::GetCapturedStdout(); \
-            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
-        }                                                         \
-    }
-
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-class FileOperationsTest : public ::testing::Test {
+class FileOperationsTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
-
     void SetUp() override
     {
-        const char *args[] = {"FileOperationsTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        testbinary = "FileOperationsTest";
+        LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
+
         FILE *fp = fopen("safe_file_read_test.txt", "wb");
         ASSERT_NE(fp, nullptr);
         fputs("one line\n", fp);
@@ -79,13 +54,9 @@ protected:
 
     void TearDown() override
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        LAMMPSTest::TearDown();
         remove("safe_file_read_test.txt");
     }
-
-    void command(const std::string &cmd) { lmp->input->one(cmd); }
 };
 
 #define MAX_BUF_SIZE 128
@@ -156,15 +127,15 @@ TEST_F(FileOperationsTest, safe_fread)
 TEST_F(FileOperationsTest, logmesg)
 {
     char buf[8];
-    ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("echo none");
-    ::testing::internal::GetCapturedStdout();
-    ::testing::internal::CaptureStdout();
+    END_HIDE_OUTPUT();
+    BEGIN_CAPTURE_OUTPUT();
     utils::logmesg(lmp, "one\n");
     command("log test_logmesg.log");
     utils::logmesg(lmp, "two\n");
     command("log none");
-    std::string out = ::testing::internal::GetCapturedStdout();
+    std::string out = END_CAPTURE_OUTPUT();
     memset(buf, 0, 8);
     FILE *fp = fopen("test_logmesg.log", "r");
     fread(buf, 1, 8, fp);
@@ -179,7 +150,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

@@ -4690,22 +4690,42 @@ void Variable::atom_vector(char *word, Tree **tree,
    max allowed # of args = MAXFUNCARG
 ------------------------------------------------------------------------- */
 
-int Variable::parse_args(const std::string &str, char **args)
+int Variable::parse_args(char *str, char **args)
 {
+  char *ptrnext;
   int   narg = 0;
-  args[0] = nullptr;
+  char *ptr = str;
 
-  Tokenizer values(str,",");
-
-  while (values.has_next() && narg < MAXFUNCARG) {
-    args[narg] = utils::strdup(values.next());
+  while (ptr && narg < MAXFUNCARG) {
+    ptrnext = find_next_comma(ptr);
+    if (ptrnext) *ptrnext = '\0';
+    args[narg] = utils::strdup(ptr);
     narg++;
+    ptr = ptrnext;
+    if (ptr) ptr++;
   }
 
-  if (values.has_next())
-    error->all(FLERR,"Too many args in variable function");
+  if (ptr) error->all(FLERR,"Too many args in variable function");
   return narg;
 }
+
+/* ----------------------------------------------------------------------
+   find next comma in str
+   skip commas inside one or more nested parenthesis
+   only return ptr to comma at level 0, else nullptr if not found
+------------------------------------------------------------------------- */
+
+char *Variable::find_next_comma(char *str)
+{
+  int level = 0;
+  for (char *p = str; *p; ++p) {
+    if ('(' == *p) level++;
+    else if (')' == *p) level--;
+    else if (',' == *p && !level) return p;
+  }
+  return nullptr;
+}
+
 
 /* ----------------------------------------------------------------------
    helper routine for printing variable name with error message

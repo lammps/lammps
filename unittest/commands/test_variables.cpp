@@ -334,8 +334,9 @@ TEST_F(VariableTest, Functions)
     file_vars();
 
     BEGIN_HIDE_OUTPUT();
+    command("variable seed   index     643532");
     command("variable one    index     1");
-    command("variable two    equal     random(1,2,643532)");
+    command("variable two    equal     random(1,2,v_seed)");
     command("variable three  equal     atan2(v_one,1)");
     command("variable four   equal     atan2()");
     command("variable five   equal     sqrt(v_one+v_one)");
@@ -346,6 +347,7 @@ TEST_F(VariableTest, Functions)
     command("variable ten    equal     floor(1.85)+ceil(1.85)");
     command("variable ten1   equal     tan(v_eight/2.0)");
     command("variable ten2   equal     asin(-1.0)+acos(0.0)");
+    command("variable ten3   equal     floor(100*random(0.2,0.8,v_seed)+1)");
     END_HIDE_OUTPUT();
 
     ASSERT_GT(variable->compute_equal(variable->find("two")), 0.99);
@@ -357,7 +359,8 @@ TEST_F(VariableTest, Functions)
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("nine")), 1);
     ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten")), 3);
     ASSERT_FLOAT_EQ(variable->compute_equal(variable->find("ten1")), 1);
-    ASSERT_DOUBLE_EQ(variable->compute_equal(variable->find("ten2")), 0);
+    ASSERT_GT(variable->compute_equal(variable->find("ten3")), 19);
+    ASSERT_LT(variable->compute_equal(variable->find("ten3")), 81);
 
     TEST_FAILURE(".*ERROR: Variable four: Invalid syntax in variable formula.*",
                  command("print \"${four}\""););

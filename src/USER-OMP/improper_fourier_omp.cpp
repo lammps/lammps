@@ -120,7 +120,7 @@ void ImproperFourierOMP::eval(int nfrom, int nto, ThrData * const thr)
                                        vb1x,vb1y,vb1z,
                                        vb2x,vb2y,vb2z,
                                        vb3x,vb3y,vb3z,thr);
-    if ( all[type] ) {
+    if (all[type]) {
       add1_thr<EVFLAG,EFLAG,NEWTON_BOND>(i1,i4,i2,i3,type,
                                          vb3x,vb3y,vb3z,
                                          vb1x,vb1y,vb1z,

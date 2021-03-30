@@ -42,8 +42,6 @@
 #include "memory.h"
 #include "error.h"
 
-
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -72,9 +70,10 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
 
   restart_global = 1;
   restart_peratom = 1;
-  peatom_flag = 1;
-  virial_flag = 1;
-  thermo_virial = 1;
+  energy_global_flag = energy_peratom_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
+  thermo_energy = thermo_virial = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   peratom_freq = 1;
   scalar_flag = 1;
   global_freq = 1;
@@ -155,7 +154,6 @@ int FixCMAP::setmask()
   mask |= PRE_NEIGHBOR;
   mask |= PRE_REVERSE;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -1377,7 +1375,7 @@ void FixCMAP::copy_arrays(int i, int j, int /*delflag*/)
 {
   num_crossterm[j] = num_crossterm[i];
 
-  for (int k = 0; k < num_crossterm[j]; k++){
+  for (int k = 0; k < num_crossterm[j]; k++) {
     crossterm_type[j][k] = crossterm_type[i][k];
     crossterm_atom1[j][k] = crossterm_atom1[i][k];
     crossterm_atom2[j][k] = crossterm_atom2[i][k];
@@ -1441,9 +1439,9 @@ int FixCMAP::unpack_exchange(int nlocal, double *buf)
 double FixCMAP::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);        // num_crossterm
-  bytes += nmax*CMAPMAX * sizeof(int);      // crossterm_type
-  bytes += 5*nmax*CMAPMAX * sizeof(int);    // crossterm_atom 12345
-  bytes += maxcrossterm*6 * sizeof(int);    // crosstermlist
+  double bytes = (double)nmax * sizeof(int);        // num_crossterm
+  bytes += (double)nmax*CMAPMAX * sizeof(int);      // crossterm_type
+  bytes += (double)5*nmax*CMAPMAX * sizeof(int);    // crossterm_atom 12345
+  bytes += (double)maxcrossterm*6 * sizeof(int);    // crosstermlist
   return bytes;
 }

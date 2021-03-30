@@ -40,16 +40,19 @@ using namespace LAMMPS_NS;
  * \param  lmp             Pointer to LAMMPS instance
  * \param  filename        Name of file to be read
  * \param  potential_name  Name of potential style for error messages
- * \param  auto_convert    Bitmask of supported unit conversions */
+ * \param  name_suffix     Suffix added to potential name in error messages
+ * \param  auto_convert    Bitmask of supported unit conversions
+ */
 
 PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
                                          const std::string &filename,
                                          const std::string &potential_name,
+                                         const std::string &name_suffix,
                                          const int auto_convert) :
   Pointers(lmp),
   reader(nullptr),
   filename(filename),
-  filetype(potential_name + " potential"),
+  filetype(potential_name + name_suffix),
   unit_convert(auto_convert)
 {
   if (comm->me != 0) {
@@ -58,12 +61,26 @@ PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
 
   try {
     reader = open_potential(filename);
-    if(!reader) {
+    if (!reader) {
       error->one(FLERR, fmt::format("cannot open {} potential file {}", potential_name, filename));
     }
   } catch (FileReaderException &e) {
     error->one(FLERR, e.what());
   }
+}
+
+/*
+ * \param  lmp             Pointer to LAMMPS instance
+ * \param  filename        Name of file to be read
+ * \param  potential_name  Name of potential style for error messages
+ * \param  auto_convert    Bitmask of supported unit conversions
+ */
+PotentialFileReader::PotentialFileReader(LAMMPS *lmp,
+                                         const std::string &filename,
+                                         const std::string &potential_name,
+                                         const int auto_convert) :
+  PotentialFileReader(lmp, filename, potential_name, " potential", auto_convert)
+{
 }
 
 /** Closes the file */

@@ -64,9 +64,7 @@ ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
   fields = nullptr;
   buf = nullptr;
 
-  int n = strlen("native") + 1;
-  readerstyle = new char[n];
-  strcpy(readerstyle,"native");
+  readerstyle = utils::strdup("native");
 
   nreader = 0;
   readers = nullptr;
@@ -182,9 +180,7 @@ void ReadDump::store_files(int nstr, char **str)
   // either all or none of files must have '%' wild-card
 
   for (int i = 0; i < nfile; i++) {
-    int n = strlen(str[i]) + 1;
-    files[i] = new char[n];
-    strcpy(files[i],str[i]);
+    files[i] = utils::strdup(str[i]);
 
     if (i == 0) {
       if (strchr(files[i],'%')) multiproc = 1;
@@ -231,6 +227,10 @@ void ReadDump::setup_reader(int narg, char **arg)
 
   readers = new Reader*[nreader];
   nsnapatoms = new bigint[nreader];
+  for (int i=0; i < nreader; ++i) {
+    readers[i] = nullptr;
+    nsnapatoms[i] = 0;
+  }
 
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
@@ -1254,9 +1254,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       for (i = 0; i < nfield; i++)
         if (type == fieldtype[i]) break;
       if (i == nfield) error->all(FLERR,"Illegal read_dump command");
-      int n = strlen(arg[iarg+2]) + 1;
-      fieldlabel[i] = new char[n];
-      strcpy(fieldlabel[i],arg[iarg+2]);
+      fieldlabel[i] = utils::strdup(arg[iarg+2]);
       iarg += 3;
     } else if (strcmp(arg[iarg],"scaled") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
@@ -1273,9 +1271,7 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
       delete [] readerstyle;
-      int n = strlen(arg[iarg+1]) + 1;
-      readerstyle = new char[n];
-      strcpy(readerstyle,arg[iarg+1]);
+      readerstyle = utils::strdup(arg[iarg+1]);
       iarg += 2;
       break;
     } else error->all(FLERR,"Illegal read_dump command");

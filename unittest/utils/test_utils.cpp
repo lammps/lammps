@@ -27,8 +27,23 @@ using ::testing::Eq;
 using ::testing::StrEq;
 
 #if !defined(FLERR)
-#define FLERR __FILE__,__LINE__
+#define FLERR __FILE__, __LINE__
 #endif
+
+TEST(Utils, strdup)
+{
+    std::string original("some_text");
+    const char *copy = utils::strdup(original);
+    ASSERT_THAT(original, StrEq(copy));
+    ASSERT_NE(copy, original.c_str());
+
+    const char *copy2 = utils::strdup(copy);
+    ASSERT_THAT(original, StrEq(copy2));
+    ASSERT_NE(copy, copy2);
+
+    delete[] copy;
+    delete[] copy2;
+}
 
 TEST(Utils, trim)
 {
@@ -52,6 +67,23 @@ TEST(Utils, trim_comment)
 {
     auto trimmed = utils::trim_comment("some text # comment");
     ASSERT_THAT(trimmed, StrEq("some text "));
+}
+
+TEST(Utils, has_utf8)
+{
+    const char ascii_string[] = " -2";
+    const char utf8_string[]  = " −2";
+    ASSERT_FALSE(utils::has_utf8(ascii_string));
+    ASSERT_TRUE(utils::has_utf8(utf8_string));
+}
+
+TEST(Utils, utf8_subst)
+{
+    const char ascii_string[] = " -2";
+    const char utf8_string[]  = " −2";
+    auto ascii                = utils::utf8_subst(ascii_string);
+    auto utf8                 = utils::utf8_subst(utf8_string);
+    ASSERT_TRUE(ascii == utf8);
 }
 
 TEST(Utils, count_words)
@@ -255,6 +287,61 @@ TEST(Utils, signed_double_and_d_exponential)
     ASSERT_FALSE(utils::is_double("-10D-22"));
 }
 
+TEST(Utils, valid_id1)
+{
+    ASSERT_TRUE(utils::is_id("abc"));
+}
+
+TEST(Utils, valid_id2)
+{
+    ASSERT_TRUE(utils::is_id("123"));
+}
+
+TEST(Utils, valid_id3)
+{
+    ASSERT_TRUE(utils::is_id("abc123"));
+}
+
+TEST(Utils, valid_id4)
+{
+    ASSERT_TRUE(utils::is_id("abc_123"));
+}
+
+TEST(Utils, valid_id5)
+{
+    ASSERT_TRUE(utils::is_id("123_abc"));
+}
+
+TEST(Utils, valid_id6)
+{
+    ASSERT_TRUE(utils::is_id("_123"));
+}
+
+TEST(Utils, valid_id7)
+{
+    ASSERT_TRUE(utils::is_id("___"));
+}
+
+TEST(Utils, invalid_id1)
+{
+    ASSERT_FALSE(utils::is_id("+abc"));
+}
+
+TEST(Utils, invalid_id2)
+{
+    ASSERT_FALSE(utils::is_id("a[1]"));
+}
+
+TEST(Utils, invalid_id3)
+{
+    ASSERT_FALSE(utils::is_id("b(c)"));
+}
+
+TEST(Utils, invalid_id4)
+{
+    ASSERT_FALSE(utils::is_id("a$12"));
+}
+
 TEST(Utils, strmatch_beg)
 {
     ASSERT_TRUE(utils::strmatch("rigid/small/omp", "^rigid"));
@@ -367,17 +454,114 @@ TEST(Utils, strmatch_whitespace_nonwhitespace)
     ASSERT_TRUE(utils::strmatch(" 5.0  angles\n", "^\\s*\\S+\\s+\\S+\\s"));
 }
 
+TEST(Utils, strfind_beg)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "^rigid"), StrEq("rigid"));
+}
+
+TEST(Utils, strfind_mid1)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", ".small."), StrEq("/small/"));
+}
+
+TEST(Utils, strfind_mid2)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/ompXXX", "omp"), StrEq("omp"));
+}
+
+TEST(Utils, strfind_end)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "/omp$"), StrEq("/omp"));
+}
+
+TEST(Utils, no_strfind_beg)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "^small"), StrEq(""));
+}
+
+TEST(Utils, no_strfind_mid)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "none"), StrEq(""));
+}
+
+TEST(Utils, no_strfind_end)
+{
+    ASSERT_THAT(utils::strfind("rigid/small/omp", "/opt$"), StrEq(""));
+}
+
+TEST(Utils, strfind_whole_line)
+{
+    ASSERT_THAT(utils::strfind("ITEM: UNITS\n", "^\\s*ITEM: UNITS\\s*$"), StrEq("ITEM: UNITS\n"));
+}
+
+TEST(Utils, no_strfind_whole_line)
+{
+    ASSERT_THAT(utils::strfind("ITEM: UNITS\n", "^\\s*ITEM: UNIT\\s*$"), StrEq(""));
+}
+
+TEST(Utils, strfind_char_range)
+{
+    ASSERT_THAT(utils::strfind("rigidXXX", "^[ip-s]+gid"), StrEq("rigid"));
+}
+
+TEST(Utils, strfind_notchar_range)
+{
+    ASSERT_THAT(utils::strfind("rigidYYY", "^[^a-g]+gid"), StrEq("rigid"));
+}
+
+TEST(Utils, strfind_backslash)
+{
+    ASSERT_THAT(utils::strfind("\\rigidZZZ", "^\\W\\w+gid"), StrEq("\\rigid"));
+}
+
+TEST(Utils, strfind_opt_range)
+{
+    ASSERT_THAT(utils::strfind("rigidAAA", "^[0-9]*[\\Wp-s]igid"), StrEq("rigid"));
+}
+
+TEST(Utils, strfind_opt_char)
+{
+    ASSERT_THAT(utils::strfind("rigid111", "^r?igid"), StrEq("rigid"));
+    ASSERT_THAT(utils::strfind("igid222", "^r?igid"), StrEq("igid"));
+}
+
+TEST(Utils, strfind_dot)
+{
+    ASSERT_THAT(utils::strfind("AAArigidBBB", ".igid"), StrEq("rigid"));
+    ASSERT_THAT(utils::strfind("000Rigid111", ".igid"), StrEq("Rigid"));
+}
+
+TEST(Utils, strfind_kim)
+{
+    ASSERT_THAT(utils::strfind("n3409jfse MO_004835508849_000 aslfjiaf",
+                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"), StrEq("MO_004835508849_000"));
+    ASSERT_THAT(utils::strfind("VanDuinChakraborty_2003_CHNO__SM_107643900657_000",
+                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"), StrEq("SM_107643900657_000"));
+}
+
 TEST(Utils, bounds_case1)
 {
     int nlo, nhi;
 
     nlo = nhi = -1;
     utils::bounds(FLERR, "9", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,9);
-    ASSERT_EQ(nhi,9);
+    ASSERT_EQ(nlo, 9);
+    ASSERT_EQ(nhi, 9);
     utils::bounds(FLERR, "1", 1, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,1);
-    ASSERT_EQ(nhi,1);
+    ASSERT_EQ(nlo, 1);
+    ASSERT_EQ(nhi, 1);
+    utils::bounds(FLERR, "1x", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "-1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "+1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "1:3", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, bounds_case2)
@@ -386,11 +570,14 @@ TEST(Utils, bounds_case2)
 
     nlo = nhi = -1;
     utils::bounds(FLERR, "*", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,0);
-    ASSERT_EQ(nhi,10);
+    ASSERT_EQ(nlo, 0);
+    ASSERT_EQ(nhi, 10);
     utils::bounds(FLERR, "*", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,-10);
-    ASSERT_EQ(nhi,5);
+    ASSERT_EQ(nlo, -10);
+    ASSERT_EQ(nhi, 5);
+    utils::bounds(FLERR, "?", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, bounds_case3)
@@ -399,37 +586,14 @@ TEST(Utils, bounds_case3)
 
     nlo = nhi = -1;
     utils::bounds(FLERR, "2*", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,2);
-    ASSERT_EQ(nhi,10);
+    ASSERT_EQ(nlo, 2);
+    ASSERT_EQ(nhi, 10);
     utils::bounds(FLERR, "3*", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,3);
-    ASSERT_EQ(nhi,5);
-}
-
-TEST(Utils, bounds_case4)
-{
-    int nlo, nhi;
-
-    nlo = nhi = -1;
-    utils::bounds(FLERR, "*2", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,0);
-    ASSERT_EQ(nhi,2);
-    utils::bounds(FLERR, "*3", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,-10);
-    ASSERT_EQ(nhi,3);
-}
-
-TEST(Utils, bounds_case5)
-{
-    int nlo, nhi;
-
-    nlo = nhi = -1;
-    utils::bounds(FLERR, "2*5", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,2);
-    ASSERT_EQ(nhi,5);
-    utils::bounds(FLERR, "-2*3", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,-2);
-    ASSERT_EQ(nhi,3);
+    ASSERT_EQ(nlo, 3);
+    ASSERT_EQ(nhi, 5);
+    utils::bounds(FLERR, "3*:2", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, boundsbig_case1)
@@ -438,11 +602,23 @@ TEST(Utils, boundsbig_case1)
 
     nlo = nhi = -1;
     utils::bounds(FLERR, "9", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,9);
-    ASSERT_EQ(nhi,9);
+    ASSERT_EQ(nlo, 9);
+    ASSERT_EQ(nhi, 9);
     utils::bounds(FLERR, "1", 1, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,1);
-    ASSERT_EQ(nhi,1);
+    ASSERT_EQ(nlo, 1);
+    ASSERT_EQ(nhi, 1);
+    utils::bounds(FLERR, "1x", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "-1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "+1", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
+    utils::bounds(FLERR, "1:3", 1, 10, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, boundsbig_case2)
@@ -451,11 +627,14 @@ TEST(Utils, boundsbig_case2)
 
     nlo = nhi = -1;
     utils::bounds(FLERR, "*", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,0);
-    ASSERT_EQ(nhi,10);
+    ASSERT_EQ(nlo, 0);
+    ASSERT_EQ(nhi, 10);
     utils::bounds(FLERR, "*", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,-10);
-    ASSERT_EQ(nhi,5);
+    ASSERT_EQ(nlo, -10);
+    ASSERT_EQ(nhi, 5);
+    utils::bounds(FLERR, "?", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, boundsbig_case3)
@@ -464,37 +643,14 @@ TEST(Utils, boundsbig_case3)
 
     nlo = nhi = -1;
     utils::bounds(FLERR, "2*", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,2);
-    ASSERT_EQ(nhi,10);
+    ASSERT_EQ(nlo, 2);
+    ASSERT_EQ(nhi, 10);
     utils::bounds(FLERR, "3*", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,3);
-    ASSERT_EQ(nhi,5);
-}
-
-TEST(Utils, boundsbig_case4)
-{
-    bigint nlo, nhi;
-
-    nlo = nhi = -1;
-    utils::bounds(FLERR, "*2", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,0);
-    ASSERT_EQ(nhi,2);
-    utils::bounds(FLERR, "*3", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,-10);
-    ASSERT_EQ(nhi,3);
-}
-
-TEST(Utils, boundsbig_case5)
-{
-    bigint nlo, nhi;
-
-    nlo = nhi = -1;
-    utils::bounds(FLERR, "2*5", 0, 10, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,2);
-    ASSERT_EQ(nhi,5);
-    utils::bounds(FLERR, "-2*3", -10, 5, nlo, nhi, nullptr);
-    ASSERT_EQ(nlo,-2);
-    ASSERT_EQ(nhi,3);
+    ASSERT_EQ(nlo, 3);
+    ASSERT_EQ(nhi, 5);
+    utils::bounds(FLERR, "3*:2", -10, 5, nlo, nhi, nullptr);
+    ASSERT_EQ(nlo, -1);
+    ASSERT_EQ(nhi, -1);
 }
 
 TEST(Utils, guesspath)
@@ -525,9 +681,24 @@ TEST(Utils, path_basename)
 {
 #if defined(_WIN32)
     ASSERT_THAT(utils::path_basename("c:\\parent\\folder\\filename"), Eq("filename"));
+    ASSERT_THAT(utils::path_basename("folder\\"), Eq(""));
+    ASSERT_THAT(utils::path_basename("c:/parent/folder/filename"), Eq("filename"));
 #else
     ASSERT_THAT(utils::path_basename("/parent/folder/filename"), Eq("filename"));
+    ASSERT_THAT(utils::path_basename("/parent/folder/"), Eq(""));
 #endif
+}
+
+TEST(Utils, path_dirname)
+{
+#if defined(_WIN32)
+    ASSERT_THAT(utils::path_dirname("c:/parent/folder/filename"), Eq("c:/parent/folder"));
+    ASSERT_THAT(utils::path_dirname("c:\\parent\\folder\\filename"), Eq("c:\\parent\\folder"));
+    ASSERT_THAT(utils::path_dirname("c:filename"), Eq("."));
+#else
+    ASSERT_THAT(utils::path_dirname("/parent/folder/filename"), Eq("/parent/folder"));
+#endif
+    ASSERT_THAT(utils::path_dirname("filename"), Eq("."));
 }
 
 TEST(Utils, getsyserror)
@@ -613,19 +784,18 @@ TEST(Utils, timespec2seconds_hhmmss)
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
 }
 
-
 TEST(Utils, date2num)
 {
-    ASSERT_EQ(utils::date2num("1Jan05"),20050101);
-    ASSERT_EQ(utils::date2num("10Feb2005"),20050210);
-    ASSERT_EQ(utils::date2num("02Mar10"),20100302);
-    ASSERT_EQ(utils::date2num(" 5Apr1900"),19000405);
-    ASSERT_EQ(utils::date2num("10May22 "),20220510);
-    ASSERT_EQ(utils::date2num("1 Jun 05"),20050601);
-    ASSERT_EQ(utils::date2num("10 Jul 2005"),20050710);
-    ASSERT_EQ(utils::date2num("02 Aug 10"),20100802);
-    ASSERT_EQ(utils::date2num("  5  September  99"),20990905);
-    ASSERT_EQ(utils::date2num("10October22 "),20221010);
-    ASSERT_EQ(utils::date2num("30November 02"),20021130);
-    ASSERT_EQ(utils::date2num("31December100"),1001231);
+    ASSERT_EQ(utils::date2num("1Jan05"), 20050101);
+    ASSERT_EQ(utils::date2num("10Feb2005"), 20050210);
+    ASSERT_EQ(utils::date2num("02Mar10"), 20100302);
+    ASSERT_EQ(utils::date2num(" 5Apr1900"), 19000405);
+    ASSERT_EQ(utils::date2num("10May22 "), 20220510);
+    ASSERT_EQ(utils::date2num("1 Jun 05"), 20050601);
+    ASSERT_EQ(utils::date2num("10 Jul 2005"), 20050710);
+    ASSERT_EQ(utils::date2num("02 Aug 10"), 20100802);
+    ASSERT_EQ(utils::date2num("  5  September  99"), 20990905);
+    ASSERT_EQ(utils::date2num("10October22 "), 20221010);
+    ASSERT_EQ(utils::date2num("30November 02"), 20021130);
+    ASSERT_EQ(utils::date2num("31December100"), 1001231);
 }

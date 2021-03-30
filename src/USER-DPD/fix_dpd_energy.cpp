@@ -63,7 +63,7 @@ void FixDPDenergy::initial_integrate(int /*vflag*/)
   double *duCond = pairDPDE->duCond;
   double *duMech = pairDPDE->duMech;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     uCond[i] += 0.5*update->dt*duCond[i];
     uMech[i] += 0.5*update->dt*duMech[i];
   }
@@ -81,7 +81,7 @@ void FixDPDenergy::final_integrate()
   double *duCond = pairDPDE->duCond;
   double *duMech = pairDPDE->duMech;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     uCond[i] += 0.5*update->dt*duCond[i];
     uMech[i] += 0.5*update->dt*duMech[i];
   }

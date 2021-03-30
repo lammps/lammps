@@ -60,7 +60,7 @@ static xdr_uint32_t xdr_swapbytes(xdr_uint32_t x)
   char *px=(char *)&x;
   char *py=(char *)&y;
 
-  for(i=0;i<4;i++)
+  for (i=0;i<4;i++)
     py[i]=px[3-i];
 
   return y;
@@ -469,7 +469,7 @@ xdr_double(XDR *xdrs, double *dp)
   int *ip;
   xdr_int32_t tmp[2];
 
-  if(LSW<0) {
+  if (LSW<0) {
     double x=0.987654321; /* Just a number */
 
     /* Possible representations in IEEE double precision:
@@ -484,9 +484,9 @@ xdr_double(XDR *xdrs, double *dp)
 
     unsigned char ix = *((char *)&x);
 
-    if(ix==0xdd || ix==0x3f)
+    if (ix==0xdd || ix==0x3f)
       LSW=1;  /* Big endian word order */
-    else if(ix==0xb8 || ix==0x3c)
+    else if (ix==0xb8 || ix==0x3c)
       LSW=0;  /* Small endian word order */
     else { /* Catch strange errors */
       printf("Error when detecting floating-point word order.\n"

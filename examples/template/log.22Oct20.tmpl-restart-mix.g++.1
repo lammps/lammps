@@ -1,0 +1,102 @@
+LAMMPS (22 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+# demo for atom style template simulating a cyclohexane methane mixture
+# part 3: continuing from restart file
+
+molecule cychex cyclohexane.mol
+Read molecule template cychex:
+  1 molecules
+  6 atoms with max type 1
+  6 bonds with max type 1
+  6 angles with max type 1
+  6 dihedrals with max type 1
+  0 impropers with max type 0
+read_restart template-mix.restart
+Reading restart file ...
+  restart file = 22 Oct 2020, LAMMPS = 22 Oct 2020
+WARNING: Restart file used different # of processors: 4 vs. 1 (src/read_restart.cpp:697)
+  restoring atom style template from restart
+  orthogonal box = (-24.000000 -24.000000 -24.000000) to (24.000000 24.000000 24.000000)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style lj/cut from restart
+  restoring bond style harmonic from restart
+  restoring angle style harmonic from restart
+  restoring dihedral style harmonic from restart
+  3872 atoms
+  3072 template bonds
+  3072 template angles
+  3072 template dihedrals
+  read_restart CPU = 0.002 seconds
+
+thermo 100
+
+fix 1 all nvt temp 300.0 300.0 1.0
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 1
+# dump 1 all custom 100 custom template-mix.lammpstrj id xu yu zu
+run 2000
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.879 | 6.879 | 6.879 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+    2500    297.79426   -4928.7403    1686.5107    193.93377    11481.089 
+    2600    303.69861   -4872.1658    1620.5986    252.72467    8824.1501 
+    2700    304.64827   -4885.5903    1747.1956    376.85504    11560.748 
+    2800    298.79617   -4851.2752    1644.5913    241.04014    9198.1133 
+    2900      302.323   -4949.4247    1661.0637    200.05824    10788.039 
+    3000     302.8192   -4983.7441    1617.1412     127.5418    9606.2027 
+    3100    305.27495   -4999.5335    1589.7081    112.65547    9258.8096 
+    3200     294.9932   -4960.8253    1650.5396    93.556955     11103.25 
+    3300     299.8705   -4896.6757    1711.6029     275.0477    8404.2758 
+    3400    308.43113    -5035.583    1732.7837    256.09989    11520.651 
+    3500       302.54   -4887.2016    1770.4336    374.15506    8359.8351 
+    3600    294.00064    -5011.409    1768.0298    149.01058     11257.53 
+    3700    303.26654   -4942.0636    1690.4493    247.69209    8749.4281 
+    3800     294.7064   -5009.5839    1638.6276    29.577045    10460.396 
+    3900    300.34826    -5011.778    1699.4384    153.29355    9558.3891 
+    4000    298.76709   -5014.8089    1613.1902    45.769836    9254.1067 
+    4100    297.77294   -4978.3228    1736.8967    194.49122    10810.757 
+    4200    302.14768   -5049.4356    1713.0187    149.97929    8258.5093 
+    4300     295.1467   -5094.2287    1757.8215    69.206733    11022.023 
+    4400    305.24677   -4967.1951    1762.3252    317.28577    8423.2256 
+    4500    305.53119   -5047.7285    1775.2795    252.98852    11178.338 
+Loop time of 15.3536 on 1 procs for 2000 steps with 3872 atoms
+
+Performance: 11.255 ns/day, 2.132 hours/ns, 130.263 timesteps/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 13.88      | 13.88      | 13.88      |   0.0 | 90.40
+Bond    | 0.58065    | 0.58065    | 0.58065    |   0.0 |  3.78
+Neigh   | 0.69518    | 0.69518    | 0.69518    |   0.0 |  4.53
+Comm    | 0.0826     | 0.0826     | 0.0826     |   0.0 |  0.54
+Output  | 0.00053438 | 0.00053438 | 0.00053438 |   0.0 |  0.00
+Modify  | 0.07779    | 0.07779    | 0.07779    |   0.0 |  0.51
+Other   |            | 0.03687    |            |       |  0.24
+
+Nlocal:        3872.00 ave        3872 max        3872 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        11670.0 ave       11670 max       11670 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:       770032.0 ave      770032 max      770032 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 770032
+Ave neighs/atom = 198.87190
+Ave special neighs/atom = 3.9669421
+Neighbor list builds = 35
+Dangerous builds = 0
+Total wall time: 0:00:15

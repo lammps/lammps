@@ -47,6 +47,8 @@ DihedralOPLSKokkos<DeviceType>::DihedralOPLSKokkos(LAMMPS *lmp) : DihedralOPLS(l
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.view<DeviceType>();
   h_warning_flag = k_warning_flag.h_view;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */

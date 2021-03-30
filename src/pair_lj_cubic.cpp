@@ -26,15 +26,14 @@
 #include "memory.h"
 #include "error.h"
 
+#include "pair_lj_cubic_const.h"
 
 using namespace LAMMPS_NS;
 using namespace PairLJCubicConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCubic::PairLJCubic(LAMMPS *lmp) : Pair(lmp) {
-  centroidstressflag = 1;
-}
+PairLJCubic::PairLJCubic(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

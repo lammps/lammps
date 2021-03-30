@@ -17,15 +17,16 @@
 
 #include "dump_molfile.h"
 
-#include <cstring>
-#include <cmath>
-#include "domain.h"
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
+#include "domain.h"
+#include "error.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 #include "molfile_interface.h"
 
@@ -456,6 +457,6 @@ double DumpMolfile::memory_usage()
 {
   double bytes = Dump::memory_usage();
   bytes += memory->usage(coords,natoms*3);
-  bytes += sizeof(MFI);
+  bytes += (double)sizeof(MFI);
   return bytes;
 }

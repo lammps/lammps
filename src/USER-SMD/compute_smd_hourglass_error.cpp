@@ -107,6 +107,6 @@ void ComputeSMDHourglassError::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDHourglassError::memory_usage() {
-        double bytes = nmax * sizeof(double);
+        double bytes = (double)nmax * sizeof(double);
         return bytes;
 }

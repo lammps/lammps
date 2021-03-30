@@ -66,6 +66,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   single_extra = 12;
   svector = new double[single_extra];
@@ -535,7 +536,7 @@ void PairGranular::compute(int eflag, int vflag)
         }
 
         if (roll_model[itype][jtype] != ROLL_NONE ||
-            twist_model[itype][jtype] != TWIST_NONE){
+            twist_model[itype][jtype] != TWIST_NONE) {
           relrot1 = omega[i][0] - omega[j][0];
           relrot2 = omega[i][1] - omega[j][1];
           relrot3 = omega[i][2] - omega[j][2];
@@ -1102,15 +1103,8 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    char dnumstr[16];
-    sprintf(dnumstr,"%d",size_history);
-    char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY_GRANULAR";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "NEIGH_HISTORY";
-    fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",4,fixarg,1);
-    delete [] fixarg;
+    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY","NEIGH_HISTORY_GRANULAR"
+                        " all NEIGH_HISTORY " + std::to_string(size_history),1);
     int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
@@ -1405,11 +1399,15 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   int *jlist;
   double *history,*allhistory;
 
+  int nall = atom->nlocal + atom->nghost;
+  if ((i >= nall) || (j >= nall))
+    error->all(FLERR,"Not enough atoms for pair granular single function");
+
   double *radius = atom->radius;
   radi = radius[i];
   radj = radius[j];
   radsum = radi + radj;
-  Reff = radi*radj/radsum;
+  Reff = (radsum > 0.0) ? radi*radj/radsum : 0.0;
 
   bool touchflag;
   E = normal_coeffs[itype][jtype][0];
@@ -1536,6 +1534,8 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   jlist = list->firstneigh[i];
 
   if (use_history) {
+    if ((fix_history == nullptr) || (fix_history->firstvalue == nullptr))
+      error->one(FLERR,"Pair granular single computation needs history");
     allhistory = fix_history->firstvalue[i];
     for (int jj = 0; jj < jnum; jj++) {
       neighprev++;
@@ -1759,7 +1759,7 @@ void PairGranular::unpack_forward_comm(int n, int first, double *buf)
 
 double PairGranular::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }
 

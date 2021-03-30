@@ -23,7 +23,6 @@
 
 #include <cstring>
 
-
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -33,9 +32,6 @@
 #include "memory.h"
 #include "error.h"
 #include "update.h"
-
-
-
 #include "math_const.h"
 #include "math_extra.h"
 
@@ -58,6 +54,7 @@ PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
   respa_enable = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   no_virial_fdotr_compute = 0;
   writedata = 0;
   ghostneigh = 0;
@@ -549,7 +546,7 @@ void PairMesoCNT::bond_neigh()
     if (i2 > nlocal-1 && false) numneigh2 = 0;
     else numneigh2 = numneigh[i2];
 
-    int numneigh_max_local = numneigh1 + numneigh1;
+    int numneigh_max_local = numneigh1 + numneigh2;
     if (numneigh_max_local > numneigh_max) numneigh_max = numneigh_max_local;
   }
   if (numneigh_max > reduced_neigh_size) {

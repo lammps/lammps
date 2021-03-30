@@ -12,18 +12,20 @@
 ------------------------------------------------------------------------- */
 
 #include "integrate.h"
-#include "update.h"
+
+#include "citeme.h"
+#include "compute.h"
 #include "force.h"
-#include "pair.h"
 #include "kspace.h"
 #include "modify.h"
-#include "compute.h"
+#include "pair.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Integrate::Integrate(LAMMPS *lmp, int /*narg*/, char **/*arg*/) : Pointers(lmp)
+Integrate::Integrate(LAMMPS *lmp, int /*narg*/, char ** /*arg*/) : Pointers(lmp)
 {
   elist_global = elist_atom = nullptr;
   vlist_global = vlist_atom = cvlist_atom = nullptr;
@@ -45,6 +47,7 @@ Integrate::~Integrate()
 
 void Integrate::init()
 {
+  if (lmp->citeme) lmp->citeme->flush();
   update->atimestep = update->ntimestep;
 
   // allow pair and Kspace compute() to be turned off via modify flags
@@ -111,21 +114,18 @@ void Integrate::ev_setup()
 
 /* ----------------------------------------------------------------------
    set eflag,vflag for current iteration
+   based on computes that need energy/virial info on this timestep
    invoke matchstep() on all timestep-dependent computes to clear their arrays
-   eflag/vflag based on computes that need info on this ntimestep
-   eflag = 0 = no energy computation
-   eflag = 1 = global energy only
-   eflag = 2 = per-atom energy only
-   eflag = 3 = both global and per-atom energy
-   vflag = 0 = no virial computation (pressure)
-   vflag = 1 = global virial with pair portion via sum of pairwise interactions
-   vflag = 2 = global virial with pair portion via F dot r including ghosts
-   vflag = 4 = per-atom virial only
-   vflag = 5 or 6 = both global and per-atom virial
-   vflag = 8 = per-atom centroid virial only
-   vflag = 9 or 10 = both global and per-atom centroid virial
-   vflag = 12 = both per-atom virial and per-atom centroid virial
-   vflag = 13 or 15 = global, per-atom virial and per-atom centroid virial
+   eflag: set any or no bits
+     ENERGY_GLOBAL bit for global energy
+     ENERGY_ATOM   bit for per-atom energy
+   vflag: set any or no bits, but PAIR/FDOTR bits cannot both be set
+     VIRIAL_PAIR     bit for global virial as sum of pairwise terms
+     VIRIAL_FDOTR    bit for global virial via F dot r
+     VIRIAL_ATOM     bit for per-atom virial
+     VIRIAL_CENTROID bit for per-atom centroid virial
+   all force components (pair,bond,angle,...,kspace) use eflag/vflag
+     in their ev_setup() method to set local energy/virial flags
 ------------------------------------------------------------------------- */
 
 void Integrate::ev_set(bigint ntimestep)
@@ -136,13 +136,13 @@ void Integrate::ev_set(bigint ntimestep)
   int eflag_global = 0;
   for (i = 0; i < nelist_global; i++)
     if (elist_global[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) eflag_global = 1;
+  if (flag) eflag_global = ENERGY_GLOBAL;
 
   flag = 0;
   int eflag_atom = 0;
   for (i = 0; i < nelist_atom; i++)
     if (elist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) eflag_atom = 2;
+  if (flag) eflag_atom = ENERGY_ATOM;
 
   if (eflag_global) update->eflag_global = ntimestep;
   if (eflag_atom) update->eflag_atom = ntimestep;
@@ -158,13 +158,13 @@ void Integrate::ev_set(bigint ntimestep)
   int vflag_atom = 0;
   for (i = 0; i < nvlist_atom; i++)
     if (vlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) vflag_atom = 4;
+  if (flag) vflag_atom = VIRIAL_ATOM;
 
   flag = 0;
   int cvflag_atom = 0;
   for (i = 0; i < ncvlist_atom; i++)
     if (cvlist_atom[i]->matchstep(ntimestep)) flag = 1;
-  if (flag) cvflag_atom = 8;
+  if (flag) cvflag_atom = VIRIAL_CENTROID;
 
   if (vflag_global) update->vflag_global = ntimestep;
   if (vflag_atom || cvflag_atom) update->vflag_atom = ntimestep;

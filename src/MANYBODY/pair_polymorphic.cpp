@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -33,6 +34,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -44,15 +46,14 @@ PairPolymorphic::PairPolymorphic(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
-  nelements = 0;
-  elements = nullptr;
   match = nullptr;
   pairParameters = nullptr;
   tripletParameters = nullptr;
   elem2param = nullptr;
   elem3param = nullptr;
-  map = nullptr;
   epsilon = 0.0;
   neighsize = 0;
   firstneighV = nullptr;
@@ -74,9 +75,6 @@ PairPolymorphic::PairPolymorphic(LAMMPS *lmp) : Pair(lmp)
 
 PairPolymorphic::~PairPolymorphic()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   delete [] match;
 
   delete [] pairParameters;
@@ -87,7 +85,6 @@ PairPolymorphic::~PairPolymorphic()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] firstneighV;
     delete [] firstneighW;
     delete [] firstneighW1;
@@ -462,74 +459,19 @@ void PairPolymorphic::settings(int narg, char **/*arg*/)
 
 void PairPolymorphic::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg == 4 + atom->ntypes) {
-     narg--;
-     epsilon = atof(arg[narg]);
-  } else if (narg != 3 + atom->ntypes) {
-    error->all(FLERR,"Incorrect args for pair coefficients");
-  }
+  // parse and remove optional last parameter
 
-  // insure I,J args are * *
+  if (narg == 4 + atom->ntypes)
+    epsilon = utils::numeric(FLERR,arg[--narg],false,lmp);
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3,arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   setup_params();
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -644,7 +586,7 @@ void PairPolymorphic::read_file(char *file)
   MPI_Bcast(&npair, 1, MPI_INT, 0, world);
   MPI_Bcast(&ntriple, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     delete [] match;
     match = new int[nelements];
     delete [] pairParameters;
@@ -835,10 +777,10 @@ void PairPolymorphic::attractive(PairParameters *p, PairParameters *q,
   double rijinv,rikinv;
 
   rijinv = 1.0/rij;
-  vec3_scale(rijinv,delrij,rij_hat);
+  scale3(rijinv,delrij,rij_hat);
 
   rikinv = 1.0/rik;
-  vec3_scale(rikinv,delrik,rik_hat);
+  scale3(rikinv,delrik,rik_hat);
 
   ters_zetaterm_d(prefactor,rij_hat,rij,rik_hat,rik,fi,fj,fk,p,q,trip);
 }
@@ -855,7 +797,7 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
   double gijk,gijk_d,ex_delr,ex_delr_d,fc,dfc,cos_theta;
   double dcosdri[3],dcosdrj[3],dcosdrk[3];
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
 
   (q->W)->value(rik,fc,1,dfc,1);
   (trip->P)->value(rij-(p->xi)*rik,ex_delr,1,ex_delr_d,1);
@@ -865,24 +807,24 @@ void PairPolymorphic::ters_zetaterm_d(double prefactor,
 
   // compute the derivative wrt Ri
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d*(p->xi),rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
-  vec3_scale(prefactor,dri,dri);
+  scale3(-dfc*gijk*ex_delr,rik_hat,dri);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdri,dri,dri);
+  scaleadd3(fc*gijk*ex_delr_d*(p->xi),rik_hat,dri,dri);
+  scaleadd3(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  scale3(prefactor,dri);
 
   // compute the derivative wrt Rj
 
-  vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
-  vec3_scale(prefactor,drj,drj);
+  scale3(fc*gijk_d*ex_delr,dcosdrj,drj);
+  scaleadd3(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  scale3(prefactor,drj);
 
   // compute the derivative wrt Rk
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d*(p->xi),rik_hat,drk,drk);
-  vec3_scale(prefactor,drk,drk);
+  scale3(dfc*gijk*ex_delr,rik_hat,drk);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
+  scaleadd3(-fc*gijk*ex_delr_d*(p->xi),rik_hat,drk,drk);
+  scale3(prefactor,drk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -893,14 +835,14 @@ void PairPolymorphic::costheta_d(double *rij_hat, double rij,
 {
   // first element is devative wrt Ri, second wrt Rj, third wrt Rk
 
-  double cos_theta = vec3_dot(rij_hat,rik_hat);
+  double cos_theta = dot3(rij_hat,rik_hat);
 
-  vec3_scaleadd(-cos_theta,rij_hat,rik_hat,drj);
-  vec3_scale(1.0/rij,drj,drj);
-  vec3_scaleadd(-cos_theta,rik_hat,rij_hat,drk);
-  vec3_scale(1.0/rik,drk,drk);
-  vec3_add(drj,drk,dri);
-  vec3_scale(-1.0,dri,dri);
+  scaleadd3(-cos_theta,rij_hat,rik_hat,drj);
+  scale3(1.0/rij,drj);
+  scaleadd3(-cos_theta,rik_hat,rij_hat,drk);
+  scale3(1.0/rik,drk);
+  add3(drj,drk,dri);
+  scale3(-1.0,dri);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -18,30 +18,31 @@
 
 #include "fix_atom_swap.h"
 
+#include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
+#include "compute.h"
+#include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "kspace.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
 #include <cmath>
 #include <cctype>
 #include <cfloat>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
-#include "comm.h"
-#include "compute.h"
-#include "group.h"
-#include "domain.h"
-#include "region.h"
-#include "random_park.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "kspace.h"
-#include "memory.h"
-#include "error.h"
-#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -138,9 +139,7 @@ void FixAtomSwap::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix atom/swap does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"ke") == 0) {
@@ -504,7 +503,7 @@ double FixAtomSwap::energy_full()
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -753,7 +752,7 @@ double FixAtomSwap::compute_vector(int n)
 
 double FixAtomSwap::memory_usage()
 {
-  double bytes = atom_swap_nmax * sizeof(int);
+  double bytes = (double)atom_swap_nmax * sizeof(int);
   return bytes;
 }
 

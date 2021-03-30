@@ -17,6 +17,7 @@
 
 #include "fix_python_move.h"
 
+#include "comm.h"
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"
@@ -42,13 +43,13 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   // add current directory to PYTHONPATH
-  PyObject * py_path = PySys_GetObject((char *)"path");
+  PyObject *py_path = PySys_GetObject((char *)"path");
   PyList_Append(py_path, PY_STRING_FROM_STRING("."));
 
 
   // create integrator instance
-  char * full_cls_name = arg[3];
-  char * lastpos = strrchr(full_cls_name, '.');
+  char *full_cls_name = arg[3];
+  char *lastpos = strrchr(full_cls_name, '.');
 
   if (lastpos == nullptr) {
     error->all(FLERR,"Fix python/integrate requires fully qualified class name");
@@ -57,14 +58,14 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
   size_t module_name_length = strlen(full_cls_name) - strlen(lastpos);
   size_t cls_name_length = strlen(lastpos)-1;
 
-  char * module_name = new char[module_name_length+1];
-  char * cls_name = new char[cls_name_length+1];
+  char *module_name = new char[module_name_length+1];
+  char *cls_name = new char[cls_name_length+1];
   strncpy(module_name, full_cls_name, module_name_length);
   module_name[module_name_length] = 0;
 
   strcpy(cls_name, lastpos+1);
 
-  PyObject * pModule = PyImport_ImportModule(module_name);
+  PyObject *pModule = PyImport_ImportModule(module_name);
   if (!pModule) {
     PyErr_Print();
     PyErr_Clear();
@@ -86,9 +87,9 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
   delete [] module_name;
   delete [] cls_name;
 
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(O)", ptr);
-  PyObject * py_move_obj = PyObject_CallObject(py_move_type, arglist);
+  PyObject *ptr = PY_VOID_POINTER(lmp);
+  PyObject *arglist = Py_BuildValue("(O)", ptr);
+  PyObject *py_move_obj = PyObject_CallObject(py_move_type, arglist);
   Py_DECREF(arglist);
 
   if (!py_move_obj) {
@@ -109,7 +110,7 @@ FixPythonMove::FixPythonMove(LAMMPS *lmp, int narg, char **arg) :
 FixPythonMove::~FixPythonMove()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  if(py_move) Py_DECREF((PyObject*) py_move);
+  if (py_move) Py_DECREF((PyObject*) py_move);
   PyGILState_Release(gstate);
 }
 
@@ -136,10 +137,12 @@ void FixPythonMove::init()
     PyErr_Print();
     PyErr_Clear();
     PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find 'init' method'");
+    error->all(FLERR,"Could not find 'init()' method'");
   }
-  PyObject * result = PyEval_CallObject(py_init, nullptr);
+  PyObject *result = PyEval_CallObject(py_init, nullptr);
+  if (!result && (comm->me == 0)) PyErr_Print();
   PyGILState_Release(gstate);
+  if (!result) error->all(FLERR,"Fix python/move init() method failed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -155,10 +158,13 @@ void FixPythonMove::initial_integrate(int vflag)
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'initial_integrate' method'");
   }
-  PyObject * arglist = Py_BuildValue("(i)", vflag);
-  PyObject * result = PyEval_CallObject(py_initial_integrate, arglist);
+  PyObject *arglist = Py_BuildValue("(i)", vflag);
+  PyObject *result = PyEval_CallObject(py_initial_integrate, arglist);
   Py_DECREF(arglist);
+  if (!result && (comm->me == 0)) PyErr_Print();
   PyGILState_Release(gstate);
+  if (!result) error->all(FLERR,"Fix python/move initial_integrate() "
+                          "method failed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,8 +180,11 @@ void FixPythonMove::final_integrate()
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'final_integrate' method'");
   }
-  PyObject * result = PyEval_CallObject(py_final_integrate, nullptr);
+  PyObject *result = PyEval_CallObject(py_final_integrate, nullptr);
+  if (!result && (comm->me == 0)) PyErr_Print();
   PyGILState_Release(gstate);
+  if (!result) error->all(FLERR,"Fix python/move final_integrate() method "
+                          "failed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -191,10 +200,13 @@ void FixPythonMove::initial_integrate_respa(int vflag, int ilevel, int iloop)
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'initial_integrate_respa' method'");
   }
-  PyObject * arglist = Py_BuildValue("(iii)", vflag, ilevel, iloop);
-  PyObject * result = PyEval_CallObject(py_initial_integrate_respa, arglist);
+  PyObject *arglist = Py_BuildValue("(iii)", vflag, ilevel, iloop);
+  PyObject *result = PyEval_CallObject(py_initial_integrate_respa, arglist);
   Py_DECREF(arglist);
+  if (!result && (comm->me == 0)) PyErr_Print();
   PyGILState_Release(gstate);
+  if (!result) error->all(FLERR,"Fix python/move initial_integrate_respa() "
+                          "method failed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -210,10 +222,13 @@ void FixPythonMove::final_integrate_respa(int ilevel, int iloop)
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'final_integrate_respa' method'");
   }
-  PyObject * arglist = Py_BuildValue("(ii)", ilevel, iloop);
-  PyObject * result = PyEval_CallObject(py_final_integrate_respa, arglist);
+  PyObject *arglist = Py_BuildValue("(ii)", ilevel, iloop);
+  PyObject *result = PyEval_CallObject(py_final_integrate_respa, arglist);
   Py_DECREF(arglist);
+  if (!result && (comm->me == 0)) PyErr_Print();
   PyGILState_Release(gstate);
+  if (!result) error->all(FLERR,"Fix python/move final_integrate_respa() "
+                          "method failed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -229,6 +244,8 @@ void FixPythonMove::reset_dt()
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not find 'reset_dt' method'");
   }
-  PyObject * result = PyEval_CallObject(py_reset_dt, nullptr);
+  PyObject *result = PyEval_CallObject(py_reset_dt, nullptr);
+  if (!result && (comm->me == 0)) PyErr_Print();
   PyGILState_Release(gstate);
+  if (!result) error->all(FLERR,"Fix python/move reset_dt() method failed");
 }

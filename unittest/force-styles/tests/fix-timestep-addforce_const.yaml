@@ -1,7 +1,7 @@
 ---
 lammps_version: 24 Aug 2020
 date_generated: Tue Sep 15 09:44:39 202
-epsilon: 5e-12
+epsilon: 9e-12
 prerequisites: ! |
   atom full
   fix addforce

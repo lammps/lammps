@@ -20,6 +20,10 @@ namespace LAMMPS_NS {
 
 namespace MathSpecial {
 
+  // tabulated factorial function
+
+  extern double factorial(const int);
+
   // support function for scaled error function complement
 
   extern double erfcx_y100(const double y100);

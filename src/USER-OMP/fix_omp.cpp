@@ -371,8 +371,8 @@ void FixOMP::pre_force(int)
 
 double FixOMP::memory_usage()
 {
-  double bytes = _nthr * (sizeof(ThrData *) + sizeof(ThrData));
-  bytes += _nthr * thr[0]->memory_usage();
+  double bytes = (double)_nthr * (sizeof(ThrData *) + sizeof(ThrData));
+  bytes += (double)_nthr * thr[0]->memory_usage();
 
   return bytes;
 }

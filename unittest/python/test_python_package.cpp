@@ -32,13 +32,13 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::StrEq;
 using ::testing::MatchesRegex;
+using ::testing::StrEq;
 
 class PythonPackageTest : public ::testing::Test {
 protected:
     LAMMPS *lmp;
-    Info   *info;
+    Info *info;
 
     void SetUp() override
     {
@@ -67,6 +67,7 @@ protected:
     void TearDown() override
     {
         if (!verbose) ::testing::internal::CaptureStdout();
+        delete info;
         delete lmp;
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
@@ -74,7 +75,7 @@ protected:
 
 TEST_F(PythonPackageTest, python_invoke)
 {
-    if (!info->has_style("command","python")) GTEST_SKIP();
+    if (!info->has_style("command", "python")) GTEST_SKIP();
     // execute python function from file
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("python printnum file ${input_dir}/func.py");
@@ -107,9 +108,9 @@ TEST_F(PythonPackageTest, python_invoke)
     ASSERT_THAT(output, MatchesRegex("python.*2.25.*"));
 }
 
-    TEST_F(PythonPackageTest, python_variable)
+TEST_F(PythonPackageTest, python_variable)
 {
-    if (!info->has_style("command","python")) GTEST_SKIP();
+    if (!info->has_style("command", "python")) GTEST_SKIP();
     if (!verbose) ::testing::internal::CaptureStdout();
     lmp->input->one("variable sq python square");
     lmp->input->one("variable val index 1.5");

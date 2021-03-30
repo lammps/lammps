@@ -17,17 +17,17 @@
 
 #include "compute_ti.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
-#include "force.h"
-#include "pair.h"
-#include "kspace.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
+#include "force.h"
+#include "input.h"
+#include "kspace.h"
+#include "pair.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -77,21 +77,15 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"tail") == 0) which[nterms] = TAIL;
     else which[nterms] = PAIR;
 
-    int n = strlen(arg[iarg]) + 1;
-    pstyle[nterms] = new char[n];
-    strcpy(pstyle[nterms],arg[iarg]);
+    pstyle[nterms] = utils::strdup(arg[iarg]);
     utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,ilo[nterms],ihi[nterms],error);
     iarg += 1;
 
     if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-      int n = strlen(&arg[iarg+1][2]) + 1;
-      var1[nterms] = new char[n];
-      strcpy(var1[nterms],&arg[iarg+1][2]);
+      var1[nterms] = utils::strdup(&arg[iarg+1][2]);
     } else error->all(FLERR,"Illegal compute ti command");
     if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-      int n = strlen(&arg[iarg+2][2]) + 1;
-      var2[nterms] = new char[n];
-      strcpy(var2[nterms],&arg[iarg+2][2]);
+      var2[nterms] = utils::strdup(&arg[iarg+2][2]);
     } else error->all(FLERR,"Illegal compute ti command");
 
     nterms++;
@@ -216,7 +210,7 @@ double ComputeTI::compute_scalar()
         eng = force->kspace->energy;
       else {
         double *eatom = force->kspace->eatom;
-        for(int i = 0; i < nlocal; i++)
+        for (int i = 0; i < nlocal; i++)
           if ((ilo[m]<=type[i])&(ihi[m]>=type[i]))
             eng += eatom[i];
         MPI_Allreduce(&eng,&engall,1,MPI_DOUBLE,MPI_SUM,world);

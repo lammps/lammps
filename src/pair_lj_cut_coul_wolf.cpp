@@ -37,7 +37,6 @@ PairLJCutCoulWolf::PairLJCutCoulWolf(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
-  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

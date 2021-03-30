@@ -88,6 +88,7 @@ KSpace::KSpace(LAMMPS *lmp) : Pointers(lmp)
   maxeatom = maxvatom = 0;
   eatom = nullptr;
   vatom = nullptr;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
@@ -214,7 +215,17 @@ void KSpace::pair_check()
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise set to 0:
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
+                       no current support for centroid stress
+     vflag_either != 0 if vflag_global or vflag_atom is set
+     evflag_atom  != 0 if eflag_atom or vflag_atom is set
 ------------------------------------------------------------------------- */
 
 void KSpace::ev_setup(int eflag, int vflag, int alloc)
@@ -224,12 +235,12 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & VIRIAL_ATOM;
 
   if (eflag_atom || vflag_atom) evflag_atom = 1;
   else evflag_atom = 0;
@@ -553,9 +564,9 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"kmax/ewald") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      kx_ewald = atoi(arg[iarg+1]);
-      ky_ewald = atoi(arg[iarg+2]);
-      kz_ewald = atoi(arg[iarg+3]);
+      kx_ewald = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      ky_ewald = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      kz_ewald = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       if (kx_ewald < 0 || ky_ewald < 0 || kz_ewald < 0)
         error->all(FLERR,"Bad kspace_modify kmax/ewald parameter");
       if (kx_ewald > 0 && ky_ewald > 0 && kz_ewald > 0)
@@ -572,15 +583,15 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"force/disp/real") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      accuracy_real_6 = atof(arg[iarg+1]);
+      accuracy_real_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"force/disp/kspace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      accuracy_kspace_6 = atof(arg[iarg+1]);
+      accuracy_kspace_6 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"eigtol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      splittol = atof(arg[iarg+1]);
+      splittol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (splittol >= 1.0)
         error->all(FLERR,"Kspace_modify eigtol must be smaller than one");
       iarg += 2;

@@ -96,12 +96,9 @@ char *TextFileReader::next_line(int nparams) {
   if (ignore_comments && (ptr = strchr(line, '#'))) *ptr = '\0';
 
   nwords = utils::count_words(line);
+  if (nwords > 0) n = strlen(line);
 
-  if (nwords > 0) {
-    n = strlen(line);
-  }
-
-  while(nwords == 0 || nwords < nparams) {
+  while (nwords == 0 || nwords < nparams) {
     char *ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
@@ -148,7 +145,7 @@ void TextFileReader::next_dvector(double * list, int n) {
     }
 
     ValueTokenizer values(line);
-    while(values.has_next()) {
+    while (values.has_next()) {
       list[i++] = values.next_double();
     }
   }

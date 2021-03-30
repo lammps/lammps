@@ -51,7 +51,8 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
+  id_temp(nullptr), id_press(nullptr),
   eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
   eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
   etap_mass(nullptr)
@@ -66,6 +67,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
+  ecouple_flag = 1;
 
   // default values
 
@@ -273,9 +275,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist");
@@ -632,7 +632,6 @@ int FixNH::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
@@ -779,12 +778,13 @@ void FixNH::setup(int /*vflag*/)
     // if it was read in from a restart file, leave it be
 
     if (t0 == 0.0) {
-      if(p_temp_flag) {
+      if (p_temp_flag) {
         t0 = p_temp;
       } else {
         t0 = temperature->compute_scalar();
-        if(t0 < EPSILON)
-          error->all(FLERR, "Current temperature too close to zero, consider using ptemp setting");
+        if (t0 < EPSILON)
+          error->all(FLERR,"Current temperature too close to zero, "
+                     "consider using ptemp setting");
       }
     }
     t_target = t0;
@@ -1061,7 +1061,7 @@ void FixNH::couple()
   if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
     error->all(FLERR,"Non-numeric pressure - simulation unstable");
 
-  // switch order from xy-xz-yz to Voigt
+  // switch order from xy-xz-yz to Voigt ordering
 
   if (pstyle == TRICLINIC) {
     p_current[3] = tensor[5];
@@ -1116,7 +1116,7 @@ void FixNH::remap()
   // h_dot = omega_dot * h
   //
   // where h_dot, omega_dot and h are all upper-triangular
-  // 3x3 tensors. In Voigt notation, the elements of the
+  // 3x3 tensors. In Voigt ordering, the elements of the
   // RHS product tensor are:
   // h_dot = [0*0, 1*1, 2*2, 1*3+3*2, 0*4+5*3+4*2, 0*5+5*1]
   //
@@ -1412,9 +1412,7 @@ int FixNH::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1446,9 +1444,7 @@ int FixNH::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
@@ -1752,13 +1748,13 @@ void *FixNH::extract(const char *str, int &dim)
   } else if (tstat_flag && strcmp(str,"mtchain") == 0) {
     return &mtchain;
   } else if (pstat_flag && strcmp(str,"mpchain") == 0) {
-    return &mtchain;
+    return &mpchain;
   }
   dim=1;
   if (tstat_flag && strcmp(str,"eta") == 0) {
     return &eta;
   } else if (pstat_flag && strcmp(str,"etap") == 0) {
-    return &eta;
+    return &etap;
   } else if (pstat_flag && strcmp(str,"p_flag") == 0) {
     return &p_flag;
   } else if (pstat_flag && strcmp(str,"p_start") == 0) {

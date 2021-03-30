@@ -61,7 +61,7 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   for (int i = 1; i <= ntypes; i++) ratio[i] = 1.0;
   k_ratio.template modify<LMPHostType>();
 
-  if(gjfflag){
+  if (gjfflag) {
     grow_arrays(atomKK->nmax);
     atom->add_callback(Atom::GROW);
     // initialize franprev to zero
@@ -76,7 +76,7 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
     k_franprev.template modify<LMPHostType>();
     k_lv.template modify<LMPHostType>();
   }
-  if(zeroflag){
+  if (zeroflag) {
     k_fsumall = tdual_double_1d_3n("langevin:fsumall");
     h_fsumall = k_fsumall.template view<LMPHostType>();
     d_fsumall = k_fsumall.template view<DeviceType>();
@@ -97,8 +97,8 @@ FixLangevinKokkos<DeviceType>::~FixLangevinKokkos()
   memoryKK->destroy_kokkos(k_gfactor2,gfactor2);
   memoryKK->destroy_kokkos(k_ratio,ratio);
   memoryKK->destroy_kokkos(k_flangevin,flangevin);
-  if(gjfflag) memoryKK->destroy_kokkos(k_franprev,franprev);
-  if(gjfflag) memoryKK->destroy_kokkos(k_lv,lv);
+  if (gjfflag) memoryKK->destroy_kokkos(k_franprev,franprev);
+  if (gjfflag) memoryKK->destroy_kokkos(k_lv,lv);
   memoryKK->destroy_kokkos(k_tforce,tforce);
 }
 
@@ -108,13 +108,13 @@ template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::init()
 {
   FixLangevin::init();
-  if(oflag)
+  if (oflag)
     error->all(FLERR,"Fix langevin omega is not yet implemented with kokkos");
-  if(ascale)
+  if (ascale)
     error->all(FLERR,"Fix langevin angmom is not yet implemented with kokkos");
-  if(gjfflag && tbiasflag)
+  if (gjfflag && tbiasflag)
     error->all(FLERR,"Fix langevin gjf + tbias is not yet implemented with kokkos");
-  if(gjfflag && tbiasflag)
+  if (gjfflag && tbiasflag)
     error->warning(FLERR,"Fix langevin gjf + kokkos is not implemented with random gaussians");
 
   // prefactors are modified in the init
@@ -182,8 +182,8 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   k_gfactor1.template sync<DeviceType>();
   k_gfactor2.template sync<DeviceType>();
   k_ratio.template sync<DeviceType>();
-  if(gjfflag) k_franprev.template sync<DeviceType>();
-  if(gjfflag) k_lv.template sync<DeviceType>();
+  if (gjfflag) k_franprev.template sync<DeviceType>();
+  if (gjfflag) k_lv.template sync<DeviceType>();
 
   boltz = force->boltz;
   dt = update->dt;
@@ -217,7 +217,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   }
 
   // account for bias velocity
-  if(tbiasflag == BIAS){
+  if (tbiasflag == BIAS) {
     atomKK->sync(temperature->execution_space,temperature->datamask_read);
     temperature->compute_scalar();
     temperature->remove_bias_all(); // modifies velocities
@@ -516,7 +516,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
             }
 
 
-  if(tbiasflag == BIAS){
+  if (tbiasflag == BIAS) {
     atomKK->sync(temperature->execution_space,temperature->datamask_read);
     temperature->restore_bias_all(); // modifies velocities
     atomKK->modified(temperature->execution_space,temperature->datamask_modify);
@@ -566,8 +566,8 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
 
   if (mask[i] & groupbit) {
     rand_type rand_gen = rand_pool.get_state();
-    if(Tp_TSTYLEATOM) tsqrt_t = sqrt(d_tforce[i]);
-    if(Tp_RMASS){
+    if (Tp_TSTYLEATOM) tsqrt_t = sqrt(d_tforce[i]);
+    if (Tp_RMASS) {
       gamma1 = -rmass[i] / t_period / ftm2v;
       gamma2 = sqrt(rmass[i]) * fran_prop_const / ftm2v;
       gamma1 *= 1.0/d_ratio[type[i]];
@@ -581,7 +581,7 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
     fran[1] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
     fran[2] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
 
-    if(Tp_BIAS){
+    if (Tp_BIAS) {
       fdrag[0] = gamma1*v(i,0);
       fdrag[1] = gamma1*v(i,1);
       fdrag[2] = gamma1*v(i,2);
@@ -625,7 +625,7 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
     f(i,2) += fdrag[2] + fran[2];
 
     if (Tp_TALLY) {
-      if (Tp_GJF){
+      if (Tp_GJF) {
         fdrag[0] = gamma1*d_lv(i,0)/gjfsib/gjfsib;
         fdrag[1] = gamma1*d_lv(i,1)/gjfsib/gjfsib;
         fdrag[2] = gamma1*d_lv(i,2)/gjfsib/gjfsib;
@@ -765,11 +765,11 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double FixLangevinKokkos<DeviceType>::compute_energy_item(int i) const
 {
-  double energy;
+  double my_energy = 0.0;
   if (mask[i] & groupbit)
-    energy = d_flangevin(i,0)*v(i,0) + d_flangevin(i,1)*v(i,1) +
+    my_energy = d_flangevin(i,0)*v(i,0) + d_flangevin(i,1)*v(i,1) +
       d_flangevin(i,2)*v(i,2);
-  return energy;
+  return my_energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -794,7 +794,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step()
   FixLangevinKokkosTallyEnergyFunctor<DeviceType> tally_functor(this);
   Kokkos::parallel_reduce(nlocal,tally_functor,energy_onestep);
 
-  if (gjfflag){
+  if (gjfflag) {
     if (rmass.data()) {
       FixLangevinKokkosEndOfStepFunctor<DeviceType,1> functor(this);
       Kokkos::parallel_for(nlocal,functor);
@@ -817,7 +817,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);
-    if (!osflag){
+    if (!osflag) {
       v(i,0) = d_lv(i,0);
       v(i,1) = d_lv(i,1);
       v(i,2) = d_lv(i,2);
@@ -848,7 +848,7 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);
-    if (!osflag){
+    if (!osflag) {
       v(i,0) = d_lv(i,0);
       v(i,1) = d_lv(i,1);
       v(i,2) = d_lv(i,2);

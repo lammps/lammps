@@ -20,22 +20,24 @@
 
 #include "fix_qeq_reax.h"
 
-#include <cmath>
-#include <cstring>
-#include "pair_reaxc.h"
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "pair.h"
-#include "respa.h"
 #include "memory.h"
-#include "citeme.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "pair_reaxc.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
 
@@ -70,9 +72,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   swa = utils::numeric(FLERR,arg[4],false,lmp);
   swb = utils::numeric(FLERR,arg[5],false,lmp);
   tolerance = utils::numeric(FLERR,arg[6],false,lmp);
-  int len = strlen(arg[7]) + 1;
-  pertype_option = new char[len];
-  strcpy(pertype_option,arg[7]);
+  pertype_option = utils::strdup(arg[7]);
 
   // dual CG support only available for USER-OMP variant
   // check for compatibility is in Fix::post_constructor()
@@ -811,16 +811,16 @@ int FixQEqReax::pack_forward_comm(int n, int *list, double *buf,
   int m;
 
   if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = d[list[m]];
+    for (m = 0; m < n; m++) buf[m] = d[list[m]];
   else if (pack_flag == 2)
-    for(m = 0; m < n; m++) buf[m] = s[list[m]];
+    for (m = 0; m < n; m++) buf[m] = s[list[m]];
   else if (pack_flag == 3)
-    for(m = 0; m < n; m++) buf[m] = t[list[m]];
+    for (m = 0; m < n; m++) buf[m] = t[list[m]];
   else if (pack_flag == 4)
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
   else if (pack_flag == 5) {
     m = 0;
-    for(int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
       int j = 2 * list[i];
       buf[m++] = d[j  ];
       buf[m++] = d[j+1];
@@ -837,17 +837,17 @@ void FixQEqReax::unpack_forward_comm(int n, int first, double *buf)
   int i, m;
 
   if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
   else if (pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
   else if (pack_flag == 3)
-    for(m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
   else if (pack_flag == 4)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
   else if (pack_flag == 5) {
     int last = first + n;
     m = 0;
-    for(i = first; i < last; i++) {
+    for (i = first; i < last; i++) {
       int j = 2 * i;
       d[j  ] = buf[m++];
       d[j+1] = buf[m++];
@@ -863,7 +863,7 @@ int FixQEqReax::pack_reverse_comm(int n, int first, double *buf)
   if (pack_flag == 5) {
     m = 0;
     int last = first + n;
-    for(i = first; i < last; i++) {
+    for (i = first; i < last; i++) {
       int indxI = 2 * i;
       buf[m++] = q[indxI  ];
       buf[m++] = q[indxI+1];
@@ -881,7 +881,7 @@ void FixQEqReax::unpack_reverse_comm(int n, int *list, double *buf)
 {
   if (pack_flag == 5) {
     int m = 0;
-    for(int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
       int indxI = 2 * list[i];
       q[indxI  ] += buf[m++];
       q[indxI+1] += buf[m++];
@@ -899,14 +899,14 @@ double FixQEqReax::memory_usage()
 {
   double bytes;
 
-  bytes = atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
-  bytes += atom->nmax*11 * sizeof(double); // storage
-  bytes += n_cap*2 * sizeof(int); // matrix...
-  bytes += m_cap * sizeof(int);
-  bytes += m_cap * sizeof(double);
+  bytes = (double)atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
+  bytes += (double)atom->nmax*11 * sizeof(double); // storage
+  bytes += (double)n_cap*2 * sizeof(int); // matrix...
+  bytes += (double)m_cap * sizeof(int);
+  bytes += (double)m_cap * sizeof(double);
 
   if (dual_enabled)
-    bytes += atom->nmax*4 * sizeof(double); // double size for q, d, r, and p
+    bytes += (double)atom->nmax*4 * sizeof(double); // double size for q, d, r, and p
 
   return bytes;
 }

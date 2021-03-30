@@ -39,7 +39,7 @@ FixMvvDPD::FixMvvDPD(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix mvv/dpd command");
 
   verlet = 0.5;
-  if(narg > 3) verlet = utils::numeric(FLERR,arg[3],false,lmp);
+  if (narg > 3) verlet = utils::numeric(FLERR,arg[3],false,lmp);
 
   dynamic_group_allow = 1;
   time_integrate = 1;

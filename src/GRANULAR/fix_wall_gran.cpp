@@ -338,9 +338,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[iarg],"region") == 0) {
     if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = REGION;
-    int n = strlen(arg[iarg+1]) + 1;
-    idregion = new char[n];
-    strcpy(idregion,arg[iarg+1]);
+    idregion = utils::strdup(arg[iarg+1]);
     iarg += 2;
   }
 
@@ -1303,7 +1301,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     relrot2 = omega[1];
     relrot3 = omega[2];
   }
-  if (roll_model != ROLL_NONE){
+  if (roll_model != ROLL_NONE) {
 
     // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // This is different from the Marshall papers,
@@ -1446,10 +1444,10 @@ double FixWallGran::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 0.0;
-  if (use_history) bytes += nmax*size_history * sizeof(double);  // shear history
-  if (fix_rigid) bytes += nmax * sizeof(int);                    // mass_rigid
+  if (use_history) bytes += (double)nmax*size_history * sizeof(double);  // shear history
+  if (fix_rigid) bytes += (double)nmax * sizeof(int);                    // mass_rigid
   // store contacts
-  if (peratom_flag) bytes += nmax*size_peratom_cols*sizeof(double);
+  if (peratom_flag) bytes += (double)nmax*size_peratom_cols*sizeof(double);
   return bytes;
 }
 

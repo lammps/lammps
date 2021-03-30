@@ -30,15 +30,26 @@ public:
   virtual void compute_gradgrads(class MLIAPData*)=0;
   virtual void compute_force_gradients(class MLIAPData*)=0;
   virtual void init();
-  virtual double memory_usage();
+  virtual double memory_usage()=0;
   int nelements;                 // # of unique elements
-  int nonlinearflag;             // 1 if gradient() requires escriptors
+  int nonlinearflag;             // 1 if gradient() requires descriptors
   int ndescriptors;              // number of descriptors
   int nparams;                   // number of parameters per element
 
 protected:
-  void read_coeffs(char *);
+  virtual void read_coeffs(char *)=0;
+};
+
+class MLIAPModelSimple : public MLIAPModel {
+public:
+  MLIAPModelSimple(LAMMPS*, char*);
+  ~MLIAPModelSimple();
+  virtual double memory_usage();
+
+protected:
   double **coeffelem;            // element coefficients
+  virtual void read_coeffs(char *);
+
 };
 
 }

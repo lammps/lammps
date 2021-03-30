@@ -1,7 +1,7 @@
 ---
 lammps_version: 24 Aug 2020
 date_generated: Tue Sep 15 09:44:24 202
-epsilon: 1e-11
+epsilon: 5e-11
 prerequisites: ! |
   pair reax/c
   fix qeq/reax

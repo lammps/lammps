@@ -13,6 +13,7 @@
 
 #include "fix_controller.h"
 
+#include "arg_info.h"
 #include "compute.h"
 #include "error.h"
 #include "input.h"
@@ -24,11 +25,6 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-enum{COMPUTE,FIX,VARIABLE};
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,49 +49,29 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
 
   // process variable arg
 
-  int iarg = 8;
-  if (strncmp(arg[iarg],"c_",2) == 0 ||
-      strncmp(arg[iarg],"f_",2) == 0 ||
-      strncmp(arg[iarg],"v_",2) == 0) {
-    if (arg[iarg][0] == 'c') pvwhich = COMPUTE;
-    else if (arg[iarg][0] == 'f') pvwhich = FIX;
-    else if (arg[iarg][0] == 'v') pvwhich = VARIABLE;
+  ArgInfo argi(arg[8]);
+  if ((argi.get_type() == ArgInfo::UNKNOWN)
+      || (argi.get_type() == ArgInfo::NONE)
+      || (argi.get_dim() != 0))
+    error->all(FLERR,"Illegal fix controller command");
 
-    int n = strlen(arg[iarg]);
-    char *suffix = new char[n];
-    strcpy(suffix,&arg[iarg][2]);
-
-    char *ptr = strchr(suffix,'[');
-    if (ptr) {
-      if (suffix[strlen(suffix)-1] != ']')
-        error->all(FLERR,"Illegal fix controller command");
-      pvindex = atoi(ptr+1);
-      *ptr = '\0';
-    } else pvindex = 0;
-
-    n = strlen(suffix) + 1;
-    pvID = new char[n];
-    strcpy(pvID,suffix);
-    delete [] suffix;
-
-    iarg++;
-
-  } else error->all(FLERR,"Illegal fix controller command");
+  pvwhich = argi.get_type();
+  pvindex = argi.get_index1();
+  pvID = argi.copy_name();
 
   // setpoint arg
 
+  int iarg=9;
   setpoint = utils::numeric(FLERR,arg[iarg],false,lmp);
   iarg++;
 
   // control variable arg
 
-  int n = strlen(arg[iarg]) + 1;
-  cvID = new char[n];
-  strcpy(cvID,arg[iarg]);
+  cvID = utils::strdup(arg[iarg]);
 
   // error check
 
-  if (pvwhich == COMPUTE) {
+  if (pvwhich == ArgInfo::COMPUTE) {
     int icompute = modify->find_compute(pvID);
     if (icompute < 0)
       error->all(FLERR,"Compute ID for fix controller does not exist");
@@ -108,7 +84,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
     if (pvindex && pvindex > c->size_vector)
       error->all(FLERR,"Fix controller compute vector is "
                  "accessed out-of-range");
-  } else if (pvwhich == FIX) {
+  } else if (pvwhich == ArgInfo::FIX) {
     int ifix = modify->find_fix(pvID);
     if (ifix < 0)
       error->all(FLERR,"Fix ID for fix controller does not exist");
@@ -120,7 +96,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
                           "calculate a global scalar or vector");
     if (pvindex && pvindex > f->size_vector)
       error->all(FLERR,"Fix controller fix vector is accessed out-of-range");
-  } else if (pvwhich == VARIABLE) {
+  } else if (pvwhich == ArgInfo::VARIABLE) {
     int ivariable = input->variable->find(pvID);
     if (ivariable < 0)
       error->all(FLERR,"Variable name for fix controller does not exist");
@@ -159,18 +135,18 @@ int FixController::setmask()
 
 void FixController::init()
 {
-  if (pvwhich == COMPUTE) {
+  if (pvwhich == ArgInfo::COMPUTE) {
     int icompute = modify->find_compute(pvID);
     if (icompute < 0)
       error->all(FLERR,"Compute ID for fix controller does not exist");
     pcompute = modify->compute[icompute];
 
-  } else if (pvwhich == FIX) {
+  } else if (pvwhich == ArgInfo::FIX) {
     int ifix = modify->find_fix(pvID);
     if (ifix < 0) error->all(FLERR,"Fix ID for fix controller does not exist");
     pfix = modify->fix[ifix];
 
-  } else if (pvwhich == VARIABLE) {
+  } else if (pvwhich == ArgInfo::VARIABLE) {
     pvar = input->variable->find(pvID);
     if (pvar < 0)
       error->all(FLERR,"Variable name for fix controller does not exist");
@@ -198,30 +174,30 @@ void FixController::end_of_step()
 
   double current = 0.0;
 
-  if (pvwhich == COMPUTE) {
+  if (pvwhich == ArgInfo::COMPUTE) {
     if (pvindex == 0) {
-      if (!(pcompute->invoked_flag & INVOKED_SCALAR)) {
+      if (!(pcompute->invoked_flag & Compute::INVOKED_SCALAR)) {
         pcompute->compute_scalar();
-        pcompute->invoked_flag |= INVOKED_SCALAR;
+        pcompute->invoked_flag |= Compute::INVOKED_SCALAR;
       }
       current = pcompute->scalar;
     } else {
-      if (!(pcompute->invoked_flag & INVOKED_VECTOR)) {
+      if (!(pcompute->invoked_flag & Compute::INVOKED_VECTOR)) {
         pcompute->compute_vector();
-        pcompute->invoked_flag |= INVOKED_VECTOR;
+        pcompute->invoked_flag |= Compute::INVOKED_VECTOR;
       }
       current = pcompute->vector[pvindex-1];
     }
 
   // access fix field, guaranteed to be ready
 
-  } else if (pvwhich == FIX) {
+  } else if (pvwhich == ArgInfo::FIX) {
     if (pvindex == 0) current = pfix->compute_scalar();
     else current = pfix->compute_vector(pvindex-1);
 
   // evaluate equal-style variable
 
-  } else if (pvwhich == VARIABLE) {
+  } else if (pvwhich == ArgInfo::VARIABLE) {
     current = input->variable->compute_equal(pvar);
   }
 

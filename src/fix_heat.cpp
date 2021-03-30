@@ -17,19 +17,20 @@
 
 #include "fix_heat.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -52,10 +53,8 @@ idregion(nullptr), hstr(nullptr), vheat(nullptr), vscale(nullptr)
 
   hstr = nullptr;
 
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(&arg[4][2]) + 1;
-    hstr = new char[n];
-    strcpy(hstr,&arg[4][2]);
+  if (utils::strmatch(arg[4],"^v_")) {
+    hstr = utils::strdup(arg[4]+2);
   } else {
     heat_input = utils::numeric(FLERR,arg[4],false,lmp);
     hstyle = CONSTANT;
@@ -72,9 +71,7 @@ idregion(nullptr), hstr(nullptr), vheat(nullptr), vscale(nullptr)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix heat does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix heat command");
   }

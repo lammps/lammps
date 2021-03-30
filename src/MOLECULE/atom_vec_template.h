@@ -31,6 +31,8 @@ class AtomVecTemplate : public AtomVec {
   void grow_pointers();
   void process_args(int, char **);
   void create_atom_post(int);
+  void pack_data_pre(int);
+  void pack_data_post(int);
   void data_atom_post(int);
 
  private:

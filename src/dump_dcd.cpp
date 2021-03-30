@@ -97,16 +97,19 @@ void DumpDCD::init_style()
     error->all(FLERR,"Dump dcd requires sorting by atom ID");
 
   // check that dump frequency has not changed and is not a variable
+  // but only when not being called from the "write_dump" command.
 
-  int idump;
-  for (idump = 0; idump < output->ndump; idump++)
-    if (strcmp(id,output->dump[idump]->id) == 0) break;
-  if (output->every_dump[idump] == 0)
-    error->all(FLERR,"Cannot use variable every setting for dump dcd");
+  if (strcmp(id,"WRITE_DUMP") != 0) {
+    int idump;
+    for (idump = 0; idump < output->ndump; idump++)
+      if (strcmp(id,output->dump[idump]->id) == 0) break;
+    if (output->every_dump[idump] == 0)
+      error->all(FLERR,"Cannot use variable every setting for dump dcd");
 
-  if (nevery_save == 0) nevery_save = output->every_dump[idump];
-  else if (nevery_save != output->every_dump[idump])
-    error->all(FLERR,"Cannot change dump_modify every for dump dcd");
+    if (nevery_save == 0) nevery_save = output->every_dump[idump];
+    else if (nevery_save != output->every_dump[idump])
+      error->all(FLERR,"Cannot change dump_modify every for dump dcd");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

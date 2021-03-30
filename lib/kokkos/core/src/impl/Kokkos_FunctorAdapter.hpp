@@ -58,7 +58,7 @@ namespace Impl {
 
 template <class FunctorType, class Enable = void>
 struct ReduceFunctorHasInit {
-  enum { value = false };
+  enum : bool { value = false };
 };
 
 // The else clause idiom failed with NVCC+MSVC, causing some symbols not being
@@ -75,20 +75,30 @@ using init_archetype = decltype(&F::init);
 template <class FunctorType>
 struct ReduceFunctorHasInit<
     FunctorType, impl_void_t_workaround<init_archetype<FunctorType>>> {
-  enum { value = true };
+  enum : bool { value = true };
 };
 #else
 template <class FunctorType>
 struct ReduceFunctorHasInit<
     FunctorType,
     typename std::enable_if<0 < sizeof(&FunctorType::init)>::type> {
-  enum { value = true };
+  enum : bool { value = true };
 };
+// FIXME_SYCL not all compilers distinguish between the FunctorType::init and
+// the FunctorType::template init<> specialization
+#ifdef KOKKOS_ENABLE_SYCL
+template <class FunctorType>
+struct ReduceFunctorHasInit<
+    FunctorType,
+    typename std::enable_if<0 < sizeof(&FunctorType::template init<>)>::type> {
+  enum : bool { value = true };
+};
+#endif
 #endif
 
 template <class FunctorType, class Enable = void>
 struct ReduceFunctorHasJoin {
-  enum { value = false };
+  enum : bool { value = false };
 };
 
 #if defined(KOKKOS_COMPILER_MSVC) || defined(KOKKOS_IMPL_WINDOWS_CUDA)
@@ -98,20 +108,30 @@ using join_archetype = decltype(&F::join);
 template <class FunctorType>
 struct ReduceFunctorHasJoin<
     FunctorType, impl_void_t_workaround<join_archetype<FunctorType>>> {
-  enum { value = true };
+  enum : bool { value = true };
 };
 #else
 template <class FunctorType>
 struct ReduceFunctorHasJoin<
     FunctorType,
     typename std::enable_if<0 < sizeof(&FunctorType::join)>::type> {
-  enum { value = true };
+  enum : bool { value = true };
 };
+// FIXME_SYCL not all compilers distinguish between the FunctorType::join and
+// the FunctorType::template join<> specialization
+#ifdef KOKKOS_ENABLE_SYCL
+template <class FunctorType>
+struct ReduceFunctorHasJoin<
+    FunctorType,
+    typename std::enable_if<0 < sizeof(&FunctorType::template join<>)>::type> {
+  enum : bool { value = true };
+};
+#endif
 #endif
 
 template <class FunctorType, class Enable = void>
 struct ReduceFunctorHasFinal {
-  enum { value = false };
+  enum : bool { value = false };
 };
 
 #if defined(KOKKOS_COMPILER_MSVC) || defined(KOKKOS_IMPL_WINDOWS_CUDA)
@@ -121,20 +141,30 @@ using final_archetype = decltype(&F::final);
 template <class FunctorType>
 struct ReduceFunctorHasFinal<
     FunctorType, impl_void_t_workaround<final_archetype<FunctorType>>> {
-  enum { value = true };
+  enum : bool { value = true };
 };
 #else
 template <class FunctorType>
 struct ReduceFunctorHasFinal<
     FunctorType,
     typename std::enable_if<0 < sizeof(&FunctorType::final)>::type> {
-  enum { value = true };
+  enum : bool { value = true };
 };
+// FIXME_SYCL not all compilers distinguish between the FunctorType::final and
+// the FunctorType::template final<> specialization
+#ifdef KOKKOS_ENABLE_SYCL
+template <class FunctorType>
+struct ReduceFunctorHasFinal<
+    FunctorType,
+    typename std::enable_if<0 < sizeof(&FunctorType::template final<>)>::type> {
+  enum : bool { value = true };
+};
+#endif
 #endif
 
 template <class FunctorType, class Enable = void>
 struct ReduceFunctorHasShmemSize {
-  enum { value = false };
+  enum : bool { value = false };
 };
 
 #if defined(KOKKOS_COMPILER_MSVC) || defined(KOKKOS_IMPL_WINDOWS_CUDA)
@@ -144,15 +174,27 @@ using shmemsize_archetype = decltype(&F::team_shmem_size);
 template <class FunctorType>
 struct ReduceFunctorHasShmemSize<
     FunctorType, impl_void_t_workaround<shmemsize_archetype<FunctorType>>> {
-  enum { value = true };
+  enum : bool { value = true };
 };
 #else
 template <class FunctorType>
 struct ReduceFunctorHasShmemSize<
     FunctorType,
     typename std::enable_if<0 < sizeof(&FunctorType::team_shmem_size)>::type> {
-  enum { value = true };
+  enum : bool { value = true };
 };
+// FIXME_SYCL not all compilers distinguish between the
+// FunctorType::team_shmem_size and the FunctorType::template team_shmem_size<>
+// specialization
+#ifdef KOKKOS_ENABLE_SYCL
+template <class FunctorType>
+struct ReduceFunctorHasShmemSize<
+    FunctorType,
+    typename std::enable_if<
+        0 < sizeof(&FunctorType::template team_shmem_size<>)>::type> {
+  enum : bool { value = true };
+};
+#endif
 #endif
 
 template <class FunctorType, class ArgTag, class Enable = void>
@@ -171,12 +213,12 @@ template <class FunctorType,
                         (ReduceFunctorHasFinal<FunctorType>::value) ||
                         (ReduceFunctorHasShmemSize<FunctorType>::value)>
 struct IsNonTrivialReduceFunctor {
-  enum { value = false };
+  enum : bool { value = false };
 };
 
 template <class FunctorType>
 struct IsNonTrivialReduceFunctor<FunctorType, true> {
-  enum { value = true };
+  enum : bool { value = true };
 };
 
 /** \brief  Query Functor and execution policy argument tag for value type.

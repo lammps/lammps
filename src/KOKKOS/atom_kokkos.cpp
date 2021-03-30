@@ -230,9 +230,9 @@ void AtomKokkos::sort()
    reallocate memory to the pointer selected by the mask
 ------------------------------------------------------------------------- */
 
-void AtomKokkos::grow(unsigned int mask){
+void AtomKokkos::grow(unsigned int mask) {
 
-  if (mask & SPECIAL_MASK){
+  if (mask & SPECIAL_MASK) {
     memoryKK->destroy_kokkos(k_special, special);
     sync(Device, mask);
     modified(Device, mask);
@@ -257,9 +257,7 @@ int AtomKokkos::add_custom(const char *name, int flag)
     nivector++;
     iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
                                        "atom:iname");
-    int n = strlen(name) + 1;
-    iname[index] = new char[n];
-    strcpy(iname[index],name);
+    iname[index] = utils::strdup(name);
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
@@ -268,9 +266,7 @@ int AtomKokkos::add_custom(const char *name, int flag)
     ndvector++;
     dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
                                        "atom:dname");
-    int n = strlen(name) + 1;
-    dname[index] = new char[n];
-    strcpy(dname[index],name);
+    dname[index] = utils::strdup(name);
     this->sync(Device,DVECTOR_MASK);
     memoryKK->grow_kokkos(k_dvector,dvector,ndvector,nmax,
                         "atom:dvector");

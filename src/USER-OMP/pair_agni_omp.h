@@ -38,7 +38,7 @@ class PairAGNIOMP : public PairAGNI, public ThrOMP {
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG>
+  template <int ATOMIC_FEATURE_VERSION, int EVFLAG>
   void eval(int ifrom, int ito, ThrData * const thr);
 };
 

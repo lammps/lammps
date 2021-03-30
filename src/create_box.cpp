@@ -83,7 +83,7 @@ void CreateBox::command(int narg, char **arg)
 
   // if molecular, zero out topology info
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     atom->bond_per_atom = 0;
     atom->angle_per_atom = 0;
     atom->dihedral_per_atom = 0;

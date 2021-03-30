@@ -266,7 +266,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // run_pos
     block.clear();
-    auto x   = lmp->atom->x;
+    auto x = lmp->atom->x;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, x[j][0], x[j][1], x[j][2]);
@@ -519,8 +519,8 @@ TEST(FixTimestep, plain)
     // rigid fixes need work to test properly with r-RESPA.
     // fix nve/limit cannot work with r-RESPA
     ifix = lmp->modify->find_fix("test");
-    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid")
-        && !utils::strmatch(lmp->modify->fix[ifix]->style, "^nve/limit")) {
+    if (!utils::strmatch(lmp->modify->fix[ifix]->style, "^rigid") &&
+        !utils::strmatch(lmp->modify->fix[ifix]->style, "^nve/limit")) {
 
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

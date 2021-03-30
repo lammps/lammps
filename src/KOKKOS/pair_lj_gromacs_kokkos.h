@@ -46,9 +46,9 @@ class PairLJGromacsKokkos : public PairLJGromacs {
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
-    params_lj(){cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj() {cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int /*i*/){cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj(int /*i*/) {cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     F_FLOAT cut_inner_sq,cut_inner,lj1,lj2,lj3,lj4,offset,ljsw1,ljsw2,ljsw3,ljsw4,ljsw5;
   };
 

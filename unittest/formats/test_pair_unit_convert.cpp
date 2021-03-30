@@ -650,15 +650,14 @@ TEST_F(PairUnitConvertTest, table_real2metal)
 
     double pnew;
     lmp->output->thermo->evaluate_keyword("press", &pnew);
-    EXPECT_NEAR(pold, 1.0/p_convert * pnew, fabs(pnew * rel_error));
+    EXPECT_NEAR(pold, 1.0 / p_convert * pnew, fabs(pnew * rel_error));
     double enew = lmp->force->pair->eng_vdwl + lmp->force->pair->eng_coul;
-    EXPECT_NEAR(1.0/ev_convert * eold, enew, fabs(enew * rel_error));
+    EXPECT_NEAR(1.0 / ev_convert * eold, enew, fabs(enew * rel_error));
 
     f = lmp->atom->f;
     for (int i = 0; i < 4; ++i)
         for (int j = 0; j < 3; ++j)
-            EXPECT_NEAR(1.0/ev_convert * fold[i][j], f[i][j],
-                        fabs(f[i][j] * rel_error));
+            EXPECT_NEAR(1.0 / ev_convert * fold[i][j], f[i][j], fabs(f[i][j] * rel_error));
 }
 
 TEST_F(PairUnitConvertTest, tersoff)

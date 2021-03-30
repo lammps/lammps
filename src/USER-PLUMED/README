@@ -30,7 +30,7 @@ even if PLUMED is not in the path if as long as the input does not contain a fix
 plumed command.
 
 If you wish to statically link PLUMED you must download PLUMED to the /lib/plumed directory before compiling LAMMPS.  You can
-download a tar ball into that directory or you can clone the plumed2 repository from github there.  Once you have created a
+download a tar ball into that directory or you can clone the plumed2 repository from GitHub there.  Once you have created a
 directory containing a distribution of PLUMED within /lib/plumed you then must build PLUMED within that directory by issuing
 the usual commands.  It is worth noting that we have provided a script that will download and build PLUMED for you with
 a minimal set of options.  To run this script you need to issue the following command:

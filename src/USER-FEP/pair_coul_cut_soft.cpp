@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Soft-core version: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_cut_soft.h"
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairCoulCutSoft::PairCoulCutSoft(LAMMPS *lmp) : Pair(lmp) {
-  centroidstressflag = 1;
+  centroidstressflag = CENTROID_SAME;
 }
 
 /* ---------------------------------------------------------------------- */

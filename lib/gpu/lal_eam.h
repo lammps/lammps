@@ -90,7 +90,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                 const bool eatom, const bool vatom);
 
   // ------------------------- DEVICE KERNELS -------------------------
-  UCL_Kernel k_energy, k_energy_fast;
+  UCL_Kernel k_energy, k_energy_fast, k_energy_fast_noev, *k_energy_sel;
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture fp_tex;
@@ -133,8 +133,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
 protected:
   bool _allocated;
   int _nlocal;
-  void loop(const bool _eflag, const bool _vflag);
-  void loop2(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
+  void loop2(const bool eflag, const bool vflag);
 };
 
 }

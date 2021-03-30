@@ -29,7 +29,6 @@
 #include "math_const.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -43,9 +42,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {
-  centroidstressflag = 1;
-}
+PairCoulDSF::PairCoulDSF(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

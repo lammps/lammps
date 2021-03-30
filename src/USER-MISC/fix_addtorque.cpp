@@ -17,17 +17,18 @@
 
 #include "fix_addtorque.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
-#include "group.h"
 #include "force.h"
+#include "group.h"
+#include "input.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -47,32 +48,27 @@ FixAddTorque::FixAddTorque(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
   dynamic_group_allow = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 
   xstr = ystr = zstr = nullptr;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    xstr = new char[n];
-    strcpy(xstr,&arg[3][2]);
+  if (utils::strmatch(arg[3],"^v_")) {
+    xstr = utils::strdup(arg[3]+2);
   } else {
     xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(&arg[4][2]) + 1;
-    ystr = new char[n];
-    strcpy(ystr,&arg[4][2]);
+  if (utils::strmatch(arg[4],"^v_")) {
+    ystr = utils::strdup(arg[4]+2);
   } else {
     yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
-  if (strstr(arg[5],"v_") == arg[5]) {
-    int n = strlen(&arg[5][2]) + 1;
-    zstr = new char[n];
-    strcpy(zstr,&arg[5][2]);
+  if (utils::strmatch(arg[5],"^v_")) {
+    zstr = utils::strdup(arg[5]+2);
   } else {
     zvalue = utils::numeric(FLERR,arg[5],false,lmp);
     zstyle = CONSTANT;
@@ -97,7 +93,6 @@ int FixAddTorque::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;

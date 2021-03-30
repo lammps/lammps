@@ -45,9 +45,9 @@ class PairMorseKokkos : public PairMorse {
 
   struct params_morse{
     KOKKOS_INLINE_FUNCTION
-    params_morse(){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
+    params_morse() {cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     KOKKOS_INLINE_FUNCTION
-    params_morse(int /*i*/){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
+    params_morse(int /*i*/) {cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     F_FLOAT cutsq,d0,alpha,r0,offset;
   };
 

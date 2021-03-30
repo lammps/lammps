@@ -43,11 +43,7 @@ void WriteCoeff::command(int narg, char **arg)
 
   if (narg != 1) error->all(FLERR,"Illegal write_coeff command");
 
-  int n = strlen(arg[0]) + 5;
-  char *file = new char[n];
-
-  strcpy(file,"tmp.");
-  strcat(file,arg[0]);
+  char *file = utils::strdup(fmt::format("tmp.{}",arg[0]));
 
   // initialize relevant styles
   lmp->init();
@@ -97,7 +93,7 @@ void WriteCoeff::command(int narg, char **arg)
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
             lmp->version);
 
-    while(1) {
+    while (1) {
       int coeff_mode = REGULAR_MODE;
       if (fgets(str,256,one) == nullptr) break;
 
@@ -114,7 +110,7 @@ void WriteCoeff::command(int narg, char **arg)
       const char *section = (const char *)"";
       fputs(str,two);      // style
       utils::sfgets(FLERR,str,256,one,file,error);  // coeff
-      n = strlen(str);
+      int n = strlen(str);
       strcpy(coeff,str);
       coeff[n-1] = '\0';
       utils::sfgets(FLERR,str,256,one,file,error);

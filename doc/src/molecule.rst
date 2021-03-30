@@ -79,9 +79,9 @@ make it easy to use the same molecule file in different molecule
 templates or in different simulations.  You can specify the same file
 multiple times with different optional keywords.
 
-The *offset*\ , *toff*\ , *aoff*\ , *doff*\ , *ioff* keywords add the
-specified offset values to the atom types, bond types, angle types,
-dihedral types, and/or improper types as they are read from the
+The *offset*\ , *toff*\ , *boff*\ , *aoff*\ , *doff*\ , *ioff* keywords
+add the specified offset values to the atom types, bond types, angle
+types, dihedral types, and/or improper types as they are read from the
 molecule file.  E.g. if *toff* = 2, and the file uses atom types
 1,2,3, then each created molecule will have atom types 3,4,5.  For the
 *offset* keyword, all five offset values must be specified, but
@@ -201,11 +201,12 @@ bonds between nuclear cores and Drude electrons in a different manner.
 
 Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
-rules (if any) for whether it can appear in the data file.  In each
-case the ID is ignored; it is simply included for readability, and
-should be a number from 1 to Nlines for the section, indicating which
-atom (or bond, etc) the entry applies to.  The lines are assumed to be
-listed in order from 1 to Nlines, but LAMMPS does not check for this.
+rules (if any) for whether it can appear in the data file.  For per-
+atom sections, entries should be numbered from 1 to Natoms (where
+Natoms is the number of atoms in the template), indicating which atom
+(or bond, etc) the entry applies to.  Per-atom sections need to
+include a setting for every atom, but the atoms can be listed in any
+order.
 
 ----------
 
@@ -484,9 +485,7 @@ of SHAKE clusters.
 Restrictions
 """"""""""""
 
-This command must come after the simulation box is define by a
-:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
-:doc:`create_box <create_box>` command.
+None
 
 Related commands
 """"""""""""""""

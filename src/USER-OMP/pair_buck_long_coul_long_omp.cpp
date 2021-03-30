@@ -16,7 +16,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "math_vector.h"
+#include "math_extra.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
@@ -25,6 +25,7 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -366,9 +367,7 @@ void PairBuckLongCoulLongOMP::compute_middle()
 
 void PairBuckLongCoulLongOMP::compute_outer(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
   const int order1 = ewald_order&(1<<1);
   const int order6 = ewald_order&(1<<6);
 
@@ -662,7 +661,7 @@ void PairBuckLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
          *buck1i, *buck2i, *buckai, *buckci, *rhoinvi, *offseti;
   double r, rsq, r2inv, force_coul, force_buck;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
-  vector xi, d;
+  double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
     i = ilist[ii]; fi=f0+3*i;
@@ -671,7 +670,7 @@ void PairBuckLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     buck1i = buck1[typei]; buck2i = buck2[typei];
     buckai = buck_a[typei]; buckci = buck_c[typei], rhoinvi = rhoinv[typei];
     cutsqi = cutsq[typei]; cut_bucksqi = cut_bucksq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
@@ -684,7 +683,7 @@ void PairBuckLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
       r = sqrt(rsq);
 
@@ -828,12 +827,12 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   int i, j, ii;
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
-  vector xi, d;
+  double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
     i = ilist[ii]; fi = f0+3*i;
     if (order1) qri = qqrd2e*q[i];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
     jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
@@ -848,7 +847,7 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
+      if ((rsq = dot3(d, d)) >= cut_out_off_sq) continue;
       r2inv = 1.0/rsq;
       r = sqrt(rsq);
 
@@ -925,12 +924,12 @@ void PairBuckLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const 
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   int i, j, ii;
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
-  vector xi, d;
+  double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
     i = ilist[ii]; fi = f0+3*i;
     if (order1) qri = qqrd2e*q[i];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     cut_bucksqi = cut_bucksq[typei = type[i]];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
     jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
@@ -945,7 +944,7 @@ void PairBuckLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const 
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
+      if ((rsq = dot3(d, d)) >= cut_out_off_sq) continue;
       if (rsq <= cut_in_off_sq) continue;
       r2inv = 1.0/rsq;
       r = sqrt(rsq);
@@ -1019,7 +1018,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
   double r, rsq, r2inv, force_coul, force_buck;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
   double respa_buck = 0.0, respa_coul = 0.0, frespa = 0.0;
-  vector xi, d;
+  double xi[3], d[3];
 
   const double cut_in_off = cut_respa[2];
   const double cut_in_on = cut_respa[3];
@@ -1035,7 +1034,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
     buck1i = buck1[typei]; buck2i = buck2[typei];
     buckai = buck_a[typei]; buckci = buck_c[typei]; rhoinvi = rhoinv[typei];
     cutsqi = cutsq[typei]; cut_bucksqi = cut_bucksq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
@@ -1048,7 +1047,7 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
       r = sqrt(rsq);
 

@@ -54,9 +54,6 @@ public:
         double memory_usage();
 
 protected:
-  char **elements;              // names of unique elements
-  int *map;                     // mapping from atom types to elements
-  int nelements;                // # of unique elements
 
         class SplineFunction {
         public:
@@ -106,10 +103,10 @@ protected:
                 inline double eval(double x) const
                 {
                         x -= xmin;
-                        if(x <= 0.0) {  // Left extrapolation.
+                        if (x <= 0.0) {  // Left extrapolation.
                                 return Y[0] + deriv0 * x;
                         }
-                        else if(x >= xmax_shifted) {  // Right extrapolation.
+                        else if (x >= xmax_shifted) {  // Right extrapolation.
                                 return Y[N-1] + derivN * (x - xmax_shifted);
                         }
                         else {
@@ -119,7 +116,7 @@ protected:
                                 int khi = N-1;
                                 while(khi - klo > 1) {
                                         int k = (khi + klo) / 2;
-                                        if(Xs[k] > x) khi = k;
+                                        if (Xs[k] > x) khi = k;
                                         else klo = k;
                                 }
                                 double h = Xs[khi] - Xs[klo];
@@ -144,11 +141,11 @@ protected:
                 inline double eval(double x, double& deriv) const
                 {
                         x -= xmin;
-                        if(x <= 0.0) {  // Left extrapolation.
+                        if (x <= 0.0) {  // Left extrapolation.
                                 deriv = deriv0;
                                 return Y[0] + deriv0 * x;
                         }
-                        else if(x >= xmax_shifted) {  // Right extrapolation.
+                        else if (x >= xmax_shifted) {  // Right extrapolation.
                                 deriv = derivN;
                                 return Y[N-1] + derivN * (x - xmax_shifted);
                         }
@@ -159,7 +156,7 @@ protected:
                                 int khi = N-1;
                                 while(khi - klo > 1) {
                                         int k = (khi + klo) / 2;
-                                        if(Xs[k] > x) khi = k;
+                                        if (Xs[k] > x) khi = k;
                                         else klo = k;
                                 }
                                 double h = Xs[khi] - Xs[klo];

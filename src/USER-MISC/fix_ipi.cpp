@@ -155,7 +155,7 @@ static void readbuffer(int sockfd, char *data, int len, Error* error)
 
   n = nr = read(sockfd,data,len);
 
-  while (nr>0 && n<len ) {
+  while (nr>0 && n<len) {
     nr=read(sockfd,&data[n],len-n);
     n+=nr;
   }

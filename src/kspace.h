@@ -32,7 +32,7 @@ class KSpace : protected Pointers {
  public:
   double energy;                 // accumulated energies
   double energy_1,energy_6;
-  double virial[6];              // accumulated virial
+  double virial[6];              // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;         // accumulated per-atom energy/virial
   double e2group;                // accumulated group-group energy
   double f2group[3];             // accumulated group-group force
@@ -79,6 +79,11 @@ class KSpace : protected Pointers {
   int nx_msm_max,ny_msm_max,nz_msm_max;
 
   int group_group_enable;         // 1 if style supports group/group calculation
+
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
 
   // KOKKOS host/device flag and data masks
 

@@ -29,9 +29,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#define DELTA 16384
-#define DELTA_BONUS 8192
-
 /* ---------------------------------------------------------------------- */
 
 AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
@@ -157,11 +154,8 @@ void AtomVec::store_args(int narg, char **arg)
   nargcopy = narg;
   if (nargcopy) argcopy = new char*[nargcopy];
   else argcopy = nullptr;
-  for (int i = 0; i < nargcopy; i++) {
-    int n = strlen(arg[i]) + 1;
-    argcopy[i] = new char[n];
-    strcpy(argcopy[i],arg[i]);
-  }
+  for (int i = 0; i < nargcopy; i++)
+    argcopy[i] = utils::strdup(arg[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -188,6 +182,8 @@ void AtomVec::init()
     error->all(FLERR,"KOKKOS package requires a kokkos enabled atom_style");
 }
 
+static constexpr bigint DELTA=16384;
+
 /* ----------------------------------------------------------------------
    roundup N so it is a multiple of DELTA
    error if N exceeds 32-bit int, since will be used as arg to grow()
@@ -210,6 +206,8 @@ void AtomVec::grow_nmax()
   nmax = nmax/DELTA * DELTA;
   nmax += DELTA;
 }
+
+static constexpr bigint DELTA_BONUS=8192;
 
 /* ----------------------------------------------------------------------
    grow nmax_bonus so it is a multiple of DELTA_BONUS

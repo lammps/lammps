@@ -28,9 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {
-  centroidstressflag = 1;
-}
+PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

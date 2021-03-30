@@ -109,8 +109,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
       if (strcmp(arg[iarg],keywords[i]) == 0)
         error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
     styles[nstyles] = atom->new_avec(arg[iarg],1,dummy);
-    keywords[nstyles] = new char[strlen(arg[iarg])+1];
-    strcpy(keywords[nstyles],arg[iarg]);
+    keywords[nstyles] = utils::strdup(arg[iarg]);
     jarg = iarg + 1;
     while (jarg < narg && !known_style(arg[jarg])) jarg++;
     styles[nstyles]->process_args(jarg-iarg-1,&arg[iarg+1]);
@@ -154,9 +153,9 @@ void AtomVecHybrid::process_args(int narg, char **arg)
   }
 
   if (mass_pertype && mass_peratom && comm->me == 0)
-    error->warning(FLERR,
-                   "Atom_style hybrid defines both pertype and peratom masses "
-                   "- both must be set, only peratom masses will be used");
+    error->warning(FLERR, "Atom style hybrid defines both, per-type "
+                   "and per-atom masses; both must be set, but only "
+                   "per-atom masses will be used");
 
   // free allstyles created by build_styles()
 
@@ -216,8 +215,8 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     char *dup = (char *) dupfield[idup];
     ptr = strstr(concat_grow,dup);
     if ((ptr && strstr(ptr+1,dup)) && (comm->me == 0))
-      error->warning(FLERR,fmt::format("Peratom {} is in multiple sub-styles "
-                                       "- must be used consistently",dup));
+      error->warning(FLERR,fmt::format("Per-atom {} is used in multiple sub-"
+                                       "styles; must be used consistently",dup));
   }
 
   delete [] concat_grow;
@@ -601,13 +600,10 @@ void AtomVecHybrid::build_styles()
 
   allstyles = new char*[nallstyles];
 
-  int n;
   nallstyles = 0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class)                \
-  n = strlen(#key) + 1;                     \
-  allstyles[nallstyles] = new char[n];      \
-  strcpy(allstyles[nallstyles],#key);       \
+#define AtomStyle(key,Class)                   \
+  allstyles[nallstyles] = utils::strdup(#key); \
   nallstyles++;
 #include "style_atom.h"  // IWYU pragma: keep
 #undef AtomStyle

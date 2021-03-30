@@ -21,10 +21,16 @@ where all LAMMPS development is coordinated.
 
 ----------
 
-The content for this manual is part of the LAMMPS distribution.  You can
-build a local copy of the Manual as HTML pages or a PDF file, by
-following the steps on the :doc:`Build_manual` page.  The manual is
-organized in two parts:
+The content for this manual is part of the LAMMPS distribution.  The
+online version always corresponds to the latest development version.
+If needed, you can download or build a local copy of the manual as
+HTML pages or a PDF file by following the steps on the
+:doc:`Build_manual` page. If you have difficulties viewing the pages
+please :ref:`see this note <webbrowser>`.
+
+-----------
+
+The manual is organized in two parts:
 1) the :ref:`User Guide <user_documentation>` for how to install
 and use LAMMPS and 2) the :ref:`Programmer Guide <programmer_documentation>`
 for how to write programs using the LAMMPS library from different
@@ -107,3 +113,15 @@ Indices and tables
 
    * :ref:`genindex`
    * :ref:`search`
+
+.. _webbrowser:
+.. admonition:: Web Browser Compatibility
+
+   The HTML version of the manual makes use of advanced features present
+   int "modern" web browsers.  This can lead to incompatibilities with older
+   web browsers (released more than 4 years ago) and specific vendor browsers
+   (e.g. Internet Explorer on Windows; Microsoft Edge works well though)
+   where parts of the pages are not rendered as expected (e.g. the layout is
+   broken or mathematical expressions not typeset).  In that case we
+   recommend to install/use a different/newer web browser or use
+   the `PDF version of the manual <https://lammps.sandia.gov/doc/Manual.pdf>`_.

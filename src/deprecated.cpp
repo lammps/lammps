@@ -25,7 +25,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-void Deprecated::command(int /* narg */, char ** /* arg */)
+void Deprecated::command(int narg, char **arg)
 {
   const std::string cmd = input->command;
 
@@ -36,6 +36,17 @@ void Deprecated::command(int /* narg */, char ** /* arg */)
   } else if (cmd == "reset_ids") {
     if (lmp->comm->me == 0)
       utils::logmesg(lmp,"\n'reset_ids' has been renamed to 'reset_atom_ids'\n\n");
+  } else if (utils::strmatch(cmd,"^kim_")) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp,"\nWARNING: 'kim_<command>' has been renamed to "
+                      "'kim <command>'. Please update your input.\n\n");
+    std::string newcmd("kim");
+    newcmd += " " + cmd.substr(4);
+    for (int i=0; i < narg; ++i) {
+       newcmd.append(1,' ');
+       newcmd.append(arg[i]);
+    }
+    input->one(newcmd);
   }
   error->all(FLERR,"This command is no longer available");
 }

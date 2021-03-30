@@ -14,7 +14,6 @@ TXT2RST        = $(VENV)/bin/txt2rst
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
-POLYFILL       = $(SPHINXCONFIG)/_static/polyfill.js
 
 PYTHON         = $(shell which python3)
 DOXYGEN        = $(shell which doxygen)
@@ -48,6 +47,8 @@ HAS_PDFLATEX = YES
 endif
 endif
 
+# override settings for PIP commands
+# PIP_OPTIONS = --cert /etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt --proxy http://proxy.mydomain.org
 
 #SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocessing.cpu_count())') $(shell test -f $(BUILDDIR)/doxygen/xml/run.stamp && printf -- "-E")
 
@@ -81,7 +82,7 @@ help:
 # ------------------------------------------
 
 clean-all: clean
-	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(POLYFILL) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
+	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling
 	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py
@@ -95,7 +96,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 	    -e 's,@LAMMPS_PYTHON_DIR@,$(BUILDDIR)/../python,g' \
 	    -e 's,@LAMMPS_DOC_DIR@,$(BUILDDIR),g' $< > $@
 
-html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
+html: xmlgen $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@(\
@@ -119,7 +120,7 @@ html: xmlgen $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX) $(POLYFILL)
 	@rm -rf html/PDF/.[sg]*
 	@echo "Build finished. The HTML pages are in doc/html."
 
-spelling: xmlgen $(VENV) $(SPHINXCONFIG)/false_positives.txt
+spelling: xmlgen $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= \
@@ -229,20 +230,13 @@ $(VENV):
 	@( \
 		$(VIRTUALENV) -p $(PYTHON) $(VENV); \
 		. $(VENV)/bin/activate; \
-		pip install --upgrade pip; \
-		pip install --use-feature=2020-resolver -r $(BUILDDIR)/utils/requirements.txt; \
+		pip $(PIP_OPTIONS) install --upgrade pip; \
+		pip $(PIP_OPTIONS) install -r $(BUILDDIR)/utils/requirements.txt; \
 		deactivate;\
 	)
 
 $(MATHJAX):
-	@git clone --depth 1 https://github.com/mathjax/MathJax.git $@
-
-# fall back to using wget and/or unencrypted download, if curl fails
-$(POLYFILL): $(MATHJAX)
-	@curl -s -o $@ "https://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
-		curl -s -o $@ "http://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
-		wget -O $@ "https://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1  || \
-		wget -O $@ "http://polyfill.io/v3/polyfill.min.js?features=es6" > /dev/null 2>&1
+	@git clone --depth 1 git://github.com/mathjax/MathJax.git $@
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

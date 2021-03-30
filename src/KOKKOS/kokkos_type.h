@@ -15,6 +15,7 @@
 #define LMP_LMPTYPE_KOKKOS_H
 
 #include "pointers.h"
+#include "lmptype.h"
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
@@ -29,7 +30,7 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
 #define LMP_KOKKOS_GPU
 #endif
 
@@ -40,7 +41,7 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 #endif
 
 #define MAX_TYPES_STACKPARAMS 12
-#define NeighClusterSize 8
+static constexpr LAMMPS_NS::bigint LMP_KOKKOS_AV_DELTA = 10;
 
 namespace Kokkos {
   using NoInit = ViewAllocateWithoutInitializing;
@@ -206,11 +207,14 @@ template<>
 struct ExecutionSpaceFromDevice<Kokkos::Cuda> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
-#endif
-
-#if defined(KOKKOS_ENABLE_HIP)
+#elif defined(KOKKOS_ENABLE_HIP)
 template<>
 struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
+  static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
+};
+#elif defined(KOKKOS_ENABLE_SYCL)
+template<>
+struct ExecutionSpaceFromDevice<Kokkos::Experimental::SYCL> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
 #endif
@@ -220,14 +224,18 @@ struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
 typedef Kokkos::CudaHostPinnedSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_HIP)
 typedef Kokkos::Experimental::HIPHostPinnedSpace LMPPinnedHostType;
+#elif defined(KOKKOS_ENABLE_SYCL)
+typedef Kokkos::Experimental::SYCLSharedUSMSpace LMPPinnedHostType;
 #endif
 
-// create simple LMPDeviceSpace typedef for non HIP or CUDA specific
+// create simple LMPDeviceSpace typedef for non CUDA-, HIP-, or SYCL-specific
 // behaviour
 #if defined(KOKKOS_ENABLE_CUDA)
 typedef Kokkos::Cuda LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_HIP)
 typedef Kokkos::Experimental::HIP LMPDeviceSpace;
+#elif defined(KOKKOS_ENABLE_SYCL)
+typedef Kokkos::Experimental::SYCL LMPDeviceSpace;
 #endif
 
 
@@ -256,11 +264,14 @@ template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
   using value = Kokkos::Experimental::ScatterAtomic;
 };
-#endif
-
-#ifdef KOKKOS_ENABLE_HIP
+#elif defined(KOKKOS_ENABLE_HIP)
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
+  using value = Kokkos::Experimental::ScatterAtomic;
+};
+#elif defined(KOKKOS_ENABLE_SYCL)
+template<>
+struct AtomicDup<HALFTHREAD,Kokkos::Experimental::SYCL> {
   using value = Kokkos::Experimental::ScatterAtomic;
 };
 #endif
@@ -405,7 +416,7 @@ struct s_EV_FLOAT_REAX {
   E_FLOAT evdwl;
   E_FLOAT ecoul;
   E_FLOAT v[6];
-  E_FLOAT ereax[10];
+  E_FLOAT ereax[9];
   KOKKOS_INLINE_FUNCTION
   s_EV_FLOAT_REAX() {
     evdwl = 0;
@@ -1067,28 +1078,42 @@ void memset_kokkos (ViewType &view) {
 
 struct params_lj_coul {
   KOKKOS_INLINE_FUNCTION
-  params_lj_coul(){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+  params_lj_coul() {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   KOKKOS_INLINE_FUNCTION
-  params_lj_coul(int /*i*/){cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+  params_lj_coul(int /*i*/) {cut_ljsq=0;cut_coulsq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
   F_FLOAT cut_ljsq,cut_coulsq,lj1,lj2,lj3,lj4,offset;
 };
 
 // Pair SNAP
 
+#define SNAP_KOKKOS_REAL double
+#define SNAP_KOKKOS_HOST_VECLEN 1
+
+#ifdef LMP_KOKKOS_GPU
+#define SNAP_KOKKOS_DEVICE_VECLEN 32
+#else
+#define SNAP_KOKKOS_DEVICE_VECLEN 1
+#endif
+
+
+// intentional: SNAreal/complex gets reused beyond SNAP
 typedef double SNAreal;
 
 //typedef struct { SNAreal re, im; } SNAcomplex;
-template <typename real>
-struct alignas(2*sizeof(real)) SNAComplex
+template <typename real_type_>
+struct alignas(2*sizeof(real_type_)) SNAComplex
 {
-  real re,im;
+  using real_type = real_type_;
+  using complex = SNAComplex<real_type>;
+  real_type re,im;
 
-  SNAComplex() = default;
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex()
+   : re(static_cast<real_type>(0.)), im(static_cast<real_type>(0.)) { ; }
 
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re)
-   : re(re), im(static_cast<real>(0.)) { ; }
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real_type re)
+   : re(re), im(static_cast<real_type>(0.)) { ; }
 
-  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real re, real im)
+  KOKKOS_FORCEINLINE_FUNCTION SNAComplex(real_type re, real_type im)
    : re(re), im(im) { ; }
 
   KOKKOS_FORCEINLINE_FUNCTION SNAComplex(const SNAComplex& other)
@@ -1116,40 +1141,39 @@ struct alignas(2*sizeof(real)) SNAComplex
     return *this;
   }
 
+  KOKKOS_INLINE_FUNCTION
+  static constexpr complex zero() { return complex(static_cast<real_type>(0.), static_cast<real_type>(0.)); }
+
+  KOKKOS_INLINE_FUNCTION
+  static constexpr complex one() { return complex(static_cast<real_type>(1.), static_cast<real_type>(0.)); }
+
+  KOKKOS_INLINE_FUNCTION
+  const complex conj() { return complex(re, -im); }
+
 };
 
-template <typename real>
-KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real> operator*(const real& r, const SNAComplex<real>& self) {
-  return SNAComplex<real>(r*self.re, r*self.im);
+template <typename real_type>
+KOKKOS_FORCEINLINE_FUNCTION SNAComplex<real_type> operator*(const real_type& r, const SNAComplex<real_type>& self) {
+  return SNAComplex<real_type>(r*self.re, r*self.im);
 }
 
 typedef SNAComplex<SNAreal> SNAcomplex;
-
-// Cayley-Klein pack
-// Can guarantee it's aligned to 2 complex
-struct alignas(32) CayleyKleinPack {
-
-  SNAcomplex a, b;
-  SNAcomplex da[3], db[3];
-  SNAreal sfac;
-  SNAreal dsfacu[3];
-
-};
-
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#ifdef LMP_KOKKOS_GPU
-#define LAMMPS_LAMBDA [=] __device__
+#define LAMMPS_LAMBDA KOKKOS_LAMBDA
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+#define LAMMPS_DEVICE_FUNCTION __device__
 #else
-#define LAMMPS_LAMBDA [=]
+#define LAMMPS_DEVICE_FUNCTION
 #endif
 
 #ifdef LMP_KOKKOS_GPU
-#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__)
+#if defined(__CUDA_ARCH__) || defined(__HIP_DEVICE_COMPILE__) || defined(__SYCL_DEVICE_ONLY__)
 #define LMP_KK_DEVICE_COMPILE
 #endif
 #endif

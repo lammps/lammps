@@ -82,21 +82,21 @@ PairAWPMDCut::~PairAWPMDCut()
 struct cmp_x{
   double **xx;
   double tol;
-  cmp_x(double **xx_=nullptr, double tol_=1e-12):xx(xx_),tol(tol_){}
+  cmp_x(double **xx_=nullptr, double tol_=1e-12):xx(xx_),tol(tol_) {}
   bool operator()(const pair<int,int> &left, const pair<int,int> &right) const {
-    if(left.first==right.first){
+    if (left.first==right.first) {
       double d=xx[left.second][0]-xx[right.second][0];
-      if(d<-tol)
+      if (d<-tol)
         return true;
-      else if(d>tol)
+      else if (d>tol)
         return false;
       d=xx[left.second][1]-xx[right.second][1];
-      if(d<-tol)
+      if (d<-tol)
         return true;
-      else if(d>tol)
+      else if (d>tol)
         return false;
       d=xx[left.second][2]-xx[right.second][2];
-      if(d<-tol)
+      if (d<-tol)
         return true;
       else
         return false;
@@ -139,7 +139,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
 
 
   // width pbc
-  if(width_pbc<0)
+  if (width_pbc<0)
     wpmd->Lextra=2*half_box_length;
   else
     wpmd->Lextra=width_pbc;
@@ -150,7 +150,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
 
 # if 1
   // mapping of the LAMMPS numbers to the AWPMC numbers
-  vector<int> gmap(ntot,-1);
+  std::vector<int> gmap(ntot,-1);
 
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
@@ -163,7 +163,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     for (int jj = 0; jj < jnum; jj++) {
       int j = jlist[jj];
       j &= NEIGHMASK;
-      if(j>=nlocal){ // this is a ghost
+      if (j>=nlocal) { // this is a ghost
         Vector_3 rj=Vector_3(x[j][0],x[j][1],x[j][2]);
         int jtype = type[j];
         double rsq=(ri-rj).norm2();
@@ -186,9 +186,9 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     // local particles are all there
     idmap[make_pair(atom->tag[i],i)]=i;
     bool i_local= i<nlocal ? true : false;
-    if(i_local)
+    if (i_local)
       gmap[i]=0;
-    else if(gmap[i]==0) // this is a ghost which already has been tested
+    else if (gmap[i]==0) // this is a ghost which already has been tested
       continue;
     Vector_3 ri=Vector_3(x[i][0],x[i][1],x[i][2]);
     int itype = type[i];
@@ -200,19 +200,19 @@ void PairAWPMDCut::compute(int eflag, int vflag)
 
       pair<map_t::iterator,bool> res=idmap.insert(make_pair(make_pair(atom->tag[j],j),j));
       bool have_it=!res.second;
-      if(have_it){ // the clone of this particle is already listed
-        if(res.first->second!=j) // check that was not the very same particle
+      if (have_it) { // the clone of this particle is already listed
+        if (res.first->second!=j) // check that was not the very same particle
           gmap[j]=-1; // filter out
         continue;
       }
 
       bool j_local= j<nlocal ? true : false;
-      if((i_local && !j_local) || (j_local && !i_local)){ // some of them is a ghost
+      if ((i_local && !j_local) || (j_local && !i_local)) { // some of them is a ghost
         Vector_3 rj=Vector_3(x[j][0],x[j][1],x[j][2]);
         int jtype = type[j];
         double rsq=(ri-rj).norm2();
-        if (rsq < cutsq[itype][jtype]){
-          if(!i_local){
+        if (rsq < cutsq[itype][jtype]) {
+          if (!i_local) {
             gmap[i]=0; //bingo, this ghost is really needed
             break; // don't need to continue j loop
           }
@@ -226,15 +226,15 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   // prepare the solver object
   wpmd->reset();
 
-  map<int,vector<int> > etmap;
+  std::map<int,std::vector<int> > etmap;
   // add particles to the AWPMD solver object
   for (int i = 0; i < ntot; i++) {
     //int i = ilist[ii];
-    if(gmap[i]<0) // this particle was filtered out
+    if (gmap[i]<0) // this particle was filtered out
       continue;
-    if(spin[i]==0)  // this is an ion
+    if (spin[i]==0)  // this is an ion
       gmap[i]=wpmd->add_ion(q[i], Vector_3(x[i][0],x[i][1],x[i][2]),i<nlocal ? atom->tag[i] : -atom->tag[i]);
-    else if(spin[i]==1 || spin[i]==-1){ // electron, sort them according to the tag
+    else if (spin[i]==1 || spin[i]==-1) { // electron, sort them according to the tag
       etmap[etag[i]].push_back(i);
     }
     else
@@ -242,19 +242,19 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   }
   // ion force vector
   Vector_3 *fi=nullptr;
-  if(wpmd->ni)
+  if (wpmd->ni)
     fi= new Vector_3[wpmd->ni];
 
   // adding electrons
-  for(map<int,vector<int> >::iterator it=etmap.begin(); it!= etmap.end(); ++it){
-    vector<int> &el=it->second;
-    if(!el.size()) // should not happen
+  for (std::map<int,std::vector<int> >::iterator it=etmap.begin(); it!= etmap.end(); ++it) {
+    std::vector<int> &el=it->second;
+    if (!el.size()) // should not happen
       continue;
     int s=spin[el[0]] >0 ? 0 : 1;
     wpmd->add_electron(s); // starts adding the spits
-    for(size_t k=0;k<el.size();k++){
+    for (size_t k=0;k<el.size();k++) {
       int i=el[k];
-      if(spin[el[0]]!=spin[i])
+      if (spin[el[0]]!=spin[i])
         error->all(FLERR,logfmt("WP splits for one electron should have the same spin (at particles %d, %d)!",el[0],i));
       double m= atom->mass ? atom->mass[type[i]] : force->e_mass;
       Vector_3 xx=Vector_3(x[i][0],x[i][1],x[i][2]);
@@ -275,7 +275,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
    // get forces from the AWPMD solver object
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
-    if(gmap[i]<0) // this particle was filtered out
+    if (gmap[i]<0) // this particle was filtered out
       continue;
     if (spin[i]==0) {  // this is an ion, copying forces
       int ion=gmap[i];
@@ -289,12 +289,12 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     }
   }
 
-  if(fi)
+  if (fi)
     delete [] fi;
 
   // update LAMMPS energy
   if (eflag_either) {
-    if (eflag_global){
+    if (eflag_global) {
       eng_coul+= wpmd->get_energy();
       // pvector = [KE, Pauli, ecoul, radial_restraint]
       pvector[0] = wpmd->Ee[0]+wpmd->Ee[1];
@@ -405,7 +405,7 @@ void PairAWPMDCut::allocate()
 // [flex_press]  -- set flexible pressure flag
 // -1 for length means default setting (L/2 for cutoff and L for width PBC)
 
-void PairAWPMDCut::settings(int narg, char **arg){
+void PairAWPMDCut::settings(int narg, char **arg) {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = utils::numeric(FLERR,arg[0],false,lmp);
@@ -413,46 +413,46 @@ void PairAWPMDCut::settings(int narg, char **arg){
   ermscale=1.;
   width_pbc=0.;
 
-  for(int i=1;i<narg;i++){
+  for (int i=1;i<narg;i++) {
     // reading commands
-    if(!strcmp(arg[i],"hartree"))
+    if (!strcmp(arg[i],"hartree"))
       wpmd->approx=AWPMD::HARTREE;
-    else if(!strcmp(arg[i],"dproduct"))
+    else if (!strcmp(arg[i],"dproduct"))
       wpmd->approx=AWPMD::DPRODUCT;
-    else if(!strcmp(arg[i],"uhf"))
+    else if (!strcmp(arg[i],"uhf"))
       wpmd->approx=AWPMD::UHF;
-    else if(!strcmp(arg[i],"free"))
+    else if (!strcmp(arg[i],"free"))
       wpmd->constraint=AWPMD::NONE;
-    else if(!strcmp(arg[i],"fix")){
+    else if (!strcmp(arg[i],"fix")) {
       wpmd->constraint=AWPMD::FIX;
       i++;
-      if(i>=narg)
+      if (i>=narg)
         error->all(FLERR,"Setting 'fix' should be followed by a number in awpmd/cut");
       wpmd->w0=utils::numeric(FLERR,arg[i],false,lmp);
     }
-    else if(!strcmp(arg[i],"harm")){
+    else if (!strcmp(arg[i],"harm")) {
       wpmd->constraint=AWPMD::HARM;
       i++;
-      if(i>=narg)
+      if (i>=narg)
         error->all(FLERR,"Setting 'harm' should be followed by a number in awpmd/cut");
       wpmd->w0=utils::numeric(FLERR,arg[i],false,lmp);
       wpmd->set_harm_constr(wpmd->w0);
     }
-    else if(!strcmp(arg[i],"pbc")){
+    else if (!strcmp(arg[i],"pbc")) {
       i++;
-      if(i>=narg)
+      if (i>=narg)
         error->all(FLERR,"Setting 'pbc' should be followed by a number in awpmd/cut");
       width_pbc=utils::numeric(FLERR,arg[i],false,lmp);
     }
-    else if(!strcmp(arg[i],"relax"))
+    else if (!strcmp(arg[i],"relax"))
       wpmd->constraint=AWPMD::RELAX;
-    else if(!strcmp(arg[i],"ermscale")){
+    else if (!strcmp(arg[i],"ermscale")) {
       i++;
-      if(i>=narg)
+      if (i>=narg)
         error->all(FLERR,"Setting 'ermscale' should be followed by a number in awpmd/cut");
       ermscale=utils::numeric(FLERR,arg[i],false,lmp);
     }
-    else if(!strcmp(arg[i],"flex_press"))
+    else if (!strcmp(arg[i],"flex_press"))
       flexible_pressure_flag = 1;
   }
 }
@@ -472,7 +472,7 @@ void PairAWPMDCut::coeff(int narg, char **arg)
   double delz = domain->boxhi[2]-domain->boxlo[2];
   half_box_length = 0.5 * MIN(delx, MIN(dely, delz));
   //}
-  if(cut_global<0)
+  if (cut_global<0)
     cut_global=half_box_length;
 
   if (!allocated) {
@@ -517,7 +517,7 @@ void PairAWPMDCut::init_style()
                "q, spin, eradius, erforce");
 
   /*
-  if(vflag_atom){ // can't compute virial per atom
+  if (vflag_atom) { // can't compute virial per atom
     //warning->
     error->all(FLERR,"Pair style awpmd can't compute per atom virials");
   }*/
@@ -550,7 +550,7 @@ void PairAWPMDCut::init_style()
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->newton = 2;
 
-  if(force->e_mass==0. || force->hhmrr2e==0. || force->mvh2r==0.)
+  if (force->e_mass==0. || force->hhmrr2e==0. || force->mvh2r==0.)
     error->all(FLERR,"Pair style awpmd requires e_mass and conversions hhmrr2e, mvh2r to be properly set for unit system");
 
   wpmd->me=force->e_mass;
@@ -685,7 +685,7 @@ void PairAWPMDCut::min_xf_get(int /* ignore */)
     if (spin[i]) {
       min_var[7*i] = log(eradius[i]);
       min_varforce[7*i] = eradius[i]*erforce[i];
-      for(int j=0;j<3;j++){
+      for (int j=0;j<3;j++) {
         min_var[7*i+1+3*j] = v[i][j];
         min_varforce[7*i+1+3*j] = vforce[i][j];
       }
@@ -697,7 +697,7 @@ void PairAWPMDCut::min_xf_get(int /* ignore */)
       min_varforce[7*i+6] = csforce[i][1];
 
     } else {
-      for(int j=0;j<7;j++)
+      for (int j=0;j<7;j++)
         min_var[7*i+j] = min_varforce[7*i+j] = 0.0;
     }
 }
@@ -717,9 +717,9 @@ void PairAWPMDCut::min_x_set(int /* ignore */)
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
-    if (spin[i]){
+    if (spin[i]) {
       eradius[i]=exp(min_var[7*i]);
-      for(int j=0;j<3;j++)
+      for (int j=0;j<3;j++)
         v[i][j]=min_var[7*i+1+3*j];
       ervel[i]=min_var[7*i+4];
       cs[i][0]=min_var[7*i+5];
@@ -734,8 +734,8 @@ void PairAWPMDCut::min_x_set(int /* ignore */)
 
 double PairAWPMDCut::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }

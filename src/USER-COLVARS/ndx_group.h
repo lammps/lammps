@@ -23,6 +23,7 @@ CommandStyle(ndx2group,Ndx2Group)
 #define LMP_NDX_GROUP_H
 
 #include "pointers.h"
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -30,7 +31,7 @@ class Ndx2Group : protected Pointers {
  public:
   Ndx2Group(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
-  void create(char *, bigint, tagint *);
+  void create(const std::string &, const std::vector<tagint> &);
 };
 
 }

@@ -31,8 +31,8 @@
 
 #include <cstring>
 #include <iostream>
-#include <vector>
 #include <mpi.h>
+#include <vector>
 
 #if defined(OMPI_MAJOR_VERSION)
 const bool have_openmpi = true;

@@ -113,7 +113,7 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
     q1[i] = q2[i] = qf[i] = 0.0;
   }
 
-  for (iloop = 0; iloop < maxiter; iloop ++ ) {
+  for (iloop = 0; iloop < maxiter; iloop ++) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
@@ -249,9 +249,9 @@ int FixQEqDynamic::pack_forward_comm(int n, int *list, double *buf,
   int m=0;
 
   if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
-  else if( pack_flag == 2 )
-    for(m = 0; m < n; m++) buf[m] = qf[list[m]];
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  else if (pack_flag == 2)
+    for (m = 0; m < n; m++) buf[m] = qf[list[m]];
 
   return m;
 }
@@ -263,9 +263,9 @@ void FixQEqDynamic::unpack_forward_comm(int n, int first, double *buf)
   int i, m;
 
   if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if( pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  else if ( pack_flag == 2)
+    for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -273,7 +273,7 @@ void FixQEqDynamic::unpack_forward_comm(int n, int first, double *buf)
 int FixQEqDynamic::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
+  for (m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
   return m;
 }
 
@@ -283,7 +283,7 @@ void FixQEqDynamic::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int m;
 
-  for(m = 0; m < n; m++) qf[list[m]] += buf[m];
+  for (m = 0; m < n; m++) qf[list[m]] += buf[m];
 }
 
 /* ---------------------------------------------------------------------- */

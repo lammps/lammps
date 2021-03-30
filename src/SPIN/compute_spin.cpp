@@ -176,6 +176,9 @@ void ComputeSpin::compute_vector()
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (atom->sp_flag) {
+
+        // compute first moment
+
         mag[0] += sp[i][0];
         mag[1] += sp[i][1];
         mag[2] += sp[i][2];
@@ -211,11 +214,16 @@ void ComputeSpin::compute_vector()
   MPI_Allreduce(&tempdenom,&tempdenomtot,1,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(&countsp,&countsptot,1,MPI_INT,MPI_SUM,world);
 
+  // compute average magnetization
+
   double scale = 1.0/countsptot;
   magtot[0] *= scale;
   magtot[1] *= scale;
   magtot[2] *= scale;
   magtot[3] = sqrt((magtot[0]*magtot[0])+(magtot[1]*magtot[1])+(magtot[2]*magtot[2]));
+
+  // compute spin temperature
+
   spintemperature = hbar*tempnumtot;
   spintemperature /= (2.0*kb*tempdenomtot);
 
@@ -225,7 +233,6 @@ void ComputeSpin::compute_vector()
   vector[3] = magtot[3];
   vector[4] = magenergytot;
   vector[5] = spintemperature;
-
 }
 
 /* ----------------------------------------------------------------------

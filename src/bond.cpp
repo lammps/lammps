@@ -80,7 +80,16 @@ void Bond::init()
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise set to 0:
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM or VIRIAL_CENTROID bit of vflag set
+                       two-body and centroid stress are identical for bonds
+     vflag_either != 0 if vflag_global or vflag_atom is set
 ------------------------------------------------------------------------- */
 
 void Bond::ev_setup(int eflag, int vflag, int alloc)
@@ -90,13 +99,12 @@ void Bond::ev_setup(int eflag, int vflag, int alloc)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
-  // per-atom virial and per-atom centroid virial are the same for bonds
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom arrays if necessary
 
@@ -321,8 +329,8 @@ void Bond::write_file(int narg, char **arg)
 
 double Bond::memory_usage()
 {
-  double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  double bytes = (double)comm->nthreads*maxeatom * sizeof(double);
+  bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }
 

@@ -79,14 +79,12 @@ void DumpLocalGZ::openfile()
     *ptr = '*';
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[numfiles],filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
         remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[fileidx],filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -183,7 +181,7 @@ void DumpLocalGZ::write()
 int DumpLocalGZ::modify_param(int narg, char **arg)
 {
   int consumed = DumpLocal::modify_param(narg, arg);
-  if(consumed == 0) {
+  if (consumed == 0) {
     if (strcmp(arg[0],"compression_level") == 0) {
       if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
       int min_level = Z_DEFAULT_COMPRESSION;

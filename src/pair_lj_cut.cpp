@@ -31,7 +31,6 @@
 #include "memory.h"
 #include "error.h"
 
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -41,7 +40,6 @@ PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
   writedata = 1;
-  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

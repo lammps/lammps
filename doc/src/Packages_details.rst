@@ -367,17 +367,19 @@ KIM package
 
 **Contents:**
 
-This package contains a set of commands that serve as a wrapper on the
+This package contains a command with a set of sub-commands that serve as a
+wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs) enabling compatible ones to be used in
 LAMMPS simulations.
 
-This includes :doc:`kim_init <kim_commands>`, and
-:doc:`kim_interactions <kim_commands>` commands to select, initialize and
-instantiate the IM, a :doc:`kim_query <kim_commands>` command to perform web
+
+This includes :doc:`kim init <kim_commands>`, and
+:doc:`kim interactions <kim_commands>` commands to select, initialize and
+instantiate the IM, a :doc:`kim query <kim_commands>` command to perform web
 queries for material property predictions of OpenKIM IMs, a
-:doc:`kim_param <kim_commands>` command to access KIM Model Parameters from
-LAMMPS, and a :doc:`kim_property <kim_commands>` command to write material
+:doc:`kim param <kim_commands>` command to access KIM Model Parameters from
+LAMMPS, and a :doc:`kim property <kim_commands>` command to write material
 properties computed in LAMMPS to standard KIM property instance format.
 
 Support for KIM IMs that conform to the
@@ -386,8 +388,8 @@ is provided by the :doc:`pair_style kim <pair_kim>` command.
 
 .. note::
 
-   The command *pair_style kim* is called by *kim_interactions* and
-   is not recommended to be directly used in input scripts.
+   The command *pair_style kim* is called by *kim interactions* and is not
+   recommended to be directly used in input scripts.
 
 To use this package you must have the KIM API library available on your
 system. The KIM API is available for download on the
@@ -404,7 +406,7 @@ and is funded by the `National Science Foundation <https://www.nsf.gov/>`_.
 API and the *pair_style kim* command. Yaser Afshar (U Minnesota),
 Axel Kohlmeyer (Temple U), Ellad Tadmor (U Minnesota), and
 Daniel Karls (U Minnesota) contributed to the
-:doc:`kim_commands <kim_commands>` interface in close collaboration with
+:doc:`kim command <kim_commands>` interface in close collaboration with
 Ryan Elliott.
 
 **Install:**
@@ -414,7 +416,7 @@ This package has :ref:`specific installation instructions <kim>` on the
 
 **Supporting info:**
 
-* :doc:`kim_commands <kim_commands>`
+* :doc:`kim command <kim_commands>`
 * :doc:`pair_style kim <pair_kim>`
 * src/KIM: filenames -> commands
 * src/KIM/README
@@ -662,19 +664,31 @@ MLIAP package
 
 **Contents:**
 
-A general interface for machine-learning interatomic potentials.
+A general interface for machine-learning interatomic potentials, including PyTorch.
 
 **Install:**
 
-To use this package, also the :ref:`SNAP package <PKG-SNAP>` needs to be installed.
+To use this package, also the :ref:`SNAP package <PKG-SNAP>` package needs
+to be installed.  To make the *mliappy* model available, also the
+:ref:`PYTHON package <PKG-PYTHON>` package needs to be installed, the version
+of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
+must be installed.
 
-**Author:** Aidan Thompson (Sandia).
+**Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
 **Supporting info:**
 
 * src/MLIAP: filenames -> commands
+* src/MLIAP/README
 * :doc:`pair_style mliap <pair_mliap>`
-* examples/mliap
+* :doc:`compute_style mliap <compute_mliap>`
+* examples/mliap (see README)
+
+When built with the *mliappy* model this package includes an extension for
+coupling with Python models, including PyTorch. In this case, the Python
+interpreter linked to LAMMPS will need the ``cython`` and ``numpy`` modules
+installed.  The provided examples build models with PyTorch, which would
+therefore also needs to be installed to run those examples.
 
 ----------
 
@@ -1036,9 +1050,11 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 * :doc:`pair_style spin/dipole/long <pair_spin_dipole>`
 * :doc:`pair_style spin/dmi <pair_spin_dmi>`
 * :doc:`pair_style spin/exchange <pair_spin_exchange>`
+* :doc:`pair_style spin/exchange/biquadratic <pair_spin_exchange>`
 * :doc:`pair_style spin/magelec <pair_spin_magelec>`
 * :doc:`pair_style spin/neel <pair_spin_neel>`
 * :doc:`fix nve/spin <fix_nve_spin>`
+* :doc:`fix langevin/spin <fix_langevin_spin>`
 * :doc:`fix precession/spin <fix_precession_spin>`
 * :doc:`compute spin <compute_spin>`
 * :doc:`neb/spin <neb_spin>`
@@ -1416,8 +1432,8 @@ oscillators as a model of polarization.  See the :doc:`Howto drude <Howto_drude>
 for an overview of how to use the package.  There are auxiliary tools
 for using this package in tools/drude.
 
-**Authors:** Alain Dequidt (U Blaise Pascal Clermont-Ferrand), Julien
-Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
+**Authors:** Alain Dequidt (U Clermont Auvergne), Julien
+Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 
 **Supporting info:**
 
@@ -1484,7 +1500,7 @@ methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt
 which have a "soft" in their style name.  There are auxiliary tools
 for using this package in tools/fep; see its README file.
 
-**Author:** Agilio Padua (Universite Blaise Pascal Clermont-Ferrand)
+**Author:** Agilio Padua (ENS de Lyon)
 
 **Supporting info:**
 

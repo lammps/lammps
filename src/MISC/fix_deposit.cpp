@@ -292,6 +292,14 @@ void FixDeposit::init()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixDeposit::setup_pre_exchange()
+{
+  if (ninserted < ninsert) next_reneighbor = update->ntimestep+1;
+  else next_reneighbor = 0;
+}
+
 /* ----------------------------------------------------------------------
    perform particle insertion
 ------------------------------------------------------------------------- */
@@ -689,9 +697,7 @@ void FixDeposit::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix deposit does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"mol") == 0) {
@@ -718,21 +724,16 @@ void FixDeposit::options(int narg, char **arg)
         error->all(FLERR,"Illegal fix deposit command");
       molfrac[nmol-1] = 1.0;
       iarg += nmol+1;
-
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
 
@@ -834,7 +835,7 @@ void FixDeposit::write_restart(FILE *fp)
   double list[5];
   list[n++] = random->state();
   list[n++] = ninserted;
-  list[n++] = nfirst;
+  list[n++] = ubuf(nfirst).d;
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = ubuf(update->ntimestep).d;
 
@@ -854,12 +855,12 @@ void FixDeposit::restart(char *buf)
   int n = 0;
   double *list = (double *) buf;
 
-  seed = static_cast<int> (list[n++]);
-  ninserted = static_cast<int> (list[n++]);
-  nfirst = static_cast<int> (list[n++]);
-  next_reneighbor = (bigint) ubuf(list[n++]).i;
+  seed = static_cast<int>(list[n++]);
+  ninserted = static_cast<int>(list[n++]);
+  nfirst = static_cast<bigint>(ubuf(list[n++]).i);
+  next_reneighbor = static_cast<bigint>(ubuf(list[n++]).i);
 
-  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  bigint ntimestep_restart = static_cast<bigint>(ubuf(list[n++]).i);
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR,"Must not reset timestep when restarting this fix");
 

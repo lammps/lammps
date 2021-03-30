@@ -95,7 +95,7 @@ void FixQEqPoint::init_matvec()
   inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[ atom->type[i] ];
@@ -131,14 +131,14 @@ void FixQEqPoint::compute_H()
 
   // fill in the H matrix
   m_fill = 0;
-  for( ii = 0; ii < inum; ii++ ) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (mask[i] & groupbit) {
       jlist = firstneigh[i];
       jnum = numneigh[i];
       H.firstnbr[i] = m_fill;
 
-      for( jj = 0; jj < jnum; jj++ ) {
+      for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
 

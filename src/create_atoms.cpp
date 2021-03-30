@@ -52,7 +52,7 @@ enum{NONE,RATIO,SUBSET};
 
 /* ---------------------------------------------------------------------- */
 
-CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
+CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp), basistype(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -446,7 +446,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     // molcreate = # of molecules I created
 
-    int molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
+    tagint molcreate = (atom->nlocal - nlocal_previous) / onemol->natoms;
 
     // increment total bonds,angles,etc
 
@@ -463,13 +463,13 @@ void CreateAtoms::command(int narg, char **arg)
     // moloffset = max molecule ID for all molecules owned by previous procs
     //             including molecules existing before this creation
 
-    tagint moloffset;
+    tagint moloffset = 0;
     if (molecule_flag) {
       tagint max = 0;
       for (int i = 0; i < nlocal_previous; i++) max = MAX(max,molecule[i]);
       tagint maxmol;
       MPI_Allreduce(&max,&maxmol,1,MPI_LMP_TAGINT,MPI_MAX,world);
-      MPI_Scan(&molcreate,&moloffset,1,MPI_INT,MPI_SUM,world);
+      MPI_Scan(&molcreate,&moloffset,1,MPI_LMP_TAGINT,MPI_SUM,world);
       moloffset = moloffset - molcreate + maxmol;
     }
 
@@ -573,7 +573,7 @@ void CreateAtoms::command(int narg, char **arg)
   delete ranmol;
   delete ranlatt;
 
-  if (domain->lattice) delete [] basistype;
+  delete [] basistype;
   delete [] vstr;
   delete [] xstr;
   delete [] ystr;

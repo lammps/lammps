@@ -134,7 +134,7 @@ void Finish::end(int flag)
             (strcmp(update->unit_style,"micro") == 0) ||
             (strcmp(update->unit_style,"nano") == 0) ||
             (strcmp(update->unit_style,"electron") == 0) ||
-            (strcmp(update->unit_style,"real") == 0)) ) {
+            (strcmp(update->unit_style,"real") == 0))) {
         double one_fs = force->femtosecond;
         double t_step = ((double) time_loop) / ((double) update->nsteps);
         double step_t = 1.0/t_step;

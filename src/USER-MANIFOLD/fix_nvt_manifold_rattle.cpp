@@ -95,8 +95,7 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   which = got_temp = 0;
 
   int argi = 6 + ptr_m->nparams();
-  while( argi < narg )
-  {
+  while (argi < narg) {
     if (strcmp( arg[argi], "temp") == 0) {
       if (argi+3 >= narg)
         error->all(FLERR,"Keyword 'temp' needs 3 arguments");
@@ -132,24 +131,10 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   }
 
   // Create temperature compute:
-  const char *fix_id = arg[1];
-  int n = strlen(fix_id)+6;
-  id_temp = new char[n];
-  strcpy(id_temp,fix_id);
-  strcat(id_temp,"_temp");
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char*) "temp";
 
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) {
-    error->all(FLERR,"Temperature ID for fix nvt/manifold/rattle "
-               "does not exist");
-  }
   temperature = modify->compute[icompute];
   if (temperature->tempbias) which = BIAS;
   else                        which = NOBIAS;
@@ -165,11 +150,9 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   eta_dot[mtchain] = 0.0;
 
   eta_dot[mtchain] = 0.0;
-  for( int ich = 0; ich < mtchain; ++ich ){
+  for (int ich = 0; ich < mtchain; ++ich) {
     eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
   }
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -186,9 +169,6 @@ FixNVTManifoldRattle::~FixNVTManifoldRattle()
   if (id_temp)    delete[] id_temp;
 }
 
-
-
-
 int FixNVTManifoldRattle::setmask()
 {
   int mask = 0;
@@ -198,7 +178,6 @@ int FixNVTManifoldRattle::setmask()
 
   return mask;
 }
-
 
 /* --------------------------------------------------------------------------
    Check that force modification happens before position and velocity update.
@@ -220,8 +199,6 @@ void FixNVTManifoldRattle::init()
 
 }
 
-
-
 void FixNVTManifoldRattle::setup(int /*vflag*/)
 {
   compute_temp_target();
@@ -232,11 +209,11 @@ void FixNVTManifoldRattle::setup(int /*vflag*/)
   // Compute/set eta-masses:
   double inv_t_freq2 = 1.0 / (t_freq*t_freq);
   eta_mass[0] = tdof * boltz * t_target * inv_t_freq2;
-  for( int ich = 1; ich < mtchain; ++ich ){
+  for (int ich = 1; ich < mtchain; ++ich) {
     eta_mass[ich] = boltz * t_target * inv_t_freq2;
   }
 
-  for( int ich = 1; ich < mtchain; ++ich ){
+  for (int ich = 1; ich < mtchain; ++ich) {
     eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1] -
                        boltz * t_target ) / eta_mass[ich];
   }
@@ -249,7 +226,7 @@ void FixNVTManifoldRattle::compute_temp_target()
   tdof      = temperature->dof;
 
   double delta = update->ntimestep - update->beginstep;
-  if (delta != 0.0){
+  if (delta != 0.0) {
     delta /= update->endstep - update->beginstep;
   }
 
@@ -268,7 +245,7 @@ void FixNVTManifoldRattle::nhc_temp_integrate()
   double expfac, kecurrent = tdof * boltz * t_current;
   double inv_t_freq2 = 1.0 / (t_freq*t_freq);
   eta_mass[0] = tdof * boltz * t_target * inv_t_freq2;
-  for( int ich = 1; ich < mtchain; ++ich ){
+  for (int ich = 1; ich < mtchain; ++ich) {
     eta_mass[ich] = boltz * t_target * inv_t_freq2;
   }
 
@@ -278,7 +255,7 @@ void FixNVTManifoldRattle::nhc_temp_integrate()
     eta_dotdot[0] = 0;
   }
 
-  for( ich = mtchain-1; ich > 0; --ich ){
+  for (ich = mtchain-1; ich > 0; --ich) {
     expfac = exp(-dt8*eta_dot[ich+1]);
     eta_dot[ich] *= expfac;
     eta_dot[ich] += eta_dotdot[ich] * dt4;
@@ -311,14 +288,14 @@ void FixNVTManifoldRattle::nhc_temp_integrate()
     eta_dotdot[0] = 0.0;
   }
 
-  for( int ich = 1; ich < mtchain; ++ich ){
+  for (int ich = 1; ich < mtchain; ++ich) {
     eta[ich] += dthalf*eta_dot[ich];
   }
   eta_dot[0] *= expfac;
   eta_dot[0] += eta_dotdot[0]*dt4;
   eta_dot[0] *= expfac;
 
-  for( int ich = 1; ich < mtchain; ++ich ){
+  for (int ich = 1; ich < mtchain; ++ich) {
     expfac = exp(-dt8*eta_dot[ich+1]);
     eta_dot[ich] *= expfac;
     eta_dotdot[ich] = (eta_mass[ich-1]*eta_dot[ich-1]*eta_dot[ich-1]
@@ -340,7 +317,7 @@ void FixNVTManifoldRattle::nh_v_temp()
 
 
   if (which == NOBIAS) {
-    for( int i = 0; i < nlocal; ++i ){
+    for (int i = 0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
         v[i][0] *= factor_eta;
         v[i][1] *= factor_eta;
@@ -348,7 +325,7 @@ void FixNVTManifoldRattle::nh_v_temp()
       }
     }
   } else if (which == BIAS) {
-    for( int i = 0; i < nlocal; ++i ){
+    for (int i = 0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
         temperature->remove_bias(i,v[i]);
         v[i][0] *= factor_eta;
@@ -359,9 +336,6 @@ void FixNVTManifoldRattle::nh_v_temp()
     }
   }
 }
-
-
-
 
 // Most of this logic is based on fix_nh:
 void FixNVTManifoldRattle::initial_integrate(int /*vflag*/)
@@ -382,8 +356,6 @@ void FixNVTManifoldRattle::final_integrate()
   nhc_temp_integrate();
 }
 
-
-
 /* ---------------------------------------------------------------------- */
 void FixNVTManifoldRattle::reset_dt()
 {
@@ -396,14 +368,10 @@ void FixNVTManifoldRattle::reset_dt()
 
 }
 
-
-
-
-
 double FixNVTManifoldRattle::memory_usage()
 {
   double bytes = FixNVEManifoldRattle::memory_usage();
-  bytes += (4*mtchain+1)*sizeof(double);
+  bytes += (double)(4*mtchain+1)*sizeof(double);
 
   return bytes;
 }

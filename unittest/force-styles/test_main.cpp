@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #include "test_main.h"
+#include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
-#include "pointers.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

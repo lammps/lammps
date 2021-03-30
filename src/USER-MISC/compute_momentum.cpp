@@ -42,13 +42,13 @@ void ComputeMomentum::compute_vector()
   if (rmass) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        for(int j = 0; j < 3; ++j)
+        for (int j = 0; j < 3; ++j)
           mom[j] += rmass[i] * v[i][j];
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
-        for(int j = 0; j < 3; ++j)
+        for (int j = 0; j < 3; ++j)
           mom[j] += mass[type[i]] * v[i][j];
   }
 

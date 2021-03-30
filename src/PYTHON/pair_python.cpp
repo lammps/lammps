@@ -41,7 +41,7 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   one_coeff = 1;
   reinitflag = 0;
   cut_global = 0.0;
-  centroidstressflag = 1;
+  centroidstressflag = CENTROID_SAME;
 
   py_potential = nullptr;
   skip_types = nullptr;
@@ -49,14 +49,19 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   python->init();
 
   // add current directory to PYTHONPATH
-  PyObject * py_path = PySys_GetObject((char *)"path");
+
+  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyObject *py_path = PySys_GetObject((char *)"path");
   PyList_Append(py_path, PY_STRING_FROM_STRING("."));
 
-  // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
-  const char * potentials_path = getenv("LAMMPS_POTENTIALS");
+  // if LAMMPS_POTENTIALS environment variable is set,
+  // add it to PYTHONPATH as well
+
+  const char *potentials_path = getenv("LAMMPS_POTENTIALS");
   if (potentials_path != nullptr) {
     PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
   }
+  PyGILState_Release(gstate);
 }
 
 /* ---------------------------------------------------------------------- */

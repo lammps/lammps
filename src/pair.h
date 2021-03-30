@@ -35,7 +35,7 @@ class Pair : protected Pointers {
   static int instance_total;     // # of Pair classes ever instantiated
 
   double eng_vdwl,eng_coul;      // accumulated energies
-  double virial[6];              // accumulated virial
+  double virial[6];              // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;         // accumulated per-atom energy/virial
   double **cvatom;               // accumulated per-atom centroid virial
 
@@ -68,10 +68,10 @@ class Pair : protected Pointers {
   int spinflag;                  // 1 if compatible with spin solver
   int reinitflag;                // 1 if compatible with fix adapt and alike
 
-  int centroidstressflag;        // compatibility with centroid atomic stress
-                                 // 1 if same as two-body atomic stress
-                                 // 2 if implemented and different from two-body
-                                 // 4 if not compatible/implemented
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
 
   int tail_flag;                 // pair_modify flag for LJ tail correction
   double etail,ptail;            // energy/pressure tail corrections
@@ -115,6 +115,7 @@ class Pair : protected Pointers {
 
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
+  int kokkosable; // 1 if Kokkos pair
 
   Pair(class LAMMPS *);
   virtual ~Pair();
@@ -215,17 +216,27 @@ class Pair : protected Pointers {
   virtual void del_tally_callback(class Compute *);
 
  protected:
-  int instance_me;        // which Pair class instantiation I am
+  int instance_me;              // which Pair class instantiation I am
+  int special_lj[4];            // copied from force->special_lj for Kokkos
+  int suffix_flag;              // suffix compatibility flag
 
-  int special_lj[4];           // copied from force->special_lj for Kokkos
+                                // pair_modify settings
+  int offset_flag,mix_flag;     // flags for offset and mixing
+  double tabinner;              // inner cutoff for Coulomb table
+  double tabinner_disp;         // inner cutoff for dispersion table
 
-  int suffix_flag;             // suffix compatibility flag
-
-                                       // pair_modify settings
-  int offset_flag,mix_flag;            // flags for offset and mixing
-  double tabinner;                     // inner cutoff for Coulomb table
-  double tabinner_disp;                 // inner cutoff for dispersion table
-
+ protected:
+  // for mapping of elements to atom types and parameters
+  // mostly used for manybody potentials
+  int nelements;                // # of unique elements
+  char **elements;              // names of unique elements
+  int *elem1param;              // mapping from elements to parameters
+  int **elem2param;             // mapping from element pairs to parameters
+  int ***elem3param;            // mapping from element triplets to parameters
+  int *map;                     // mapping from atom types to elements
+  int nparams;                  // # of stored parameter sets
+  int maxparam;                 // max # of parameter sets
+  void map_element2type(int, char**, bool update_setflag=true);
 
  public:
   // custom data type for accessing Coulomb tables

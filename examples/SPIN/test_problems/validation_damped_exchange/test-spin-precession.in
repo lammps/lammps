@@ -10,12 +10,8 @@ shell           echo "test1"
 atom_modify 	map array 
 lattice 	sc 3.0
 region 		box block 0 2 0 1 0 1 
-shell           echo "test1"
 create_box 	1 box
-shell           echo "test1"
 create_atoms 	1 box
-
-shell           echo "test1"
 
 mass		1 55.845
 set 		atom 1 spin 2.0 1.0 0.0 0.0

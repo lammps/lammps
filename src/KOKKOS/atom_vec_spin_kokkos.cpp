@@ -97,6 +97,9 @@ void AtomVecSpinKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_fm,atomKK->fm,nmax,"atom:fm");
   memoryKK->grow_kokkos(atomKK->k_fm_long,atomKK->fm_long,nmax,"atom:fm_long");
 
+  grow_pointers();
+  atomKK->sync(Host,ALL_MASK);
+
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
       modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
@@ -106,7 +109,7 @@ void AtomVecSpinKokkos::grow(int n)
    reset local array ptrs
 ------------------------------------------------------------------------- */
 
-void AtomVecSpinKokkos::grow_reset()
+void AtomVecSpinKokkos::grow_pointers()
 {
   tag = atomKK->tag;
   d_tag = atomKK->k_tag.d_view;
@@ -121,7 +124,7 @@ void AtomVecSpinKokkos::grow_reset()
   image = atomKK->image;
   d_image = atomKK->k_image.d_view;
   h_image = atomKK->k_image.h_view;
-  
+
   x = atomKK->x;
   d_x = atomKK->k_x.d_view;
   h_x = atomKK->k_x.h_view;
@@ -389,7 +392,7 @@ int AtomVecSpinKokkos::pack_border(int n, int *list, double *buf,
       buf[m++] = h_sp(j,3);
     }
   }
-  
+
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
       m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
@@ -478,7 +481,7 @@ int AtomVecSpinKokkos::pack_border_vel(int n, int *list, double *buf,
       }
     }
   }
-  
+
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
       m += modify->fix[atom->extra_border[iextra]]->pack_border(n,list,&buf[m]);
@@ -1026,8 +1029,8 @@ void AtomVecSpinKokkos::create_atom(int itype, double *coord)
   atomKK->sync(Host,ALL_MASK);
   atomKK->modified(Host,ALL_MASK);
 
-  tag[nlocal] = 0;
-  type[nlocal] = itype;
+  h_tag[nlocal] = 0;
+  h_type[nlocal] = itype;
   h_x(nlocal,0) = coord[0];
   h_x(nlocal,1) = coord[1];
   h_x(nlocal,2) = coord[2];

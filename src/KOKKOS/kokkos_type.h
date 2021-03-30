@@ -1039,8 +1039,8 @@ typedef tdual_virial_array::t_host_const_randomread t_virial_array_randomread;
 
 // Spin types
 
-//2d X_FLOAT array n*3
-typedef Kokkos::DualView<X_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_sp_array;
+//2d X_FLOAT array n*4
+typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_sp_array;
 typedef tdual_sp_array::t_host t_sp_array;
 typedef tdual_sp_array::t_host_const t_sp_array_const;
 typedef tdual_sp_array::t_host_um t_sp_array_um;

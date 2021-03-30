@@ -1,17 +1,17 @@
-This package implements the PINN potential as a LAMMPS pair style. 
+This package implements the PINN potential as a LAMMPS pair style.
 
 The description of the PINN model can be found in G. P. Purja Pun et al.,
-"Development of a general-purpose machine-learning interatomic potential 
-for aluminum by the physically informed neural network method", 
+"Development of a general-purpose machine-learning interatomic potential
+for aluminum by the physically informed neural network method",
 PHYSICAL REVIEW MATERIALS 4, 113807 (2020).
 
-It was written by 
+It was written by
 	Ganga P Purja Pun, gangapurjapun@gmail.com
 
 Additional point of contact:
 	James Hickman (NIST) (james.hickman@nist.gov)
 
-The package requires no external libraries and can be built with the current 
+The package requires no external libraries and can be built with the current
 stable version of LAMMPS with no modification to any makefile using the following commands.
 
 make clean-all

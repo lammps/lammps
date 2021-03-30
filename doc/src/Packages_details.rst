@@ -106,7 +106,7 @@ page gives those details.
    * :ref:`USER-UEF <PKG-USER-UEF>`
    * :ref:`USER-VTK <PKG-USER-VTK>`
    * :ref:`USER-YAFF <PKG-USER-YAFF>`
-
+   * :ref:`USER-PINN <PKG-USER-PINN>`
 ----------
 
 .. _PKG-ASPHERE:
@@ -2459,3 +2459,19 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`pair_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
 * :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/USER/yaff
+
+
+.. _PKG-USER-PINN:
+
+USER-PINN package
+-----------------
+
+**Contents:**
+
+This package contains a pair style for running Physically Informed Neural Network (PINN) potentials. The PINN paradigm was developed by Y. Mishin and G. Purja-Pun at George Mason University.
+
+**Author:** G. Purja PUn.
+
+**Supporting info:**
+
+* examples/USER/pinn

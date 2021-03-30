@@ -17,13 +17,13 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style pinn
-   pair_coeff  *  *  ../potentials/Al_2020.pinn Al Al 
+   pair_coeff  *  *  ../potentials/Al_2020.pinn Al Al
 
 The following commands can be used to build LAMMPS with the user-pinn package:
 
 .. code-block:: LAMMPS
 
-   make clean-all 
+   make clean-all
    make yes-USER-PINN
    make mpi
 
@@ -50,7 +50,7 @@ where
 
 .. math::
 
-   W_{i_{ \alpha }}=- \sigma _{i_{ \alpha }} \psi _{i_{ \alpha }}^{\frac{1}{2}};~~~~ \psi _{i_{ \alpha }}= \sum _{j_{ \beta } \neq i_{ \alpha }}^{}S_{i_{ \alpha }}^{j_{ \beta }} \Phi _{i_{ \alpha }}^{j_{ \beta }}f_{c} \left( r_{i_{ \alpha }}^{j_{ \beta }} \right) ,~~~~  \left( 4 \right) 
+   W_{i_{ \alpha }}=- \sigma _{i_{ \alpha }} \psi _{i_{ \alpha }}^{\frac{1}{2}};~~~~ \psi _{i_{ \alpha }}= \sum _{j_{ \beta } \neq i_{ \alpha }}^{}S_{i_{ \alpha }}^{j_{ \beta }} \Phi _{i_{ \alpha }}^{j_{ \beta }}f_{c} \left( r_{i_{ \alpha }}^{j_{ \beta }} \right) ,~~~~  \left( 4 \right)
 
 .. math::
 
@@ -375,12 +375,12 @@ B. Multicomponent
       ii. Kind II
 
 
-The numbers :math:`n_{el}`, :math:`N_{BOP}`, :math:`s_{max}`, :math:`l_{max}`, 
-:math:`\eta_{max}^1`, and :math:`\eta_{max}^M`, from 8c, 14, and 16 
-are used to uniquely identify the type of the potential according to the 
-following below. Note that the type of descriptors, Kind I or Kind II, is 
-determined automatically according to the value of :math:`\eta_{max}^1`. 
-The following flowchart is used to identify the type of PINN used.
+The numbers :math:`n_{el}`, :math:`N_{BOP}`, :math:`s_{max}`, :math:`l_{max}`,
+ :math:`\eta_{max}^1`, and :math:`\eta_{max}^M`, from 8c, 14, and 16
+ are used to uniquely identify the type of the potential according to the
+ following below. Note that the type of descriptors, Kind I or Kind II, is
+ determined automatically according to the value of :math:`\eta_{max}^1`.
+ The following flowchart is used to identify the type of PINN used.
 
 .. image:: JPG/user_pinn_2.png
   :width: 800
@@ -406,9 +406,9 @@ none
 
 .. _1:
 
-**(1)** Pun, Batra, Ramprasad, and Mishin, Nature Communications, 10, 2339, 2019. 
+**(1)** Pun, Batra, Ramprasad, and Mishin, Nature Communications, 10, 2339, 2019.
 
 .. _2:
 
-**(2)** Pun, Yamakov, Hickman, Glaessgen, and Mishin, Phys Rev M, 4, 113807, 2020. 
+**(2)** Pun, Yamakov, Hickman, Glaessgen, and Mishin, Phys Rev M, 4, 113807, 2020.
 

@@ -94,6 +94,7 @@ void KimInteractions::command(int narg, char **arg)
 
 void KimInteractions::do_setup(int narg, char **arg)
 {
+  static bool kim_update=0;
   bool fixed_types;
   if ((narg == 1) && (0 == strcmp("fixed_types",arg[0]))) {
     fixed_types = true;
@@ -185,9 +186,11 @@ void KimInteractions::do_setup(int narg, char **arg)
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
         simulatorModel,i,&sim_lines,&sim_field);
       if (0 == strcmp(sim_field,"model-defn")) {
+	if (kim_update) input->one("variable kim_update equal 1");
+	else  input->one("variable kim_update equal 0");
 	if (domain->periodicity[0]&&domain->periodicity[1]&&domain->periodicity[2]) input->one("variable kim_periodic equal 1");
-	else if (domain->periodicity[0]&&domain->periodicity[1]&&!domain->periodicity[2]) input->one("variable kim_periodic equal 2");
-	else input->one("variable kim_periodic equal 0");
+	else if (!domain->periodicity[0]&&!domain->periodicity[1]&&!domain->periodicity[2]) input->one("variable kim_periodic equal 0");
+	else input->one("variable kim_periodic equal 2");
         sim_model_idx = i;
         for (int j=0; j < sim_lines; ++j) {
           KIM_SimulatorModel_GetSimulatorFieldLine(
@@ -217,7 +220,8 @@ void KimInteractions::do_setup(int narg, char **arg)
 
     KIM_SimulatorModel_OpenAndInitializeTemplateMap(simulatorModel);
 
-  } else {
+  } else if (!kim_update) {
+
 
     // not a simulator model. issue pair_style and pair_coeff commands.
 
@@ -242,6 +246,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
   // End output to log file
   input->write_echo("#=== END kim_interactions ====================================\n\n");
+  kim_update=1;
 }
 
 /* ---------------------------------------------------------------------- */

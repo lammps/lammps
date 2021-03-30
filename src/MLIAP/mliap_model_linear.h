@@ -18,7 +18,7 @@
 
 namespace LAMMPS_NS {
 
-class MLIAPModelLinear : public MLIAPModel {
+class MLIAPModelLinear : public MLIAPModelSimple {
 public:
   MLIAPModelLinear(LAMMPS*, char* = nullptr);
   ~MLIAPModelLinear();

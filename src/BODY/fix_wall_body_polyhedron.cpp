@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{XPLANE=0,YPLANE=1,ZPLANE};    // XYZ PLANE need to be 0,1,2
+enum{XPLANE=0,YPLANE=1,ZPLANE=2};    // XYZ PLANE need to be 0,1,2
 enum{HOOKE,HOOKE_HISTORY};
 
 enum {INVALID=0,NONE=1,VERTEX=2};
@@ -59,6 +59,7 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
 
   restart_peratom = 1;
   create_attribute = 1;
+  wallstyle = -1;
 
   // wall/particle coefficients
 
@@ -98,7 +99,7 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
     else hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
-  }
+  } else error->all(FLERR,fmt::format("Unknown wall style {}",arg[iarg]));
 
   // check for trailing keyword/values
 

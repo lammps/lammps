@@ -7,17 +7,20 @@ code to perform a coupled calculation.
 
 simple.cpp     is the C++ driver
 simple.c       is the C driver
-simple.f90     is the Fortran driver
+simple.f90     is the Fortran driver using the new Fortran module
+simple_f77.f90 is the Fortran driver using the legacy Fortran wrapper
 
-The 3 codes do the same thing, so you can compare them to see how to
+The 4 codes do the same thing, so you can compare them to see how to
 drive LAMMPS from each language.  See python/example/simple.py
-to do something similar from Python.  The Fortran driver requires a
-Fortran module that uses the Fortran 03 ISO_C_BINDING module to
+to do something similar from Python.  The new Fortran driver requires
+a Fortran module that uses the Fortran 03 ISO_C_BINDING module to
 interface the LAMMPS C library functions to Fortran.
 
 First build LAMMPS as a library (see examples/COUPLE/README), e.g.
 
 make mode=shlib mpi
+
+or via CMake through settings -DBUILD_SHARED_LIBS=on
 
 You can then build any of the driver codes with compile lines like
 these, which include paths to the LAMMPS library interface, and
@@ -27,22 +30,27 @@ its PPPM solver).
 This builds the C++ driver with the LAMMPS library using the mpicxx
 (C++) compiler:
 
-mpicxx -I/home/sjplimp/lammps/src -c simple.cpp
-mpicxx -L/home/sjplimp/lammps/src simple.o -llammps -o simpleCC
+mpicxx -I${HOME}/lammps/src -c simple.cpp
+mpicxx -L${HOME}/lammps/src simple.o -llammps -o simpleCC
 
 This builds the C driver with the LAMMPS library using the mpicc (C)
 compiler:
 
-mpicc -I/home/sjplimp/lammps/src -c simple.c
-mpicc -L/home/sjplimp/lammps/src simple.o -llammps -o simpleC
+mpicc -I${HOME}/lammps/src -c simple.c
+mpicc -L${HOME}/lammps/src simple.o -llammps -o simpleC
 
 This builds the Fortran module and driver with the LAMMPS library
 using the mpifort (Fortran) compilers, using the Fortran module from
 the fortran directory:
 
-mpifort -L/home/sjplimp/lammps/src ../../../fortran/lammps.f90 simple.f90 -llammps -o simpleF
+mpifort -L${HOME}/lammps/src ../../../fortran/lammps.f90 simple.f90 -llammps -o simpleF
 
-You then run simpleCC, simpleC, or simpleF on a parallel machine
+This builds the legacy Fortran wrapper and driver with the LAMMPS library
+using the mpifort (Fortran) MPI compiler wrapper (assuming GNU gfortran).
+
+mpifort -std=legacy -L${HOME}/lammps/src ../fortran/libfwrapper.c simple.f90 -llammps -o simpleF77
+
+You then run simpleCC, simpleC, simpleF, or simpleF77 on a parallel machine
 on some number of processors Q with 2 arguments:
 
 % mpirun -np Q simpleCC P in.lj

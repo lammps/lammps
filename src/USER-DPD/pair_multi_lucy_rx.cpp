@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,23 +21,21 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
+#include "pair_multi_lucy_rx.h"
+
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
 
 #include <cmath>
-#include "math_const.h"
-
 #include <cstring>
-#include "pair_multi_lucy_rx.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-
-#include "citeme.h"
-#include "modify.h"
-#include "fix.h"
-
 
 using namespace LAMMPS_NS;
 
@@ -193,7 +191,7 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
         mixWtSite2old_j = mixWtSite2old[j];
 
         tb = &tables[tabindex[itype][jtype]];
-        if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq){
+        if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq) {
           printf("Table inner cutoff = %lf\n",sqrt(tb->innersq));
           printf("rho[%d]=%lf\n",i,rho[i]);
           printf("rho[%d]=%lf\n",j,rho[j]);
@@ -202,7 +200,7 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
           jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1 || jtable >= tlm1){
+          if (itable >= tlm1 || jtable >= tlm1) {
             printf("Table outer index = %d\n",tlm1);
             printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
             printf("jtableIndex=%d rho[%d]=%lf\n",jtable,j,rho[j]);
@@ -218,23 +216,23 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rho[i]*rho[i] - tb->innersq) * tb->invdelta);
           jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
-          if (itable >= tlm1 || jtable >= tlm1){
+          if (itable >= tlm1 || jtable >= tlm1) {
             printf("Table outer index = %d\n",tlm1);
             printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
             printf("jtableIndex=%d rho[%d]=%lf\n",jtable,j,rho[j]);
             error->one(FLERR,"Density > table outer cutoff");
           }
-          if(itable<0) itable=0;
-          if(itable>=tlm1) itable=tlm1;
-          if(jtable<0) jtable=0;
-          if(jtable>=tlm1)jtable=tlm1;
+          if (itable<0) itable=0;
+          if (itable>=tlm1) itable=tlm1;
+          if (jtable<0) jtable=0;
+          if (jtable>=tlm1)jtable=tlm1;
 
           fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
           fraction_j = (((rho[j]*rho[j]) - tb->rsq[jtable]) * tb->invdelta);
-          if(itable==0) fraction_i=0.0;
-          if(itable==tlm1) fraction_i=0.0;
-          if(jtable==0) fraction_j=0.0;
-          if(jtable==tlm1) fraction_j=0.0;
+          if (itable==0) fraction_i=0.0;
+          if (itable==tlm1) fraction_i=0.0;
+          if (jtable==0) fraction_j=0.0;
+          if (jtable==tlm1) fraction_j=0.0;
 
           A_i = tb->f[itable] + fraction_i*tb->df[itable];
           A_j = tb->f[jtable] + fraction_j*tb->df[jtable];
@@ -267,12 +265,12 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
     tb = &tables[tabindex[itype][itype]];
     itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
     if (tabstyle == LOOKUP) evdwl = tb->e[itable];
-    else if (tabstyle == LINEAR){
-      if (itable >= tlm1){
+    else if (tabstyle == LINEAR) {
+      if (itable >= tlm1) {
         printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
         error->one(FLERR,"Density > table outer cutoff");
       }
-      if(itable==0) fraction_i=0.0;
+      if (itable==0) fraction_i=0.0;
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
@@ -310,9 +308,9 @@ void PairMultiLucyRX::allocate()
   memory->create(cutsq,nt,nt,"pair:cutsq");
   memory->create(tabindex,nt,nt,"pair:tabindex");
 
-  memset(&setflag[0][0],0,nt*nt*sizeof(int));
-  memset(&cutsq[0][0],0,nt*nt*sizeof(double));
-  memset(&tabindex[0][0],0,nt*nt*sizeof(int));
+  memset(&setflag[0][0],0,sizeof(int)*nt*nt);
+  memset(&cutsq[0][0],0,sizeof(double)*nt*nt);
+  memset(&tabindex[0][0],0,sizeof(int)*nt*nt);
 }
 
 /* ----------------------------------------------------------------------
@@ -387,14 +385,9 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   bcast_table(tb);
 
   nspecies = atom->nspecies_dpd;
-  int n;
-  n = strlen(arg[4]) + 1;
-  site1 = new char[n];
-  strcpy(site1,arg[4]);
 
-  n = strlen(arg[5]) + 1;
-  site2 = new char[n];
-  strcpy(site2,arg[5]);
+  site1 = utils::strdup(arg[4]);
+  site2 = utils::strdup(arg[5]);
 
   // set table cutoff
 
@@ -442,7 +435,7 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   else {
      isite1 = nspecies;
      for (int ispecies = 0; ispecies < nspecies; ++ispecies)
-        if (strcmp(site1, atom->dname[ispecies]) == 0){
+        if (strcmp(site1, atom->dname[ispecies]) == 0) {
            isite1 = ispecies;
            break;
         }
@@ -456,7 +449,7 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   else {
      isite2 = nspecies;
      for (int ispecies = 0; ispecies < nspecies; ++ispecies)
-        if (strcmp(site2, atom->dname[ispecies]) == 0){
+        if (strcmp(site2, atom->dname[ispecies]) == 0) {
            isite2 = ispecies;
            break;
         }
@@ -894,7 +887,7 @@ void PairMultiLucyRX::computeLocalDensity()
 
 // rho = density at each atom
 // loop over neighbors of my atoms
-  for (int ii = 0; ii < inum; ii++){
+  for (int ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
 
     const double xtmp = x[i][0];
@@ -907,7 +900,7 @@ void PairMultiLucyRX::computeLocalDensity()
     const int *jlist = firstneigh[i];
     const int jnum = numneigh[i];
 
-    for (int jj = 0; jj < jnum; jj++){
+    for (int jj = 0; jj < jnum; jj++) {
       const int j = (jlist[jj] & NEIGHMASK);
       const int jtype = type[j];
 
@@ -960,44 +953,44 @@ void PairMultiLucyRX::getMixingWeights(int id, double &mixWtSite1old, double &mi
 
   nTotal = 0.0;
   nTotalOld = 0.0;
-  for (int ispecies = 0; ispecies < nspecies; ispecies++){
+  for (int ispecies = 0; ispecies < nspecies; ispecies++) {
     nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
 
-  if (isOneFluid(isite1) == false){
+  if (isOneFluid(isite1) == false) {
     nMoleculesOld1 = atom->dvector[isite1+nspecies][id];
     nMolecules1 = atom->dvector[isite1][id];
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
-  if (isOneFluid(isite2) == false){
+  if (isOneFluid(isite2) == false) {
     nMoleculesOld2 = atom->dvector[isite2+nspecies][id];
     nMolecules2 = atom->dvector[isite2][id];
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
 
-  if (isOneFluid(isite1) || isOneFluid(isite2)){
+  if (isOneFluid(isite1) || isOneFluid(isite2)) {
     nMoleculesOFAold  = 0.0;
     nMoleculesOFA  = 0.0;
     fractionOFAold  = 0.0;
     fractionOFA  = 0.0;
 
-    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
       nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
       nMoleculesOFA += atom->dvector[ispecies][id];
       fractionOFAold += atom->dvector[ispecies+nspecies][id] / nTotalOld;
       fractionOFA += atom->dvector[ispecies][id] / nTotal;
     }
-    if (isOneFluid(isite1)){
+    if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld1 = fractionOFAold;
       fraction1 = fractionOFA;
     }
-    if (isOneFluid(isite2)){
+    if (isOneFluid(isite2)) {
       nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld2 = fractionOFAold;
@@ -1005,7 +998,7 @@ void PairMultiLucyRX::getMixingWeights(int id, double &mixWtSite1old, double &mi
     }
   }
 
-  if(fractionalWeighting){
+  if (fractionalWeighting) {
     mixWtSite1old = fractionOld1;
     mixWtSite1 = fraction1;
     mixWtSite2old = fractionOld2;

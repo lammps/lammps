@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -103,7 +103,7 @@ void MinSpinCG::init()
 
   // set back use_line_search to 0 if more than one replica
 
-  if (linestyle == 3 && nreplica == 1){
+  if (linestyle == 3 && nreplica == 1) {
     use_line_search = 1;
   }
   else{
@@ -208,7 +208,7 @@ int MinSpinCG::iterate(int maxiter)
     if (use_line_search) {
 
       // here we need to do line search
-      if (local_iter == 0){
+      if (local_iter == 0) {
         calc_gradient();
       }
 
@@ -344,7 +344,7 @@ void MinSpinCG::calc_search_direction()
       factor = 0.0;
 
 
-  if (local_iter == 0 || local_iter % 5 == 0){  // steepest descent direction
+  if (local_iter == 0 || local_iter % 5 == 0) {  // steepest descent direction
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i] * factor;
       g_old[i] = g_cur[i] * factor;
@@ -425,12 +425,12 @@ void MinSpinCG::rodrigues_rotation(const double *upp_tr, double *out)
 
   if (fabs(upp_tr[0]) < 1.0e-40 &&
       fabs(upp_tr[1]) < 1.0e-40 &&
-      fabs(upp_tr[2]) < 1.0e-40){
+      fabs(upp_tr[2]) < 1.0e-40) {
 
     // if upp_tr is zero, return unity matrix
 
-    for(int k = 0; k < 3; k++){
-      for(int m = 0; m < 3; m++){
+    for (int k = 0; k < 3; k++) {
+      for (int m = 0; m < 3; m++) {
         if (m == k) out[3 * k + m] = 1.0;
         else out[3 * k + m] = 0.0;
       }
@@ -481,9 +481,9 @@ void MinSpinCG::rodrigues_rotation(const double *upp_tr, double *out)
 
 void MinSpinCG::vm3(const double *m, const double *v, double *out)
 {
-  for(int i = 0; i < 3; i++){
+  for (int i = 0; i < 3; i++) {
     out[i] = 0.0;
-    for(int j = 0; j < 3; j++) out[i] += *(m + 3 * j + i) * v[j];
+    for (int j = 0; j < 3; j++) out[i] += *(m + 3 * j + i) * v[j];
   }
 }
 
@@ -550,7 +550,7 @@ int MinSpinCG::calc_and_make_step(double a, double b, int index)
   der_e_cur = e_and_d[1];
   index++;
 
-  if (adescent(eprevious,e_and_d[0]) || index == 5){
+  if (adescent(eprevious,e_and_d[0]) || index == 5) {
     MPI_Bcast(&b,1,MPI_DOUBLE,0,world);
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = b * p_s[i];
@@ -590,7 +590,7 @@ int MinSpinCG::calc_and_make_step(double a, double b, int index)
   Approximate descent
 ------------------------------------------------------------------------- */
 
-int MinSpinCG::adescent(double phi_0, double phi_j){
+int MinSpinCG::adescent(double phi_0, double phi_j) {
 
   double eps = 1.0e-6;
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,24 +22,23 @@
 
 #include "pair_reaxc.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <strings.h>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
+#include "citeme.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_reaxc.h"
-#include "citeme.h"
+#include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
+#include <strings.h>    // for strcasecmp()
 
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
@@ -77,6 +76,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
 
   fix_id = new char[24];
@@ -175,7 +175,6 @@ PairReaxC::~PairReaxC()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
-    delete [] map;
 
     delete [] chi;
     delete [] eta;
@@ -420,7 +419,7 @@ void PairReaxC::init_style( )
     error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
                    "increased neighbor list skin.");
 
-  for( int i = 0; i < LIST_N; ++i )
+  for (int i = 0; i < LIST_N; ++i)
     if (lists[i].allocated != 1)
       lists[i].allocated = 0;
 
@@ -470,7 +469,7 @@ void PairReaxC::setup( )
     int num_nbrs = estimate_reax_lists();
     if (num_nbrs < 0)
       error->all(FLERR,"Too many neighbors for pair style reax/c");
-    if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
+    if (!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
                   lists+FAR_NBRS))
       error->all(FLERR,"Pair reax/c problem in far neighbor list");
     (lists+FAR_NBRS)->error_ptr=error;
@@ -478,7 +477,7 @@ void PairReaxC::setup( )
     write_reax_lists();
     Initialize( system, control, data, workspace, &lists, out_control,
                 mpi_data, world );
-    for( int k = 0; k < system->N; ++k ) {
+    for (int k = 0; k < system->N; ++k) {
       num_bonds[k] = system->my_atoms[k].num_bonds;
       num_hbonds[k] = system->my_atoms[k].num_hbonds;
     }
@@ -491,7 +490,7 @@ void PairReaxC::setup( )
 
     // reset the bond list info for new atoms
 
-    for(int k = oldN; k < system->N; ++k)
+    for (int k = oldN; k < system->N; ++k)
       Set_End_Index( k, Start_Index( k, lists+BONDS ), lists+BONDS );
 
     // check if I need to shrink/extend my data-structs
@@ -560,7 +559,7 @@ void PairReaxC::compute(int eflag, int vflag)
   Compute_Forces(system,control,data,workspace,&lists,out_control,mpi_data);
   read_reax_forces(vflag);
 
-  for(int k = 0; k < system->N; ++k) {
+  for (int k = 0; k < system->N; ++k) {
     num_bonds[k] = system->my_atoms[k].num_bonds;
     num_hbonds[k] = system->my_atoms[k].num_hbonds;
   }
@@ -616,7 +615,7 @@ void PairReaxC::compute(int eflag, int vflag)
   // populate tmpid and tmpbo arrays for fix reax/c/species
   int i, j;
 
-  if(fixspecies_flag) {
+  if (fixspecies_flag) {
     if (system->N > nmax) {
       memory->destroy(tmpid);
       memory->destroy(tmpbo);
@@ -645,7 +644,7 @@ void PairReaxC::write_reax_atoms()
   if (system->N > system->total_cap)
     error->all(FLERR,"Too many ghost atoms");
 
-  for( int i = 0; i < system->N; ++i ){
+  for (int i = 0; i < system->N; ++i) {
     system->my_atoms[i].orig_id = atom->tag[i];
     system->my_atoms[i].type = map[atom->type[i]];
     system->my_atoms[i].x[0] = atom->x[i][0];
@@ -703,13 +702,13 @@ int PairReaxC::estimate_reax_lists()
 
   int numall = list->inum + list->gnum;
 
-  for( itr_i = 0; itr_i < numall; ++itr_i ){
+  for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     marked[i] = 1;
     ++num_marked;
     jlist = firstneigh[i];
 
-    for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
+    for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
       j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
@@ -751,7 +750,7 @@ int PairReaxC::write_reax_lists()
 
   int numall = list->inum + list->gnum;
 
-  for( itr_i = 0; itr_i < numall; ++itr_i ){
+  for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     jlist = firstneigh[i];
     Set_Start_Index( i, num_nbrs, far_nbrs );
@@ -761,7 +760,7 @@ int PairReaxC::write_reax_lists()
     else
       cutoff_sqr = control->bond_cut*control->bond_cut;
 
-    for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
+    for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
       j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
@@ -784,7 +783,7 @@ int PairReaxC::write_reax_lists()
 
 void PairReaxC::read_reax_forces(int /*vflag*/)
 {
-  for( int i = 0; i < system->N; ++i ) {
+  for (int i = 0; i < system->N; ++i) {
     system->my_atoms[i].f[0] = workspace->f[i][0];
     system->my_atoms[i].f[1] = workspace->f[i][1];
     system->my_atoms[i].f[2] = workspace->f[i][2];
@@ -829,25 +828,25 @@ double PairReaxC::memory_usage()
   double bytes = 0.0;
 
   // From pair_reax_c
-  bytes += 1.0 * system->N * sizeof(int);
-  bytes += 1.0 * system->N * sizeof(double);
+  bytes += (double)1.0 * system->N * sizeof(int);
+  bytes += (double)1.0 * system->N * sizeof(double);
 
   // From reaxc_allocate: BO
-  bytes += 1.0 * system->total_cap * sizeof(reax_atom);
-  bytes += 19.0 * system->total_cap * sizeof(double);
-  bytes += 3.0 * system->total_cap * sizeof(int);
+  bytes += (double)1.0 * system->total_cap * sizeof(reax_atom);
+  bytes += (double)19.0 * system->total_cap * sizeof(double);
+  bytes += (double)3.0 * system->total_cap * sizeof(int);
 
   // From reaxc_lists
-  bytes += 2.0 * lists->n * sizeof(int);
-  bytes += lists->num_intrs * sizeof(three_body_interaction_data);
-  bytes += lists->num_intrs * sizeof(bond_data);
-  bytes += lists->num_intrs * sizeof(dbond_data);
-  bytes += lists->num_intrs * sizeof(dDelta_data);
-  bytes += lists->num_intrs * sizeof(far_neighbor_data);
-  bytes += lists->num_intrs * sizeof(hbond_data);
+  bytes += (double)2.0 * lists->n * sizeof(int);
+  bytes += (double)lists->num_intrs * sizeof(three_body_interaction_data);
+  bytes += (double)lists->num_intrs * sizeof(bond_data);
+  bytes += (double)lists->num_intrs * sizeof(dbond_data);
+  bytes += (double)lists->num_intrs * sizeof(dDelta_data);
+  bytes += (double)lists->num_intrs * sizeof(far_neighbor_data);
+  bytes += (double)lists->num_intrs * sizeof(hbond_data);
 
-  if(fixspecies_flag)
-    bytes += 2 * nmax * MAXSPECBOND * sizeof(double);
+  if (fixspecies_flag)
+    bytes += (double)2 * nmax * MAXSPECBOND * sizeof(double);
 
   return bytes;
 }
@@ -864,14 +863,14 @@ void PairReaxC::FindBond()
 
   for (i = 0; i < system->n; i++) {
     nj = 0;
-    for( pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj ) {
+    for (pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj) {
       bo_ij = &( lists->select.bond_list[pj] );
       j = bo_ij->nbr;
       if (j < i) continue;
 
       bo_tmp = bo_ij->bo_data.BO;
 
-      if (bo_tmp >= bo_cut ) {
+      if (bo_tmp >= bo_cut) {
         tmpid[i][nj] = j;
         tmpbo[i][nj] = bo_tmp;
         nj ++;

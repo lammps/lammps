@@ -30,12 +30,15 @@ class MLIAPData : protected Pointers {
   double memory_usage();
 
   int size_array_rows, size_array_cols;
-  int natoms_array, size_gradforce;
+  int natoms;
+  int size_gradforce;
   int yoffset, zoffset;
   int ndims_force, ndims_virial;
   double **gradforce;
-  double** betas;               // betas for all atoms in list
+  double** betas;              // betas for all atoms in list
   double** descriptors;        // descriptors for all atoms in list
+  double* eatoms;              // energies for all atoms in list
+  double energy;               // energy
   int ndescriptors;            // number of descriptors
   int nparams;                 // number of model parameters per element
   int nelements;               // number of elements
@@ -52,8 +55,8 @@ class MLIAPData : protected Pointers {
   // data structures for mliap neighbor list
   // only neighbors strictly inside descriptor cutoff
 
-  int natoms;                   // current number of atoms
-  int natoms_max;               // allocated size of descriptor array
+  int nlistatoms;               // current number of atoms in neighborlist
+  int nlistatoms_max;           // allocated size of descriptor array
   int natomneigh_max;           // allocated size of atom neighbor arrays
   int *numneighs;               // neighbors count for each atom
   int *iatoms;                  // index of each atom

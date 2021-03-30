@@ -1,5 +1,5 @@
 Additional website links
-========================
+------------------------
 
 The `LAMMPS website <lws_>`_ has a variety of additional info about
 LAMMPS, beyond what is in this manual.  Some other useful resources

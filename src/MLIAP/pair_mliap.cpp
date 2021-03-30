@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,12 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include "pair_mliap.h"
 
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
+#include "mliap_model_nn.h"
 #include "mliap_descriptor_snap.h"
+#ifdef MLIAP_PYTHON
+#include "mliap_model_python.h"
+#endif
 
 #include "atom.h"
 #include "error.h"
@@ -27,6 +35,7 @@
 
 #include <cmath>
 #include <cstring>
+#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,7 +47,7 @@ PairMLIAP::PairMLIAP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
-
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,6 +74,17 @@ PairMLIAP::~PairMLIAP()
 
 void PairMLIAP::compute(int eflag, int vflag)
 {
+
+  // consistency checks
+
+  if (data->ndescriptors != model->ndescriptors) {
+    error->all(FLERR,"Incompatible model and descriptor descriptor count");
+  };
+
+  if (data->nelements != model->nelements) {
+    error->all(FLERR,"Incompatible model and descriptor element count");
+  };
+
   ev_init(eflag,vflag);
 
   data->generate_neighdata(list, eflag, vflag);
@@ -77,6 +97,8 @@ void PairMLIAP::compute(int eflag, int vflag)
   // compute E_i and beta_i = dE_i/dB_i for all i in list
 
   model->compute_gradients(data);
+
+  e_tally(data);
 
   // calculate force contributions beta_i*dB_i/dR_j
 
@@ -107,6 +129,7 @@ void PairMLIAP::allocate()
 
 void PairMLIAP::settings(int narg, char ** arg)
 {
+
   if (narg < 4)
     error->all(FLERR,"Illegal pair_style command");
 
@@ -130,6 +153,16 @@ void PairMLIAP::settings(int narg, char ** arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         model = new MLIAPModelQuadratic(lmp,arg[iarg+2]);
         iarg += 3;
+      } else if (strcmp(arg[iarg+1],"nn") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+        model = new MLIAPModelNN(lmp,arg[iarg+2]);
+        iarg += 3;
+#ifdef MLIAP_PYTHON
+      } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+          if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+          model = new MLIAPModelPython(lmp,arg[iarg+2]);
+          iarg += 3;
+#endif
       } else error->all(FLERR,"Illegal pair_style mliap command");
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
@@ -211,22 +244,21 @@ void PairMLIAP::coeff(int narg, char **arg)
   data = new MLIAPData(lmp, gradgradflag, map, model, descriptor, this);
   data->init();
 
-  // consistency checks
 
-  if (data->ndescriptors != model->ndescriptors)
-    error->all(FLERR,"Incompatible model and descriptor definitions");
-  if (data->nelements != model->nelements)
-    error->all(FLERR,"Incompatible model and descriptor definitions");
 }
 
 /* ----------------------------------------------------------------------
-   add energy of atom i to global and per-atom energy
+   add energies to eng_vdwl and per-atom energy
 ------------------------------------------------------------------------- */
 
-void PairMLIAP::e_tally(int i, double ei)
+void PairMLIAP::e_tally(MLIAPData* data)
 {
-  if (eflag_global) eng_vdwl += ei;
-  if (eflag_atom) eatom[i] += ei;
+  if (eflag_global) eng_vdwl += data->energy;
+  if (eflag_atom)
+    for (int ii = 0; ii < data->nlistatoms; ii++) {
+      const int i = data->iatoms[ii];
+      eatom[i] += data->eatoms[ii];
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -309,9 +341,9 @@ double PairMLIAP::memory_usage()
   double bytes = Pair::memory_usage();
 
   int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);            // setflag
-  bytes += n*n*sizeof(int);            // cutsq
-  bytes += n*sizeof(int);              // map
+  bytes += (double)n*n*sizeof(int);            // setflag
+  bytes += (double)n*n*sizeof(int);            // cutsq
+  bytes += (double)n*sizeof(int);              // map
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object
   bytes += data->memory_usage();       // Data object

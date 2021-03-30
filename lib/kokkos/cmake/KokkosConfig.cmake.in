@@ -1,3 +1,9 @@
+# No need for policy push/pop. CMake also manages a new entry for scripts
+# loaded by include() and find_package() commands except when invoked with
+# the NO_POLICY_SCOPE option
+# CMP0057 + NEW -> IN_LIST operator in IF(...)
+CMAKE_POLICY(SET CMP0057 NEW)
+
 # Compute paths
 @PACKAGE_INIT@
 
@@ -12,3 +18,18 @@ GET_FILENAME_COMPONENT(Kokkos_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 INCLUDE("${Kokkos_CMAKE_DIR}/KokkosTargets.cmake")
 INCLUDE("${Kokkos_CMAKE_DIR}/KokkosConfigCommon.cmake")
 UNSET(Kokkos_CMAKE_DIR)
+
+# if CUDA was enabled and separable compilation was specified, e.g.
+#   find_package(Kokkos COMPONENTS separable_compilation)
+# then we set the RULE_LAUNCH_COMPILE and RULE_LAUNCH_LINK
+IF(@Kokkos_ENABLE_CUDA@ AND NOT "separable_compilation" IN_LIST Kokkos_FIND_COMPONENTS)
+    # run test to see if CMAKE_CXX_COMPILER=nvcc_wrapper
+    kokkos_compiler_is_nvcc(IS_NVCC ${CMAKE_CXX_COMPILER})
+    # if not nvcc_wrapper, use RULE_LAUNCH_COMPILE and RULE_LAUNCH_LINK
+    IF(NOT IS_NVCC AND NOT CMAKE_CXX_COMPILER_ID STREQUAL Clang AND
+        (NOT DEFINED Kokkos_LAUNCH_COMPILER OR Kokkos_LAUNCH_COMPILER))
+        MESSAGE(STATUS "kokkos_launch_compiler is enabled globally. C++ compiler commands with -DKOKKOS_DEPENDENCE will be redirected to nvcc_wrapper")
+        kokkos_compilation(GLOBAL)
+    ENDIF()
+    UNSET(IS_NVCC) # be mindful of the environment, pollution is bad
+ENDIF()

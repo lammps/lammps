@@ -23,7 +23,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_bonds_omp.h"
@@ -174,7 +174,7 @@ void BondsOMP( reax_system *system, control_params * /* control */,
         }
       }
     }
-  } // for(i)
+  } // for (i)
 
  } // omp
 

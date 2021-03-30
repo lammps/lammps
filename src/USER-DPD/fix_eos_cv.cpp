@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +30,7 @@ FixEOScv::FixEOScv(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 4) error->all(FLERR,"Illegal fix eos/cv command");
   cvEOS = utils::numeric(FLERR,arg[3],false,lmp);
-  if(cvEOS <= 0.0) error->all(FLERR,"EOS cv must be > 0.0");
+  if (cvEOS <= 0.0) error->all(FLERR,"EOS cv must be > 0.0");
 
   nevery = 1;
 
@@ -58,14 +58,14 @@ void FixEOScv::init()
   double *uMech = atom->uMech;
   double *dpdTheta = atom->dpdTheta;
 
-  if(this->restart_reset){
+  if (this->restart_reset) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
         dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if(dpdTheta[i] <= 0.0)
+        if (dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         uCond[i] = 0.0;
         uMech[i] = cvEOS*dpdTheta[i];
@@ -84,9 +84,9 @@ void FixEOScv::post_integrate()
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
-      if(dpdTheta[i] <= 0.0)
+      if (dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -102,9 +102,9 @@ void FixEOScv::end_of_step()
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       dpdTheta[i] = (uCond[i]+uMech[i])/cvEOS;
-      if(dpdTheta[i] <= 0.0)
+      if (dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }

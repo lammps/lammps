@@ -62,9 +62,9 @@ class FixShardlowKokkos : public FixShardlow {
 
   struct params_ssa {
     KOKKOS_INLINE_FUNCTION
-    params_ssa(){cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
+    params_ssa() {cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
     KOKKOS_INLINE_FUNCTION
-    params_ssa(int /*i*/){cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
+    params_ssa(int /*i*/) {cutinv=FLT_MAX;halfsigma=0;kappa=0;alpha=0;};
     F_FLOAT cutinv,halfsigma,kappa,alpha;
   };
 

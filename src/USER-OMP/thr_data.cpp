@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -139,20 +139,6 @@ void ThrData::init_adp(int nall, double *rho, double **mu, double **lambda)
 
 /* ---------------------------------------------------------------------- */
 
-void ThrData::init_cdeam(int nall, double *rho, double *rhoB, double *D_values)
-{
-  init_eam(nall, rho);
-
-  if (nall >= 0 && rhoB && D_values) {
-    _rhoB = rhoB + _tid*nall;
-    _D_values = D_values + _tid*nall;
-    memset(_rhoB, 0, nall*sizeof(double));
-    memset(_D_values, 0, nall*sizeof(double));
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void ThrData::init_eim(int nall, double *rho, double *fp)
 {
   init_eam(nall, rho);
@@ -278,8 +264,8 @@ void ThrData::virial_fdotr_compute(double **x, int nlocal, int nghost, int nfirs
 double ThrData::memory_usage()
 {
   double bytes = (7 + 6*6) * sizeof(double);
-  bytes += 2 * sizeof(double*);
-  bytes += 4 * sizeof(int);
+  bytes += (double)2 * sizeof(double*);
+  bytes += (double)4 * sizeof(int);
 
   return bytes;
 }

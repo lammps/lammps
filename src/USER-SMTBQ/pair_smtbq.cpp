@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,28 +35,29 @@
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
    See the GNU General Public License for more details:
-   <http://www.gnu.org/licenses/>.
+   <https://www.gnu.org/licenses/>.
    ------------------------------------------------------------------------- */
 
 #include "pair_smtbq.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <algorithm>
-#include <vector>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
+
+#include <algorithm>
+#include <vector>
 #include <fstream>
 #include <iomanip>
 
@@ -64,6 +65,7 @@ using namespace std;
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 using namespace MathSpecial;
 
 #define MAXLINE 2048
@@ -71,17 +73,6 @@ using namespace MathSpecial;
 #define DELTA 4
 #define PGDELTA 1
 #define MAXNEIGH 24
-
-/* ------------------------------------------------------------------------------------
-
-   Calculates the factorial of an integer n via recursion.
-
-   ------------------------------------------------------------------------------------ */
-static double factorial(int n)
-{
-  if (n <= 1) return 1.0;
-  else return static_cast<double>(n)*factorial(n-1);
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -100,10 +91,6 @@ PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
   ds = 0.0;
   kmax = 0;
 
-  nelements = 0;
-  elements = nullptr;
-  nparams = 0;
-  maxparam = 0;
   params = nullptr;
   intparams = nullptr;
 
@@ -162,11 +149,9 @@ PairSMTBQ::~PairSMTBQ()
 {
   int i;
   if (elements) {
-    for ( i = 0; i < nelements; i++) delete [] elements[i];
-
-    for( i = 0; i < atom->ntypes ; i++ ) free( params[i].nom );
-    for( i = 1; i <= maxintparam ; i++ ) free( intparams[i].typepot );
-    for( i = 1; i <= maxintparam ; i++ ) free( intparams[i].mode );
+    for (i = 0; i < atom->ntypes ; i++ ) free( params[i].nom);
+    for (i = 1; i <= maxintparam ; i++ ) free( intparams[i].typepot);
+    for (i = 1; i <= maxintparam ; i++ ) free( intparams[i].mode);
   }
 
   free(QEqMode);
@@ -175,7 +160,6 @@ PairSMTBQ::~PairSMTBQ()
   free(writeenerg);
   free(Bavard);
 
-  delete [] elements;
   memory->sfree(params);
   memory->sfree(intparams);
 
@@ -225,7 +209,6 @@ PairSMTBQ::~PairSMTBQ()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] esm;
   }
 
@@ -261,92 +244,30 @@ void PairSMTBQ::settings(int narg, char ** /* arg */)
 
 void PairSMTBQ::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (strstr(force->pair_style,"hybrid"))
+  if (utils::strmatch(force->pair_style,"^hybrid"))
     error->all(FLERR,"Pair style SMTBQ is not compatible with hybrid styles");
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3,arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
 
-  n = atom->ntypes;
-
   // generate Coulomb 1/r energy look-up table
 
-  if (comm->me == 0 && screen) fprintf(screen,"Pair SMTBQ:\n");
   if (comm->me == 0 && screen)
-    fprintf(screen,"  generating Coulomb integral lookup table ...\n");
+    fputs("Pair SMTBQ: generating Coulomb integral lookup table ...\n",screen);
 
   tabqeq();
 
   // ------------
 
-
   if (comm->me == 0 && screen)
-    fprintf(screen,"  generating Second Moment integral lookup table ...\n");
+    fputs("  generating Second Moment integral lookup table ...\n",screen);
 
   tabsm();
-
-  // ------------
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -411,7 +332,7 @@ void PairSMTBQ::read_file(char *file)
       // open file on all processors
   FILE *fp;
   fp = utils::open_potential(file,lmp,nullptr);
-  if ( fp  == nullptr ) {
+  if (fp  == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open SMTBQ potential file %s",file);
     error->one(FLERR,str);
@@ -512,7 +433,7 @@ void PairSMTBQ::read_file(char *file)
     params[i].chi = atof(words[2])  ;
     params[i].dj = atof(words[3]) ;
 
-    if(strcmp(params[i].nom,"O")!=0){
+    if (strcmp(params[i].nom,"O")!=0) {
       params[i].R = atof(words[4]) ;
       if (verbose) printf(" %s %f %f %f %f\n",words[0],params[i].ne,params[i].chi,
                           params[i].dj,params[i].R);
@@ -522,7 +443,7 @@ void PairSMTBQ::read_file(char *file)
 
 
     // Line 4bis - Coordinance et rayon pour Ox
-    if(strcmp(params[i].nom,"O")==0){
+    if (strcmp(params[i].nom,"O")==0) {
 
       fgets( ptr, MAXLINE, fp);
       Tokenize ( ptr, &words );
@@ -554,7 +475,7 @@ void PairSMTBQ::read_file(char *file)
      ===================================================================== */
 
   m = 0; maxintsm = 0;        //
-  for (k=0 ; k<=maxintparam ; k++){intparams[k].intsm = 0;}
+  for (k=0 ; k<=maxintparam ; k++) {intparams[k].intsm = 0;}
   //  ---------------------------------
   for (k = 0; k < maxintparam; k++) {
     //  ---------------------------------
@@ -583,7 +504,7 @@ void PairSMTBQ::read_file(char *file)
     //    if (test == 0) printf (" on a %s -> %d = %s\n",words[2],j,params[j].nom);
 
 
-    if ( test == 1 ) {
+    if (test == 1) {
       if (verbose) printf ("========== fin des interaction ==========\n");
       break ; }
 
@@ -608,7 +529,7 @@ void PairSMTBQ::read_file(char *file)
       intparams[m].intsm = maxintsm;
 
       if (strcmp(intparams[m].mode,"oxide") != 0 &&
-          strcmp(intparams[m].mode,"metal") != 0){
+          strcmp(intparams[m].mode,"metal") != 0) {
         error->all(FLERR,"needs mode to second moment interaction : oxide or metal"); }
 
       //      if (strcmp(intparams[m].mode,"oxide") == 0)
@@ -777,7 +698,7 @@ void PairSMTBQ::read_file(char *file)
 
   } else if (strcmp(QEqMode,"QEqAll") != 0         &&
              strcmp(QEqMode,"QEqAllParallel") != 0 &&
-             strcmp(QEqMode,"Surface") != 0 ) {
+             strcmp(QEqMode,"Surface") != 0) {
     error->all(FLERR,"The QEq Mode is not known. QEq mode should be :\n"
                "  Possible QEq  modes    |   parameters\n"
                "  QEqAll                      |   no parameters\n"
@@ -820,7 +741,7 @@ void PairSMTBQ::read_file(char *file)
   /* ======================================================== */
 
   /* deallocate helper storage */
-  for( i = 0; i < MAXTOKENS ; i++ ) free( words[i] );
+  for (i = 0; i < MAXTOKENS ; i++ ) free( words[i]);
   free( words );
   free( ptr );
   fclose(fp);
@@ -1066,7 +987,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
 
       //    ----------------------------------------------
       if ( strcmp(intparams[m].typepot,"buck") == 0 ||
-           strcmp(intparams[m].typepot,"buckPlusAttr") ==0 ) {
+           strcmp(intparams[m].typepot,"buckPlusAttr") ==0) {
         //    ----------------------------------------------
 
         evdwl = 0.0; fpair =0.0;
@@ -1090,7 +1011,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
 
       }  // ----------------------------------- Rep O-O
 
-      if (strcmp(intparams[m].typepot,"buckPlusAttr") == 0 ) {
+      if (strcmp(intparams[m].typepot,"buckPlusAttr") == 0) {
         //    ----------------------------------------------
 
         evdwl = 0.0; fpair =0.0;
@@ -1411,8 +1332,8 @@ void PairSMTBQ::tabqeq()
   rcoupe = cutmax ;
   double cang ;
 
-  for (i = 0; i < n ; i++){
-    for (j = i; j < n ; j++){
+  for (i = 0; i < n ; i++) {
+    for (j = i; j < n ; j++) {
 
       rc = cutmax; if (verbose) printf ("cutmax %f\n",cutmax);
       m = coultype[i][j] ;
@@ -1468,11 +1389,11 @@ void PairSMTBQ::tabqeq()
 
       // Make the table fafbOxOxSurf
       rc = cutmax;
-      if(strcmp(params[i].nom,"O")==0 || strcmp(params[j].nom,"O")==0){
-        if(strcmp(params[i].nom,"O")==0) {
+      if (strcmp(params[i].nom,"O")==0 || strcmp(params[j].nom,"O")==0) {
+        if (strcmp(params[i].nom,"O")==0) {
           ra = ROxSurf;
           za = (2.0*params[i].ne + 1.0)/(4.0*ra);}
-        if(strcmp(params[j].nom,"O")==0) {
+        if (strcmp(params[j].nom,"O")==0) {
           rb = ROxSurf;
           zb = (2.0*params[j].ne + 1.0)/(4.0*rb); }
 
@@ -1512,7 +1433,7 @@ void PairSMTBQ::tabqeq()
 
             if (r > (rc+nang)) {dij = 0.0 ; ddij = 0.0;}
 
-            if(strcmp(params[i].nom,"O")==0 && strcmp(params[j].nom,"O")==0){
+            if (strcmp(params[i].nom,"O")==0 && strcmp(params[j].nom,"O")==0) {
               fafbOxOxSurf[k] = potqn[k] - dij ;
               if (k == 1) fafbOxOxSurf[0] = fafbOxOxSurf[k] ;
 
@@ -1531,11 +1452,11 @@ void PairSMTBQ::tabqeq()
 
       // Makes the table fafbOxOxBB
       rc = cutmax;
-      if(strcmp(params[i].nom,"O")==0 || strcmp(params[j].nom,"O")==0){
-        if(strcmp(params[i].nom,"O")==0) {
+      if (strcmp(params[i].nom,"O")==0 || strcmp(params[j].nom,"O")==0) {
+        if (strcmp(params[i].nom,"O")==0) {
           ra = ROxBB;
           za = (2.0*params[i].ne + 1.0)/(4.0*ra);}
-        if(strcmp(params[j].nom,"O")==0) {
+        if (strcmp(params[j].nom,"O")==0) {
           rb = ROxBB;
           zb = (2.0*params[j].ne + 1.0)/(4.0*rb); }
 
@@ -1576,7 +1497,7 @@ void PairSMTBQ::tabqeq()
 
             if (r > (rc+nang)) {dij = 0.0 ; ddij = 0.0;}
 
-            if(strcmp(params[i].nom,"O")==0 && strcmp(params[j].nom,"O")==0){
+            if (strcmp(params[i].nom,"O")==0 && strcmp(params[j].nom,"O")==0) {
               fafbOxOxBB[k] = potqn[k] - dij ;
               if (k == 1) fafbOxOxBB[0] = fafbOxOxBB[k] ;
               dfafbOxOxBB[k] = dpotqn[k] - ddij/r ; }
@@ -1649,9 +1570,9 @@ void PairSMTBQ::potqeq(int i, int j, double qi, double qj, double rsq,
   fforce = - qi*qj*(t1 + (t2 - t1)*xi/2.0) ;
 
 
-  if(strcmp(params[itype].nom,"O")==0 || strcmp(params[jtype].nom,"O")==0){
+  if (strcmp(params[itype].nom,"O")==0 || strcmp(params[jtype].nom,"O")==0) {
 
-    if(strcmp(params[itype].nom,"O")==0 && strcmp(params[jtype].nom,"O")==0){
+    if (strcmp(params[itype].nom,"O")==0 && strcmp(params[jtype].nom,"O")==0) {
       // between two oxygens
 
       t1 = fafbOxOxSurf[l] + (fafbOxOxSurf[l+1] - fafbOxOxSurf[l])*xi;
@@ -1691,7 +1612,7 @@ void PairSMTBQ::potqeq(int i, int j, double qi, double qj, double rsq,
       t2 = fafbTiOxBB[l+1] + (fafbTiOxBB[l+2] - fafbTiOxBB[l+1])*(xi-1.0);
       engBB = qi*qj*(t1 + (t2 - t1)*xi/2.0);
 
-      if(strcmp(params[jtype].nom,"O")==0) //the atom j is an oxygen
+      if (strcmp(params[jtype].nom,"O")==0) //the atom j is an oxygen
         {         iIntfCoup2=jIntfCoup2;
           iCoord=jCoord;        }
 
@@ -1769,9 +1690,9 @@ void PairSMTBQ::pot_ES (int i, int j, double rsq, double &eng)
   engBulk=eng;
 
 
-  if(itype==0 || jtype==0){
+  if (itype==0 || jtype==0) {
 
-    if(itype==0 && jtype==0){   // between two oxygens
+    if (itype==0 && jtype==0) {   // between two oxygens
 
       t1 = fafbOxOxSurf[l] + (fafbOxOxSurf[l+1] - fafbOxOxSurf[l])*xi;
       t2 = fafbOxOxSurf[l+1] + (fafbOxOxSurf[l+2] - fafbOxOxSurf[l+1])*(xi-1.0);
@@ -2073,7 +1994,7 @@ void PairSMTBQ::attractive(Intparam *intparam, double rsq,
     //      if (i < 10) printf ("i %d, iq %f sbcov %f \n",i,iq,sbcov[i]);
 
     if (sqrt(r)<r1Coord) { coord[i] +=  1 ; }
-    else if (sqrt(r)<r2Coord){ coord[i] +=  fcoupure(sqrt(r),r1Coord,r2Coord) ;}
+    else if (sqrt(r)<r2Coord) { coord[i] +=  fcoupure(sqrt(r),r1Coord,r2Coord) ;}
 
 
   }
@@ -2588,7 +2509,7 @@ void PairSMTBQ::Charge()
   //     Init_charge(nQEq,nQEqa,nQEqc);
   //  ---------------------------------
 
-  if (update->ntimestep == 0 && (strcmp(QInitMode,"true") == 0)   ) {
+  if (update->ntimestep == 0 && (strcmp(QInitMode,"true") == 0)) {
     //Carefull here it won't be fine if there are more than 2 species!!!
     QOxInit=max(QOxInit, -0.98* params[1].qform *nQEqcall[gp]/nQEqaall[gp])   ;
 
@@ -2633,7 +2554,7 @@ void PairSMTBQ::Charge()
 
 
   // --------------------------------------------
-  for (iloop = 0; iloop < loopmax; iloop ++ ) {
+  for (iloop = 0; iloop < loopmax; iloop ++) {
     // --------------------------------------------
 
     qtot = qtotll = Transf[3*cluster] = 0.0 ;
@@ -2705,7 +2626,7 @@ void PairSMTBQ::Charge()
 
 
     for (gp = 0; gp < nteam+1; gp++) {
-      if(nQEqall[gp] !=0) {
+      if (nQEqall[gp] !=0) {
         enegchk[gp] = enegchkall[gp]/static_cast<double>(nQEqall[gp]);
         enegmax[gp] = enegmaxall[gp];
       }
@@ -2769,7 +2690,7 @@ void PairSMTBQ::Charge()
   //   Statistique (ecart type)
   //   ------------------------
   for (i=0; i<nteam+1; i++) {
-    if(nQEqcall[i] !=0)
+    if (nQEqcall[i] !=0)
       { TransfAll[i+cluster] /= static_cast<double>(nQEqcall[i]) ;
         TransfAll[i+2*cluster] /= static_cast<double>(nQEqaall[i]) ;}
     sigmaa[i] = sigmac[i] = 0.0;
@@ -2799,7 +2720,7 @@ void PairSMTBQ::Charge()
 
 
 
-  if (me == 0 && strcmp(Bavard,"false") != 0){
+  if (me == 0 && strcmp(Bavard,"false") != 0) {
     for (gp = 0; gp < nteam+1; gp++) {
       printf (" -------------- Groupe %d -----------------\n",gp);
       printf (" qtotc %f(+- %f) qtota %f(+- %f)\n",
@@ -2977,7 +2898,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
           delr[0] = x[j][0] - xtmp;
           delr[1] = x[j][1] - ytmp;
           delr[2] = x[j][2] - ztmp;
-          rsq = vec3_dot(delr,delr);
+          rsq = dot3(delr,delr);
 
           if (sqrt(rsq) <= intparams[m].dc2) {
             flag_QEq[i] = 1; flag_QEq[j] = 1;
@@ -3076,7 +2997,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
             delr[0] = x[j][0] - xtmp;
             delr[1] = x[j][1] - ytmp;
             delr[2] = x[j][2] - ztmp;
-            rsq = vec3_dot(delr,delr);
+            rsq = dot3(delr,delr);
 
             //     -------------------------------------
             if (sqrt(rsq) <= cutmax) {
@@ -3171,7 +3092,7 @@ void PairSMTBQ::groupQEqAllParallel_QEq()
           delr[0] = x[j][0] - xtmp;
           delr[1] = x[j][1] - ytmp;
           delr[2] = x[j][2] - ztmp;
-          rsq = vec3_dot(delr,delr);
+          rsq = dot3(delr,delr);
 
           //    ----------------------------------------
           if (sqrt(rsq) <= cutmax) {
@@ -3533,10 +3454,10 @@ void PairSMTBQ::reverse_int(int *tab)
 
 double PairSMTBQ::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += nmax * sizeof(int);
-  bytes += MAXNEIGH * nmax * sizeof(int);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)nmax * sizeof(int);
+  bytes += (double)MAXNEIGH * nmax * sizeof(int);
   return bytes;
 }
 
@@ -3567,7 +3488,7 @@ int PairSMTBQ::Tokenize( char* s, char*** tok )
 
   strncpy( test, s, MAXLINE-1 );
 
-  for( mot = strtok(test, sep); mot; mot = strtok(nullptr, sep) ) {
+  for (mot = strtok(test, sep); mot; mot = strtok(nullptr, sep)) {
     strncpy( (*tok)[count], mot, MAXLINE );
     count++;
   }
@@ -3643,7 +3564,7 @@ void PairSMTBQ::CheckEnergyVSForce()
 
       drL=0.0001;
       iiiMax=int((cutmax-1.2)/drL);
-      for (iii=1; iii< iiiMax ; iii++){
+      for (iii=1; iii< iiiMax ; iii++) {
         r=1.2+drL*iii;
         rsq=r*r;
         evdwlCoul = 0.0 ; fpairCoul = 0.0;
@@ -3743,7 +3664,7 @@ void PairSMTBQ::CheckEnergyVSForce()
 
       drL=0.0001;
       iiiMax=int((cutmax-1.2)/drL);
-      for (iii=1; iii< iiiMax ; iii++){
+      for (iii=1; iii< iiiMax ; iii++) {
         r=1.2+drL*iii;
         rsq=r*r;
         evdwlCoul = 0.0 ; fpairCoul = 0.0;

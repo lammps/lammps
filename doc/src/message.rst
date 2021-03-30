@@ -34,7 +34,7 @@ Examples
    message server md file tmp.couple
 
    message client md zmq localhost:5555
-   message server md zmq \*:5555
+   message server md zmq *:5555
 
    message client md mpi/one
    message server md mpi/one

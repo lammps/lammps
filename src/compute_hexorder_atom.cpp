@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -260,8 +260,8 @@ inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, doubl
 
 inline void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
   double ntheta;
-  if(fabs(delx) <= MY_EPSILON) {
-    if(dely > 0.0) ntheta = ndegree * MY_PI / 2.0;
+  if (fabs(delx) <= MY_EPSILON) {
+    if (dely > 0.0) ntheta = ndegree * MY_PI / 2.0;
     else ntheta = ndegree * 3.0 * MY_PI / 2.0;
   } else ntheta = ndegree * atan(dely / delx);
   u = cos(ntheta);
@@ -338,9 +338,9 @@ void ComputeHexOrderAtom::select2(int k, int n, double *arr, int *iarr)
 
 double ComputeHexOrderAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
-  bytes += maxneigh * sizeof(double);
-  bytes += maxneigh * sizeof(int);
+  double bytes = (double)ncol*nmax * sizeof(double);
+  bytes += (double)maxneigh * sizeof(double);
+  bytes += (double)maxneigh * sizeof(int);
 
   return bytes;
 }

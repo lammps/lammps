@@ -1,5 +1,5 @@
 Download an executable for Windows
-==================================
+----------------------------------
 
 Pre-compiled Windows installers which install LAMMPS executables on a
 Windows system can be downloaded from this site:
@@ -12,14 +12,20 @@ Note that each installer package has a date in its name, which
 corresponds to the LAMMPS version of the same date.  Installers for
 current and older versions of LAMMPS are available.  32-bit and 64-bit
 installers are available, and each installer contains both a serial
-and parallel executable.  The installer site also explains how to
+and parallel executable.  The installer web site also explains how to
 install the Windows MPI package (MPICH2 from Argonne National Labs),
 needed to run in parallel.
 
-The LAMMPS binaries contain all optional packages included in the
-source distribution except: KIM, KOKKOS, USER-INTEL, and USER-QMMM.
+The LAMMPS binaries contain *all* :doc:`optional packages <Packages>`
+included in the source distribution except: KIM, KOKKOS, MSCG, PYTHON,
+USER-ADIOS, USER-H5MD, USER-NETCDF, USER-QMMM, USER-QUIP, and USER-VTK.
 The serial version also does not include the MPIIO and
-USER-LB packages.  GPU support is provided for OpenCL.
+USER-LB packages.  The GPU package is compiled for OpenCL with
+mixed precision kernels.
+
+The LAMMPS library is compiled as a shared library and the
+:doc:`LAMMPS Python module <Python_module>` is installed, so that
+it is possible to load LAMMPS into a Python interpreter.
 
 The installer site also has instructions on how to run LAMMPS under
 Windows, once it is installed, in both serial and parallel.
@@ -42,5 +48,3 @@ install multiple versions of LAMMPS (in different directories), but
 only the executable for the last-installed package will be found
 automatically, so this should only be done for debugging purposes.
 
-Thanks to Axel Kohlmeyer (Temple U, akohlmey at gmail.com) for setting
-up this Windows capability.

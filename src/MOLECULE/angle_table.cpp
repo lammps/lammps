@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -241,7 +241,7 @@ void AngleTable::coeff(int narg, char **arg)
 
   // convert theta from degrees to radians
 
-  for (int i = 0; i < tb->ninput; i++){
+  for (int i = 0; i < tb->ninput; i++) {
     tb->afile[i] *= MY_PI/180.0;
     tb->ffile[i] *= 180.0/MY_PI;
   }

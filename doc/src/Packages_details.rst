@@ -10,10 +10,10 @@ scripts, and pictures/movies (if available) that illustrate use of the
 package.
 
 The majority of packages can be included in a LAMMPS build with a
-single setting (-D PGK_NAME for CMake) or command ("make yes-name" for
-make).  See the :doc:`Build package <Build_package>` doc page for more
-info.  A few packages may require additional steps; this is indicated
-in the descriptions below.  The :doc:`Build extras <Build_extras>` doc
+single setting (``-D PGK_<NAME>=on`` for CMake) or command
+(``make yes-<name>`` for make).  See the :doc:`Build package <Build_package>`
+page for more info.  A few packages may require additional steps;
+this is indicated in the descriptions below.  The :doc:`Build extras <Build_extras>`
 page gives those details.
 
 .. note::
@@ -143,7 +143,7 @@ BODY package
 
 Body-style particles with internal structure.  Computes,
 time-integration fixes, pair styles, as well as the body styles
-themselves.  See the :doc:`Howto body <Howto_body>` doc page for an
+themselves.  See the :doc:`Howto body <Howto_body>` page for an
 overview.
 
 **Supporting info:**
@@ -225,7 +225,7 @@ available on your system.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <compress>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <compress>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -249,7 +249,7 @@ CORESHELL package
 Compute and pair styles that implement the adiabatic core/shell model
 for polarizability.  The pair styles augment Born, Buckingham, and
 Lennard-Jones styles with core/shell capabilities.  The :doc:`compute temp/cs <compute_temp_cs>` command calculates the temperature of a
-system with core/shell particles.  See the :doc:`Howto coreshell <Howto_coreshell>` doc page for an overview of how to use
+system with core/shell particles.  See the :doc:`Howto coreshell <Howto_coreshell>` page for an overview of how to use
 this package.
 
 **Author:** Hendrik Heenen (Technical U of Munich).
@@ -312,7 +312,7 @@ Kuznetsov, Vladimir Stegailov, and Vsevolod Nikolskiy (HSE University).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <gpu>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <gpu>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -367,17 +367,19 @@ KIM package
 
 **Contents:**
 
-This package contains a set of commands that serve as a wrapper on the
+This package contains a command with a set of sub-commands that serve as a
+wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs) enabling compatible ones to be used in
 LAMMPS simulations.
 
-This includes :doc:`kim_init <kim_commands>`, and
-:doc:`kim_interactions <kim_commands>` commands to select, initialize and
-instantiate the IM, a :doc:`kim_query <kim_commands>` command to perform web
+
+This includes :doc:`kim init <kim_commands>`, and
+:doc:`kim interactions <kim_commands>` commands to select, initialize and
+instantiate the IM, a :doc:`kim query <kim_commands>` command to perform web
 queries for material property predictions of OpenKIM IMs, a
-:doc:`kim_param <kim_commands>` command to access KIM Model Parameters from
-LAMMPS, and a :doc:`kim_property <kim_commands>` command to write material
+:doc:`kim param <kim_commands>` command to access KIM Model Parameters from
+LAMMPS, and a :doc:`kim property <kim_commands>` command to write material
 properties computed in LAMMPS to standard KIM property instance format.
 
 Support for KIM IMs that conform to the
@@ -386,8 +388,8 @@ is provided by the :doc:`pair_style kim <pair_kim>` command.
 
 .. note::
 
-   The command *pair_style kim* is called by *kim_interactions* and
-   is not recommended to be directly used in input scripts.
+   The command *pair_style kim* is called by *kim interactions* and is not
+   recommended to be directly used in input scripts.
 
 To use this package you must have the KIM API library available on your
 system. The KIM API is available for download on the
@@ -404,17 +406,17 @@ and is funded by the `National Science Foundation <https://www.nsf.gov/>`_.
 API and the *pair_style kim* command. Yaser Afshar (U Minnesota),
 Axel Kohlmeyer (Temple U), Ellad Tadmor (U Minnesota), and
 Daniel Karls (U Minnesota) contributed to the
-:doc:`kim_commands <kim_commands>` interface in close collaboration with
+:doc:`kim command <kim_commands>` interface in close collaboration with
 Ryan Elliott.
 
 **Install:**
 
 This package has :ref:`specific installation instructions <kim>` on the
-:doc:`Build extras <Build_extras>` doc page.
+:doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
-* :doc:`kim_commands <kim_commands>`
+* :doc:`kim command <kim_commands>`
 * :doc:`pair_style kim <pair_kim>`
 * src/KIM: filenames -> commands
 * src/KIM/README
@@ -434,7 +436,7 @@ Dozens of atom, pair, bond, angle, dihedral, improper, fix, compute
 styles adapted to compile using the Kokkos library which can convert
 them to OpenMP or CUDA code so that they run efficiently on multicore
 CPUs, KNLs, or GPUs.  All the styles have a "kk" as a suffix in their
-style name.  The :doc:`KOKKOS package <Speed_kokkos>` doc page gives
+style name.  The :doc:`KOKKOS package <Speed_kokkos>` page gives
 details of what hardware and software is required on your system, and
 how to build and use this package.  Its styles can be invoked at run
 time via the "-sf kk" or "-suffix kk" :doc:`command-line switches <Run_options>`.  Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`,
@@ -457,7 +459,7 @@ lib/kokkos.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <kokkos>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <kokkos>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -494,7 +496,7 @@ interactions.  These include Ewald, particle-particle particle-mesh
 Building with this package requires a 1d FFT library be present on
 your system for use by the PPPM solvers.  This can be the KISS FFT
 library provided with LAMMPS, third party libraries like FFTW, or a
-vendor-supplied FFT library.  See the :doc:`Build settings <Build_settings>` doc page for details on how to select
+vendor-supplied FFT library.  See the :doc:`Build settings <Build_settings>` page for details on how to select
 different FFT options for your LAMPMS build.
 
 **Supporting info:**
@@ -535,7 +537,7 @@ Cawkwell, Anders Niklasson, and Christian Negre.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <latte>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <latte>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -609,7 +611,7 @@ another application.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <message>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -662,19 +664,31 @@ MLIAP package
 
 **Contents:**
 
-A general interface for machine-learning interatomic potentials.
+A general interface for machine-learning interatomic potentials, including PyTorch.
 
 **Install:**
 
-To use this package, also the :ref:`SNAP package <PKG-SNAP>` needs to be installed.
+To use this package, also the :ref:`SNAP package <PKG-SNAP>` package needs
+to be installed.  To make the *mliappy* model available, also the
+:ref:`PYTHON package <PKG-PYTHON>` package needs to be installed, the version
+of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
+must be installed.
 
-**Author:** Aidan Thompson (Sandia).
+**Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
 **Supporting info:**
 
 * src/MLIAP: filenames -> commands
+* src/MLIAP/README
 * :doc:`pair_style mliap <pair_mliap>`
-* examples/mliap
+* :doc:`compute_style mliap <compute_mliap>`
+* examples/mliap (see README)
+
+When built with the *mliappy* model this package includes an extension for
+coupling with Python models, including PyTorch. In this case, the Python
+interpreter linked to LAMMPS will need the ``cython`` and ``numpy`` modules
+installed.  The provided examples build models with PyTorch, which would
+therefore also needs to be installed to run those examples.
 
 ----------
 
@@ -753,7 +767,7 @@ University of Chicago.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <mscg>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <mscg>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -774,7 +788,7 @@ OPT package
 A handful of pair styles which are optimized for improved CPU
 performance on single or multiple cores.  These include EAM, LJ,
 CHARMM, and Morse potentials.  The styles have an "opt" suffix in
-their style name.  The :doc:`OPT package <Speed_opt>` doc page gives
+their style name.  The :doc:`OPT package <Speed_opt>` page gives
 details of how to build and use this package.  Its styles can be
 invoked at run time via the "-sf opt" or "-suffix opt" :doc:`command-line switches <Run_options>`.  See also the :ref:`KOKKOS <PKG-KOKKOS>`,
 :ref:`USER-INTEL <PKG-USER-INTEL>`, and :ref:`USER-OMP <PKG-USER-OMP>` packages, which
@@ -785,7 +799,7 @@ and Vincent Natoli (Stone Ridge Technology).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <opt>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <opt>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -846,7 +860,7 @@ connections at hinge points.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <poems>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <poems>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -867,8 +881,8 @@ PYTHON package
 
 A :doc:`python <python>` command which allow you to execute Python code
 from a LAMMPS input script.  The code can be in a separate file or
-embedded in the input script itself.  See the :doc:`Python call <Python_call>` doc page for an overview of using Python from
-LAMMPS in this manner and all the :doc:`Python <Python_head>` doc pages
+embedded in the input script itself.  See the :doc:`Python call <Python_call>` page for an overview of using Python from
+LAMMPS in this manner and all the :doc:`Python <Python_head>` manual pages
 for other ways to use LAMMPS and Python together.
 
 .. note::
@@ -880,7 +894,7 @@ for other ways to use LAMMPS and Python together.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <python>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <python>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -919,7 +933,7 @@ REPLICA package
 **Contents:**
 
 A collection of multi-replica methods which can be used when running
-multiple LAMMPS simulations (replicas).  See the :doc:`Howto replica <Howto_replica>` doc page for an overview of how to run
+multiple LAMMPS simulations (replicas).  See the :doc:`Howto replica <Howto_replica>` page for an overview of how to run
 multi-replica simulations in LAMMPS.  Methods in the package include
 nudged elastic band (NEB), parallel replica dynamics (PRD),
 temperature accelerated dynamics (TAD), parallel tempering, and a
@@ -1036,9 +1050,11 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 * :doc:`pair_style spin/dipole/long <pair_spin_dipole>`
 * :doc:`pair_style spin/dmi <pair_spin_dmi>`
 * :doc:`pair_style spin/exchange <pair_spin_exchange>`
+* :doc:`pair_style spin/exchange/biquadratic <pair_spin_exchange>`
 * :doc:`pair_style spin/magelec <pair_spin_magelec>`
 * :doc:`pair_style spin/neel <pair_spin_neel>`
 * :doc:`fix nve/spin <fix_nve_spin>`
+* :doc:`fix langevin/spin <fix_langevin_spin>`
 * :doc:`fix precession/spin <fix_precession_spin>`
 * :doc:`compute spin <compute_spin>`
 * :doc:`neb/spin <neb_spin>`
@@ -1093,7 +1109,7 @@ and LBNL.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <voronoi>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <voronoi>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1121,7 +1137,7 @@ commands to write and read data using the ADIOS library.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-adios>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-adios>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1150,7 +1166,7 @@ atomic information to continuum fields.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-atc>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-atc>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1178,7 +1194,7 @@ model.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-awpmd>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-awpmd>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1297,7 +1313,7 @@ the NAMD MD code, but with portability in mind.  Axel Kohlmeyer
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-colvars>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-colvars>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1330,7 +1346,7 @@ Tribello.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-plumed>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-plumed>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1412,12 +1428,12 @@ USER-DRUDE package
 **Contents:**
 
 Fixes, pair styles, and a compute to simulate thermalized Drude
-oscillators as a model of polarization.  See the :doc:`Howto drude <Howto_drude>` and :doc:`Howto drude2 <Howto_drude2>` doc pages
+oscillators as a model of polarization.  See the :doc:`Howto drude <Howto_drude>` and :doc:`Howto drude2 <Howto_drude2>` pages
 for an overview of how to use the package.  There are auxiliary tools
 for using this package in tools/drude.
 
-**Authors:** Alain Dequidt (U Blaise Pascal Clermont-Ferrand), Julien
-Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
+**Authors:** Alain Dequidt (U Clermont Auvergne), Julien
+Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 
 **Supporting info:**
 
@@ -1484,7 +1500,7 @@ methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt
 which have a "soft" in their style name.  There are auxiliary tools
 for using this package in tools/fep; see its README file.
 
-**Author:** Agilio Padua (Universite Blaise Pascal Clermont-Ferrand)
+**Author:** Agilio Padua (ENS de Lyon)
 
 **Supporting info:**
 
@@ -1522,7 +1538,7 @@ H5MD format.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-h5md>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-h5md>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1563,7 +1579,7 @@ supported, performance will be sub-optimal.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-intel>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-intel>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1650,7 +1666,7 @@ src/USER-MISC/README file.
 
 * src/USER-MISC: filenames -> commands
 * src/USER-MISC/README
-* one doc page per individual command listed in src/USER-MISC/README
+* one page per individual command listed in src/USER-MISC/README
 * examples/USER/misc
 
 ----------
@@ -1856,7 +1872,7 @@ at
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-molfile>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-molfile>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1896,7 +1912,7 @@ tools:
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-netcdf>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-netcdf>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -1943,7 +1959,7 @@ install/un-install the package and build LAMMPS in the usual manner:
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-omp>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-omp>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -2043,7 +2059,7 @@ changes to LAMMPS itself.
 **Install:**
 
 This package has :ref:`specific installation instructions <user-qmmm>`
-on the :doc:`Build extras <Build_extras>` doc page.
+on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -2104,7 +2120,7 @@ on your system.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-quip>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-quip>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -2194,7 +2210,7 @@ the Forschungszentrum Juelich.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-scafacos>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-scafacos>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -2260,7 +2276,7 @@ Dynamics, Ernst Mach Institute, Germany).
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-smd>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-smd>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 
@@ -2399,7 +2415,7 @@ system.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <user-vtk>` on the :doc:`Build extras <Build_extras>` doc page.
+This package has :ref:`specific installation instructions <user-vtk>` on the :doc:`Build extras <Build_extras>` page.
 
 **Supporting info:**
 

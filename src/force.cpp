@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -61,20 +61,12 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   improper = nullptr;
   kspace = nullptr;
 
-  char *str = (char *) "none";
-  int n = strlen(str) + 1;
-  pair_style = new char[n];
-  strcpy(pair_style,str);
-  bond_style = new char[n];
-  strcpy(bond_style,str);
-  angle_style = new char[n];
-  strcpy(angle_style,str);
-  dihedral_style = new char[n];
-  strcpy(dihedral_style,str);
-  improper_style = new char[n];
-  strcpy(improper_style,str);
-  kspace_style = new char[n];
-  strcpy(kspace_style,str);
+  pair_style = utils::strdup("none");
+  bond_style = utils::strdup("none");
+  angle_style = utils::strdup("none");
+  dihedral_style = utils::strdup("none");
+  improper_style = utils::strdup("none");
+  kspace_style = utils::strdup("none");
 
   pair_restart = nullptr;
   create_factories();
@@ -245,13 +237,22 @@ void Force::create_pair(const std::string &style, int trysuffix)
 /* ----------------------------------------------------------------------
    generate a pair class
    if trysuffix = 1, try first with suffix1/2 appended
-   return sflag = 0 for no suffix added, 1 or 2 for suffix1/2 added
+   return sflag = 0 for no suffix added, 1 or 2 or 3 for suffix1/2/p added
+   special case: if suffixp exists only try suffixp, not suffix
 ------------------------------------------------------------------------- */
 
 Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
 {
   if (trysuffix && lmp->suffix_enable) {
-    if (lmp->suffix) {
+    if (lmp->suffixp) {
+      sflag = 3;
+      std::string estyle = style + "/" + lmp->suffixp;
+      if (pair_map->find(estyle) != pair_map->end()) {
+        PairCreator &pair_creator = (*pair_map)[estyle];
+        return pair_creator(lmp);
+      }
+    }
+    if (lmp->suffix && !lmp->suffixp) {
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
       if (pair_map->find(estyle) != pair_map->end()) {
@@ -727,7 +728,7 @@ KSpace *Force::kspace_match(const std::string &word, int exact)
 /* ----------------------------------------------------------------------
    store style name in str allocated here
    if sflag = 0, no suffix
-   if sflag = 1/2, append suffix or suffix2 to style
+   if sflag = 1/2/3, append suffix or suffix2 or suffixp to style
 ------------------------------------------------------------------------- */
 
 void Force::store_style(char *&str, const std::string &style, int sflag)
@@ -736,6 +737,7 @@ void Force::store_style(char *&str, const std::string &style, int sflag)
 
   if (sflag == 1) estyle += std::string("/") + lmp->suffix;
   else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
+  else if (sflag == 3) estyle += std::string("/") + lmp->suffixp;
 
   str = new char[estyle.size()+1];
   strcpy(str,estyle.c_str());
@@ -839,11 +841,11 @@ void Force::set_special(int narg, char **arg)
 double Force::memory_usage()
 {
   double bytes = 0;
-  if (pair) bytes += static_cast<bigint> (pair->memory_usage());
-  if (bond) bytes += static_cast<bigint> (bond->memory_usage());
-  if (angle) bytes += static_cast<bigint> (angle->memory_usage());
-  if (dihedral) bytes += static_cast<bigint> (dihedral->memory_usage());
-  if (improper) bytes += static_cast<bigint> (improper->memory_usage());
-  if (kspace) bytes += static_cast<bigint> (kspace->memory_usage());
+  if (pair) bytes += pair->memory_usage();
+  if (bond) bytes += bond->memory_usage();
+  if (angle) bytes += angle->memory_usage();
+  if (dihedral) bytes += dihedral->memory_usage();
+  if (improper) bytes += improper->memory_usage();
+  if (kspace) bytes += kspace->memory_usage();
   return bytes;
 }

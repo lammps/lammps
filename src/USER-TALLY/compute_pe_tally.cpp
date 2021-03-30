@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -119,7 +119,7 @@ void ComputePETally::pair_tally_callback(int i, int j, int nlocal, int newton,
   const int * const mask = atom->mask;
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+       || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
     evdwl *= 0.5; ecoul *= 0.5;
     if (newton || i < nlocal) {

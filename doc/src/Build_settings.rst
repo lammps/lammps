@@ -122,7 +122,7 @@ communication can be costly).  A breakdown of these timings is printed
 to the screen at the end of a run when using the
 :doc:`kspace_style pppm <kspace_style>` command. The
 :doc:`Screen and logfile output <Run_output>`
-doc page gives more details.  A more detailed (and time consuming)
+page gives more details.  A more detailed (and time consuming)
 report of the FFT performance is generated with the
 :doc:`kspace_modify fftbench yes <kspace_modify>` command.
 
@@ -266,12 +266,11 @@ in neighbor lists for storing special bonds info).
 
 Image flags store 3 values per atom in a single integer which count the
 number of times an atom has moved through the periodic box in each
-dimension.  See the :doc:`dump <dump>` doc page for a discussion.  If an
-atom moves through the periodic box more than this limit, the value will
-"roll over", e.g. from 511 to -512, which can cause diagnostics like the
-mean-squared displacement, as calculated by the :doc:`compute msd
-<compute_msd>` command, to be faulty.
-
+dimension.  See the :doc:`dump <dump>` manual page for a discussion.  If
+an atom moves through the periodic box more than this limit, the value
+will "roll over", e.g. from 511 to -512, which can cause diagnostics
+like the mean-squared displacement, as calculated by the :doc:`compute
+msd <compute_msd>` command, to be faulty.
 
 Also note that the GPU package requires its lib/gpu library to be
 compiled with the same size setting, or the link will fail.  A CMake

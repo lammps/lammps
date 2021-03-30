@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,27 +15,28 @@
    Contributing authors:
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-
-#include <cmath>
 #include "fix_npt_cauchy.h"
-#include "math_extra.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "irregular.h"
-#include "modify.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
 #include "fix_deform.h"
 #include "fix_store.h"
-#include "compute.h"
+#include "force.h"
+#include "group.h"
+#include "irregular.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,7 +54,8 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
+  id_temp(nullptr), id_press(nullptr),
   eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
   eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
   etap_mass(nullptr), id_store(nullptr),init_store(nullptr)
@@ -61,6 +63,7 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix npt/cauchy command");
 
   dynamic_group_allow = 1;
+  ecouple_flag = 1;
   time_integrate = 1;
   scalar_flag = 1;
   vector_flag = 1;
@@ -603,36 +606,16 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
-
-  newarg = new char*[4];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
-  delete [] newarg;
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure {}",id_press, id_temp));
   pcomputeflag = 1;
 }
 
@@ -686,7 +669,6 @@ int FixNPTCauchy::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
@@ -2754,23 +2736,23 @@ void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
   uv(5,1)=1; uv(5,2)=3;
   uv(6,1)=1; uv(6,2)=2;
 
-  for(int ii = 1;ii <= 6;ii++) {
+  for (int ii = 1;ii <= 6;ii++) {
     i=uv(ii,1);
     j=uv(ii,2);
     deltastress(ii)=setcauchy(i,j)-cauchy(i,j);
-    if(ii>3) deltastress(ii)=deltastress(ii)*2.0;
+    if (ii>3) deltastress(ii)=deltastress(ii)*2.0;
     fdotvec(ii)=Fdot(i,j)*deltat;
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
+  for (int ii = 1;ii <= 6;ii++) {
     i=uv(ii,1);
     j=uv(ii,2);
-    for(int jj = 1;jj <= 6;jj++) {
+    for (int jj = 1;jj <= 6;jj++) {
       m=uv(jj,1);
       n=uv(jj,2);
       dsds(ii,jj) = Fi(i,m)*Fi(j,n) + Fi(i,n)*Fi(j,m) + Fi(j,m)*Fi(i,n) + Fi(j,n)*Fi(i,m);
-      for(int l = 1;l <= 3;l++) {
-        for(int k = 1;k <= 3;k++) {
+      for (int l = 1;l <= 3;l++) {
+        for (int k = 1;k <= 3;k++) {
           dsdf(ii,jj) = dsdf(ii,jj) + cauchy(k,l)*
             ( Fi(i,k)*Fi(j,l)*Fi(n,m) - Fi(i,m)*Fi(j,l)*Fi(n,k) - Fi(i,k)*Fi(j,m)*Fi(n,l) );
         }
@@ -2779,21 +2761,21 @@ void FixNPTCauchy::CauchyStat_Step(double (&Fi)[3][3], double (&Fdot)[3][3],
   }
 
   jac=volume/volume0;
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       dsds(ii,jj)=dsds(ii,jj)*jac/4.0;
       dsdf(ii,jj)=dsdf(ii,jj)*jac;
     }
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       deltaF(ii)=deltaF(ii)+dsdf(ii,jj)*fdotvec(jj);
     }
   }
 
-  for(int ii = 1;ii <= 6;ii++) {
-    for(int jj = 1;jj <= 6;jj++) {
+  for (int ii = 1;ii <= 6;ii++) {
+    for (int jj = 1;jj <= 6;jj++) {
       deltaPK(ii)=deltaPK(ii)+alpha*dsds(ii,jj)*deltastress(jj);
     }
     deltaPK(ii)=deltaPK(ii)+alpha*deltaF(ii);

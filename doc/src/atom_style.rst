@@ -42,6 +42,7 @@ Examples
    atom_style hybrid charge body nparticle 2 5
    atom_style spin
    atom_style template myMols
+   atom_style hybrid template twomols charge
    atom_style tdpd 2
 
 Description
@@ -239,6 +240,8 @@ can save memory for systems comprised of a large number of small
 molecules, all of a single type (or small number of types).  See the
 paper by Grime and Voth, in :ref:`(Grime) <Grime>`, for examples of how this
 can be advantageous for large-scale coarse-grained systems.
+The ``examples/template`` directory has a few demo inputs and examples
+showing the use of the *template* atom style versus *molecular*.
 
 .. note::
 

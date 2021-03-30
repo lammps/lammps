@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,6 +9,10 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
 #include "mliap_descriptor_snap.h"
@@ -74,7 +78,7 @@ MLIAPDescriptorSNAP::~MLIAPDescriptorSNAP()
 void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData* data)
 {
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
@@ -126,7 +130,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
   double **f = atom->f;
 
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
@@ -167,7 +171,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      if(chemflag)
+      if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -200,7 +204,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
 void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
 {
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int i = data->iatoms[ii];
     const int ielem = data->ielems[ii];
 
@@ -241,7 +245,7 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
     for (int jj = 0; jj < ninside; jj++) {
       const int j = snaptr->inside[jj];
 
-      if(chemflag)
+      if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -275,7 +279,7 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
 void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
 {
   int ij = 0;
-  for (int ii = 0; ii < data->natoms; ii++) {
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
 
     // insure rij, inside, wj, and rcutij are of size jnum
@@ -314,7 +318,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
 
     ij = ij0;
     for (int jj = 0; jj < ninside; jj++) {
-      if(chemflag)
+      if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -423,22 +427,19 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
       if (strcmp(keywd,"elems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
-          char* elemtmp = keyval;
-          int n = strlen(elemtmp) + 1;
-          elements[ielem] = new char[n];
-          strcpy(elements[ielem],elemtmp);
+          elements[ielem] = utils::strdup(keyval);
           keyval = strtok(nullptr,"' \t\n\r\f");
         }
         elementsflag = 1;
       } else if (strcmp(keywd,"radelems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
-          radelem[ielem] = atof(keyval);
+          radelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           keyval = strtok(nullptr,"' \t\n\r\f");
         }
         radelemflag = 1;
       } else if (strcmp(keywd,"welems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
-          wjelem[ielem] = atof(keyval);
+          wjelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
           keyval = strtok(nullptr,"' \t\n\r\f");
         }
         wjelemflag = 1;
@@ -496,7 +497,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     cut = 2.0*radelem[ielem]*rcutfac;
     if (cut > cutmax) cutmax = cut;
     cutsq[ielem][ielem] = cut*cut;
-    for(int jelem = ielem+1; jelem < nelements; jelem++) {
+    for (int jelem = ielem+1; jelem < nelements; jelem++) {
       cut = (radelem[ielem]+radelem[jelem])*rcutfac;
       cutsq[ielem][jelem] = cutsq[jelem][ielem] = cut*cut;
     }
@@ -511,10 +512,10 @@ double MLIAPDescriptorSNAP::memory_usage()
 {
   double bytes = 0;
 
-  bytes += nelements*sizeof(double);            // radelem
-  bytes += nelements*sizeof(double);            // welem
-  bytes += nelements*nelements*sizeof(int);     // cutsq
-  bytes += snaptr->memory_usage();              // SNA object
+  bytes += (double)nelements*sizeof(double);            // radelem
+  bytes += (double)nelements*sizeof(double);            // welem
+  bytes += (double)nelements*nelements*sizeof(int);     // cutsq
+  bytes += snaptr->memory_usage();                      // SNA object
 
   return bytes;
 }

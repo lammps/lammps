@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,16 +17,15 @@
 
 #include "fix_eos_table_rx.h"
 
-
-#include <cstring>
-#include <cmath>
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "comm.h"
 #include "modify.h"
 
+#include <cmath>
+#include <cstring>
 
 #define MAXLINE 1024
 
@@ -54,7 +53,7 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
     if (utils::strmatch(modify->fix[i]->style,"^rx")) {
       rx_flag = true;
       nspecies = atom->nspecies_dpd;
-      if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
+      if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
     }
 
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
@@ -70,7 +69,7 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
 
   int me;
   MPI_Comm_rank(world,&me);
-  for (int ii=0;ii<nspecies;ii++){
+  for (int ii=0;ii<nspecies;ii++) {
     tables = (Table *)
       memory->srealloc(tables,(ntables+1)*sizeof(Table),"eos:table/rx");
     tables2 = (Table *)
@@ -91,7 +90,7 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
 
   if (me == 0) read_table(tb,tb2,arg[4],arg[6]);
 
-  for (int ii=0;ii<nspecies;ii++){
+  for (int ii=0;ii<nspecies;ii++) {
     Table *tb = &tables[ntables];
     Table *tb2 = &tables2[ntables];
 
@@ -126,17 +125,17 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   energyCorr = new double[nspecies];
   tempCorrCoeff = new double[nspecies];
   moleculeCorrCoeff= new double[nspecies];
-  for (int ii=0; ii<nspecies; ii++){
+  for (int ii=0; ii<nspecies; ii++) {
     dHf[ii] = 0.0;
     energyCorr[ii] = 0.0;
     tempCorrCoeff[ii] = 0.0;
     moleculeCorrCoeff[ii] = 0.0;
   }
 
-  if(rx_flag) read_file(arg[7]);
+  if (rx_flag) read_file(arg[7]);
   else dHf[0] = atof(arg[7]);
 
-  if(narg==10){
+  if (narg==10) {
     energyCorr[0] = atof(arg[8]);
     tempCorrCoeff[0] = atof(arg[9]);
   }
@@ -192,9 +191,9 @@ void FixEOStableRX::setup(int /*vflag*/)
   double *uCG   = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  if(!this->restart_reset){
+  if (!this->restart_reset) {
     for (int i = 0; i < nlocal; i++)
-      if (mask[i] & groupbit){
+      if (mask[i] & groupbit) {
         duChem = uCG[i] - uCGnew[i];
         uChem[i] += duChem;
         uCG[i] = 0.0;
@@ -222,14 +221,14 @@ void FixEOStableRX::init()
   double *dpdTheta = atom->dpdTheta;
   double tmp;
 
-  if(this->restart_reset){
+  if (this->restart_reset) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
         temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if(dpdTheta[i] <= 0.0)
+        if (dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(i,dpdTheta[i],tmp);
         uCond[i] = 0.0;
@@ -252,9 +251,9 @@ void FixEOStableRX::post_integrate()
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-      if(dpdTheta[i] <= 0.0)
+      if (dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -277,7 +276,7 @@ void FixEOStableRX::end_of_step()
   comm->reverse_comm_fix(this);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       duChem = uCG[i] - uCGnew[i];
       uChem[i] += duChem;
       uCG[i] = 0.0;
@@ -288,9 +287,9 @@ void FixEOStableRX::end_of_step()
   comm->forward_comm_fix(this);
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-      if(dpdTheta[i] <= 0.0)
+      if (dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -371,9 +370,9 @@ void FixEOStableRX::read_file(char *file)
     for (ispecies = 0; ispecies < nspecies; ispecies++)
       if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
 
-    if (ispecies < nspecies){
+    if (ispecies < nspecies) {
       dHf[ispecies] = atof(words[1]);
-      if(nwords > min_params_per_line+1){
+      if (nwords > min_params_per_line+1) {
         energyCorr[ispecies] = atof(words[2]);
         tempCorrCoeff[ispecies] = atof(words[3]);
         moleculeCorrCoeff[ispecies] = atof(words[4]);
@@ -451,7 +450,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   memory->create(tb2->rfile,tb2->ninput,"eos:rfile");
   memory->create(tb2->efile,tb2->ninput,"eos:efile");
 
-  for (int ispecies=1;ispecies<nspecies;ispecies++){
+  for (int ispecies=1;ispecies<nspecies;ispecies++) {
     Table *tbl = &tables[ispecies];
     Table *tbl2 = &tables2[ispecies];
     tbl->ninput = tb->ninput;
@@ -476,7 +475,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
 
     nwords = utils::count_words(utils::trim_comment(line));
-    if(nwords != nspecies+2){
+    if (nwords != nspecies+2) {
       printf("nwords=%d  nspecies=%d\n",nwords,nspecies);
       error->all(FLERR,"Illegal fix eos/table/rx command");
     }
@@ -485,7 +484,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
     word = strtok(nullptr," \t\n\r\f");
     rtmp = atof(word);
 
-    for (int icolumn=0;icolumn<ncolumn;icolumn++){
+    for (int icolumn=0;icolumn<ncolumn;icolumn++) {
       ispecies = eosSpecies[icolumn];
 
       Table *tbl = &tables[ispecies];
@@ -580,15 +579,15 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
     error->one(FLERR,"Invalid keyword in fix eos/table/rx parameters");
   word = strtok(nullptr," \t\n\r\f");
 
-  if(rx_flag){
+  if (rx_flag) {
     while (word) {
       for (ispecies = 0; ispecies < nspecies; ispecies++)
-        if (strcmp(word,&atom->dname[ispecies][0]) == 0){
+        if (strcmp(word,&atom->dname[ispecies][0]) == 0) {
           eosSpecies[ncolumn] =  ispecies;
           ncolumn++;
           break;
         }
-      if (ispecies == nspecies){
+      if (ispecies == nspecies) {
         printf("name=%s not found in species list\n",word);
         error->one(FLERR,"Invalid keyword in fix eos/table/rx parameters");
       }
@@ -596,9 +595,9 @@ void FixEOStableRX::param_extract(Table *tb, char *line)
     }
 
     for (int icolumn = 0; icolumn < ncolumn; icolumn++)
-      if(eosSpecies[icolumn]==-1)
+      if (eosSpecies[icolumn]==-1)
         error->one(FLERR,"EOS data is missing from fix eos/table/rx tabe");
-    if(ncolumn != nspecies){
+    if (ncolumn != nspecies) {
       printf("ncolumns=%d nspecies=%d\n",ncolumn,nspecies);
       error->one(FLERR,"The number of columns in fix eos/table/rx does not match the number of species");
     }
@@ -703,10 +702,10 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
   nTotalPG = 0.0;
   nPG = 0;
 
-  if(rx_flag){
-    for(int ispecies=0;ispecies<nspecies;ispecies++){
+  if (rx_flag) {
+    for (int ispecies=0;ispecies<nspecies;ispecies++) {
       nTotal += atom->dvector[ispecies][id];
-      if(fabs(moleculeCorrCoeff[ispecies]) > tolerance){
+      if (fabs(moleculeCorrCoeff[ispecies]) > tolerance) {
         nPG++;
         nTotalPG += atom->dvector[ispecies][id];
       }
@@ -715,7 +714,7 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
     nTotal = 1.0;
   }
 
-  for(int ispecies=0;ispecies<nspecies;ispecies++){
+  for (int ispecies=0;ispecies<nspecies;ispecies++) {
     Table *tb = &tables[ispecies];
     thetai = MAX(thetai,tb->lo);
     thetai = MIN(thetai,tb->hi);
@@ -728,9 +727,9 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
       uTmp += dHf[ispecies];
       uTmp += tempCorrCoeff[ispecies]*thetai; // temperature correction
       uTmp += energyCorr[ispecies]; // energy correction
-      if(nPG > 0) ui += moleculeCorrCoeff[ispecies]*nTotalPG/double(nPG); // molecule correction
+      if (nPG > 0) ui += moleculeCorrCoeff[ispecies]*nTotalPG/double(nPG); // molecule correction
 
-      if(rx_flag) nMolecules = atom->dvector[ispecies][id];
+      if (rx_flag) nMolecules = atom->dvector[ispecies][id];
       else nMolecules = 1.0;
       ui += nMolecules*uTmp;
     }
@@ -756,7 +755,7 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   // Store the current thetai in t1
   t1 = MAX(thetai,tb->lo);
   t1 = MIN(t1,tb->hi);
-  if(t1==tb->hi) delta = -delta;
+  if (t1==tb->hi) delta = -delta;
 
   // Compute u1 at thetai
   energy_lookup(id,t1,u1);
@@ -774,9 +773,9 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   f2 = u2 - ui;
 
   // Apply the Secant Method
-  for(it=0; it<maxit; it++){
-    if(fabs(f2-f1) < MY_EPSILON){
-      if(std::isnan(f1) || std::isnan(f2)) error->one(FLERR,"NaN detected in secant solver.");
+  for (it=0; it<maxit; it++) {
+    if (fabs(f2-f1) < MY_EPSILON) {
+      if (std::isnan(f1) || std::isnan(f2)) error->one(FLERR,"NaN detected in secant solver.");
       temp = t1;
       temp = MAX(temp,tb->lo);
       temp = MIN(temp,tb->hi);
@@ -786,17 +785,17 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
       break;
     }
     temp = t2 - f2*(t2-t1)/(f2-f1);
-    if(fabs(temp-t2) < tolerance) break;
+    if (fabs(temp-t2) < tolerance) break;
     f1 = f2;
     t1 = t2;
     t2 = temp;
     energy_lookup(id,t2,u2);
     f2 = u2 - ui;
   }
-  if(it==maxit){
+  if (it==maxit) {
     char str[256];
     sprintf(str,"Maxit exceeded in secant solver:  id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf\n",id,ui,thetai,t1,t2,f1,f2);
-    if(std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai) || std::isnan(t1) || std::isnan(t2))
+    if (std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai) || std::isnan(t1) || std::isnan(t2))
       error->one(FLERR,"NaN detected in secant solver.");
     error->one(FLERR,str);
   }
@@ -833,7 +832,7 @@ void FixEOStableRX::unpack_forward_comm(int n, int first, double *buf)
 
   m = 0;
   last = first + n ;
-  for (ii = first; ii < last; ii++){
+  for (ii = first; ii < last; ii++) {
     uChem[ii]  = buf[m++];
     uCG[ii]    = buf[m++];
     uCGnew[ii] = buf[m++];

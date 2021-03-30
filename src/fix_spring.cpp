@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,6 +47,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
   dynamic_group_allow = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
@@ -69,9 +70,7 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
     if (narg != 10) error->all(FLERR,"Illegal fix spring command");
     styleflag = COUPLE;
 
-    int n = strlen(arg[4]) + 1;
-    group2 = new char[n];
-    strcpy(group2,arg[4]);
+    group2 = utils::strdup(arg[4]);
     igroup2 = group->find(arg[4]);
     if (igroup2 == -1)
       error->all(FLERR,"Fix spring couple group ID does not exist");
@@ -108,7 +107,6 @@ int FixSpring::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;

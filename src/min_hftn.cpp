@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -410,7 +410,7 @@ int MinHFTN::execute_hftn_(const bool      bPrintProgress,
       double  dMag = 0.5 * (fabs (dCurrentEnergy) + fabs (dNewEnergy));
       dMag = MAX (dMag, MIN_ETOL_MAG);
       if (   (fabs (dAred) < (update->etol * dMag))
-             || (dStepLengthInf == 0.0) ) {
+             || (dStepLengthInf == 0.0)) {
         if (bPrintProgress)
           hftn_print_line_ (true, niter+1, neval,
                             dNewEnergy, dNewForce2,
@@ -1267,7 +1267,7 @@ double MinHFTN::compute_to_tr_(const double  dPP,
 
   //---- CHECK FOR ERRONEOUS DATA.
   if (   (dDD <= 0.0) || (dPP < 0.0) || (dTrustRadius < 0.0)
-         || (dTrustRadius * dTrustRadius < dPP) ) {
+         || (dTrustRadius * dTrustRadius < dPP)) {
     printf ("HFTN internal error - bad data given to compute_to_tr_()\n");
     return( 0.0 );
   }

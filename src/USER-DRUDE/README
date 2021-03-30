@@ -7,6 +7,7 @@ features:
 using Langevin or Nosé-Hoover thermostats
 * computation of the atom and dipole temperatures
 * damping induced dipole interactions using Thole's function
+* charge-dipole damping using Tang-Toennies function
 
 See the file doc/drude_tutorial.html for getting started.
 
@@ -17,5 +18,6 @@ There are example scripts for using this package in examples/USER/drude.
 The person who created this package is Alain Dequidt at the
 Chemistry Institute of Clermont-Ferrand, Clermont University, France
 (alain.dequidt at uca.fr). Contact him directly if you have questions.
-Co-authors: Julien Devémy, Agilio Padua.
+Co-authors: Julien Devémy, Agilio Padua (ENS de Lyon).
+Contributors: Kateryna Goloviznina, Zheng Gong (ENS de Lyon).
 

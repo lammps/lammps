@@ -27,11 +27,11 @@ hr {
      margin-bottom: 12px !important;
 }
 
-#user-documentation.section h2 {
+#user-guide.section h2 {
      display: none;
 }
 
-#programmer-documentation.section h2 {
+#programmer-guide.section h2 {
      display: none;
 }
 
@@ -43,7 +43,7 @@ hr {
     border-radius: 6px;
 }
 
-.btn {
+.btn, .btn:active {
     padding: 4px;
     font-size: 80%;
     border-radius: 4px;

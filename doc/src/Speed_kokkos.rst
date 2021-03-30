@@ -26,7 +26,17 @@ task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
 GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
 produce an executable compatible with a specific hardware.
 
+.. admonition:: C++14 support
+      :class: note
+
+   Kokkos requires using a compiler that supports the c++14 standard. For
+   some compilers, it may be necessary to add a flag to enable c++14 support.
+   For example, the GNU compiler uses the -std=c++14 flag. For a list of
+   compilers that have been tested with the Kokkos library, see the Kokkos
+   `README <https://github.com/kokkos/kokkos/blob/master/README.md>`_.
+
 .. admonition:: NVIDIA CUDA support
+   :class: note
 
    To build with Kokkos support for NVIDIA GPUs, the NVIDIA CUDA toolkit
    software version 9.0 or later must be installed on your system. See
@@ -34,18 +44,20 @@ produce an executable compatible with a specific hardware.
    how to check and do this.
 
 .. admonition:: CUDA and MPI library compatibility
+   :class: note
 
    Kokkos with CUDA currently implicitly assumes that the MPI library is
-   CUDA-aware. This is not always the case, especially when using
+   GPU-aware. This is not always the case, especially when using
    pre-compiled MPI libraries provided by a Linux distribution. This is
    not a problem when using only a single GPU with a single MPI
    rank. When running with multiple MPI ranks, you may see segmentation
-   faults without CUDA-aware MPI support. These can be avoided by adding
-   the flags :doc:`-pk kokkos cuda/aware off <Run_options>` to the
+   faults without GPU-aware MPI support. These can be avoided by adding
+   the flags :doc:`-pk kokkos gpu/aware off <Run_options>` to the
    LAMMPS command line or by using the command :doc:`package kokkos
-   cuda/aware off <package>` in the input file.
+   gpu/aware off <package>` in the input file.
 
 .. admonition:: AMD GPU support
+   :class: note
 
    To build with Kokkos the HIPCC compiler from the AMD ROCm software
    version 3.5 or later is required.  Supporting this Kokkos mode in
@@ -239,8 +251,8 @@ case, also packing/unpacking communication buffers on the host may give
 speedup (see the KOKKOS :doc:`package <package>` command). Using CUDA MPS
 is recommended in this scenario.
 
-Using a CUDA-aware MPI library is highly recommended. CUDA-aware MPI use can be
-avoided by using :doc:`-pk kokkos cuda/aware no <package>`. As above for
+Using a GPU-aware MPI library is highly recommended. GPU-aware MPI use can be
+avoided by using :doc:`-pk kokkos gpu/aware off <package>`. As above for
 multi-core CPUs (and no GPU), if N is the number of physical cores/node,
 then the number of MPI tasks/node should not exceed N.
 

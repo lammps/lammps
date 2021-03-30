@@ -1,5 +1,5 @@
 Download the LAMMPS source with git
-===================================
+-----------------------------------
 
 All LAMMPS development is coordinated through the "LAMMPS GitHub
 site".  If you clone the LAMMPS repository onto your local machine, it
@@ -94,7 +94,7 @@ changed.  To do this, you should cd to the src directory and type:
    $ make package-update    # sync package files with src files
    $ make foo               # re-build for your machine (mpi, serial, etc)
 
-just as described on the :doc:`Apply patch <Install_patch>` doc page,
+just as described on the :doc:`Apply patch <Install_patch>` page,
 after a patch has been installed.
 
 .. warning::

@@ -1,7 +1,7 @@
 ---
 lammps_version: 24 Aug 2020
 date_generated: Tue Sep 15 09:44:11 202
-epsilon: 5e-14
+epsilon: 6e-14
 prerequisites: ! |
   atom full
   pair buck

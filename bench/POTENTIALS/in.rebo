@@ -11,7 +11,7 @@ neighbor	    0.5 bin
 neigh_modify	    delay 5 every 1
 
 pair_style	    rebo
-pair_coeff	    * * CH.airebo C H
+pair_coeff	    * * CH.rebo C H
 
 velocity	    all create 300.0 761341
 

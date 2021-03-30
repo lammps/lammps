@@ -2,6 +2,7 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "timer.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -34,7 +35,11 @@ protected:
         int argc    = sizeof(args) / sizeof(char *);
 
         ::testing::internal::CaptureStdout();
-        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        lmp = lammps_open_no_mpi(argc, argv, NULL);
+        lammps_command(lmp, "fix charge all property/atom q ghost yes");
+        lammps_command(lmp, "region box block 0 1 0 1 0 1");
+        lammps_command(lmp, "create_box 1 box");
+        lammps_command(lmp, "group none empty");
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));
@@ -69,7 +74,7 @@ TEST(LAMMPSConfig, package_name)
         EXPECT_EQ(lammps_config_package_name(numpkgs + 10, buf, 128), 0);
         EXPECT_THAT(buf, StrEq(""));
     } else {
-        EXPECT_EQ(lammps_config_package_name(0, buf, 128), 1);
+        EXPECT_EQ(lammps_config_package_name(0, buf, 128), 0);
         EXPECT_THAT(buf, StrEq(""));
     }
 };
@@ -100,7 +105,7 @@ TEST_F(LibraryConfig, style_count)
     EXPECT_GT(lammps_style_count(lmp, "dihedral"), 1);
     EXPECT_GT(lammps_style_count(lmp, "improper"), 1);
     EXPECT_GT(lammps_style_count(lmp, "pair"), 1);
-    EXPECT_GT(lammps_style_count(lmp, "kspace"), 1);
+    EXPECT_GE(lammps_style_count(lmp, "kspace"), 0);
     EXPECT_GT(lammps_style_count(lmp, "compute"), 1);
     EXPECT_GT(lammps_style_count(lmp, "fix"), 1);
     EXPECT_GT(lammps_style_count(lmp, "region"), 1);
@@ -118,6 +123,76 @@ TEST_F(LibraryConfig, style_name)
     EXPECT_THAT(buf, StrEq(""));
 };
 
+TEST_F(LibraryConfig, has_id)
+{
+    EXPECT_EQ(lammps_has_id(lmp, "compute", "thermo_temp"), 1);
+    EXPECT_EQ(lammps_has_id(lmp, "compute", "thermo_press"), 1);
+    EXPECT_EQ(lammps_has_id(lmp, "compute", "thermo_pe"), 1);
+    EXPECT_EQ(lammps_has_id(lmp, "dump", "xxx"), 0);
+    EXPECT_EQ(lammps_has_id(lmp, "fix", "charge"), 1);
+    EXPECT_EQ(lammps_has_id(lmp, "fix", "xxx"), 0);
+    EXPECT_EQ(lammps_has_id(lmp, "group", "all"), 1);
+    EXPECT_EQ(lammps_has_id(lmp, "group", "none"), 1);
+    EXPECT_EQ(lammps_has_id(lmp, "group", "xxx"), 0);
+    EXPECT_EQ(lammps_has_id(lmp, "molecule", "xxx"), 0);
+    EXPECT_EQ(lammps_has_id(lmp, "region", "box"), 1);
+    EXPECT_EQ(lammps_has_id(lmp, "region", "xxx"), 0);
+    EXPECT_EQ(lammps_has_id(lmp, "variable", "input_dir"), 1);
+    EXPECT_EQ(lammps_has_id(lmp, "variable", "xxx"), 0);
+};
+
+TEST_F(LibraryConfig, id_count)
+{
+    EXPECT_EQ(lammps_id_count(lmp, "compute"), 3);
+    EXPECT_EQ(lammps_id_count(lmp, "dump"), 0);
+    EXPECT_EQ(lammps_id_count(lmp, "fix"), 1);
+    EXPECT_EQ(lammps_id_count(lmp, "group"), 2);
+    EXPECT_EQ(lammps_id_count(lmp, "molecule"), 0);
+    EXPECT_EQ(lammps_id_count(lmp, "region"), 1);
+    EXPECT_EQ(lammps_id_count(lmp, "variable"), 1);
+};
+
+TEST_F(LibraryConfig, id_name)
+{
+    const int bufsize = 128;
+    char buf[bufsize];
+    EXPECT_EQ(lammps_id_name(lmp, "compute", 2, buf, bufsize), 1);
+    EXPECT_THAT(buf, StrEq("thermo_pe"));
+    EXPECT_EQ(lammps_id_name(lmp, "compute", 10, buf, bufsize), 0);
+    EXPECT_THAT(buf, StrEq(""));
+    EXPECT_EQ(lammps_id_name(lmp, "fix", 0, buf, bufsize), 1);
+    EXPECT_THAT(buf, StrEq("charge"));
+    EXPECT_EQ(lammps_id_name(lmp, "fix", 10, buf, bufsize), 0);
+    EXPECT_THAT(buf, StrEq(""));
+    EXPECT_EQ(lammps_id_name(lmp, "group", 0, buf, bufsize), 1);
+    EXPECT_THAT(buf, StrEq("all"));
+    EXPECT_EQ(lammps_id_name(lmp, "group", 1, buf, bufsize), 1);
+    EXPECT_THAT(buf, StrEq("none"));
+    EXPECT_EQ(lammps_id_name(lmp, "group", 10, buf, bufsize), 0);
+    EXPECT_THAT(buf, StrEq(""));
+    EXPECT_EQ(lammps_id_name(lmp, "region", 0, buf, bufsize), 1);
+    EXPECT_THAT(buf, StrEq("box"));
+    EXPECT_EQ(lammps_id_name(lmp, "region", 10, buf, bufsize), 0);
+    EXPECT_THAT(buf, StrEq(""));
+    EXPECT_EQ(lammps_id_name(lmp, "variable", 0, buf, bufsize), 1);
+    EXPECT_THAT(buf, StrEq("input_dir"));
+    EXPECT_EQ(lammps_id_name(lmp, "variable", 10, buf, bufsize), 0);
+    EXPECT_THAT(buf, StrEq(""));
+};
+
+TEST_F(LibraryConfig, is_running)
+{
+    EXPECT_EQ(lammps_is_running(lmp), 0);
+}
+
+TEST_F(LibraryConfig, force_timeout)
+{
+    LAMMPS_NS::Timer *timer = ((LAMMPS_NS::LAMMPS *)lmp)->timer;
+    EXPECT_EQ(timer->is_timeout(), false);
+    lammps_force_timeout(lmp);
+    EXPECT_EQ(timer->is_timeout(), true);
+}
+
 TEST(LAMMPSConfig, exceptions)
 {
     EXPECT_EQ(lammps_config_has_exceptions(), LAMMPS_HAS_EXCEPTIONS);
@@ -125,7 +200,10 @@ TEST(LAMMPSConfig, exceptions)
 
 TEST(LAMMPSConfig, mpi_support)
 {
-    EXPECT_EQ(lammps_config_has_mpi_support(), LAMMPS_HAS_MPI);
+    if (LAMMPS_HAS_MPI)
+        EXPECT_GT(lammps_config_has_mpi_support(), 0);
+    else
+        EXPECT_EQ(lammps_config_has_mpi_support(), 0);
 };
 
 TEST(LAMMPSConfig, png_support)

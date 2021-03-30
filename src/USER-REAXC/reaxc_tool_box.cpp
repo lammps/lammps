@@ -21,7 +21,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_tool_box.h"
@@ -30,28 +30,7 @@
 #include <cstring>
 #include "reaxc_defs.h"
 
-#if !defined(_MSC_VER)
-#include <sys/time.h>
-#endif
-
 #include "error.h"
-
-struct timeval tim;
-double t_end;
-
-double Get_Time( )
-{
-#if defined(_MSC_VER)
-  double t;
-
-  t = GetTickCount();
-  t /= 1000.0;
-  return t;
-#else
-  gettimeofday(&tim, nullptr );
-  return( tim.tv_sec + (tim.tv_usec / 1000000.0) );
-#endif
-}
 
 int Tokenize( char* s, char*** tok )
 {
@@ -62,7 +41,7 @@ int Tokenize( char* s, char*** tok )
 
   strncpy( test, s, MAX_LINE-1);
 
-  for( word = strtok(test, sep); word; word = strtok(nullptr, sep) ) {
+  for (word = strtok(test, sep); word; word = strtok(nullptr, sep)) {
     strncpy( (*tok)[count], word, MAX_LINE );
     count++;
   }

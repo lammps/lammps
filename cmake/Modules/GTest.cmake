@@ -20,10 +20,10 @@ ExternalProject_Add(googletest
                                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                    BUILD_BYPRODUCTS <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${GTEST_LIB_POSTFIX}.a
-                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${GTEST_LIB_POSTFIX}.a
-                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${GTEST_LIB_POSTFIX}.a
-                                     <BINARY_DIR>/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main${GTEST_LIB_POSTFIX}.a
+                    BUILD_BYPRODUCTS <BINARY_DIR>/lib/libgtest${GTEST_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+                                     <BINARY_DIR>/lib/libgmock${GTEST_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+                                     <BINARY_DIR>/lib/libgtest_main${GTEST_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+                                     <BINARY_DIR>/lib/libgmock_main${GTEST_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
                     LOG_DOWNLOAD ON
                     LOG_CONFIGURE ON
                     LOG_BUILD ON
@@ -39,10 +39,10 @@ file(MAKE_DIRECTORY ${GTEST_INCLUDE_DIR})
 file(MAKE_DIRECTORY ${GMOCK_INCLUDE_DIR})
 
 ExternalProject_Get_Property(googletest BINARY_DIR)
-set(GTEST_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest${GTEST_LIB_POSTFIX}.a)
-set(GMOCK_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock${GTEST_LIB_POSTFIX}.a)
-set(GTEST_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gtest_main${GTEST_LIB_POSTFIX}.a)
-set(GMOCK_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/${CMAKE_FIND_LIBRARY_PREFIXES}gmock_main${GTEST_LIB_POSTFIX}.a)
+set(GTEST_LIBRARY_PATH ${BINARY_DIR}/lib/libgtest${GTEST_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(GMOCK_LIBRARY_PATH ${BINARY_DIR}/lib/libgmock${GTEST_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(GTEST_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/libgtest_main${GTEST_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX})
+set(GMOCK_MAIN_LIBRARY_PATH ${BINARY_DIR}/lib/libgmock_main${GTEST_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 # Prevent GoogleTest from overriding our compiler/linker options
 # when building with Visual Studio

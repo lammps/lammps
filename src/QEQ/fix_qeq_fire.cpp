@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -132,7 +132,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
   dt = qstep;
   dtmax = TMAX * dt;
 
-  for (iloop = 0; iloop < maxiter; iloop ++ ) {
+  for (iloop = 0; iloop < maxiter; iloop ++) {
     pack_flag = 1;
     comm->forward_comm_fix(this);
 
@@ -313,9 +313,9 @@ int FixQEqFire::pack_forward_comm(int n, int *list, double *buf,
   int m = 0;
 
   if (pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
-  else if( pack_flag == 2 )
-    for(m = 0; m < n; m++) buf[m] = qf[list[m]];
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  else if (pack_flag == 2)
+    for (m = 0; m < n; m++) buf[m] = qf[list[m]];
 
   return m;
 }
@@ -327,9 +327,9 @@ void FixQEqFire::unpack_forward_comm(int n, int first, double *buf)
   int i, m;
 
   if (pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if( pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  else if ( pack_flag == 2)
+    for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -337,7 +337,7 @@ void FixQEqFire::unpack_forward_comm(int n, int first, double *buf)
 int FixQEqFire::pack_reverse_comm(int n, int first, double *buf)
 {
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
+  for (m = 0, i = first; m < n; m++, i++) buf[m] = qf[i];
   return m;
 }
 
@@ -347,7 +347,7 @@ void FixQEqFire::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int m;
 
-  for(m = 0; m < n; m++) qf[list[m]] += buf[m];
+  for (m = 0; m < n; m++) qf[list[m]] += buf[m];
 }
 
 /* ---------------------------------------------------------------------- */

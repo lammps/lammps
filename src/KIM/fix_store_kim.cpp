@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +13,8 @@
 
 /* ----------------------------------------------------------------------
    Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
+                         Ryan S. Elliott (UMN),
+                         Yaser Afshar (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -55,11 +56,12 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_store_kim.h"
-#include <cstring>
+
+#include "error.h"
+
 extern "C" {
 #include "KIM_SimulatorModel.h"
 }
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -114,27 +116,27 @@ int FixStoreKIM::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixStoreKIM::setptr(const char *name, void *ptr)
+void FixStoreKIM::setptr(const std::string &name, void *ptr)
 {
-  if (strcmp(name,"simulator_model") == 0) {
+  if (name == "simulator_model") {
     if (simulator_model) {
       KIM_SimulatorModel *sm = (KIM_SimulatorModel *)simulator_model;
       KIM_SimulatorModel_Destroy(&sm);
     }
     simulator_model = ptr;
-  } else if (strcmp(name,"model_name") == 0) {
+  } else if (name == "model_name") {
     if (model_name) {
       char *mn = (char *)model_name;
       delete[] mn;
     }
     model_name = ptr;
-  } else if (strcmp(name,"model_units") == 0) {
+  } else if (name == "model_units") {
     if (model_units) {
       char *mu = (char *)model_units;
       delete[] mu;
     }
     model_units = ptr;
-  } else if (strcmp(name,"user_units") == 0) {
+  } else if (name == "user_units") {
     if (user_units) {
       char *uu = (char *)user_units;
       delete[] uu;
@@ -145,11 +147,11 @@ void FixStoreKIM::setptr(const char *name, void *ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void *FixStoreKIM::getptr(const char *name)
+void *FixStoreKIM::getptr(const std::string &name)
 {
-  if (strcmp(name,"simulator_model") == 0) return simulator_model;
-  else if (strcmp(name,"model_name") == 0) return model_name;
-  else if (strcmp(name,"model_units") == 0) return model_units;
-  else if (strcmp(name,"user_units") == 0) return user_units;
+  if (name == "simulator_model") return simulator_model;
+  else if (name == "model_name") return model_name;
+  else if (name == "model_units") return model_units;
+  else if (name == "user_units") return user_units;
   else return nullptr;
 }

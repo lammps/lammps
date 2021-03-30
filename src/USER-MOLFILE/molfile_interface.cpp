@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,6 +23,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
+#include <strings.h>    // for strcasecmp()
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -54,7 +55,7 @@ extern "C" {
     // make sure we have the proper plugin type (native reader)
     // for the desired file type (called "name" at this level)
     if ((strcmp(MOLFILE_PLUGIN_TYPE,p->type) == 0)
-        && (strcmp(r->name, p->name) == 0) ) {
+        && (strcmp(r->name, p->name) == 0)) {
       r->p = static_cast<void *>(p);
     }
     return 0;
@@ -408,7 +409,7 @@ int MolfileInterface::find_plugin(const char *pluginpath)
       retval = (retval > E_DIR) ? retval : E_DIR;
 
     // search for suitable file names and try to inspect them
-    while(dir) {
+    while (dir) {
       char *fullname;
       int len;
 
@@ -515,7 +516,7 @@ int MolfileInterface::load_plugin(const char *filename)
 
     // check if the new plugin is of a newer minor version
     } else if ( (p->majorv == plugin->majorv) &&
-                (p->minorv >= plugin->minorv) ) {
+                (p->minorv >= plugin->minorv)) {
       retval = E_VERSION;
     }
   }

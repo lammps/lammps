@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,6 +50,7 @@ FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   hyperflag = 1;
   scalar_flag = 1;
+  energy_global_flag = 1;
   vector_flag = 1;
   size_vector = 12;
   global_freq = 1;
@@ -104,7 +105,6 @@ int FixHyperGlobal::setmask()
   int mask = 0;
   mask |= PRE_NEIGHBOR;
   mask |= PRE_REVERSE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -559,6 +559,6 @@ double FixHyperGlobal::query(int i)
 
 double FixHyperGlobal::memory_usage()
 {
-  double bytes = maxbond * sizeof(OneBond);    // blist
+  double bytes = (double)maxbond * sizeof(OneBond);    // blist
   return bytes;
 }

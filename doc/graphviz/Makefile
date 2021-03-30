@@ -17,7 +17,7 @@ clean:
 
 ifeq ($(HAS_DOT),YES)
 $(IMGDIR)/%.png: %.dot
-	dot -Tpng -o $@ $<
+	dot -Tpng -Kneato -o $@ $<
 endif
 
 ifeq ($(HAS_DOT),NO)

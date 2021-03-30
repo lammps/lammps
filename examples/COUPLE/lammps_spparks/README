@@ -16,11 +16,11 @@ Lennard-Jones sigma between particles of different types that is
 larger than the sigma between particles of the same type (interior to
 grains).
 
-lmpspk.cpp	    main program
-		    it links LAMMPS and SPPARKS as libraries
-in.spparks	    SPPARKS input script, without the run command
-lmppath.h	    contains path to LAMMPS home directory
-spkpath.h	    contains path to SPPARKS home directory
+lmpspk.cpp          main program
+                    it links LAMMPS and SPPARKS as libraries
+in.spparks          SPPARKS input script, without the run command
+lmppath.h           contains path to LAMMPS home directory
+spkpath.h           contains path to SPPARKS home directory
 
 After editing the Makefile, lmppath.h, and spkpath.h to make them
 suitable for your box, type:

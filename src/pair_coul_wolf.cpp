@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,7 +36,6 @@ using namespace MathConst;
 PairCoulWolf::PairCoulWolf(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;        // NOTE: single() method below is not yet correct
-  centroidstressflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

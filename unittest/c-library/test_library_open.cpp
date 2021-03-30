@@ -1,6 +1,7 @@
 // unit tests creating LAMMPS instances via the library interface
 
 #include "lammps.h"
+#define LAMMPS_LIB_MPI 1
 #include "library.h"
 #include <cstdio> // for stdin, stdout
 #include <mpi.h>
@@ -71,6 +72,7 @@ TEST(lammps_open, with_args)
     output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, HasSubstr("Total wall time:"));
     if (verbose) std::cout << output;
+    MPI_Comm_free(&mycomm);
 }
 
 TEST(lammps_open, with_kokkos)
@@ -194,4 +196,5 @@ TEST(lammps_open_fortran, no_args)
     output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output, HasSubstr("Total wall time:"));
     if (verbose) std::cout << output;
+    MPI_Comm_free(&mycomm);
 }

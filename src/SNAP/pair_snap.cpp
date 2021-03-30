@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,19 +13,19 @@
 
 #include "pair_snap.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "sna.h"
-#include "memory.h"
-#include "error.h"
+#include "tokenizer.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -40,9 +40,8 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
-  nelements = 0;
-  elements = nullptr;
   radelem = nullptr;
   wjelem = nullptr;
   coeffelem = nullptr;
@@ -59,14 +58,9 @@ PairSNAP::~PairSNAP()
 {
   if (copymode) return;
 
-  if (nelements) {
-    for (int i = 0; i < nelements; i++)
-      delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-    memory->destroy(coeffelem);
-  }
+  memory->destroy(radelem);
+  memory->destroy(wjelem);
+  memory->destroy(coeffelem);
 
   memory->destroy(beta);
   memory->destroy(bispectrum);
@@ -76,7 +70,6 @@ PairSNAP::~PairSNAP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(map);
   }
 
 }
@@ -176,7 +169,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      if(chemflag)
+      if (chemflag)
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj],jj, snaptr->element[jj]);
       else
@@ -343,7 +336,7 @@ void PairSNAP::compute_bispectrum()
     else
       snaptr->compute_bi(0);
 
-    for (int icoeff = 0; icoeff < ncoeff; icoeff++){
+    for (int icoeff = 0; icoeff < ncoeff; icoeff++) {
       bispectrum[ii][icoeff] = snaptr->blist[icoeff];
     }
   }
@@ -361,7 +354,7 @@ void PairSNAP::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(map,n+1,"pair:map");
+  map = new int[n+1];
 }
 
 /* ----------------------------------------------------------------------
@@ -380,32 +373,14 @@ void PairSNAP::settings(int narg, char ** /* arg */)
 
 void PairSNAP::coeff(int narg, char **arg)
 {
-  if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
+  if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  if (nelements) {
-    for (int i = 0; i < nelements; i++)
-      delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-    memory->destroy(coeffelem);
-  }
-
-  char* type1 = arg[0];
-  char* type2 = arg[1];
-  char* coefffilename = arg[2];
-  char* paramfilename = arg[3];
-  char** elemtypes = &arg[4];
-
-  // insure I,J args are * *
-
-  if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  map_element2type(narg-4,arg+4);
 
   // read snapcoeff and snapparam files
 
-  read_files(coefffilename,paramfilename);
+  read_files(arg[2],arg[3]);
 
   if (!quadraticflag)
     ncoeff = ncoeffall - 1;
@@ -421,42 +396,6 @@ void PairSNAP::coeff(int narg, char **arg)
       error->all(FLERR,"Incorrect SNAP coeff file");
     }
   }
-
-  // read args that map atom types to SNAP elements
-  // map[i] = which element the Ith atom type is, -1 if not mapped
-  // map[0] is not used
-
-  for (int i = 1; i <= atom->ntypes; i++) {
-    char* elemname = elemtypes[i-1];
-    int jelem;
-    for (jelem = 0; jelem < nelements; jelem++)
-      if (strcmp(elemname,elements[jelem]) == 0)
-        break;
-
-    if (jelem < nelements)
-      map[i] = jelem;
-    else if (strcmp(elemname,"NULL") == 0) map[i] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
-  }
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
@@ -516,17 +455,13 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   FILE *fpcoeff;
   if (comm->me == 0) {
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
-    if (fpcoeff == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open SNAP coefficient file %s",coefffilename);
-      error->one(FLERR,str);
-    }
+    if (fpcoeff == nullptr)
+      error->one(FLERR,fmt::format("Cannot open SNAP coefficient file {}: ",
+                                   coefffilename, utils::getsyserror()));
   }
 
   char line[MAXLINE],*ptr;
   int eof = 0;
-
-  int n;
   int nwords = 0;
   while (nwords == 0) {
     if (comm->me == 0) {
@@ -534,83 +469,104 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (ptr == nullptr) {
         eof = 1;
         fclose(fpcoeff);
-      } else n = strlen(line) + 1;
+      }
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     // strip comment, skip line if blank
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
+    nwords = utils::count_words(utils::trim_comment(line));
   }
   if (nwords != 2)
     error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
-  // words = ptrs to all words in line
   // strip single and double quotes from words
 
-  char* words[MAXWORD];
-  int iword = 0;
-  words[iword] = strtok(line,"' \t\n\r\f");
-  iword = 1;
-  words[iword] = strtok(nullptr,"' \t\n\r\f");
+  int nelemtmp = 0;
+  try {
+    ValueTokenizer words(utils::trim_comment(line),"\"' \t\n\r\f");
+    nelemtmp = words.next_int();
+    ncoeffall = words.next_int();
+  } catch (TokenizerException &e) {
+    error->all(FLERR,fmt::format("Incorrect format in SNAP coefficient "
+                                 "file: {}", e.what()));
+  }
 
-  nelements = atoi(words[0]);
-  ncoeffall = atoi(words[1]);
+  // clean out old arrays and set up element lists
 
-  // set up element lists
-
-  elements = new char*[nelements];
+  memory->destroy(radelem);
+  memory->destroy(wjelem);
+  memory->destroy(coeffelem);
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");
 
-  // Loop over nelements blocks in the SNAP coefficient file
+  // initialize checklist for all required nelements
 
-  for (int ielem = 0; ielem < nelements; ielem++) {
+  int elementflags[nelements];
+  for (int jelem = 0; jelem < nelements; jelem++)
+      elementflags[jelem] = 0;
+
+  // loop over nelemtmp blocks in the SNAP coefficient file
+
+  for (int ielem = 0; ielem < nelemtmp; ielem++) {
 
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == nullptr) {
         eof = 1;
         fclose(fpcoeff);
-      } else n = strlen(line) + 1;
+      }
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
-    nwords = utils::trim_and_count_words(line);
-    if (nwords != 3)
+    std::vector<std::string> words;
+    try {
+      words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+    } catch (TokenizerException &e) {
+      // ignore
+    }
+    if (words.size() != 3)
       error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
-    iword = 0;
-    words[iword] = strtok(line,"' \t\n\r\f");
-    iword = 1;
-    words[iword] = strtok(nullptr,"' \t\n\r\f");
-    iword = 2;
-    words[iword] = strtok(nullptr,"' \t\n\r\f");
+    int jelem;
+    for (jelem = 0; jelem < nelements; jelem++)
+      if (words[0] == elements[jelem]) break;
 
-    char* elemtmp = words[0];
-    int n = strlen(elemtmp) + 1;
-    elements[ielem] = new char[n];
-    strcpy(elements[ielem],elemtmp);
+    // if this element not needed, skip this block
 
-    radelem[ielem] = atof(words[1]);
-    wjelem[ielem] = atof(words[2]);
-
-
-    if (comm->me == 0) {
-      if (screen) fprintf(screen,"SNAP Element = %s, Radius %g, Weight %g \n",
-                          elements[ielem], radelem[ielem], wjelem[ielem]);
-      if (logfile) fprintf(logfile,"SNAP Element = %s, Radius %g, Weight %g \n",
-                          elements[ielem], radelem[ielem], wjelem[ielem]);
+    if (jelem == nelements) {
+      if (comm->me == 0) {
+        for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
+          ptr = fgets(line,MAXLINE,fpcoeff);
+          if (ptr == nullptr) {
+            eof = 1;
+            fclose(fpcoeff);
+          }
+        }
+      }
+      MPI_Bcast(&eof,1,MPI_INT,0,world);
+      if (eof)
+        error->all(FLERR,"Incorrect format in SNAP coefficient file");
+      continue;
     }
+
+    if (elementflags[jelem] == 1)
+      error->all(FLERR,"Incorrect format in SNAP coefficient file");
+    else
+      elementflags[jelem] = 1;
+
+    radelem[jelem] = utils::numeric(FLERR,words[1].c_str(),false,lmp);
+    wjelem[jelem] = utils::numeric(FLERR,words[2].c_str(),false,lmp);
+
+    if (comm->me == 0)
+      utils::logmesg(lmp,fmt::format("SNAP Element = {}, Radius {}, Weight {}\n",
+                                     elements[jelem], radelem[jelem], wjelem[jelem]));
 
     for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
       if (comm->me == 0) {
@@ -618,28 +574,34 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
         if (ptr == nullptr) {
           eof = 1;
           fclose(fpcoeff);
-        } else n = strlen(line) + 1;
+        }
       }
 
       MPI_Bcast(&eof,1,MPI_INT,0,world);
       if (eof)
         error->all(FLERR,"Incorrect format in SNAP coefficient file");
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
+      MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
-      nwords = utils::trim_and_count_words(line);
-      if (nwords != 1)
-        error->all(FLERR,"Incorrect format in SNAP coefficient file");
+      try {
+        ValueTokenizer coeff(utils::trim_comment(line));
+        if (coeff.count() != 1)
+          error->all(FLERR,"Incorrect format in SNAP coefficient file");
 
-      iword = 0;
-      words[iword] = strtok(line,"' \t\n\r\f");
-
-      coeffelem[ielem][icoeff] = atof(words[0]);
-
+        coeffelem[jelem][icoeff] = coeff.next_double();
+      } catch (TokenizerException &e) {
+        error->all(FLERR,fmt::format("Incorrect format in SNAP coefficient "
+                                     "file: {}", e.what()));
+      }
     }
   }
 
   if (comm->me == 0) fclose(fpcoeff);
+
+  for (int jelem = 0; jelem < nelements; jelem++) {
+    if (elementflags[jelem] == 0)
+      error->all(FLERR,fmt::format("Element {} not found in SNAP coefficient "
+                                   "file", elements[jelem]));
+  }
 
   // set flags for required keywords
 
@@ -656,18 +618,16 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
-  chunksize = 2000;
+  chunksize = 4096;
 
   // open SNAP parameter file on proc 0
 
   FILE *fpparam;
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
-    if (fpparam == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open SNAP parameter file %s",paramfilename);
-      error->one(FLERR,str);
-    }
+    if (fpparam == nullptr)
+      error->one(FLERR,fmt::format("Cannot open SNAP parameter file {}: {}",
+                                   paramfilename, utils::getsyserror()));
   }
 
   eof = 0;
@@ -677,62 +637,64 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       if (ptr == nullptr) {
         eof = 1;
         fclose(fpparam);
-      } else n = strlen(line) + 1;
+      }
     }
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+    MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
     // strip comment, skip line if blank
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
-
-    if (nwords != 2)
-      error->all(FLERR,"Incorrect format in SNAP parameter file");
-
-    // words = ptrs to all words in line
-    // strip single and double quotes from words
-
-    char* keywd = strtok(line,"' \t\n\r\f");
-    char* keyval = strtok(nullptr,"' \t\n\r\f");
-
-    if (comm->me == 0) {
-      if (screen) fprintf(screen,"SNAP keyword %s %s \n",keywd,keyval);
-      if (logfile) fprintf(logfile,"SNAP keyword %s %s \n",keywd,keyval);
+    std::vector<std::string> words;
+    try {
+      words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
+    } catch (TokenizerException &e) {
+      // ignore
     }
 
-    if (strcmp(keywd,"rcutfac") == 0) {
-      rcutfac = atof(keyval);
+    if (words.size() == 0) continue;
+    if (words.size() != 2)
+      error->all(FLERR,"Incorrect format in SNAP parameter file");
+
+    auto keywd = words[0];
+    auto keyval = words[1];
+
+    if (comm->me == 0)
+      utils::logmesg(lmp,fmt::format("SNAP keyword {} {}\n",keywd,keyval));
+
+    if (keywd == "rcutfac") {
+      rcutfac = utils::numeric(FLERR,keyval.c_str(),false,lmp);
       rcutfacflag = 1;
-    } else if (strcmp(keywd,"twojmax") == 0) {
-      twojmax = atoi(keyval);
+    } else if (keywd == "twojmax") {
+      twojmax = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
       twojmaxflag = 1;
-    } else if (strcmp(keywd,"rfac0") == 0)
-      rfac0 = atof(keyval);
-    else if (strcmp(keywd,"rmin0") == 0)
-      rmin0 = atof(keyval);
-    else if (strcmp(keywd,"switchflag") == 0)
-      switchflag = atoi(keyval);
-    else if (strcmp(keywd,"bzeroflag") == 0)
-      bzeroflag = atoi(keyval);
-    else if (strcmp(keywd,"quadraticflag") == 0)
-      quadraticflag = atoi(keyval);
-    else if (strcmp(keywd,"chemflag") == 0)
-      chemflag = atoi(keyval);
-    else if (strcmp(keywd,"bnormflag") == 0)
-      bnormflag = atoi(keyval);
-    else if (strcmp(keywd,"wselfallflag") == 0)
-      wselfallflag = atoi(keyval);
-    else if (strcmp(keywd,"chunksize") == 0)
-      chunksize = atoi(keyval);
+    } else if (keywd == "rfac0")
+      rfac0 = utils::numeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "rmin0")
+      rmin0 = utils::numeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "switchflag")
+      switchflag = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "bzeroflag")
+      bzeroflag = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "quadraticflag")
+      quadraticflag = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "chemflag")
+      chemflag = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "bnormflag")
+      bnormflag = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "wselfallflag")
+      wselfallflag = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "chunksize")
+      chunksize = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
     else
-      error->all(FLERR,"Incorrect SNAP parameter file");
+      error->all(FLERR,fmt::format("Unknown parameter '{}' in SNAP "
+                                   "parameter file", keywd));
   }
 
   if (rcutfacflag == 0 || twojmaxflag == 0)
+    error->all(FLERR,"Incorrect SNAP parameter file");
+
+  if (chemflag && nelemtmp != nelements)
     error->all(FLERR,"Incorrect SNAP parameter file");
 
 }
@@ -746,11 +708,11 @@ double PairSNAP::memory_usage()
   double bytes = Pair::memory_usage();
 
   int n = atom->ntypes+1;
-  bytes += n*n*sizeof(int);      // setflag
-  bytes += n*n*sizeof(double);   // cutsq
-  bytes += n*sizeof(int);        // map
-  bytes += beta_max*ncoeff*sizeof(double); // bispectrum
-  bytes += beta_max*ncoeff*sizeof(double); // beta
+  bytes += (double)n*n*sizeof(int);      // setflag
+  bytes += (double)n*n*sizeof(double);   // cutsq
+  bytes += (double)n*sizeof(int);        // map
+  bytes += (double)beta_max*ncoeff*sizeof(double); // bispectrum
+  bytes += (double)beta_max*ncoeff*sizeof(double); // beta
 
   bytes += snaptr->memory_usage(); // SNA object
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,6 +17,7 @@
 
 #include "fix_python_invoke.h"
 
+#include "comm.h"
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"
@@ -52,14 +53,14 @@ FixPythonInvoke::FixPythonInvoke(LAMMPS *lmp, int narg, char **arg) :
   // get Python function
   PyGILState_STATE gstate = PyGILState_Ensure();
 
-  PyObject * pyMain = PyImport_AddModule("__main__");
+  PyObject *pyMain = PyImport_AddModule("__main__");
 
   if (!pyMain) {
     PyGILState_Release(gstate);
     error->all(FLERR,"Could not initialize embedded Python");
   }
 
-  char * fname = arg[5];
+  char *fname = arg[5];
   pFunc = PyObject_GetAttrString(pyMain, fname);
 
   if (!pFunc) {
@@ -83,13 +84,16 @@ void FixPythonInvoke::end_of_step()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
 
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(O)", ptr);
+  PyObject *ptr = PY_VOID_POINTER(lmp);
+  PyObject *arglist = Py_BuildValue("(O)", ptr);
 
-  PyObject * result = PyEval_CallObject((PyObject*)pFunc, arglist);
+  PyObject *result = PyEval_CallObject((PyObject*)pFunc, arglist);
   Py_DECREF(arglist);
+  if (!result && (comm->me == 0)) PyErr_Print();
 
   PyGILState_Release(gstate);
+  if (!result)
+    error->all(FLERR,"Fix python/invoke end_of_step() method failed");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -100,11 +104,14 @@ void FixPythonInvoke::post_force(int vflag)
 
   PyGILState_STATE gstate = PyGILState_Ensure();
 
-  PyObject * ptr = PY_VOID_POINTER(lmp);
-  PyObject * arglist = Py_BuildValue("(Oi)", ptr, vflag);
+  PyObject *ptr = PY_VOID_POINTER(lmp);
+  PyObject *arglist = Py_BuildValue("(Oi)", ptr, vflag);
 
-  PyObject * result = PyEval_CallObject((PyObject*)pFunc, arglist);
+  PyObject *result = PyEval_CallObject((PyObject*)pFunc, arglist);
   Py_DECREF(arglist);
+  if (!result && (comm->me == 0)) PyErr_Print();
 
   PyGILState_Release(gstate);
+  if (!result)
+    error->all(FLERR,"Fix python/invoke post_force() method failed");
 }

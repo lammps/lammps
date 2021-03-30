@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,18 +23,19 @@
 
 #include "fix_neb_spin.h"
 
-#include <cmath>
-#include <cstring>
-#include "universe.h"
-#include "update.h"
 #include "atom.h"
 #include "comm.h"
-#include "modify.h"
 #include "compute.h"
-#include "group.h"
-#include "memory.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -120,17 +121,8 @@ FixNEBSpin::FixNEBSpin(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute pe style
   // id = fix-ID + pe, compute group = all
 
-  int n = strlen(id) + 4;
-  id_pe = new char[n];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_pe = utils::strdup(std::string(id)+"_pe");
+  modify->add_compute(std::string(id_pe)+" all pe");
 
   // initialize local storage
 
@@ -229,7 +221,7 @@ void FixNEBSpin::init()
 
   if (atom->nmax > maxlocal) reallocate();
 
-  if (MULTI_PROC && counts == nullptr) {
+  if (cmode == MULTI_PROC && counts == nullptr) {
     memory->create(xsendall,ntotal,3,"neb:xsendall");
     memory->create(xrecvall,ntotal,3,"neb:xrecvall");
     memory->create(fsendall,ntotal,3,"neb:fsendall");

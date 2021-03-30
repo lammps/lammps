@@ -21,7 +21,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_control.h"
@@ -41,7 +41,7 @@ char Read_Control_File( char *control_file, control_params* control,
   double  val;
 
   /* open control file */
-  if ( (fp = fopen( control_file, "r" ) ) == nullptr ) {
+  if ((fp = fopen( control_file, "r" ) ) == nullptr) {
     control->error_ptr->all(FLERR, "The control file cannot be opened");
   }
 
@@ -134,7 +134,7 @@ char Read_Control_File( char *control_file, control_params* control,
       ival = atoi(tmp[1]);
       control->nsteps = ival;
     }
-    else if( strcmp(tmp[0], "dt") == 0) {
+    else if ( strcmp(tmp[0], "dt") == 0) {
       val = atof(tmp[1]);
       control->dt = val * 1.e-3;  // convert dt from fs to ps!
     }
@@ -343,7 +343,7 @@ char Read_Control_File( char *control_file, control_params* control,
     }
     else if (strcmp(tmp[0], "ignore") == 0) {
       control->num_ignored = atoi(tmp[1]);
-      for( i = 0; i < control->num_ignored; ++i )
+      for (i = 0; i < control->num_ignored; ++i)
         control->ignore[atoi(tmp[i+2])] = 1;
     }
     else if (strcmp(tmp[0], "dipole_anal") == 0) {
@@ -379,7 +379,7 @@ char Read_Control_File( char *control_file, control_params* control,
   else control->T = control->T_init;
 
   /* free memory allocations at the top */
-  for( i = 0; i < MAX_TOKENS; i++ )
+  for (i = 0; i < MAX_TOKENS; i++)
     free( tmp[i] );
   free( tmp );
   free( s );

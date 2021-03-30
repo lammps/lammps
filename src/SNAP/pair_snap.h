@@ -50,14 +50,11 @@ protected:
   void compute_bispectrum();
 
   double rcutmax;               // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
   double *radelem;              // element radii
   double *wjelem;               // elements weights
   double **coeffelem;           // element bispectrum coefficients
   double** beta;                // betas for all atoms in list
   double** bispectrum;          // bispectrum components for all atoms in list
-  int *map;                     // mapping from atom types to elements
   int twojmax, switchflag, bzeroflag, bnormflag;
   int chemflag, wselfallflag;
   int chunksize;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,8 +52,11 @@ Error::Error(LAMMPS *lmp) : Pointers(lmp) {
 void Error::universe_all(const std::string &file, int line, const std::string &str)
 {
   MPI_Barrier(universe->uworld);
-  std::string mesg = fmt::format("ERROR: {} ({}:{})\n",
-                                 str,truncpath(file),line);
+  std::string mesg = "ERROR: " + str;
+  try {
+    mesg += fmt::format(" ({}:{})\n",truncpath(file),line);
+  } catch (fmt::format_error &e) {
+  }
   if (universe->me == 0) {
     if (universe->uscreen)  fputs(mesg.c_str(),universe->uscreen);
     if (universe->ulogfile) fputs(mesg.c_str(),universe->ulogfile);
@@ -135,9 +138,14 @@ void Error::all(const std::string &file, int line, const std::string &str)
   MPI_Comm_rank(world,&me);
 
   if (me == 0) {
+    std::string mesg = "ERROR: " + str;
     if (input && input->line) lastcmd = input->line;
-    utils::logmesg(lmp,fmt::format("ERROR: {} ({}:{})\nLast command: {}\n",
-                                   str,truncpath(file),line,lastcmd));
+    try {
+      mesg += fmt::format(" ({}:{})\nLast command: {}\n",
+                          truncpath(file),line,lastcmd);
+    } catch (fmt::format_error &e) {
+    }
+    utils::logmesg(lmp,mesg);
   }
 
 #ifdef LAMMPS_EXCEPTIONS

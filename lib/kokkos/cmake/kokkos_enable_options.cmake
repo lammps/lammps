@@ -109,3 +109,7 @@ ENDIF()
 IF (KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE AND KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
   MESSAGE(FATAL_ERROR "Relocatable device code is currently not supported with Clang - must use nvcc_wrapper or turn off RDC")
 ENDIF()
+
+IF (KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE AND BUILD_SHARED_LIBS)
+  MESSAGE(FATAL_ERROR "Relocatable device code requires static libraries.")
+ENDIF()

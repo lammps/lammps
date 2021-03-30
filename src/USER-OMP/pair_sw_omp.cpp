@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -121,7 +121,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       if (rsq >= params[ijparam].cutsq) {
         continue;
       } else {
@@ -161,7 +161,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < jnumm1; jj++) {
       j = neighshort_thr[jj];
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       delr1[0] = x[j].x - xtmp;
       delr1[1] = x[j].y - ytmp;
       delr1[2] = x[j].z - ztmp;
@@ -173,8 +173,8 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort_thr[kk];
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k].x - xtmp;
         delr2[1] = x[k].y - ytmp;

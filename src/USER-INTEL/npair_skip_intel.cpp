@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,8 +55,8 @@ void NPairSkipIntel::copy_neighbor_info()
 {
   NPair::copy_neighbor_info();
   if (_full_props) delete []_full_props;
-  _full_props = new int[neighbor->nlist];
-  for (int i = 0; i < neighbor->nlist; i++)
+  _full_props = new int[neighbor->nrequest];
+  for (int i = 0; i < neighbor->nrequest; i++)
     _full_props[i] = neighbor->requests[i]->full;
 }
 
@@ -95,7 +95,7 @@ void NPairSkipIntel::build_t(NeighList *list, int *numhalf, int *cnumneigh,
     packthreads = 1;
 
   #if defined(_OPENMP)
-  #pragma omp parallel if(packthreads > 1)
+  #pragma omp parallel if (packthreads > 1)
   #endif
   {
     int tid, ifrom, ito;

@@ -39,33 +39,28 @@ using ::testing::MatchesRegex;
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
-bool verbose = false;
-
+extern bool verbose;
 
 class LAMMPSTest : public ::testing::Test {
 public:
-    void command(const std::string &line) {
-        lmp->input->one(line.c_str());
-    }
+    void command(const std::string &line) { lmp->input->one(line.c_str()); }
 
 protected:
-    const char * testbinary = "LAMMPSTest";
+    const char *testbinary = "LAMMPSTest";
     LAMMPS *lmp;
 
     void SetUp() override
     {
-        const char *args[] = { testbinary, "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv = (char **)args;
-        int argc    = sizeof(args) / sizeof(char *);
+        const char *args[] = {testbinary, "-log", "none", "-echo", "screen", "-nocite"};
+        char **argv        = (char **)args;
+        int argc           = sizeof(args) / sizeof(char *);
         if (!verbose) ::testing::internal::CaptureStdout();
         lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         InitSystem();
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-
-    virtual void InitSystem() {
-    }
+    virtual void InitSystem() {}
 
     void TearDown() override
     {
@@ -75,6 +70,5 @@ protected:
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 };
-
 
 #endif

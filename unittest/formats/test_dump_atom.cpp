@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,30 +11,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
-#include "fmt/format.h"
-#include "utils.h"
 #include "../testing/core.h"
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
+#include "fmt/format.h"
+#include "utils.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <string>
 
 using ::testing::Eq;
 
-char * BINARY2TXT_BINARY = nullptr;
+char *BINARY2TXT_BINARY = nullptr;
+bool verbose = false;
 
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";
+
 public:
-    void enable_triclinic() {
+    void enable_triclinic()
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         command("change_box all triclinic");
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-    void generate_dump(std::string dump_file, std::string dump_modify_options, int ntimesteps) {
+    void generate_dump(std::string dump_file, std::string dump_modify_options, int ntimesteps)
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         command(fmt::format("dump id all {} 1 {}", dump_style, dump_file));
 
@@ -46,7 +50,9 @@ public:
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-    void generate_text_and_binary_dump(std::string text_file, std::string binary_file, std::string dump_modify_options, int ntimesteps) {
+    void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
+                                       std::string dump_modify_options, int ntimesteps)
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         command(fmt::format("dump id0 all {} 1 {}", dump_style, text_file));
         command(fmt::format("dump id1 all {} 1 {}", dump_style, binary_file));
@@ -60,7 +66,8 @@ public:
         if (!verbose) ::testing::internal::GetCapturedStdout();
     }
 
-    std::string convert_binary_to_text(std::string binary_file) {
+    std::string convert_binary_to_text(std::string binary_file)
+    {
         if (!verbose) ::testing::internal::CaptureStdout();
         std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
         system(cmdline.c_str());
@@ -290,9 +297,9 @@ TEST_F(DumpAtomTest, triclinic_with_image_run0)
 
 TEST_F(DumpAtomTest, binary_run0)
 {
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_run0.melt";
+    auto text_file   = "dump_text_run0.melt";
     auto binary_file = "dump_binary_run0.melt.bin";
 
     generate_text_and_binary_dump(text_file, binary_file, "", 0);
@@ -311,9 +318,9 @@ TEST_F(DumpAtomTest, binary_run0)
 
 TEST_F(DumpAtomTest, binary_with_units_run0)
 {
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_with_units_run0.melt";
+    auto text_file   = "dump_text_with_units_run0.melt";
     auto binary_file = "dump_binary_with_units_run0.melt.bin";
 
     generate_text_and_binary_dump(text_file, binary_file, "scale no units yes", 0);
@@ -332,9 +339,9 @@ TEST_F(DumpAtomTest, binary_with_units_run0)
 
 TEST_F(DumpAtomTest, binary_with_time_run0)
 {
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_with_time_run0.melt";
+    auto text_file   = "dump_text_with_time_run0.melt";
     auto binary_file = "dump_binary_with_time_run0.melt.bin";
 
     generate_text_and_binary_dump(text_file, binary_file, "scale no time yes", 0);
@@ -353,9 +360,9 @@ TEST_F(DumpAtomTest, binary_with_time_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_run0)
 {
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_tri_run0.melt";
+    auto text_file   = "dump_text_tri_run0.melt";
     auto binary_file = "dump_binary_tri_run0.melt.bin";
 
     enable_triclinic();
@@ -375,9 +382,9 @@ TEST_F(DumpAtomTest, binary_triclinic_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
 {
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_tri_with_units_run0.melt";
+    auto text_file   = "dump_text_tri_with_units_run0.melt";
     auto binary_file = "dump_binary_tri_with_units_run0.melt.bin";
 
     enable_triclinic();
@@ -397,9 +404,9 @@ TEST_F(DumpAtomTest, binary_triclinic_with_units_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_time_run0)
 {
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_tri_with_time_run0.melt";
+    auto text_file   = "dump_text_tri_with_time_run0.melt";
     auto binary_file = "dump_binary_tri_with_time_run0.melt.bin";
 
     enable_triclinic();
@@ -419,9 +426,9 @@ TEST_F(DumpAtomTest, binary_triclinic_with_time_run0)
 
 TEST_F(DumpAtomTest, binary_triclinic_with_image_run0)
 {
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
-    auto text_file = "dump_text_tri_with_image_run0.melt";
+    auto text_file   = "dump_text_tri_with_image_run0.melt";
     auto binary_file = "dump_binary_tri_with_image_run0.melt.bin";
 
     enable_triclinic();
@@ -501,8 +508,7 @@ TEST_F(DumpAtomTest, dump_modify_scale_invalid)
     command("dump id all atom 1 dump.txt");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*",
-                 command("dump_modify id scale true"););
+    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id scale true"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_image_invalid)
@@ -511,8 +517,7 @@ TEST_F(DumpAtomTest, dump_modify_image_invalid)
     command("dump id all atom 1 dump.txt");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*",
-                 command("dump_modify id image true"););
+    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id image true"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_invalid)
@@ -521,8 +526,7 @@ TEST_F(DumpAtomTest, dump_modify_invalid)
     command("dump id all atom 1 dump.txt");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*",
-                 command("dump_modify id true"););
+    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id true"););
 }
 
 TEST_F(DumpAtomTest, write_dump)
@@ -547,7 +551,7 @@ TEST_F(DumpAtomTest, write_dump)
 
 TEST_F(DumpAtomTest, binary_write_dump)
 {
-    if(!BINARY2TXT_BINARY) GTEST_SKIP();
+    if (!BINARY2TXT_BINARY) GTEST_SKIP();
 
     auto reference = "dump_run0.melt.bin";
     auto dump_file = "write_dump_atom_run0_p0.melt.bin";

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -110,7 +110,7 @@ class DumpCustomADIOSInternal
 {
 
 public:
-    DumpCustomADIOSInternal(){};
+    DumpCustomADIOSInternal() {};
     ~DumpCustomADIOSInternal() = default;
 
     // name of adios group, referrable in adios2_config.xml

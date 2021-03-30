@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -195,9 +195,9 @@ void PairTable::allocate()
   memory->create(cutsq,nt,nt,"pair:cutsq");
   memory->create(tabindex,nt,nt,"pair:tabindex");
 
-  memset(&setflag[0][0],0,nt*nt*sizeof(int));
-  memset(&cutsq[0][0],0,nt*nt*sizeof(double));
-  memset(&tabindex[0][0],0,nt*nt*sizeof(int));
+  memset(&setflag[0][0],0,sizeof(int)*nt*nt);
+  memset(&cutsq[0][0],0,sizeof(double)*nt*nt);
+  memset(&tabindex[0][0],0,sizeof(int)*nt*nt);
 }
 
 /* ----------------------------------------------------------------------

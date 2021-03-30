@@ -74,7 +74,7 @@ namespace user_manifold { class manifold; }
     virtual void reset_dt();
     virtual void end_of_step();
     virtual int dof(int);
-    virtual void setup(int){}  // Not needed for fixNVE but is for fixNVT
+    virtual void setup(int) {}  // Not needed for fixNVE but is for fixNVT
     virtual double memory_usage();
 
    protected:

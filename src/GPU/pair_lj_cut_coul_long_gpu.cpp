@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -58,8 +58,8 @@ int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double *host_special_coul, const double qqrd2e,
                   const double g_ewald);
 void ljcl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
-                    double **host_lj2, double **host_lj3, double **host_lj4,
-                    double **offset, double **host_lj_cutsq);
+                     double **host_lj2, double **host_lj3, double **host_lj4,
+                     double **offset, double **host_lj_cutsq);
 void ljcl_gpu_clear();
 int ** ljcl_gpu_compute_n(const int ago, const int inum,
                           const int nall, double **host_x, int *host_type,
@@ -191,11 +191,12 @@ void PairLJCutCoulLongGPU::init_style()
   if (ncoultablebits) init_tables(cut_coul,cut_respa);
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = ljcl_gpu_init(atom->ntypes+1, cutsq, lj1, lj2, lj3, lj4,
                               offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              atom->nlocal+atom->nghost, mnf, maxspecial,
                               cell_size, gpu_mode, screen, cut_ljsq, cut_coulsq,
                               force->special_coul, force->qqrd2e, g_ewald);
   GPU_EXTRA::check_flag(success,error,world);

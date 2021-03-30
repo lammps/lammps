@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -89,15 +89,12 @@ void TAD::command(int narg, char **arg)
   delta_conf = utils::numeric(FLERR,arg[4],false,lmp);
   tmax = utils::numeric(FLERR,arg[5],false,lmp);
 
-  char *id_compute = new char[strlen(arg[6])+1];
-  strcpy(id_compute,arg[6]);
+  char *id_compute = utils::strdup(arg[6]);
 
   // quench minimizer is set by min_style command
   // NEB minimizer is set by options, default = quickmin
 
-  int n = strlen(update->minimize_style) + 1;
-  min_style = new char[n];
-  strcpy(min_style,update->minimize_style);
+  min_style = utils::strdup(update->minimize_style);
 
   options(narg-7,&arg[7]);
 
@@ -554,7 +551,10 @@ void TAD::log_event(int ievent)
     timer->barrier_start();
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
+    // must reset whichflag so that computes won't fail.
+    update->whichflag = 1;
     output->write_dump(update->ntimestep);
+    update->whichflag = 0;
     timer->barrier_stop();
     time_output += timer->get_wall(Timer::TOTAL);
   }
@@ -582,9 +582,7 @@ void TAD::options(int narg, char **arg)
   n2steps_neb = 100;
   nevery_neb = 10;
 
-  int n = strlen("quickmin") + 1;
-  min_style_neb = new char[n];
-  strcpy(min_style_neb,"quickmin");
+  min_style_neb = utils::strdup("quickmin");
   dt_neb = update->dt;
   neb_logfilename = nullptr;
 
@@ -616,9 +614,7 @@ void TAD::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"neb_style") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
       delete [] min_style_neb;
-      int n = strlen(arg[iarg+1]) + 1;
-      min_style_neb = new char[n];
-      strcpy(min_style_neb,arg[iarg+1]);
+      min_style_neb = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"neb_step") == 0) {
@@ -632,9 +628,7 @@ void TAD::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
       if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = nullptr;
       else {
-        int n = strlen(arg[iarg+1]) + 1;
-        neb_logfilename = new char[n];
-        strcpy(neb_logfilename,arg[iarg+1]);
+        neb_logfilename = utils::strdup(arg[iarg+1]);
       }
       iarg += 2;
     } else error->all(FLERR,"Illegal tad command");

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -123,7 +123,7 @@ void PairTersoffIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -309,7 +309,7 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
   int *overflow = fix->get_off_overflow_flag();
   double *timer_compute = fix->off_watch_pair();
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(c_inner, c_outer :length(0) alloc_if(0) free_if(0)) \
     in(c_inner_cutoff :length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
@@ -482,7 +482,7 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
       fc.c_inner_loop[i][0][j].d2 = 1.0;
       fc.c_inner_loop[0][i][j].d2 = 1.0;
       for (int k = 1; k < tp1; k++) {
-        Param * param = &params[elem2param[map[i]][map[j]][map[k]]];
+        Param * param = &params[elem3param[map[i]][map[j]][map[k]]];
         fc.c_cutoff_inner[i][k][j].cutsq = static_cast<flt_t>(param->cutsq);
         fc.c_inner_loop[i][j][k].lam3 = static_cast<flt_t>(param->lam3);
         fc.c_inner_loop[i][j][k].bigr = static_cast<flt_t>(param->bigr);
@@ -504,7 +504,7 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
         fc.c_inner[i][j][k].powermint = static_cast<flt_t>(param->powermint);
 
       }
-      Param * param = &params[elem2param[map[i]][map[j]][map[j]]];
+      Param * param = &params[elem3param[map[i]][map[j]][map[j]]];
       fc.c_cutoff_outer[i][j].cutsq = static_cast<flt_t>(param->cutsq);
       fc.c_first_loop[i][j].bigr = static_cast<flt_t>(param->bigr);
       fc.c_first_loop[i][j].bigd = static_cast<flt_t>(param->bigd);
@@ -566,7 +566,7 @@ template <class flt_t>
 void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            Memory *memory,
                                                            const int cop) {
-  if ( (ntypes != _ntypes) ) {
+  if ((ntypes != _ntypes)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       c_first_loop_t * oc_first_loop = c_first_loop[0];

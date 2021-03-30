@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,6 +42,7 @@ PairCoulDebyeKokkos<DeviceType>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -55,9 +56,8 @@ PairCoulDebyeKokkos<DeviceType>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(
 template<class DeviceType>
 PairCoulDebyeKokkos<DeviceType>::~PairCoulDebyeKokkos()
 {
-  if (!copymode) {
+  if (allocated)
     memoryKK->destroy_kokkos(k_cutsq, cutsq);
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,15 +124,12 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
-  copymode = 1;
-
   EV_FLOAT ev = pair_compute<PairCoulDebyeKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag) {
-    eng_vdwl += ev.evdwl;
+  if (eflag)
     eng_coul += ev.ecoul;
-  }
+
   if (vflag_global) {
     virial[0] += ev.v[0];
     virial[1] += ev.v[1];
@@ -153,8 +150,6 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
-
-  copymode = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -213,6 +208,12 @@ void PairCoulDebyeKokkos<DeviceType>::allocate()
   memory->destroy(cutsq);
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
+
+  k_cut_ljsq = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("pair:cut_ljsq",n+1,n+1);
+  d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
+  k_cut_coulsq = typename ArrayTypes<DeviceType>::tdual_ffloat_2d("pair:cut_coulsq",n+1,n+1);
+  d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
+
   k_params = Kokkos::DualView<params_coul**,Kokkos::LayoutRight,DeviceType>("PairCoulDebye::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
 }
@@ -249,16 +250,6 @@ void PairCoulDebyeKokkos<DeviceType>::init_style()
 {
   PairCoulDebye::init_style();
 
-  // error if rRESPA with inner levels
-
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    int respa = 0;
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-    if (respa)
-      error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
-  }
-
   // irequest = neigh request made by parent class
 
   neighflag = lmp->kokkos->neighflag;
@@ -294,7 +285,7 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).cutsq = cutone*cutone;
   k_params.h_view(j,i) = k_params.h_view(i,j);
 
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cutone*cutone;
@@ -302,9 +293,9 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
   }
   k_cutsq.h_view(i,j) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
-  //k_cut_ljsq.h_view(i,j) = cutone*cutone;
+  k_cut_ljsq.h_view(i,j) = cutone*cutone;
   k_cut_ljsq.template modify<LMPHostType>();
-  //k_cut_coulsq.h_view(i,j) = cutone*cutone;
+  k_cut_coulsq.h_view(i,j) = cutone*cutone;
   k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 

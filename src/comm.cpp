@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -149,16 +149,11 @@ void Comm::copy_arrays(Comm *oldcomm)
     memcpy(cutusermulti,oldcomm->cutusermulti,atom->ntypes+1);
   }
 
-  if (customfile) {
-    int n = strlen(oldcomm->customfile) + 1;
-    customfile = new char[n];
-    strcpy(customfile,oldcomm->customfile);
-  }
-  if (outfile) {
-    int n = strlen(oldcomm->outfile) + 1;
-    outfile = new char[n];
-    strcpy(outfile,oldcomm->outfile);
-  }
+  if (customfile)
+    customfile = utils::strdup(oldcomm->customfile);
+
+  if (outfile)
+    outfile = utils::strdup(oldcomm->outfile);
 }
 
 /* ----------------------------------------------------------------------
@@ -391,9 +386,7 @@ void Comm::set_processors(int narg, char **arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal processors command");
         gridflag = CUSTOM;
         delete [] customfile;
-        int n = strlen(arg[iarg+2]) + 1;
-        customfile = new char[n];
-        strcpy(customfile,arg[iarg+2]);
+        customfile = utils::strdup(arg[iarg+2]);
         iarg += 1;
 
       } else error->all(FLERR,"Illegal processors command");
@@ -453,9 +446,7 @@ void Comm::set_processors(int narg, char **arg)
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal processors command");
       delete [] outfile;
-      int n = strlen(arg[iarg+1]) + 1;
-      outfile = new char[n];
-      strcpy(outfile,arg[iarg+1]);
+      outfile = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else error->all(FLERR,"Illegal processors command");
@@ -979,7 +970,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     offsets[0] = 0;
     for (int i = 1; i < nprocs; i++)
-      offsets[i] = offsets[i-1] + insize*procs_a2a[i-1];
+      offsets[i] = offsets[i-1] + (bigint)insize*procs_a2a[i-1];
 
     bigint offset = 0;
     for (int i = 0; i < n; i++) {
@@ -989,7 +980,8 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
       offset += insize;
     }
 
-    all2all1_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) + n*insize;
+    all2all1_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint)
+                     + (bigint)n*insize;
 
   } else {
     procs_a2a = procs;
@@ -1085,7 +1077,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
 
     offsets[0] = 0;
     for (int i = 1; i < nprocs; i++)
-      offsets[i] = offsets[i-1] + outsize*procs_a2a[i-1];
+      offsets[i] = offsets[i-1] + (bigint)outsize*procs_a2a[i-1];
 
     bigint offset = 0;
     for (int i = 0; i < nrvous_out; i++) {
@@ -1096,7 +1088,7 @@ rendezvous_all2all(int n, char *inbuf, int insize, int inorder, int *procs,
     }
 
     all2all2_bytes = nprocs*sizeof(int) + nprocs*sizeof(bigint) +
-      nrvous_out*outsize;
+      (bigint)nrvous_out*outsize;
 
   } else {
     procs_a2a = procs_rvous;

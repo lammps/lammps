@@ -1,3 +1,4 @@
+######################################
 LAMMPS version |version| Documentation
 ######################################
 
@@ -12,39 +13,49 @@ funding for LAMMPS has come from the US Department of Energy (DOE).
 LAMMPS is an open-source code, distributed freely under the terms of
 the GNU Public License (GPL).
 
-The `LAMMPS website <lws_>`_ has a variety of information about the code.
-It includes links to an on-line version of this manual, a `mailing list <https://lammps.sandia.gov/mail.html>`_ where users can post
-questions, and a `GitHub site <https://github.com/lammps/lammps>`_ where
-all LAMMPS development is coordinated.
+The `LAMMPS website <lws_>`_ has a variety of information about the
+code.  It includes links to an on-line version of this manual, a
+`mailing list <https://lammps.sandia.gov/mail.html>`_ where users can
+post questions, and a `GitHub site <https://github.com/lammps/lammps>`_
+where all LAMMPS development is coordinated.
 
 ----------
 
-The content for this manual is part of the LAMMPS distribution.  You
-can build a local copy of the Manual as HTML pages or a PDF file, by
-following the steps on the :doc:`Manual build <Manual_build>` doc page.
+The content for this manual is part of the LAMMPS distribution.  The
+online version always corresponds to the latest development version.
+If needed, you can download or build a local copy of the manual as
+HTML pages or a PDF file by following the steps on the
+:doc:`Build_manual` page. If you have difficulties viewing the pages
+please :ref:`see this note <webbrowser>`.
+
+-----------
+
 The manual is organized in two parts:
-1) the :ref:`User documentation <user_documentation>` for how to install
-and use LAMMPS and 2) the :ref:`Programmer documentation <programmer_documentation>`
+1) the :ref:`User Guide <user_documentation>` for how to install
+and use LAMMPS and 2) the :ref:`Programmer Guide <programmer_documentation>`
 for how to write programs using the LAMMPS library from different
 programming languages and how to modify and extend LAMMPS.
 
 .. only:: html
 
-   Once you are familiar with LAMMPS, you may want to bookmark :doc:`this page <Commands_all>` since it gives quick access to a doc page for
-   every LAMMPS command.
+   Once you are familiar with LAMMPS, you may want to bookmark
+   :doc:`this page <Commands_all>` since it gives quick access
+   the documentation for all LAMMPS commands.
 
 .. _lws: https://lammps.sandia.gov
 
 ----------
 
-User Documentation
-******************
+
+************
+User Guide
+************
 
 .. _user_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
-   :caption: User Documentation
+   :caption: User Guide
    :name: userdoc
    :includehidden:
 
@@ -58,24 +69,25 @@ User Documentation
    Howto
    Examples
    Tools
-   Python_head
    Errors
-   Manual_build
 
-Programmer Documentation
-************************
+
+******************
+Programmer Guide
+******************
 
 .. _programmer_documentation:
 .. toctree::
    :maxdepth: 2
    :numbered: 3
-   :caption: Programmer Documentation
+   :caption: Programmer Guide
    :name: progdoc
    :includehidden:
 
-   pg_library
+   Library
+   Python_head
    Modify
-   pg_developer
+   Developer
 
 .. toctree::
    :caption: Index
@@ -91,7 +103,9 @@ Programmer Documentation
    dihedrals
    impropers
    fix_modify_atc_commands
+   Bibliography
 
+******************
 Indices and tables
 ******************
 
@@ -99,3 +113,15 @@ Indices and tables
 
    * :ref:`genindex`
    * :ref:`search`
+
+.. _webbrowser:
+.. admonition:: Web Browser Compatibility
+
+   The HTML version of the manual makes use of advanced features present
+   int "modern" web browsers.  This can lead to incompatibilities with older
+   web browsers (released more than 4 years ago) and specific vendor browsers
+   (e.g. Internet Explorer on Windows; Microsoft Edge works well though)
+   where parts of the pages are not rendered as expected (e.g. the layout is
+   broken or mathematical expressions not typeset).  In that case we
+   recommend to install/use a different/newer web browser or use
+   the `PDF version of the manual <https://lammps.sandia.gov/doc/Manual.pdf>`_.

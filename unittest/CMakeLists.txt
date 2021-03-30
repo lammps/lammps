@@ -1,5 +1,21 @@
 include(GTest)
 
+if(BUILD_MPI)
+  function(add_mpi_test)
+    set(MPI_TEST_NUM_PROCS 1)
+    set(MPI_TEST_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    cmake_parse_arguments(MPI_TEST "" "NAME;NUM_PROCS;WORKING_DIRECTORY" "COMMAND" ${ARGN})
+    list(GET MPI_TEST_COMMAND 0 EXECUTABLE)
+    list(REMOVE_AT MPI_TEST_COMMAND 0)
+    set(ARGS ${MPI_TEST_COMMAND})
+    add_test(NAME ${MPI_TEST_NAME}
+             WORKING_DIRECTORY ${MPI_TEST_WORKING_DIRECTORY}
+             COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPI_TEST_NUM_PROCS} ${MPIEXEC_PREFLAGS}
+                     ${EXECUTABLE} ${MPIEXEC_POSTFLAGS} ${ARGS}
+    )
+  endfunction()
+endif()
+
 add_subdirectory(utils)
 add_subdirectory(formats)
 add_subdirectory(commands)
@@ -7,6 +23,7 @@ add_subdirectory(c-library)
 add_subdirectory(cplusplus)
 add_subdirectory(fortran)
 add_subdirectory(python)
+add_subdirectory(tools)
 add_subdirectory(force-styles)
 
 find_package(ClangFormat 8.0)

@@ -125,6 +125,16 @@ cannot appear in the neighbor list, to avoid creation of duplicate
 bonds.  The neighbor list for all atom type pairs must also extend to
 a distance that encompasses the *rmax* for new bonds to create.
 
+.. note::
+
+   If you want to create bonds between pairs of 1-3 or 1-4 atoms in
+   the current bond topology, then you need to use :doc:`special_bonds
+   lj 0 1 1 <special_bonds>` to insure those pairs appear in the
+   neighbor list.  They will not appear with the default special_bonds
+   settings which are zero for 1-2, 1-3, and 1-4 atoms.  1-3 or 1-4
+   atoms are those which are 2 hops or 3 hops apart in the bond
+   topology.
+
 An additional requirement for this style is that your system must be
 ready to perform a simulation.  This means, for example, that all
 :doc:`pair_style <pair_style>` coefficients be set via the

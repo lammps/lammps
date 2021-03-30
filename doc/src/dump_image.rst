@@ -21,7 +21,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *bond* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *persp* or *box* or *axes* or *subbox* or *shiny* or *ssao*
+* keyword = *atom* or *adiam* or *bond* or *line* or *tri* or *body* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *subbox* or *shiny* or *ssao*
 
   .. parsed-literal::
 
@@ -62,9 +62,6 @@ Syntax
        *zoom* value = zfactor = size that simulation box appears in image
          zfactor = scale image size by factor > 1 to enlarge, factor < 1 to shrink
          zfactor can be a variable (see below)
-       *persp* value = pfactor = amount of "perspective" in image
-         pfactor = amount of perspective (0 = none, < 1 = some, > 1 = highly skewed)
-         pfactor can be a variable (see below)
        *box* values = yes/no diam = draw outline of simulation box
          yes/no = do or do not draw simulation box lines
          diam = diameter of box lines as fraction of shortest box length
@@ -87,9 +84,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   dump d0 all image 100 dump.\*.jpg type type
-   dump d1 mobile image 500 snap.\*.png element element ssao yes 4539 0.6
-   dump d2 all image 200 img-\*.ppm type type zoom 2.5 adiam 1.5 size 1280 720
+   dump d0 all image 100 dump.*.jpg type type
+   dump d1 mobile image 500 snap.*.png element element ssao yes 4539 0.6
+   dump d2 all image 200 img-*.ppm type type zoom 2.5 adiam 1.5 size 1280 720
    dump m0 all movie 1000 movie.mpg type type size 640 480
    dump m1 all movie 1000 movie.avi type type size 640 480
    dump m2 all movie 100 movie.m4v type type zoom 1.8 adiam v_value size 1280 720
@@ -426,13 +423,14 @@ i.e. the number of pixels in each direction.
 
 ----------
 
-The *view*\ , *center*\ , *up*\ , *zoom*\ , and *persp* values determine how
+The *view*\ , *center*\ , *up*\ , and *zoom* values determine how
 3d simulation space is mapped to the 2d plane of the image.  Basically
 they control how the simulation box appears in the image.
 
-All of the *view*\ , *center*\ , *up*\ , *zoom*\ , and *persp* values can be
+All of the *view*\ , *center*\ , *up*\ , and *zoom* values can be
 specified as numeric quantities, whose meaning is explained below.
-Any of them can also be specified as an :doc:`equal-style variable <variable>`, by using v_name as the value, where "name" is
+Any of them can also be specified as an :doc:`equal-style variable <variable>`,
+by using v_name as the value, where "name" is
 the variable name.  In this case the variable will be evaluated on the
 timestep each image is created to create a new value.  If the
 equal-style variable is time-dependent, this is a means of changing
@@ -482,19 +480,6 @@ in the image.  The default *zfactor* value of 1 should display an
 image mostly filled by the atoms in the simulation box.  A *zfactor* >
 1 will make the simulation box larger; a *zfactor* < 1 will make it
 smaller.  *Zfactor* must be a value > 0.0.
-
-The *persp* keyword determines how much depth perspective is present
-in the image.  Depth perspective makes lines that are parallel in
-simulation space appear non-parallel in the image.  A *pfactor* value
-of 0.0 means that parallel lines will meet at infinity (1.0/pfactor),
-which is an orthographic rendering with no perspective.  A *pfactor*
-value between 0.0 and 1.0 will introduce more perspective.  A *pfactor*
-value > 1 will create a highly skewed image with a large amount of
-perspective.
-
-.. note::
-
-   The *persp* keyword is not yet supported as an option.
 
 ----------
 
@@ -692,7 +677,6 @@ The defaults for the keywords are as follows:
 * up = 0 0 1 (for 3d)
 * up = 0 1 0 (for 2d)
 * zoom = 1.0
-* persp = 0.0
 * box = yes 0.02
 * axes = no 0.0 0.0
 * subbox no 0.0

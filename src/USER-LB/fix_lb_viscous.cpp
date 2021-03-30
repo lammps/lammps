@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,19 +37,19 @@ FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) :
 
   int groupbit_lb_fluid = 0;
 
-  for(int ifix=0; ifix<modify->nfix; ifix++)
-    if(strcmp(modify->fix[ifix]->style,"lb/fluid")==0){
+  for (int ifix=0; ifix<modify->nfix; ifix++)
+    if (strcmp(modify->fix[ifix]->style,"lb/fluid")==0) {
       fix_lb_fluid = (FixLbFluid *)modify->fix[ifix];
       groupbit_lb_fluid = group->bitmask[modify->fix[ifix]->igroup];
     }
 
-  if(groupbit_lb_fluid == 0)
+  if (groupbit_lb_fluid == 0)
     error->all(FLERR,"the lb/fluid fix must also be used if using the lb/viscous fix");
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  for(int j=0; j<nlocal; j++){
-    if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
+  for (int j=0; j<nlocal; j++) {
+    if ((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
       error->one(FLERR,"to apply a fluid force onto an atom, the lb/fluid fix must be used for that atom.");
   }
 

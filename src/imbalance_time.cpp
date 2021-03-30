@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -59,16 +59,19 @@ void ImbalanceTime::compute(double *weight)
   // cost = CPU time for relevant timers since last invocation
   // localwt = weight assigned to each owned atom
   // just return if no time yet tallied
+  // we 0.1 seconds as a minimum time to avoid computation of bogus
+  // load balancing weights due to limited timer resolution/precision
 
   double cost = -last;
   cost += timer->get_wall(Timer::PAIR);
   cost += timer->get_wall(Timer::NEIGH);
   cost += timer->get_wall(Timer::BOND);
   cost += timer->get_wall(Timer::KSPACE);
+  cost += 0.1;
 
   double maxcost;
   MPI_Allreduce(&cost,&maxcost,1,MPI_DOUBLE,MPI_MAX,world);
-  if (maxcost <= 0.0) return;
+  if (maxcost <= 0.1) return;
 
   int nlocal = atom->nlocal;
   double localwt = 0.0;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -78,11 +78,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal compute hma command");
   if (igroup) error->all(FLERR,"Compute hma must use group all");
   if (strcmp(arg[3],"NULL") == 0) {error->all(FLERR,"fix ID specifying the set temperature of canonical simulation is required");}
-  else {
-    int n = strlen(arg[3]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
-  }
+  else id_temp = utils::strdup(arg[3]);
 
   create_attribute = 1;
   extscalar = 1;
@@ -92,22 +88,10 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
   // our new fix's id (id_fix)= compute-ID + COMPUTE_STORE
   // our new fix's group = same as compute group
 
-  int n = strlen(id) + strlen("_COMPUTE_STORE") + 1;
-  id_fix = new char[n];
-  strcpy(id_fix,id);
-  strcat(id_fix,"_COMPUTE_STORE");
-
-  char **newarg = new char*[6];
-  newarg[0] = id_fix;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "STORE";
-  newarg[3] = (char *) "peratom";
-  newarg[4] = (char *) "1";
-  newarg[5] = (char *) "3";
-  modify->add_fix(6,newarg);
+  id_fix = utils::strdup(std::string(id)+"_COMPUTE_STORE");
+  modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                              id_fix, group->names[igroup]));
   fix = (FixStore *) modify->fix[modify->nfix-1];
-
-  delete [] newarg;
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file
@@ -497,6 +481,6 @@ void ComputeHMA::set_arrays(int i)
 
 double ComputeHMA::memory_usage()
 {
-  double bytes = nmax * 3 * sizeof(double);
+  double bytes = (double)nmax * 3 * sizeof(double);
   return bytes;
 }

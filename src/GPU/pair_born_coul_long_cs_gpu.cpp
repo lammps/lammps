@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -57,15 +57,15 @@ using namespace MathConst;
 // External functions from cuda library for atom decomposition
 
 int bornclcs_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-                    double **host_born1, double **host_born2,
-                    double **host_born3, double **host_a,
-                    double **host_c, double **host_d,
-                    double **sigma, double **offset, double *special_lj,
-                    const int inum, const int nall, const int max_nbors,
-                    const int maxspecial, const double cell_size,
-                    int &gpu_mode, FILE *screen, double **host_cut_ljsq,
-                    double host_cut_coulsq, double *host_special_coul,
-                    const double qqrd2e, const double g_ewald);
+                      double **host_born1, double **host_born2,
+                      double **host_born3, double **host_a,
+                      double **host_c, double **host_d,
+                      double **sigma, double **offset, double *special_lj,
+                      const int inum, const int nall, const int max_nbors,
+                      const int maxspecial, const double cell_size,
+                      int &gpu_mode, FILE *screen, double **host_cut_ljsq,
+                      double host_cut_coulsq, double *host_special_coul,
+                      const double qqrd2e, const double g_ewald);
 void bornclcs_gpu_clear();
 int** bornclcs_gpu_compute_n(const int ago, const int inum_full, const int nall,
                            double **host_x, int *host_type, double *sublo,
@@ -194,12 +194,13 @@ void PairBornCoulLongCSGPU::init_style()
   g_ewald = force->kspace->g_ewald;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = bornclcs_gpu_init(atom->ntypes+1, cutsq,  rhoinv,
                                 born1, born2, born3, a, c, d, sigma,
                                 offset, force->special_lj, atom->nlocal,
-                                  atom->nlocal+atom->nghost, 300, maxspecial,
+                                  atom->nlocal+atom->nghost, mnf, maxspecial,
                                    cell_size, gpu_mode, screen, cut_ljsq,
                                 cut_coulsq, force->special_coul,
                                 force->qqrd2e, g_ewald);

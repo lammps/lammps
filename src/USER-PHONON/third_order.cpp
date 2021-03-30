@@ -254,18 +254,18 @@ void ThirdOrder::calculateMatrix()
 
   update->nsteps = 0;
   int prog = 0;
-  for (bigint i=1; i<=natoms; i++){
+  for (bigint i=1; i<=natoms; i++) {
     local_idx = atom->map(i);
-    for (int alpha=0; alpha<3; alpha++){
-      for (bigint j=1; j<=natoms; j++){
+    for (int alpha=0; alpha<3; alpha++) {
+      for (bigint j=1; j<=natoms; j++) {
         local_jdx = atom->map(j);
-        for (int beta=0; beta<3; beta++){
+        for (int beta=0; beta<3; beta++) {
           displace_atom(local_idx, alpha, 1);
           displace_atom(local_jdx, beta, 1);
           update_force();
-          for (bigint k=1; k<=natoms; k++){
+          for (bigint k=1; k<=natoms; k++) {
             local_kdx = atom->map(k);
-            for (int gamma=0; gamma<3; gamma++){
+            for (int gamma=0; gamma<3; gamma++) {
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
                   && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
                   && local_kdx < nlocal) {
@@ -275,9 +275,9 @@ void ThirdOrder::calculateMatrix()
           }
           displace_atom(local_jdx, beta, -2);
           update_force();
-          for (bigint k=1; k<=natoms; k++){
+          for (bigint k=1; k<=natoms; k++) {
             local_kdx = atom->map(k);
-            for (int gamma=0; gamma<3; gamma++){
+            for (int gamma=0; gamma<3; gamma++) {
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
                   && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
                   && local_kdx < nlocal) {
@@ -289,9 +289,9 @@ void ThirdOrder::calculateMatrix()
           displace_atom(local_idx,alpha,-2);
           displace_atom(local_jdx, beta, 1);
           update_force();
-          for (bigint k=1; k<=natoms; k++){
+          for (bigint k=1; k<=natoms; k++) {
             local_kdx = atom->map(k);
-            for (int gamma=0; gamma<3; gamma++){
+            for (int gamma=0; gamma<3; gamma++) {
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
                   && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
                   && local_kdx < nlocal) {
@@ -301,9 +301,9 @@ void ThirdOrder::calculateMatrix()
           }
           displace_atom(local_jdx, beta, -2);
           update_force();
-          for (bigint k=1; k<=natoms; k++){
+          for (bigint k=1; k<=natoms; k++) {
             local_kdx = atom->map(k);
-            for (int gamma=0; gamma<3; gamma++){
+            for (int gamma=0; gamma<3; gamma++) {
               if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
                   && gm[i-1] >= 0 && gm[j-1] >= 0 && gm[k-1] >= 0
                   && local_kdx < nlocal) {
@@ -315,7 +315,7 @@ void ThirdOrder::calculateMatrix()
           displace_atom(local_jdx, beta, 1);
           displace_atom(local_idx, alpha, 1);
           MPI_Reduce(dynmat,fdynmat,3*dynlen,MPI_DOUBLE,MPI_SUM,0,world);
-          if (me == 0){
+          if (me == 0) {
             writeMatrix(fdynmat, gm[i-1], alpha, gm[j-1], beta);
           }
           memset(&dynmat[0],0,dynlen*sizeof(double));
@@ -351,7 +351,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
   double norm;
   if (!binaryflag && fp) {
     clearerr(fp);
-    for (int k = 0; k < gcount; k++){
+    for (int k = 0; k < gcount; k++) {
       norm = square(dynmat[k*3])+
         square(dynmat[k*3+1])+
         square(dynmat[k*3+2]);
@@ -364,7 +364,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
                 dynmat[k*3+1] * conversion,
                 dynmat[k*3+2] * conversion);
     }
-  } else if (binaryflag && fp){
+  } else if (binaryflag && fp) {
     clearerr(fp);
     fwrite(&dynmat[0], sizeof(double), dynlen, fp);
   }
@@ -386,7 +386,7 @@ void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
 
   x[local_idx][direction] += del*magnitude;
 
-  while (sametag[j] >= 0){
+  while (sametag[j] >= 0) {
     j = sametag[j];
     x[j][direction] += del*magnitude;
   }
@@ -451,7 +451,7 @@ void ThirdOrder::force_clear()
 void ThirdOrder::convert_units(const char *style)
 {
   // physical constants from:
-  // http://physics.nist.gov/cuu/Constants/Table/allascii.txt
+  // https://physics.nist.gov/cuu/Constants/Table/allascii.txt
   // using thermochemical calorie = 4.184 J
 
   if (strcmp(style,"lj") == 0) {
@@ -518,7 +518,7 @@ void ThirdOrder::create_groupmap()
   bigint *temp_groupmap = new bigint[natoms];
 
   //find number of local atoms in the group (final_gid)
-  for (bigint i=1; i<=natoms; i++){
+  for (bigint i=1; i<=natoms; i++) {
     local_idx = atom->map(i);
     if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit)
       gid += 1; // gid at the end of loop is final_Gid
@@ -528,22 +528,22 @@ void ThirdOrder::create_groupmap()
 
   gid = 0;
   //create a map between global atom id and group atom id for each proc
-  for (bigint i=1; i<=natoms; i++){
+  for (bigint i=1; i<=natoms; i++) {
     local_idx = atom->map(i);
     if ((local_idx >= 0) && (local_idx < nlocal)
-        && (mask[local_idx] & groupbit)){
+        && (mask[local_idx] & groupbit)) {
       sub_groupmap[gid] = i;
       gid += 1;
     }
   }
 
   //populate arrays for Allgatherv
-  for (int i=0; i<comm->nprocs; i++){
+  for (int i=0; i<comm->nprocs; i++) {
     recv[i] = 0;
   }
   recv[comm->me] = gid;
   MPI_Allreduce(recv,displs,comm->nprocs,MPI_INT,MPI_SUM,world);
-  for (int i=0; i<comm->nprocs; i++){
+  for (int i=0; i<comm->nprocs; i++) {
     recv[i]=displs[i];
     if (i>0) displs[i] = displs[i-1]+recv[i-1];
     else displs[i] = 0;
@@ -556,7 +556,7 @@ void ThirdOrder::create_groupmap()
 
   //populate member groupmap based on temp groupmap
   bigint j = 0;
-  for (bigint i=1; i<=natoms; i++){
+  for (bigint i=1; i<=natoms; i++) {
     // flag groupmap contents that are in temp_groupmap
     if (j < gcount && i == temp_groupmap[j])
       groupmap[i-1] = j++;

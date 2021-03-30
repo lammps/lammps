@@ -91,6 +91,7 @@ documentation for the formula it computes.
 * :doc:`bond_style <bond_harmonic>` harmonic
 * :doc:`bond_style <bond_morse>` morse
 
+* :doc:`angle_style <angle_cosine_squared>` cosine/squared
 * :doc:`angle_style <angle_harmonic>` harmonic
 * :doc:`angle_style <angle_cosine>` cosine
 * :doc:`angle_style <angle_cosine_periodic>` cosine/periodic

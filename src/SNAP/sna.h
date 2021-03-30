@@ -100,10 +100,6 @@ private:
   double** dulist_r, ** dulist_i;
   int elem_duarray; // element of j in derivative
 
-  static const int nmaxfactorial = 167;
-  static const double nfac_table[];
-  double factorial(int);
-
   void create_twojmax_arrays();
   void destroy_twojmax_arrays();
   void init_clebsch_gordan();

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -74,9 +74,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   com_flag = 1;
   time_integrate = 1;
 
-  int n = strlen(arg[3])+1;
-  computename = new char[n];
-  strcpy(computename,&arg[3][0]);
+  computename = utils::strdup(&arg[3][0]);
 
   icompute = modify->find_compute(computename);
   if (icompute == -1)
@@ -286,7 +284,7 @@ void FixPAFI::post_force(int /*vflag*/)
     }
   }
 
-  if (com_flag == 0){
+  if (com_flag == 0) {
     c_v[9] += 1.0;
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -318,7 +316,7 @@ void FixPAFI::post_force(int /*vflag*/)
   results_all[4] = proj_all[5]; // dX.f
   force_flag = 1;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
 
       f[i][0] -= proj_all[0] * path[i][3] + c_v_all[0]/c_v_all[9];
@@ -336,7 +334,7 @@ void FixPAFI::post_force(int /*vflag*/)
   }
 
   if (od_flag == 0) {
-    for (int i = 0; i < nlocal; i++){
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         if (rmass) mass_f = sqrt(rmass[i]);
         else mass_f = sqrt(mass[type[i]]);
@@ -351,7 +349,7 @@ void FixPAFI::post_force(int /*vflag*/)
       }
     }
   } else {
-    for (int i = 0; i < nlocal; i++){
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
 
         if (rmass) mass_f = sqrt(rmass[i]);
@@ -449,7 +447,7 @@ void FixPAFI::min_post_force(int /*vflag*/)
     }
   }
 
-  if (com_flag == 0){
+  if (com_flag == 0) {
     c_v[9] += 1.0;
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -482,7 +480,7 @@ void FixPAFI::min_post_force(int /*vflag*/)
   MPI_Bcast(results_all,5,MPI_DOUBLE,0,world);
   force_flag = 1;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
 
       f[i][0] -= proj_all[0] * path[i][3] + c_v_all[0]/c_v_all[9];
@@ -544,7 +542,7 @@ void FixPAFI::initial_integrate(int /*vflag*/)
       proj[1] += v[i][2] * path[i][5]; // v.n
     }
   }
-  if (com_flag == 0){
+  if (com_flag == 0) {
     c_v[9] += 1.0;
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -566,7 +564,7 @@ void FixPAFI::initial_integrate(int /*vflag*/)
   MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
-  if (od_flag == 0){
+  if (od_flag == 0) {
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {
@@ -650,7 +648,7 @@ void FixPAFI::final_integrate()
       proj[0] += f[i][1] * path[i][4]; // f.n
       proj[0] += f[i][2] * path[i][5]; // f.n
     }
-  if (com_flag == 0){
+  if (com_flag == 0) {
     c_v[9] += 1.0;
   } else {
     for (int i = 0; i < nlocal; i++)
@@ -665,7 +663,7 @@ void FixPAFI::final_integrate()
   MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
-  if (od_flag == 0){
+  if (od_flag == 0) {
     if (rmass) {
       for (int i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) {

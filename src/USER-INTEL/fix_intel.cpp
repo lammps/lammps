@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -160,9 +160,9 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // if using LRT mode, create the integrate style
   if (_lrt) {
-    char *str;
-    str = (char *) "verlet/lrt/intel";
-    update->create_integrate(1,&str,0);
+    char *cmd[1];
+    cmd[0] = (char *) "verlet/lrt/intel";
+    update->create_integrate(1,cmd,0);
   }
 
   // error check
@@ -318,8 +318,7 @@ void FixIntel::init()
   _zero_master = 0;
 
   if (_pair_hybrid_flag && _hybrid_nonpair)
-    if (_pair_hybrid_flag > 1 || force->newton_pair == 0)
-      _pair_hybrid_zero = 1;
+    _pair_hybrid_zero = 1;
   _hybrid_nonpair = 0;
 
   _pair_intel_count = 0;
@@ -783,7 +782,7 @@ void FixIntel::add_oresults(const ft * _noalias const f_in,
   if (_nthreads > INTEL_HTHREADS) packthreads = _nthreads;
   else packthreads = 1;
   #if defined(_OPENMP)
-  #pragma omp parallel if(packthreads > 1)
+  #pragma omp parallel if (packthreads > 1)
   #endif
   {
     #if defined(_OPENMP)
@@ -1170,7 +1169,7 @@ int FixIntel::set_host_affinity(const int nomp)
   p = popen(cmd, "r");
   if (p == nullptr) return -1;
   ncores = 0;
-  while(fgets(readbuf, 512, p)) {
+  while (fgets(readbuf, 512, p)) {
     proc_list[ncores] = atoi(readbuf);
     ncores++;
   }
@@ -1224,7 +1223,7 @@ int FixIntel::set_host_affinity(const int nomp)
     p = popen(cmd, "r");
     if (p == nullptr) return -1;
 
-    while(fgets(readbuf, 512, p)) {
+    while (fgets(readbuf, 512, p)) {
       lwp = atoi(readbuf);
       int first = coi_cores + node_rank * mpi_cores;
       CPU_ZERO(&cpuset);
@@ -1260,13 +1259,13 @@ int FixIntel::set_host_affinity(const int nomp)
     p = popen(cmd, "r");
     if (p == nullptr) return -1;
 
-    while(fgets(readbuf, 512, p)) {
+    while (fgets(readbuf, 512, p)) {
       lwp = atoi(readbuf);
       nlwp++;
       if (nlwp <= plwp) continue;
 
       CPU_ZERO(&cpuset);
-      for(int i=0; i<coi_cores; i++)
+      for (int i=0; i<coi_cores; i++)
         CPU_SET(proc_list[i], &cpuset);
 
       if (sched_setaffinity(lwp, sizeof(cpu_set_t), &cpuset)) {

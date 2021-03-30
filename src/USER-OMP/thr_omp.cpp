@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -70,20 +70,20 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
   if (tid == 0) thr_error = 0;
 
   if (thr_style & THR_PAIR) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_pair = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_pair[0]),0,nall*sizeof(double));
     }
     // per-atom virial and per-atom centroid virial are the same for two-body
     // many-body pair styles not yet implemented
-    if (vflag & 12) {
+    if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
       thr->vatom_pair = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_pair[0][0]),0,nall*6*sizeof(double));
     }
     // check cvatom_pair, because can't access centroidstressflag
-    if ((vflag & 8) && cvatom) {
+    if ((vflag & VIRIAL_CENTROID) && cvatom) {
       thr->cvatom_pair = cvatom + tid*nall;
       if (nall > 0)
         memset(&(thr->cvatom_pair[0][0]),0,nall*9*sizeof(double));
@@ -94,13 +94,13 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
   }
 
   if (thr_style & THR_BOND) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_bond = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_bond[0]),0,nall*sizeof(double));
     }
     // per-atom virial and per-atom centroid virial are the same for bonds
-    if (vflag & 12) {
+    if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
       thr->vatom_bond = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_bond[0][0]),0,nall*6*sizeof(double));
@@ -108,17 +108,17 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
   }
 
   if (thr_style & THR_ANGLE) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_angle = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_angle[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    if (vflag & VIRIAL_ATOM) {
       thr->vatom_angle = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_angle[0][0]),0,nall*6*sizeof(double));
     }
-    if (vflag & 8) {
+    if (vflag & VIRIAL_CENTROID) {
       thr->cvatom_angle = cvatom + tid*nall;
       if (nall > 0)
         memset(&(thr->cvatom_angle[0][0]),0,nall*9*sizeof(double));
@@ -126,17 +126,17 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
   }
 
   if (thr_style & THR_DIHEDRAL) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_dihed = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_dihed[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    if (vflag & VIRIAL_ATOM) {
       thr->vatom_dihed = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_dihed[0][0]),0,nall*6*sizeof(double));
     }
-    if (vflag & 8) {
+    if (vflag & VIRIAL_CENTROID) {
       thr->cvatom_dihed = cvatom + tid*nall;
       if (nall > 0)
         memset(&(thr->cvatom_dihed[0][0]),0,nall*9*sizeof(double));
@@ -144,17 +144,17 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
   }
 
   if (thr_style & THR_IMPROPER) {
-    if (eflag & 2) {
+    if (eflag & ENERGY_ATOM) {
       thr->eatom_imprp = eatom + tid*nall;
       if (nall > 0)
         memset(&(thr->eatom_imprp[0]),0,nall*sizeof(double));
     }
-    if (vflag & 4) {
+    if (vflag & VIRIAL_ATOM) {
       thr->vatom_imprp = vatom + tid*nall;
       if (nall > 0)
         memset(&(thr->vatom_imprp[0][0]),0,nall*6*sizeof(double));
     }
-    if (vflag & 8) {
+    if (vflag & VIRIAL_CENTROID) {
       thr->cvatom_imprp = cvatom + tid*nall;
       if (nall > 0)
         memset(&(thr->cvatom_imprp[0][0]),0,nall*9*sizeof(double));
@@ -222,29 +222,29 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           pair->eng_vdwl += thr->eng_vdwl;
           pair->eng_coul += thr->eng_coul;
           thr->eng_vdwl = 0.0;
           thr->eng_coul = 0.0;
         }
-        if (vflag & 3)
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR))
           for (int i=0; i < 6; ++i) {
             pair->virial[i] += thr->virial_pair[i];
             thr->virial_pair[i] = 0.0;
           }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
       // per-atom virial and per-atom centroid virial are the same for two-body
       // many-body pair styles not yet implemented
-      if (vflag & 12) {
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
         data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
       // check cvatom_pair, because can't access centroidstressflag
-      if ((vflag & 8) && thr->cvatom_pair) {
+      if ((vflag & VIRIAL_CENTROID) && thr->cvatom_pair) {
         data_reduce_thr(&(pair->cvatom[0][0]), nall, nthreads, 9, tid);
       }
     }
@@ -259,12 +259,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           bond->energy += thr->eng_bond;
           thr->eng_bond = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             bond->virial[i] += thr->virial_bond[i];
             thr->virial_bond[i] = 0.0;
@@ -272,11 +272,11 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(bond->eatom[0]), nall, nthreads, 1, tid);
       }
       // per-atom virial and per-atom centroid virial are the same for bonds
-      if (vflag & 12) {
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
         data_reduce_thr(&(bond->vatom[0][0]), nall, nthreads, 6, tid);
       }
 
@@ -291,12 +291,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           angle->energy += thr->eng_angle;
           thr->eng_angle = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             angle->virial[i] += thr->virial_angle[i];
             thr->virial_angle[i] = 0.0;
@@ -304,13 +304,13 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      if (vflag & VIRIAL_ATOM) {
         data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
       }
-      if (vflag & 8) {
+      if (vflag & VIRIAL_CENTROID) {
         data_reduce_thr(&(angle->cvatom[0][0]), nall, nthreads, 9, tid);
       }
 
@@ -325,12 +325,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           dihedral->energy += thr->eng_dihed;
           thr->eng_dihed = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             dihedral->virial[i] += thr->virial_dihed[i];
             thr->virial_dihed[i] = 0.0;
@@ -338,13 +338,13 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      if (vflag & VIRIAL_ATOM) {
         data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
       }
-      if (vflag & 8) {
+      if (vflag & VIRIAL_CENTROID) {
         data_reduce_thr(&(dihedral->cvatom[0][0]), nall, nthreads, 9, tid);
       }
 
@@ -360,7 +360,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           dihedral->energy += thr->eng_dihed;
           pair->eng_vdwl += thr->eng_vdwl;
           pair->eng_coul += thr->eng_coul;
@@ -369,7 +369,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           thr->eng_coul = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             dihedral->virial[i] += thr->virial_dihed[i];
             pair->virial[i] += thr->virial_pair[i];
@@ -379,23 +379,23 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(dihedral->eatom[0]), nall, nthreads, 1, tid);
         data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      if (vflag & VIRIAL_ATOM) {
         data_reduce_thr(&(dihedral->vatom[0][0]), nall, nthreads, 6, tid);
       }
-      if (vflag & 8) {
+      if (vflag & VIRIAL_CENTROID) {
         data_reduce_thr(&(dihedral->cvatom[0][0]), nall, nthreads, 9, tid);
       }
       // per-atom virial and per-atom centroid virial are the same for two-body
       // many-body pair styles not yet implemented
-      if (vflag & 12) {
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
         data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
       }
       // check cvatom_pair, because can't access centroidstressflag
-      if ((vflag & 8) && thr->cvatom_pair) {
+      if ((vflag & VIRIAL_CENTROID) && thr->cvatom_pair) {
         data_reduce_thr(&(pair->cvatom[0][0]), nall, nthreads, 9, tid);
       }
     }
@@ -409,12 +409,12 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 #pragma omp critical
 #endif
       {
-        if (eflag & 1) {
+        if (eflag & ENERGY_GLOBAL) {
           improper->energy += thr->eng_imprp;
           thr->eng_imprp = 0.0;
         }
 
-        if (vflag & 3) {
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
           for (int i=0; i < 6; ++i) {
             improper->virial[i] += thr->virial_imprp[i];
             thr->virial_imprp[i] = 0.0;
@@ -422,13 +422,13 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
         }
       }
 
-      if (eflag & 2) {
+      if (eflag & ENERGY_ATOM) {
         data_reduce_thr(&(improper->eatom[0]), nall, nthreads, 1, tid);
       }
-      if (vflag & 4) {
+      if (vflag & VIRIAL_ATOM) {
         data_reduce_thr(&(improper->vatom[0][0]), nall, nthreads, 6, tid);
       }
-      if (vflag & 8) {
+      if (vflag & VIRIAL_CENTROID) {
         data_reduce_thr(&(improper->cvatom[0][0]), nall, nthreads, 9, tid);
       }
 

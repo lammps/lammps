@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,6 +44,7 @@ PairDPDfdtEnergyKokkos<DeviceType>::PairDPDfdtEnergyKokkos(LAMMPS *lmp) :
   rand_pool()
 #endif
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
@@ -112,7 +113,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
 #endif
 }
 
-#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)) || defined(KOKKOS_ENABLE_HIP)
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
 // CUDA specialization of init_style to properly call rand_pool.init()
 template<>
 void PairDPDfdtEnergyKokkos<LMPDeviceSpace>::init_style()
@@ -213,7 +214,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (splitFDT_flag) {
     if (!a0_is_zero) {
-      if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
+      if (atom->ntypes > MAX_TYPES_STACKPARAMS) {
         if (neighflag == HALF) {
           if (newton_pair) {
             if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeSplit<HALF,1,1,false> >(0,inum),*this,ev);
@@ -287,7 +288,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     // loop over neighbors of my atoms
 
-    if(atom->ntypes > MAX_TYPES_STACKPARAMS) {
+    if (atom->ntypes > MAX_TYPES_STACKPARAMS) {
       if (neighflag == HALF) {
         if (newton_pair) {
           if (evflag) Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairDPDfdtEnergyComputeNoSplit<HALF,1,1,false> >(0,inum),*this,ev);
@@ -671,7 +672,7 @@ double PairDPDfdtEnergyKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).kappa = kappa[i][j];
   k_params.h_view(i,j).alpha = alpha[i][j];
   k_params.h_view(j,i) = k_params.h_view(i,j);
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
   }

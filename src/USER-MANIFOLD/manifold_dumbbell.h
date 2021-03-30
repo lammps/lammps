@@ -14,15 +14,15 @@ namespace user_manifold {
    public:
     enum { NPARAMS = 4 }; // Number of parameters.
     manifold_dumbbell( LAMMPS *lmp, int, char ** );
-    virtual ~manifold_dumbbell(){}
+    virtual ~manifold_dumbbell() {}
     virtual double g      ( const double *x );
     virtual void   n      ( const double *x, double *nn );
 
-    static const char* type(){ return "dumbbell"; }
-    virtual const char *id(){ return type(); }
+    static const char* type() { return "dumbbell"; }
+    virtual const char *id() { return type(); }
 
-    static int expected_argc(){ return NPARAMS; }
-    virtual int nparams(){ return NPARAMS; }
+    static int expected_argc() { return NPARAMS; }
+    virtual int nparams() { return NPARAMS; }
   };
 }
 

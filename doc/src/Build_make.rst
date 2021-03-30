@@ -27,14 +27,14 @@ additional tools to be available and functioning.
   * a few shell utilities: ``ls``, ``mv``, ``ln``, ``rm``, ``grep``, ``sed``, ``tr``, ``cat``, ``touch``, ``diff``, ``dirname``
   * python (optional, required for ``make lib-<pkg>`` in the src folder).
     python scripts are currently tested with python 2.7 and 3.6. The procedure
-    for :doc:`building the documentation <Manual_build>` requires python 3.
+    for :doc:`building the documentation <Build_manual>` requires python 3.5 or later.
 
 Getting started
 ^^^^^^^^^^^^^^^
 
 To include LAMMPS packages (i.e. optional commands and styles) you must
 enable (or "install") them first, as discussed on the :doc:`Build
-package <Build_package>` doc page.  If a packages requires (provided or
+package <Build_package>` page.  If a packages requires (provided or
 external) libraries, you must configure and build those libraries
 **before** building LAMMPS itself and especially **before** enabling
 such a package with ``make yes-<package>``.  :doc:`Building LAMMPS with

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,7 +42,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
+NEB::NEB(LAMMPS *lmp) : Pointers(lmp), all(nullptr), rdist(nullptr) {}
 
 /* ----------------------------------------------------------------------
    internal NEB constructor, called from TAD
@@ -50,7 +50,7 @@ NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
-  : Pointers(lmp)
+  : Pointers(lmp), all(nullptr), rdist(nullptr)
 {
   double delx,dely,delz;
 
@@ -69,9 +69,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   MPI_Comm_rank(world,&me);
 
   // generate linear interpolate replica
-
   double fraction = ireplica/(nreplica-1.0);
-
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -465,13 +463,12 @@ void NEB::readfile(char *file, int flag)
       // adjust atom coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas
       // for flag = 1, replace existing coord with new coord
-      // ignore image flags of final x
-      // for interpolation:
-      //   new x is displacement from old x via minimum image convention
-      //   if final x is across periodic boundary:
-      //     new x may be outside box
-      //     will be remapped back into box when simulation starts
-      //     its image flags will then be adjusted
+      // ignore image flags of replica x
+      // displacement from first replica is via minimum image convention
+      // if x of some replica is across periodic boundary:
+      //   new x may be outside box
+      //   will be remapped back into box when simulation starts
+      //   its image flags will then be adjusted
 
       tag = ATOTAGINT(values[0]);
       m = atom->map(tag);
@@ -481,18 +478,20 @@ void NEB::readfile(char *file, int flag)
         yy = atof(values[2]);
         zz = atof(values[3]);
 
+        delx = xx - x[m][0];
+        dely = yy - x[m][1];
+        delz = zz - x[m][2];
+
+        domain->minimum_image(delx,dely,delz);
+
         if (flag == 0) {
-          delx = xx - x[m][0];
-          dely = yy - x[m][1];
-          delz = zz - x[m][2];
-          domain->minimum_image(delx,dely,delz);
           x[m][0] += fraction*delx;
           x[m][1] += fraction*dely;
           x[m][2] += fraction*delz;
         } else {
-          x[m][0] = xx;
-          x[m][1] = yy;
-          x[m][2] = zz;
+          x[m][0] += delx;
+          x[m][1] += dely;
+          x[m][2] += delz;
         }
       }
 

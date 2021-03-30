@@ -298,7 +298,7 @@ described above.  For each of the F functions, nx values are listed.
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This pair styles does not support the :doc:`pair_modify <pair_modify>`
+This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
 This pair style does not write their information to :doc:`binary restart
@@ -319,7 +319,7 @@ This pair style is part of the MANYBODY package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
 <Build_package>` doc page for more info.
 
-This pair potential requires the :doc:`newtion <newton>` setting to be
+This pair potential requires the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
 
 The potential files provided with LAMMPS (see the potentials directory)

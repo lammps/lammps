@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -198,14 +198,14 @@ void PairTableRX::compute(int eflag, int vflag)
 
         if (tabstyle == LOOKUP)
           evdwl = tb->e[itable];
-        else if (tabstyle == LINEAR || tabstyle == BITMAP){
+        else if (tabstyle == LINEAR || tabstyle == BITMAP) {
           evdwl = tb->e[itable] + fraction*tb->de[itable];
         }
         else
           evdwl = a * tb->e[itable] + b * tb->e[itable+1] +
             ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
             tb->deltasq6;
-        if (isite1 == isite2){
+        if (isite1 == isite2) {
           evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwl;
           evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwl;
         } else {
@@ -321,24 +321,20 @@ void PairTableRX::coeff(int narg, char **arg)
   bcast_table(tb);
 
   nspecies = atom->nspecies_dpd;
-  if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
-  int n;
-  n = strlen(arg[4]) + 1;
-  site1 = new char[n];
-  strcpy(site1,arg[4]);
+  if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
+
+  site1 = utils::strdup(arg[4]);
 
   int ispecies;
-  for (ispecies = 0; ispecies < nspecies; ispecies++){
+  for (ispecies = 0; ispecies < nspecies; ispecies++) {
     if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
 
-  n = strlen(arg[5]) + 1;
-  site2 = new char[n];
-  strcpy(site2,arg[5]);
+  site2 = utils::strdup(arg[5]);
 
-  for (ispecies = 0; ispecies < nspecies; ispecies++){
+  for (ispecies = 0; ispecies < nspecies; ispecies++) {
     if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
@@ -400,13 +396,13 @@ void PairTableRX::coeff(int narg, char **arg)
   ntables++;
 
   {
-     if ( strcmp(site1,"1fluid") == 0 )
+     if (strcmp(site1,"1fluid") == 0)
        isite1 = OneFluidValue;
      else {
        isite1 = nspecies;
 
-       for (int k = 0; k < nspecies; k++){
-         if (strcmp(site1, atom->dname[k]) == 0){
+       for (int k = 0; k < nspecies; k++) {
+         if (strcmp(site1, atom->dname[k]) == 0) {
            isite1 = k;
            break;
          }
@@ -415,13 +411,13 @@ void PairTableRX::coeff(int narg, char **arg)
        if (isite1 == nspecies) error->all(FLERR,"isite1 == nspecies");
      }
 
-     if ( strcmp(site2,"1fluid") == 0 )
+     if (strcmp(site2,"1fluid") == 0)
        isite2 = OneFluidValue;
      else {
        isite2 = nspecies;
 
-       for (int k = 0; k < nspecies; k++){
-         if (strcmp(site2, atom->dname[k]) == 0){
+       for (int k = 0; k < nspecies; k++) {
+         if (strcmp(site2, atom->dname[k]) == 0) {
            isite2 = ispecies;
            break;
          }
@@ -519,46 +515,46 @@ void PairTableRX::getMixingWeights(int id, double &mixWtSite1old, double &mixWtS
 
   nTotal = 0.0;
   nTotalOld = 0.0;
-  for (int ispecies = 0; ispecies < nspecies; ++ispecies){
+  for (int ispecies = 0; ispecies < nspecies; ++ispecies) {
     nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
-  if(nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+  if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
     error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
-  if (isOneFluid(isite1) == false){
+  if (isOneFluid(isite1) == false) {
     nMoleculesOld1 = atom->dvector[isite1+nspecies][id];
     nMolecules1 = atom->dvector[isite1][id];
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
-  if (isOneFluid(isite2) == false){
+  if (isOneFluid(isite2) == false) {
     nMoleculesOld2 = atom->dvector[isite2+nspecies][id];
     nMolecules2 = atom->dvector[isite2][id];
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
 
-  if (isOneFluid(isite1) || isOneFluid(isite2)){
+  if (isOneFluid(isite1) || isOneFluid(isite2)) {
     nMoleculesOFAold  = 0.0;
     nMoleculesOFA  = 0.0;
     fractionOFAold  = 0.0;
     fractionOFA  = 0.0;
 
-    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
       nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
       nMoleculesOFA += atom->dvector[ispecies][id];
       fractionOFAold += atom->dvector[ispecies+nspecies][id]/nTotalOld;
       fractionOFA += atom->dvector[ispecies][id]/nTotal;
     }
-    if(isOneFluid(isite1)){
+    if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld1 = fractionOFAold;
       fraction1 = fractionOFA;
     }
-    if(isOneFluid(isite2)){
+    if (isOneFluid(isite2)) {
       nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld2 = fractionOFAold;
@@ -566,7 +562,7 @@ void PairTableRX::getMixingWeights(int id, double &mixWtSite1old, double &mixWtS
     }
   }
 
-  if(fractionalWeighting){
+  if (fractionalWeighting) {
     mixWtSite1old = fractionOld1;
     mixWtSite1 = fraction1;
     mixWtSite2old = fractionOld2;

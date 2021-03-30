@@ -1,5 +1,5 @@
-Call Python from a LAMMPS input script
-======================================
+Calling Python from LAMMPS
+**************************
 
 LAMMPS has several commands which can be used to invoke Python
 code directly from an input script:
@@ -47,32 +47,3 @@ See the :doc:`python <python>` doc page and the :doc:`variable <variable>`
 doc page for its python-style variables for more info, including
 examples of Python code you can write for both pure Python operations
 and callbacks to LAMMPS.
-
-The :doc:`fix python/invoke <fix_python_invoke>` command can execute
-Python code at selected timesteps during a simulation run.
-
-The :doc:`pair_style python <pair_python>` command allows you to define
-pairwise potentials as python code which encodes a single pairwise
-interaction.  This is useful for rapid development and debugging of a
-new potential.
-
-To use any of these commands, you only need to build LAMMPS with the
-PYTHON package installed:
-
-.. code-block:: bash
-
-   make yes-python
-   make machine
-
-Note that this will link LAMMPS with the Python library on your
-system, which typically requires several auxiliary system libraries to
-also be linked.  The list of these libraries and the paths to find
-them are specified in the lib/python/Makefile.lammps file.  You need
-to insure that file contains the correct information for your version
-of Python and your machine to successfully build LAMMPS.  See the
-lib/python/README file for more info.
-
-If you want to write Python code with callbacks to LAMMPS, then you
-must also follow the steps summarized in the :doc:`Python run <Python_run>` doc page.  I.e. you must build LAMMPS as a shared
-library and insure that Python can find the python/lammps.py file and
-the shared library.

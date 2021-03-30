@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,22 +41,23 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int dpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
+int dpd_tstat_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                  double **host_gamma, double **host_sigma, double **host_cut,
-                 double *special_lj, bool tstat_only, const int inum,
+                 double *special_lj, const int inum,
                  const int nall, const int max_nbors,  const int maxspecial,
                  const double cell_size, int &gpu_mode, FILE *screen);
-void dpd_gpu_clear();
-int ** dpd_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                         double **host_x, int *host_type, double *sublo,
-                         double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time, bool &success,
+void dpd_tstat_gpu_clear();
+int ** dpd_tstat_gpu_compute_n(const int ago, const int inum_full,
+                         const int nall, double **host_x, int *host_type,
+                         double *sublo, double *subhi, tagint *tag,
+                         int **nspecial, tagint **special, const bool eflag,
+                         const bool vflag, const bool eatom, const bool vatom,
+                         int &host_start, int **ilist, int **jnum,
+                         const double cpu_time, bool &success,
                          double **host_v, const double dtinvsqrt,
                          const int seed, const int timestep,
                          double *boxlo, double *prd);
-void dpd_gpu_compute(const int ago, const int inum_full, const int nall,
+void dpd_tstat_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
                      const bool eatom, const bool vatom, int &host_start,
@@ -64,9 +65,10 @@ void dpd_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_v, const double dtinvsqrt,
                      const int seed, const int timestep,
                      const int nlocal, double *boxlo, double *prd);
-void dpd_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                          double **host_sigma, double **host_cut);
-double dpd_gpu_bytes();
+void dpd_tstat_gpu_update_coeff(int ntypes, double **host_a0,
+                                double **host_gamma, double **host_sigma,
+                                double **host_cut);
+double dpd_tstat_gpu_bytes();
 
 #define EPSILON 1.0e-10
 
@@ -223,7 +225,7 @@ PairDPDTstatGPU::PairDPDTstatGPU(LAMMPS *lmp) : PairDPDTstat(lmp),
 
 PairDPDTstatGPU::~PairDPDTstatGPU()
 {
-  dpd_gpu_clear();
+  dpd_tstat_gpu_clear();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -243,7 +245,7 @@ void PairDPDTstatGPU::compute(int eflag, int vflag)
       for (int j = i; j <= atom->ntypes; j++)
         sigma[i][j] = sigma[j][i] = sqrt(2.0*boltz*temperature*gamma[i][j]);
 
-    dpd_gpu_update_coeff(atom->ntypes+1, a0, gamma, sigma, cut);
+    dpd_tstat_gpu_update_coeff(atom->ntypes+1, a0, gamma, sigma, cut);
   }
 
   int nall = atom->nlocal + atom->nghost;
@@ -266,7 +268,7 @@ void PairDPDTstatGPU::compute(int eflag, int vflag)
       domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
     }
     inum = atom->nlocal;
-    firstneigh = dpd_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
+    firstneigh = dpd_tstat_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
                                    atom->type, sublo, subhi,
                                    atom->tag, atom->nspecial, atom->special,
                                    eflag, vflag, eflag_atom, vflag_atom,
@@ -279,7 +281,7 @@ void PairDPDTstatGPU::compute(int eflag, int vflag)
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
-    dpd_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
+    dpd_tstat_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                     ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
                     vflag_atom, host_start, cpu_time, success,
                     atom->tag, atom->v, dtinvsqrt, seed,
@@ -323,12 +325,13 @@ void PairDPDTstatGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
-  int success = dpd_gpu_init(atom->ntypes+1, cutsq, a0, gamma, sigma,
-                             cut, force->special_lj, true, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
-                             cell_size, gpu_mode, screen);
+  int mnf = 5e-2 * neighbor->oneatom;
+  int success = dpd_tstat_gpu_init(atom->ntypes+1, cutsq, a0, gamma, sigma,
+                                   cut, force->special_lj, atom->nlocal,
+                                   atom->nlocal+atom->nghost, mnf, maxspecial,
+                                   cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE) {
@@ -343,7 +346,7 @@ void PairDPDTstatGPU::init_style()
 double PairDPDTstatGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + dpd_gpu_bytes();
+  return bytes + dpd_tstat_gpu_bytes();
 }
 
 /* ---------------------------------------------------------------------- */

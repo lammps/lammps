@@ -3005,9 +3005,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Dump image line requires atom style line*
    Self-explanatory.
 
-*Dump image persp option is not yet supported*
-   Self-explanatory.
-
 *Dump image requires one snapshot per file*
    Use a "\*" in the filename.
 
@@ -5107,9 +5104,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid dump image filename*
    The file produced by dump image cannot be binary and must
    be for a single processor.
-
-*Invalid dump image persp value*
-   Persp value must be >= 0.0.
 
 *Invalid dump image theta value*
    Theta must be between 0.0 and 180.0 inclusive.
@@ -8116,9 +8110,6 @@ keyword to allow for additional bonds to be formed
 *Variable for dump image center is invalid style*
    Must be an equal-style variable.
 
-*Variable for dump image persp is invalid style*
-   Must be an equal-style variable.
-
 *Variable for dump image phi is invalid style*
    Must be an equal-style variable.
 
@@ -8257,9 +8248,6 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Variable name for dump image center does not exist*
-   Self-explanatory.
-
-*Variable name for dump image persp does not exist*
    Self-explanatory.
 
 *Variable name for dump image phi does not exist*

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -108,7 +108,7 @@ void MinSpinLBFGS::init()
 
   // set back use_line_search to 0 if more than one replica
 
-  if (linestyle == 3 && nreplica == 1){
+  if (linestyle == 3 && nreplica == 1) {
     use_line_search = 1;
   }
   else{
@@ -221,7 +221,7 @@ int MinSpinLBFGS::iterate(int maxiter)
     if (use_line_search) {
 
       // here we need to do line search
-      if (local_iter == 0){
+      if (local_iter == 0) {
         eprevious = ecurrent;
         ecurrent = energy_force(0);
         calc_gradient();
@@ -370,7 +370,7 @@ void MinSpinLBFGS::calc_search_direction()
     factor = 1.0;
   }
 
-  if (local_iter == 0){         // steepest descent direction
+  if (local_iter == 0) {         // steepest descent direction
 
     //if no line search then calculate maximum rotation
     if (use_line_search == 0)
@@ -379,7 +379,7 @@ void MinSpinLBFGS::calc_search_direction()
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i] * factor * scaling;;
       g_old[i] = g_cur[i]  * factor;
-      for (int k = 0; k < num_mem; k++){
+      for (int k = 0; k < num_mem; k++) {
         ds[k][i] = 0.0;
         dy[k][i] = 0.0;
       }
@@ -405,7 +405,7 @@ void MinSpinLBFGS::calc_search_direction()
     if (fabs(dyds_global) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
     else rho[m_index] = 1.0e60;
 
-    if (rho[m_index] < 0.0){
+    if (rho[m_index] < 0.0) {
       local_iter = 0;
       return calc_search_direction();
     }
@@ -418,7 +418,7 @@ void MinSpinLBFGS::calc_search_direction()
     }
 
     // loop over last m indecies
-    for(int k = num_mem - 1; k > -1; k--) {
+    for (int k = num_mem - 1; k > -1; k--) {
       // this loop should run from the newest memory to the oldest one.
 
       c_ind = (k + m_index + 1) % num_mem;
@@ -473,7 +473,7 @@ void MinSpinLBFGS::calc_search_direction()
       }
     }
 
-    for (int k = 0; k < num_mem; k++){
+    for (int k = 0; k < num_mem; k++) {
       // this loop should run from the oldest memory to the newest one.
 
       if (local_iter < num_mem) c_ind = k;
@@ -551,11 +551,11 @@ void MinSpinLBFGS::rodrigues_rotation(const double *upp_tr, double *out)
 
   if (fabs(upp_tr[0]) < 1.0e-40 &&
       fabs(upp_tr[1]) < 1.0e-40 &&
-      fabs(upp_tr[2]) < 1.0e-40){
+      fabs(upp_tr[2]) < 1.0e-40) {
 
     // if upp_tr is zero, return unity matrix
-    for(int k = 0; k < 3; k++){
-      for(int m = 0; m < 3; m++){
+    for (int k = 0; k < 3; k++) {
+      for (int m = 0; m < 3; m++) {
     if (m == k) out[3 * k + m] = 1.0;
     else out[3 * k + m] = 0.0;
         }
@@ -606,9 +606,9 @@ void MinSpinLBFGS::rodrigues_rotation(const double *upp_tr, double *out)
 
 void MinSpinLBFGS::vm3(const double *m, const double *v, double *out)
 {
-  for(int i = 0; i < 3; i++){
+  for (int i = 0; i < 3; i++) {
     out[i] = 0.0;
-    for(int j = 0; j < 3; j++)
+    for (int j = 0; j < 3; j++)
     out[i] += *(m + 3 * j + i) * v[j];
   }
 }
@@ -673,7 +673,7 @@ int MinSpinLBFGS::calc_and_make_step(double a, double b, int index)
   der_e_cur = e_and_d[1];
   index++;
 
-  if (adescent(eprevious,e_and_d[0]) || index == 5){
+  if (adescent(eprevious,e_and_d[0]) || index == 5) {
     MPI_Bcast(&b,1,MPI_DOUBLE,0,world);
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = b * p_s[i];
@@ -713,7 +713,7 @@ int MinSpinLBFGS::calc_and_make_step(double a, double b, int index)
   Approximate descent
 ------------------------------------------------------------------------- */
 
-int MinSpinLBFGS::adescent(double phi_0, double phi_j){
+int MinSpinLBFGS::adescent(double phi_0, double phi_j) {
 
   double eps = 1.0e-6;
 

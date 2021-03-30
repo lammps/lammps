@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +15,19 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-
-#include <cmath>
 #include "fix_temp_rescale_eff.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
-#include "update.h"
 #include "comm.h"
-#include "modify.h"
 #include "compute.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -46,6 +47,7 @@ FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
+  ecouple_flag = 1;
 
   t_start = utils::numeric(FLERR,arg[4],false,lmp);
   t_stop = utils::numeric(FLERR,arg[5],false,lmp);
@@ -55,17 +57,9 @@ FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp/eff
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[6];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp/eff";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp/eff",
+                                  id_temp,group->names[igroup]));
   tflag = 1;
 
   energy = 0.0;
@@ -87,7 +81,6 @@ int FixTempRescaleEff::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -172,9 +165,7 @@ int FixTempRescaleEff::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify temperature ID");

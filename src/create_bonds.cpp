@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -48,7 +48,7 @@ void CreateBonds::command(int narg, char **arg)
     error->all(FLERR,"Create_bonds command before simulation box is defined");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use create_bonds unless atoms have IDs");
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use create_bonds with non-molecular system");
 
   if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
@@ -233,7 +233,7 @@ void CreateBonds::many()
   // build neighbor list this command needs based on earlier request
 
   NeighList *list = neighbor->lists[irequest];
-  neighbor->build_one(list);
+  neighbor->build_one(list,1);
 
   // loop over all neighs of each atom
   // compute distance between two atoms consistently on both procs
@@ -298,8 +298,8 @@ void CreateBonds::many()
 
       if (!newton_bond || tag[i] < tag[j]) {
         if (num_bond[i] == atom->bond_per_atom)
-          error->one(FLERR,
-                     "New bond exceeded bonds per atom in create_bonds");
+          error->one(FLERR,fmt::format("New bond exceeded bonds per atom limit "
+                                       " of {} in create_bonds",atom->bond_per_atom));
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tag[j];
         num_bond[i]++;

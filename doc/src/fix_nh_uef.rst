@@ -222,9 +222,9 @@ Default
 """""""
 
 The default keyword values specific to this fix are exy = xyz, strain
-= 0 0.  The remaining defaults are the same as for *fix
-npt*\ _fix_nh.html except tchain = 1.  The reason for this change is
-given in :doc:`fix nvt/sllod <fix_nvt_sllod>`.
+= 0 0.  The remaining defaults are the same as for :doc:`fix npt <fix_nh>`
+except tchain = 1.  The reason for this change is given in
+:doc:`fix nvt/sllod <fix_nvt_sllod>`.
 
 ----------
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -125,7 +125,7 @@ void FixQEQCombOMP::post_force(int /* vflag */)
     q1[i] = q2[i] = qf[i] = 0.0;
   }
 
-  for (iloop = 0; iloop < loopmax; iloop ++ ) {
+  for (iloop = 0; iloop < loopmax; iloop ++) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
@@ -135,7 +135,7 @@ void FixQEQCombOMP::post_force(int /* vflag */)
     }
     comm->forward_comm_fix(this);
 
-    if(comb) enegtot = comb->yasu_char(qf,igroup);
+    if (comb) enegtot = comb->yasu_char(qf,igroup);
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
 

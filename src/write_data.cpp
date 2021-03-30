@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -233,7 +233,7 @@ void WriteData::header()
 
   fmt::print(fp,"{} atoms\n{} atom types\n",atom->natoms,atom->ntypes);
 
-  // do not write molecular topology info for atom_style template
+  // only write out number of types for atom style template
 
   if (atom->molecular == Atom::MOLECULAR) {
     if (atom->nbonds || atom->nbondtypes)
@@ -248,6 +248,13 @@ void WriteData::header()
     if (atom->nimpropers || atom->nimpropertypes)
       fmt::print(fp,"{} impropers\n{} improper types\n",
                  nimpropers,atom->nimpropertypes);
+  }
+
+  if (atom->molecular == Atom::TEMPLATE) {
+    if (atom->nbondtypes) fmt::print(fp,"{} bond types\n",atom->nbondtypes);
+    if (atom->nangletypes) fmt::print(fp,"{} angle types\n",atom->nangletypes);
+    if (atom->ndihedraltypes) fmt::print(fp,"{} dihedral types\n",atom->ndihedraltypes);
+    if (atom->nimpropertypes) fmt::print(fp,"{} improper types\n",atom->nimpropertypes);
   }
 
   // bonus info

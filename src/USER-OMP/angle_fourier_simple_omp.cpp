@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -135,10 +135,10 @@ void AngleFourierSimpleOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // handle sin(n th)/sin(th) singulatiries
 
-    if ( fabs(c)-1.0 > 0.0001 ) {
+    if (fabs(c)-1.0 > 0.0001) {
       a = k[type]*C[type]*N[type]*sin(nth)/sin(th);
     } else {
-      if ( c >= 0.0 ) {
+      if (c >= 0.0) {
         term = 1.0 - c;
         sgn = 1.0;
       } else {

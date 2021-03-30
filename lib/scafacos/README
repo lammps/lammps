@@ -3,7 +3,7 @@ is required to use the KSPACE scafacos and its kspace_style
 scafacos command in a LAMMPS input script.
 
 The ScaFaCoS library is available at http://scafacos.de or
-on github at https://github.com/scafacos, the library was
+on GitHub at https://github.com/scafacos, the library was
 developed by a consortium of different universities in
 Germany (Bonn, Chemnitz, Stuttgart, Wuppertal) and
 the Research Centre Juelich (Juelich Supercomputing Centre).

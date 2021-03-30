@@ -58,6 +58,7 @@ From: ubuntu:20.04
         libnuma-dev \
         libpng-dev \
         libproj-dev \
+        libreadline-dev \
         libvtk6-dev \
         libyaml-dev \
         libzstd-dev \

@@ -13,7 +13,7 @@ en="$(echo "$en-$in" | bc -l)"
 tail -n +$in log.lammps | head -n $en > res_lammps.dat
 
 # compute Langevin
-python3 -m llg_exchange.py > res_llg.dat
+python3 llg_exchange.py > res_llg.dat
 
 # plot results
-python3 -m plot_precession.py res_lammps.dat res_llg.dat
+python3 plot_precession.py res_lammps.dat res_llg.dat

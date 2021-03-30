@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,22 +38,21 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix wall/region/ees command");
+
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
 
   // parse args
 
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/region/ees does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
-
+  idregion = utils::strdup(arg[3]);
   epsilon = utils::numeric(FLERR,arg[4],false,lmp);
   sigma = utils::numeric(FLERR,arg[5],false,lmp);
   cutoff = utils::numeric(FLERR,arg[6],false,lmp);
@@ -77,7 +76,6 @@ int FixWallRegionEES::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -190,14 +188,14 @@ void FixWallRegionEES::post_force(int /*vflag*/)
       double* shape = bonus[ellipsoid[i]].shape;;
       MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat,A);
 
-      for(int which = 0 ; which < 3; which ++){//me
+      for (int which = 0 ; which < 3; which ++) {//me
         nhat[which]=1;
         nhat[(which+1)%3] = 0 ;
         nhat[(which+2)%3] = 0 ;
         sn2 = 0 ;
         MathExtra::transpose_matvec(A,nhat,tempvec);
-        for(int k = 0; k<3; k++) tempvec[k] *= shape[k];
-        for(int k = 0; k<3 ; k++) sn2 += tempvec[k]*tempvec[k];
+        for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
+        for (int k = 0; k<3 ; k++) sn2 += tempvec[k]*tempvec[k];
         sn = sqrt(sn2);
         tooclose[which] = sn;
       }
@@ -206,13 +204,13 @@ void FixWallRegionEES::post_force(int /*vflag*/)
 
       for (m = 0; m < n; m++) {
 
-        if (region->contact[m].delx != 0 && region->contact[m].r <= tooclose[0]){
+        if (region->contact[m].delx != 0 && region->contact[m].r <= tooclose[0]) {
           onflag = 1;
           continue;
-        } else if (region->contact[m].dely != 0 && region->contact[m].r <= tooclose[1]){
+        } else if (region->contact[m].dely != 0 && region->contact[m].r <= tooclose[1]) {
           onflag = 1;
           continue;
-        } else if (region->contact[m].delz !=0 && region->contact[m].r <= tooclose[2]){
+        } else if (region->contact[m].delz !=0 && region->contact[m].r <= tooclose[2]) {
           onflag = 1;
           continue;
         } else rinv = 1.0/region->contact[m].r;
@@ -323,9 +321,9 @@ void FixWallRegionEES::ees(int m, int i)
 
   sigman2 = 0.0;
   MathExtra::transpose_matvec(A,nhat,tempvec);
-  for(int k = 0; k<3; k++) tempvec[k] *= shape[k];
-  for(int k = 0; k<3; k++) sigman2 += tempvec[k]*tempvec[k];
-  for(int k = 0; k<3; k++) SAn[k] = tempvec[k];
+  for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
+  for (int k = 0; k<3; k++) sigman2 += tempvec[k]*tempvec[k];
+  for (int k = 0; k<3; k++) SAn[k] = tempvec[k];
 
   sigman = sqrt(sigman2);
   delta = fabs(region->contact[m].r);
@@ -362,19 +360,19 @@ void FixWallRegionEES::ees(int m, int i)
 
   MathExtra::matvec(Lx,nhat,tempvec);
   MathExtra::transpose_matvec(A,tempvec,tempvec2);
-  for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
+  for (int k = 0; k<3; k++) tempvec2[k] *= shape[k];
   that[0] = MathExtra::dot3(SAn,tempvec2);
 
   MathExtra::matvec(Ly,nhat,tempvec);
   MathExtra::transpose_matvec(A,tempvec,tempvec2);
-  for(int k = 0; k<3; k++) tempvec2[k] *= shape[k];
+  for (int k = 0; k<3; k++) tempvec2[k] *= shape[k];
   that[1] = MathExtra::dot3(SAn,tempvec2);
 
   MathExtra::matvec(Lz,nhat,tempvec);
   MathExtra::transpose_matvec(A,tempvec,tempvec2);
-  for(int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
+  for (int k = 0; k < 3; k++) tempvec2[k] *= shape[k];
   that[2] = MathExtra::dot3(SAn,tempvec2);
 
-  for(int j = 0; j<3 ; j++)
+  for (int j = 0; j<3 ; j++)
     torque[j] = twall * that[j];
 }

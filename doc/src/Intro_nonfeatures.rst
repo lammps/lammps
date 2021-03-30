@@ -1,5 +1,5 @@
 LAMMPS non-features
-===================
+-------------------
 
 LAMMPS is designed to be a fast, parallel engine for molecular
 dynamics (MD) simulations.  It provides only a modest amount of

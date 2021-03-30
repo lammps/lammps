@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -180,11 +180,11 @@ void PairTlsph::PreCompute() {
                         h = 2.0 * radius[i];
                         r0 = 0.0;
                         spiky_kernel_and_derivative(h, r0, domain->dimension, wf, wfd);
-                        shepardWeight = wf * voli;
 
                         jnum = npartner[i];
                         irad = radius[i];
                         voli = vfrac[i];
+                        shepardWeight = wf * voli;
 
                         // initialize Eigen data structures from LAMMPS data structures
                         for (idim = 0; idim < 3; idim++) {
@@ -678,7 +678,8 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
 
                 } // end loop over jj neighbors of i
 
-                if (shepardWeight != 0.0) {
+                // avoid division by zero and overflow
+                if ((shepardWeight != 0.0) && (fabs(hourglass_error[i]) < 1.0e300)) {
                         hourglass_error[i] /= shepardWeight;
                 }
 
@@ -974,7 +975,7 @@ void PairTlsph::settings(int narg, char **arg) {
                         printf("... will update reference configuration if ratio pairwise distance / smoothing length  exceeds %g\n",
                                         update_threshold);
                 } else if (update_method == UPDATE_NONE) {
-                        printf("... will never update reference configuration");
+                        printf("... will never update reference configuration\n");
                 }
                 printf(
                                 ">>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========\n");

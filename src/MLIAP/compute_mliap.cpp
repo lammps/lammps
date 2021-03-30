@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,12 +11,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Aidan Thompson (SNL)
+------------------------------------------------------------------------- */
+
 #include <cstring>
 
 #include "mliap_data.h"
 #include "mliap_model_linear.h"
 #include "mliap_model_quadratic.h"
 #include "mliap_descriptor_snap.h"
+#ifdef MLIAP_PYTHON
+#include "mliap_model_python.h"
+#endif
+
 #include "compute_mliap.h"
 #include "atom.h"
 #include "update.h"
@@ -65,7 +73,14 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
         model = new MLIAPModelQuadratic(lmp);
         iarg += 2;
-      } else error->all(FLERR,"Illegal compute mliap command");
+      }
+#ifdef MLIAP_PYTHON
+      else if (strcmp(arg[iarg+1],"mliappy") == 0) {
+      model = new MLIAPModelPython(lmp);
+      iarg += 2;
+      }
+#endif
+      else error->all(FLERR,"Illegal compute mliap command");
       modelflag = 1;
     } else if (strcmp(arg[iarg],"descriptor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute mliap command");
@@ -200,7 +215,7 @@ void ComputeMLIAP::init_list(int /*id*/, NeighList *ptr)
 
 void ComputeMLIAP::compute_array()
 {
-  int ntotal = atom->nlocal + atom->nghost;
+  int nall = atom->nlocal + atom->nghost;
   invoked_array = update->ntimestep;
 
   // clear global array
@@ -246,7 +261,7 @@ void ComputeMLIAP::compute_array()
   for (int ielem = 0; ielem < data->nelements; ielem++) {
     const int elemoffset = data->nparams*ielem;
     for (int jparam = 0; jparam < data->nparams; jparam++) {
-      for (int i = 0; i < ntotal; i++) {
+      for (int i = 0; i < nall; i++) {
         double *gradforcei = data->gradforce[i]+elemoffset;
         tagint irow = 3*(atom->tag[i]-1)+1;
         mliaparray[irow][jparam+elemoffset] += gradforcei[jparam];
@@ -292,7 +307,7 @@ void ComputeMLIAP::compute_array()
   // switch to Voigt notation
 
   c_virial->compute_vector();
-  irow += 3*data->natoms_array;
+  irow += 3*data->natoms;
   mliaparrayall[irow++][lastcol] = c_virial->vector[0];
   mliaparrayall[irow++][lastcol] = c_virial->vector[1];
   mliaparrayall[irow++][lastcol] = c_virial->vector[2];
@@ -310,7 +325,7 @@ void ComputeMLIAP::compute_array()
   void ComputeMLIAP::dbdotr_compute()
 {
   double **x = atom->x;
-  int irow0 = 1+data->ndims_force*data->natoms_array;
+  int irow0 = 1+data->ndims_force*data->natoms;
 
   // sum over bispectrum contributions to forces
   // on all particles including ghosts
@@ -342,12 +357,12 @@ void ComputeMLIAP::compute_array()
 double ComputeMLIAP::memory_usage()
 {
 
-  double bytes = size_array_rows*size_array_cols *
+  double bytes = (double)size_array_rows*size_array_cols *
     sizeof(double);                                   // mliaparray
-  bytes += size_array_rows*size_array_cols *
+  bytes += (double)size_array_rows*size_array_cols *
     sizeof(double);                                   // mliaparrayall
   int n = atom->ntypes+1;
-  bytes += n*sizeof(int);                             // map
+  bytes += (double)n*sizeof(int);                             // map
 
   bytes += descriptor->memory_usage(); // Descriptor object
   bytes += model->memory_usage();      // Model object

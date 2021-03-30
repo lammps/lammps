@@ -23,7 +23,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "pair_reaxc_omp.h"
@@ -96,20 +96,20 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
-  for( i = 0; i < natoms; ++i ) {
-    if(system->my_atoms[i].type < 0) continue;
+  for (i = 0; i < natoms; ++i) {
+    if (system->my_atoms[i].type < 0) continue;
     start_i = Start_Index(i, far_nbrs);
     end_i   = End_Index(i, far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
       orig_j  = system->my_atoms[j].orig_id;
 
       flag = 0;
-      if(nbr_pj->d <= control->nonb_cut) {
-        if(j < natoms) flag = 1;
+      if (nbr_pj->d <= control->nonb_cut) {
+        if (j < natoms) flag = 1;
         else if (orig_i < orig_j) flag = 1;
         else if (orig_i == orig_j) {
           if (nbr_pj->dvec[2] > SMALL) flag = 1;
@@ -145,7 +145,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
         dTap += workspace->Tap[1]/r_ij;
 
         /*vdWaals Calculations*/
-        if(system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
+        if (system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
           { // shielding
             powr_vdW1 = pow(r_ij, p_vdW1);
             powgi_vdW1 = pow( 1.0 / twbp->gamma_w, p_vdW1);
@@ -174,7 +174,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
               Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
         }
 
-        if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
+        if (system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
           { // innner wall
             e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
             total_EvdW += Tap * e_core;
@@ -293,7 +293,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
 #endif
   for (i = 0; i < natoms; ++i) {
     type_i  = system->my_atoms[i].type;
-    if(type_i < 0) continue;
+    if (type_i < 0) continue;
     start_i = Start_Index(i,far_nbrs);
     end_i   = End_Index(i,far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
@@ -302,12 +302,12 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
       type_j = system->my_atoms[j].type;
-      if(type_j < 0) continue;
+      if (type_j < 0) continue;
       orig_j  = system->my_atoms[j].orig_id;
 
       flag = 0;
-      if(nbr_pj->d <= control->nonb_cut) {
-        if(j < natoms) flag = 1;
+      if (nbr_pj->d <= control->nonb_cut) {
+        if (j < natoms) flag = 1;
         else if (orig_i < orig_j) flag = 1;
         else if (orig_i == orig_j) {
           if (nbr_pj->dvec[2] > SMALL) flag = 1;

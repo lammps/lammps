@@ -59,10 +59,10 @@ namespace user_manifold {
     // Variant of g that computes n at the same time.
     virtual double g_and_n( const double *x, double *nn );
 
-    static const char* type(){ return "gaussian_bump"; }
+    static const char* type() { return "gaussian_bump"; }
     virtual const char *id() { return type(); }
 
-    virtual int nparams(){ return NPARAMS; }
+    virtual int nparams() { return NPARAMS; }
     virtual void post_param_init();
    private:
     // Some private constants:

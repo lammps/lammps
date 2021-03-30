@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -222,9 +222,9 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosinePeriodic::equilibrium_angle(int /*i*/)
+double AngleCosinePeriodic::equilibrium_angle(int i)
 {
-  return MY_PI;
+  return MY_PI*(1.0 - (b[i]>0)?0.0:1.0/static_cast<double>(multiplicity[i]));
 }
 
 /* ----------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,7 +40,7 @@ void DeleteBonds::command(int narg, char **arg)
     error->all(FLERR,"Delete_bonds command before simulation box is defined");
   if (atom->natoms == 0)
     error->all(FLERR,"Delete_bonds command with no atoms existing");
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use delete_bonds with non-molecular system");
 
   if (narg < 2) error->all(FLERR,"Illegal delete_bonds command");

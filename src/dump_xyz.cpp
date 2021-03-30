@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,10 +40,7 @@ DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
 
   if (format_default) delete [] format_default;
 
-  char *str = (char *) "%s %g %g %g";
-  int n = strlen(str) + 1;
-  format_default = new char[n];
-  strcpy(format_default,str);
+  format_default = utils::strdup("%s %g %g %g");
 
   ntypes = atom->ntypes;
   typenames = nullptr;
@@ -71,14 +68,11 @@ void DumpXYZ::init_style()
   // format = copy of default or user-specified line format
 
   delete [] format;
-  char *str;
-  if (format_line_user) str = format_line_user;
-  else str = format_default;
 
-  int n = strlen(str) + 2;
-  format = new char[n];
-  strcpy(format,str);
-  strcat(format,"\n");
+  if (format_line_user)
+    format = utils::strdup(fmt::format("{}\n", format_line_user));
+  else
+    format = utils::strdup(fmt::format("{}\n", format_default));
 
   // initialize typenames array to be backward compatible by default
   // a 32-bit int can be maximally 10 digits plus sign
@@ -119,9 +113,7 @@ int DumpXYZ::modify_param(int narg, char **arg)
 
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
-      int n = strlen(arg[itype]) + 1;
-      typenames[itype] = new char[n];
-      strcpy(typenames[itype],arg[itype]);
+      typenames[itype] = utils::strdup(arg[itype]);
     }
 
     return ntypes+1;

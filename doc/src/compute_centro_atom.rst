@@ -133,7 +133,7 @@ simulation into gold (FCC).  These were provided by Jon Zimmerman
    Stacking faults ~ 5.0 (4.0 to 6.0)
    Free surface ~ 23.0
 
-These values are \*not\* normalized by the square of the lattice
+These values are **not** normalized by the square of the lattice
 parameter.  If they were, normalized values would be:
 
 .. parsed-literal::

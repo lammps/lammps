@@ -18,7 +18,7 @@
 
 namespace LAMMPS_NS {
 
-class MLIAPModelQuadratic : public MLIAPModel {
+class MLIAPModelQuadratic : public MLIAPModelSimple {
 public:
   MLIAPModelQuadratic(LAMMPS*, char* = nullptr);
   ~MLIAPModelQuadratic();

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -204,9 +204,9 @@ void AngleFourier::coeff(int narg, char **arg)
 double AngleFourier::equilibrium_angle(int i)
 {
   double ret=MY_PI;
-  if ( C2[i] != 0.0 ) {
+  if (C2[i] != 0.0) {
     ret = (C1[i]/4.0/C2[i]);
-    if ( fabs(ret) <= 1.0 ) ret = acos(-ret);
+    if (fabs(ret) <= 1.0) ret = acos(-ret);
   }
   return ret;
 }

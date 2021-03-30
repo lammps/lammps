@@ -543,7 +543,7 @@ inline void SmallRForce(double dx, double dy, double dz,
 {
   /* Handles case where rc is small to avoid division by zero */
 
-  if (rc > 0.000001){
+  if (rc > 0.000001) {
     force /= rc;
     *fx = force * dx; *fy = force * dy; *fz = force * dz;
   } else {

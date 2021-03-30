@@ -28,7 +28,7 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *units*
 
-  .. code-block:: LAMMPS
+  .. parsed-literal::
 
        *mol* value = template-ID seed
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command

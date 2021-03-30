@@ -56,7 +56,7 @@ is slightly modified only for the computation of long-range forces. A
 good cluster decomposition constitutes in building clusters which
 contain the fastest covalent bonds inside clusters.
 
-If the clusters are chosen suitably, the :doc:`run_style respa <run_style>` is stable for outer time-steps of at least 8fs.
+If the clusters are chosen suitably, the :doc:`run_style respa <run_style>` is stable for outer timesteps of at least 8fs.
 
 ----------
 

@@ -21,7 +21,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_nonbonded.h"
@@ -62,20 +62,20 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   e_vdW = 0;
   e_lg = de_lg = 0.0;
 
-  for( i = 0; i < natoms; ++i ) {
+  for (i = 0; i < natoms; ++i) {
     if (system->my_atoms[i].type < 0) continue;
     start_i = Start_Index(i, far_nbrs);
     end_i   = End_Index(i, far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
       if (system->my_atoms[j].type < 0) continue;
       orig_j  = system->my_atoms[j].orig_id;
 
       flag = 0;
-      if(nbr_pj->d <= control->nonb_cut) {
+      if (nbr_pj->d <= control->nonb_cut) {
         if (j < natoms) flag = 1;
         else if (orig_i < orig_j) flag = 1;
         else if (orig_i == orig_j) {
@@ -110,7 +110,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
       dTap += workspace->Tap[1]/r_ij;
 
       /*vdWaals Calculations*/
-      if(system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
+      if (system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
         { // shielding
           powr_vdW1 = pow(r_ij, p_vdW1);
           powgi_vdW1 = pow( 1.0 / twbp->gamma_w, p_vdW1);
@@ -139,7 +139,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
           Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
       }
 
-      if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
+      if (system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
         { // inner wall
           e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
           data->my_en.e_vdW += Tap * e_core;
@@ -228,14 +228,14 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 
   e_ele = e_vdW = 0;
 
-  for( i = 0; i < natoms; ++i ) {
+  for (i = 0; i < natoms; ++i) {
     type_i  = system->my_atoms[i].type;
     if (type_i < 0) continue;
     start_i = Start_Index(i,far_nbrs);
     end_i   = End_Index(i,far_nbrs);
     orig_i  = system->my_atoms[i].orig_id;
 
-    for( pj = start_i; pj < end_i; ++pj ) {
+    for (pj = start_i; pj < end_i; ++pj) {
       nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
       j = nbr_pj->nbr;
       type_j = system->my_atoms[j].type;
@@ -243,7 +243,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
       orig_j  = system->my_atoms[j].orig_id;
 
       flag = 0;
-      if(nbr_pj->d <= control->nonb_cut) {
+      if (nbr_pj->d <= control->nonb_cut) {
         if (j < natoms) flag = 1;
         else if (orig_i < orig_j) flag = 1;
         else if (orig_i == orig_j) {
@@ -322,7 +322,7 @@ void Compute_Polarization_Energy( reax_system *system, simulation_data *data )
   double q, en_tmp;
 
   data->my_en.e_pol = 0.0;
-  for( i = 0; i < system->n; i++ ) {
+  for (i = 0; i < system->n; i++) {
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
     q = system->my_atoms[i].q;
@@ -372,7 +372,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
   dTap += workspace->Tap[1]/r_ij;
 
   /*vdWaals Calculations*/
-  if(system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
+  if (system->reax_param.gp.vdw_type==1 || system->reax_param.gp.vdw_type==3)
     { // shielding
       powr_vdW1 = pow(r_ij, p_vdW1);
       powgi_vdW1 = pow( 1.0 / twbp->gamma_w, p_vdW1);
@@ -397,7 +397,7 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
       Tap * twbp->D * (twbp->alpha / twbp->r_vdW) * (exp1 - exp2) / r_ij;
   }
 
-  if(system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
+  if (system->reax_param.gp.vdw_type==2 || system->reax_param.gp.vdw_type==3)
     { // inner wall
       e_core = twbp->ecore * exp(twbp->acore * (1.0-(r_ij/twbp->rcore)));
       lr->e_vdW += Tap * e_core;

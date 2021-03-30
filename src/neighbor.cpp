@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -720,11 +720,11 @@ int Neighbor::init_pair()
     lists[i]->index = i;
     lists[i]->requestor = requests[i]->requestor;
 
-    if(requests[i]->pair) {
+    if (requests[i]->pair) {
         lists[i]->requestor_type = NeighList::PAIR;
-    } else if(requests[i]->fix) {
+    } else if (requests[i]->fix) {
         lists[i]->requestor_type = NeighList::FIX;
-    } else if(requests[i]->compute) {
+    } else if (requests[i]->compute) {
         lists[i]->requestor_type = NeighList::COMPUTE;
     }
 
@@ -1479,7 +1479,8 @@ void Neighbor::print_pairwise_info()
     rq = requests[i];
     if (rq->pair) {
       char *pname = force->pair_match_ptr((Pair *) rq->requestor);
-      out += fmt::format("  ({}) pair {}",i+1,pname);
+      if (pname) out += fmt::format("  ({}) pair {}",i+1,pname);
+      else out += fmt::format("  ({}) pair (none)",i+1);
     } else if (rq->fix) {
       out += fmt::format("  ({}) fix {}",i+1,((Fix *) rq->requestor)->style);
     } else if (rq->compute) {
@@ -2162,12 +2163,15 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   // if this is copy list and parent is occasional list,
   // or this is halffull and parent is occasional list,
+  // or this is skip list and parent is occasional list,
   // insure parent is current
 
   if (mylist->listcopy && mylist->listcopy->occasional)
     build_one(mylist->listcopy,preflag);
   if (mylist->listfull && mylist->listfull->occasional)
     build_one(mylist->listfull,preflag);
+  if (mylist->listskip && mylist->listskip->occasional)
+    build_one(mylist->listskip,preflag);
 
   // create stencil if hasn't been created since last setup_bins() call
 

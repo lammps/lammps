@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -83,7 +83,7 @@ double ComputePE::compute_scalar()
   if (pairflag && force->pair)
     one += force->pair->eng_vdwl + force->pair->eng_coul;
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (bondflag && force->bond) one += force->bond->energy;
     if (angleflag && force->angle) one += force->angle->energy;
     if (dihedralflag && force->dihedral) one += force->dihedral->energy;
@@ -99,7 +99,8 @@ double ComputePE::compute_scalar()
     scalar += force->pair->etail / volume;
   }
 
-  if (fixflag && modify->n_thermo_energy) scalar += modify->thermo_energy();
+  if (fixflag && modify->n_energy_global)
+    scalar += modify->energy_global();
 
   return scalar;
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,6 +13,7 @@
 
 #include "fix_halt.h"
 
+#include "arg_info.h"
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -56,16 +57,22 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
     strcpy(dlimit_path,".");
   } else if (strcmp(arg[iarg],"bondmax") == 0) {
     attribute = BONDMAX;
-  } else if (strncmp(arg[iarg],"v_",2) == 0) {
+  } else {
+    ArgInfo argi(arg[iarg],ArgInfo::VARIABLE);
+
+    if ((argi.get_type() == ArgInfo::UNKNOWN)
+        || (argi.get_type() == ArgInfo::NONE)
+        || (argi.get_dim() != 0))
+      error->all(FLERR,"Invalid fix halt attribute");
+
     attribute = VARIABLE;
-    int n = strlen(arg[iarg]);
-    idvar = new char[n];
-    strcpy(idvar,&arg[iarg][2]);
+    idvar = argi.copy_name();
     ivar = input->variable->find(idvar);
+
     if (ivar < 0) error->all(FLERR,"Could not find fix halt variable name");
     if (input->variable->equalstyle(ivar) == 0)
       error->all(FLERR,"Fix halt variable is not equal-style variable");
-  } else error->all(FLERR,"Invalid fix halt attribute");
+  }
 
   ++iarg;
   if (strcmp(arg[iarg],"<") == 0) operation = LT;
@@ -107,7 +114,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
       dlimit_path = new char[len];
       // strip off quotes, if present
       if ( ((arg[iarg][0] == '"') || (arg[iarg][0] == '\''))
-           && (arg[iarg][0] == arg[iarg][len-2]) ) {
+           && (arg[iarg][0] == arg[iarg][len-2])) {
         strcpy(dlimit_path,&arg[iarg][1]);
         dlimit_path[len-3] = '\0';
       } else strcpy(dlimit_path,arg[iarg]);

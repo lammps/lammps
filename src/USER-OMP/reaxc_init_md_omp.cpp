@@ -23,7 +23,7 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
 #include "reaxc_init_md_omp.h"
@@ -68,26 +68,26 @@ int Init_ListsOMP(reax_system *system, control_params *control,
   if (control->hbond_cut > 0) {
     /* init H indexes */
     total_hbonds = 0;
-    for(i = 0; i < system->n; ++i) {
+    for (i = 0; i < system->n; ++i) {
       system->my_atoms[i].num_hbonds = hb_top[i];
       total_hbonds += hb_top[i];
     }
     total_hbonds = (int)(MAX(total_hbonds*saferzone,mincap*system->minhbonds));
 
-    if(!Make_List(system->Hcap, total_hbonds, TYP_HBOND,
+    if (!Make_List(system->Hcap, total_hbonds, TYP_HBOND,
                     *lists+HBONDS)) {
       error->one(FLERR, "Not enough space for hbonds list. Terminating!");
     }
   }
 
   total_bonds = 0;
-  for(i = 0; i < system->N; ++i) {
+  for (i = 0; i < system->N; ++i) {
     system->my_atoms[i].num_bonds = bond_top[i];
     total_bonds += bond_top[i];
   }
   bond_cap = (int)(MAX(total_bonds*safezone, mincap*MIN_BONDS));
 
-  if(!Make_List(system->total_cap, bond_cap, TYP_BOND,
+  if (!Make_List(system->total_cap, bond_cap, TYP_BOND,
                   *lists+BONDS)) {
     error->one(FLERR, "Not enough space for bonds list. Terminating!\n");
   }
@@ -101,8 +101,8 @@ int Init_ListsOMP(reax_system *system, control_params *control,
 
   /* 3bodies list */
   cap_3body = (int)(MAX(num_3body*safezone, MIN_3BODIES));
-  if(!Make_List(bond_cap, cap_3body, TYP_THREE_BODY,
-                  *lists+THREE_BODIES)){
+  if (!Make_List(bond_cap, cap_3body, TYP_THREE_BODY,
+                  *lists+THREE_BODIES)) {
 
     error->one(FLERR, "Problem in initializing angles list. Terminating!");
   }

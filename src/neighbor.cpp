@@ -1363,6 +1363,10 @@ void Neighbor::init_topology()
   onoff = improper_off;
   MPI_Allreduce(&onoff,&improper_off,1,MPI_INT,MPI_MAX,world);
 
+  // newton_bond off is not supported with atom style template
+  if ((atom->molecular == Atom::TEMPLATE) && (force->newton_bond == 0))
+    error->all(FLERR,"Must use 'newton bond on' with atom style template");
+
   // instantiate NTopo classes
 
   if (atom->avec->bonds_allow) {

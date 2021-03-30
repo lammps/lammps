@@ -1365,6 +1365,19 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
   return FixRigidSmall::modify_param(narg,arg);
 }
 
+/* ----------------------------------------------------------------------
+   disallow using fix rigid/n??/small fixes with fix deposit
+   we would need custom functionality to update data structures
+   used by all fixes derived from this class but not fix rigid/small
+------------------------------------------------------------------------- */
+
+void FixRigidNHSmall::set_molecule(int, tagint, int,
+                                   double *, double *, double *)
+{
+   error->all(FLERR,fmt::format("Molecule update not (yet) implemented for "
+                               "fix {}", style));
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixRigidNHSmall::allocate_chain()

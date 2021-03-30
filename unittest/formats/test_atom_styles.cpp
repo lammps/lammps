@@ -2711,7 +2711,7 @@ TEST_F(AtomStyleTest, template)
     command("write_data test_atom_styles.data");
     command("clear");
     command("units real");
-    command("newton off");
+    command("newton off on");
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     command("atom_style template twomols");
     command("pair_style zero 4.0");
@@ -3127,7 +3127,7 @@ TEST_F(AtomStyleTest, template_charge)
     command("write_data test_atom_styles.data");
     command("clear");
     command("units real");
-    command("newton off");
+    command("newton off on");
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
     command("atom_style hybrid template twomols charge");
     command("pair_style zero 4.0");

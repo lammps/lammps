@@ -464,7 +464,7 @@ void FixWallGran::init()
 
   dt = update->dt;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // check for FixRigid so can extract rigid body masses
@@ -511,7 +511,7 @@ void FixWallGran::init()
 
 void FixWallGran::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

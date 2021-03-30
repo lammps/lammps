@@ -63,7 +63,7 @@ FixNHGPU::~FixNHGPU()
 void FixNHGPU::setup(int vflag)
 {
   FixNH::setup(vflag);
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     _respa_on = 1;
   else
     _respa_on = 0;

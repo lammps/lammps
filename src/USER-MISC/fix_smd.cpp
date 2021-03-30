@@ -159,7 +159,7 @@ void FixSMD::init()
     zn = dz/r_old;
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -169,7 +169,7 @@ void FixSMD::init()
 
 void FixSMD::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -190,7 +190,7 @@ void FixSMD::post_force(int vflag)
   else smd_couple();
 
   if (styleflag & SMD_CVEL) {
-    if (strstr(update->integrate_style,"verlet"))
+    if (utils::strmatch(update->integrate_style,"^verlet"))
       r_old += v_smd * update->dt;
     else
       r_old += v_smd * ((Respa *) update->integrate)->step[ilevel_respa];
@@ -205,7 +205,7 @@ void FixSMD::smd_tether()
   group->xcm(igroup,masstotal,xcm);
 
   double dt = update->dt;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dt = ((Respa *) update->integrate)->step[ilevel_respa];
 
   // fx,fy,fz = components of k * (r-r0)
@@ -311,7 +311,7 @@ void FixSMD::smd_couple()
   group->xcm(igroup2,masstotal2,xcm2);
 
   double dt = update->dt;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dt = ((Respa *) update->integrate)->step[ilevel_respa];
 
   // renormalize direction of spring

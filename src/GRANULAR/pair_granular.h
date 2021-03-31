@@ -70,6 +70,7 @@ class PairGranular : public Pair {
   // model choices
   int **normal_model, **damping_model;
   int **tangential_model, **roll_model, **twist_model;
+  int **noattractionflag;
 
   // history flags
   int normal_history, tangential_history, roll_history, twist_history;

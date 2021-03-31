@@ -347,6 +347,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   wiggle = 0;
   wshear = 0;
   peratom_flag = 0;
+  noattraction_flag = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
@@ -372,6 +373,13 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       peratom_flag = 1;
       size_peratom_cols = 8;
       peratom_freq = 1;
+      iarg += 1;
+    } else if (strcmp(arg[iarg],"no_attraction") == 0) {
+      noattraction_flag = 1;
+      if(normal_model == JKR)
+        error->all(FLERR,"Cannot turn off attraction with JRK model");
+      if(normal_model == DMT)
+        error->all(FLERR,"Cannot turn off attraction with DMT model");
       iarg += 1;
     } else error->all(FLERR,"Illegal fix wall/gran command");
   }
@@ -761,6 +769,7 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
+  if(noattraction_flag and ccel < 0.0) ccel = 0.0;
 
   // relative velocities
 
@@ -853,6 +862,7 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
+  if(noattraction_flag and ccel < 0.0) ccel = 0.0;
 
   // relative velocities
 
@@ -984,7 +994,8 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   if (rwall == 0.0) polyhertz = sqrt((radius-r)*radius);
   else polyhertz = sqrt((radius-r)*radius*rwall/(rwall+radius));
   ccel *= polyhertz;
-
+  if(noattraction_flag and ccel < 0.0) ccel = 0.0;
+  
   // relative velocities
 
   vtr1 = vt1 - (dz*wr2-dy*wr3);
@@ -1177,6 +1188,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
+  if(noattraction_flag and Fntot < 0.0) Fntot = 0.0;
 
   //****************************************
   // tangential force, including history effects

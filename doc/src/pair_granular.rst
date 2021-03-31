@@ -657,6 +657,12 @@ then LAMMPS will use that cutoff for the specified atom type
 combination, and automatically set pairwise cutoffs for the remaining
 atom types.
 
+If two particles are moving away from each other while in contact, there 
+is a possibility that the particles could experience an effective attractive 
+force due to damping. If the *no_attraction* keyword is used, this fix 
+will zero out the normal component of the force if there is an effective
+attractive force. This keyword cannot be used with the JKR or DMT models.
+
 ----------
 
 .. include:: accel_styles.rst

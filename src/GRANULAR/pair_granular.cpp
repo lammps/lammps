@@ -793,6 +793,7 @@ void PairGranular::coeff(int narg, char **arg)
   roll_model_one = ROLL_NONE;
   twist_model_one = TWIST_NONE;
   damping_model_one = VISCOELASTIC;
+  noattractionflag = 0;
 
   int iarg = 2;
   while (iarg < narg) {
@@ -1030,7 +1031,18 @@ void PairGranular::coeff(int narg, char **arg)
       count++;
     }
   }
-
+  
+  if(noattraction flag) {
+    for(int i = 1; i <= ntypes; i++) {
+      for(int j = 1; j <= ntypes; j++) {
+        if(normal_model[i][j] == JKR)
+          error->all(FLERR,"Cannot turn off attraction with JKR pairstyle");
+        if(normal_model[i][j] == DMT)
+          error->all(FLERR,"Cannot turn off attraction with DMT pairstyle");
+      }
+    }
+  }
+  
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 

@@ -1211,6 +1211,8 @@ hbn
 hbnewflag
 hbond
 hcp
+hdnnp
+HDNNP
 heatconduction
 Hebenstreit
 Hecht
@@ -2178,8 +2180,6 @@ nmin
 Nmols
 nn
 nnodes
-nnp
-NNP
 Nocedal
 nocite
 nocoeff

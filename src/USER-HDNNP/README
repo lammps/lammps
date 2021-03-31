@@ -1,15 +1,15 @@
-This package implements the "pair_style nnp" command which can be used in a
+This package implements the "pair_style hdnnp" command which can be used in a
 LAMMPS input script. This pair style allows to use pre-trained high-dimensional
 neural network potentials[1] via an interface to the n2p2 library
 (https://github.com/CompPhysVienna/n2p2)[2].
 
-Please see the main documentation for the "pair_style nnp" command for further
+Please see the main documentation for the "pair_style hdnnp" command for further
 details on how the pair style is used. An example is provided in the
-"examples/USER/nnp" directory of LAMMPS.
+"examples/USER/hdnnp" directory of LAMMPS.
 
-The USER-NNP package requires the external library n2p2 which must be
+The USER-HDNNP package requires the external library n2p2 which must be
 downloaded and compiled before starting the build process of LAMMPS. A
-guideline on how to build n2p2 is presented in "lib/nnp/README". This package
+guideline on how to build n2p2 is presented in "lib/hdnnp/README". This package
 supports the LAMMPS build process via CMake and traditional makefiles, please
 see the LAMMPS manual section on building with external libraries for more
 details.

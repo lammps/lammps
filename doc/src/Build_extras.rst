@@ -48,11 +48,11 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-AWPMD <user-awpmd>`
    * :ref:`USER-COLVARS <user-colvars>`
    * :ref:`USER-H5MD <user-h5md>`
+   * :ref:`USER-HDNNP <user-hdnnp>`
    * :ref:`USER-INTEL <user-intel>`
    * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
-   * :ref:`USER-NNP <user-nnp>`
    * :ref:`USER-PLUMED <user-plumed>`
    * :ref:`USER-OMP <user-omp>`
    * :ref:`USER-QMMM <user-qmmm>`
@@ -1416,6 +1416,47 @@ the HDF5 library.
 
 ----------
 
+.. _user-hdnnp:
+
+USER-HDNNP package
+---------------------------------
+
+To build with the USER-HDNNP package it is required to download and build the
+external `n2p2 <https://github.com/CompPhysVienna/n2p2>`__ library ``v2.2.0``
+(or higher) before starting the LAMMPS build process. More specifically, only
+the *n2p2* core library ``libnnp`` and interface library ``libnnpif`` are
+actually needed: when using GCC it should suffice to execute ``make libnnpif``
+in the *n2p2* ``src`` directory. For more details please see
+``lib/hdnnp/README`` and the `n2p2 build documentation
+<https://compphysvienna.github.io/n2p2/topics/build.html>`__. If *n2p2* is
+downloaded and compiled in the LAMMPS directory ``lib/hdnnp/n2p2`` no special
+flags need to be set besides the usual package activation. If you prefer to
+install *n2p2* somewhere else on your system you must specify the path via the
+``N2P2_DIR`` variable.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      There is one additional setting besides ``-D PKG_USER-HDNNP=yes`` in case
+      *n2p2* is not installed in the ``lib/hdnnp/n2p2`` directory:
+
+      .. code-block:: bash
+
+         -D N2P2_DIR=path      # path ... n2p2 installation path
+
+   .. tab:: Traditional make
+
+      There is one additional variable that needs to be set besides ``make
+      yes-user-hdnnp`` in case *n2p2* is not installed in the ``lib/hdnnp/n2p2``
+      directory:
+
+      .. code-block:: bash
+
+         make N2P2_DIR=path ...
+
+----------
+
 .. _user-intel:
 
 USER-INTEL package
@@ -1594,47 +1635,6 @@ on your system.
       package.  If the settings are not valid for your system, you will
       need to edit the ``Makefile.lammps`` file.  See
       ``lib/netcdf/README`` for details.
-
-----------
-
-.. _user-nnp:
-
-USER-NNP package
----------------------------------
-
-To build with the USER-NNP package it is required to download and build the
-external `n2p2 <https://github.com/CompPhysVienna/n2p2>`__ library ``v2.2.0``
-(or higher) before starting the LAMMPS build process. More specifically, only
-the *n2p2* core library ``libnnp`` and interface library ``libnnpif`` are
-actually needed: when using GCC it should suffice to execute ``make libnnpif``
-in the *n2p2* ``src`` directory. For more details please see ``lib/nnp/README``
-and the `n2p2 build documentation
-<https://compphysvienna.github.io/n2p2/topics/build.html>`__. If *n2p2* is
-downloaded and compiled in the LAMMPS directory ``lib/nnp/n2p2`` no special
-flags need to be set besides the usual package activation. If you prefer to
-install *n2p2* somewhere else on your system you must specify the path via the
-``N2P2_DIR`` variable.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      There is one additional setting besides ``-D PKG_USER-NNP=yes`` in case
-      *n2p2* is not installed in the ``lib/nnp/n2p2`` directory:
-
-      .. code-block:: bash
-
-         -D N2P2_DIR=path      # path ... n2p2 installation path
-
-   .. tab:: Traditional make
-
-      There is one additional variable that needs to be set besides ``make
-      yes-user-nnp`` in case *n2p2* is not installed in the ``lib/nnp/n2p2``
-      directory:
-
-      .. code-block:: bash
-
-         make N2P2_DIR=path ...
 
 ----------
 

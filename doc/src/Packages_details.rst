@@ -77,6 +77,7 @@ page gives those details.
    * :ref:`USER-EFF <PKG-USER-EFF>`
    * :ref:`USER-FEP <PKG-USER-FEP>`
    * :ref:`USER-H5MD <PKG-USER-H5MD>`
+   * :ref:`USER-HDNNP <PKG-USER-HDNNP>`
    * :ref:`USER-INTEL <PKG-USER-INTEL>`
    * :ref:`USER-LB <PKG-USER-LB>`
    * :ref:`USER-MANIFOLD <PKG-USER-MANIFOLD>`
@@ -88,7 +89,6 @@ page gives those details.
    * :ref:`USER-MOFFF <PKG-USER-MOFFF>`
    * :ref:`USER-MOLFILE <PKG-USER-MOLFILE>`
    * :ref:`USER-NETCDF <PKG-USER-NETCDF>`
-   * :ref:`USER-NNP <PKG-USER-NNP>`
    * :ref:`USER-OMP <PKG-USER-OMP>`
    * :ref:`USER-PHONON <PKG-USER-PHONON>`
    * :ref:`USER-PLUMED <PKG-USER-PLUMED>`
@@ -1550,6 +1550,39 @@ This package has :ref:`specific installation instructions <user-h5md>` on the :d
 
 ----------
 
+.. _PKG-USER-HDNNP:
+
+USER-HDNNP package
+------------------
+
+**Contents:**
+
+A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows to use
+high-dimensional neural network potentials (HDNNPs), a form of machine learning
+potentials. HDNNPs must be carefully trained prior to their application in a
+molecular dynamics simulation.
+
+.. _n2p2: https://github.com/CompPhysVienna/n2p2
+
+To use this package you must have the `n2p2 <n2p2_>`_ library installed and
+compiled on your system.
+
+**Author:** Andreas Singraber
+
+**Install:**
+
+This package has :ref:`specific installation instructions <user-hdnnp>` on the :doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* src/USER-HDNNP: filenames -> commands
+* src/USER-HDNNP/README
+* lib/hdnnp/README
+* :doc:`pair_style hdnnp <pair_hdnnp>`
+* examples/USER/hdnnp
+
+----------
+
 .. _PKG-USER-INTEL:
 
 USER-INTEL package
@@ -1921,39 +1954,6 @@ This package has :ref:`specific installation instructions <user-netcdf>` on the 
 * src/USER-NETCDF/README
 * lib/netcdf/README
 * :doc:`dump netcdf <dump_netcdf>`
-
-----------
-
-.. _PKG-USER-NNP:
-
-USER-NNP package
-----------------
-
-**Contents:**
-
-A :doc:`pair_style nnp <pair_nnp>` command which allows to use high-dimensional
-neural network potentials (HDNNPs), a form of machine learning potentials.
-HDNNPs must be carefully trained prior to their application in a molecular
-dynamics simulation.
-
-.. _n2p2: https://github.com/CompPhysVienna/n2p2
-
-To use this package you must have the `n2p2 <n2p2_>`_ library installed and
-compiled on your system.
-
-**Author:** Andreas Singraber
-
-**Install:**
-
-This package has :ref:`specific installation instructions <user-nnp>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* src/USER-NNP: filenames -> commands
-* src/USER-NNP/README
-* lib/nnp/README
-* :doc:`pair_style nnp <pair_nnp>`
-* examples/USER/nnp
 
 ----------
 

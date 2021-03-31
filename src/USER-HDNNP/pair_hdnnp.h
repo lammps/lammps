@@ -20,12 +20,12 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(nnp,PairNNP)
+PairStyle(hdnnp,PairHDNNP)
 
 #else
 
-#ifndef LMP_PAIR_NNP_H
-#define LMP_PAIR_NNP_H
+#ifndef LMP_PAIR_HDNNP_H
+#define LMP_PAIR_HDNNP_H
 
 #include "pair.h"
 
@@ -35,12 +35,12 @@ namespace nnp {
 
 namespace LAMMPS_NS {
 
-class PairNNP : public Pair {
+class PairHDNNP : public Pair {
 
  public:
 
-  PairNNP(class LAMMPS *);
-  virtual ~PairNNP();
+  PairHDNNP(class LAMMPS *);
+  virtual ~PairHDNNP();
   virtual void compute(int, int);
   virtual void settings(int, char **);
   virtual void coeff(int, char **);

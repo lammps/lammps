@@ -1,4 +1,4 @@
-The USER-NNP package requires access to pre-compiled libraries of the n2p2
+The USER-HDNNP package requires access to pre-compiled libraries of the n2p2
 package (https://github.com/CompPhysVienna/n2p2). More precisely, the n2p2 core
 library ("libnnp"), the interface library ("libnnpif"), some headers and extra
 build helper files are needed. These files will be created automatically during
@@ -10,17 +10,17 @@ Basic build instructions for n2p2
 =================================
 
 The n2p2 software package comes with lots of useful tools for creating and
-applying neural network potentials (NNPs). In order to use n2p2 together with
-LAMMPS only some parts of the n2p2 code need to be compiled. As an example,
-everything related to NNP training is not required and would only add unwanted
-library dependencies. Hence, the build infrastructure of n2p2 is designed to allow
-a separate build of the LAMMPS interface.
+applying high-dimensional neural network potentials (HDNNPs). In order to use
+n2p2 together with LAMMPS only some parts of the n2p2 code need to be compiled.
+As an example, everything related to HDNNP training is not required and would
+only add unwanted library dependencies. Hence, the build infrastructure of n2p2
+is designed to allow a separate build of the LAMMPS interface.
 
 After downloading n2p2, change to the "src" directory and simply execute
 
     make libnnpif
 
-which should create the following files needed by the USER-NNP package:
+which should create the following files needed by the USER-HDNNP package:
 
     * "n2p2/lib/libnnp.a"
     * "n2p2/lib/libnnpif.a"
@@ -43,7 +43,7 @@ also available (e.g. "makefile.intel") and can be activated by supplying the
 Please make sure that your compiler settings for n2p2 and LAMMPS are compatible
 (avoid mixing different compilers).
 
-If you want to build a serial version of LAMMPS with USER-NNP package n2p2 must
+If you want to build a serial version of LAMMPS with USER-HDNNP package n2p2 must
 also be built with MPI disabled. This can be achieved with a preprocessor flag
 (-DN2P2_NO_MPI) which is (among others) prepared, but commented out, in the
 provided compiler-specific settings makefiles. For example, if you use the GNU
@@ -65,12 +65,12 @@ Installation directory of n2p2
 You can install n2p2 either in this folder (1) or somewhere else on your system (2):
 
 (1) If n2p2 is installed here, please make sure that the directory is also named
-    "n2p2", i.e. within "lib/nnp/n2p2" you can see the n2p2 folder structure, in
+    "n2p2", i.e. within "lib/hdnnp/n2p2" you can see the n2p2 folder structure, in
     particular "lib" and "include":
 
                        lib
                         |
-                       nnp
+                      hdnnp
                         |
                        n2p2
 	                |
@@ -79,27 +79,27 @@ You can install n2p2 either in this folder (1) or somewhere else on your system 
             include  lib    src   ...
 
     In this case LAMMPS will automatically find n2p2 during the build process
-    and you only need to enable the USER-NNP package via CMake (-D PKG_USER-NNP=yes)
-    or the traditional makefile approach (make yes-user-nnp). It is also valid to
-    create a link here named "n2p2" which points to the n2p2 installation
-    directory.
+    and you only need to enable the USER-HDNNP package via CMake (-D
+    PKG_USER-HDNNP=yes) or the traditional makefile approach (make yes-user-hdnnp).
+    It is also valid to create a link here named "n2p2" which points to the n2p2
+    installation directory.
 
 (2) If n2p2 is installed somewhere else the path must be given as an additional
     setting (variable N2P2_DIR) to the build tool. For example, with CMake use
 
-        cmake -D PKG_USER-NNP=yes -D N2P2_DIR=<path-to-n2p2> ../cmake/
+        cmake -D PKG_USER-HDNNP=yes -D N2P2_DIR=<path-to-n2p2> ../cmake/
 
     and for the traditional makefiles use
 
-	make yes-user-nnp
+	make yes-user-hdnnp
         make N2P2_DIR=<path-to-n2p2> mpi
 
-Testing a successful build of LAMMPS with USER-NNP
-==================================================
+Testing a successful build of LAMMPS with USER-HDNNP
+====================================================
 
-An example is provided in the LAMMPS directory "examples/USER/nnp" which runs
+An example is provided in the LAMMPS directory "examples/USER/hdnnp" which runs
 10 timesteps with 360 water molecules. The neural network potential is defined
-via files in the "nnp-data" subdirectory. Use the "in.nnp" LAMMPS script file
+via files in the "hdnnp-data" subdirectory. Use the "in.hdnnp" LAMMPS script file
 to run the simulation. You should see a large output of the n2p2 library when
-the pair style "nnp" is initialized, followed by the LAMMPS per-timestep
+the pair style "hdnnp" is initialized, followed by the LAMMPS per-timestep
 output.

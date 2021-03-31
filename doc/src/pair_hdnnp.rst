@@ -1,14 +1,14 @@
-.. index:: pair_style nnp
+.. index:: pair_style hdnnp
 
-pair_style nnp command
-======================
+pair_style hdnnp command
+========================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style nnp keyword value ...
+   pair_style hdnnp keyword value ...
 
 * zero or more keyword/value pairs may be appended
 * keyword = *dir* or *showew* or *showewsum* or *maxew* or *resetew* or *cflength* or *cfenergy*
@@ -19,7 +19,7 @@ Syntax
    *emap* value = mapping
         mapping = Element mapping from LAMMPS atom types to n2p2 elements
    *dir* value = directory
-       directory = Path to NNP configuration files
+       directory = Path to HDNNP configuration files
    *showew* value = *yes* or *no*
    *showewsum* value = summary
              summary = Write EW summary every this many timesteps (*0* turns summary off)
@@ -36,10 +36,10 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style nnp showew yes showewsum 100 maxew 1000 resetew yes cflength 1.8897261328 cfenergy 0.0367493254 emap "1:H,2:O"
+   pair_style hdnnp showew yes showewsum 100 maxew 1000 resetew yes cflength 1.8897261328 cfenergy 0.0367493254 emap "1:H,2:O"
    pair_coeff * * 6.35
 
-   pair_style nnp dir "./" showewsum 10000
+   pair_style hdnnp dir "./" showewsum 10000
    pair_coeff * * 6.01
 
 Description
@@ -81,15 +81,15 @@ If provided, the keyword *emap* determines the mapping from LAMMPS atom types to
 n2p2 elements. The format is a comma-separated list of ``atom type:element``
 pairs, e.g. ``"1:Cu,2:Zn"`` will map atom types 1 and 2 to elements Cu and Zn,
 respectively. Atom types not present in the list will be completely ignored by
-the NNP. The keyword *emap* is mandatory in a "hybrid" setup (see
+the HDNNP. The keyword *emap* is mandatory in a "hybrid" setup (see
 :doc:`pair_hybrid <pair_hybrid>`) with "extra" atom types in the simulation
-which are not handled by the NNP.
+which are not handled by the HDNNP.
 
 .. warning::
 
    Without an explicit mapping it is by default assumed that the atom type
    specifications in LAMMPS configuration files are consistent with the ordering
-   of elements in the NNP library. Thus, without the *emap* keyword present
+   of elements in the *n2p2* library. Thus, without the *emap* keyword present
    atom types must be sorted in order of ascending atomic number, e.g. the only
    correct mapping for a configuration containing hydrogen, oxygen and zinc
    atoms would be:
@@ -104,7 +104,7 @@ which are not handled by the NNP.
    |      Zn |            30 |           3 |
    +---------+---------------+-------------+
 
-Use the *dir* keyword to specify the directory containing the NNP configuration
+Use the *dir* keyword to specify the directory containing the HDNNP configuration
 files. The directory must contain ``input.nn`` with neural network and symmetry
 function setup, ``scaling.data`` with symmetry function scaling data and
 ``weights.???.data`` with weight parameters for each element.
@@ -128,7 +128,7 @@ used to print out the MPI rank the atom belongs to.
 
    The *showew* keyword should only be set to *yes* for debugging purposes.
    Extrapolation warnings may add lots of overhead as they are communicated each
-   timestep. Also, if the simulation is run in a region where the NNP was not
+   timestep. Also, if the simulation is run in a region where the HDNNP was not
    correctly trained, lots of extrapolation warnings may clog log files and the
    console. In a production run use *showewsum* instead.
 
@@ -160,7 +160,7 @@ whole trajectory.
 If the training of a neural network potential has been performed with different
 physical units for length and energy than those set in LAMMPS, it is still
 possible to use the potential when the unit conversion factors are provided via
-the *cflength* and *cfenergy* keywords. If for example, the NNP was
+the *cflength* and *cfenergy* keywords. If for example, the HDNNP was
 parameterized with Bohr and Hartree training data and symmetry function
 parameters (i.e. distances and energies in "input.nn" are given in Bohr and
 Hartree) but LAMMPS is set to use *metal* units (Angstrom and eV) the correct
@@ -174,7 +174,7 @@ conversion factors are:
 
 Thus, arguments of *cflength* and *cfenergy* are the multiplicative factors
 required to convert lengths and energies given in LAMMPS units to respective
-quantities in native NNP units (1 Angstrom = 1.8897261328 Bohr, 1 eV =
+quantities in native HDNNP units (1 Angstrom = 1.8897261328 Bohr, 1 eV =
 0.0367493254 Hartree).
 
 ----
@@ -199,7 +199,7 @@ keywords.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-NNP package.  It is only enabled if LAMMPS
+This pair style is part of the USER-HDNNP package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
@@ -214,7 +214,7 @@ Related commands
 Default
 ^^^^^^^
 
-The default options are *dir* = "nnp/", *showew* = yes, *showewsum* = 0, *maxew*
+The default options are *dir* = "hdnnp/", *showew* = yes, *showewsum* = 0, *maxew*
 = 0, *resetew* = no, *cflength* = 1.0, *cfenergy* = 1.0. The default atom type
 mapping is determined automatically according to ascending atomic number of
 present elements (see above).

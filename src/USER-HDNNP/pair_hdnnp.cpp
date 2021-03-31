@@ -18,7 +18,7 @@
    Contributing author: Andreas Singraber
 ------------------------------------------------------------------------- */
 
-#include "pair_nnp.h"
+#include "pair_hdnnp.h"
 #include <mpi.h>
 #include "atom.h"
 #include "citeme.h"
@@ -34,8 +34,8 @@
 
 using namespace LAMMPS_NS;
 
-static const char cite_user_nnp_package[] =
-  "USER-NNP package:\n\n"
+static const char cite_user_hdnnp_package[] =
+  "USER-HDNNP package:\n\n"
   "@Article{Singraber19,\n"
   " author = {Singraber, Andreas and Behler, J{\"o}rg and Dellago, Christoph},\n"
   " title = {Library-{{Based LAMMPS Implementation}} of {{High}}-{{Dimensional Neural Network Potentials}}},\n"
@@ -50,23 +50,23 @@ static const char cite_user_nnp_package[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairNNP::PairNNP(LAMMPS *lmp) : Pair(lmp)
+PairHDNNP::PairHDNNP(LAMMPS *lmp) : Pair(lmp)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_user_nnp_package);
+  if (lmp->citeme) lmp->citeme->add(cite_user_hdnnp_package);
 
   interface = new nnp::InterfaceLammps();
 }
 
 /* ---------------------------------------------------------------------- */
 
-PairNNP::~PairNNP()
+PairHDNNP::~PairHDNNP()
 {
   delete interface;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairNNP::compute(int eflag, int vflag)
+void PairHDNNP::compute(int eflag, int vflag)
 {
   if(eflag || vflag) ev_setup(eflag,vflag);
   else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
@@ -78,7 +78,7 @@ void PairNNP::compute(int eflag, int vflag)
   // (tagint = int64_t)
   interface->setLocalTags(atom->tag);
 
-  // Transfer local neighbor list to NNP interface.
+  // Transfer local neighbor list to n2p2 interface.
   transferNeighborList();
 
   // Compute symmetry functions, atomic neural networks and add up energy.
@@ -109,7 +109,7 @@ void PairNNP::compute(int eflag, int vflag)
    global settings
 ------------------------------------------------------------------------- */
 
-void PairNNP::settings(int narg, char **arg)
+void PairHDNNP::settings(int narg, char **arg)
 {
   single_enable = 0;           // 1 if single() routine exists
   single_hessian_enable = 0;   // 1 if single_hessian() routine exists
@@ -128,9 +128,9 @@ void PairNNP::settings(int narg, char **arg)
   if (narg == 0) error->all(FLERR,"Illegal pair_style command");
 
   // default settings
-  int len = strlen("nnp/") + 1;
+  int len = strlen("hdnnp/") + 1;
   directory = new char[len];
-  strcpy(directory,"nnp/");
+  strcpy(directory,"hdnnp/");
   showew = true;
   showewsum = 0;
   maxew = 0;
@@ -144,7 +144,7 @@ void PairNNP::settings(int narg, char **arg)
   numExtrapolationWarningsSummary = 0;
 
   while(iarg < narg) {
-    // set NNP directory
+    // set HDNNP directory
     if (strcmp(arg[iarg],"dir") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal pair_style command");
@@ -216,7 +216,7 @@ void PairNNP::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairNNP::coeff(int narg, char **arg)
+void PairHDNNP::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
@@ -244,14 +244,14 @@ void PairNNP::coeff(int narg, char **arg)
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairNNP::init_style()
+void PairHDNNP::init_style()
 {
   int irequest = neighbor->request((void *) this);
   neighbor->requests[irequest]->pair = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 
-  // Return immediately if NNP setup is already completed.
+  // Return immediately if HDNNP setup is already completed.
   if (interface->isInitialized()) return;
 
   // Activate screen and logfile output only for rank 0.
@@ -285,7 +285,7 @@ void PairNNP::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairNNP::init_one(int i, int j)
+double PairHDNNP::init_one(int i, int j)
 {
   return maxCutoffRadius;
 }
@@ -294,7 +294,7 @@ double PairNNP::init_one(int i, int j)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairNNP::allocate()
+void PairHDNNP::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -307,9 +307,9 @@ void PairNNP::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 }
 
-void PairNNP::transferNeighborList()
+void PairHDNNP::transferNeighborList()
 {
-  // Transfer neighbor list to NNP.
+  // Transfer neighbor list to n2p2.
   double rc2 = maxCutoffRadius * maxCutoffRadius;
   for (int ii = 0; ii < list->inum; ++ii) {
     int i = list->ilist[ii];
@@ -327,7 +327,7 @@ void PairNNP::transferNeighborList()
   }
 }
 
-void PairNNP::handleExtrapolationWarnings()
+void PairHDNNP::handleExtrapolationWarnings()
 {
   // Get number of extrapolation warnings for local atoms.
   long numCurrentEW = (long)interface->getNumExtrapolationWarnings();

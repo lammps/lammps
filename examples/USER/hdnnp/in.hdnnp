@@ -1,5 +1,5 @@
 ###############################################################################
-# MD simulation for NN water
+# MD simulation for HDNNP water
 ###############################################################################
 
 ###############################################################################
@@ -11,9 +11,9 @@ variable cfgFile         string "data.H2O-360mol"
 # Timesteps
 variable numSteps        equal  10
 variable dt              equal  0.0005
-# NN
-variable nnpCutoff       equal  6.36
-variable nnpDir          string "nnp-data"
+# HDNNP
+variable hdnnpCutoff     equal  6.36
+variable hdnnpDir        string "hdnnp-data"
 
 ###############################################################################
 # GENERAL SETUP
@@ -26,10 +26,10 @@ timestep ${dt}
 thermo 1
 
 ###############################################################################
-# NN
+# HDNNP
 ###############################################################################
-pair_style nnp dir ${nnpDir} showew no showewsum 5 resetew no maxew 100 cflength 1.8897261328 cfenergy 0.0367493254 emap "1:H,2:O"
-pair_coeff * * ${nnpCutoff}
+pair_style hdnnp dir ${hdnnpDir} showew no showewsum 5 resetew no maxew 100 cflength 1.8897261328 cfenergy 0.0367493254 emap "1:H,2:O"
+pair_coeff * * ${hdnnpCutoff}
 
 ###############################################################################
 # INTEGRATOR
@@ -39,7 +39,7 @@ fix INT all nve
 ###############################################################################
 # OUTPUT
 ###############################################################################
-dump 1 all atom 1 dump.nnp
+dump 1 all atom 1 dump.hdnnp
 
 ###############################################################################
 # SIMULATION

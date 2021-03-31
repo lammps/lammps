@@ -24,6 +24,10 @@
 #ifndef NVD_DEVICE
 #define NVD_DEVICE
 
+// workaround after GPU package Feb2021 update
+// todo: make new neighbor code work with CUDA
+#define LAL_USE_OLD_NEIGHBOR
+
 #include <string>
 #include <vector>
 #include <iostream>

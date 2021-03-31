@@ -368,7 +368,7 @@ KIM package
 
 **Contents:**
 
-This package contains a command with a set of subcommands that serve as a
+This package contains a command with a set of sub-commands that serve as a
 wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs) enabling compatible ones to be used in
@@ -1433,8 +1433,8 @@ oscillators as a model of polarization.  See the :doc:`Howto drude <Howto_drude>
 for an overview of how to use the package.  There are auxiliary tools
 for using this package in tools/drude.
 
-**Authors:** Alain Dequidt (U Blaise Pascal Clermont-Ferrand), Julien
-Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
+**Authors:** Alain Dequidt (U Clermont Auvergne), Julien
+Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 
 **Supporting info:**
 
@@ -1501,7 +1501,7 @@ methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt
 which have a "soft" in their style name.  There are auxiliary tools
 for using this package in tools/fep; see its README file.
 
-**Author:** Agilio Padua (Universite Blaise Pascal Clermont-Ferrand)
+**Author:** Agilio Padua (ENS de Lyon)
 
 **Supporting info:**
 

@@ -1800,14 +1800,8 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     }
 
     params[nparams].ispecies = ispecies;
-
-    n = strlen(&atom->dname[ispecies][0]) + 1;
-    params[nparams].name = new char[n];
-    strcpy(params[nparams].name,&atom->dname[ispecies][0]);
-
-    n = strlen(words[1]) + 1;
-    params[nparams].potential = new char[n];
-    strcpy(params[nparams].potential,words[1]);
+    params[nparams].name = utils::strdup(&atom->dname[ispecies][0]);
+    params[nparams].potential = utils::strdup(words[1]);
     if (strcmp(params[nparams].potential,"exp6") == 0) {
       params[nparams].alpha = atof(words[2]);
       params[nparams].epsilon = atof(words[3]);

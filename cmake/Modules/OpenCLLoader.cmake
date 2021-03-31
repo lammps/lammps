@@ -1,11 +1,5 @@
 message(STATUS "Downloading and building OpenCL loader library")
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-  set(OPENCL_LOADER_LIB_POSTFIX d)
-else()
-  set(OPENCL_LOADER_LIB_POSTFIX)
-endif()
-
 include(ExternalProject)
 set(OPENCL_LOADER_URL "https://download.lammps.org/thirdparty/opencl-loader-2020.12.18.tar.gz" CACHE STRING "URL for OpenCL loader tarball")
 mark_as_advanced(OPENCL_LOADER_URL)
@@ -20,7 +14,7 @@ ExternalProject_Add(opencl_loader
                                     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                     -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                                     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                    BUILD_BYPRODUCTS <BINARY_DIR>/libOpenCL${OPENCL_LOADER_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}
+                    BUILD_BYPRODUCTS <BINARY_DIR>/libOpenCL${CMAKE_STATIC_LIBRARY_SUFFIX}
                     LOG_DOWNLOAD ON
                     LOG_CONFIGURE ON
                     LOG_BUILD ON
@@ -34,7 +28,7 @@ set(OPENCL_LOADER_INCLUDE_DIR ${SOURCE_DIR}/inc)
 file(MAKE_DIRECTORY ${OPENCL_LOADER_INCLUDE_DIR})
 
 ExternalProject_Get_Property(opencl_loader BINARY_DIR)
-set(OPENCL_LOADER_LIBRARY_PATH "${BINARY_DIR}/libOpenCL${OPENCL_LOADER_LIB_POSTFIX}${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set(OPENCL_LOADER_LIBRARY_PATH "${BINARY_DIR}/libOpenCL${CMAKE_STATIC_LIBRARY_SUFFIX}")
 
 find_package(Threads QUIET)
 if(NOT WIN32)

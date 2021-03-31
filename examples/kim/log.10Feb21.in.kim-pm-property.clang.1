@@ -96,7 +96,22 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- @Comment
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/MO_126566794224_004#item-citation
+
+@Comment
 {
 \documentclass{article}
 \usepackage{url}
@@ -175,9 +190,9 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 3.119 | 3.119 | 3.119 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0            0  -0.34602203            0  -0.34602203 0.00061471244 
-Loop time of 0 on 1 procs for 0 steps with 4 atoms
+Loop time of 3e-05 on 1 procs for 0 steps with 4 atoms
 
-0.0% CPU use with 1 MPI tasks x no OpenMP threads
+3.3% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -187,7 +202,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0          |            |       |  0.00
+Other   |            | 3e-05      |            |       |100.00
 
 Nlocal:        4.00000 ave           4 max           4 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

@@ -97,7 +97,8 @@ void KimInteractions::command(int narg, char **arg)
 void KimInteractions::do_setup(int narg, char **arg)
 {
   bool fixed_types;
-  if ((narg == 1) && (0 == strcmp("fixed_types", arg[0]))) {
+  const std::string arg_str(arg[0]);
+  if ((narg == 1) && (arg_str == "fixed_types")) {
     fixed_types = true;
   } else if (narg != atom->ntypes) {
     error->all(FLERR, fmt::format("Illegal 'kim interactions' command.\nThe "
@@ -178,11 +179,15 @@ void KimInteractions::do_setup(int narg, char **arg)
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
           simulatorModel, i, &sim_lines, &sim_field);
 
-      if (strcmp(sim_field, "units") == 0) {
+      const std::string sim_field_str(sim_field);
+      if (sim_field_str == "units") {
         KIM_SimulatorModel_GetSimulatorFieldLine(
           simulatorModel, i, 0, &sim_value);
-        if (strcmp(sim_value, update->unit_style) != 0)
-          error->all(FLERR,"Incompatible units for KIM Simulator Model");
+
+        const std::string sim_value_str(sim_value);
+        const std::string unit_style_str(update->unit_style);
+        if (sim_value_str != unit_style_str)
+          error->all(FLERR, "Incompatible units for KIM Simulator Model");
       }
     }
 
@@ -190,13 +195,15 @@ void KimInteractions::do_setup(int narg, char **arg)
     for (int i = 0; i < sim_fields; ++i) {
       KIM_SimulatorModel_GetSimulatorFieldMetadata(
         simulatorModel, i, &sim_lines, &sim_field);
-      if (strcmp(sim_field, "model-defn") == 0) {
-        if (domain->periodicity[0]&&
-            domain->periodicity[1]&&
+
+      const std::string sim_field_str(sim_field);
+      if (sim_field_str == "model-defn") {
+        if (domain->periodicity[0] &&
+            domain->periodicity[1] &&
             domain->periodicity[2])
           input->one("variable kim_periodic equal 1");
-        else if (domain->periodicity[0]&&
-                 domain->periodicity[1]&&
+        else if (domain->periodicity[0] &&
+                 domain->periodicity[1] &&
                  !domain->periodicity[2])
           input->one("variable kim_periodic equal 2");
         else input->one("variable kim_periodic equal 0");

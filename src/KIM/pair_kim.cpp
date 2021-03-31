@@ -55,8 +55,10 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 #include "pair_kim.h"
+#include "kim_init.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -72,6 +74,21 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
+
+static constexpr const char *const cite_openkim =
+  "OpenKIM: https://doi.org/10.1007/s11837-011-0102-6\n\n"
+  "@Article{tadmor:elliott:2011,\n"
+  " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
+  "and C. A. Becker},\n"
+  " title = {The potential of atomistic simulations and the {K}nowledgebase of "
+  "{I}nteratomic {M}odels},\n"
+  " journal = {{JOM}},\n"
+  " year =    2011,\n"
+  " volume =  63,\n"
+  " number =  17,\n"
+  " pages =   {17},\n"
+  " doi =     {10.1007/s11837-011-0102-6}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -120,6 +137,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   // (used by kim_free(), etc.)
   kim_init_ok = false;
   kim_particle_codes_ok = false;
+
+  if (lmp->citeme) lmp->citeme->add(cite_openkim);
   // END
 }
 
@@ -291,10 +310,11 @@ void PairKIM::settings(int narg, char **arg)
   init_style_call_count = 0;
 
   if (narg != 1) {
-    if ((narg > 0) && ((0 == strcmp("KIMvirial", arg[0])) ||
-                       (0 == strcmp("LAMMPSvirial", arg[0])))) {
-      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not "
-                       "supported with kim-api");
+    const std::string arg_str(arg[0]);
+    if ((narg > 0) &&
+        ((arg_str == "KIMvirial") || (arg_str == "LAMMPSvirial"))) {
+      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported "
+                       "with kim-api");
     } else error->all(FLERR,"Illegal pair_style command");
   }
   // arg[0] is the KIM Model name
@@ -317,6 +337,9 @@ void PairKIM::settings(int narg, char **arg)
 
   // initialize KIM Model
   kim_init();
+
+  // add citation
+  KimInit::write_log_cite(lmp, KimInit::MO, kim_modelname);
 }
 
 /* ----------------------------------------------------------------------
@@ -337,14 +360,16 @@ void PairKIM::coeff(int narg, char **arg)
 
   // insure I,J args are * *
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+  const std::string arg_0_str(arg[0]);
+  const std::string arg_1_str(arg[1]);
+  if ((arg_0_str != "*") || (arg_1_str != "*"))
     error->all(FLERR,"Incorrect args for pair coefficients.\nThe first two "
                      "arguments of pair_coeff command must be * * to span "
                      "all LAMMPS atom types");
 
   int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg_0_str,1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg_1_str,1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
@@ -426,12 +451,12 @@ void PairKIM::coeff(int narg, char **arg)
     int kimerror;
 
     // Parameter name
-    char *paramname = nullptr;
+    std::string paramname;
 
     for (int i = 2 + atom->ntypes; i < narg;) {
       // Parameter name
       if (i < narg)
-        paramname = arg[i++];
+        paramname = std::string(arg[i++]);
       else
         break;
 
@@ -448,15 +473,14 @@ void PairKIM::coeff(int narg, char **arg)
         if (kimerror)
           error->all(FLERR,"KIM GetParameterMetadata returned error");
 
-        if (strcmp(paramname, str_name) == 0) break;
+        const std::string str_name_str(str_name);
+        if (paramname == str_name_str) break;
       }
 
-      if (param_index >= numberOfParameters) {
-        auto msg = fmt::format("Wrong argument for pair coefficients.\n"
-                               "This Model does not have the requested "
-                               "'{}' parameter", paramname);
-        error->all(FLERR,msg);
-      }
+      if (param_index >= numberOfParameters)
+        error->all(FLERR,fmt::format("Wrong argument for pair coefficients.\n"
+                                     "This Model does not have the requested "
+                                     "'{}' parameter", paramname));
 
       // Get the index_range for the requested parameter
       int nlbound(0);
@@ -466,12 +490,10 @@ void PairKIM::coeff(int narg, char **arg)
         std::string argtostr(arg[i++]);
 
         // Check to see if the indices range contains only integer numbers & :
-        if (argtostr.find_first_not_of("0123456789:") != std::string::npos) {
-          auto msg = fmt::format("Illegal index_range.\nExpected integer "
-                                 "parameter(s) instead of '{}' in "
-                                 "index_range", argtostr);
-          error->all(FLERR,msg);
-        }
+        if (argtostr.find_first_not_of("0123456789:") != std::string::npos)
+          error->all(FLERR,fmt::format("Illegal index_range.\nExpected integer"
+                                       " parameter(s) instead of '{}' in "
+                                       "index_range", argtostr));
 
         std::string::size_type npos = argtostr.find(':');
         if (npos != std::string::npos) {
@@ -481,21 +503,17 @@ void PairKIM::coeff(int narg, char **arg)
           nubound = atoi(words[1].c_str());
 
           if (nubound < 1 || nubound > extent ||
-              nlbound < 1 || nlbound > nubound) {
-            auto msg = fmt::format("Illegal index_range '{}-{}' for '{}' "
-                                   "parameter with the extent of '{}'",
-                                   nlbound, nubound, paramname, extent);
-            error->all(FLERR,msg);
-          }
+              nlbound < 1 || nlbound > nubound)
+            error->all(FLERR,fmt::format("Illegal index_range '{}-{}' for '{}' "
+                                         "parameter with the extent of '{}'",
+                                         nlbound, nubound, paramname, extent));
         } else {
           nlbound = atoi(argtostr.c_str());
 
-          if (nlbound < 1 || nlbound > extent) {
-            auto msg = fmt::format("Illegal index '{}' for '{}' parameter "
-                                   "with the extent of '{}'", nlbound,
-                                   paramname, extent);
-            error->all(FLERR,msg);
-          }
+          if (nlbound < 1 || nlbound > extent)
+            error->all(FLERR,fmt::format("Illegal index '{}' for '{}' parameter "
+                                         "with the extent of '{}'", nlbound,
+                                         paramname, extent));
 
           nubound = nlbound;
         }
@@ -525,11 +543,10 @@ void PairKIM::coeff(int narg, char **arg)
         } else
           error->all(FLERR,"Wrong parameter type to update");
       } else {
-        auto msg = fmt::format("Wrong number of variable values for pair "
-                               "coefficients.\n'{}' values are requested "
-                               "for '{}' parameter", nubound - nlbound + 1,
-                               paramname);
-        error->all(FLERR,msg);
+        error->all(FLERR,fmt::format("Wrong number of variable values for pair "
+                                     "coefficients.\n'{}' values are requested "
+                                     "for '{}' parameter", nubound - nlbound + 1,
+                                     paramname));
       }
     }
 
@@ -994,47 +1011,49 @@ void PairKIM::set_lmps_flags()
   if (force->pair_match("hybrid",0))
     error->all(FLERR,"pair_kim does not support hybrid");
 
+  const std::string unit_style_str(update->unit_style);
+
   // determine unit system and set lmps_units flag
-  if (strcmp(update->unit_style,"real") == 0) {
+  if (unit_style_str == "real") {
     lmps_units = REAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_kcal_mol;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if (strcmp(update->unit_style,"metal") == 0) {
+  } else if (unit_style_str == "metal") {
     lmps_units = METAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_eV;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_ps;
-  } else if (strcmp(update->unit_style,"si") == 0) {
+  } else if (unit_style_str == "si") {
     lmps_units = SI;
     lengthUnit = KIM_LENGTH_UNIT_m;
     energyUnit = KIM_ENERGY_UNIT_J;
     chargeUnit = KIM_CHARGE_UNIT_C;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if (strcmp(update->unit_style,"cgs") == 0) {
+  } else if (unit_style_str == "cgs") {
     lmps_units = CGS;
     lengthUnit = KIM_LENGTH_UNIT_cm;
     energyUnit = KIM_ENERGY_UNIT_erg;
     chargeUnit = KIM_CHARGE_UNIT_statC;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if (strcmp(update->unit_style,"electron") == 0) {
+  } else if (unit_style_str == "electron") {
     lmps_units = ELECTRON;
     lengthUnit = KIM_LENGTH_UNIT_Bohr;
     energyUnit = KIM_ENERGY_UNIT_Hartree;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if (strcmp(update->unit_style,"lj") == 0 ||
-             strcmp(update->unit_style,"micro") == 0 ||
-             strcmp(update->unit_style,"nano") == 0) {
+  } else if ((unit_style_str == "lj") ||
+             (unit_style_str == "micro") ||
+             (unit_style_str == "nano")) {
     error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
-                                 "by KIM models", update->unit_style));
+                                 "by KIM models", unit_style_str));
   } else {
     error->all(FLERR,"Unknown unit_style");
   }

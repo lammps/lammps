@@ -16,23 +16,25 @@
 ---------------------------------------------------------------------------------------- */
 
 #include "fix_tgnh_drude.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_deform.h"
 #include "force.h"
 #include "group.h"
-#include "comm.h"
-#include "neighbor.h"
 #include "irregular.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "compute.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1428,9 +1430,7 @@ int FixTGNHDrude::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1462,9 +1462,7 @@ int FixTGNHDrude::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

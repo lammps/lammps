@@ -58,10 +58,10 @@ Created 32000 atoms
 kim          interactions O
 #=== BEGIN kim interactions ==================================
 variable kim_periodic equal 1
-pair_style reax/c /var/tmp/kim-shared-library-parameter-file-directory-pgBW45WFK0TI/lmp_control safezone 2.0 mincap 100
-pair_coeff * * /var/tmp/kim-shared-library-parameter-file-directory-pgBW45WFK0TI/ffield.reax.rdx O
-Reading potential file /var/tmp/kim-shared-library-parameter-file-directory-pgBW45WFK0TI/ffield.reax.rdx with DATE: 2010-02-19
-fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 /var/tmp/kim-shared-library-parameter-file-directory-pgBW45WFK0TI/param.qeq
+pair_style reax/c /var/tmp/kim-shared-library-parameter-file-directory-SLT21lwwgINS/lmp_control safezone 2.0 mincap 100
+pair_coeff * * /var/tmp/kim-shared-library-parameter-file-directory-SLT21lwwgINS/ffield.reax.rdx O
+Reading potential file /var/tmp/kim-shared-library-parameter-file-directory-SLT21lwwgINS/ffield.reax.rdx with DATE: 2010-02-19
+fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 /var/tmp/kim-shared-library-parameter-file-directory-SLT21lwwgINS/param.qeq
 #=== END kim interactions ====================================
 
 
@@ -80,7 +80,22 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- @Comment
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/SM_107643900657_000#item-citation
+
+@Comment
 {
 \documentclass{article}
 \usepackage{url}
@@ -179,20 +194,20 @@ Per MPI rank memory allocation (min/avg/max) = 1803.0 | 1803.0 | 1803.0 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          200   -39091.147            0   -20014.559    19501.107 
      100    63.198252   -26042.062            0   -20014.027    21497.661 
-Loop time of 40.2545 on 1 procs for 100 steps with 32000 atoms
+Loop time of 38.6526 on 1 procs for 100 steps with 32000 atoms
 
-Performance: 0.215 ns/day, 111.818 hours/ns, 2.484 timesteps/s
+Performance: 0.224 ns/day, 107.368 hours/ns, 2.587 timesteps/s
 99.1% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 24.364     | 24.364     | 24.364     |   0.0 | 60.52
-Neigh   | 0.4185     | 0.4185     | 0.4185     |   0.0 |  1.04
-Comm    | 0.022045   | 0.022045   | 0.022045   |   0.0 |  0.05
-Output  | 6.6e-05    | 6.6e-05    | 6.6e-05    |   0.0 |  0.00
-Modify  | 15.438     | 15.438     | 15.438     |   0.0 | 38.35
-Other   |            | 0.01285    |            |       |  0.03
+Pair    | 23.493     | 23.493     | 23.493     |   0.0 | 60.78
+Neigh   | 0.4498     | 0.4498     | 0.4498     |   0.0 |  1.16
+Comm    | 0.020568   | 0.020568   | 0.020568   |   0.0 |  0.05
+Output  | 6.8e-05    | 6.8e-05    | 6.8e-05    |   0.0 |  0.00
+Modify  | 14.677     | 14.677     | 14.677     |   0.0 | 37.97
+Other   |            | 0.01223    |            |       |  0.03
 
 Nlocal:        32000.0 ave       32000 max       32000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -205,4 +220,4 @@ Total # of neighbors = 3739236
 Ave neighs/atom = 116.85112
 Neighbor list builds = 3
 Dangerous builds = 0
-Total wall time: 0:00:41
+Total wall time: 0:00:39

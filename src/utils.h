@@ -37,6 +37,14 @@ namespace LAMMPS_NS {
 
     bool strmatch(const std::string &text, const std::string &pattern);
 
+    /** Find sub-string that matches a simplified regex pattern
+     *
+     *  \param text the text to be matched against the pattern
+     *  \param pattern the search pattern, which may contain regexp markers
+     *  \return the string that matches the patters or an empty one */
+
+    std::string strfind(const std::string &text, const std::string &pattern);
+
     /** Send message to screen and logfile, if available
      *
      *  \param lmp   pointer to LAMMPS class instance
@@ -326,6 +334,14 @@ namespace LAMMPS_NS {
      * \return true, if string contains valid number, false otherwise */
 
     bool is_double(const std::string &str);
+
+    /** Check if string is a valid ID
+     * ID strings may contain only letters, numbers, and underscores.
+     *
+     * \param str string that should be checked
+     * \return true, if string contains valid id, false otherwise */
+
+    bool is_id(const std::string &str);
 
     /** Try to detect pathname from FILE pointer.
      *

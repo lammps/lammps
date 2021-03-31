@@ -84,7 +84,22 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- @Comment
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/MO_405512056662_005#item-citation
+
+@Comment
 {
 \documentclass{article}
 \usepackage{url}
@@ -173,20 +188,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.517 | 3.517 | 3.517 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          200   -85249.847            0   -66173.259   -33302.387 
      100    253.43357    -90346.68            0   -66173.441   -14888.698 
-Loop time of 4.87378 on 4 procs for 100 steps with 32000 atoms
+Loop time of 4.88034 on 4 procs for 100 steps with 32000 atoms
 
-Performance: 1.773 ns/day, 13.538 hours/ns, 20.518 timesteps/s
-99.7% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 1.770 ns/day, 13.556 hours/ns, 20.490 timesteps/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 4.8075     | 4.816      | 4.8244     |   0.3 | 98.81
-Neigh   | 0.015902   | 0.015996   | 0.016077   |   0.1 |  0.33
-Comm    | 0.018078   | 0.026375   | 0.034752   |   4.2 |  0.54
-Output  | 3e-05      | 3.5e-05    | 4.4e-05    |   0.0 |  0.00
-Modify  | 0.009331   | 0.0094922  | 0.009588   |   0.1 |  0.19
-Other   |            | 0.005919   |            |       |  0.12
+Pair    | 4.8131     | 4.8235     | 4.8347     |   0.4 | 98.84
+Neigh   | 0.017627   | 0.017731   | 0.017825   |   0.1 |  0.36
+Comm    | 0.013892   | 0.025022   | 0.03536    |   5.0 |  0.51
+Output  | 3.4e-05    | 4.025e-05  | 4.7e-05    |   0.0 |  0.00
+Modify  | 0.008725   | 0.0087775  | 0.008862   |   0.1 |  0.18
+Other   |            | 0.005278   |            |       |  0.11
 
 Nlocal:        8000.00 ave        8014 max        7988 min
 Histogram: 1 1 0 0 0 0 1 0 0 1

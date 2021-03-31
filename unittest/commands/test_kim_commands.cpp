@@ -570,6 +570,38 @@ TEST_F(KimCommandsTest, kim_query)
                  "one or more comma-separated items.*",
                  lmp->input->one(squery););
 
+    squery = "kim query a0 get_lattice_constant_cubic ";
+    squery += "crystal=[fcc] species=[Al,Ni, units=[angstrom]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+                 "\\[Al,Ni,` to 'kim query' is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*",
+                 lmp->input->one(squery););
+
+    squery = "kim query a0 get_lattice_constant_cubic ";
+    squery += "crystal=[fcc] species=Al,Ni], units=[angstrom]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+                 "Al,Ni\\],` to 'kim query' is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*",
+                 lmp->input->one(squery););
+
+    squery = "kim query a0 get_lattice_constant_cubic ";
+    squery += "crystal=[fcc] species=Al,\"Ni\"], units=[angstrom]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+                 "Al,\"Ni\"\\],` to 'kim query' is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*",
+                 lmp->input->one(squery););
+
+    squery = "kim query a0 get_lattice_constant_cubic ";
+    squery += "crystal=[fcc] species=\"Al\",Ni], units=[angstrom]";
+    TEST_FAILURE(".*ERROR: Illegal query format.\nInput argument of `species="
+                 "\"Al\",Ni\\],` to 'kim query' is wrong. The query format is "
+                 "the keyword=\\[value\\], where value is always an array of "
+                 "one or more comma-separated items.*",
+                 lmp->input->one(squery););
+
     squery = "kim query a0 get_lattice_constant_cubic crystal=[\"fcc\"] "
              "species=[\"Al\"]";
     TEST_FAILURE(".*ERROR: Illegal query format.\nMust use 'kim init' before "

@@ -48,7 +48,7 @@ void CreateBonds::command(int narg, char **arg)
     error->all(FLERR,"Create_bonds command before simulation box is defined");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use create_bonds unless atoms have IDs");
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use create_bonds with non-molecular system");
 
   if (narg < 4) error->all(FLERR,"Illegal create_bonds command");

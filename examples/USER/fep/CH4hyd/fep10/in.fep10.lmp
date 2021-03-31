@@ -41,7 +41,7 @@ timestep 1.0
 
 velocity all create ${TK} 12345
 
-thermo_style multi
+thermo_style custom step etotal ke pe evdwl ecoul elong temp press density
 thermo 5000
 
 fix TPSTAT all npt temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 1000
@@ -60,7 +60,7 @@ fix ADAPT all adapt/fep 100000 &
   atom charge 2 v_q2 &
   after yes
 
-fix PRINT all print 100000 "adapt  lambda = ${lambda}  q1 = ${q1}  q2 = ${q2}"
+thermo_style custom step etotal ke pe evdwl ecoul elong temp press density v_lambda v_q1 v_q2
 
 variable dlambda equal -0.05
 variable dq1 equal -0.24*v_dlambda
@@ -69,11 +69,12 @@ variable dq2 equal  0.06*v_dlambda
 compute FEP all fep ${TK} &
   pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_dlambda &
   atom charge 1 v_dq1 &
-  atom charge 2 v_dq2
+  atom charge 2 v_dq2 &
+  volume yes
 
-fix FEP all ave/time 20 4000 100000 c_FEP[1] c_FEP[2] file fep10.lmp
+fix FEP all ave/time 20 4000 100000 c_FEP[*] file fep10.fep
 
-dump TRAJ all custom 20000 dump.lammpstrj id mol type element x y z ix iy iz
+dump TRAJ all custom 20000 dump.lammpstrj id mol type element xu yu zu
 dump_modify TRAJ element C H O H
 
 run 2000000

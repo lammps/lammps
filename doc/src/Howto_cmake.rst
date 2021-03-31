@@ -296,6 +296,8 @@ Some common CMake variables
      - Description
    * - ``CMAKE_INSTALL_PREFIX``
      - root directory of install location for ``make install``  (default: ``$HOME/.local``)
+   * - ``LAMMPS_INSTALL_RPATH``
+     - set or remove runtime path setting from binaries for ``make install`` (default: ``off``)
    * - ``CMAKE_BUILD_TYPE``
      - controls compilation options:
        one of ``RelWithDebInfo`` (default), ``Release``, ``Debug``, ``MinSizeRel``
@@ -409,10 +411,10 @@ interface (``ccmake`` or ``cmake-gui``).
 .. note::
 
    Using a preset to select a compiler package (``clang.cmake``,
-   ``gcc.cmake``, or ``intel.cmake``) are an exception to the option
-   of updating the configuration incrementally, as they will trigger
-   a reset of cached internal CMake settings and thus reset them to
-   their default values.
+   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
+   are an exception to the mechanism of updating the configuration incrementally,
+   as they will trigger a reset of cached internal CMake settings and thus
+   reset settings to their default values.
 
 Compilation and build targets
 -----------------------------

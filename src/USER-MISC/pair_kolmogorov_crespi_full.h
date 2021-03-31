@@ -57,12 +57,6 @@ class PairKolmogorovCrespiFull : public Pair {
     int ielement,jelement;
   };
   Param *params;       // parameter set for I-J interactions
-  char **elements;     // names of unique elements
-  int **elem2param;    // mapping from element pairs to parameters
-  int *map;            // mapping from atom types to elements
-  int nelements;       // # of unique elements
-  int nparams;         // # of stored parameter sets
-  int maxparam;        // max # of parameter sets
   int nmax;            // max # of atoms
 
   double cut_global;

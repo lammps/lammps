@@ -129,9 +129,9 @@ CMake build
                                 # default is 'gfx906' for HIP_PLATFORM=hcc and 'sm_50' for HIP_PLATFORM=nvcc
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
                                 # value = yes (default) or no
-   -D CUDPP_OPT=value           # optimization setting for GPU_API=cuda
-                                # enables CUDA Performance Primitives Optimizations, must be "no" for CUDA_MPS_SUPPORT=yes
-                                # value = yes (default) or no
+   -D CUDPP_OPT=value           # use GPU binning on with CUDA (should be off for modern GPUs)
+                                # enables CUDA Performance Primitives, must be "no" for CUDA_MPS_SUPPORT=yes
+                                # value = yes or no (default)
    -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active nvidia-cuda-mps daemon
                                 # value = yes or no (default)
    -D USE_STATIC_OPENCL_LOADER=value  # downloads/includes OpenCL ICD loader library, no local OpenCL headers/libs needed
@@ -231,11 +231,12 @@ GPU architectures as supported by the CUDA toolkit in use. This is done
 through using the "--gencode " flag, which can be used multiple times and
 thus support all GPU architectures supported by your CUDA compiler.
 
-To include CUDA performance primitives set the Makefile variable
-``CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini``.
+To enable GPU binning via CUDA performance primitives set the Makefile variable
+``CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini``.  This should **not** be used with
+most modern GPUs.
 
 To support the CUDA multiprocessor server you can set the define
-``-DCUDA_PROXY``.  Please note that in this case you should **not** use
+``-DCUDA_PROXY``.  Please note that in this case you must **not** use
 the CUDA performance primitives and thus set the variable ``CUDPP_OPT``
 to empty.
 

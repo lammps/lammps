@@ -60,7 +60,7 @@ Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (88.600000 88.600000
   1 by 1 by 1 MPI processor grid
 create_atoms 1 box
 Created 32000 atoms
-  create_atoms CPU = 0.002 seconds
+  create_atoms CPU = 0.003 seconds
 
 kim          interactions Si
 #=== BEGIN kim interactions ==================================
@@ -84,7 +84,22 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- @Comment
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/MO_405512056662_005#item-citation
+
+@Comment
 {
 \documentclass{article}
 \usepackage{url}
@@ -173,20 +188,20 @@ Per MPI rank memory allocation (min/avg/max) = 10.44 | 10.44 | 10.44 Mbytes
 Step Temp E_pair E_mol TotEng Press 
        0          200   -85249.847            0   -66173.259   -33302.387 
      100    253.43357    -90346.68            0   -66173.441   -14888.698 
-Loop time of 17.7449 on 1 procs for 100 steps with 32000 atoms
+Loop time of 17.6645 on 1 procs for 100 steps with 32000 atoms
 
-Performance: 0.487 ns/day, 49.291 hours/ns, 5.635 timesteps/s
+Performance: 0.489 ns/day, 49.068 hours/ns, 5.661 timesteps/s
 99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 17.64      | 17.64      | 17.64      |   0.0 | 99.41
-Neigh   | 0.060149   | 0.060149   | 0.060149   |   0.0 |  0.34
-Comm    | 0.008585   | 0.008585   | 0.008585   |   0.0 |  0.05
-Output  | 6.3e-05    | 6.3e-05    | 6.3e-05    |   0.0 |  0.00
-Modify  | 0.025324   | 0.025324   | 0.025324   |   0.0 |  0.14
-Other   |            | 0.01057    |            |       |  0.06
+Pair    | 17.553     | 17.553     | 17.553     |   0.0 | 99.37
+Neigh   | 0.063346   | 0.063346   | 0.063346   |   0.0 |  0.36
+Comm    | 0.009667   | 0.009667   | 0.009667   |   0.0 |  0.05
+Output  | 6.6e-05    | 6.6e-05    | 6.6e-05    |   0.0 |  0.00
+Modify  | 0.02711    | 0.02711    | 0.02711    |   0.0 |  0.15
+Other   |            | 0.01088    |            |       |  0.06
 
 Nlocal:        32000.0 ave       32000 max       32000 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

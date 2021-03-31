@@ -52,10 +52,7 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/region/ees does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
-
+  idregion = utils::strdup(arg[3]);
   epsilon = utils::numeric(FLERR,arg[4],false,lmp);
   sigma = utils::numeric(FLERR,arg[5],false,lmp);
   cutoff = utils::numeric(FLERR,arg[6],false,lmp);

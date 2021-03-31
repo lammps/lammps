@@ -88,9 +88,12 @@ that will be used with other potentials.
 
 The name of the SNAP coefficient file usually ends in the
 ".snapcoeff" extension. It may contain coefficients
-for many SNAP elements. The only requirement is that it
-contain at least those element names appearing in the
-LAMMPS mapping list.
+for many SNAP elements. The only requirement is that
+each of the unique element names appearing in the
+LAMMPS pair_coeff command appear exactly once in
+the SNAP coefficient file. It is okay if the SNAP coefficient file
+contains additional elements not in the pair_coeff command,
+except when using *chemflag* (see below).
 The name of the SNAP parameter file usually ends in the ".snapparam"
 extension. It contains a small number
 of parameters that define the overall form of the SNAP potential.
@@ -129,7 +132,7 @@ line must contain two integers:
 This is followed by one block for each of the *nelem* elements.
 The first line of each block contains three entries:
 
-* Element symbol (text string)
+* Element name (text string)
 * R = Element radius (distance units)
 * w = Element weight (dimensionless)
 
@@ -166,8 +169,8 @@ where :math:`\mathbf{B}_i` is the *K*-vector of bispectrum components,
 :math:`\boldsymbol{\beta}^{\mu_i}` is the *K*-vector of linear coefficients
 for element :math:`\mu_i`, and :math:`\boldsymbol{\alpha}^{\mu_i}`
 is the symmetric *K* by *K* matrix of quadratic coefficients.
-The SNAP element file should contain *K*\ (\ *K*\ +1)/2 additional coefficients
-for each element, the upper-triangular elements of :math:`\boldsymbol{\alpha}^{\mu_i}`.
+The SNAP coefficient file should contain *K*\ (\ *K*\ +1)/2 additional coefficients
+in each element block, the upper-triangular elements of :math:`\boldsymbol{\alpha}^{\mu_i}`.
 
 If *chemflag* is set to 1, then the energy expression is written in terms of explicit multi-element bispectrum
 components indexed on ordered triplets of elements, which has been shown to increase the ability of the SNAP
@@ -181,8 +184,12 @@ at the expense of a significant increase in computational cost :ref:`(Cusentino)
 where :math:`\mathbf{B}^{\kappa\lambda\mu}_i` is the *K*-vector of bispectrum components
 for neighbors of elements :math:`\kappa`, :math:`\lambda`, and :math:`\mu` and
 :math:`\boldsymbol{\beta}^{\kappa\lambda\mu}_{\mu_i}` is the corresponding *K*-vector
-of linear coefficients for element :math:`\mu_i`. The SNAP element file should contain
-a total of :math:`K N_{elem}^3` coefficients for each of the :math:`N_{elem}` elements.
+of linear coefficients for element :math:`\mu_i`. The SNAP coefficient file should contain
+a total of :math:`K N_{elem}^3` coefficients in each element block,
+where :math:`N_{elem}` is the number of elements in the SNAP coefficient file,
+which must equal the number of unique elements appearing in the
+LAMMPS pair_coeff command, to avoid ambiguity in the
+number of coefficients.
 
 The keyword *chunksize* is only applicable when using the
 pair style *snap* with the KOKKOS package and is ignored otherwise.

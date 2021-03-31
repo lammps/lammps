@@ -21,23 +21,21 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
+#include "pair_multi_lucy_rx.h"
+
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
 
 #include <cmath>
-#include "math_const.h"
-
 #include <cstring>
-#include "pair_multi_lucy_rx.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-
-#include "citeme.h"
-#include "modify.h"
-#include "fix.h"
-
 
 using namespace LAMMPS_NS;
 
@@ -387,14 +385,9 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   bcast_table(tb);
 
   nspecies = atom->nspecies_dpd;
-  int n;
-  n = strlen(arg[4]) + 1;
-  site1 = new char[n];
-  strcpy(site1,arg[4]);
 
-  n = strlen(arg[5]) + 1;
-  site2 = new char[n];
-  strcpy(site2,arg[5]);
+  site1 = utils::strdup(arg[4]);
+  site2 = utils::strdup(arg[5]);
 
   // set table cutoff
 

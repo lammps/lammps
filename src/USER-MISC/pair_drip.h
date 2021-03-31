@@ -58,10 +58,6 @@ protected:
   };
   Param *params;         // parameter set for I-J interactions
   int **nearest3neigh;   // nearest 3 neighbors of atoms
-  char **elements;       // names of unique elements
-  int **elem2param;      // mapping from element pairs to parameters
-  int *map;              // mapping from atom types to elements
-  int nelements;         // # of unique elements
   double cutmax;         // max cutoff for all species
 
   void read_file(char *);

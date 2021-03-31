@@ -36,12 +36,14 @@ Syntax
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)
 * region-ID = region whose boundary will act as wall
-* keyword = *contacts*
+* keyword = *contacts* or *no_attraction*
 
   .. parsed-literal::
 
       *contacts* value = none
          generate contact information for each particle
+      *no_attraction* value = none
+         turn off possibility for attractive interactions
 
 Examples
 """"""""
@@ -198,6 +200,12 @@ Note that you can choose a different force styles and/or different
 values for the 6 wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
 material.
+
+If a particle is moving away from the wall while in contact, there 
+is a possibility that the particle could experience an effective attractive 
+force due to damping. If the *no_attraction* keyword is used, this fix 
+will zero out the normal component of the force if there is an effective
+attractive force. This keyword cannot be used with the JKR or DMT models.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

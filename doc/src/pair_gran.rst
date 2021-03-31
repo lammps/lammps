@@ -26,7 +26,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style style Kn Kt gamma_n gamma_t xmu dampflag
+   pair_style style Kn Kt gamma_n gamma_t xmu dampflag keyword
 
 * style = *gran/hooke* or *gran/hooke/history* or *gran/hertz/history*
 * Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
@@ -35,6 +35,13 @@ Syntax
 * gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
 * xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
 * dampflag = 0 or 1 if tangential damping force is excluded or included
+
+* keyword = *no_attraction*
+
+  .. parsed-literal::
+
+      *no_attraction* value = none
+         turn off possibility for attractive interactions
 
 .. note::
 
@@ -207,6 +214,12 @@ potential (i.e. one of the pair styles above is used).  If a granular
 potential is used as a sub-style of :doc:`pair_style hybrid <pair_hybrid>`, then specific atom types can be used in the
 pair_coeff command to determine which atoms interact via a granular
 potential.
+
+If two particles are moving away from each other while in contact, there 
+is a possibility that the particles could experience an effective attractive 
+force due to damping. If the *no_attraction* keyword is used, this fix 
+will zero out the normal component of the force if there is an effective
+attractive force. 
 
 ----------
 

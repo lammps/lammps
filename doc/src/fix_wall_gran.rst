@@ -45,7 +45,7 @@ Syntax
          radius = cylinder radius (distance units)
 
 * zero or more keyword/value pairs may be appended to args
-* keyword = *wiggle* or *shear* or *contacts*
+* keyword = *wiggle* or *shear* or *contacts* or *no_attraction*
 
   .. parsed-literal::
 
@@ -58,6 +58,8 @@ Syntax
          vshear = magnitude of shear velocity (velocity units)
       *contacts* value = none
          generate contact information for each particle
+      *no_attraction* value = none
+         turn off possibility for attractive interactions
 
 
 Examples
@@ -175,8 +177,12 @@ the clockwise direction for *vshear* > 0 or counter-clockwise for
 *vshear* < 0.  In this case, *vshear* is the tangential velocity of
 the wall at whatever *radius* has been defined.
 
+If a particle is moving away from the wall while in contact, there 
+is a possibility that the particle could experience an effective attractive 
+force due to damping. If the *no_attraction* keyword is used, this fix 
+will zero out the normal component of the force if there is an effective
+attractive force. This keyword cannot be used with the JKR or DMT models.
 
-Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the shear friction state of atoms interacting with the

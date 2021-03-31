@@ -203,7 +203,8 @@ void FixOMP::init()
     thr[i]->_timer_active=-1;
   }
 
-  if (!utils::strmatch(update->integrate_style,"^respa/omp"))
+  if (utils::strmatch(update->integrate_style,"^respa")
+      && !utils::strmatch(update->integrate_style,"^respa/omp"))
     error->all(FLERR,"Must use respa/omp for r-RESPA with /omp styles");
 
   if (force->pair && force->pair->compute_flag) _pair_compute_flag = true;

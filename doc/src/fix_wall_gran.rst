@@ -59,7 +59,7 @@ Syntax
       *contacts* value = none
          generate contact information for each particle
       *no_attraction* value = none
-         turn off possibility for attractive interactions
+         turn off possibility of attractive interactions
 
 
 Examples

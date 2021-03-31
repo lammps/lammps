@@ -41,7 +41,7 @@ Syntax
   .. parsed-literal::
 
       *no_attraction* value = none
-         turn off possibility for attractive interactions
+         turn off possibility of attractive interactions
 
 .. note::
 

@@ -1022,7 +1022,7 @@ void PairOxrna2Stk::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/stk");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxrna2/stk");
 
 }
 

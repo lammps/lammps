@@ -65,6 +65,7 @@
 #include "error.h"
 #include "fix_store_kim.h"
 #include "input.h"
+#include "variable.h"
 #include "modify.h"
 #include "update.h"
 
@@ -96,7 +97,6 @@ void KimInteractions::command(int narg, char **arg)
 
 void KimInteractions::do_setup(int narg, char **arg)
 {
-  static bool kim_update=0;
   bool fixed_types;
   const std::string arg_str(arg[0]);
   if ((narg == 1) && (arg_str == "fixed_types")) {
@@ -130,6 +130,7 @@ void KimInteractions::do_setup(int narg, char **arg)
                     "=======\n");
 
   if (simulatorModel) {
+    auto first_visit = input->variable->find("kim_update");
     if (!fixed_types) {
       std::string atom_type_sym_list =
         fmt::format("{}", fmt::join(arg, arg + narg, " "));
@@ -199,8 +200,8 @@ void KimInteractions::do_setup(int narg, char **arg)
 
       const std::string sim_field_str(sim_field);
       if (sim_field_str == "model-defn") {
-	if (kim_update) input->one("variable kim_update equal 1");
-	else  input->one("variable kim_update equal 0");
+	if (first_visit<0) input->one("variable kim_update equal 0");
+	else  input->one("variable kim_update equal 1");
         if (domain->periodicity[0] &&
             domain->periodicity[1] &&
             domain->periodicity[2])
@@ -242,7 +243,7 @@ void KimInteractions::do_setup(int narg, char **arg)
 
     KIM_SimulatorModel_OpenAndInitializeTemplateMap(simulatorModel);
 
-  } else if (!kim_update) {
+  } else {
 
 
     // not a simulator model. issue pair_style and pair_coeff commands.
@@ -264,7 +265,6 @@ void KimInteractions::do_setup(int narg, char **arg)
   // End output to log file
   input->write_echo("#=== END kim interactions ============================="
                     "=======\n\n");
-  kim_update=1;
 }
 
 /* ---------------------------------------------------------------------- */

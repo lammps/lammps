@@ -130,7 +130,7 @@ PairGranular::~PairGranular()
     memory->destroy(tangential_model);
     memory->destroy(roll_model);
     memory->destroy(twist_model);
-    memory->destroy(noattraction_flag);
+    memory->destroy(limit_damping);
 
     delete [] onerad_dynamic;
     delete [] onerad_frozen;
@@ -371,7 +371,7 @@ void PairGranular::compute(int eflag, int vflag)
         Fdamp = -damp_normal_prefactor*vnnr;
 
         Fntot = Fne + Fdamp;
-        if(noattraction_flag[itype][jtype] and Fntot < 0.0) Fntot = 0.0;
+        if(limit_damping[itype][jtype] and Fntot < 0.0) Fntot = 0.0;
 
         //****************************************
         // tangential force, including history effects
@@ -742,7 +742,7 @@ void PairGranular::allocate()
   memory->create(tangential_model,n+1,n+1,"pair:tangential_model");
   memory->create(roll_model,n+1,n+1,"pair:roll_model");
   memory->create(twist_model,n+1,n+1,"pair:twist_model");
-  memory->create(noattraction_flag,n+1,n+1,"pair:noattraction_flag");
+  memory->create(limit_damping,n+1,n+1,"pair:limit_damping");
 
   onerad_dynamic = new double[n+1];
   onerad_frozen = new double[n+1];
@@ -796,7 +796,7 @@ void PairGranular::coeff(int narg, char **arg)
   roll_model_one = ROLL_NONE;
   twist_model_one = TWIST_NONE;
   damping_model_one = VISCOELASTIC;
-  int na_flag = 0;
+  int ld_flag = 0;
   
   int iarg = 2;
   while (iarg < narg) {
@@ -971,8 +971,8 @@ void PairGranular::coeff(int narg, char **arg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters");
       cutoff_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "no_attraction") == 0) {
-      na_flag = 1;        
+    } else if (strcmp(arg[iarg], "limit_damping") == 0) {
+      ld_flag = 1;        
       iarg += 1;
     } else error->all(FLERR, "Illegal pair coeff command");
   }
@@ -991,11 +991,11 @@ void PairGranular::coeff(int narg, char **arg)
         27.467*powint(cor,4)-18.022*powint(cor,5)+4.8218*powint(cor,6);
   } else damp = normal_coeffs_one[1];
 
-  if(na_flag and normal_model_one == JKR)
-    error->all(FLERR,"Cannot turn off attraction with JKR pairstyle");
+  if(ld_flag and normal_model_one == JKR)
+    error->all(FLERR,"Cannot limit damping with JKR model");
 
-  if(na_flag and normal_model_one == DMT)
-    error->all(FLERR,"Cannot turn off attraction with DMT pairstyle");
+  if(ld_flag and normal_model_one == DMT)
+    error->all(FLERR,"Cannot limit damping with DMT model");
 
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
@@ -1039,7 +1039,7 @@ void PairGranular::coeff(int narg, char **arg)
 
       cutoff_type[i][j] = cutoff_type[j][i] = cutoff_one;
 
-      noattraction_flag[i][j] = na_flag;
+      limit_damping[i][j] = ld_flag;
 
       setflag[i][j] = 1;
       count++;
@@ -1319,7 +1319,7 @@ void PairGranular::write_restart(FILE *fp)
         fwrite(&tangential_model[i][j],sizeof(int),1,fp);
         fwrite(&roll_model[i][j],sizeof(int),1,fp);
         fwrite(&twist_model[i][j],sizeof(int),1,fp);
-        fwrite(&noattraction_flag[i][j],sizeof(int),1,fp);        
+        fwrite(&limit_damping[i][j],sizeof(int),1,fp);        
         fwrite(normal_coeffs[i][j],sizeof(double),4,fp);
         fwrite(tangential_coeffs[i][j],sizeof(double),3,fp);
         fwrite(roll_coeffs[i][j],sizeof(double),3,fp);
@@ -1350,7 +1350,7 @@ void PairGranular::read_restart(FILE *fp)
           utils::sfread(FLERR,&tangential_model[i][j],sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,&roll_model[i][j],sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,&twist_model[i][j],sizeof(int),1,fp,nullptr,error);
-          utils::sfread(FLERR,&noattraction_flag[i][j],sizeof(int),1,fp,nullptr,error);
+          utils::sfread(FLERR,&limit_damping[i][j],sizeof(int),1,fp,nullptr,error);
           utils::sfread(FLERR,normal_coeffs[i][j],sizeof(double),4,fp,nullptr,error);
           utils::sfread(FLERR,tangential_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
           utils::sfread(FLERR,roll_coeffs[i][j],sizeof(double),3,fp,nullptr,error);
@@ -1362,7 +1362,7 @@ void PairGranular::read_restart(FILE *fp)
         MPI_Bcast(&tangential_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&roll_model[i][j],1,MPI_INT,0,world);
         MPI_Bcast(&twist_model[i][j],1,MPI_INT,0,world);
-        MPI_Bcast(&noattraction_flag[i][j],1,MPI_INT,0,world);
+        MPI_Bcast(&limit_damping[i][j],1,MPI_INT,0,world);
         MPI_Bcast(normal_coeffs[i][j],4,MPI_DOUBLE,0,world);
         MPI_Bcast(tangential_coeffs[i][j],3,MPI_DOUBLE,0,world);
         MPI_Bcast(roll_coeffs[i][j],3,MPI_DOUBLE,0,world);
@@ -1548,7 +1548,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
-  if(noattraction_flag[itype][jtype] and Fntot < 0.0) Fntot = 0.0;
+  if(limit_damping[itype][jtype] and Fntot < 0.0) Fntot = 0.0;
 
   jnum = list->numneigh[i];
   jlist = list->firstneigh[i];

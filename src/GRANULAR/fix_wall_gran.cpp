@@ -116,6 +116,12 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       kt /= force->nktv2p;
     }
     iarg = 10;
+    
+    if (strcmp(arg[iarg],"limit_damping") == 0) {
+      limit_damping = 1;
+      iarg += 1;    
+    }
+    
   } else {
     iarg = 4;
     damping_model = VISCOELASTIC;
@@ -292,6 +298,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           strcmp(arg[iarg], "zcylinder") == 0 ||
           strcmp(arg[iarg], "region") == 0) {
         break;
+      } else if (strcmp(arg[iarg],"limit_damping") == 0) {
+        limit_damping = 1;
+        iarg += 1;        
       } else {
         error->all(FLERR, "Illegal fix wall/gran command");
       }
@@ -300,6 +309,11 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     if (normal_model == JKR) size_history += 1;
     if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) size_history += 1;
   }
+
+  if(normal_model == JKR)
+    error->all(FLERR,"Cannot limit damping with JRK model");
+  if(normal_model == DMT)
+    error->all(FLERR,"Cannot limit damping with DMT model");
 
   // wallstyle args
 
@@ -347,7 +361,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   wiggle = 0;
   wshear = 0;
   peratom_flag = 0;
-  noattraction_flag = 0;
+  limit_damping = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
@@ -373,13 +387,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       peratom_flag = 1;
       size_peratom_cols = 8;
       peratom_freq = 1;
-      iarg += 1;
-    } else if (strcmp(arg[iarg],"no_attraction") == 0) {
-      noattraction_flag = 1;
-      if(normal_model == JKR)
-        error->all(FLERR,"Cannot turn off attraction with JRK model");
-      if(normal_model == DMT)
-        error->all(FLERR,"Cannot turn off attraction with DMT model");
       iarg += 1;
     } else error->all(FLERR,"Illegal fix wall/gran command");
   }
@@ -769,7 +776,7 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
-  if(noattraction_flag and ccel < 0.0) ccel = 0.0;
+  if(limit_damping and ccel < 0.0) ccel = 0.0;
 
   // relative velocities
 
@@ -862,7 +869,7 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
-  if(noattraction_flag and ccel < 0.0) ccel = 0.0;
+  if(limit_damping and ccel < 0.0) ccel = 0.0;
 
   // relative velocities
 
@@ -994,7 +1001,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   if (rwall == 0.0) polyhertz = sqrt((radius-r)*radius);
   else polyhertz = sqrt((radius-r)*radius*rwall/(rwall+radius));
   ccel *= polyhertz;
-  if(noattraction_flag and ccel < 0.0) ccel = 0.0;
+  if(limit_damping and ccel < 0.0) ccel = 0.0;
   
   // relative velocities
 
@@ -1188,7 +1195,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
-  if(noattraction_flag and Fntot < 0.0) Fntot = 0.0;
+  if(limit_damping and Fntot < 0.0) Fntot = 0.0;
 
   //****************************************
   // tangential force, including history effects

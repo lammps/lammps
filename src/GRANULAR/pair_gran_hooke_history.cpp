@@ -373,10 +373,8 @@ void PairGranHookeHistory::settings(int narg, char **arg)
   
   limit_damping = 0;
   if(narg == 7) {
-    if(strcmp(arg[6], "limit_damping"))
-      limit_damping = 1;
-    else
-      error->all(FLERR,"Illegal pair_style command");
+    if(strcmp(arg[6], "limit_damping") == 0) limit_damping = 1;
+    else error->all(FLERR,"Illegal pair_style command");
   }
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||

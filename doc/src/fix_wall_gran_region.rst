@@ -183,7 +183,8 @@ radius - r = overlap of particle with wall, m_eff = mass of particle,
 and the effective radius of contact is just the radius of the
 particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu* and *dampflag*
+The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu*, *dampflag*, 
+and the optional keyword *limit_damping* 
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma_t* as described on that page.  If a
@@ -200,12 +201,6 @@ Note that you can choose a different force styles and/or different
 values for the 6 wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
 material.
-
-If a particle is moving away from the wall while in contact, there 
-is a possibility that the particle could experience an effective attractive 
-force due to damping. If the *no_attraction* keyword is used, this fix 
-will zero out the normal component of the force if there is an effective
-attractive force. This keyword cannot be used with the JKR or DMT models.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

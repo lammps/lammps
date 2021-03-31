@@ -14,12 +14,13 @@
 #ifndef LMP_DOMAIN_H
 #define LMP_DOMAIN_H
 
-#include <cmath>
 #include "pointers.h"
+
+#include <cmath>
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
+  class Region;
 
 class Domain : protected Pointers {
  public:
@@ -74,7 +75,8 @@ class Domain : protected Pointers {
 
                                          // triclinic box
   double xy,xz,yz;                       // 3 tilt factors
-  double h[6],h_inv[6];                  // shape matrix in Voigt notation
+  double h[6],h_inv[6];                  // shape matrix in Voigt ordering
+                                         // Voigt = xx,yy,zz,yz,xz,xy
   double h_rate[6],h_ratelo[3];          // rate of box size/shape change
 
   int box_change;                // 1 if any of next 3 flags are set, else 0
@@ -90,7 +92,7 @@ class Domain : protected Pointers {
 
   int nregion;                             // # of defined Regions
   int maxregion;                           // max # list can hold
-  class Region **regions;                  // list of defined Regions
+  Region **regions;                        // list of defined Regions
 
   int copymode;
   enum{NO_REMAP,X_REMAP,V_REMAP};
@@ -128,10 +130,10 @@ class Domain : protected Pointers {
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(int, char **);
-  int find_region(char *);
+  int find_region(const std::string &);
   void set_boundary(int, char **, int);
   void set_box(int, char **);
-  void print_box(const char *);
+  void print_box(const std::string &);
   void boundary_string(char *);
 
   virtual void lamda2x(int);
@@ -269,7 +271,7 @@ E: Reuse of region ID
 
 A region ID cannot be used twice.
 
-E: Unknown region style
+E: Unrecognized region style
 
 The choice of region style is unknown.
 
@@ -281,6 +283,10 @@ E: Both sides of boundary must be periodic
 
 Cannot specify a boundary as periodic only on the lo or hi side.  Must
 be periodic on both sides.
+
+E: Must not have multiple fixes change box parameter ...
+
+Self-explanatory.
 
 U: Box bounds are invalid
 

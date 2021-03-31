@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,8 +21,6 @@
 #include "update.h"
 #include "group.h"
 #include "domain.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -122,9 +120,9 @@ void NBinSSA::bin_atoms_setup(int nall)
 
 /* ---------------------------------------------------------------------- */
 
-bigint NBinSSA::memory_usage()
+double NBinSSA::memory_usage()
 {
-  bigint bytes = NBinStandard::memory_usage(); // Count the parent's usage too
+  double bytes = NBinStandard::memory_usage(); // Count the parent's usage too
 
   return bytes;
 }
@@ -144,20 +142,20 @@ int NBinSSA::coord2ssaAIR(const double *x)
   if (x[0] < domain->sublo[0]) ix = -1;
   if (x[0] >= domain->subhi[0]) ix = 1;
 
-  if(iz < 0){
+  if (iz < 0) {
     return -1;
-  } else if(iz == 0){
-    if( iy<0 ) return -1; // bottom left/middle/right
-    if( (iy==0) && (ix<0)  ) return -1; // left atoms
-    if( (iy==0) && (ix==0) ) return 0; // Locally owned atoms
-    if( (iy==0) && (ix>0)  ) return 2; // Right atoms
-    if( (iy>0)  && (ix==0) ) return 1; // Top-middle atoms
-    if( (iy>0)  && (ix!=0) ) return 3; // Top-right and top-left atoms
+  } else if (iz == 0) {
+    if (iy<0) return -1; // bottom left/middle/right
+    if ((iy==0) && (ix<0) ) return -1; // left atoms
+    if ((iy==0) && (ix==0)) return 0; // Locally owned atoms
+    if ((iy==0) && (ix>0) ) return 2; // Right atoms
+    if ((iy>0)  && (ix==0)) return 1; // Top-middle atoms
+    if ((iy>0)  && (ix!=0)) return 3; // Top-right and top-left atoms
   } else { // iz > 0
-    if((ix==0) && (iy==0)) return 4; // Back atoms
-    if((ix==0) && (iy!=0)) return 5; // Top-back and bottom-back atoms
-    if((ix!=0) && (iy==0)) return 6; // Left-back and right-back atoms
-    if((ix!=0) && (iy!=0)) return 7; // Back corner atoms
+    if ((ix==0) && (iy==0)) return 4; // Back atoms
+    if ((ix==0) && (iy!=0)) return 5; // Top-back and bottom-back atoms
+    if ((ix!=0) && (iy==0)) return 6; // Left-back and right-back atoms
+    if ((ix!=0) && (iy!=0)) return 7; // Back corner atoms
   }
 
   return -2;

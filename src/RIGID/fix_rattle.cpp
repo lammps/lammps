@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,33 +15,22 @@
    Contributing author: Peter Wirnsberger (University of Cambridge)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
 #include "fix_rattle.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "molecule.h"
 #include "update.h"
-#include "respa.h"
 #include "modify.h"
 #include "domain.h"
 #include "force.h"
-#include "bond.h"
-#include "angle.h"
 #include "comm.h"
-#include "group.h"
-#include "fix_respa.h"
-#include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-using namespace MathConst;
 using namespace MathExtra;
 
 // set RATTLE_DEBUG  1 to check constraints at end of timestep
@@ -70,7 +59,7 @@ FixRattle::FixRattle(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate memory for unconstrained velocity update
 
-  vp = NULL;
+  vp = nullptr;
   grow_arrays(atom->nmax);
 
   // default communication mode
@@ -89,7 +78,6 @@ FixRattle::FixRattle(LAMMPS *lmp, int narg, char **arg) :
 FixRattle::~FixRattle()
 {
   memory->destroy(vp);
-
 
   if (RATTLE_DEBUG) {
 
@@ -130,7 +118,7 @@ int FixRattle::setmask()
 
 void FixRattle::init() {
 
-  // initialise SHAKE first
+  // initialize SHAKE first
 
   FixShake::init();
 
@@ -640,7 +628,7 @@ double FixRattle::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = FixShake::memory_usage();
-  bytes += nmax*3 * sizeof(double);
+  bytes += (double)nmax*3 * sizeof(double);
   return bytes;
 }
 

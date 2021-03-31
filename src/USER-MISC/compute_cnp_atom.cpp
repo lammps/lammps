@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +12,7 @@
 
    Common Neighbor Parameter as proposed in:
    Tsuzuki, Branicio, Rino, Comput Phys Comm, 177, 518 (2007)
-   Cite: http://dx.doi.org/10.1063/1.2197987
+   Cite: https://doi.org/10.1063/1.2197987
 
 ------------------------------------------------------------------------- */
 
@@ -21,11 +21,10 @@
    branicio@usc.edu
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
-
 #include "compute_cnp_atom.h"
+
+#include <cstring>
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -50,14 +49,14 @@ enum{NCOMMON};
 
 ComputeCNPAtom::ComputeCNPAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  list(NULL), nearest(NULL), nnearest(NULL), cnpv(NULL)
+  list(nullptr), nearest(nullptr), nnearest(nullptr), cnpv(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute cnp/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
 
-  double cutoff = force->numeric(FLERR,arg[3]);
+  double cutoff = utils::numeric(FLERR,arg[3],false,lmp);
   if (cutoff < 0.0) error->all(FLERR,"Illegal compute cnp/atom command");
   cutsq = cutoff*cutoff;
 
@@ -93,7 +92,7 @@ ComputeCNPAtom::~ComputeCNPAtom()
 
 void ComputeCNPAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute cnp/atom requires a pair style be defined");
 
   if (sqrt(cutsq) > force->pair->cutforce)
@@ -162,7 +161,7 @@ void ComputeCNPAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // find the neigbors of each atom within cutoff using full neighbor list
+  // find the neighbors of each atom within cutoff using full neighbor list
   // nearest[] = atom indices of nearest neighbors, up to MAXNEAR
   // do this for all atoms, not just compute group
   // since CNP calculation requires neighbors of neighbors
@@ -324,8 +323,8 @@ void ComputeCNPAtom::compute_peratom()
 
 double ComputeCNPAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(int);
-  bytes += nmax * MAXNEAR * sizeof(int);
-  bytes += nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax * MAXNEAR * sizeof(int);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }

@@ -63,7 +63,7 @@ class DihedralHarmonicIntel : public DihedralHarmonic {
     fc_packed1 *bp;
 
     ForceConst() : _nbondtypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL); }
+    ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nbondtypes, Memory *memory);
 

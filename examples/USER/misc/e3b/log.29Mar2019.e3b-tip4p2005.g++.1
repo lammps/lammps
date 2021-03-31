@@ -1,0 +1,332 @@
+LAMMPS (29 Mar 2019)
+#LAMMPS input file
+#to simulate bulk E3B3 water model
+
+#####################################################################
+
+variable	samp_rate 	equal 10
+variable	thermo_rate 	equal 10
+variable	Wlat		equal 3.10744  #for water density 0.997g/mL
+variable        L		equal 3  #(L*2)^3 = Nmolec, L=3 -> N=216
+
+variable	equil		equal 100
+variable	run		equal 100
+
+variable	ts		equal 2.0
+variable	Tdamp		equal 100*${ts}
+variable	Tdamp		equal 100*2
+variable 	Pdamp		equal 1000*${ts}
+variable 	Pdamp		equal 1000*2
+variable	myT		equal 298.0
+variable	myP		equal 1.0
+
+units 		real
+atom_style	full
+
+dimension 	3
+
+boundary 	p p p
+
+#############################################################################
+#setup box
+read_data       e3b_box.data
+  orthogonal box = (-9.32232 -9.32232 -9.32232) to (9.32232 9.32232 9.32232)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  648 atoms
+  reading velocities ...
+  648 velocities
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  432 bonds
+  reading angles ...
+  216 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+  special bonds CPU = 0.000257254 secs
+  read_data CPU = 0.00286555 secs
+
+#############################################################################
+#set up potential
+
+pair_style 	hybrid/overlay e3b 1 lj/cut/tip4p/long 1 2 1 1 0.1546 8.5
+pair_modify 	table 0 table/disp 0 shift yes
+
+bond_style  	harmonic
+angle_style 	harmonic
+
+kspace_style 	pppm/tip4p 1.0e-6
+
+pair_coeff 	* * lj/cut/tip4p/long 0.0 0.0
+pair_coeff	1 1 lj/cut/tip4p/long 0.1852 3.1589
+pair_coeff	* * e3b preset 2015
+
+#potential coeffs aren't too important since will be rigid anyways
+bond_coeff	1 554.13 0.9572
+angle_coeff	1 45.769 104.52
+
+#############################################################################
+#setup for run
+thermo 		${thermo_rate}
+thermo 		10
+thermo_style 	custom step vol temp epair pe etotal press density
+
+timestep 	${ts}
+timestep 	2
+run_style 	verlet
+
+neighbor	2.0 bin
+neigh_modify	every 1 delay 3 check yes
+
+#############################################################################
+
+#dump positions only in first batch run
+#dump 		7 all custom ${samp_rate} dump.lammpstrj id x y z
+#dump_modify	7 sort id
+
+#############################################################################
+#initialize velocity and rigid constraint
+
+fix 		rigid all shake 1.0e-8 100 0 b 1 a 1 t 1 2
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  216 = # of frozen angles
+  find clusters CPU = 0.000185728 secs
+velocity 	all create ${myT} 15856 dist gaussian rot yes mom yes
+velocity 	all create 298 15856 dist gaussian rot yes mom yes
+
+#scale velocity
+run		0
+PPPM initialization ...
+  extracting TIP4P info from pair style
+  using polynomial approximation for long-range coulomb (../kspace.cpp:319)
+  G vector (1/distance) = 0.409658
+  grid = 36 36 36
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.000341883
+  estimated relative force accuracy = 1.02957e-06
+  using double precision FFTs
+  3d grid and FFT values/proc = 91125 46656
+Neighbor list info ...
+  update every 1 steps, delay 3 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.8092
+  ghost atom cutoff = 10.8092
+  binsize = 5.4046, bins = 4 4 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair e3b, perpetual, skip from (2)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair lj/cut/tip4p/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 16.4 | 16.4 | 16.4 Mbytes
+Step Volume Temp E_pair PotEng TotEng Press Density 
+       0    6481.2982          298   -512.62432   -512.62432   -129.77504    14088.322   0.99697602 
+Loop time of 1.19209e-06 on 1 procs for 0 steps with 648 atoms
+
+251.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Bond    | 0          | 0          | 0          |   0.0 |  0.00
+Kspace  | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.192e-06  |            |       |100.00
+
+Nlocal:    648 ave 648 max 648 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5943 ave 5943 max 5943 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    18984 ave 18984 max 18984 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 18984
+Ave neighs/atom = 29.2963
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+velocity	all scale ${myT}
+velocity	all scale 298
+
+compute    	e3b all pe/e3b
+fix		e3b all ave/time 1 1 ${thermo_rate} c_e3b c_e3b[*] 		file e3b.txt title2 "step pe_e3b pe_ea pe_eb pe_ec pe_e2"
+fix		e3b all ave/time 1 1 10 c_e3b c_e3b[*] 		file e3b.txt title2 "step pe_e3b pe_ea pe_eb pe_ec pe_e2"
+
+#############################################################################
+#equilibrate bulk water at NVT
+
+fix 		1 all nvt temp ${myT} ${myT} ${Tdamp}
+fix 		1 all nvt temp 298 ${myT} ${Tdamp}
+fix 		1 all nvt temp 298 298 ${Tdamp}
+fix 		1 all nvt temp 298 298 200
+run 		${equil}
+run 		100
+PPPM initialization ...
+  extracting TIP4P info from pair style
+  using polynomial approximation for long-range coulomb (../kspace.cpp:319)
+  G vector (1/distance) = 0.409658
+  grid = 36 36 36
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.000341883
+  estimated relative force accuracy = 1.02957e-06
+  using double precision FFTs
+  3d grid and FFT values/proc = 91125 46656
+Neighbor list info ...
+  update every 1 steps, delay 3 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.8092
+  ghost atom cutoff = 10.8092
+  binsize = 5.4046, bins = 4 4 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair e3b, perpetual, skip from (2)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair lj/cut/tip4p/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 16.88 | 16.88 | 16.88 Mbytes
+Step Volume Temp E_pair PotEng TotEng Press Density 
+       0    6481.2982          298   -512.33264   -512.33264   -129.48336    14091.383   0.99697602 
+      10    6481.2982    905.58028   -1442.0378   -1442.0378   -278.61245   -798.38952   0.99697602 
+      20    6481.2982    816.39844   -1363.5999   -1363.5999   -314.74903    3023.9064   0.99697602 
+      30    6481.2982     783.3897   -1370.6594   -1370.6594   -364.21587    7095.4765   0.99697602 
+      40    6481.2982    793.12519   -1425.8404   -1425.8404   -406.88933     7030.242   0.99697602 
+      50    6481.2982    810.90264   -1495.4822   -1495.4822   -453.69195    6944.2325   0.99697602 
+      60    6481.2982    766.64937   -1491.2317   -1491.2317   -506.29493    9062.0151   0.99697602 
+      70    6481.2982    761.77292   -1538.7368   -1538.7368   -560.06492    7693.2197   0.99697602 
+      80    6481.2982    730.44938   -1554.1818   -1554.1818   -615.75215    7345.9601   0.99697602 
+      90    6481.2982    695.46244   -1563.9869   -1563.9869   -670.50605    7809.0685   0.99697602 
+     100    6481.2982     691.5674   -1613.2754   -1613.2754   -724.79866     7143.062   0.99697602 
+Loop time of 1.94577 on 1 procs for 100 steps with 648 atoms
+
+Performance: 8.881 ns/day, 2.702 hours/ns, 51.393 timesteps/s
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.91572    | 0.91572    | 0.91572    |   0.0 | 47.06
+Bond    | 6.7234e-05 | 6.7234e-05 | 6.7234e-05 |   0.0 |  0.00
+Kspace  | 0.92654    | 0.92654    | 0.92654    |   0.0 | 47.62
+Neigh   | 0.087331   | 0.087331   | 0.087331   |   0.0 |  4.49
+Comm    | 0.0054724  | 0.0054724  | 0.0054724  |   0.0 |  0.28
+Output  | 0.0003047  | 0.0003047  | 0.0003047  |   0.0 |  0.02
+Modify  | 0.0093319  | 0.0093319  | 0.0093319  |   0.0 |  0.48
+Other   |            | 0.001007   |            |       |  0.05
+
+Nlocal:    648 ave 648 max 648 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5911 ave 5911 max 5911 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    19136 ave 19136 max 19136 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 19136
+Ave neighs/atom = 29.5309
+Ave special neighs/atom = 2
+Neighbor list builds = 15
+Dangerous builds = 0
+
+#############################################################################
+#run at NVT
+
+#dump 		1 all custom ${samp_rate} dump.lammpstrj id x y z type
+#dump_modify	1 sort id
+
+run 		${run}
+run 		100
+PPPM initialization ...
+  extracting TIP4P info from pair style
+  using polynomial approximation for long-range coulomb (../kspace.cpp:319)
+  G vector (1/distance) = 0.409658
+  grid = 36 36 36
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.000341883
+  estimated relative force accuracy = 1.02957e-06
+  using double precision FFTs
+  3d grid and FFT values/proc = 91125 46656
+Neighbor list info ...
+  update every 1 steps, delay 3 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.8092
+  ghost atom cutoff = 10.8092
+  binsize = 5.4046, bins = 4 4 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair e3b, perpetual, skip from (2)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair lj/cut/tip4p/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 16.88 | 16.88 | 16.88 Mbytes
+Step Volume Temp E_pair PotEng TotEng Press Density 
+     100    6481.2982     691.5674   -1613.2754   -1613.2754   -724.79866    7131.3961   0.99697602 
+     110    6481.2982    668.27004   -1635.5867   -1635.5867   -777.04068    6965.8705   0.99697602 
+     120    6481.2982    646.18686   -1659.5025   -1659.5025   -829.32738    6196.7432   0.99697602 
+     130    6481.2982     650.7802   -1716.9557   -1716.9557   -880.87943    5626.5466   0.99697602 
+     140    6481.2982      586.262   -1681.8052   -1681.8052   -928.61728     6103.747   0.99697602 
+     150    6481.2982    615.88299   -1767.8614   -1767.8614   -976.61859     3897.648   0.99697602 
+     160    6481.2982    585.23516   -1773.2038   -1773.2038   -1021.3352    4821.7742   0.99697602 
+     170    6481.2982    558.77885   -1782.2817   -1782.2817   -1064.4022    5092.7248   0.99697602 
+     180    6481.2982    564.01576   -1830.0301   -1830.0301   -1105.4226    4316.1636   0.99697602 
+     190    6481.2982    526.53776   -1821.3122   -1821.3122   -1144.8538    4529.5062   0.99697602 
+     200    6481.2982    537.81273   -1873.6662   -1873.6662   -1182.7226     4244.313   0.99697602 
+Loop time of 1.9157 on 1 procs for 100 steps with 648 atoms
+
+Performance: 9.020 ns/day, 2.661 hours/ns, 52.200 timesteps/s
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.90464    | 0.90464    | 0.90464    |   0.0 | 47.22
+Bond    | 6.9141e-05 | 6.9141e-05 | 6.9141e-05 |   0.0 |  0.00
+Kspace  | 0.92769    | 0.92769    | 0.92769    |   0.0 | 48.43
+Neigh   | 0.067551   | 0.067551   | 0.067551   |   0.0 |  3.53
+Comm    | 0.0051386  | 0.0051386  | 0.0051386  |   0.0 |  0.27
+Output  | 0.00029993 | 0.00029993 | 0.00029993 |   0.0 |  0.02
+Modify  | 0.0092504  | 0.0092504  | 0.0092504  |   0.0 |  0.48
+Other   |            | 0.001062   |            |       |  0.06
+
+Nlocal:    648 ave 648 max 648 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    5901 ave 5901 max 5901 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    18971 ave 18971 max 18971 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 18971
+Ave neighs/atom = 29.2762
+Ave special neighs/atom = 2
+Neighbor list builds = 12
+Dangerous builds = 0
+
+# write_restart 	lammps.restart
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:03

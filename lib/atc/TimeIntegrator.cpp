@@ -17,10 +17,10 @@ namespace ATC {
   AtomTimeIntegratorType::AtomTimeIntegratorType(ATC_Method * atc, AtomType atomType) :
     atc_(atc),
     atomType_(atomType),
-    mass_(NULL),
-    position_(NULL),
-    velocity_(NULL),
-    force_(NULL)
+    mass_(nullptr),
+    position_(nullptr),
+    velocity_(nullptr),
+    force_(nullptr)
   {
     // do nothing
   }
@@ -90,9 +90,9 @@ namespace ATC {
   //--------------------------------------------------------
   TimeIntegrator::TimeIntegrator(ATC_Coupling * atc,
                                  TimeIntegrationType timeIntegrationType) :
-    timeIntegrationMethod_(NULL),
+    timeIntegrationMethod_(nullptr),
     atc_(atc),
-    timeFilter_(NULL),
+    timeFilter_(nullptr),
     timeFilterManager_(atc_->time_filter_manager()),
     timeIntegrationType_(timeIntegrationType),
     needReset_(true)

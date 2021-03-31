@@ -21,7 +21,6 @@ FixStyle(bond/swap,FixBondSwap)
 #define LMP_FIX_BONDSWAP_H
 
 #include "fix.h"
-#include "pair.h"
 
 namespace LAMMPS_NS {
 

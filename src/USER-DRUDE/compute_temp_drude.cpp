@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,21 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_drude.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
-#include "domain.h"
-#include "lattice.h"
-#include "memory.h"
-#include "error.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_drude.h"
+#include "force.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -46,10 +43,10 @@ ComputeTempDrude::ComputeTempDrude(LAMMPS *lmp, int narg, char **arg) :
   extlist[2] = extlist[3] = extlist[4] = extlist[5] = 1;
   tempflag = 0; // because does not compute a single temperature (scalar and vector)
 
-  vector = new double[6];
-  fix_drude = NULL;
-  id_temp = NULL;
-  temperature = NULL;
+  vector = new double[size_vector];
+  fix_drude = nullptr;
+  id_temp = nullptr;
+  temperature = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -120,9 +117,7 @@ int ComputeTempDrude::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -159,8 +154,8 @@ void ComputeTempDrude::compute_vector()
     double ecore, edrude;
     double *vcore, *vdrude;
     double kineng_core_loc = 0., kineng_drude_loc = 0.;
-    for (int i=0; i<nlocal; i++){
-        if (groupbit & mask[i] && drudetype[type[i]] != DRUDE_TYPE){
+    for (int i=0; i<nlocal; i++) {
+        if (groupbit & mask[i] && drudetype[type[i]] != DRUDE_TYPE) {
             if (drudetype[type[i]] == NOPOL_TYPE) {
                 ecore = 0.;
                 vcore = v[i];
@@ -217,7 +212,7 @@ void ComputeTempDrude::compute_vector()
     vector[5] = kineng_drude;
 }
 
-double ComputeTempDrude::compute_scalar(){
+double ComputeTempDrude::compute_scalar() {
     compute_vector();
     scalar = vector[0];
     return scalar;

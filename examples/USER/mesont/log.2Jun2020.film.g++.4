@@ -1,0 +1,81 @@
+LAMMPS (5 May 2020)
+newton          on
+units           metal
+lattice         sc 1.0
+Lattice spacing in x,y,z = 1 1 1
+boundary        p p fs
+neighbor        1.0 bin
+neigh_modify    every 5 delay 0 check yes
+
+atom_style      mesont
+#               cut, path, BendingMode, TPMType
+pair_style      mesont/tpm 30.0 MESONT-TABTP_10_10.xrs 1 0
+read_data       data.film
+  orthogonal box = (-2500 -2500 -300) to (2500 2500 402.42)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  79596 atoms
+  read_data CPU = 0.0704217 secs
+pair_coeff      * *
+
+velocity        all create 600.0 2019
+timestep        0.01
+fix             1 all nve
+thermo          10
+reset_timestep  0
+
+compute         Es all mesont estretch
+compute         Eb all mesont ebend
+compute         Et all mesont etube
+compute         B all property/atom buckling
+
+thermo_style    custom step time temp etotal ke pe c_Es c_Eb c_Et
+#dump            out_dump all custom 10 dump.film id type x y z c_Es c_Eb c_Et c_B ix iy iz
+
+run             20
+Neighbor list info ...
+  update every 5 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 31
+  ghost atom cutoff = 31
+  binsize = 15.5, bins = 323 323 26
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair mesont/tpm, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.81 | 12.81 | 12.83 Mbytes
+Step Time Temp TotEng KinEng PotEng c_Es c_Eb c_Et 
+       0            0          600    1347.2158    6173.0767   -4825.8609    28.669574     21.29406   -4875.8245 
+      10          0.1    389.40755    1373.7864    4006.4045   -2632.6181    848.00267    1404.4323    -4885.053 
+      20          0.2    313.65714    1399.9427    3227.0494   -1827.1067    1201.1732    1882.1342   -4910.4141 
+Loop time of 3.67186 on 4 procs for 20 steps with 79596 atoms
+
+Performance: 4.706 ns/day, 5.100 hours/ns, 5.447 timesteps/s
+95.8% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.7317     | 3.1286     | 3.6556     |  18.8 | 85.20
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0036943  | 0.53094    | 0.92822    |  45.8 | 14.46
+Output  | 0.00026512 | 0.00035298 | 0.00055647 |   0.0 |  0.01
+Modify  | 0.010463   | 0.010884   | 0.011153   |   0.3 |  0.30
+Other   |            | 0.001109   |            |       |  0.03
+
+Nlocal:    19899 ave 21951 max 18667 min
+Histogram: 1 1 0 1 0 0 0 0 0 1
+Nghost:    970.75 ave 1031 max 920 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  160568 ave 181723 max 147382 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+
+Total # of neighbors = 642270
+Ave neighs/atom = 8.06912
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:04

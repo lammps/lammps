@@ -50,7 +50,6 @@ class PPPMStagger : public PPPM {
   virtual void fieldforce_ad();
   virtual void fieldforce_peratom();
 
-
   inline double gf_denom2(const double &x, const double &y,
                          const double &z) const
   {

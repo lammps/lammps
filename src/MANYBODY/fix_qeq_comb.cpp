@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,16 +15,13 @@
    Contributing authors: Ray Shan (Sandia, tnshan@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
+#include "fix_qeq_comb.h"
+
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "fix_qeq_comb.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -33,13 +30,16 @@
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+
+
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
 FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  fp(NULL), comb(NULL), comb3(NULL), qf(NULL), q1(NULL), q2(NULL)
+  fp(nullptr), comb(nullptr), comb3(nullptr), qf(nullptr), q1(nullptr), q2(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb command");
 
@@ -49,8 +49,8 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  precision = force->numeric(FLERR,arg[4]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  precision = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (nevery <= 0 || precision <= 0.0)
     error->all(FLERR,"Illegal fix qeq/comb command");
@@ -65,11 +65,9 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/comb command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix qeq/comb file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == nullptr)
+          error->one(FLERR,std::string("Cannot open fix qeq/comb file ")
+                     + arg[iarg+1]);
       }
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/comb command");
@@ -87,8 +85,8 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) qf[i] = 0.0;
 
-  comb = NULL;
-  comb3 = NULL;
+  comb = nullptr;
+  comb3 = nullptr;
 
   comm_forward = 1;
 }
@@ -121,12 +119,12 @@ void FixQEQComb::init()
   if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/comb requires atom attribute q");
 
-  comb = (PairComb *) force->pair_match("comb",1);
-  comb3 = (PairComb3 *) force->pair_match("comb3",1);
-  if (comb == NULL && comb3 == NULL)
+  comb = (PairComb *) force->pair_match("^comb",0);
+  comb3 = (PairComb3 *) force->pair_match("^comb3",0);
+  if (comb == nullptr && comb3 == nullptr)
     error->all(FLERR,"Must use pair_style comb or comb3 with fix qeq/comb");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -192,8 +190,7 @@ void FixQEQComb::post_force(int /*vflag*/)
   // charge-equilibration loop
 
   if (me == 0 && fp)
-    fprintf(fp,"Charge equilibration on step " BIGINT_FORMAT "\n",
-            update->ntimestep);
+    fmt::print(fp,"Charge equilibration on step {}\n", update->ntimestep);
 
   heatpq = 0.05;
   qmass  = 0.016;
@@ -220,7 +217,7 @@ void FixQEQComb::post_force(int /*vflag*/)
     q1[i] = q2[i] = qf[i] = 0.0;
   }
 
-  for (iloop = 0; iloop < loopmax; iloop ++ ) {
+  for (iloop = 0; iloop < loopmax; iloop ++) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
@@ -230,8 +227,8 @@ void FixQEQComb::post_force(int /*vflag*/)
     }
 
     comm->forward_comm_fix(this);
-    if(comb) enegtot = comb->yasu_char(qf,igroup);
-    if(comb3) enegtot = comb3->combqeq(qf,igroup);
+    if (comb) enegtot = comb->yasu_char(qf,igroup);
+    if (comb3) enegtot = comb3->combqeq(qf,igroup);
 
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
@@ -254,9 +251,9 @@ void FixQEQComb::post_force(int /*vflag*/)
     if (enegchk <= precision && enegmax <= 100.0*precision) break;
 
     if (me == 0 && fp)
-      fprintf(fp,"  iteration: %d, enegtot %.6g, "
-              "enegmax %.6g, fq deviation: %.6g\n",
-              iloop,enegtot,enegmax,enegchk);
+      fmt::print(fp,"  iteration: {}, enegtot {:.6g}, "
+                 "enegmax {:.6g}, fq deviation: {:.6g}\n",
+                 iloop,enegtot,enegmax,enegchk);
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
@@ -267,10 +264,10 @@ void FixQEQComb::post_force(int /*vflag*/)
 
   if (me == 0 && fp) {
     if (iloop == loopmax)
-      fprintf(fp,"Charges did not converge in %d iterations\n",iloop);
+      fmt::print(fp,"Charges did not converge in {} iterations\n",iloop);
     else
-      fprintf(fp,"Charges converged in %d iterations to %.10f tolerance\n",
-              iloop,enegchk);
+      fmt::print(fp,"Charges converged in {} iterations to {:.10f} tolerance\n",
+                 iloop,enegchk);
   }
 }
 
@@ -287,7 +284,7 @@ void FixQEQComb::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
 double FixQEQComb::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 /* ---------------------------------------------------------------------- */

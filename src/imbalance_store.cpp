@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,11 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "imbalance_store.h"
+
 #include "atom.h"
-#include "input.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -35,10 +36,7 @@ ImbalanceStore::~ImbalanceStore()
 int ImbalanceStore::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-
-  int len = strlen(arg[0]) + 1;
-  name = new char[len];
-  memcpy(name,arg[0],len);
+  name = utils::strdup(arg[0]);
 
   return 1;
 }
@@ -63,7 +61,7 @@ void ImbalanceStore::compute(double *weight)
 
 /* -------------------------------------------------------------------- */
 
-void ImbalanceStore::info(FILE *fp)
+std::string ImbalanceStore::info()
 {
-  fprintf(fp,"  storing weight in atom property d_%s\n",name);
+  return fmt::format("  storing weight in atom property d_{}\n",name);
 }

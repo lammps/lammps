@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
+
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_eff_cut.h"
 #include "pair_eff_inline.h"
@@ -31,7 +31,7 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "atom_vec_electron.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -42,8 +42,8 @@ PairEffCut::PairEffCut(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
 
   nmax = 0;
-  min_eradius = NULL;
-  min_erforce = NULL;
+  min_eradius = nullptr;
+  min_erforce = nullptr;
   nextra = 4;
   pvector = new double[nextra];
 }
@@ -81,8 +81,7 @@ void PairEffCut::compute(int eflag, int vflag)
   // pvector = [KE, Pauli, ecoul, radial_restraint]
   for (i=0; i<4; i++) pvector[i] = 0.0;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -796,13 +795,13 @@ void PairEffCut::settings(int narg, char **arg)
   PAULI_CORE_D[14] = 0.0;
   PAULI_CORE_E[14] = 0.0;
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
   limit_eradius_flag = 0;
   pressure_with_evirials_flag = 0;
 
   int atype;
   int iarg = 1;
-  int ecp_found = 0;
+  ecp_found = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"limit/eradius") == 0) {
@@ -816,23 +815,21 @@ void PairEffCut::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"ecp") == 0) {
       iarg += 1;
       while (iarg < narg) {
-        atype = force->inumeric(FLERR,arg[iarg]);
+        atype = utils::inumeric(FLERR,arg[iarg],false,lmp);
         if (strcmp(arg[iarg+1],"C") == 0) ecp_type[atype] = 6;
         else if (strcmp(arg[iarg+1],"N") == 0) ecp_type[atype] = 7;
         else if (strcmp(arg[iarg+1],"O") == 0) ecp_type[atype] = 8;
         else if (strcmp(arg[iarg+1],"Al") == 0) ecp_type[atype] = 13;
         else if (strcmp(arg[iarg+1],"Si") == 0) ecp_type[atype] = 14;
-        else error->all(FLERR, "Note: there are no default parameters for this atom ECP\n");
+        else error->all(FLERR, "No default parameters for this atom ECP\n");
         iarg += 2;
         ecp_found = 1;
       }
-    }
+    } else error->all(FLERR,"Illegal pair style command");
   }
 
-  if (!ecp_found && atom->ecp_flag)
-    error->all(FLERR,"Need to specify ECP type on pair_style command");
-
   // Need to introduce 2 new constants w/out changing update.cpp
+
   if (force->qqr2e==332.06371) {        // i.e. Real units chosen
     h2e = 627.509;                      // hartree->kcal/mol
     hhmss2e = 175.72044219620075;       // hartree->kcal/mol * (Bohr->Angstrom)^2
@@ -872,9 +869,24 @@ void PairEffCut::init_style()
   // make sure to use the appropriate timestep when using real units
 
   if (update->whichflag == 1) {
-    if (force->qqr2e == 332.06371 && update->dt == 1.0)
-      error->all(FLERR,"You must lower the default real units timestep for pEFF ");
+    if (utils::strmatch(update->unit_style,"^real") && update->dt_default)
+      error->all(FLERR,"Must lower the default real units timestep for pEFF ");
   }
+
+  // check if any atom's spin = 3 and ECP type was not set
+
+  int *spin = atom->spin;
+  int nlocal = atom->nlocal;
+
+  int flag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (spin[i] == 3) flag = 1;
+
+  int flagall;
+  MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+
+  if (flagall && !ecp_found)
+    error->all(FLERR,"Need to specify ECP type on pair_style command");
 
   // need a half neigh list and optionally a granular history neigh list
 
@@ -891,11 +903,11 @@ void PairEffCut::coeff(int narg, char **arg)
 
   if ((strcmp(arg[0],"*") == 0) || (strcmp(arg[1],"*") == 0)) {
     int ilo,ihi,jlo,jhi;
-    force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-    force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+    utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+    utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
     double cut_one = cut_global;
-    if (narg == 3) cut_one = force->numeric(FLERR,arg[2]);
+    if (narg == 3) cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
     int count = 0;
     for (int i = ilo; i <= ihi; i++) {
@@ -908,19 +920,19 @@ void PairEffCut::coeff(int narg, char **arg)
     if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
   } else {
     int ecp;
-    ecp = force->inumeric(FLERR,arg[0]);
+    ecp = utils::inumeric(FLERR,arg[0],false,lmp);
     if (strcmp(arg[1],"s") ==0) {
-      PAULI_CORE_A[ecp_type[ecp]] = force->numeric(FLERR,arg[2]);
-      PAULI_CORE_B[ecp_type[ecp]] = force->numeric(FLERR,arg[3]);
-      PAULI_CORE_C[ecp_type[ecp]] = force->numeric(FLERR,arg[4]);
+      PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
+      PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
+      PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);
       PAULI_CORE_D[ecp_type[ecp]] = 0.0;
       PAULI_CORE_E[ecp_type[ecp]] = 0.0;
     } else if (strcmp(arg[1],"p") ==0) {
-      PAULI_CORE_A[ecp_type[ecp]] = force->numeric(FLERR,arg[2]);
-      PAULI_CORE_B[ecp_type[ecp]] = force->numeric(FLERR,arg[3]);
-      PAULI_CORE_C[ecp_type[ecp]] = force->numeric(FLERR,arg[4]);
-      PAULI_CORE_D[ecp_type[ecp]] = force->numeric(FLERR,arg[5]);
-      PAULI_CORE_E[ecp_type[ecp]] = force->numeric(FLERR,arg[6]);
+      PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
+      PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
+      PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);
+      PAULI_CORE_D[ecp_type[ecp]] = utils::numeric(FLERR,arg[5],false,lmp);
+      PAULI_CORE_E[ecp_type[ecp]] = utils::numeric(FLERR,arg[6],false,lmp);
     } else error->all(FLERR,"Illegal pair_coeff command");
   }
 }
@@ -967,10 +979,10 @@ void PairEffCut::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) fread(&cut[i][j],sizeof(double),1,fp);
+        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -994,9 +1006,9 @@ void PairEffCut::write_restart_settings(FILE *fp)
 void PairEffCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
@@ -1066,8 +1078,8 @@ void PairEffCut::min_x_set(int /*ignore*/)
 
 double PairEffCut::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }

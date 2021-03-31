@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,17 +12,19 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_dpd_tstat_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
 #include "random_mars.h"
-
 #include "suffix.h"
+#include "update.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 #define EPSILON 1.0e-10
@@ -34,7 +36,7 @@ PairDPDTstatOMP::PairDPDTstatOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
-  random_thr = NULL;
+  random_thr = nullptr;
   nthreads = 0;
 }
 
@@ -47,7 +49,7 @@ PairDPDTstatOMP::~PairDPDTstatOMP()
       delete random_thr[i];
 
     delete[] random_thr;
-    random_thr = NULL;
+    random_thr = nullptr;
   }
 }
 
@@ -55,9 +57,7 @@ PairDPDTstatOMP::~PairDPDTstatOMP()
 
 void PairDPDTstatOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int inum = list->inum;
@@ -74,14 +74,14 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
     nthreads = comm->nthreads;
     random_thr = new RanMars*[nthreads];
     for (int i=1; i < nthreads; ++i)
-        random_thr[i] = NULL;
+        random_thr[i] = nullptr;
 
     // to ensure full compatibility with the serial DPD style
     // we use the serial random number generator instance for thread 0
     random_thr[0] = random;
   }
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -89,11 +89,11 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.
-    if ((tid > 0) && (random_thr[tid] == NULL))
+    if ((tid > 0) && (random_thr[tid] == nullptr))
       random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me
                                     + comm->nprocs*tid);
 
@@ -220,8 +220,8 @@ double PairDPDTstatOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairDPDTstat::memory_usage();
-  bytes += comm->nthreads * sizeof(RanMars*);
-  bytes += comm->nthreads * sizeof(RanMars);
+  bytes += (double)comm->nthreads * sizeof(RanMars*);
+  bytes += (double)comm->nthreads * sizeof(RanMars);
 
   return bytes;
 }

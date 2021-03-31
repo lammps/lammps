@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,23 +15,21 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_cut_thole_long.h"
+
+#include <cmath>
+#include <cstring>
+#include "fix_drude.h"
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "integrate.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
 #include "modify.h"
 #include "domain.h"
 
@@ -47,15 +45,20 @@ using namespace MathConst;
 #define B4       -5.80844129e-3
 #define B5        1.14652755e-1
 
+#define EPSILON 1.0e-20
+#define EPS_EWALD 1.0e-6
+#define EPS_EWALD_SQR 1.0e-12
+
 /* ---------------------------------------------------------------------- */
 
 PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
+  single_enable = 0;
   writedata = 1;
-  ftable = NULL;
+  ftable = nullptr;
   qdist = 0.0;
-  fix_drude = NULL;
+  fix_drude = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -98,8 +101,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
   int di_closest;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -129,7 +131,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    if (drudetype[type[i]] != NOPOL_TYPE){
+    if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
       if (di < 0) error->all(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
@@ -152,21 +154,23 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
+         rsq += EPSILON; // Add Epsilon for case: r = 0; DC-DP 1-1 interaction must be removed by special bond;
+         r2inv = 1.0/rsq;
 
         if (rsq < cut_coulsq) {
           qj = q[j];
           r = sqrt(rsq);
 
           if (!ncoultablebits || rsq <= tabinnersq) {
-            grij = g_ewald * r;
+            grij = g_ewald * (r + EPS_EWALD);
             expm2 = exp(-grij*grij);
             t = 1.0 / (1.0 + EWALD_P*grij);
             u = 1. - t;
             erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor = qqrd2e * qi*qj/r;
+            prefactor = qqrd2e * qi*qj/(r + EPS_EWALD);
             forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+            r2inv = 1.0/(rsq + EPS_EWALD_SQR);
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
@@ -183,9 +187,9 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
           }
 
           if (drudetype[type[i]] != NOPOL_TYPE &&
-              drudetype[type[j]] != NOPOL_TYPE){
-            if (j != di_closest){
-              if (drudetype[type[j]] == CORE_TYPE){
+              drudetype[type[j]] != NOPOL_TYPE) {
+            if (j != di_closest) {
+              if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
                 dqj = -q[dj];
               } else dqj = qj;
@@ -227,7 +231,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             }
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] != NOPOL_TYPE &&
-                drudetype[type[j]] != NOPOL_TYPE && j != di_closest){
+                drudetype[type[j]] != NOPOL_TYPE && j != di_closest) {
               ecoul += factor_e * dcoul;
             }
           } else ecoul = 0.0;
@@ -287,10 +291,10 @@ void PairLJCutTholeLong::settings(int narg, char **arg)
 {
  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
-  thole_global = force->numeric(FLERR,arg[0]);
-  cut_lj_global = force->numeric(FLERR,arg[1]);
+  thole_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_lj_global = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg == 2) cut_coul = cut_lj_global;
-  else cut_coul = force->numeric(FLERR,arg[2]);
+  else cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -316,17 +320,17 @@ void PairLJCutTholeLong::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
-  double polar_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double polar_one = utils::numeric(FLERR,arg[4],false,lmp);
   double thole_one = thole_global;
-  if (narg >=6) thole_one = force->numeric(FLERR,arg[5]);
+  if (narg >=6) thole_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   double cut_lj_one = cut_lj_global;
-  if (narg == 7) cut_lj_one = force->numeric(FLERR,arg[6]);
+  if (narg == 7) cut_lj_one = utils::numeric(FLERR,arg[6],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -361,17 +365,17 @@ void PairLJCutTholeLong::init_style()
       error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 
-  int irequest = neighbor->request(this,instance_me);
+  neighbor->request(this,instance_me);
 
   cut_coulsq = cut_coul * cut_coul;
 
   // set rRESPA cutoffs
 
-  cut_respa = NULL;
+  cut_respa = nullptr;
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
@@ -492,16 +496,16 @@ void PairLJCutTholeLong::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&polar[i][j],sizeof(double),1,fp);
-          fread(&thole[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&polar[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&thole[i][j],sizeof(double),1,fp,nullptr,error);
           ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
-          fread(&cut_lj[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&cut_lj[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -537,15 +541,15 @@ void PairLJCutTholeLong::write_restart_settings(FILE *fp)
 void PairLJCutTholeLong::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_lj_global,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&thole_global,sizeof(double),1,fp);
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&tail_flag,sizeof(int),1,fp);
-    fread(&ncoultablebits,sizeof(int),1,fp);
-    fread(&tabinner,sizeof(double),1,fp);
+    utils::sfread(FLERR,&cut_lj_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&thole_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ncoultablebits,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tabinner,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
@@ -582,100 +586,8 @@ void PairLJCutTholeLong::write_data_all(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutTholeLong::single(int i, int j, int itype, int jtype,
-                                 double rsq, double factor_coul,
-                                 double factor_lj, double &fforce)
-{
-  double r2inv,r6inv,r,grij,expm2,t,erfc,prefactor,u;
-  double fraction,table,forcecoul,forcelj,phicoul,philj;
-  int itable;
-  double factor_f,factor_e;
-  double dqi,dqj,dcoul,asr,exp_asr;
-  int di, dj, di_closest;
-
-  int *drudetype = fix_drude->drudetype;
-  tagint *drudeid = fix_drude->drudeid;
-  int *type = atom->type;
-
-  r2inv = 1.0/rsq;
-  if (rsq < cut_coulsq) {
-    r = sqrt(rsq);
-    if (!ncoultablebits || rsq <= tabinnersq) {
-      grij = g_ewald * r;
-      expm2 = exp(-grij*grij);
-      t = 1.0 / (1.0 + EWALD_P*grij);
-      u = 1. - t;
-      erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-      prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
-      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-    } else {
-      union_int_float_t rsq_lookup_single;
-      rsq_lookup_single.f = rsq;
-      itable = rsq_lookup_single.i & ncoulmask;
-      itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
-      table = ftable[itable] + fraction*dftable[itable];
-      forcecoul = atom->q[i]*atom->q[j] * table;
-      if (factor_coul < 1.0) {
-        table = ctable[itable] + fraction*dctable[itable];
-        prefactor = atom->q[i]*atom->q[j] * table;
-        forcecoul -= (1.0-factor_coul)*prefactor;
-      }
-    }
-    if (drudetype[type[i]] != NOPOL_TYPE && drudetype[type[j]] != NOPOL_TYPE) {
-      di = atom->map(drudeid[i]);
-      di_closest = domain->closest_image(i, di);
-      if (j != di_closest){
-        if (drudetype[i] == CORE_TYPE) dqi = -atom->q[di];
-        else if (drudetype[i] == DRUDE_TYPE) dqi = atom->q[i];
-        else dqi = 0.0;
-        if (drudetype[j] == CORE_TYPE) {
-          dj = atom->map(drudeid[j]);
-          dqj = -atom->q[dj];
-        } else if (drudetype[j] == DRUDE_TYPE) dqj = atom->q[j];
-        else dqj = 0.0;
-        asr = ascreen[itype][jtype] * r;
-        exp_asr = exp(-asr);
-        dcoul = force->qqrd2e * dqi * dqj / r;
-        factor_f = 0.5*(2. + (exp_asr * (-2. - asr * (2. + asr))))
-            - factor_coul;
-        forcecoul += factor_f * dcoul;
-        factor_e = 0.5*(2. - (exp_asr * (2. + asr))) - factor_coul;
-      }
-    }
-  } else forcecoul = 0.0;
-
-  if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv*r2inv*r2inv;
-    forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
-  } else forcelj = 0.0;
-
-  fforce = (forcecoul + factor_lj*forcelj) * r2inv;
-
-  double eng = 0.0;
-  if (rsq < cut_coulsq) {
-    if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor*erfc;
-    else {
-      table = etable[itable] + fraction*detable[itable];
-      phicoul = atom->q[i]*atom->q[j] * table;
-    }
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    if (drudetype[type[i]] != NOPOL_TYPE && drudetype[type[j]] != NOPOL_TYPE &&
-        di_closest != j)
-      phicoul += factor_e * dcoul;
-    eng += phicoul;
-  }
-
-  if (rsq < cut_ljsq[itype][jtype]) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
-    eng += factor_lj*philj;
-  }
-
-  return eng;
-}
+// No point in having single() since it  has no information about topology or Drude particles.
+// Charges qi and qj are defined by the user (or 1.0 by default)
 
 /* ---------------------------------------------------------------------- */
 
@@ -683,12 +595,12 @@ void *PairLJCutTholeLong::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
-  dim = 6;
+  dim = 2;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   if (strcmp(str,"scale") == 0) return (void *) scale;
   if (strcmp(str,"polar") == 0) return (void *) polar;
   if (strcmp(str,"thole") == 0) return (void *) thole;
   if (strcmp(str,"ascreen") == 0) return (void *) ascreen;
-  return NULL;
+  return nullptr;
 }

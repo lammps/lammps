@@ -21,12 +21,17 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
-#include "error.h"
 #include "reaxc_ffield.h"
+#include <mpi.h>
+#include <cctype>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include "reaxc_defs.h"
+#include "error.h"
 #include "reaxc_tool_box.h"
 
 char Read_Force_Field( FILE *fp, reax_interaction *reax,
@@ -39,11 +44,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   int lgflag = control->lgflag;
   int errorflag = 1;
   double     val;
-  MPI_Comm comm;
-  int me;
-
-  comm = MPI_COMM_WORLD;
-  MPI_Comm_rank(comm, &me);
+  int me = control->me;
 
   s = (char*) malloc(sizeof(char)*MAX_LINE);
   tmp = (char**) malloc(sizeof(char*)*MAX_TOKENS);
@@ -61,7 +62,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   n = atoi(tmp[0]);
   if (n < 1) {
     if (me == 0)
-      fprintf( stderr, "WARNING: number of globals in ffield file is 0!\n" );
+      control->error_ptr->warning( FLERR, "Number of globals in ffield file is 0. The file will not be read." );
     fclose(fp);
     free(s);
     free(tmp);
@@ -96,80 +97,68 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
   /* Allocating structures in reax_interaction */
   reax->sbp = (single_body_parameters*)
-    scalloc( reax->num_atom_types, sizeof(single_body_parameters), "sbp",
-             comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(single_body_parameters), "sbp");
   reax->tbp = (two_body_parameters**)
-    scalloc( reax->num_atom_types, sizeof(two_body_parameters*), "tbp", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters*), "tbp");
   reax->thbp= (three_body_header***)
-    scalloc( reax->num_atom_types, sizeof(three_body_header**), "thbp", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header**), "thbp");
   reax->hbp = (hbond_parameters***)
-    scalloc( reax->num_atom_types, sizeof(hbond_parameters**), "hbp", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters**), "hbp");
   reax->fbp = (four_body_header****)
-    scalloc( reax->num_atom_types, sizeof(four_body_header***), "fbp", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header***), "fbp");
   tor_flag  = (char****)
-    scalloc( reax->num_atom_types, sizeof(char***), "tor_flag", comm );
+    scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char***), "tor_flag");
 
-  for( i = 0; i < reax->num_atom_types; i++ ) {
+  for (i = 0; i < reax->num_atom_types; i++) {
     reax->tbp[i] = (two_body_parameters*)
-      scalloc( reax->num_atom_types, sizeof(two_body_parameters), "tbp[i]",
-               comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters), "tbp[i]");
     reax->thbp[i]= (three_body_header**)
-      scalloc( reax->num_atom_types, sizeof(three_body_header*), "thbp[i]",
-               comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header*), "thbp[i]");
     reax->hbp[i] = (hbond_parameters**)
-      scalloc( reax->num_atom_types, sizeof(hbond_parameters*), "hbp[i]",
-               comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters*), "hbp[i]");
     reax->fbp[i] = (four_body_header***)
-      scalloc( reax->num_atom_types, sizeof(four_body_header**), "fbp[i]",
-               comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header**), "fbp[i]");
     tor_flag[i]  = (char***)
-      scalloc( reax->num_atom_types, sizeof(char**), "tor_flag[i]", comm );
+      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char**), "tor_flag[i]");
 
-    for( j = 0; j < reax->num_atom_types; j++ ) {
+    for (j = 0; j < reax->num_atom_types; j++) {
       reax->thbp[i][j]= (three_body_header*)
-        scalloc( reax->num_atom_types, sizeof(three_body_header), "thbp[i,j]",
-                 comm );
+        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header), "thbp[i,j]");
       reax->hbp[i][j] = (hbond_parameters*)
-        scalloc( reax->num_atom_types, sizeof(hbond_parameters), "hbp[i,j]",
-                 comm );
+        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters), "hbp[i,j]");
       reax->fbp[i][j] = (four_body_header**)
-        scalloc( reax->num_atom_types, sizeof(four_body_header*), "fbp[i,j]",
-                 comm );
+        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header*), "fbp[i,j]");
       tor_flag[i][j]  = (char**)
-        scalloc( reax->num_atom_types, sizeof(char*), "tor_flag[i,j]", comm );
+        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char*), "tor_flag[i,j]");
 
       for (k=0; k < reax->num_atom_types; k++) {
         reax->fbp[i][j][k] = (four_body_header*)
-          scalloc( reax->num_atom_types, sizeof(four_body_header), "fbp[i,j,k]",
-                   comm );
+          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header), "fbp[i,j,k]");
         tor_flag[i][j][k]  = (char*)
-          scalloc( reax->num_atom_types, sizeof(char), "tor_flag[i,j,k]",
-                   comm );
+          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char), "tor_flag[i,j,k]");
       }
     }
   }
 
   reax->gp.vdw_type = 0;
 
+  char errmsg[1024];
 
-  for( i = 0; i < reax->num_atom_types; i++ ) {
+  for (i = 0; i < reax->num_atom_types; i++) {
     /* line one */
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
 
     /* Sanity checks */
-    if (c == 2 && !lgflag) {
-      if (me == 0)
-        fprintf(stderr, "Force field file requires using 'lgvdw yes'\n");
-      MPI_Abort( comm, FILE_NOT_FOUND );
-    }
+    if (c == 2 && !lgflag)
+        control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");
+
     if (c < 9) {
-      if (me == 0)
-        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
-      MPI_Abort( comm, FILE_NOT_FOUND );
+      snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
+      control->error_ptr->all(FLERR, errmsg);
     }
 
-    for( j = 0; j < (int)(strlen(tmp[0])); ++j )
+    for (j = 0; j < (int)(strlen(tmp[0])); ++j)
       reax->sbp[i].name[j] = toupper( tmp[0][j] );
 
     val = atof(tmp[1]); reax->sbp[i].r_s        = val;
@@ -188,9 +177,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      if (me == 0)
-        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
-      MPI_Abort( comm, FILE_NOT_FOUND );
+      snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
+      control->error_ptr->all(FLERR, errmsg);
     }
 
     val = atof(tmp[0]); reax->sbp[i].alpha      = val;
@@ -208,9 +196,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      if (me == 0)
-        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
-      MPI_Abort( comm, FILE_NOT_FOUND );
+      snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
+      control->error_ptr->all(FLERR, errmsg);
     }
 
     val = atof(tmp[0]); reax->sbp[i].r_pi_pi    = val;
@@ -228,9 +215,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     /* Sanity check */
     if (c < 8) {
-      if (me == 0)
-        fprintf(stderr, "Inconsistent ffield file (reaxc_ffield.cpp) \n");
-      MPI_Abort( comm, FILE_NOT_FOUND );
+      snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
+      control->error_ptr->all(FLERR, errmsg);
     }
 
     val = atof(tmp[0]); reax->sbp[i].p_ovun2    = val;
@@ -249,83 +235,93 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
       /* Sanity check */
       if (c > 2) {
-        if (me == 0)
-          fprintf(stderr, "Force field file incompatible with 'lgvdw yes'\n");
-        MPI_Abort( comm, FILE_NOT_FOUND );
+        control->error_ptr->all(FLERR,"Force field file incompatible with 'lgvdw yes'");
       }
 
       val = atof(tmp[0]); reax->sbp[i].lgcij           = val;
       val = atof(tmp[1]); reax->sbp[i].lgre           = val;
     }
 
-    if( reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01 ){ // Inner-wall
-      if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
-        if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3 ) {
-          if (errorflag && (me == 0))
-            fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n" \
-                   "Force field parameters for element %s\n"              \
-                   "indicate inner wall+shielding, but earlier\n"         \
-                   "atoms indicate different vdWaals-method.\n"           \
-                   "This may cause division-by-zero errors.\n"            \
-                   "Keeping vdWaals-setting for earlier atoms.\n",
-                   reax->sbp[i].name );
+    if (reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01) { // Inner-wall
+      if (reax->sbp[i].gamma_w>0.5) { // Shielding vdWaals
+        if (reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3) {
+          if (errorflag && (me == 0)) {
+            char errmsg[512];
+            snprintf(errmsg, 512, "VdWaals-parameters for element %s "
+                   "indicate inner wall+shielding, but earlier "
+                   "atoms indicate different vdWaals-method. "
+                   "This may cause division-by-zero errors. "
+                   "Keeping vdWaals-setting for earlier atoms.",
+                   reax->sbp[i].name);
+            control->error_ptr->warning(FLERR,errmsg);
+          }
           errorflag = 0;
-        } else{
+        } else {
           reax->gp.vdw_type = 3;
         }
-      }
-      else {  // No shielding vdWaals parameters present
-        if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 2 ) {
-          if (me == 0)
-            fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n" \
-                   "Force field parameters for element %s\n"              \
-                   "indicate inner wall without shielding, but earlier\n" \
-                   "atoms indicate different vdWaals-method.\n"           \
-                   "This may cause division-by-zero errors.\n"            \
-                   "Keeping vdWaals-setting for earlier atoms.\n",
-                   reax->sbp[i].name );
+      } else {  // No shielding vdWaals parameters present
+        if (reax->gp.vdw_type != 0 && reax->gp.vdw_type != 2) {
+          if (me == 0) {
+            char errmsg[512];
+            snprintf(errmsg, 512, "VdWaals-parameters for element %s "
+                   "indicate inner wall without shielding, but earlier "
+                   "atoms indicate different vdWaals-method. "
+                   "This may cause division-by-zero errors. "
+                   "Keeping vdWaals-setting for earlier atoms.",
+                   reax->sbp[i].name);
+            control->error_ptr->warning(FLERR,errmsg);
+          }
         } else {
           reax->gp.vdw_type = 2;
         }
       }
-    }
-    else{ // No Inner wall parameters present
-      if( reax->sbp[i].gamma_w>0.5 ){ // Shielding vdWaals
-        if( reax->gp.vdw_type != 0 && reax->gp.vdw_type != 1 ) {
-          if (me == 0)
-            fprintf( stderr, "Warning: inconsistent vdWaals-parameters\n"  \
-                   "Force field parameters for element %s\n"               \
-                   "indicate  shielding without inner wall, but earlier\n" \
-                   "atoms indicate different vdWaals-method.\n"            \
-                   "This may cause division-by-zero errors.\n"             \
-                   "Keeping vdWaals-setting for earlier atoms.\n",
-                   reax->sbp[i].name );
+    } else { // No Inner wall parameters present
+      if (reax->sbp[i].gamma_w>0.5) { // Shielding vdWaals
+        if (reax->gp.vdw_type != 0 && reax->gp.vdw_type != 1) {
+          if (me == 0) {
+            char errmsg[512];
+            snprintf(errmsg, 512, "VdWaals parameters for element %s "
+                   "indicate shielding without inner wall, but earlier "
+                   "elements indicate different vdWaals-method. "
+                   "This may cause division-by-zero errors. "
+                   "Keeping vdWaals-setting for earlier atoms.",
+                   reax->sbp[i].name);
+            control->error_ptr->warning(FLERR,errmsg);
+          }
         } else {
           reax->gp.vdw_type = 1;
         }
       } else {
-        if (me == 0)
-          fprintf( stderr, "Error: inconsistent vdWaals-parameters\n"  \
-                 "No shielding or inner-wall set for element %s\n",
-                 reax->sbp[i].name );
-        MPI_Abort( comm, INVALID_INPUT );
+        char errmsg[256];
+        snprintf(errmsg, 256, "Inconsistent vdWaals-parameters: "
+                 "No shielding or inner-wall set for element %s",
+                 reax->sbp[i].name);
+        control->error_ptr->all(FLERR, errmsg);
       }
     }
   }
 
   /* Equate vval3 to valf for first-row elements (25/10/2004) */
-  for( i = 0; i < reax->num_atom_types; i++ )
-    if( reax->sbp[i].mass < 21 &&
-        reax->sbp[i].valency_val != reax->sbp[i].valency_boc ) {
-      if (me == 0)
-        fprintf(stderr,"Warning: changed valency_val to valency_boc for %s\n",
-               reax->sbp[i].name );
+  for (i = 0; i < reax->num_atom_types; i++)
+    if ( reax->sbp[i].mass < 21 &&
+        reax->sbp[i].valency_val != reax->sbp[i].valency_boc) {
+      if (me == 0) {
+        char errmsg[256];
+        snprintf(errmsg, 256, "Changed valency_val to valency_boc for %s",
+               reax->sbp[i].name);
+        control->error_ptr->warning(FLERR,errmsg);
+      }
       reax->sbp[i].valency_val = reax->sbp[i].valency_boc;
     }
 
   /* next line is number of two body combination and some comments */
   fgets(s,MAX_LINE,fp);
   c=Tokenize(s,&tmp);
+
+  if (c == 2 && !lgflag) {
+      control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");
+    }
+
   l = atoi(tmp[0]);
 
   /* a line of comments */
@@ -338,6 +334,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
 
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;
+    if ((c < 10) || (j < 0) || (k < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
 
     if (j < reax->num_atom_types && k < reax->num_atom_types) {
 
@@ -362,6 +360,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
       /* line 2 */
       fgets(s,MAX_LINE,fp);
       c=Tokenize(s,&tmp);
+      if (c < 8)
+        control->error_ptr->all(FLERR, "Inconsistent force field file");
 
       val = atof(tmp[0]); reax->tbp[j][k].p_be2     = val;
       reax->tbp[k][j].p_be2     = val;
@@ -492,6 +492,9 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;
 
+    if ((c < (lgflag ? 9 : 8)) || (j < 0) || (k < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
+
     if (j < reax->num_atom_types && k < reax->num_atom_types)        {
       val = atof(tmp[2]);
       if (val > 0.0) {
@@ -529,30 +532,34 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
         reax->tbp[k][j].r_pp = val;
       }
 
-      val = atof(tmp[8]);
-      if (val >= 0.0) {
-        reax->tbp[j][k].lgcij = val;
-        reax->tbp[k][j].lgcij = val;
+      if (lgflag) {
+        val = atof(tmp[8]);
+        if (val >= 0.0) {
+          reax->tbp[j][k].lgcij = val;
+          reax->tbp[k][j].lgcij = val;
+        }
       }
     }
   }
 
-  for( i = 0; i < reax->num_atom_types; ++i )
-    for( j = 0; j < reax->num_atom_types; ++j )
-      for( k = 0; k < reax->num_atom_types; ++k )
+  for (i = 0; i < reax->num_atom_types; ++i)
+    for (j = 0; j < reax->num_atom_types; ++j)
+      for (k = 0; k < reax->num_atom_types; ++k)
         reax->thbp[i][j][k].cnt = 0;
 
   fgets( s, MAX_LINE, fp );
   c = Tokenize( s, &tmp );
   l = atoi( tmp[0] );
 
-  for( i = 0; i < l; i++ ) {
+  for (i = 0; i < l; i++) {
     fgets(s,MAX_LINE,fp);
     c=Tokenize(s,&tmp);
 
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;
     m = atoi(tmp[2]) - 1;
+    if ((c < 10) || (j < 0) || (k < 0) || (m < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
 
     if (j < reax->num_atom_types && k < reax->num_atom_types &&
         m < reax->num_atom_types) {
@@ -591,10 +598,10 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   }
 
   /* clear all entries first */
-  for( i = 0; i < reax->num_atom_types; ++i )
-    for( j = 0; j < reax->num_atom_types; ++j )
-      for( k = 0; k < reax->num_atom_types; ++k )
-        for( m = 0; m < reax->num_atom_types; ++m ) {
+  for (i = 0; i < reax->num_atom_types; ++i)
+    for (j = 0; j < reax->num_atom_types; ++j)
+      for (k = 0; k < reax->num_atom_types; ++k)
+        for (m = 0; m < reax->num_atom_types; ++m) {
           reax->fbp[i][j][k][m].cnt = 0;
           tor_flag[i][j][k][m] = 0;
         }
@@ -604,7 +611,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   c = Tokenize( s, &tmp );
   l = atoi( tmp[0] );
 
-  for( i = 0; i < l; i++ ) {
+  for (i = 0; i < l; i++) {
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
 
@@ -612,6 +619,8 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     k = atoi(tmp[1]) - 1;
     m = atoi(tmp[2]) - 1;
     n = atoi(tmp[3]) - 1;
+    if ((c < 9) || (k < 0) || (m < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
 
     if (j >= 0 && n >= 0) { // this means the entry is not in compact form
       if (j < reax->num_atom_types && k < reax->num_atom_types &&
@@ -642,11 +651,10 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
         reax->fbp[j][k][m][n].prm[0].p_cot1 = val;
         reax->fbp[n][m][k][j].prm[0].p_cot1 = val;
       }
-    }
-    else { /* This means the entry is of the form 0-X-Y-0 */
-      if( k < reax->num_atom_types && m < reax->num_atom_types )
-        for( p = 0; p < reax->num_atom_types; p++ )
-          for( o = 0; o < reax->num_atom_types; o++ ) {
+    } else { /* This means the entry is of the form 0-X-Y-0 */
+      if (k < reax->num_atom_types && m < reax->num_atom_types)
+        for (p = 0; p < reax->num_atom_types; p++)
+          for (o = 0; o < reax->num_atom_types; o++) {
             reax->fbp[p][k][m][o].cnt = 1;
             reax->fbp[o][m][k][p].cnt = 1;
 
@@ -669,28 +677,27 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     }
   }
 
-
-
   /* next line is number of hydrogen bond params and some comments */
   fgets( s, MAX_LINE, fp );
   c = Tokenize( s, &tmp );
   l = atoi( tmp[0] );
 
-  for( i = 0; i < reax->num_atom_types; ++i )
-    for( j = 0; j < reax->num_atom_types; ++j )
-      for( k = 0; k < reax->num_atom_types; ++k )
+  for (i = 0; i < reax->num_atom_types; ++i)
+    for (j = 0; j < reax->num_atom_types; ++j)
+      for (k = 0; k < reax->num_atom_types; ++k)
         reax->hbp[i][j][k].r0_hb = -1.0;
 
-  for( i = 0; i < l; i++ ) {
+  for (i = 0; i < l; i++) {
     fgets( s, MAX_LINE, fp );
     c = Tokenize( s, &tmp );
 
     j = atoi(tmp[0]) - 1;
     k = atoi(tmp[1]) - 1;
     m = atoi(tmp[2]) - 1;
+    if ((c < 7) || (j < 0) || (k < 0) || (m < 0))
+      control->error_ptr->all(FLERR, "Inconsistent force field file");
 
-
-    if( j < reax->num_atom_types && m < reax->num_atom_types ) {
+    if (j < reax->num_atom_types && m < reax->num_atom_types) {
       val = atof(tmp[3]);
       reax->hbp[j][k][m].r0_hb = val;
 
@@ -706,16 +713,16 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   }
 
   /* deallocate helper storage */
-  for( i = 0; i < MAX_TOKENS; i++ )
+  for (i = 0; i < MAX_TOKENS; i++)
     free( tmp[i] );
   free( tmp );
   free( s );
 
 
   /* deallocate tor_flag */
-  for( i = 0; i < reax->num_atom_types; i++ ) {
-    for( j = 0; j < reax->num_atom_types; j++ ) {
-      for( k = 0; k < reax->num_atom_types; k++ ) {
+  for (i = 0; i < reax->num_atom_types; i++) {
+    for (j = 0; j < reax->num_atom_types; j++) {
+      for (k = 0; k < reax->num_atom_types; k++) {
         free( tor_flag[i][j][k] );
       }
       free( tor_flag[i][j] );

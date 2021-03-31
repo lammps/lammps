@@ -18,9 +18,6 @@
 
 namespace LAMMPS_NS {
 
-class DumpNetCDF;
-class DumpNetCDFMPIIO;
-
 class Thermo : protected Pointers {
   friend class MinCG;                  // accesses compute_pe
   friend class DumpNetCDF;             // accesses thermo properties
@@ -42,7 +39,7 @@ class Thermo : protected Pointers {
   void modify_params(int, char **);
   void header();
   void compute(int);
-  int evaluate_keyword(char *, double *);
+  int evaluate_keyword(const char *, double *);
 
  private:
   char *line;
@@ -146,7 +143,6 @@ class Thermo : protected Pointers {
   void compute_pe();
   void compute_ke();
   void compute_etotal();
-  void compute_enthalpy();
 
   void compute_evdwl();
   void compute_ecoul();
@@ -158,6 +154,10 @@ class Thermo : protected Pointers {
   void compute_emol();
   void compute_elong();
   void compute_etail();
+
+  void compute_enthalpy();
+  void compute_ecouple();
+  void compute_econserve();
 
   void compute_vol();
   void compute_density();

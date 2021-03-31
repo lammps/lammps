@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,21 +12,22 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_hbond_dreiding_morse_omp.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-
 #include "math_const.h"
 #include "math_special.h"
-
+#include "molecule.h"
+#include "neigh_list.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
@@ -40,7 +41,7 @@ PairHbondDreidingMorseOMP::PairHbondDreidingMorseOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 0;
-  hbcount_thr = hbeng_thr = NULL;
+  hbcount_thr = hbeng_thr = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,9 +58,7 @@ PairHbondDreidingMorseOMP::~PairHbondDreidingMorseOMP()
 
 void PairHbondDreidingMorseOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -76,7 +75,7 @@ void PairHbondDreidingMorseOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -84,7 +83,7 @@ void PairHbondDreidingMorseOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {
@@ -158,7 +157,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
     i = ilist[ii];
     itype = type[i];
     if (!donor[itype]) continue;
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       klist = special[i];
       knum = nspecial[i][0];
     } else {
@@ -191,7 +190,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
-        if (molecular == 1) k = atom->map(klist[kk]);
+        if (molecular == Atom::MOLECULAR) k = atom->map(klist[kk]);
         else k = atom->map(klist[kk]+tagprev);
         if (k < 0) continue;
         ktype = type[k];
@@ -309,7 +308,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
 double PairHbondDreidingMorseOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += comm->nthreads * 2 * sizeof(double);
+  bytes += (double)comm->nthreads * 2 * sizeof(double);
   bytes += PairHbondDreidingMorse::memory_usage();
 
   return bytes;

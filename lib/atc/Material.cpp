@@ -28,21 +28,21 @@ namespace ATC {
   Material::Material()
     : rhoCp_(0),
       heatCapacity_(0),
-      electronHeatCapacity_(NULL),
+      electronHeatCapacity_(nullptr),
       massDensity_(0),
       heatConductivity_(0),
-      electronHeatFlux_(NULL),
-      stress_(NULL),
-      viscousStress_(NULL),
-      bodyForce_(NULL),
-      electronPhononExchange_(NULL),
-      electronDragPower_(NULL),
-      electronFlux_(NULL),
+      electronHeatFlux_(nullptr),
+      stress_(nullptr),
+      viscousStress_(nullptr),
+      bodyForce_(nullptr),
+      electronPhononExchange_(nullptr),
+      electronDragPower_(nullptr),
+      electronFlux_(nullptr),
       permittivity_(1.),
       invEffectiveMass_(1.),
       electronEquilibriumDensity_(0),
       electronRecombinationInvTau_(0),
-      electronChargeDensity_(NULL)
+      electronChargeDensity_(nullptr)
   {
   }
   //--------------------------------------------------------------
@@ -70,21 +70,21 @@ namespace ATC {
     : tag_(tag),
       rhoCp_(0),
       heatCapacity_(0),
-      electronHeatCapacity_(NULL),
+      electronHeatCapacity_(nullptr),
       massDensity_(0),
       heatConductivity_(0),
-      electronHeatFlux_(NULL),
-      stress_(NULL),
-      viscousStress_(NULL),
-      bodyForce_(NULL),
-      electronPhononExchange_(NULL),
-      electronDragPower_(NULL),
-      electronFlux_(NULL),
+      electronHeatFlux_(nullptr),
+      stress_(nullptr),
+      viscousStress_(nullptr),
+      bodyForce_(nullptr),
+      electronPhononExchange_(nullptr),
+      electronDragPower_(nullptr),
+      electronFlux_(nullptr),
       permittivity_(1.),
       invEffectiveMass_(1.),
       electronEquilibriumDensity_(0),
       electronRecombinationInvTau_(0),
-      electronChargeDensity_(NULL)
+      electronChargeDensity_(nullptr)
   {
     /*! \page man_material material
       \section syntax
@@ -816,7 +816,7 @@ void Material::inv_effective_mass(
 };
 //---------------------------------------------------------------------
 void Material::heat_flux(
-  const FIELD_MATS & fields,
+  const FIELD_MATS & /* fields */,
   const GRAD_FIELD_MATS & gradFields,
   DENS_MAT_VEC & flux) const
 {
@@ -865,7 +865,7 @@ bool  Material::electron_drag_power(
 //---------------------------------------------------------------------
 bool Material::electron_recombination(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &gradFields,
+  const GRAD_FIELD_MATS & /* gradFields */,
   DENS_MAT & recombination) const
 {
   // 1/tau (n - n0)
@@ -937,7 +937,7 @@ void Material::electron_flux(
 }
 //---------------------------------------------------------------------
 void Material::electric_field(
-  const FIELD_MATS &fields,
+  const FIELD_MATS & /* fields */,
   const GRAD_FIELD_MATS &gradFields,
   DENS_MAT_VEC &flux) const
 {
@@ -950,7 +950,7 @@ void Material::electric_field(
 }
 //---------------------------------------------------------------------
 void Material::electric_displacement(
-  const FIELD_MATS &fields,
+  const FIELD_MATS & /* fields */,
   const GRAD_FIELD_MATS &gradFields,
   DENS_MAT_VEC &flux) const
 {

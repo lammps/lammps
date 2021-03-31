@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -50,30 +51,28 @@
 // throws but does not catch an exception, make sure that
 // Kokkos::finalize calls std::terminate.
 
-namespace { // (anonymous)
+namespace {  // (anonymous)
 
 // If you change this, change CMakeLists.txt in this directory too!
 // I verified that changing this string makes the test fail.
-const char my_terminate_str[] = "PASSED: I am the custom std::terminate handler.";
+const char my_terminate_str[] =
+    "PASSED: I am the custom std::terminate handler.";
 
 // Tell compilers not to complain that this function doesn't return.
-[[ noreturn ]] void my_terminate_handler ()
-{
+[[noreturn]] void my_terminate_handler() {
   std::cerr << my_terminate_str << std::endl;
-  std::abort(); // terminate handlers normally would end by calling this
+  std::abort();  // terminate handlers normally would end by calling this
 }
 
-} // namespace (anonymous)
+}  // namespace
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   // If std::terminate is called, it will call my_terminate_handler.
-  std::set_terminate (my_terminate_handler);
+  std::set_terminate(my_terminate_handler);
 
   Kokkos::initialize(argc, argv);
-  Kokkos::push_finalize_hook([] {
-      throw std::runtime_error ("I am an uncaught exception!");
-    });
+  Kokkos::push_finalize_hook(
+      [] { throw std::runtime_error("I am an uncaught exception!"); });
 
   // This should call std::terminate, which in turn will call
   // my_terminate_handler above.  That will print the message that

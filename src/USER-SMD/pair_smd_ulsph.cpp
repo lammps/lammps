@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,28 +22,23 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
 #include "pair_smd_ulsph.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "smd_kernels.h"
 #include "smd_material_models.h"
 #include "smd_math.h"
-#include "smd_kernels.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace SMD_Kernels;
 using namespace std;
@@ -61,22 +56,22 @@ PairULSPH::PairULSPH(LAMMPS *lmp) :
                 Pair(lmp) {
 
         // per-type arrays
-        Q1 = NULL;
-        eos = viscosity = strength = NULL;
-        c0_type = NULL;
-        c0 = NULL;
-        Lookup = NULL;
-        artificial_stress = NULL;
-        artificial_pressure = NULL;
+        Q1 = nullptr;
+        eos = viscosity = strength = nullptr;
+        c0_type = nullptr;
+        c0 = nullptr;
+        Lookup = nullptr;
+        artificial_stress = nullptr;
+        artificial_pressure = nullptr;
 
         nmax = 0; // make sure no atom on this proc such that initial memory allocation is correct
-        stressTensor = L = K = NULL;
-        shepardWeight = NULL;
-        smoothVel = NULL;
-        numNeighs = NULL;
-        F = NULL;
-        rho = NULL;
-        effm = NULL;
+        stressTensor = L = K = nullptr;
+        shepardWeight = nullptr;
+        smoothVel = nullptr;
+        numNeighs = nullptr;
+        F = nullptr;
+        rho = nullptr;
+        effm = nullptr;
 
         velocity_gradient_required = false; // turn off computation of velocity gradient by default
         density_summation = velocity_gradient = false;
@@ -360,7 +355,7 @@ void PairULSPH::compute(int eflag, int vflag) {
         double **vint = atom->v; // Velocity-Verlet algorithm velocities
         double **f = atom->f;
         double *vfrac = atom->vfrac;
-        double *de = atom->de;
+        double *desph = atom->desph;
         double *rmass = atom->rmass;
         double *radius = atom->radius;
         double *contact_radius = atom->contact_radius;
@@ -386,10 +381,7 @@ void PairULSPH::compute(int eflag, int vflag) {
         int k;
         SelfAdjointEigenSolver < Matrix3d > es;
 
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         if (atom->nmax > nmax) {
 //printf("... allocating in compute with nmax = %d\n", atom->nmax);
@@ -592,7 +584,7 @@ void PairULSPH::compute(int eflag, int vflag) {
                                 f[i][0] += sumForces(0);
                                 f[i][1] += sumForces(1);
                                 f[i][2] += sumForces(2);
-                                de[i] += deltaE;
+                                desph[i] += deltaE;
 
                                 // accumulate smooth velocities
                                 shepardWeight[i] += jvol * wf;
@@ -603,7 +595,7 @@ void PairULSPH::compute(int eflag, int vflag) {
                                         f[j][0] -= sumForces(0);
                                         f[j][1] -= sumForces(1);
                                         f[j][2] -= sumForces(2);
-                                        de[j] += deltaE;
+                                        desph[j] += deltaE;
 
                                         shepardWeight[j] += ivol * wf;
                                         smoothVel[j] -= ivol * wf * dvint;
@@ -645,7 +637,7 @@ void PairULSPH::AssembleStressTensor() {
         double *rmass = atom->rmass;
         double *eff_plastic_strain = atom->eff_plastic_strain;
         double **tlsph_stress = atom->smd_stress;
-        double *e = atom->e;
+        double *esph = atom->esph;
         int *type = atom->type;
         int i, itype;
         int nlocal = atom->nlocal;
@@ -692,7 +684,7 @@ void PairULSPH::AssembleStressTensor() {
 
                                 break;
                         case EOS_PERFECT_GAS:
-                                PerfectGasEOS(Lookup[EOS_PERFECT_GAS_GAMMA][itype], vol, rmass[i], e[i], newPressure, c0[i]);
+                                PerfectGasEOS(Lookup[EOS_PERFECT_GAS_GAMMA][itype], vol, rmass[i], esph[i], newPressure, c0[i]);
                                 break;
                         case EOS_LINEAR:
                                 newPressure = Lookup[BULK_MODULUS][itype] * (rho / Lookup[REFERENCE_DENSITY][itype] - 1.0);
@@ -955,9 +947,9 @@ void PairULSPH::coeff(int narg, char **arg) {
          * if parameters are give in i,i form, i.e., no a cross interaction, set material parameters
          */
 
-        if (force->inumeric(FLERR, arg[0]) == force->inumeric(FLERR, arg[1])) {
+        if (utils::inumeric(FLERR, arg[0], false, lmp) == utils::inumeric(FLERR, arg[1], false, lmp)) {
 
-                itype = force->inumeric(FLERR, arg[0]);
+                itype = utils::inumeric(FLERR, arg[0],false,lmp);
                 eos[itype] = viscosity[itype] = strength[itype] = NONE;
 
                 if (comm->me == 0) {
@@ -998,11 +990,11 @@ void PairULSPH::coeff(int narg, char **arg) {
                         error->all(FLERR, str);
                 }
 
-                Lookup[REFERENCE_DENSITY][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                Lookup[REFERENCE_SOUNDSPEED][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-                Q1[itype] = force->numeric(FLERR, arg[ioffset + 3]);
-                Lookup[HEAT_CAPACITY][itype] = force->numeric(FLERR, arg[ioffset + 4]);
-                Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype] = force->numeric(FLERR, arg[ioffset + 5]);
+                Lookup[REFERENCE_DENSITY][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                Lookup[REFERENCE_SOUNDSPEED][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+                Q1[itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
+                Lookup[HEAT_CAPACITY][itype] = utils::numeric(FLERR, arg[ioffset + 4],false,lmp);
+                Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype] = utils::numeric(FLERR, arg[ioffset + 5],false,lmp);
 
                 Lookup[BULK_MODULUS][itype] = Lookup[REFERENCE_SOUNDSPEED][itype] * Lookup[REFERENCE_SOUNDSPEED][itype]
                                 * Lookup[REFERENCE_DENSITY][itype];
@@ -1063,7 +1055,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[EOS_TAIT_EXPONENT][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                Lookup[EOS_TAIT_EXPONENT][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Tait EOS");
@@ -1100,7 +1092,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[EOS_PERFECT_GAS_GAMMA][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                Lookup[EOS_PERFECT_GAS_GAMMA][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Perfect Gas EOS");
@@ -1174,9 +1166,9 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[SHEAR_MODULUS][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                                Lookup[YIELD_STRENGTH][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-                                Lookup[HARDENING_PARAMETER][itype] = force->numeric(FLERR, arg[ioffset + 3]);
+                                Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                                Lookup[YIELD_STRENGTH][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+                                Lookup[HARDENING_PARAMETER][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "linear elastic / ideal plastic material mode");
@@ -1216,7 +1208,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[SHEAR_MODULUS][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                Lookup[SHEAR_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "linear elastic strength model");
@@ -1254,7 +1246,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                Lookup[VISCOSITY_MU][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                Lookup[VISCOSITY_MU][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Newton viscosity model");
@@ -1288,7 +1280,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                artificial_pressure[itype][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                artificial_pressure[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Artificial Pressure is enabled.");
@@ -1322,7 +1314,7 @@ void PairULSPH::coeff(int narg, char **arg) {
                                         error->all(FLERR, str);
                                 }
 
-                                artificial_stress[itype][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                                artificial_stress[itype][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                                 if (comm->me == 0) {
                                         printf(FORMAT2, "Artificial Stress is enabled.");
@@ -1364,8 +1356,8 @@ void PairULSPH::coeff(int narg, char **arg) {
                  * we are reading a cross-interaction line for particle types i, j
                  */
 
-                itype = force->inumeric(FLERR, arg[0]);
-                jtype = force->inumeric(FLERR, arg[1]);
+                itype = utils::inumeric(FLERR, arg[0],false,lmp);
+                jtype = utils::inumeric(FLERR, arg[1],false,lmp);
 
                 if (strcmp(arg[2], "*CROSS") != 0) {
                         sprintf(str, "ulsph cross interaction between particle type %d and %d requested, however, *CROSS keyword is missing",
@@ -1583,7 +1575,7 @@ void *PairULSPH::extract(const char *str, int &/*i*/) {
                 return (void *) K;
         }
 
-        return NULL;
+        return nullptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,51 +11,47 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+#include "fix_ave_histo.h"
+
+#include "arg_info.h"
+#include "atom.h"
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_histo.h"
-#include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "group.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{X,V,F,COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING};
 enum{SCALAR,VECTOR,WINDOW};
-enum{GLOBAL,PERATOM,LOCAL};
+enum{DEFAULT,GLOBAL,PERATOM,LOCAL};
 enum{IGNORE,END,EXTRA};
 
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL), stats_list(NULL),
-  bin(NULL), bin_total(NULL), bin_all(NULL), bin_list(NULL), coord(NULL), vector(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr),
+  ids(nullptr), fp(nullptr), stats_list(nullptr),
+  bin(nullptr), bin_total(nullptr), bin_all(nullptr), bin_list(nullptr),
+  coord(nullptr), vector(nullptr)
 {
   if (narg < 10) error->all(FLERR,"Illegal fix ave/histo command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
   vector_flag = 1;
@@ -66,9 +62,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   extarray = 0;
   dynamic_group_allow = 1;
 
-  lo = force->numeric(FLERR,arg[6]);
-  hi = force->numeric(FLERR,arg[7]);
-  nbins = force->inumeric(FLERR,arg[8]);
+  lo = utils::numeric(FLERR,arg[6],false,lmp);
+  hi = utils::numeric(FLERR,arg[7],false,lmp);
+  nbins = utils::inumeric(FLERR,arg[8],false,lmp);
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values
@@ -103,7 +99,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[9],mode,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[9],mode,earg,lmp);
 
   if (earg != &arg[9]) expand = 1;
   arg = earg;
@@ -117,67 +113,54 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
   for (int i = 0; i < nvalues; i++) {
     if (strcmp(arg[i],"x") == 0) {
-      which[i] = X;
+      which[i] = ArgInfo::X;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"y") == 0) {
-      which[i] = X;
+      which[i] = ArgInfo::X;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"z") == 0) {
-      which[i] = X;
+      which[i] = ArgInfo::X;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
     } else if (strcmp(arg[i],"vx") == 0) {
-      which[i] = V;
+      which[i] = ArgInfo::V;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"vy") == 0) {
-      which[i] = V;
+      which[i] = ArgInfo::V;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"vz") == 0) {
-      which[i] = V;
+      which[i] = ArgInfo::V;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
     } else if (strcmp(arg[i],"fx") == 0) {
-      which[i] = F;
+      which[i] = ArgInfo::F;
       argindex[i] = 0;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"fy") == 0) {
-      which[i] = F;
+      which[i] = ArgInfo::F;
       argindex[i] = 1;
-      ids[i] = NULL;
+      ids[i] = nullptr;
     } else if (strcmp(arg[i],"fz") == 0) {
-      which[i] = F;
+      which[i] = ArgInfo::F;
       argindex[i] = 2;
-      ids[i] = NULL;
+      ids[i] = nullptr;
 
-    } else if ((strncmp(arg[i],"c_",2) == 0) ||
-        (strncmp(arg[i],"f_",2) == 0) ||
-        (strncmp(arg[i],"v_",2) == 0)) {
-      if (arg[i][0] == 'c') which[i] = COMPUTE;
-      else if (arg[i][0] == 'f') which[i] = FIX;
-      else if (arg[i][0] == 'v') which[i] = VARIABLE;
+    } else {
+      ArgInfo argi(arg[i]);
 
-      int n = strlen(arg[i]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[i][2]);
+      if (argi.get_type() == ArgInfo::NONE) break;
+      if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+        error->all(FLERR,"Invalid fix ave/histo command");
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix ave/histo command");
-        argindex[i] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[i] = 0;
-
-      n = strlen(suffix) + 1;
-      ids[i] = new char[n];
-      strcpy(ids[i],suffix);
-      delete [] suffix;
+      which[i] = argi.get_type();
+      argindex[i] = argi.get_index1();
+      ids[i] = argi.copy_name();
     }
   }
 
@@ -188,9 +171,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     memory->sfree(earg);
   }
 
-  // setup and error check
-  // kind = inputs are all global, or all per-atom, or all local
-  // for fix inputs, check that fix frequency is acceptable
+  // check input args for kind consistency
+  // all inputs must all be global, per-atom, or local
 
   if (nevery <= 0 || nrepeat <= 0 || nfreq <= 0)
     error->all(FLERR,"Illegal fix ave/histo command");
@@ -201,39 +183,65 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   if (ave != RUNNING && overwrite)
     error->all(FLERR,"Illegal fix ave/histo command");
 
-  int kindflag;
+  int kindglobal,kindperatom,kindlocal;
+
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == X || which[i] == V || which[i] == F) kindflag = PERATOM;
-    else if (which[i] == COMPUTE) {
+    kindglobal = kindperatom = kindlocal = 0;
+
+    if ((which[i] == ArgInfo::X) || (which[i] == ArgInfo::V)
+        || (which[i] == ArgInfo::F)) {
+      kindperatom = 1;
+
+    } else if (which[i] == ArgInfo::COMPUTE) {
       int c_id = modify->find_compute(ids[i]);
       if (c_id < 0) error->all(FLERR,"Fix ave/histo input is invalid compute");
       Compute *compute = modify->compute[c_id];
+      // computes can produce multiple kinds of output
       if (compute->scalar_flag || compute->vector_flag || compute->array_flag)
-        kindflag = GLOBAL;
-      else if (compute->peratom_flag) kindflag = PERATOM;
-      else if (compute->local_flag) kindflag = LOCAL;
-      else error->all(FLERR,"Fix ave/histo input is invalid compute");
-    } else if (which[i] == FIX) {
+        kindglobal = 1;
+      if (compute->peratom_flag) kindperatom = 1;
+      if (compute->local_flag) kindlocal = 1;
+
+    } else if (which[i] == ArgInfo::FIX) {
       int f_id = modify->find_fix(ids[i]);
       if (f_id < 0) error->all(FLERR,"Fix ave/histo input is invalid fix");
       Fix *fix = modify->fix[f_id];
+      // fixes can produce multiple kinds of output
       if (fix->scalar_flag || fix->vector_flag || fix->array_flag)
-        kindflag = GLOBAL;
-      else if (fix->peratom_flag) kindflag = PERATOM;
-      else if (fix->local_flag) kindflag = LOCAL;
-      else error->all(FLERR,"Fix ave/histo input is invalid fix");
-    } else if (which[i] == VARIABLE) {
+        kindglobal = 1;
+      if (fix->peratom_flag) kindperatom = 1;
+      if (fix->local_flag) kindlocal = 1;
+
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
-      if (ivariable < 0) error->all(FLERR,"Fix ave/histo input is invalid variable");
-      if (input->variable->equalstyle(ivariable)) kindflag = GLOBAL;
-      else if (input->variable->atomstyle(ivariable)) kindflag = PERATOM;
-      else error->all(FLERR,"Fix ave/histo input is invalid variable");
+      if (ivariable < 0)
+        error->all(FLERR,"Fix ave/histo input is invalid variable");
+      // variables only produce one kind of output
+      if (input->variable->equalstyle(ivariable)) kindglobal = 1;
+      else if (input->variable->atomstyle(ivariable)) kindperatom = 1;
+      else error->all(FLERR,"Fix ave/histo input is invalid kind of variable");
     }
-    if (i == 0) kind = kindflag;
-    else if (kindflag != kind)
-      error->all(FLERR,
-                 "Fix ave/histo inputs are not all global, peratom, or local");
+
+    if (kind == DEFAULT) {
+      if (kindglobal + kindperatom + kindlocal > 1)
+        error->all(FLERR,"Fix ave/histo input kind is ambiguous");
+      if (kindglobal) kind = GLOBAL;
+      if (kindperatom) kind = PERATOM;
+      if (kindlocal) kind = LOCAL;
+    } else if (kind == GLOBAL) {
+      if (!kindglobal)
+        error->all(FLERR,"Fix ave/histo input kind is invalid");
+    } else if (kind == PERATOM) {
+      if (!kindperatom)
+        error->all(FLERR,"Fix ave/histo input kind is invalid");
+    } else if (kind == LOCAL) {
+      if (!kindlocal)
+        error->all(FLERR,"Fix ave/histo input kind is invalid");
+    }
   }
+
+  // more error checks
+  // for fix inputs, check that fix frequency is acceptable
 
   if (kind == PERATOM && mode == SCALAR)
     error->all(FLERR,
@@ -242,7 +250,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix ave/histo cannot input local values in scalar mode");
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE && kind == GLOBAL && mode == SCALAR) {
+    if (which[i] == ArgInfo::COMPUTE && kind == GLOBAL && mode == SCALAR) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/histo does not exist");
@@ -256,7 +264,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix ave/histo compute vector is accessed out-of-range");
 
-    } else if (which[i] == COMPUTE && kind == GLOBAL && mode == VECTOR) {
+    } else if (which[i] == ArgInfo::COMPUTE && kind == GLOBAL && mode == VECTOR) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/histo does not exist");
@@ -271,7 +279,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix ave/histo compute array is accessed out-of-range");
 
-    } else if (which[i] == COMPUTE && kind == PERATOM) {
+    } else if (which[i] == ArgInfo::COMPUTE && kind == PERATOM) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/histo does not exist");
@@ -290,7 +298,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix ave/histo compute array is accessed out-of-range");
 
-    } else if (which[i] == COMPUTE && kind == LOCAL) {
+    } else if (which[i] == ArgInfo::COMPUTE && kind == LOCAL) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/histo does not exist");
@@ -309,7 +317,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix ave/histo compute array is accessed out-of-range");
 
-    } else if (which[i] == FIX && kind == GLOBAL && mode == SCALAR) {
+    } else if (which[i] == ArgInfo::FIX && kind == GLOBAL && mode == SCALAR) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/histo does not exist");
@@ -325,7 +333,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix ave/histo not computed at compatible time");
 
-    } else if (which[i] == FIX && kind == GLOBAL && mode == VECTOR) {
+    } else if (which[i] == ArgInfo::FIX && kind == GLOBAL && mode == VECTOR) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/histo does not exist");
@@ -340,7 +348,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix ave/histo not computed at compatible time");
 
-    } else if (which[i] == FIX && kind == PERATOM) {
+    } else if (which[i] == ArgInfo::FIX && kind == PERATOM) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/histo does not exist");
@@ -361,7 +369,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix ave/histo not computed at compatible time");
 
-    } else if (which[i] == FIX && kind == LOCAL) {
+    } else if (which[i] == ArgInfo::FIX && kind == LOCAL) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/histo does not exist");
@@ -381,7 +389,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix ave/histo not computed at compatible time");
 
-    } else if (which[i] == VARIABLE && kind == GLOBAL && mode == SCALAR) {
+    } else if (which[i] == ArgInfo::VARIABLE && kind == GLOBAL && mode == SCALAR) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
@@ -390,7 +398,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (argindex[i] && input->variable->vectorstyle(ivariable) == 0)
         error->all(FLERR,"Fix ave/histo variable is not vector-style variable");
 
-    } else if (which[i] == VARIABLE && kind == GLOBAL && mode == VECTOR) {
+    } else if (which[i] == ArgInfo::VARIABLE && kind == GLOBAL && mode == VECTOR) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
@@ -399,7 +407,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
       if (argindex[i])
         error->all(FLERR,"Fix ave/histo variable cannot be indexed");
 
-    } else if (which[i] == VARIABLE && kind == PERATOM) {
+    } else if (which[i] == ArgInfo::VARIABLE && kind == PERATOM) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
@@ -442,9 +450,9 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   bin_all = new double[nbins];
   coord = new double[nbins];
 
-  stats_list = NULL;
-  bin_list = NULL;
-  vector = NULL;
+  stats_list = nullptr;
+  bin_list = nullptr;
+  vector = nullptr;
   maxatom = 0;
 
   if (ave == WINDOW) {
@@ -526,19 +534,19 @@ void FixAveHisto::init()
   // set current indices for all computes,fixes,variables
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/histo does not exist");
       value2index[i] = icompute;
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/histo does not exist");
       value2index[i] = ifix;
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/histo does not exist");
@@ -599,43 +607,43 @@ void FixAveHisto::end_of_step()
 
     // atom attributes
 
-    if (which[i] == X)
+    if (which[i] == ArgInfo::X)
       bin_atoms(&atom->x[0][j],3);
-    else if (which[i] == V)
+    else if (which[i] == ArgInfo::V)
       bin_atoms(&atom->v[0][j],3);
-    else if (which[i] == F)
+    else if (which[i] == ArgInfo::F)
       bin_atoms(&atom->f[0][j],3);
 
     // invoke compute if not previously invoked
 
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[m];
 
       if (kind == GLOBAL && mode == SCALAR) {
         if (j == 0) {
-          if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
             compute->compute_scalar();
-            compute->invoked_flag |= INVOKED_SCALAR;
+            compute->invoked_flag |= Compute::INVOKED_SCALAR;
           }
           bin_one(compute->scalar);
         } else {
-          if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
           bin_one(compute->vector[j-1]);
         }
       } else if (kind == GLOBAL && mode == VECTOR) {
         if (j == 0) {
-          if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
             compute->compute_vector();
-            compute->invoked_flag |= INVOKED_VECTOR;
+            compute->invoked_flag |= Compute::INVOKED_VECTOR;
           }
           bin_vector(compute->size_vector,compute->vector,1);
         } else {
-          if (!(compute->invoked_flag & INVOKED_ARRAY)) {
+          if (!(compute->invoked_flag & Compute::INVOKED_ARRAY)) {
             compute->compute_array();
-            compute->invoked_flag |= INVOKED_ARRAY;
+            compute->invoked_flag |= Compute::INVOKED_ARRAY;
           }
           if (compute->array)
             bin_vector(compute->size_array_rows,&compute->array[0][j-1],
@@ -643,9 +651,9 @@ void FixAveHisto::end_of_step()
         }
 
       } else if (kind == PERATOM) {
-        if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
           compute->compute_peratom();
-          compute->invoked_flag |= INVOKED_PERATOM;
+          compute->invoked_flag |= Compute::INVOKED_PERATOM;
         }
         if (j == 0)
           bin_atoms(compute->vector_atom,1);
@@ -653,9 +661,9 @@ void FixAveHisto::end_of_step()
           bin_atoms(&compute->array_atom[0][j-1],compute->size_peratom_cols);
 
       } else if (kind == LOCAL) {
-        if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
           compute->compute_local();
-          compute->invoked_flag |= INVOKED_LOCAL;
+          compute->invoked_flag |= Compute::INVOKED_LOCAL;
         }
         if (j == 0)
           bin_vector(compute->size_local_rows,compute->vector_local,1);
@@ -666,7 +674,7 @@ void FixAveHisto::end_of_step()
 
       // access fix fields, guaranteed to be ready
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
 
       Fix *fix = modify->fix[m];
 
@@ -697,7 +705,7 @@ void FixAveHisto::end_of_step()
 
     // evaluate equal-style or vector-style or atom-style variable
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       if (kind == GLOBAL && mode == SCALAR) {
         if (j == 0) bin_one(input->variable->compute_equal(m));
         else {
@@ -712,7 +720,7 @@ void FixAveHisto::end_of_step()
         int nvec = input->variable->compute_vector(m,&varvec);
         bin_vector(nvec,varvec,1);
 
-      } else if (which[i] == VARIABLE && kind == PERATOM) {
+      } else if (which[i] == ArgInfo::VARIABLE && kind == PERATOM) {
         if (atom->nmax > maxatom) {
           memory->destroy(vector);
           maxatom = atom->nmax;
@@ -735,7 +743,7 @@ void FixAveHisto::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep + nfreq - (nrepeat-1)*nevery;
+  nvalid = ntimestep + nfreq - static_cast<bigint>(nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
   // merge histogram stats across procs if necessary
@@ -825,7 +833,8 @@ void FixAveHisto::end_of_step()
     fflush(fp);
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 }
@@ -918,15 +927,16 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
 {
   // option defaults
 
-  fp = NULL;
+  fp = nullptr;
+  kind = DEFAULT;
   ave = ONE;
   startstep = 0;
   mode = SCALAR;
   beyond = IGNORE;
   overwrite = 0;
-  title1 = NULL;
-  title2 = NULL;
-  title3 = NULL;
+  title1 = nullptr;
+  title2 = nullptr;
+  title3 = nullptr;
 
   // optional args
 
@@ -935,12 +945,17 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix ave/histo file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == nullptr)
+          error->one(FLERR,fmt::format("Cannot open fix ave/histo file {}: {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"kind") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
+      if (strcmp(arg[iarg+1],"global") == 0) kind = GLOBAL;
+      else if (strcmp(arg[iarg+1],"peratom") == 0) kind = PERATOM;
+      else if (strcmp(arg[iarg+1],"local") == 0) kind = LOCAL;
+      else error->all(FLERR,"Illegal fix ave/histo command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
@@ -950,14 +965,14 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       else error->all(FLERR,"Illegal fix ave/histo command");
       if (ave == WINDOW) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-        nwindow = force->inumeric(FLERR,arg[iarg+2]);
+        nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix ave/histo command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mode") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
@@ -978,23 +993,17 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       delete [] title1;
-      int n = strlen(arg[iarg+1]) + 1;
-      title1 = new char[n];
-      strcpy(title1,arg[iarg+1]);
+      title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       delete [] title2;
-      int n = strlen(arg[iarg+1]) + 1;
-      title2 = new char[n];
-      strcpy(title2,arg[iarg+1]);
+      title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
       delete [] title3;
-      int n = strlen(arg[iarg+1]) + 1;
-      title3 = new char[n];
-      strcpy(title3,arg[iarg+1]);
+      title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/histo command");
   }
@@ -1014,7 +1023,7 @@ bigint FixAveHisto::nextvalid()
   if (nvalid-nfreq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= static_cast<bigint>(nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
 }

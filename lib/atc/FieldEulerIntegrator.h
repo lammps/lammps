@@ -41,8 +41,8 @@ class FieldEulerIntegrator {
   virtual ~FieldEulerIntegrator() {};
 
   /** initialize */
-  virtual void initialize(const double dt, const double time,
-    FIELDS & fields) {};
+  virtual void initialize(const double /* dt */, const double /* time */,
+                          FIELDS & /* fields */) {};
 
   /** update */
   virtual void update(const double dt, const double time,
@@ -158,7 +158,7 @@ class FieldImplicitDirectEulerIntegrator : public FieldEulerIntegrator {
   /** Destructor */
   virtual ~FieldImplicitDirectEulerIntegrator();
 
-  /** initalize - init the matrices and inverses */
+  /** initialize - init the matrices and inverses */
   void initialize(const double dt, const double time,
     FIELDS & fields);
 

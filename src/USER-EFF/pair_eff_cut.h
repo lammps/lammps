@@ -46,10 +46,12 @@ class PairEffCut : public Pair {
 
  private:
   int limit_eradius_flag, pressure_with_evirials_flag;
+  int ecp_found;
   double cut_global;
   double **cut;
   int ecp_type[100];
-  double PAULI_CORE_A[100], PAULI_CORE_B[100], PAULI_CORE_C[100], PAULI_CORE_D[100], PAULI_CORE_E[100];
+  double PAULI_CORE_A[100],PAULI_CORE_B[100],PAULI_CORE_C[100];
+  double PAULI_CORE_D[100],PAULI_CORE_E[100];
   double hhmss2e, h2e;
 
   int nmax;

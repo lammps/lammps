@@ -307,11 +307,11 @@ namespace ATC {
     RegulatorShapeFunction(kinetostat,regulatorPrefix),
     mdMassMatrix_(atc_->set_mass_mat_md(VELOCITY)),
     timeFilter_(atomicRegulator_->time_filter()),
-    nodalAtomicLambdaForce_(NULL),
-    lambdaForceFiltered_(NULL),
-    atomKinetostatForce_(NULL),
-    atomVelocities_(NULL),
-    atomMasses_(NULL)
+    nodalAtomicLambdaForce_(nullptr),
+    lambdaForceFiltered_(nullptr),
+    atomKinetostatForce_(nullptr),
+    atomVelocities_(nullptr),
+    atomMasses_(nullptr)
   {
     // data associated with stage 3 in ATC_Method::initialize
     lambda_ = atomicRegulator_->regulator_data(regulatorPrefix_+"LambdaMomentum",nsd_);
@@ -376,7 +376,7 @@ namespace ATC {
   //--------------------------------------------------------
   GlcKinetostat::GlcKinetostat(AtomicRegulator *kinetostat) :
     KinetostatShapeFunction(kinetostat),
-    atomPositions_(NULL)
+    atomPositions_(nullptr)
   {
     // do nothing
   }
@@ -445,7 +445,7 @@ namespace ATC {
   //--------------------------------------------------------
   void GlcKinetostat::apply_to_atoms(PerAtomQuantity<double> * quantity,
                                      const DENS_MAT & lambdaAtom,
-                                     double dt)
+                                     double /* dt */)
   {
     *quantity -= lambdaAtom;
   }
@@ -462,7 +462,7 @@ namespace ATC {
   //--------------------------------------------------------
   DisplacementGlc::DisplacementGlc(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
-    nodalAtomicMassWeightedDisplacement_(NULL),
+    nodalAtomicMassWeightedDisplacement_(nullptr),
     nodalDisplacements_(atc_->field(DISPLACEMENT))
   {
     // do nothing
@@ -576,7 +576,7 @@ namespace ATC {
   //            sets up the right-hand side of the
   //            kinetostat equations
   //--------------------------------------------------------
-  void DisplacementGlc::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void DisplacementGlc::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // form rhs : sum_a (hatN_Ia * x_ai) - (Upsilon)_Ii
     rhs = nodalAtomicMassWeightedDisplacement_->quantity();
@@ -763,7 +763,7 @@ namespace ATC {
   //--------------------------------------------------------
   VelocityGlc::VelocityGlc(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
-    nodalAtomicMomentum_(NULL),
+    nodalAtomicMomentum_(nullptr),
     nodalVelocities_(atc_->field(VELOCITY))
   {
     // do nothing
@@ -922,7 +922,7 @@ namespace ATC {
   //            sets up the right-hand side of the
   //            kinetostat equations
   //--------------------------------------------------------
-  void VelocityGlc::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void VelocityGlc::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // form rhs : sum_a (hatN_Ia * x_ai) - (\dot{Upsilon})_Ii
     rhs = nodalAtomicMomentum_->quantity();
@@ -1095,8 +1095,8 @@ namespace ATC {
   StressFlux::StressFlux(AtomicRegulator * kinetostat) :
     GlcKinetostat(kinetostat),
     nodalForce_(atc_->field_rhs(VELOCITY)),
-    nodalAtomicForce_(NULL),
-    nodalGhostForce_(NULL),
+    nodalAtomicForce_(nullptr),
+    nodalGhostForce_(nullptr),
     momentumSource_(atc_->atomic_source(VELOCITY))
   {
     // flag for performing boundary flux calculation
@@ -1252,7 +1252,7 @@ namespace ATC {
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
   //--------------------------------------------------------
-  void StressFlux::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void StressFlux::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // (a) for flux based : 
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
@@ -1381,7 +1381,7 @@ namespace ATC {
   //    computes the boundary flux to be consistent with
   //    the controller
   //--------------------------------------------------------
-  void StressFluxGhost::compute_boundary_flux(FIELDS & fields)
+  void StressFluxGhost::compute_boundary_flux(FIELDS & /* fields */)
   {
     // This is only used in computation of atomic sources
     boundaryFlux_[VELOCITY] = 0.;
@@ -1407,7 +1407,7 @@ namespace ATC {
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
   //--------------------------------------------------------
-  void StressFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void StressFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // (a) for flux based : 
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
@@ -1540,14 +1540,14 @@ namespace ATC {
     KinetostatShapeFunction(kinetostat,regulatorPrefix),
     velocity_(atc_->field(VELOCITY)),
     //timeFilter_(atomicRegulator_->time_filter()),
-    //nodalAtomicLambdaForce_(NULL),
-    //lambdaPowerFiltered_(NULL),
-    //atomKinetostatForces_(NULL),
-    //atomMasses_(NULL),
-    nodalAtomicMomentum_(NULL),
+    //nodalAtomicLambdaForce_(nullptr),
+    //lambdaPowerFiltered_(nullptr),
+    //atomKinetostatForces_(nullptr),
+    //atomMasses_(nullptr),
+    nodalAtomicMomentum_(nullptr),
     isFirstTimestep_(true),
-    atomPredictedVelocities_(NULL),
-    nodalAtomicPredictedMomentum_(NULL),
+    atomPredictedVelocities_(nullptr),
+    nodalAtomicPredictedMomentum_(nullptr),
     dtFactor_(0.)
   {
     // constuct/obtain data corresponding to stage 3 of ATC_Method::initialize
@@ -1796,8 +1796,8 @@ namespace ATC {
                                  const string & regulatorPrefix) :
     KinetostatGlcFs(kinetostat,regulatorPrefix),
     momentumSource_(atc_->atomic_source(VELOCITY)),
-    nodalGhostForce_(NULL),
-    nodalGhostForceFiltered_(NULL)
+    nodalGhostForce_(nullptr),
+    nodalGhostForceFiltered_(nullptr)
   {
     // flag for performing boundary flux calculation
     fieldMask_(VELOCITY,FLUX) = true;
@@ -1985,7 +1985,7 @@ namespace ATC {
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
   //--------------------------------------------------------
-  void KinetostatFlux::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void KinetostatFlux::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // (a) for flux based : 
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
@@ -2056,7 +2056,7 @@ namespace ATC {
   //    computes the boundary flux to be consistent with
   //    the controller
   //--------------------------------------------------------
-  void KinetostatFluxGhost::compute_boundary_flux(FIELDS & fields)
+  void KinetostatFluxGhost::compute_boundary_flux(FIELDS & /* fields */)
   {
     // This is only used in computation of atomic sources
     boundaryFlux_[VELOCITY] = 0.;
@@ -2086,7 +2086,7 @@ namespace ATC {
   //            sets up the RHS of the kinetostat equations
   //            for the coupling parameter lambda
   //--------------------------------------------------------
-  void KinetostatFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double dt)
+  void KinetostatFluxGhost::set_kinetostat_rhs(DENS_MAT & rhs, double /* dt */)
   {
     // (a) for flux based : 
     // form rhs :  \int N_I r dV - \sum_g N_Ig^* f_g
@@ -2233,7 +2233,7 @@ namespace ATC {
   //  initialize_delta_nodal_atomic_momentum:
   //    initializes storage for the variable tracking
   //    the change in the nodal atomic momentum
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void KinetostatFixed::initialize_delta_nodal_atomic_momentum(double dt)
   {
@@ -2248,7 +2248,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  compute_delta_nodal_atomic_momentum:
   //    computes the change in the nodal atomic momentum
-  //    that has occured over the past timestep
+  //    that has occurred over the past timestep
   //--------------------------------------------------------
   void KinetostatFixed::compute_delta_nodal_atomic_momentum(double dt)
   {
@@ -2348,7 +2348,7 @@ namespace ATC {
   //--------------------------------------------------------
   void KinetostatFixed::add_to_momentum(const DENS_MAT & nodalLambdaForce,
                                        DENS_MAT & deltaMomentum,
-                                       double dt)
+                                        double /* dt */)
   {
     deltaMomentum.resize(nNodes_,nsd_);
     const set<int> & regulatedNodes(regulatedNodes_->quantity());
@@ -2403,9 +2403,9 @@ namespace ATC {
   KinetostatFluxFixed::KinetostatFluxFixed(AtomicRegulator * kinetostat,
                                            bool constructKinetostats) :
     RegulatorMethod(kinetostat),
-    kinetostatFlux_(NULL),
-    kinetostatFixed_(NULL),
-    kinetostatBcs_(NULL)
+    kinetostatFlux_(nullptr),
+    kinetostatFixed_(nullptr),
+    kinetostatBcs_(nullptr)
   {
     if (constructKinetostats) {
       if (kinetostat->coupling_mode(VELOCITY) == AtomicRegulator::GHOST_FLUX) {

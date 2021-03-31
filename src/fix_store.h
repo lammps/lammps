@@ -20,7 +20,6 @@ FixStyle(STORE,FixStore)
 #ifndef LMP_FIX_STORE_H
 #define LMP_FIX_STORE_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

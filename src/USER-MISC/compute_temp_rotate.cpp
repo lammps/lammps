@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,16 +15,13 @@
    Contributing author: Laurent Joly (U Lyon, France), ljoly.ulyon@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_rotate.h"
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
 #include "domain.h"
-#include "lattice.h"
 #include "error.h"
 #include "memory.h"
 
@@ -45,8 +42,8 @@ ComputeTempRotate::ComputeTempRotate(LAMMPS *lmp, int narg, char **arg) :
   tempbias = 1;
 
   maxbias = 0;
-  vbiasall = NULL;
-  vector = new double[6];
+  vbiasall = nullptr;
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -297,6 +294,6 @@ void ComputeTempRotate::restore_bias_all()
 
 double ComputeTempRotate::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
+  double bytes = (double)maxbias * sizeof(double);
   return bytes;
 }

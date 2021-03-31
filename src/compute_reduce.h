@@ -20,12 +20,15 @@ ComputeStyle(reduce,ComputeReduce)
 #ifndef LMP_COMPUTE_REDUCE_H
 #define LMP_COMPUTE_REDUCE_H
 
-#include "compute.h"
+#include "compute.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
 class ComputeReduce : public Compute {
  public:
+  enum {SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};
+  enum {PERATOM,LOCAL};
+
   ComputeReduce(class LAMMPS *, int, char **);
   virtual ~ComputeReduce();
   void init();

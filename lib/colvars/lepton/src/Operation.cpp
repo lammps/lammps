@@ -7,7 +7,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2009-2015 Stanford University and the Authors.      *
+ * Portions copyright (c) 2009-2019 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -200,6 +200,16 @@ ExpressionTreeNode Operation::Atan::differentiate(const std::vector<ExpressionTr
                                                  ExpressionTreeNode(new Operation::AddConstant(1.0),
                                                                     ExpressionTreeNode(new Operation::Square(), children[0]))),
                               childDerivs[0]);
+}
+
+ExpressionTreeNode Operation::Atan2::differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const {
+    return ExpressionTreeNode(new Operation::Divide(),
+                              ExpressionTreeNode(new Operation::Subtract(),
+                                                 ExpressionTreeNode(new Operation::Multiply(), children[1], childDerivs[0]),
+                                                 ExpressionTreeNode(new Operation::Multiply(), children[0], childDerivs[1])),
+                              ExpressionTreeNode(new Operation::Add(),
+                                                 ExpressionTreeNode(new Operation::Square(), children[0]),
+                                                 ExpressionTreeNode(new Operation::Square(), children[1])));
 }
 
 ExpressionTreeNode Operation::Sinh::differentiate(const std::vector<ExpressionTreeNode>& children, const std::vector<ExpressionTreeNode>& childDerivs, const std::string& variable) const {

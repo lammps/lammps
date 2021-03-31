@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "compute_pressure_cylinder.h"
+
+#include <cmath>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -22,7 +21,6 @@
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "neigh_list.h"
-#include "group.h"
 #include "memory.h"
 #include "error.h"
 #include "citeme.h"
@@ -50,20 +48,20 @@ static const char cite_compute_pressure_cylinder[] =
 
 ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  Pr_temp(NULL), Pr_all(NULL), Pz_temp(NULL), Pz_all(NULL), Pphi_temp(NULL),
-  Pphi_all(NULL), R(NULL), Rinv(NULL), R2(NULL), PrAinv(NULL), PzAinv(NULL),
-  R2kin(NULL), density_temp(NULL), invVbin(NULL), density_all(NULL),
-  tangent(NULL), ephi_x(NULL), ephi_y(NULL), binz(NULL)
+  Pr_temp(nullptr), Pr_all(nullptr), Pz_temp(nullptr), Pz_all(nullptr), Pphi_temp(nullptr),
+  Pphi_all(nullptr), R(nullptr), Rinv(nullptr), R2(nullptr), PrAinv(nullptr), PzAinv(nullptr),
+  R2kin(nullptr), density_temp(nullptr), invVbin(nullptr), density_all(nullptr),
+  tangent(nullptr), ephi_x(nullptr), ephi_y(nullptr), binz(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
   if (narg != 7) error->all(FLERR,"Illegal compute pressure/cylinder command");
 
-  zlo=force->numeric(FLERR,arg[3]);
-  zhi=force->numeric(FLERR,arg[4]);
-  Rmax=force->numeric(FLERR,arg[5]);
-  bin_width=force->numeric(FLERR,arg[6]);
+  zlo=utils::numeric(FLERR,arg[3],false,lmp);
+  zhi=utils::numeric(FLERR,arg[4],false,lmp);
+  Rmax=utils::numeric(FLERR,arg[5],false,lmp);
+  bin_width=utils::numeric(FLERR,arg[6],false,lmp);
 
-  if ((bin_width <= 0.0) || (bin_width < Rmax))
+  if ((bin_width <= 0.0) || (bin_width > Rmax))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
   if ((zhi < zlo) || ((zhi-zlo) < bin_width))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
@@ -76,7 +74,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   // NOTE: at 2^22 = 4.2M bins, we will be close to exhausting allocatable
   // memory on a 32-bit environment. so we use this as an upper limit.
 
-  if ((nbins < 1) || (nzbins < 1) || (nbins > 2>>22) || (nbins > 2>>22))
+  if ((nbins < 1) || (nzbins < 1) || (nbins > 2<<22) || (nzbins > 2<<22))
     error->all(FLERR,"Illegal compute pressure/cylinder command");
 
   array_flag=1;
@@ -145,7 +143,7 @@ ComputePressureCyl::~ComputePressureCyl()
 
 void ComputePressureCyl::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"No pair style is defined for compute pressure/cylinder");
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute pressure/cylinder");

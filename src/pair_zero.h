@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 
    Pair zero is a dummy pair interaction useful for requiring a
-   force cutoff distance in the absense of pair-interactions or
+   force cutoff distance in the absence of pair-interactions or
    with hybrid/overlay if a larger force cutoff distance is required.
 
    This can be used in conjunction with bond/create to create bonds
@@ -39,6 +39,7 @@ class PairZero : public Pair {
   PairZero(class LAMMPS *);
   virtual ~PairZero();
   virtual void compute(int, int);
+  virtual void compute_outer(int, int);
   void settings(int, char **);
   void coeff(int, char **);
   double init_one(int, int);
@@ -48,6 +49,7 @@ class PairZero : public Pair {
   void read_restart_settings(FILE *);
   void write_data(FILE *);
   void write_data_all(FILE *);
+  double single(int, int, int, int, double, double, double, double &);
 
  protected:
   double cut_global;

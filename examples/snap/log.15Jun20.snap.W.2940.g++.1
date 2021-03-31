@@ -1,0 +1,146 @@
+LAMMPS (15 Jun 2020)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate SNAP W potential
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 4
+variable a equal 3.1803
+units           metal
+
+# generate the box and atom positions using a BCC lattice
+
+variable nx equal ${nrep}
+variable nx equal 4
+variable ny equal ${nrep}
+variable ny equal 4
+variable nz equal ${nrep}
+variable nz equal 4
+
+boundary        p p p
+
+lattice         bcc $a
+lattice         bcc 3.1803
+Lattice spacing in x,y,z = 3.1803 3.1803 3.1803
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 4 0 ${ny} 0 ${nz}
+region          box block 0 4 0 4 0 ${nz}
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0.0 0.0 0.0) to (12.7212 12.7212 12.7212)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  create_atoms CPU = 0.000 seconds
+
+mass 1 183.84
+
+# choose potential
+
+include W_2940_2017_2.snap
+# DATE: 2017-02-20 UNITS: metal CONTRIBUTOR: Mitchell Wood mitwood@sandia.gov CITATION: Wood, M. A. and Thompson, A. P. "Quantum-Accurate Molecular Dynamics Potential for Tungsten" arXiv:1702.07042 [physics.comp-ph]
+#
+# Definition of SNAP+ZBL potential.
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 74
+
+# Specify hybrid with SNAP and ZBL
+
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} snap
+pair_style hybrid/overlay zbl 4 ${zblcutouter} snap
+pair_style hybrid/overlay zbl 4 4.8 snap
+pair_coeff 1 1 zbl ${zblz} ${zblz}
+pair_coeff 1 1 zbl 74 ${zblz}
+pair_coeff 1 1 zbl 74 74
+pair_coeff * * snap W_2940_2017_2.snapcoeff W_2940_2017_2.snapparam W
+Reading potential file W_2940_2017_2.snapcoeff with DATE: 2017-02-20
+SNAP Element = W, Radius 0.5, Weight 1 
+Reading potential file W_2940_2017_2.snapparam with DATE: 2017-02-20
+SNAP keyword rcutfac 4.73442 
+SNAP keyword twojmax 8 
+SNAP keyword rfac0 0.99363 
+SNAP keyword rmin0 0 
+SNAP keyword bzeroflag 0 
+SNAP keyword quadraticflag 0 
+
+#Nomenclature on the snap files are Element_DakotaID_Year_Month
+
+# Setup output
+
+thermo          10
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.8
+  ghost atom cutoff = 5.8
+  binsize = 2.9, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair zbl, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair snap, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.268 | 4.268 | 4.268 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          300   -11.028325            0    -10.98985     3010.497 
+      10    293.10848   -11.027441            0   -10.989849    3259.9445 
+      20    273.14727   -11.024881            0   -10.989849    3979.8968 
+      30    242.20285   -11.020912            0   -10.989849    5089.0797 
+      40    203.51992    -11.01595            0   -10.989849    6462.9419 
+      50    161.14556   -11.010515            0   -10.989848    7948.1798 
+      60    119.47232    -11.00517            0   -10.989848    9380.8543 
+      70    82.729175   -11.000458            0   -10.989848    10606.025 
+      80    54.483648   -10.996835            0   -10.989848    11496.424 
+      90    37.225263   -10.994622            0   -10.989847    11967.579 
+     100    32.094224   -10.993964            0   -10.989847    11987.181 
+Loop time of 2.29953 on 1 procs for 100 steps with 128 atoms
+
+Performance: 1.879 ns/day, 12.775 hours/ns, 43.487 timesteps/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.2988     | 2.2988     | 2.2988     |   0.0 | 99.97
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00027108 | 0.00027108 | 0.00027108 |   0.0 |  0.01
+Output  | 0.00014758 | 0.00014758 | 0.00014758 |   0.0 |  0.01
+Modify  | 0.00010991 | 0.00010991 | 0.00010991 |   0.0 |  0.00
+Other   |            | 0.0001643  |            |       |  0.01
+
+Nlocal:    128 ave 128 max 128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    727 ave 727 max 727 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3712 ave 3712 max 3712 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  7424 ave 7424 max 7424 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7424
+Ave neighs/atom = 58
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:02

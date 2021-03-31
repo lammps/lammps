@@ -54,7 +54,7 @@ class FixRigidNH : public FixRigid {
 
   int kspace_flag;                    // 1 if KSpace invoked, 0 if not
   int nrigidfix;                      // number of rigid fixes
-  int *rfix;                          // indicies of rigid fixes
+  int *rfix;                          // indices of rigid fixes
 
   double vol0;                        // reference volume
   double t0;                          // reference temperature
@@ -64,7 +64,7 @@ class FixRigidNH : public FixRigid {
 
   double mtk_term1,mtk_term2;         // Martyna-Tobias-Klein corrections
 
-  double t_current,t_target;
+  double t_current;
   double p_current[3],p_target[3];
 
   char *id_temp,*id_press;

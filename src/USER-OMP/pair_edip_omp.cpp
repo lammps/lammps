@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,23 +12,23 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_edip_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
+#include <cmath>
+
+#include "omp_compat.h"
 #define GRIDDENSITY 8000
 #define GRIDSTART 0.1
 
 // max number of interaction per atom for f(Z) environment potential
 
-#define leadDimInteractionList 64
+static constexpr int leadDimInteractionList = 64;
 
 /* ---------------------------------------------------------------------- */
 
@@ -43,16 +43,14 @@ PairEDIPOMP::PairEDIPOMP(LAMMPS *lmp) :
 
 void PairEDIPOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -60,7 +58,7 @@ void PairEDIPOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {
@@ -186,7 +184,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
         r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
         jtype = map[type[j]];
-        ijparam = elem2param[itype][jtype][jtype];
+        ijparam = elem3param[itype][jtype][jtype];
         if (r_ij > params[ijparam].cutsq) continue;
 
         r_ij = sqrt(r_ij);
@@ -301,7 +299,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
       r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       if (r_ij > params[ijparam].cutsq) continue;
 
       r_ij = sqrt(r_ij);
@@ -332,13 +330,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
       f_ij[1] = forceMod2B * directorCos_ij_y;
       f_ij[2] = forceMod2B * directorCos_ij_z;
 
-      f[j].x -= f_ij[0];
-      f[j].y -= f_ij[1];
-      f[j].z -= f_ij[2];
-
       f[i].x += f_ij[0];
       f[i].y += f_ij[1];
       f[i].z += f_ij[2];
+
+      f[j].x -= f_ij[0];
+      f[j].y -= f_ij[1];
+      f[j].z -= f_ij[2];
 
       // potential energy
 
@@ -355,7 +353,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
           k = jlist[neighbor_k];
           k &= NEIGHMASK;
           ktype = map[type[k]];
-          ikparam = elem2param[itype][ktype][ktype];
+          ikparam = elem3param[itype][ktype][ktype];
 
           dr_ik[0] = x[k].x - xtmp;
           dr_ik[1] = x[k].y - ytmp;
@@ -461,13 +459,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
         f_ij[1] = forceModCoord_ij * dr_ij[1];
         f_ij[2] = forceModCoord_ij * dr_ij[2];
 
-        f[j].x -= f_ij[0];
-        f[j].y -= f_ij[1];
-        f[j].z -= f_ij[2];
+        f[i].x -= f_ij[0];
+        f[i].y -= f_ij[1];
+        f[i].z -= f_ij[2];
 
-        f[i].x += f_ij[0];
-        f[i].y += f_ij[1];
-        f[i].z += f_ij[2];
+        f[j].x += f_ij[0];
+        f[j].y += f_ij[1];
+        f[j].z += f_ij[2];
 
         // potential energy
 

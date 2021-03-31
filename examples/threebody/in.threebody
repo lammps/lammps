@@ -46,16 +46,16 @@ create_atoms    1 region myreg &
 
 mass            *       28.06
 
-velocity 	all create $t 5287287 mom yes rot yes dist gaussian
+velocity 	all create $t 5287287 loop geom
 
 # Equilibrate using Stillinger-Weber model for silicon
 
 pair_style      sw
 pair_coeff 	* * Si.sw Si Si Si Si Si Si Si Si
 
+thermo_style    custom step temp epair etotal econserve press
 thermo          10
 fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
 timestep        1.0e-3
 neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
@@ -71,9 +71,9 @@ read_restart	restart.equil
 pair_style      sw
 pair_coeff 	* * CdTeZnSeHgS0.sw Cd Zn Hg Cd Te S Se Te
 
+thermo_style    custom step temp epair etotal econserve press
 thermo          10
 fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
 timestep        1.0e-3
 neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
@@ -87,9 +87,9 @@ read_restart	restart.equil
 pair_style      vashishta
 pair_coeff 	* * InP.vashishta In In In In P P P P
 
+thermo_style    custom step temp epair etotal econserve press
 thermo          10
 fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
 timestep        1.0e-3
 neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
@@ -106,41 +106,9 @@ change_box 	all x scale ${fac} y scale ${fac} z scale ${fac} remap
 pair_style      tersoff
 pair_coeff 	* * BNC.tersoff N N N C B B C B
 
+thermo_style    custom step temp epair etotal econserve press
 thermo          10
 fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
-timestep        1.0e-3
-neighbor        1.0 bin
-neigh_modify    every 1 delay 10 check yes
-run             100
-
-# Test Tersoff/Mod model for Si
-
-clear
-read_restart	restart.equil
-
-pair_style      tersoff/mod
-pair_coeff 	* * Si.tersoff.mod Si Si Si Si Si Si Si Si
-
-thermo          10
-fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
-timestep        1.0e-3
-neighbor        1.0 bin
-neigh_modify    every 1 delay 10 check yes
-run             100
-
-# Test Tersoff/Mod/C model for Si
-
-clear
-read_restart	restart.equil
-newton on on
-pair_style      tersoff/mod/c
-pair_coeff 	* * Si.tersoff.modc Si Si Si Si Si Si Si Si
-
-thermo          10
-fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
 timestep        1.0e-3
 neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes

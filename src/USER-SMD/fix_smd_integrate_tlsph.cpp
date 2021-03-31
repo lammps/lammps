@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,22 +22,16 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <Eigen/Eigen>
 #include "fix_smd_integrate_tlsph.h"
+#include <cmath>
+#include <cstring>
+#include <Eigen/Eigen>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
 #include "pair.h"
-#include "neigh_list.h"
-#include "domain.h"
-#include "neighbor.h"
 #include "comm.h"
-#include "modify.h"
 
 using namespace Eigen;
 using namespace LAMMPS_NS;
@@ -80,7 +74,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
                                 error->all(FLERR, "expected number following limit_velocity");
                         }
 
-                        vlimit = force->numeric(FLERR, arg[iarg]);
+                        vlimit = utils::numeric(FLERR, arg[iarg],false,lmp);
                         if (comm->me == 0) {
                                 printf("... will limit velocities to <= %g\n", vlimit);
                         }
@@ -101,7 +95,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
 
         // set comm sizes needed by this fix
 
-        atom->add_callback(0);
+        atom->add_callback(Atom::GROW);
 
 }
 
@@ -145,7 +139,7 @@ void FixSMDIntegrateTlsph::initial_integrate(int /*vflag*/) {
         Vector3d *smoothVelDifference = (Vector3d *) force->pair->extract("smd/tlsph/smoothVel_ptr", itmp);
 
         if (xsphFlag) {
-                if (smoothVelDifference == NULL) {
+                if (smoothVelDifference == nullptr) {
                         error->one(FLERR,
                                         "fix smd/integrate_tlsph failed to access smoothVel array. Check if a pair style exist which calculates this quantity.");
                 }
@@ -209,8 +203,8 @@ void FixSMDIntegrateTlsph::final_integrate() {
 
         double **v = atom->v;
         double **f = atom->f;
-        double *e = atom->e;
-        double *de = atom->de;
+        double *esph = atom->esph;
+        double *desph = atom->desph;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
@@ -237,7 +231,7 @@ void FixSMDIntegrateTlsph::final_integrate() {
                                 }
                         }
 
-                        e[i] += dtv * de[i];
+                        esph[i] += dtv * desph[i];
                 }
         }
 }

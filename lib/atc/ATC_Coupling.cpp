@@ -30,26 +30,26 @@ namespace ATC {
     useFeMdMassMatrix_(false),
     trackCharge_(false),
     temperatureDef_(NONE),
-    prescribedDataMgr_(NULL),
-    physicsModel_(NULL),
+    prescribedDataMgr_(nullptr),
+    physicsModel_(nullptr),
     extrinsicModelManager_(this),
-    atomicRegulator_(NULL),
+    atomicRegulator_(nullptr),
     atomQuadForInternal_(true),
-    elementMask_(NULL),
-    elementMaskMass_(NULL),
-    elementMaskMassMd_(NULL),
-    nodalAtomicMass_(NULL),
-    nodalAtomicCount_(NULL),
-    nodalAtomicHeatCapacity_(NULL),
-    internalToMask_(NULL),
-    internalElement_(NULL),
-    ghostElement_(NULL),
-    nodalGeometryType_(NULL),
+    elementMask_(nullptr),
+    elementMaskMass_(nullptr),
+    elementMaskMassMd_(nullptr),
+    nodalAtomicMass_(nullptr),
+    nodalAtomicCount_(nullptr),
+    nodalAtomicHeatCapacity_(nullptr),
+    internalToMask_(nullptr),
+    internalElement_(nullptr),
+    ghostElement_(nullptr),
+    nodalGeometryType_(nullptr),
     bndyIntType_(NO_QUADRATURE),
-    bndyFaceSet_(NULL),
-    atomicWeightsMask_(NULL),
-    shpFcnMask_(NULL),
-    shpFcnDerivsMask_(NULL),
+    bndyFaceSet_(nullptr),
+    atomicWeightsMask_(nullptr),
+    shpFcnMask_(nullptr),
+    shpFcnDerivsMask_(nullptr),
     sourceIntegration_(FULL_DOMAIN)
   {
     // size the field mask
@@ -68,7 +68,7 @@ namespace ATC {
   ATC_Coupling::~ATC_Coupling()
   {
     interscaleManager_.clear(); 
-    if (feEngine_) { delete feEngine_; feEngine_ = NULL; } 
+    if (feEngine_) { delete feEngine_; feEngine_ = nullptr; } 
     if (physicsModel_) delete physicsModel_;
     if (atomicRegulator_) delete atomicRegulator_;
     if (prescribedDataMgr_) delete prescribedDataMgr_;
@@ -127,7 +127,7 @@ namespace ATC {
         argIdx++;
         parse_field(arg,argIdx,thisField,thisIndex);
         string nsetName(arg[argIdx++]);
-        XT_Function * f = NULL;
+        XT_Function * f = nullptr;
         // parse constant
         if (narg == argIdx+1) {
           f = XT_Function_Mgr::instance()->constant_function(atof(arg[argIdx]));
@@ -164,7 +164,7 @@ namespace ATC {
         argIdx++;
         parse_field(arg,argIdx,thisField,thisIndex);
         string nsetName(arg[argIdx++]);
-        XT_Function * f = NULL;
+        XT_Function * f = nullptr;
         // fix current value 
         if (narg == argIdx) {
           set<int> nodeSet = (feEngine_->fe_mesh())->nodeset(nsetName);
@@ -258,7 +258,7 @@ namespace ATC {
         argIdx++;
         parse_field(arg,argIdx,thisField,thisIndex);
         string esetName(arg[argIdx++]);
-        XT_Function * f = NULL;
+        XT_Function * f = nullptr;
         // parse constant
         if (narg == argIdx+1) {
           string a(arg[argIdx]);
@@ -367,7 +367,7 @@ namespace ATC {
         argIdx++;
         parse_field(arg,argIdx,thisField,thisIndex);
         string fsetName(arg[argIdx++]);
-        XT_Function * f = NULL;
+        XT_Function * f = nullptr;
         // parse constant
         if (narg == argIdx+1) {
           f = XT_Function_Mgr::instance()->constant_function(atof(arg[argIdx]));
@@ -529,7 +529,7 @@ namespace ATC {
         argIdx++;
         parse_field(arg,argIdx,thisField,thisIndex);
         string fsetName(arg[argIdx++]);
-        UXT_Function * f = NULL;
+        UXT_Function * f = nullptr;
         // parse linear
         if (narg == argIdx+2) {
           f = UXT_Function_Mgr::instance()->linear_function(atof(arg[argIdx]),atof(arg[argIdx+1]));
@@ -625,7 +625,7 @@ namespace ATC {
       /*! \page man_consistent_fe_initialization fix_modify AtC consistent_fe_initialization
       \section syntax
        fix_modify AtC consistent_fe_initialization <on | off>
-        - <on|off> = switch to activiate/deactiviate the intial setting of FE intrinsic field to match the projected MD field
+        - <on|off> = switch to activiate/deactiviate the initial setting of FE intrinsic field to match the projected MD field
       \section examples
        <TT> fix_modify atc consistent_fe_initialization on </TT>
       \section description
@@ -760,7 +760,7 @@ namespace ATC {
    WeakEquation::PDE_Type ATC_Coupling::pde_type(const FieldName fieldName) const
    {
      const WeakEquation * weakEq = physicsModel_->weak_equation(fieldName);
-     if (weakEq == NULL) return WeakEquation::PROJECTION_PDE; 
+     if (weakEq == nullptr) return WeakEquation::PROJECTION_PDE; 
      return weakEq->type();
    }
   //--------------------------------------------------
@@ -768,7 +768,7 @@ namespace ATC {
    bool ATC_Coupling::is_dynamic(const FieldName fieldName) const
    {
      const WeakEquation * weakEq = physicsModel_->weak_equation(fieldName);
-     if (weakEq == NULL) return false; 
+     if (weakEq == nullptr) return false; 
      return (physicsModel_->weak_equation(fieldName)->type() == WeakEquation::DYNAMIC_PDE);
    }
 
@@ -1693,7 +1693,7 @@ namespace ATC {
     extrinsicModelManager_.construct_transfers();
   }
   //--------------------------------------------------
-  void ATC_Coupling::delete_mass_mat_time_filter(FieldName thisField)
+  void ATC_Coupling::delete_mass_mat_time_filter(FieldName /* thisField */)
   {
   }
   //--------------------------------------------------

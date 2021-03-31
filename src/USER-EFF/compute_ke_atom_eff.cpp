@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,8 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include <cstring>
-#include <cstdlib>
+
 #include "compute_ke_atom_eff.h"
 #include "atom.h"
 #include "update.h"
@@ -41,7 +40,7 @@ ComputeKEAtomEff::ComputeKEAtomEff(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  ke = NULL;
+  ke = nullptr;
 
   // error check
 
@@ -111,6 +110,6 @@ void ComputeKEAtomEff::compute_peratom()
 
 double ComputeKEAtomEff::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

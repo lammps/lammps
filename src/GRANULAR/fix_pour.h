@@ -30,6 +30,7 @@ class FixPour : public Fix {
   ~FixPour();
   int setmask();
   void init();
+  void setup_pre_exchange();
   void pre_exchange();
   void reset_dt();
   void *extract(const char *, int &);
@@ -63,14 +64,15 @@ class FixPour : public Fix {
 
   int me,nprocs;
   int *recvcounts,*displs;
-  int nfreq,nfirst,ninserted,nper;
+  int nfreq,ninserted,nper;
+  bigint nfirst;
   double lo_current,hi_current;
   tagint maxtag_all,maxmol_all;
   class RanPark *random,*random2;
 
   void find_maxid();
   int overlap(int);
-  int outside(int, double, double, double);
+  bool outside(int, double, double, double);
   void xyz_random(double, double *);
   double radius_sample();
   void options(int, char **);

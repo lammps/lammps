@@ -868,7 +868,7 @@ namespace ATC {
   //--------------------------------------------------------
   // Constructor
   //--------------------------------------------------------
-  MatToGradBySparse::MatToGradBySparse(ATC_Method * atc,
+  MatToGradBySparse::MatToGradBySparse(ATC_Method * /* atc */,
                                        DENS_MAN * source,
                                        VectorDependencyManager<SPAR_MAT * > * gradientMatrices) :
     MatToMatTransfer<double>(source),

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,22 +11,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "change_box.h"
+
 #include "atom.h"
-#include "modify.h"
-#include "fix.h"
-#include "domain.h"
-#include "lattice.h"
 #include "comm.h"
-#include "irregular.h"
-#include "output.h"
-#include "group.h"
+#include "domain.h"
 #include "error.h"
-#include "force.h"
+#include "fix.h"
+#include "group.h"
+#include "irregular.h"
+#include "lattice.h"
+#include "modify.h"
+#include "output.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -47,11 +46,8 @@ void ChangeBox::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Change_box command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal change_box command");
-  if (modify->nfix_restart_peratom)
-    error->all(FLERR,"Cannot change_box after "
-               "reading restart file with per-atom info");
 
-  if (comm->me == 0 && screen) fprintf(screen,"Changing box ...\n");
+  if (comm->me == 0) utils::logmesg(lmp,"Changing box ...\n");
 
   // group
 
@@ -85,23 +81,23 @@ void ChangeBox::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"final") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = FINAL;
-        ops[nops].flo = force->numeric(FLERR,arg[iarg+2]);
-        ops[nops].fhi = force->numeric(FLERR,arg[iarg+3]);
+        ops[nops].flo = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        ops[nops].fhi = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = DELTA;
-        ops[nops].dlo = force->numeric(FLERR,arg[iarg+2]);
-        ops[nops].dhi = force->numeric(FLERR,arg[iarg+3]);
+        ops[nops].dlo = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+        ops[nops].dhi = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 4;
       } else if (strcmp(arg[iarg+1],"scale") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = SCALE;
-        ops[nops].scale = force->numeric(FLERR,arg[iarg+2]);
+        ops[nops].scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         ops[nops].vdim1 = ops[nops].vdim2 = -1;
         nops++;
         iarg += 3;
@@ -131,13 +127,13 @@ void ChangeBox::command(int narg, char **arg)
       if (strcmp(arg[iarg+1],"final") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = FINAL;
-        ops[nops].ftilt = force->numeric(FLERR,arg[iarg+2]);
+        ops[nops].ftilt = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         nops++;
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"delta") == 0) {
         if (iarg+3 > narg) error->all(FLERR,"Illegal change_box command");
         ops[nops].flavor = DELTA;
-        ops[nops].dtilt = force->numeric(FLERR,arg[iarg+2]);
+        ops[nops].dtilt = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         nops++;
         iarg += 3;
       } else error->all(FLERR,"Illegal change_box command");
@@ -174,6 +170,21 @@ void ChangeBox::command(int narg, char **arg)
   }
 
   if (nops == 0) error->all(FLERR,"Illegal change_box command");
+
+  // move_atoms = 1 if need to move atoms to new procs after box changes
+  // anything other than ORTHO or TRICLINIC may cause atom movement
+
+  int move_atoms = 0;
+  for (int m = 0; m < nops; m++) {
+    if (ops[m].style != ORTHO && ops[m].style != TRICLINIC) move_atoms = 1;
+  }
+
+  // error if moving atoms and there is stored per-atom restart state
+  // disallowed b/c restart per-atom fix info will not move with atoms
+
+  if (move_atoms && modify->nfix_restart_peratom)
+    error->all(FLERR,"Change_box parameter not allowed after "
+               "reading restart file with per-atom info");
 
   // read options from end of input line
 
@@ -351,6 +362,10 @@ void ChangeBox::command(int narg, char **arg)
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
   }
 
+  // done if don't need to move atoms
+
+  if (!move_atoms) return;
+
   // move atoms back inside simulation box and to new processors
   // use remap() instead of pbc()
   //   in case box moved a long distance relative to atoms
@@ -373,12 +388,10 @@ void ChangeBox::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Lost atoms via change_box: original " BIGINT_FORMAT
-            " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->warning(FLERR,str);
-  }
+  if (natoms != atom->natoms && comm->me == 0)
+    error->warning(FLERR,fmt::format("Lost atoms via change_box: "
+                                     "original {} current {}",
+                                     atom->natoms,natoms));
 }
 
 /* ----------------------------------------------------------------------

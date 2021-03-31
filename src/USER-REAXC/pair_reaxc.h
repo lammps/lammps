@@ -60,10 +60,8 @@ class PairReaxC : public Pair {
   bigint ngroup;
 
  protected:
+  char *fix_id;
   double cutmax;
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int *map;
   class FixReaxC *fix_reax;
 
   double *chi,*eta,*gamma;

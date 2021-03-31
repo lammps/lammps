@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "npair_half_respa_nsq_newton_omp.h"
 #include "npair_omp.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -43,14 +43,14 @@ void NPairHalfRespaNsqNewtonOmp::build(NeighList *list)
   const int nlocal = (includegroup) ? atom->nfirst : atom->nlocal;
   const int bitmask = (includegroup) ? group->bitmask[includegroup] : 0;
   const int molecular = atom->molecular;
-  const int moltemplate = (molecular == 2) ? 1 : 0;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
 
   NPAIR_OMP_INIT;
 
   const int respamiddle = list->respamiddle;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
 #endif
   NPAIR_OMP_SETUP(nlocal);
 
@@ -155,7 +155,7 @@ void NPairHalfRespaNsqNewtonOmp::build(NeighList *list)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq <= cutneighsq[itype][jtype]) {
-        if (molecular) {
+        if (molecular != Atom::ATOMIC) {
           if (!moltemplate)
             which = find_special(special[i],nspecial[i],tag[j]);
           else if (imol >=0)

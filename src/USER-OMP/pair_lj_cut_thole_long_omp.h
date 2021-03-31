@@ -20,7 +20,6 @@ PairStyle(lj/cut/thole/long/omp,PairLJCutTholeLongOMP)
 #ifndef LMP_PAIR_LJ_CUT_THOLE_LONG_OMP_H
 #define LMP_PAIR_LJ_CUT_THOLE_LONG_OMP_H
 
-#include "pair.h"
 #include "pair_lj_cut_thole_long.h"
 #include "thr_omp.h"
 

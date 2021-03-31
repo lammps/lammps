@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,17 +12,21 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_long_coul_long_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "math_vector.h"
 #include "force.h"
-#include "neighbor.h"
+#include "math_extra.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -39,16 +43,15 @@ PairLJLongCoulLongOMP::PairLJLongCoulLongOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 1;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairLJLongCoulLongOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
+
   const int order1 = ewald_order&(1<<1);
   const int order6 = ewald_order&(1<<6);
 
@@ -57,7 +60,7 @@ void PairLJLongCoulLongOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -65,7 +68,7 @@ void PairLJLongCoulLongOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (order6) {
       if (order1) {
@@ -319,7 +322,7 @@ void PairLJLongCoulLongOMP::compute_inner()
   const int nthreads = comm->nthreads;
   const int inum = list->inum_inner;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int ifrom, ito, tid;
@@ -327,7 +330,7 @@ void PairLJLongCoulLongOMP::compute_inner()
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(0, 0, nall, 0, 0, thr);
+    ev_setup_thr(0, 0, nall, 0, 0, nullptr, thr);
     eval_inner(ifrom, ito, thr);
     thr->timer(Timer::PAIR);
 
@@ -344,7 +347,7 @@ void PairLJLongCoulLongOMP::compute_middle()
   const int inum = list->inum_middle;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int ifrom, ito, tid;
@@ -352,7 +355,7 @@ void PairLJLongCoulLongOMP::compute_middle()
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(0, 0, nall, 0, 0, thr);
+    ev_setup_thr(0, 0, nall, 0, 0, nullptr, thr);
     eval_middle(ifrom, ito, thr);
     thr->timer(Timer::PAIR);
 
@@ -363,9 +366,7 @@ void PairLJLongCoulLongOMP::compute_middle()
 
 void PairLJLongCoulLongOMP::compute_outer(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
   const int order1 = ewald_order&(1<<1);
   const int order6 = ewald_order&(1<<6);
 
@@ -374,7 +375,7 @@ void PairLJLongCoulLongOMP::compute_outer(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -382,7 +383,7 @@ void PairLJLongCoulLongOMP::compute_outer(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (order6) {
       if (order1) {
@@ -657,7 +658,7 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double qi, qri, *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
-  vector xi, d;
+  double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
     i = ilist[ii]; fi = f0+3*i;
@@ -665,7 +666,7 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     offseti = offset[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
@@ -678,7 +679,7 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
       if (ORDER1 && (rsq < cut_coulsq)) {                // coulombic
@@ -716,7 +717,7 @@ void PairLJLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cut_ljsqi[typej]) {                        // lj
         if (ORDER6) {                                        // long-range lj
-          if(!LJTABLE || rsq <= tabinnerdispsq) {            //series real space
+          if (!LJTABLE || rsq <= tabinnerdispsq) {            //series real space
             double rn = r2inv*r2inv*r2inv;
             double x2 = g2*rsq, a2 = 1.0/x2;
             x2 = a2*exp(-x2)*lj4i[typej];
@@ -821,11 +822,11 @@ void PairLJLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   int i, j, ii;
   double qri, *cut_ljsqi, *lj1i, *lj2i;
-  vector xi, d;
+  double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
     i = ilist[ii]; fi = f0+3*i;
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
@@ -839,7 +840,7 @@ void PairLJLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const thr
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
+      if ((rsq = dot3(d, d)) >= cut_out_off_sq) continue;
       r2inv = 1.0/rsq;
 
       if (order1 && (rsq < cut_coulsq)) {                       // coulombic
@@ -916,13 +917,12 @@ void PairLJLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const th
   const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   int i, j, ii;
   double qri, *cut_ljsqi, *lj1i, *lj2i;
-  vector xi, d;
-
+  double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
     i = ilist[ii]; fi = f0+3*i;
     if (order1) qri = qqrd2e*q[i];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
@@ -937,7 +937,7 @@ void PairLJLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const th
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
+      if ((rsq = dot3(d, d)) >= cut_out_off_sq) continue;
       if (rsq <= cut_in_off_sq) continue;
       r2inv = 1.0/rsq;
 
@@ -1009,7 +1009,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
   double respa_lj = 0.0, respa_coul = 0.0, frespa = 0.0;
-  vector xi, d;
+  double xi[3], d[3];
 
   const double cut_in_off = cut_respa[2];
   const double cut_in_on = cut_respa[3];
@@ -1026,7 +1026,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
     offseti = offset[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
@@ -1039,7 +1039,7 @@ void PairLJLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const thr
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
       frespa = 1.0;                                       // check whether and how to compute respa corrections

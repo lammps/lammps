@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_angmom_chunk.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -27,7 +29,7 @@ using namespace LAMMPS_NS;
 
 ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), massproc(NULL), masstotal(NULL), com(NULL), comall(NULL), angmom(NULL), angmomall(NULL)
+  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr), comall(nullptr), angmom(nullptr), angmomall(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute angmom/chunk command");
 
@@ -39,9 +41,7 @@ ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   init();
 
@@ -249,7 +249,7 @@ void ComputeAngmomChunk::allocate()
 double ComputeAngmomChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
-  bytes += (bigint) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2*3 * sizeof(double);
   return bytes;
 }

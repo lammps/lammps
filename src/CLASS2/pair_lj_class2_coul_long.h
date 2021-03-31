@@ -40,6 +40,10 @@ class PairLJClass2CoulLong : public Pair {
   void write_data(FILE *);
   void write_data_all(FILE *);
   double single(int, int, int, int, double, double, double, double &);
+
+  void compute_inner();
+  void compute_middle();
+  void compute_outer(int, int);
   void *extract(const char *, int &);
 
  protected:
@@ -49,6 +53,7 @@ class PairLJClass2CoulLong : public Pair {
   double **epsilon,**sigma;
   double **lj1,**lj2,**lj3,**lj4,**offset;
   double g_ewald;
+  double *cut_respa;
 
   virtual void allocate();
 };
@@ -77,5 +82,10 @@ The atom style defined does not have this attribute.
 E: Pair style requires a KSpace style
 
 No kspace style is defined.
+
+E: Pair cutoff < Respa interior cutoff
+
+One or more pairwise cutoffs are too short to use with the specified
+rRESPA cutoffs.
 
 */

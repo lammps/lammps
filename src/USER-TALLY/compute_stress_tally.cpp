@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_stress_tally.h"
+
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
@@ -41,6 +41,7 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   comm_reverse = size_peratom_cols = 6;
   extscalar = 0;
@@ -48,7 +49,7 @@ ComputeStressTally::ComputeStressTally(LAMMPS *lmp, int narg, char **arg) :
 
   did_setup = invoked_peratom = invoked_scalar = -1;
   nmax = -1;
-  stress = NULL;
+  stress = nullptr;
   vector = new double[size_peratom_cols];
   virial = new double[size_peratom_cols];
 }
@@ -67,7 +68,7 @@ ComputeStressTally::~ComputeStressTally()
 
 void ComputeStressTally::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Trying to use compute stress/tally without pair style");
   else
     force->pair->add_tally_callback(this);
@@ -87,6 +88,11 @@ void ComputeStressTally::init()
 
 void ComputeStressTally::pair_setup_callback(int, int)
 {
+  // run setup only once per time step.
+  // we may be called from multiple pair styles
+
+  if (did_setup == update->ntimestep) return;
+
   const int ntotal = atom->nlocal + atom->nghost;
 
   // grow per-atom storage, if needed
@@ -118,7 +124,7 @@ void ComputeStressTally::pair_tally_callback(int i, int j, int nlocal, int newto
   const int * const mask = atom->mask;
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+       || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
     fpair *= 0.5;
     const double v0 = dx*dx*fpair;

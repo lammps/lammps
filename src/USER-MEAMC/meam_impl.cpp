@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,7 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #include "meam.h"
+
 #include "memory.h"
+
+#include <cstddef>
 
 using namespace LAMMPS_NS;
 
@@ -25,25 +28,25 @@ using namespace LAMMPS_NS;
 MEAM::MEAM(Memory* mem)
   : memory(mem)
 {
-  phir = phirar = phirar1 = phirar2 = phirar3 = phirar4 = phirar5 = phirar6 = NULL;
+  phir = phirar = phirar1 = phirar2 = phirar3 = phirar4 = phirar5 = phirar6 = nullptr;
 
   nmax = 0;
-  rho = rho0 = rho1 = rho2 = rho3 = frhop = NULL;
-  gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = NULL;
-  arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = NULL;
+  rho = rho0 = rho1 = rho2 = rho3 = frhop = nullptr;
+  gamma = dgamma1 = dgamma2 = dgamma3 = arho2b = nullptr;
+  arho1 = arho2 = arho3 = arho3b = t_ave = tsq_ave = nullptr;
 
   maxneigh = 0;
-  scrfcn = dscrfcn = fcpair = NULL;
+  scrfcn = dscrfcn = fcpair = nullptr;
 
   neltypes = 0;
   for (int i = 0; i < maxelt; i++) {
-    Omega_meam[i] = Z_meam[i] = A_meam[i] = rho0_meam[i] = beta0_meam[i] =
+    A_meam[i] = rho0_meam[i] = beta0_meam[i] =
       beta1_meam[i]= beta2_meam[i] = beta3_meam[i] =
       t0_meam[i] = t1_meam[i] = t2_meam[i] = t3_meam[i] =
       rho_ref_meam[i] = ibar_meam[i] = ielt_meam[i] = 0.0;
     for (int j = 0; j < maxelt; j++) {
       lattce_meam[i][j] = FCC;
-      Ec_meam[i][j] = re_meam[i][j] = alpha_meam[i][j] = delta_meam[i][j] = Ec_meam[i][j] = ebound_meam[i][j] = attrac_meam[i][j] = repuls_meam[i][j] = 0.0;
+      Ec_meam[i][j] = re_meam[i][j] = alpha_meam[i][j] = delta_meam[i][j] = ebound_meam[i][j] = attrac_meam[i][j] = repuls_meam[i][j] = 0.0;
       nn2_meam[i][j] = zbl_meam[i][j] = eltind[i][j] = 0;
     }
   }

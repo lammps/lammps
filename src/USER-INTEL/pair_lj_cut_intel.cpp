@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -36,7 +36,7 @@ PairLJCutIntel::PairLJCutIntel(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::INTEL;
   respa_enable = 0;
-  cut_respa = NULL;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,9 +62,9 @@ void PairLJCutIntel::compute(int eflag, int vflag,
                              IntelBuffers<flt_t,acc_t> *buffers,
                              const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -79,7 +79,7 @@ void PairLJCutIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -233,10 +233,10 @@ void PairLJCutIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl = (acc_t)0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                sv0, sv1, sv2, sv3, sv4, sv5)
         #endif
@@ -459,11 +459,8 @@ void PairLJCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                    const int cop) {
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
-      fc_packed1 *oljc12o = ljc12o[0];
-      fc_packed2 *olj34 = lj34[0];
-
-      _memory->destroy(oljc12o);
-      _memory->destroy(olj34);
+      _memory->destroy(ljc12o);
+      _memory->destroy(lj34);
     }
     if (ntypes > 0) {
       _cop = cop;

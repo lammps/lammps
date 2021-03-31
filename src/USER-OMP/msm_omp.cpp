@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,16 +16,14 @@
 ------------------------------------------------------------------------- */
 
 #include "msm_omp.h"
-#include "atom.h"
+
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
-#include "memory.h"
-#include "math_const.h"
 
 #include <cstring>
 
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -56,7 +54,7 @@ void MSMOMP::compute(int eflag, int vflag)
   MSM::compute(eflag,vflag);
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
 #if defined(_OPENMP)
@@ -162,7 +160,7 @@ void MSMOMP::direct_eval(const int nn)
   const int n=nn;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) reduction(+:v0,v1,v2,v3,v4,v5,emsm)
+#pragma omp parallel LMP_DEFAULT_NONE reduction(+:v0,v1,v2,v3,v4,v5,emsm)
 #endif
   {
     double esum,v0sum,v1sum,v2sum,v3sum,v4sum,v5sum;

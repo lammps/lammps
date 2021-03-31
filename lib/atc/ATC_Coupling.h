@@ -114,10 +114,10 @@ namespace ATC {
                                FIELDS &rhs,
                                const Array< std::set <int> > atomMaterialGroups,
                                const VectorDependencyManager<SPAR_MAT * > * shpFcnDerivs,
-                               const SPAR_MAN * shpFcn = NULL,
-                               const DIAG_MAN * atomicWeights = NULL,
-                               const MatrixDependencyManager<DenseMatrix, bool> * elementMask = NULL,
-                               const SetDependencyManager<int> * nodeSet = NULL);
+                               const SPAR_MAN * shpFcn = nullptr,
+                               const DIAG_MAN * atomicWeights = nullptr,
+                               const MatrixDependencyManager<DenseMatrix, bool> * elementMask = nullptr,
+                               const SetDependencyManager<int> * nodeSet = nullptr);
     /** access to full right hand side / forcing vector */
     FIELDS &rhs() {return rhs_;};
     Array2D <bool> rhs_mask() const {
@@ -131,7 +131,7 @@ namespace ATC {
     virtual void initialize_mesh_data(void);  
 
 // public for FieldIntegrator
-    bool source_atomic_quadrature(FieldName field)  
+    bool source_atomic_quadrature(FieldName /* field */)  
       { return (sourceIntegration_ == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE); }
     ATC::IntegrationDomainType source_integration() 
       { return sourceIntegration_; }
@@ -152,14 +152,14 @@ namespace ATC {
                             const FIELDS &fields, 
                             FIELDS &rhs,
                             const IntegrationDomainType domain, // = FULL_DOMAIN
-                            const PhysicsModel * physicsModel=NULL);
+                            const PhysicsModel * physicsModel=nullptr);
    /** wrapper for FE_Engine's compute_tangent_matrix */
    void compute_rhs_tangent(const std::pair<FieldName,FieldName> row_col,
                             const RHS_MASK & rhsMask,      
                             const FIELDS & fields,                  
                             SPAR_MAT & stiffness,
                             const IntegrationDomainType integrationType,
-                            const PhysicsModel * physicsModel=NULL);
+                            const PhysicsModel * physicsModel=nullptr);
    void tangent_matrix(const std::pair<FieldName,FieldName> row_col,
                             const RHS_MASK & rhsMask,      
                             const PhysicsModel * physicsModel,
@@ -197,7 +197,7 @@ namespace ATC {
           return & (it->second).quantity();
         }
         else {
-          return NULL;
+          return nullptr;
         }
       }
       else {
@@ -206,7 +206,7 @@ namespace ATC {
           return & (it->second).quantity();
         }
         else {
-          return NULL;
+          return nullptr;
         }
       }
     }
@@ -227,13 +227,13 @@ namespace ATC {
 
     void set_mass_mat_time_filter(FieldName thisField,TimeFilterManager::FilterIntegrationType filterIntegrationType);
 
-    /** return referece to ExtrinsicModelManager */
+    /** return reference to ExtrinsicModelManager */
     ExtrinsicModelManager & extrinsic_model_manager() 
       { return extrinsicModelManager_; }
     /** access to time integrator */
     const TimeIntegrator * time_integrator(const FieldName & field) const {
       _ctiIt_ = timeIntegrators_.find(field);
-      if (_ctiIt_ == timeIntegrators_.end()) return NULL;
+      if (_ctiIt_ == timeIntegrators_.end()) return nullptr;
       return _ctiIt_->second;
     };
 
@@ -322,7 +322,7 @@ namespace ATC {
     void compute_flux(const Array2D<bool> & rhs_mask,
                       const FIELDS &fields, 
                       GRAD_FIELD_MATS &flux,
-                      const PhysicsModel * physicsModel=NULL,
+                      const PhysicsModel * physicsModel=nullptr,
                       const bool normalize = false);
     /** evaluate rhs on the atomic domain which is near the FE region */
     void masked_atom_domain_rhs_integral(const Array2D<bool> & rhs_mask,
@@ -334,7 +334,7 @@ namespace ATC {
                            const FIELDS &fields, 
                            FIELDS &rhs,
                            const IntegrationDomainType domain,
-                           const PhysicsModel * physicsModel=NULL);
+                           const PhysicsModel * physicsModel=nullptr);
     /** access to boundary fluxes */
     DENS_MAT &get_boundary_flux(FieldName thisField){return boundaryFlux_[thisField].set_quantity();};
     DENS_MAN &boundary_flux(FieldName thisField){return boundaryFlux_[thisField];};
@@ -352,7 +352,7 @@ namespace ATC {
     // mass matrix filtering
     void delete_mass_mat_time_filter(FieldName thisField);
     /** compute mass matrix for requested field */
-    void compute_mass_matrix(FieldName thisField, PhysicsModel * physicsModel = NULL);
+    void compute_mass_matrix(FieldName thisField, PhysicsModel * physicsModel = nullptr);
     /** updates filtering of MD contributions */
     void update_mass_matrix(FieldName thisField);
     /** compute the mass matrix components coming from MD integration */

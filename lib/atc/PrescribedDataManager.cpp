@@ -34,8 +34,8 @@ namespace ATC {
       bcs_[thisField].reset(nNodes_,thisSize);
       for (int inode = 0; inode < nNodes_ ; ++inode) {
         for (int idof = 0; idof < thisSize ; ++idof) {
-          ics_[thisField](inode,idof) = NULL;          
-          bcs_[thisField](inode,idof) = NULL;          
+          ics_[thisField](inode,idof) = nullptr;          
+          bcs_[thisField](inode,idof) = nullptr;          
         }
       }
       // compact inode, value lists
@@ -44,7 +44,7 @@ namespace ATC {
       elementSources_[thisField].reset(nElems_,thisSize);
       for (int ielem = 0; ielem < nElems_ ; ++ielem) {
         for (int idof = 0; idof < thisSize ; ++idof) {
-          elementSources_[thisField](ielem,idof) = NULL;          
+          elementSources_[thisField](ielem,idof) = nullptr;          
         }
       }
       // node based sources
@@ -76,8 +76,8 @@ namespace ATC {
     bcs_[fieldName].reset(nNodes_,size);
     for (int inode = 0; inode < nNodes_ ; ++inode) {
       for (int idof = 0; idof < size ; ++idof) {
-        ics_[fieldName](inode,idof) = NULL;          
-        bcs_[fieldName](inode,idof) = NULL;          
+        ics_[fieldName](inode,idof) = nullptr;          
+        bcs_[fieldName](inode,idof) = nullptr;          
       }
     }
 
@@ -85,7 +85,7 @@ namespace ATC {
     elementSources_[fieldName].reset(nElems_,size);
     for (int ielem = 0; ielem < nElems_ ; ++ielem) {
       for (int idof = 0; idof < size ; ++idof) {
-        elementSources_[fieldName](ielem,idof) = NULL;          
+        elementSources_[fieldName](ielem,idof) = nullptr;          
       }
     }
   }
@@ -159,7 +159,7 @@ namespace ATC {
     set<int>::const_iterator iset;
     for (iset = nodeSet.begin(); iset != nodeSet.end(); iset++) {
       int inode = *iset;
-      bcs_[thisField](inode,thisIndex) = NULL;
+      bcs_[thisField](inode,thisIndex) = nullptr;
     }
   }
 
@@ -182,7 +182,7 @@ namespace ATC {
    const FieldName thisField, 
    const int thisIndex)
   {
-    bcs_[thisField](nodeId,thisIndex) = NULL;
+    bcs_[thisField](nodeId,thisIndex) = nullptr;
   }
 //-------------------------------------------------------------------------
 //  fix_flux
@@ -203,7 +203,7 @@ namespace ATC {
       if (dof.size() == 0) {
         int ndof = (fieldSizes_.find(thisField))->second;
         dof.reset(ndof);
-        for(int i = 0; i < ndof; i++)  dof(i) = NULL; 
+        for(int i = 0; i < ndof; i++)  dof(i) = nullptr; 
       }
       dof(thisIndex) = (XT_Function*) f;
     }
@@ -222,7 +222,7 @@ namespace ATC {
     for (iset = fset->begin(); iset != fset->end(); iset++) {
       pair<int,int>  face = *iset;
       Array < XT_Function * > & dof  = faceSources_[thisField][face];
-      dof(thisIndex) = NULL;
+      dof(thisIndex) = nullptr;
     }
   }
 //-------------------------------------------------------------------------
@@ -244,7 +244,7 @@ namespace ATC {
       if (dof.size() == 0) {
         int ndof = (fieldSizes_.find(thisField))->second;
         dof.reset(ndof);
-        for(int i = 0; i < ndof; i++)  dof(i) = NULL; 
+        for(int i = 0; i < ndof; i++)  dof(i) = nullptr; 
       }
       dof(thisIndex) = (UXT_Function*) f;
     }
@@ -263,7 +263,7 @@ namespace ATC {
     for (iset = fset->begin(); iset != fset->end(); iset++) {
       pair<int,int>  face = *iset;
       Array < UXT_Function * > & dof  = faceSourcesRobin_[thisField][face];
-      dof(thisIndex) = NULL;
+      dof(thisIndex) = nullptr;
     }
   }
 //-------------------------------------------------------------------------
@@ -342,7 +342,7 @@ namespace ATC {
     set<int>::const_iterator iset;
     for (iset = elemSet.begin(); iset != elemSet.end(); iset++) {
       int ielem = *iset;
-      elementSources_[thisField](ielem,thisIndex) = NULL;
+      elementSources_[thisField](ielem,thisIndex) = nullptr;
     }
   }
 //-------------------------------------------------------------------------

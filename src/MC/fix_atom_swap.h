@@ -20,7 +20,6 @@ FixStyle(atom/swap,FixAtomSwap)
 #ifndef LMP_FIX_MCSWAP_H
 #define LMP_FIX_MCSWAP_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {

@@ -25,7 +25,7 @@ fix_modify      AtC  reset_time
 fix_modify      AtC  fix velocity y rbc 0.1
 fix_modify	AtC fix velocity y lbc 0.
 
-# ouput commands
+# output commands
 fix_modify      AtC  output shear_no_atomsFE 200 text binary
 # set-up non-equilibrium IC
 thermo          100

@@ -493,7 +493,7 @@ class Initializer(dobject):
             rv *= np.sqrt(self.nbeads/nbeads)
             set_vector(v, simul.beads.p, rv)
             fmom = True
-         elif k == "thermostat": pass   # thermostats must be initialised in a second stage
+         elif k == "thermostat": pass   # thermostats must be initialized in a second stage
 
       if simul.beads.natoms == 0:
          raise ValueError("Initializer could not initialize the atomic positions")

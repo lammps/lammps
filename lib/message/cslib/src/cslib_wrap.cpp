@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of
@@ -14,7 +14,11 @@
 
 // C style library interface to CSlib class
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,7 +44,7 @@ void cslib_open_fortran(int csflag, const char *mode, const char *str,
                         const void *pcomm, void **csptr)
 {
   MPI_Comm ccomm;
-  void *pccomm = NULL;
+  void *pccomm = nullptr;
 
   if (pcomm) {
     MPI_Fint *fcomm = (MPI_Fint *) pcomm;

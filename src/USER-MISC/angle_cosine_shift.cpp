@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
    Contributing author: Carsten Svaneborg, science@zqex.dk
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_shift.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -26,6 +26,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -36,7 +37,7 @@ using namespace MathConst;
 
 AngleCosineShift::AngleCosineShift(LAMMPS *lmp) : Angle(lmp)
 {
-  kcost = NULL;
+  kcost = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,8 +63,7 @@ void AngleCosineShift::compute(int eflag, int vflag)
   double rsq1,rsq2,r1,r2,c,s,cps,kcos,ksin,a11,a12,a22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -156,11 +156,11 @@ void AngleCosineShift::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  memory->create(k      ,n+1,"Angle:k");
-  memory->create(ksint  ,n+1,"Angle:ksint");
-  memory->create(kcost  ,n+1,"Angle:kcost");
-  memory->create(theta  ,n+1,"Angle:theta");
-  memory->create(setflag,n+1, "Angle:setflag");
+  memory->create(k,n+1,"angle:k");
+  memory->create(ksint,n+1,"angle:ksint");
+  memory->create(kcost,n+1,"angle:kcost");
+  memory->create(theta,n+1,"angle:theta");
+  memory->create(setflag,n+1,"angle:setflag");
 
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
@@ -175,10 +175,10 @@ void AngleCosineShift::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double umin   = force->numeric(FLERR,arg[1]);
-  double theta0 = force->numeric(FLERR,arg[2]);
+  double umin   = utils::numeric(FLERR,arg[1],false,lmp);
+  double theta0 = utils::numeric(FLERR,arg[2],false,lmp);
 
 // k=Umin/2
 
@@ -225,10 +225,10 @@ void AngleCosineShift::read_restart(FILE *fp)
 
   if (comm->me == 0)
     {
-       fread(&k[1],sizeof(double),atom->nangletypes,fp);
-       fread(&kcost[1],sizeof(double),atom->nangletypes,fp);
-       fread(&ksint[1],sizeof(double),atom->nangletypes,fp);
-       fread(&theta[1],sizeof(double),atom->nangletypes,fp);
+      utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+      utils::sfread(FLERR,&kcost[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+      utils::sfread(FLERR,&ksint[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+      utils::sfread(FLERR,&theta[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
     }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&kcost[1],atom->nangletypes,MPI_DOUBLE,0,world);

@@ -36,7 +36,7 @@ static const double localCoordinatesTolerance = 1.e-09;
       tolerance_(localCoordinatesTolerance),
       projectionGuess_(COORDINATE_ALIGNED)
   {
-    feInterpolate_ = NULL;
+    feInterpolate_ = nullptr;
   }
 
   FE_Element::~FE_Element()
@@ -408,7 +408,7 @@ static const double localCoordinatesTolerance = 1.e-09;
       throw ATC_Error("Unrecognized interpolation order specified " 
                       "for element class: \n"                       
                       "  element only knows how to construct lin "  
-                        "and quad elments.");
+                        "and quad elements.");
     }
 
     localCoords_.resize(nSD_,numNodes_);
@@ -637,7 +637,7 @@ static const double localCoordinatesTolerance = 1.e-09;
       throw ATC_Error("Unrecognized interpolation order specified " 
                       "for element class: \n"                       
                       "  element only knows how to construct lin "  
-                        "and quad elments.");
+                        "and quad elements.");
     }
     
     localCoords_.resize(nSD_+1, numNodes_);

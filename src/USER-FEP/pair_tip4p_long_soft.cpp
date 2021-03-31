@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,28 +14,24 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Amalie Frischknecht and Ahmed Ismail (SNL)
    simpler force assignment added by Rolf Isele-Holder (Aachen University)
-   Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Soft-core version: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_tip4p_long_soft.h"
+
+#include <cmath>
+#include <cstring>
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "force.h"
-#include "kspace.h"
-#include "update.h"
-#include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -56,8 +52,8 @@ PairTIP4PLongSoft::PairTIP4PLongSoft(LAMMPS *lmp) : PairCoulLongSoft(lmp)
   respa_enable = 0;
 
   nmax = 0;
-  hneigh = NULL;
-  newsite = NULL;
+  hneigh = nullptr;
+  newsite = nullptr;
 
   // TIP4P cannot compute virial as F dot r
   // due to finding bonded H atoms which are not near O atom
@@ -91,8 +87,7 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
   double rsq;
 
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh & newsite if necessary
   // initialize hneigh[0] to -1 on steps when reneighboring occurred
@@ -386,16 +381,16 @@ void PairTIP4PLongSoft::settings(int narg, char **arg)
 {
   if (narg != 8) error->all(FLERR,"Illegal pair_style command");
 
-  typeO = force->inumeric(FLERR,arg[0]);
-  typeH = force->inumeric(FLERR,arg[1]);
-  typeB = force->inumeric(FLERR,arg[2]);
-  typeA = force->inumeric(FLERR,arg[3]);
-  qdist = force->numeric(FLERR,arg[4]);
+  typeO = utils::inumeric(FLERR,arg[0],false,lmp);
+  typeH = utils::inumeric(FLERR,arg[1],false,lmp);
+  typeB = utils::inumeric(FLERR,arg[2],false,lmp);
+  typeA = utils::inumeric(FLERR,arg[3],false,lmp);
+  qdist = utils::numeric(FLERR,arg[4],false,lmp);
 
-  nlambda = force->numeric(FLERR,arg[5]);
-  alphac  = force->numeric(FLERR,arg[6]);
+  nlambda = utils::numeric(FLERR,arg[5],false,lmp);
+  alphac  = utils::numeric(FLERR,arg[6],false,lmp);
 
-  cut_coul = force->numeric(FLERR,arg[7]);
+  cut_coul = utils::numeric(FLERR,arg[7],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -412,9 +407,9 @@ void PairTIP4PLongSoft::init_style()
   if (!atom->q_flag)
     error->all(FLERR,
                "Pair style tip4p/long requires atom attribute q");
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
-  if (force->angle == NULL)
+  if (force->angle == nullptr)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
   PairCoulLongSoft::init_style();
@@ -459,11 +454,11 @@ void PairTIP4PLongSoft::read_restart_settings(FILE *fp)
   PairCoulLongSoft::read_restart_settings(fp);
 
   if (comm->me == 0) {
-    fread(&typeO,sizeof(int),1,fp);
-    fread(&typeH,sizeof(int),1,fp);
-    fread(&typeB,sizeof(int),1,fp);
-    fread(&typeA,sizeof(int),1,fp);
-    fread(&qdist,sizeof(double),1,fp);
+    utils::sfread(FLERR,&typeO,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeH,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeB,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&typeA,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&qdist,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&typeO,1,MPI_INT,0,world);
   MPI_Bcast(&typeH,1,MPI_INT,0,world);
@@ -506,7 +501,7 @@ void *PairTIP4PLongSoft::extract(const char *str, int &dim)
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   dim = 2;
   if (strcmp(str,"lambda") == 0) return (void *) lambda;
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -515,8 +510,8 @@ void *PairTIP4PLongSoft::extract(const char *str, int &dim)
 
 double PairTIP4PLongSoft::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +15,17 @@
    Contributing authors: Leo Silbert (SNL), Gary Grest (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_gran_hooke_history.h"
+
+#include <cmath>
+#include <cstring>
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_dummy.h"
 #include "fix_neigh_history.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -43,8 +42,9 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   history = 1;
-  fix_history = NULL;
+  size_history = 3;
 
   single_extra = 10;
   svector = new double[10];
@@ -52,11 +52,22 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) : Pair(lmp)
   neighprev = 0;
 
   nmax = 0;
-  mass_rigid = NULL;
+  mass_rigid = nullptr;
 
   // set comm size needed by this Pair if used with fix rigid
 
   comm_forward = 1;
+
+  // keep default behavior of history[i][j] = -history[j][i]
+
+  nondefault_history_transfer = 0;
+
+  // create dummy fix as placeholder for FixNeighHistory
+  // this is so final order of Modify:fix will conform to input script
+
+  fix_history = nullptr;
+  modify->add_fix("NEIGH_HISTORY_HH_DUMMY all DUMMY");
+  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,7 +77,9 @@ PairGranHookeHistory::~PairGranHookeHistory()
   if (copymode) return;
 
   delete [] svector;
-  if (fix_history) modify->delete_fix("NEIGH_HISTORY");
+
+  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_HH_DUMMY");
+  else modify->delete_fix("NEIGH_HISTORY_HH");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -98,8 +111,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
   int *touch,**firsttouch;
   double *shear,*allshear,**firstshear;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int shearupdate = 1;
   if (update->setupflag) shearupdate = 0;
@@ -346,16 +358,16 @@ void PairGranHookeHistory::settings(int narg, char **arg)
 {
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  kn = force->numeric(FLERR,arg[0]);
+  kn = utils::numeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
-  else kt = force->numeric(FLERR,arg[1]);
+  else kt = utils::numeric(FLERR,arg[1],false,lmp);
 
-  gamman = force->numeric(FLERR,arg[2]);
+  gamman = utils::numeric(FLERR,arg[2],false,lmp);
   if (strcmp(arg[3],"NULL") == 0) gammat = 0.5 * gamman;
-  else gammat = force->numeric(FLERR,arg[3]);
+  else gammat = utils::numeric(FLERR,arg[3],false,lmp);
 
-  xmu = force->numeric(FLERR,arg[4]);
-  dampflag = force->inumeric(FLERR,arg[5]);
+  xmu = utils::numeric(FLERR,arg[4],false,lmp);
+  dampflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if (dampflag == 0) gammat = 0.0;
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
@@ -373,8 +385,8 @@ void PairGranHookeHistory::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -410,19 +422,22 @@ void PairGranHookeHistory::init_style()
 
   dt = update->dt;
 
-  // if first init, create Fix needed for storing shear history
+  // if history is stored and first init, create Fix to store history
+  // it replaces FixDummy, created in the constructor
+  // this is so its order in the fix list is preserved
 
-  if (history && fix_history == NULL) {
+  if (history && fix_history == nullptr) {
     char dnumstr[16];
-    sprintf(dnumstr,"%d",3);
+    sprintf(dnumstr,"%d",size_history);
     char **fixarg = new char*[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY";
+    fixarg[0] = (char *) "NEIGH_HISTORY_HH";
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "NEIGH_HISTORY";
     fixarg[3] = dnumstr;
-    modify->add_fix(4,fixarg,1);
+    modify->replace_fix("NEIGH_HISTORY_HH_DUMMY",4,fixarg,1);
     delete [] fixarg;
-    fix_history = (FixNeighHistory *) modify->fix[modify->nfix-1];
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
+    fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
   }
 
@@ -435,7 +450,7 @@ void PairGranHookeHistory::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = NULL;
+  fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
@@ -489,7 +504,7 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    int ifix = modify->find_fix("NEIGH_HISTORY");
+    int ifix = modify->find_fix("NEIGH_HISTORY_HH");
     if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
   }
@@ -539,7 +554,7 @@ void PairGranHookeHistory::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
     }
 }
@@ -565,12 +580,12 @@ void PairGranHookeHistory::write_restart_settings(FILE *fp)
 void PairGranHookeHistory::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&kn,sizeof(double),1,fp);
-    fread(&kt,sizeof(double),1,fp);
-    fread(&gamman,sizeof(double),1,fp);
-    fread(&gammat,sizeof(double),1,fp);
-    fread(&xmu,sizeof(double),1,fp);
-    fread(&dampflag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&kn,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&kt,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&gamman,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&gammat,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&xmu,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&dampflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&kn,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&kt,1,MPI_DOUBLE,0,world);
@@ -778,6 +793,6 @@ void PairGranHookeHistory::unpack_forward_comm(int n, int first, double *buf)
 
 double PairGranHookeHistory::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

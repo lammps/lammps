@@ -691,7 +691,7 @@ namespace ATC {
 
     void departition_mesh(void);
     
-    virtual void element_size(const int ielem, 
+    virtual void element_size(const int /* ielem */, 
                               double &hx, double &hy, double &hz)
     { hx = L_[0]/n_[0]; hy = L_[1]/n_[1]; hz = L_[2]/n_[2]; }
 

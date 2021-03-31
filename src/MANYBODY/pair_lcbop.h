@@ -21,7 +21,6 @@ PairStyle(lcbop,PairLCBOP)
 #define LMP_PAIR_LCBOP_H
 
 #include "pair.h"
-#include "my_page.h"
 #include <cmath>
 #include "math_const.h"
 
@@ -40,9 +39,6 @@ class PairLCBOP : public Pair {
 
  protected:
   int **pages;                     // neighbor list pages
-  int *map;                        // 0 (C) or -1 (NULL) for each type
-
-  int me;
 
   double cutLR;                    // LR cutoff
 

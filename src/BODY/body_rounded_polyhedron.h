@@ -41,6 +41,8 @@ class BodyRoundedPolyhedron : public Body {
   int pack_border_body(struct AtomVecBody::Bonus *, double *);
   int unpack_border_body(struct AtomVecBody::Bonus *, double *);
   void data_body(int, int, int, int *, double *);
+  int pack_data_body(tagint, int, double *);
+  int write_data_body(FILE *, double *);
   double radius_body(int, int, int *, double *);
 
   int noutrow(int);

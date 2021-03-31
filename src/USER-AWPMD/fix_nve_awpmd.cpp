@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,15 +15,14 @@
    Contributing author: Ilya Valuev (JIHT, Moscow, Russia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_awpmd.h"
+#include "pair_awpmd_cut.h"
 #include "atom.h"
 #include "force.h"
 #include "update.h"
 #include "respa.h"
 #include "error.h"
+
 
 #include "TCP/wpmd_split.h"
 
@@ -37,8 +36,6 @@ FixNVEAwpmd::FixNVEAwpmd(LAMMPS *lmp, int narg, char **arg) :
 {
   if (!atom->wavepacket_flag)
     error->all(FLERR,"Fix nve/awpmd requires atom style wavepacket");
-  //if (!atom->mass_type != 1)
-   // error->all(FLERR,"Fix nve/awpmd requires per type mass");
 
   time_integrate = 1;
 }
@@ -62,7 +59,7 @@ void FixNVEAwpmd::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
   awpmd_pair=(PairAWPMDCut *)force->pair;
@@ -73,10 +70,8 @@ void FixNVEAwpmd::init()
    allow for only per-type  mass
 ------------------------------------------------------------------------- */
 
-void FixNVEAwpmd::initial_integrate(int vflag)
+void FixNVEAwpmd::initial_integrate(int /* vflag */)
 {
-
-
   // update v,vr and x,radius of atoms in group
 
   double **x = atom->x;
@@ -85,7 +80,7 @@ void FixNVEAwpmd::initial_integrate(int vflag)
   double *ervel = atom->ervel;
   double **f = atom->f;
   double *erforce = atom->erforce;
-  double *vforce=atom->vforce;
+  double **vforce=atom->vforce;
   double *ervelforce=atom->ervelforce;
 
   double *mass = atom->mass;
@@ -101,8 +96,8 @@ void FixNVEAwpmd::initial_integrate(int vflag)
     if (mask[i] & groupbit) {
       double dtfm = dtf / mass[type[i]];
       double dtfmr=dtfm;
-      for(int j=0;j<3;j++){
-        x[i][j] += dtv*vforce[3*i+j];
+      for (int j=0;j<3;j++) {
+        x[i][j] += dtv*vforce[i][j];
         v[i][j] += dtfm*f[i][j];
       }
       eradius[i]+= dtv*ervelforce[i];
@@ -114,11 +109,11 @@ void FixNVEAwpmd::initial_integrate(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::final_integrate(){}
+void FixNVEAwpmd::final_integrate() {}
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int iloop)
+void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int /* iloop */)
 {
   dtv = step_respa[ilevel];
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
@@ -132,7 +127,7 @@ void FixNVEAwpmd::initial_integrate_respa(int vflag, int ilevel, int iloop)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNVEAwpmd::final_integrate_respa(int ilevel, int iloop)
+void FixNVEAwpmd::final_integrate_respa(int ilevel, int /* iloop */)
 {
   dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
   final_integrate();

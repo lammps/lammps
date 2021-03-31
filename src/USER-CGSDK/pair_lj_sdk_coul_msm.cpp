@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,28 +16,18 @@
    This style is a simplified re-implementation of the CG/CMM pair style
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_sdk_coul_msm.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "kspace.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
 #include "error.h"
 
 #include "lj_sdk_common.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace LJSDKParms;
 
 /* ---------------------------------------------------------------------- */
@@ -47,7 +37,7 @@ PairLJSDKCoulMSM::PairLJSDKCoulMSM(LAMMPS *lmp) : PairLJSDKCoulLong(lmp)
   ewaldflag = pppmflag = 0;
   msmflag = 1;
   respa_enable = 0;
-  ftable = NULL;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,9 +47,7 @@ void PairLJSDKCoulMSM::compute(int eflag, int vflag)
   if (force->kspace->scalar_pressure_flag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' with Pair style");
 
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (eflag) {
@@ -269,17 +257,32 @@ double PairLJSDKCoulMSM::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq[itype][jtype]) {
     const int ljt = lj_type[itype][jtype];
-    const double ljpow1 = lj_pow1[ljt];
-    const double ljpow2 = lj_pow2[ljt];
-    const double ljpref = lj_prefact[ljt];
 
-    const double ratio = sigma[itype][jtype]/sqrt(rsq);
-    const double eps = epsilon[itype][jtype];
+    if (ljt == LJ12_4) {
+      const double r4inv=r2inv*r2inv;
+      forcelj = r4inv*(lj1[itype][jtype]*r4inv*r4inv
+                       - lj2[itype][jtype]);
 
-    forcelj = factor_lj * ljpref*eps * (ljpow1*pow(ratio,ljpow1)
-                          - ljpow2*pow(ratio,ljpow2))/rsq;
-    philj = factor_lj * (ljpref*eps * (pow(ratio,ljpow1) - pow(ratio,ljpow2))
-                         - offset[itype][jtype]);
+      philj = r4inv*(lj3[itype][jtype]*r4inv*r4inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ9_6) {
+      const double r3inv = r2inv*sqrt(r2inv);
+      const double r6inv = r3inv*r3inv;
+      forcelj = r6inv*(lj1[itype][jtype]*r3inv
+                       - lj2[itype][jtype]);
+      philj = r6inv*(lj3[itype][jtype]*r3inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+
+    } else if (ljt == LJ12_6) {
+      const double r6inv = r2inv*r2inv*r2inv;
+      forcelj = r6inv*(lj1[itype][jtype]*r6inv
+                       - lj2[itype][jtype]);
+      philj = r6inv*(lj3[itype][jtype]*r6inv
+                     - lj4[itype][jtype]) - offset[itype][jtype];
+    }
+    forcelj *= factor_lj;
+    philj *= factor_lj;
   }
 
   fforce = (forcecoul + forcelj) * r2inv;
@@ -305,6 +308,6 @@ void *PairLJSDKCoulMSM::extract(const char *str, int &dim)
   dim = 0;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
   if (strcmp(str,"cut_msm") == 0) return (void *) &cut_coul;
-  return NULL;
+  return nullptr;
 }
 

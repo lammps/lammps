@@ -23,18 +23,20 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc_omp.h"
-#include "thr_data.h"
-
-#include "reaxc_types.h"
 #include "reaxc_torsion_angles_omp.h"
-#include "reaxc_bond_orders_omp.h"
+
+#include "fix_omp.h"
+#include "pair_reaxc_omp.h"
+
+#include "reaxc_defs.h"
+#include "reaxc_types.h"
 #include "reaxc_list.h"
-#include "reaxc_tool_box.h"
 #include "reaxc_vector.h"
+
+#include <cmath>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -198,9 +200,9 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
               sin_ijk = sin( theta_ijk );
               cos_ijk = cos( theta_ijk );
               //tan_ijk_i = 1. / tan( theta_ijk );
-              if( sin_ijk >= 0 && sin_ijk <= MIN_SINE )
+              if (sin_ijk >= 0 && sin_ijk <= MIN_SINE)
                 tan_ijk_i = cos_ijk / MIN_SINE;
-              else if( sin_ijk <= 0 && sin_ijk >= -MIN_SINE )
+              else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE)
                 tan_ijk_i = cos_ijk / -MIN_SINE;
               else tan_ijk_i = cos_ijk / sin_ijk;
 
@@ -237,9 +239,9 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   sin_jkl = sin( theta_jkl );
                   cos_jkl = cos( theta_jkl );
                   //tan_jkl_i = 1. / tan( theta_jkl );
-                  if( sin_jkl >= 0 && sin_jkl <= MIN_SINE )
+                  if (sin_jkl >= 0 && sin_jkl <= MIN_SINE)
                     tan_jkl_i = cos_jkl / MIN_SINE;
-                  else if( sin_jkl <= 0 && sin_jkl >= -MIN_SINE )
+                  else if (sin_jkl <= 0 && sin_jkl >= -MIN_SINE)
                     tan_jkl_i = cos_jkl / -MIN_SINE;
                   else tan_jkl_i = cos_jkl /sin_jkl;
 
@@ -338,7 +340,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   //bo_kl->Cdbo += (CEtors6 + CEconj3);
                   bo_kl->CdboReduction[tid] += (CEtors6 + CEconj3);
 
-                  if( control->virial == 0 ) {
+                  if (control->virial == 0) {
                     /* dcos_theta_ijk */
                     rvec_ScaledAdd( workspace->f[j],
                                     CEtors7 + CEconj4, p_ijk->dcos_dj );
@@ -417,7 +419,7 @@ void Torsion_AnglesOMP( reax_system *system, control_params *control,
                   }
 
                   /* tally into per-atom virials */
-                  if( system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
+                  if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
 
                     // acquire vectors
                     rvec_ScaledSum( delil, 1., system->my_atoms[l].x,

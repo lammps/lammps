@@ -20,7 +20,6 @@ ImproperStyle(inversion/harmonic,ImproperInversionHarmonic)
 #ifndef LMP_IMPROPER_INVERSION_HARMONIC_H
 #define LMP_IMPROPER_INVERSION_HARMONIC_H
 
-#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {

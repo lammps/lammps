@@ -18,12 +18,12 @@
 The paramaters for analytical approximation of the atomic scattering factors
 used for x-ray diffraction are gathered from the resources:
 
-Brown P J, Fox A G, Maslen E N, O’Keefe M A and Willis B T M 2004 Intensity
+Brown P J, Fox A G, Maslen E N, O'Keefe M A and Willis B T M 2004 Intensity
 of diffraction intensities International Tables for Crystallography
 Volume C: Mathematical, Physical, and Chemical Tables
 ed E Prince (Norwell, MA: Kluwer Academic Publishers) pp 55495
 
-Fox A G, O’Keefe M A and Tabbernor M A 1989 Relativistic Hartree Fock
+Fox A G, O'Keefe M A and Tabbernor M A 1989 Relativistic Hartree Fock
 x-ray and electron atomic scattering factors at high angles
 Acta Crystallogr. A 45 78693
 */

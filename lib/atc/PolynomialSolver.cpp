@@ -104,7 +104,7 @@ namespace ATC {
 
   // solve ode with polynomial source : y'n + a_n-1 y'n-1 + ... = b_n x^n +...
   void integrate_ode(double x, 
-    int na, double * a, double * y0, double * y, int nb, double *b )
+                     int na, double * a, double * y0, double * y, int nb, double * /* b */ )
   {
     if (na == 2) {
       // particular

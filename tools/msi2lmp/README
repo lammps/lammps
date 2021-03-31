@@ -49,8 +49,12 @@ This program uses the .car and .mdf files from MSI/Biosyms's INSIGHT
 
  1. Building msi2lmp
 
-    Use the Makefile in the src directory. It is
-    currently set up for gcc. You will have to modify
+    If you are using CMake to compile LAMMPS, the building
+    (and installation) of msi2lmp is included in the normal
+    build process.
+
+    Otherwise you can use the Makefile in the src directory.
+    It is currently set up for gcc. You will have to modify
     it to use a different compiler.
 
  2. Testing the program

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,18 +11,16 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "timer.h"
+
 #include "comm.h"
 #include "error.h"
-#include "force.h"
-#include "memory.h"
+
+#include <cstring>
 
 #ifdef _WIN32
 #include <windows.h>
-#include <stdint.h> // <cstdint> requires C++-11
+#include <cstdint>
 #else
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -32,32 +30,6 @@
 
 using namespace LAMMPS_NS;
 
-// convert a timespec ([[HH:]MM:]SS) to seconds
-// the strings "off" and "unlimited" result in -1;
-
-static double timespec2seconds(char *timespec)
-{
-  double vals[3];
-  char *num;
-  int i = 0;
-
-  // first handle allowed textual inputs
-  if (strcmp(timespec,"off") == 0) return -1;
-  if (strcmp(timespec,"unlimited") == 0) return -1;
-
-  vals[0] = vals[1] = vals[2] = 0;
-
-  num = strtok(timespec,":");
-  while ((num != NULL) && (i < 3)) {
-    vals[i] = atoi(num);
-    ++i;
-    num = strtok(NULL,":");
-  }
-
-  if (i == 3) return (vals[0]*60 + vals[1])*60 + vals[2];
-  else if (i == 2) return vals[0]*60 + vals[1];
-  else return vals[0];
-}
 
 // Return the CPU time for the current process in seconds very
 // much in the same way as MPI_Wtime() returns the wall time.
@@ -277,7 +249,6 @@ double Timer::get_timeout_remain()
 ------------------------------------------------------------------------- */
 static const char *timer_style[] = { "off", "loop", "normal", "full" };
 static const char *timer_mode[]  = { "nosync", "(dummy)", "sync" };
-static const char  timer_fmt[]   = "New timer settings: style=%s  mode=%s  timeout=%s\n";
 
 void Timer::modify_params(int narg, char **arg)
 {
@@ -298,16 +269,16 @@ void Timer::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"timeout") == 0) {
       ++iarg;
       if (iarg < narg) {
-        _timeout = timespec2seconds(arg[iarg]);
-      } else error->all(FLERR,"Illegal timers command");
+        _timeout = utils::timespec2seconds(arg[iarg]);
+      } else error->all(FLERR,"Illegal timer command");
     } else if (strcmp(arg[iarg],"every") == 0) {
       ++iarg;
       if (iarg < narg) {
-        _checkfreq = force->inumeric(FLERR,arg[iarg]);
+        _checkfreq = utils::inumeric(FLERR,arg[iarg],false,lmp);
         if (_checkfreq <= 0)
-          error->all(FLERR,"Illegal timers command");
-      } else error->all(FLERR,"Illegal timers command");
-    } else error->all(FLERR,"Illegal timers command");
+          error->all(FLERR,"Illegal timer command");
+      } else error->all(FLERR,"Illegal timer command");
+    } else error->all(FLERR,"Illegal timer command");
     ++iarg;
   }
 
@@ -323,9 +294,8 @@ void Timer::modify_params(int narg, char **arg)
       strftime(timebuf,32,"%H:%M:%S",tm);
     }
 
-    if (screen)
-      fprintf(screen,timer_fmt,timer_style[_level],timer_mode[_sync],timebuf);
-    if (logfile)
-      fprintf(logfile,timer_fmt,timer_style[_level],timer_mode[_sync],timebuf);
+    utils::logmesg(lmp,fmt::format("New timer settings: style={}  mode={}  "
+                                   "timeout={}\n",timer_style[_level],
+                                   timer_mode[_sync],timebuf));
   }
 }

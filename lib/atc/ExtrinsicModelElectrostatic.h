@@ -92,7 +92,7 @@ namespace ATC {
     /** rhs mask for Poisson solver */
     Array2D<bool> rhsMask_;
   
-    /** estimate instrinsic charge density */
+    /** estimate intrinsic charge density */
     void add_electrostatic_forces(MATRIX & nodalPotential);
 
     /** correct short range FE electric field */

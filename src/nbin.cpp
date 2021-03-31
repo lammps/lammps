@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #include "nbin.h"
+#include <cmath>
 #include "neighbor.h"
 #include "neigh_request.h"
 #include "domain.h"
-#include "update.h"
 #include "memory.h"
 #include "error.h"
 
@@ -26,15 +26,19 @@ using namespace LAMMPS_NS;
 NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 {
   last_bin = -1;
-  maxbin = maxatom = 0;
-  binhead = NULL;
-  bins = NULL;
-  atom2bin = NULL;
+  mbins = maxbin = maxatom = 0;
+  binhead = nullptr;
+  bins = nullptr;
+  atom2bin = nullptr;
+
+  neighbor->last_setup_bins = -1;
 
   // geometry settings
 
   dimension = domain->dimension;
   triclinic = domain->triclinic;
+
+  kokkos = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,10 +153,10 @@ int NBin::coord2bin(double *x)
 
 /* ---------------------------------------------------------------------- */
 
-bigint NBin::memory_usage()
+double NBin::memory_usage()
 {
-  bigint bytes = 0;
-  bytes += maxbin*sizeof(int);
-  bytes += 2*maxatom*sizeof(int);
+  double bytes = 0;
+  bytes += (double)maxbin*sizeof(int);
+  bytes += (double)2*maxatom*sizeof(int);
   return bytes;
 }

@@ -79,7 +79,7 @@ thermo		100
 
 # set up output, should be before a "run"
 fix_modify      AtC  output bar1d_combinedFE 100 text
-# ouput command
+# output command
 #dump            D1 all atom 100 dump.bar1d_combined
 # run with FE
 reset_timestep 0

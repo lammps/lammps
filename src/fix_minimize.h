@@ -29,22 +29,22 @@ class FixMinimize : public Fix {
 
  public:
   FixMinimize(class LAMMPS *, int, char **);
-  ~FixMinimize();
+  virtual ~FixMinimize();
   int setmask();
-  void init() {}
+  virtual void init() {}
 
   double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  virtual void grow_arrays(int);
+  virtual void copy_arrays(int, int, int);
+  virtual int pack_exchange(int, double *);
+  virtual int unpack_exchange(int, double *);
 
-  void add_vector(int);
+  virtual void add_vector(int);
   double *request_vector(int);
   void store_box();
   void reset_coords();
 
- private:
+ protected:
   int nvector;
   int *peratom;
   double **vectors;

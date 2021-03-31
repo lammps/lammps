@@ -15,6 +15,7 @@
 #define LMP_NPAIR_INTEL_H
 
 #include "npair.h"
+#include "domain.h"
 #include "fix_intel.h"
 
 #if defined(_OPENMP)

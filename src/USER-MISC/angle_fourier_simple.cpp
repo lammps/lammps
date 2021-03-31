@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
    [ based on angle_cosine_squared.cpp Naveen Michaud-Agrawal (Johns Hopkins U)]
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_fourier_simple.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -27,6 +27,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -37,9 +38,9 @@ using namespace MathConst;
 
 AngleFourierSimple::AngleFourierSimple(LAMMPS *lmp) : Angle(lmp)
 {
-  k = NULL;
-  C = NULL;
-  N = NULL;
+  k = nullptr;
+  C = nullptr;
+  N = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -65,8 +66,7 @@ void AngleFourierSimple::compute(int eflag, int vflag)
   double rsq1,rsq2,r1,r2,c,cn,th,nth,a,a11,a12,a22;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -118,10 +118,10 @@ void AngleFourierSimple::compute(int eflag, int vflag)
 
     // handle sin(n th)/sin(th) singulatiries
 
-    if ( fabs(c)-1.0 > 0.0001 ) {
+    if (fabs(c)-1.0 > 0.0001) {
       a = k[type]*C[type]*N[type]*sin(nth)/sin(th);
     } else {
-      if ( c >= 0.0 ) {
+      if (c >= 0.0) {
         term = 1.0 - c;
         sgn = 1.0;
       } else {
@@ -193,11 +193,11 @@ void AngleFourierSimple::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double C_one = force->numeric(FLERR,arg[2]);
-  double N_one = force->numeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double C_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double N_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -238,9 +238,9 @@ void AngleFourierSimple::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&C[1],sizeof(double),atom->nangletypes,fp);
-    fread(&N[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&N[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&C[1],atom->nangletypes,MPI_DOUBLE,0,world);

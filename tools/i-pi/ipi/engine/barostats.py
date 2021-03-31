@@ -70,7 +70,7 @@ class Barostat(dobject):
    """
 
    def __init__(self, dt=None, temp=None, pext=None, tau=None, ebaro=None, thermostat=None):
-      """Initialises base barostat class.
+      """Initializes base barostat class.
 
       Note that the external stress and the external pressure are synchronized.
       This makes most sense going from the stress to the pressure, but if you

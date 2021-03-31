@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_pe.h"
+
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -26,6 +26,7 @@
 #include "modify.h"
 #include "domain.h"
 #include "error.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -65,6 +66,9 @@ ComputePE::ComputePE(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     }
   }
+
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -79,7 +83,7 @@ double ComputePE::compute_scalar()
   if (pairflag && force->pair)
     one += force->pair->eng_vdwl + force->pair->eng_coul;
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (bondflag && force->bond) one += force->bond->energy;
     if (angleflag && force->angle) one += force->angle->energy;
     if (dihedralflag && force->dihedral) one += force->dihedral->energy;
@@ -95,7 +99,8 @@ double ComputePE::compute_scalar()
     scalar += force->pair->etail / volume;
   }
 
-  if (fixflag && modify->n_thermo_energy) scalar += modify->thermo_energy();
+  if (fixflag && modify->n_energy_global)
+    scalar += modify->energy_global();
 
   return scalar;
 }

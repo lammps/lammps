@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Naveen Michaud-Agrawal (Johns Hopkins U)
                          open-source XDR routines from
-                           Frans van Hoesel (http://md.chem.rug.nl/hoesel)
+                           Frans van Hoesel (https://www.rug.nl/staff/f.h.j.van.hoesel/)
                            are included in this file
                          Axel Kohlmeyer (Temple U)
                            port to platforms without XDR support
@@ -22,12 +22,11 @@
                            support for groups
 ------------------------------------------------------------------------- */
 
+#include "dump_xtc.h"
 #include <cmath>
-#include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include <climits>
-#include "dump_xtc.h"
 #include "domain.h"
 #include "atom.h"
 #include "update.h"
@@ -54,7 +53,7 @@ int xdr3dfcoord(XDR *, float *, int *, float *);
 /* ---------------------------------------------------------------------- */
 
 DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
-  coords(NULL)
+  coords(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump xtc command");
   if (binary || compressed || multifile || multiproc)
@@ -63,7 +62,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   size_one = 3;
   sort_flag = 1;
   sortcol = 0;
-  format_default = NULL;
+  format_default = nullptr;
   flush_flag = 0;
   unwrap_flag = 0;
   precision = 1000.0;
@@ -138,9 +137,9 @@ void DumpXTC::init_style()
 void DumpXTC::openfile()
 {
   // XTC maintains it's own XDR file ptr
-  // set fp to NULL so parent dump class will not use it
+  // set fp to a null pointer so parent dump class will not use it
 
-  fp = NULL;
+  fp = nullptr;
   if (me == 0)
     if (xdropen(&xd,filename,"w") == 0) error->one(FLERR,"Cannot open dump file");
 }
@@ -284,7 +283,7 @@ int DumpXTC::modify_param(int narg, char **arg)
     return 2;
   } else if (strcmp(arg[0],"precision") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    precision = force->numeric(FLERR,arg[1]);
+    precision = utils::numeric(FLERR,arg[1],false,lmp);
     if ((fabs(precision-10.0) > EPS) && (fabs(precision-100.0) > EPS) &&
         (fabs(precision-1000.0) > EPS) && (fabs(precision-10000.0) > EPS) &&
         (fabs(precision-100000.0) > EPS) &&
@@ -293,13 +292,13 @@ int DumpXTC::modify_param(int narg, char **arg)
     return 2;
   } else if (strcmp(arg[0],"sfactor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    sfactor = force->numeric(FLERR,arg[1]);
+    sfactor = utils::numeric(FLERR,arg[1],false,lmp);
     if (sfactor <= 0.0)
       error->all(FLERR,"Illegal dump_modify sfactor value (must be > 0.0)");
     return 2;
   } else if (strcmp(arg[0],"tfactor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    tfactor = force->numeric(FLERR,arg[1]);
+    tfactor = utils::numeric(FLERR,arg[1],false,lmp);
     if (tfactor <= 0.0)
       error->all(FLERR,"Illegal dump_modify tfactor value (must be > 0.0)");
     return 2;
@@ -311,9 +310,9 @@ int DumpXTC::modify_param(int narg, char **arg)
    return # of bytes of allocated memory in buf and global coords array
 ------------------------------------------------------------------------- */
 
-bigint DumpXTC::memory_usage()
+double DumpXTC::memory_usage()
 {
-  bigint bytes = Dump::memory_usage();
+  double bytes = Dump::memory_usage();
   bytes += memory->usage(coords,natoms*3);
   return bytes;
 }
@@ -365,8 +364,8 @@ void DumpXTC::write_frame()
 static FILE *xdrfiles[MAXID];
 static XDR *xdridptr[MAXID];
 static char xdrmodes[MAXID];
-static int *ip = NULL;
-static int *buf = NULL;
+static int *ip = nullptr;
+static int *buf = nullptr;
 
 /*___________________________________________________________________________
  |
@@ -415,12 +414,12 @@ int xdropen(XDR *xdrs, const char *filename, const char *type)
 
   if (init_done == 0) {
     for (xdrid = 1; xdrid < MAXID; xdrid++) {
-      xdridptr[xdrid] = NULL;
+      xdridptr[xdrid] = nullptr;
     }
     init_done = 1;
   }
   xdrid = 1;
-  while (xdrid < MAXID && xdridptr[xdrid] != NULL) {
+  while (xdrid < MAXID && xdridptr[xdrid] != nullptr) {
     xdrid++;
   }
   if (xdrid == MAXID) {
@@ -434,18 +433,18 @@ int xdropen(XDR *xdrs, const char *filename, const char *type)
     lmode = XDR_DECODE;
   }
   xdrfiles[xdrid] = fopen(filename, type);
-  if (xdrfiles[xdrid] == NULL) {
-    xdrs = NULL;
+  if (xdrfiles[xdrid] == nullptr) {
+    xdrs = nullptr;
     return 0;
   }
   xdrmodes[xdrid] = *type;
 
-  /* next test isn't usefull in the case of C language
+  /* next test isn't useful in the case of C language
    * but is used for the Fortran interface
    * (C users are expected to pass the address of an already allocated
    * XDR staructure)
    */
-  if (xdrs == NULL) {
+  if (xdrs == nullptr) {
     xdridptr[xdrid] = (XDR *) malloc(sizeof(XDR));
     xdrstdio_create(xdridptr[xdrid], xdrfiles[xdrid], lmode);
   } else {
@@ -469,7 +468,7 @@ int xdrclose(XDR *xdrs)
 {
   int xdrid;
 
-  if (xdrs == NULL) {
+  if (xdrs == nullptr) {
     fprintf(stderr, "xdrclose: passed a NULL pointer\n");
     exit(1);
   }
@@ -478,7 +477,7 @@ int xdrclose(XDR *xdrs)
 
       xdr_destroy(xdrs);
       fclose(xdrfiles[xdrid]);
-      xdridptr[xdrid] = NULL;
+      xdridptr[xdrid] = nullptr;
       return 1;
     }
   }
@@ -496,8 +495,8 @@ void xdrfreebuf()
 {
   if (ip) free(ip);
   if (buf) free(buf);
-  ip = NULL;
-  buf = NULL;
+  ip = nullptr;
+  buf = nullptr;
 }
 
 
@@ -556,7 +555,7 @@ static int sizeofint(const int size)
   unsigned int num = 1;
   int num_of_bits = 0;
 
-  while (size >= num && num_of_bits < 32) {
+  while (size >= (int) num && num_of_bits < 32) {
     num_of_bits++;
     num <<= 1;
   }
@@ -597,7 +596,7 @@ static int sizeofints( const int num_of_ints, unsigned int sizes[])
   }
   num = 1;
   num_of_bytes--;
-  while (bytes[num_of_bytes] >= num) {
+  while ((int)bytes[num_of_bytes] >= num) {
     num_of_bits++;
     num *= 2;
   }
@@ -611,7 +610,7 @@ static int sizeofints( const int num_of_ints, unsigned int sizes[])
  | this routine is used internally by xdr3dfcoord, to send a set of
  | small integers to the buffer.
  | Multiplication with fixed (specified maximum ) sizes is used to get
- | to one big, multibyte integer. Allthough the routine could be
+ | to one big, multibyte integer. Although the routine could be
  | modified to handle sizes bigger than 16777216, or more than just
  | a few integers, this is not done, because the gain in compression
  | isn't worth the effort. Note that overflowing the multiplication
@@ -651,13 +650,13 @@ static void sendints(int buf[], const int num_of_ints, const int num_of_bits,
     }
     num_of_bytes = bytecnt;
   }
-  if (num_of_bits >= num_of_bytes * 8) {
-    for (i = 0; i < num_of_bytes; i++) {
+  if (num_of_bits >= (int)num_of_bytes * 8) {
+    for (i = 0; i < (int)num_of_bytes; i++) {
       sendbits(buf, 8, bytes[i]);
     }
     sendbits(buf, num_of_bits - num_of_bytes * 8, 0);
   } else {
-    for (i = 0; i < num_of_bytes-1; i++) {
+    for (i = 0; i < (int)num_of_bytes-1; i++) {
       sendbits(buf, 8, bytes[i]);
     }
     sendbits(buf, num_of_bits- (num_of_bytes -1) * 8, bytes[i]);
@@ -692,7 +691,7 @@ static int receivebits(int buf[], int num_of_bits)
     num_of_bits -=8;
   }
   if (num_of_bits > 0) {
-    if (lastbits < num_of_bits) {
+    if ((int)lastbits < num_of_bits) {
       lastbits += 8;
       lastbyte = (lastbyte << 8) | cbuf[cnt++];
     }
@@ -759,7 +758,7 @@ static void receiveints(int buf[], const int num_of_ints, int num_of_bits,
  | using multiplication by *precision and rounding to the nearest integer.
  | Then the minimum and maximum value are calculated to determine the range.
  | The limited range of integers so found, is used to compress the coordinates.
- | In addition the differences between succesive coordinates is calculated.
+ | In addition the differences between successive coordinates is calculated.
  | If the difference happens to be 'small' then only the difference is saved,
  | compressing the data even more. The notion of 'small' is changed dynamically
  | and is enlarged or reduced whenever needed or possible.
@@ -810,34 +809,34 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     /* when the number of coordinates is small, don't try to compress; just
      * write them as floats using xdr_vector
      */
-    if (*size <= 9 ) {
+    if (*size <= 9) {
       return (xdr_vector(xdrs, (char *) fp, size3, sizeof(*fp),
                          (xdrproc_t)xdr_float));
     }
 
     xdr_float(xdrs, precision);
-    if (ip == NULL) {
+    if (ip == nullptr) {
       ip = (int *) malloc(size3 * sizeof(*ip));
-      if (ip == NULL) {
+      if (ip == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       bufsize = (int) (size3 * 1.2);
       buf = (int *) malloc(bufsize * sizeof(*buf));
-      if (buf == NULL) {
+      if (buf == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       oldsize = *size;
     } else if (*size > oldsize) {
       ip = (int *) realloc(ip, size3 * sizeof(*ip));
-      if (ip == NULL) {
+      if (ip == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       bufsize = (int) (size3 * 1.2);
       buf = (int *) realloc(buf, bufsize * sizeof(*buf));
-      if (buf == NULL) {
+      if (buf == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
@@ -852,7 +851,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     lip = ip;
     mindiff = INT_MAX;
     oldlint1 = oldlint2 = oldlint3 = 0;
-    while(lfp < fp + size3 ) {
+    while (lfp < fp + size3) {
       /* find nearest integer */
       if (*lfp >= 0.0)
         lf = *lfp * *precision + 0.5;
@@ -932,11 +931,11 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     lip = ip;
     luip = (unsigned int *) ip;
     smallidx = FIRSTIDX;
-    while (smallidx < LASTIDX && magicints[smallidx] < mindiff) {
+    while (smallidx < (int)LASTIDX && magicints[smallidx] < mindiff) {
       smallidx++;
     }
     xdr_int(xdrs, &smallidx);
-    maxidx = MYMIN(LASTIDX, smallidx + 8) ;
+    maxidx = MYMIN((int)LASTIDX, smallidx + 8) ;
     minidx = maxidx - 8; /* often this equal smallidx */
     smaller = magicints[MYMAX(FIRSTIDX, smallidx-1)] / 2;
     small = magicints[smallidx] / 2;
@@ -1060,28 +1059,28 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
                          (xdrproc_t)xdr_float));
     }
     xdr_float(xdrs, precision);
-    if (ip == NULL) {
+    if (ip == nullptr) {
       ip = (int *) malloc(size3 * sizeof(*ip));
-      if (ip == NULL) {
+      if (ip == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       bufsize = (int) (size3 * 1.2);
       buf = (int *) malloc(bufsize * sizeof(*buf));
-      if (buf == NULL) {
+      if (buf == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       oldsize = *size;
     } else if (*size > oldsize) {
       ip = (int *)realloc(ip, size3 * sizeof(*ip));
-      if (ip == NULL) {
+      if (ip == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
       bufsize = (int) (size3 * 1.2);
       buf = (int *)realloc(buf, bufsize * sizeof(*buf));
-      if (buf == NULL) {
+      if (buf == nullptr) {
         fprintf(stderr,"malloc failed\n");
         exit(1);
       }
@@ -1112,7 +1111,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     }
 
     xdr_int(xdrs, &smallidx);
-    maxidx = MYMIN(LASTIDX, smallidx + 8) ;
+    maxidx = MYMIN((int)LASTIDX, smallidx + 8) ;
     minidx = maxidx - 8; /* often this equal smallidx */
     smaller = magicints[MYMAX(FIRSTIDX, smallidx-1)] / 2;
     small = magicints[smallidx] / 2;
@@ -1132,7 +1131,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
     run = 0;
     i = 0;
     lip = ip;
-    while ( i < lsize ) {
+    while (i < lsize) {
       thiscoord = (int *)(lip) + i * 3;
 
       if (bitsize == 0) {

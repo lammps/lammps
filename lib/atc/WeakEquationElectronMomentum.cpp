@@ -79,7 +79,7 @@ void WeakEquationElectronMomentum::M_integrand(
 //--------------------------------------------------------------
 void WeakEquationElectronMomentum::B_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
+  const GRAD_FIELD_MATS & /* grad_fields */,
   const Material * material,
   DENS_MAT_VEC &flux) const
 {

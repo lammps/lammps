@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
    Contributing authors: Mike Parks (SNL), Ezwanur Rahman, J.T. Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "fix_peri_neigh.h"
-#include "pair_peri_pmb.h"
+
+#include <cmath>
 #include "pair_peri_lps.h"
 #include "pair_peri_ves.h"
 #include "pair_peri_eps.h"
@@ -25,7 +25,6 @@
 #include "domain.h"
 #include "force.h"
 #include "comm.h"
-#include "update.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -57,19 +56,19 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   // set maxpartner = 1 as placeholder
 
   maxpartner = 1;
-  npartner = NULL;
-  partner = NULL;
-  deviatorextention = NULL;
-  deviatorBackextention = NULL;
-  deviatorPlasticextension = NULL;
-  lambdaValue = NULL;
-  r0 = NULL;
-  vinter = NULL;
-  wvolume = NULL;
+  npartner = nullptr;
+  partner = nullptr;
+  deviatorextention = nullptr;
+  deviatorBackextention = nullptr;
+  deviatorPlasticextension = nullptr;
+  lambdaValue = nullptr;
+  r0 = nullptr;
+  vinter = nullptr;
+  wvolume = nullptr;
 
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   // initialize npartner to 0 so atom migration is OK the 1st time
 
@@ -87,8 +86,8 @@ FixPeriNeigh::~FixPeriNeigh()
 {
   // unregister this fix so atom class doesn't invoke it any more
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete locally stored arrays
 
@@ -229,13 +228,13 @@ void FixPeriNeigh::setup(int /*vflag*/)
   memory->destroy(r0);
   memory->destroy(npartner);
 
-  npartner = NULL;
-  partner = NULL;
-  deviatorextention = NULL;
-  deviatorBackextention = NULL;
-  deviatorPlasticextension = NULL;
-  lambdaValue = NULL;
-  r0 = NULL;
+  npartner = nullptr;
+  partner = nullptr;
+  deviatorextention = nullptr;
+  deviatorBackextention = nullptr;
+  deviatorPlasticextension = nullptr;
+  lambdaValue = nullptr;
+  r0 = nullptr;
   grow_arrays(atom->nmax);
 
   // create partner list and r0 values from neighbor list
@@ -302,9 +301,9 @@ void FixPeriNeigh::setup(int /*vflag*/)
   double **x0 = atom->x0;
   double half_lc = 0.5*(domain->lattice->xlattice);
   double vfrac_scale;
-  PairPeriLPS *pairlps = NULL;
-  PairPeriVES *pairves = NULL;
-  PairPeriEPS *paireps = NULL;
+  PairPeriLPS *pairlps = nullptr;
+  PairPeriVES *pairves = nullptr;
+  PairPeriEPS *paireps = nullptr;
   if (isLPS)
     pairlps = static_cast<PairPeriLPS*>(anypair);
   else if (isVES)
@@ -400,18 +399,18 @@ double FixPeriNeigh::memory_usage()
 {
   int nmax = atom->nmax;
   int bytes = nmax * sizeof(int);
-  bytes += nmax*maxpartner * sizeof(tagint);
-  bytes += nmax*maxpartner * sizeof(double);
+  bytes += (double)nmax*maxpartner * sizeof(tagint);
+  bytes += (double)nmax*maxpartner * sizeof(double);
   if (isVES) {
-    bytes += nmax*maxpartner * sizeof(double);
-    bytes += nmax*maxpartner * sizeof(double);
+    bytes += (double)nmax*maxpartner * sizeof(double);
+    bytes += (double)nmax*maxpartner * sizeof(double);
   }
   if (isEPS) {
-    bytes += nmax*maxpartner * sizeof(double);
-    bytes += nmax * sizeof(double);
+    bytes += (double)nmax*maxpartner * sizeof(double);
+    bytes += (double)nmax * sizeof(double);
   }
-  bytes += nmax * sizeof(double);
-  bytes += nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }
 
@@ -580,6 +579,7 @@ void FixPeriNeigh::restart(char *buf)
 int FixPeriNeigh::pack_restart(int i, double *buf)
 {
   int m = 0;
+  // pack buf[0] this way b/c other fixes unpack it
   if (isVES) buf[m++] = 4*npartner[i] + 4;
   else if (isEPS) buf[m++] = 3*npartner[i] + 5;
   else buf[m++] = 2*npartner[i] + 4;
@@ -609,6 +609,7 @@ void FixPeriNeigh::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way b/c other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

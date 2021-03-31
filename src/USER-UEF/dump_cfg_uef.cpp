@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,15 +13,10 @@
    Contributing Author: David Nicholson (MIT)
 ------------------------------------------------------------------------- */
 
-
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "dump_cfg.h"
+#include <cstring>
 #include "atom.h"
-#include "domain.h"
 #include "modify.h"
-#include "compute.h"
 #include "fix.h"
 #include "error.h"
 #include "uef_utils.h"
@@ -77,7 +72,7 @@ void DumpCFGUef::write_header(bigint n)
   // rot goes from "lab frame" to "upper triangular frame"
   // it's transpose takes the simulation box to the flow frame
   for (int i=0;i<3;i++)
-    for(int j=i+1;j<3;j++)
+    for (int j=i+1;j<3;j++)
     {
       double t=rot[i][j];
       rot[i][j]=rot[j][i];

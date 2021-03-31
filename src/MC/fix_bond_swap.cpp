@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,29 +11,28 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_bond_swap.h"
-#include "atom.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
-#include "neighbor.h"
+#include "atom.h"
+#include "bond.h"
+#include "citeme.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "group.h"
-#include "comm.h"
-#include "domain.h"
-#include "modify.h"
-#include "compute.h"
+#include "neighbor.h"
+#include "pair.h"
 #include "random_mars.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,14 +52,14 @@ static const char cite_fix_bond_swap[] =
 
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tflag(0), alist(NULL), id_temp(NULL), type(NULL), x(NULL), list(NULL),
-  temperature(NULL), random(NULL)
+  tflag(0), alist(nullptr), id_temp(nullptr), type(nullptr), x(nullptr), list(nullptr),
+  temperature(nullptr), random(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_bond_swap);
 
   if (narg != 7) error->all(FLERR,"Illegal fix bond/swap command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/swap command");
 
   force_reneighbor = 1;
@@ -70,40 +69,31 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extvector = 0;
 
-  fraction = force->numeric(FLERR,arg[4]);
-  double cutoff = force->numeric(FLERR,arg[5]);
+  fraction = utils::numeric(FLERR,arg[4],false,lmp);
+  double cutoff = utils::numeric(FLERR,arg[5],false,lmp);
   cutsq = cutoff*cutoff;
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  int seed = force->inumeric(FLERR,arg[6]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
   random = new RanMars(lmp,seed + comm->me);
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/swap with non-molecular systems");
 
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tflag = 1;
 
   // initialize atom list
 
   nmax = 0;
-  alist = NULL;
+  alist = nullptr;
 
   naccept = foursome = 0;
 }
@@ -137,7 +127,7 @@ void FixBondSwap::init()
 {
   // require an atom style with molecule IDs
 
-  if (atom->molecule == NULL)
+  if (atom->molecule == nullptr)
     error->all(FLERR,
                "Must use atom style with molecule IDs with fix bond/swap");
 
@@ -150,13 +140,13 @@ void FixBondSwap::init()
   // no dihedral or improper potentials allowed
   // special bonds must be 0 1 1
 
-  if (force->pair == NULL || force->bond == NULL)
+  if (force->pair == nullptr || force->bond == nullptr)
     error->all(FLERR,"Fix bond/swap requires pair and bond styles");
 
   if (force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support fix bond/swap");
 
-  if (force->angle == NULL && atom->nangles > 0 && comm->me == 0)
+  if (force->angle == nullptr && atom->nangles > 0 && comm->me == 0)
     error->warning(FLERR,"Fix bond/swap will ignore defined angles");
 
   if (force->dihedral || force->improper)
@@ -649,9 +639,7 @@ int FixBondSwap::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -734,6 +722,6 @@ double FixBondSwap::compute_vector(int n)
 
 double FixBondSwap::memory_usage()
 {
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   return bytes;
 }

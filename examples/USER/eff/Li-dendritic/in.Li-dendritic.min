@@ -1,5 +1,4 @@
 variable        sname index Li-dendritic
-log		${sname}.min.log
 
 units 		electron
 newton		on
@@ -7,8 +6,8 @@ boundary        p p p
 
 atom_style	electron
 
-#read_data  	data.${sname}
-read_restart	${sname}.min.restart2
+read_data  	data.${sname}
+#read_restart	${sname}.min.restart2
 
 pair_style      eff/cut 50.112 
 pair_coeff	* * 

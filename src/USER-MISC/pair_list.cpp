@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,23 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_list.h"
-#include "atom.h"
-#include "comm.h"
-#include "domain.h"
-#include "force.h"
-#include "memory.h"
 
-#include "error.h"
-
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include "atom.h"
+#include "comm.h"
+#include "force.h"
+#include "memory.h"
+#include "error.h"
+
 
 using namespace LAMMPS_NS;
 
 static const char * const stylename[] = {
-  "none", "harmonic", "morse", "lj126", NULL
+  "none", "harmonic", "morse", "lj126", nullptr
 };
 
 // fast power function for integer exponent > 0
@@ -57,8 +54,8 @@ PairList::PairList(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   respa_enable = 0;
   cut_global = 0.0;
-  style = NULL;
-  params = NULL;
+  style = nullptr;
+  params = nullptr;
   check_flag = 1;
 }
 
@@ -80,9 +77,7 @@ PairList::~PairList()
 
 void PairList::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global =
-         vflag_global = eflag_atom = vflag_atom = 0;
+  ev_init(eflag,vflag);
 
   const int nlocal = atom->nlocal;
   const int newton_pair = force->newton_pair;
@@ -208,20 +203,20 @@ void PairList::settings(int narg, char **arg)
   if (narg < 2)
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
   if (narg > 2) {
     if (strcmp(arg[2],"nocheck") == 0) check_flag = 0;
     if (strcmp(arg[2],"check") == 0) check_flag = 1;
   }
 
-  FILE *fp = force->open_potential(arg[0]);
+  FILE *fp = utils::open_potential(arg[0],lmp,nullptr);
   char line[1024];
-  if (fp == NULL)
+  if (fp == nullptr)
     error->all(FLERR,"Cannot open pair list file");
 
   // count lines in file for upper limit of storage needed
   int num = 1;
-  while(fgets(line,1024,fp)) ++num;
+  while (fgets(line,1024,fp)) ++num;
   rewind(fp);
   memory->create(style,num,"pair_list:style");
   memory->create(params,num,"pair_list:params");
@@ -232,7 +227,7 @@ void PairList::settings(int narg, char **arg)
   tagint id1, id2;
   int nharm=0, nmorse=0, nlj126=0;
 
-  while(fgets(line,1024,fp)) {
+  while (fgets(line,1024,fp)) {
     ptr = strtok(line," \t\n\r\f");
 
     // skip empty lines
@@ -243,13 +238,13 @@ void PairList::settings(int narg, char **arg)
 
     // get atom ids of pair
     id1 = ATOTAGINT(ptr);
-    ptr = strtok(NULL," \t\n\r\f");
+    ptr = strtok(nullptr," \t\n\r\f");
     if (!ptr)
       error->all(FLERR,"Incorrectly formatted pair list file");
     id2 = ATOTAGINT(ptr);
 
     // get potential type
-    ptr = strtok(NULL," \t\n\r\f");
+    ptr = strtok(nullptr," \t\n\r\f");
     if (!ptr)
       error->all(FLERR,"Incorrectly formatted pair list file");
 
@@ -262,15 +257,15 @@ void PairList::settings(int narg, char **arg)
     if (strcmp(ptr,stylename[HARM]) == 0) {
       style[npairs] = HARM;
 
-      ptr = strtok(NULL," \t\n\r\f");
-      if ((ptr == NULL) || (*ptr == '#'))
+      ptr = strtok(nullptr," \t\n\r\f");
+      if ((ptr == nullptr) || (*ptr == '#'))
         error->all(FLERR,"Incorrectly formatted harmonic pair parameters");
-      par.parm.harm.k = force->numeric(FLERR,ptr);
+      par.parm.harm.k = utils::numeric(FLERR,ptr,false,lmp);
 
-      ptr = strtok(NULL," \t\n\r\f");
-      if ((ptr == NULL) || (*ptr == '#'))
+      ptr = strtok(nullptr," \t\n\r\f");
+      if ((ptr == nullptr) || (*ptr == '#'))
         error->all(FLERR,"Incorrectly formatted harmonic pair parameters");
-      par.parm.harm.r0 = force->numeric(FLERR,ptr);
+      par.parm.harm.r0 = utils::numeric(FLERR,ptr,false,lmp);
 
       ++nharm;
 
@@ -278,20 +273,20 @@ void PairList::settings(int narg, char **arg)
     } else if (strcmp(ptr,stylename[MORSE]) == 0) {
       style[npairs] = MORSE;
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted morse pair parameters");
-      par.parm.morse.d0 = force->numeric(FLERR,ptr);
+      par.parm.morse.d0 = utils::numeric(FLERR,ptr,false,lmp);
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted morse pair parameters");
-      par.parm.morse.alpha = force->numeric(FLERR,ptr);
+      par.parm.morse.alpha = utils::numeric(FLERR,ptr,false,lmp);
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted morse pair parameters");
-      par.parm.morse.r0 = force->numeric(FLERR,ptr);
+      par.parm.morse.r0 = utils::numeric(FLERR,ptr,false,lmp);
 
       ++nmorse;
 
@@ -299,15 +294,15 @@ void PairList::settings(int narg, char **arg)
       // 12-6 lj potential
       style[npairs] = LJ126;
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted 12-6 LJ pair parameters");
-      par.parm.lj126.epsilon = force->numeric(FLERR,ptr);
+      par.parm.lj126.epsilon = utils::numeric(FLERR,ptr,false,lmp);
 
-      ptr = strtok(NULL," \t\n\r\f");
+      ptr = strtok(nullptr," \t\n\r\f");
       if (!ptr)
         error->all(FLERR,"Incorrectly formatted 12-6 LJ pair parameters");
-      par.parm.lj126.sigma = force->numeric(FLERR,ptr);
+      par.parm.lj126.sigma = utils::numeric(FLERR,ptr,false,lmp);
 
       ++nlj126;
 
@@ -316,9 +311,9 @@ void PairList::settings(int narg, char **arg)
     }
 
     // optional cutoff parameter. if not specified use global value
-    ptr = strtok(NULL," \t\n\r\f");
-    if ((ptr != NULL) && (*ptr != '#')) {
-      double cut = force->numeric(FLERR,ptr);
+    ptr = strtok(nullptr," \t\n\r\f");
+    if ((ptr != nullptr) && (*ptr != '#')) {
+      double cut = utils::numeric(FLERR,ptr,false,lmp);
       par.cutsq = cut*cut;
     } else {
       par.cutsq = cut_global*cut_global;
@@ -350,8 +345,8 @@ void PairList::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -373,7 +368,7 @@ void PairList::init_style()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style list requires atom IDs");
 
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair style list requires an atom map");
 
   if (offset_flag) {
@@ -414,10 +409,10 @@ double PairList::init_one(int, int)
 
 double PairList::memory_usage()
 {
-  double bytes = npairs * sizeof(int);
-  bytes += npairs * sizeof(list_parm_t);
+  double bytes = (double)npairs * sizeof(int);
+  bytes += (double)npairs * sizeof(list_parm_t);
   const int n = atom->ntypes+1;
-  bytes += n*(n*sizeof(int) + sizeof(int *));
-  bytes += n*(n*sizeof(double) + sizeof(double *));
+  bytes += (double)n*(n*sizeof(int) + sizeof(int *));
+  bytes += (double)n*(n*sizeof(double) + sizeof(double *));
   return bytes;
 }

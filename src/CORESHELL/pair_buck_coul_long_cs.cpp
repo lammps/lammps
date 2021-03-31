@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,23 +15,13 @@
    Contributing author: Hendrik Heenen (hendrik.heenen@mytum.de)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_buck_coul_long_cs.h"
+#include <cmath>
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
-#include "kspace.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   9.95473818e-1
@@ -52,7 +42,8 @@ PairBuckCoulLongCS::PairBuckCoulLongCS(LAMMPS *lmp) : PairBuckCoulLong(lmp)
 {
   ewaldflag = pppmflag = 1;
   writedata = 1;
-  ftable = NULL;
+  single_enable = 0;
+  ftable = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,8 +59,7 @@ void PairBuckCoulLongCS::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;

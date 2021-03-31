@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,27 +16,24 @@
                          Oleg Sergeev (VNIIA, sergeev@vniia.ru)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cmath>
-#include <cstring>
-#include "fix_ave_atom.h"
 #include "fix_reaxc_species.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "update.h"
-#include "pair_reaxc.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "comm.h"
-#include "force.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
-#include "reaxc_list.h"
+#include "fix_ave_atom.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "pair_reaxc.h"
+#include "update.h"
+
+#include <cstring>
+
+#include "reaxc_defs.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -101,7 +98,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
     error->warning(FLERR,"Resetting reneighboring criteria for fix reax/c/species");
   }
 
-  tmparg = NULL;
+  tmparg = nullptr;
   memory->create(tmparg,4,4,"reax/c/species:tmparg");
   strcpy(tmparg[0],arg[3]);
   strcpy(tmparg[1],arg[4]);
@@ -123,28 +120,28 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
 #endif
     } else fp = fopen(arg[6],"w");
 
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open fix reax/c/species file %s",arg[6]);
       error->one(FLERR,str);
     }
   }
 
-  x0 = NULL;
-  clusterID = NULL;
+  x0 = nullptr;
+  clusterID = nullptr;
 
   int ntmp = 1;
   memory->create(x0,ntmp,"reax/c/species:x0");
   memory->create(clusterID,ntmp,"reax/c/species:clusterID");
   vector_atom = clusterID;
 
-  BOCut = NULL;
-  Name = NULL;
-  MolName = NULL;
-  MolType = NULL;
-  NMol = NULL;
-  nd = NULL;
-  molmap = NULL;
+  BOCut = nullptr;
+  Name = nullptr;
+  MolName = nullptr;
+  MolType = nullptr;
+  NMol = nullptr;
+  nd = nullptr;
+  molmap = nullptr;
 
   nmax = 0;
   setupflag = 0;
@@ -160,8 +157,8 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
       BOCut[i][j] = bg_cut;
 
   // optional args
-  eletype = NULL;
-  ele = filepos = NULL;
+  eletype = nullptr;
+  ele = filepos = nullptr;
   eleflag = posflag = padflag = 0;
 
   singlepos_opened = multipos_opened = 0;
@@ -217,7 +214,7 @@ FixReaxCSpecies::FixReaxCSpecies(LAMMPS *lmp, int narg, char **arg) :
       } else {
         if (me == 0) {
           pos = fopen(filepos, "w");
-          if (pos == NULL) error->one(FLERR,"Cannot open fix reax/c/species position file");
+          if (pos == nullptr) error->one(FLERR,"Cannot open fix reax/c/species position file");
         }
         singlepos_opened = 1;
         multipos = 0;
@@ -282,7 +279,7 @@ int FixReaxCSpecies::setmask()
 void FixReaxCSpecies::setup(int /*vflag*/)
 {
   ntotal = static_cast<int> (atom->natoms);
-  if (Name == NULL)
+  if (Name == nullptr)
     memory->create(Name,ntypes,"reax/c/species:Name");
 
   post_integrate();
@@ -296,7 +293,7 @@ void FixReaxCSpecies::init()
     error->all(FLERR,"Cannot use fix reax/c/species unless atoms have IDs");
 
   reaxc = (PairReaxC *) force->pair_match("reax/c",0);
-  if (reaxc == NULL) error->all(FLERR,"Cannot use fix reax/c/species without "
+  if (reaxc == nullptr) error->all(FLERR,"Cannot use fix reax/c/species without "
                                 "pair_style reax/c, reax/c/kk, or reax/c/omp");
 
   reaxc->fixspecies_flag = 1;
@@ -583,7 +580,7 @@ void FixReaxCSpecies::FindMolecule ()
 void FixReaxCSpecies::SortMolecule(int &Nmole)
 {
   memory->destroy(molmap);
-  molmap = NULL;
+  molmap = nullptr;
 
   int n, idlo, idhi;
   int *mask =atom->mask;
@@ -645,7 +642,7 @@ void FixReaxCSpecies::SortMolecule(int &Nmole)
   }
 
   memory->destroy(molmap);
-  molmap = NULL;
+  molmap = nullptr;
 
 }
 
@@ -660,11 +657,11 @@ void FixReaxCSpecies::FindSpecies(int Nmole, int &Nspec)
   int *Nameall, *NMolall;
 
   memory->destroy(MolName);
-  MolName = NULL;
+  MolName = nullptr;
   memory->create(MolName,Nmole*(ntypes+1),"reax/c/species:MolName");
 
   memory->destroy(NMol);
-  NMol = NULL;
+  NMol = nullptr;
   memory->create(NMol,Nmole,"reax/c/species:NMol");
   for (m = 0; m < Nmole; m ++)
     NMol[m] = 1;
@@ -709,11 +706,11 @@ void FixReaxCSpecies::FindSpecies(int Nmole, int &Nspec)
   memory->destroy(Nameall);
 
   memory->destroy(nd);
-  nd = NULL;
+  nd = nullptr;
   memory->create(nd,Nspec,"reax/c/species:nd");
 
   memory->destroy(MolType);
-  MolType = NULL;
+  MolType = nullptr;
   memory->create(MolType,Nspec*(ntypes+2),"reax/c/species:MolType");
 }
 
@@ -797,8 +794,8 @@ void FixReaxCSpecies::OpenPos()
 
   if (me == 0) {
     pos = fopen(filecurrent, "w");
-    if (pos == NULL) error->one(FLERR,"Cannot open fix reax/c/species position file");
-  } else pos = NULL;
+    if (pos == nullptr) error->one(FLERR,"Cannot open fix reax/c/species position file");
+  } else pos = nullptr;
   multipos_opened = 1;
 
   free(filecurrent);
@@ -835,7 +832,7 @@ void FixReaxCSpecies::WritePos(int Nmole, int Nspec)
     fprintf(pos,"ID\tAtom_Count\tType\tAve_q\t\tCoM_x\t\tCoM_y\t\tCoM_z\n");
   }
 
-  Nameall = NULL;
+  Nameall = nullptr;
   memory->create(Nameall,ntypes,"reax/c/species:Nameall");
 
   for (m = 1; m <= Nmole; m ++) {

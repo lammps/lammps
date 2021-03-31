@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,6 +17,7 @@
 #include "error.h"
 #include "force.h"
 #include "kspace.h"
+#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -234,7 +235,7 @@ struct DomainPBCFunctor {
     x(_x.view<DeviceType>()), v(_v.view<DeviceType>()),
     mask(_mask.view<DeviceType>()), image(_image.view<DeviceType>()),
     deform_groupbit(_deform_groupbit),
-    xperiodic(_xperiodic), yperiodic(_yperiodic), zperiodic(_zperiodic){
+    xperiodic(_xperiodic), yperiodic(_yperiodic), zperiodic(_zperiodic) {
     lo[0]=_lo[0]; lo[1]=_lo[1]; lo[2]=_lo[2];
     hi[0]=_hi[0]; hi[1]=_hi[1]; hi[2]=_hi[2];
     period[0]=_period[0]; period[1]=_period[1]; period[2]=_period[2];
@@ -339,6 +340,17 @@ struct DomainPBCFunctor {
 
 void DomainKokkos::pbc()
 {
+
+  if (lmp->kokkos->exchange_comm_classic) {
+
+   // reduce GPU data movement
+
+    atomKK->sync(Host,X_MASK|V_MASK|MASK_MASK|IMAGE_MASK);
+    Domain::pbc();
+    atomKK->modified(Host,X_MASK|V_MASK|MASK_MASK|IMAGE_MASK);
+    return;
+  }
+
   double *lo,*hi,*period;
   int nlocal = atomKK->nlocal;
 

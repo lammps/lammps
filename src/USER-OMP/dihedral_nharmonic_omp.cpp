@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,15 +15,16 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include <cmath>
 #include "dihedral_nharmonic_omp.h"
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "error.h"
+
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -43,17 +44,14 @@ DihedralNHarmonicOMP::DihedralNHarmonicOMP(class LAMMPS *lmp)
 
 void DihedralNHarmonicOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = neighbor->ndihedrallist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -61,7 +59,7 @@ void DihedralNHarmonicOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {
@@ -205,15 +203,15 @@ void DihedralNHarmonicOMP::eval(int nfrom, int nto, ThrData * const thr)
     // force & energy
     // p = sum (i=1,n) a_i * c**(i-1)
     // pd = dp/dc
-    c_ = c;
+
+    c_ = 1.0;
     p = a[type][0];
-    pd = a[type][1];
-    for (int i = 1; i < nterms[type]-1; i++) {
-      p += c_ * a[type][i];
-      pd += c_ * static_cast<double>(i+1) * a[type][i+1];
+    pd = 0.0;
+    for (int i = 1; i < nterms[type]; i++) {
+      pd += c_ * i * a[type][i];
       c_ *= c;
+      p += c_ * a[type][i];
     }
-    p += c_ * a[type][nterms[type]-1];
 
     if (EFLAG) edihedral = p;
 

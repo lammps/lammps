@@ -14,7 +14,7 @@ using std::vector;
 
 namespace ATC {
 ElectronChargeDensityInterpolation::ElectronChargeDensityInterpolation(
-  fstream &fileId, map<string,double> & parameters) 
+  fstream &fileId, map<string,double> & /* parameters */) 
   : ElectronChargeDensity(), n_()
 {
   if (!fileId.is_open()) throw ATC_Error("cannot open material file");

@@ -9,12 +9,12 @@ doc/Section_python.html and in doc/Section_start.html#start_5.
 Basically you need to follow these steps in the src directory:
 
 % make g++ mode=shlib           # build for whatever machine target you wish
-% make install-python           # may need to do this via sudo
+% make install-python           # install into site-packages folder
 
 You can replace the last step by a one-time setting of environment
 variables in your shell script.  Or you can run the python/install.py
 script directly to give you more control over where the two relevant
-files are installed.  See doc/Section_python.html for details.
+files are installed.  See doc/Python_install.html for details.
 
 You should then be able to launch Python and instantiate an instance
 of LAMMPS:

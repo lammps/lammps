@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,9 +15,9 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "angle_cosine_periodic.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -27,6 +27,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -61,8 +62,7 @@ void AngleCosinePeriodic::compute(int eflag, int vflag)
   double tn,tn_1,tn_2,un,un_1,un_2;
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -201,11 +201,11 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double c_one = force->numeric(FLERR,arg[1]);
-  int b_one = force->inumeric(FLERR,arg[2]);
-  int n_one = force->inumeric(FLERR,arg[3]);
+  double c_one = utils::numeric(FLERR,arg[1],false,lmp);
+  int b_one = utils::inumeric(FLERR,arg[2],false,lmp);
+  int n_one = utils::inumeric(FLERR,arg[3],false,lmp);
   if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
   int count = 0;
@@ -222,9 +222,9 @@ void AngleCosinePeriodic::coeff(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleCosinePeriodic::equilibrium_angle(int /*i*/)
+double AngleCosinePeriodic::equilibrium_angle(int i)
 {
-  return MY_PI;
+  return MY_PI*(1.0 - (b[i]>0)?0.0:1.0/static_cast<double>(multiplicity[i]));
 }
 
 /* ----------------------------------------------------------------------
@@ -247,9 +247,9 @@ void AngleCosinePeriodic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nangletypes,fp);
-    fread(&b[1],sizeof(int),atom->nangletypes,fp);
-    fread(&multiplicity[1],sizeof(int),atom->nangletypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&b[1],sizeof(int),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&multiplicity[1],sizeof(int),atom->nangletypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
@@ -295,5 +295,5 @@ double AngleCosinePeriodic::single(int type, int i1, int i2, int i3)
   if (c < -1.0) c = -1.0;
 
   c = cos(acos(c)*multiplicity[type]);
-  return k[type]*(1.0-b[type]*powsign(multiplicity[type])*c);
+  return 2.0*k[type]*(1.0-b[type]*powsign(multiplicity[type])*c);
 }

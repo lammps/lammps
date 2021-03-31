@@ -24,7 +24,6 @@ AngleStyle(charmm/intel,AngleCharmmIntel)
 #ifndef LMP_ANGLE_CHARMM_INTEL_H
 #define LMP_ANGLE_CHARMM_INTEL_H
 
-#include <cstdio>
 #include "angle_charmm.h"
 #include "fix_intel.h"
 
@@ -62,7 +61,7 @@ class AngleCharmmIntel : public AngleCharmm {
 
     fc_packed1 *fc;
     ForceConst() : _nangletypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL); }
+    ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nangletypes, Memory *memory);
 

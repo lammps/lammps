@@ -11,17 +11,17 @@
 //
 //    begin                : 7/12/2012
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> q_tex;
+_texture( pos_tex,float4);
+_texture( q_tex,float);
 #else
-texture<int4,1> pos_tex;
-texture<int2> q_tex;
+_texture_2d( pos_tex,int4);
+_texture( q_tex,int2);
 #endif
 
 #else
@@ -50,6 +50,9 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
   sp_lj[0]=sp_lj_in[0];
   sp_lj[1]=sp_lj_in[1];
   sp_lj[2]=sp_lj_in[2];
@@ -59,18 +62,18 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
   sp_lj[6]=sp_lj_in[6];
   sp_lj[7]=sp_lj_in[7];
 
-  acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -78,7 +81,7 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
     numtyp qtmp; fetch(qtmp,i,q_tex);
     int itype=ix.w;
 
-    if (eflag>0) {
+    if (EVFLAG && eflag) {
       acctyp e_self = -((acctyp)0.5*e_shift + alpha/MY_PIS) *
         qtmp*qtmp*qqrd2e/(acctyp)t_per_atom;
       e_coul += (acctyp)2.0*e_self;
@@ -130,7 +133,7 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           if (rsq < cut_coulsq) {
             numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift-factor_coul);
             e_coul += e;
@@ -140,7 +143,7 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -151,9 +154,9 @@ __kernel void k_lj_dsf(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
 }
 
 __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
@@ -176,28 +179,31 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
   if (tid<8)
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
-    if (eflag>0)
+    if (EVFLAG && eflag)
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   __syncthreads();
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -206,7 +212,7 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
-    if (eflag>0) {
+    if (EVFLAG && eflag) {
       acctyp e_self = -((acctyp)0.5*e_shift + alpha/MY_PIS) *
         qtmp*qtmp*qqrd2e/(acctyp)t_per_atom;
       e_coul += (acctyp)2.0*e_self;
@@ -257,7 +263,7 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           if (rsq < cut_coulsq) {
             numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift-factor_coul);
             e_coul += e;
@@ -267,7 +273,7 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -278,8 +284,7 @@ __kernel void k_lj_dsf_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
 }
-

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include "atom_kokkos.h"
+#include <mpi.h>
 #include "atom_vec.h"
 #include "atom_vec_kokkos.h"
 #include "comm_kokkos.h"
@@ -22,6 +22,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "kokkos.h"
+#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 
@@ -86,7 +87,7 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_duChem,duChem);
 
   memoryKK->destroy_kokkos(k_dvector,dvector);
-  dvector = NULL;
+  dvector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,7 +118,7 @@ void AtomKokkos::sync_overlapping_device(const ExecutionSpace space, unsigned in
 
 void AtomKokkos::allocate_type_arrays()
 {
-  if (avec->mass_type) {
+  if (avec->mass_type == AtomVec::PER_TYPE) {
     k_mass = DAT::tdual_float_1d("Mass",ntypes+1);
     mass = k_mass.h_view.data();
     mass_setflag = new int[ntypes+1];
@@ -229,14 +230,14 @@ void AtomKokkos::sort()
    reallocate memory to the pointer selected by the mask
 ------------------------------------------------------------------------- */
 
-void AtomKokkos::grow(unsigned int mask){
+void AtomKokkos::grow(unsigned int mask) {
 
-  if (mask & SPECIAL_MASK){
+  if (mask & SPECIAL_MASK) {
     memoryKK->destroy_kokkos(k_special, special);
     sync(Device, mask);
     modified(Device, mask);
     memoryKK->grow_kokkos(k_special,special,nmax,maxspecial,"atom:special");
-    avec->grow_reset();
+    avec->grow_pointers();
     sync(Host, mask);
   }
 }
@@ -256,9 +257,7 @@ int AtomKokkos::add_custom(const char *name, int flag)
     nivector++;
     iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
                                        "atom:iname");
-    int n = strlen(name) + 1;
-    iname[index] = new char[n];
-    strcpy(iname[index],name);
+    iname[index] = utils::strdup(name);
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
@@ -267,11 +266,11 @@ int AtomKokkos::add_custom(const char *name, int flag)
     ndvector++;
     dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
                                        "atom:dname");
-    int n = strlen(name) + 1;
-    dname[index] = new char[n];
-    strcpy(dname[index],name);
+    dname[index] = utils::strdup(name);
+    this->sync(Device,DVECTOR_MASK);
     memoryKK->grow_kokkos(k_dvector,dvector,ndvector,nmax,
                         "atom:dvector");
+    this->modified(Device,DVECTOR_MASK);
   }
 
   return index;
@@ -279,7 +278,7 @@ int AtomKokkos::add_custom(const char *name, int flag)
 
 /* ----------------------------------------------------------------------
    remove a custom variable of type flag = 0/1 for int/double at index
-   free memory for vector and name and set ptrs to NULL
+   free memory for vector and name and set ptrs to a null pointer
    ivector/dvector and iname/dname lists never shrink
 ------------------------------------------------------------------------- */
 
@@ -287,14 +286,14 @@ void AtomKokkos::remove_custom(int flag, int index)
 {
   if (flag == 0) {
     memory->destroy(ivector[index]);
-    ivector[index] = NULL;
+    ivector[index] = nullptr;
     delete [] iname[index];
-    iname[index] = NULL;
+    iname[index] = nullptr;
   } else {
     //memoryKK->destroy_kokkos(dvector);
-    dvector[index] = NULL;
+    dvector[index] = nullptr;
     delete [] dname[index];
-    dname[index] = NULL;
+    dname[index] = nullptr;
   }
 }
 
@@ -337,7 +336,8 @@ void AtomKokkos::sync_modify(ExecutionSpace execution_space,
   modified(execution_space,datamask_modify);
 }
 
-AtomVec *AtomKokkos::new_avec(const char *style, int trysuffix, int &sflag)
+AtomVec *AtomKokkos::new_avec(const std::string &style,
+                              int trysuffix, int &sflag)
 {
   AtomVec* avec = Atom::new_avec(style,trysuffix,sflag);
   if (!avec->kokkosable)

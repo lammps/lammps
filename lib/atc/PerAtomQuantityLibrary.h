@@ -125,7 +125,7 @@ namespace ATC {
 
     // constructor
     AtomToElementMap(ATC_Method * atc,
-                     PerAtomQuantity<double> * atomPositions = NULL,
+                     PerAtomQuantity<double> * atomPositions = nullptr,
                      AtomType atomType = INTERNAL);
 
     // destructor
@@ -304,7 +304,7 @@ namespace ATC {
 
     // constructor
     AtomVolumeElement(ATC_Method * atc,
-                      PerAtomQuantity<int> * atomElement = NULL,
+                      PerAtomQuantity<int> * atomElement = nullptr,
                       AtomType atomType = INTERNAL);
 
     // destructor
@@ -349,7 +349,7 @@ namespace ATC {
 
     // constructor
     AtomVolumeRegion(ATC_Method * atc,
-                     DENS_MAN * atomCoarseGrainingPositions = NULL,
+                     DENS_MAN * atomCoarseGrainingPositions = nullptr,
                      AtomType atomType = INTERNAL);
 
     // destructor
@@ -422,9 +422,9 @@ namespace ATC {
 
     // constructor
     AtomicMassWeightedDisplacement(ATC_Method * atc,
-                          PerAtomQuantity<double> * atomPositions = NULL,
-                          PerAtomQuantity<double> * atomMasses = NULL,
-                          PerAtomQuantity<double> * atomReferencePositions = NULL,
+                          PerAtomQuantity<double> * atomPositions = nullptr,
+                          PerAtomQuantity<double> * atomMasses = nullptr,
+                          PerAtomQuantity<double> * atomReferencePositions = nullptr,
                           AtomType atomType = INTERNAL);
 
     // destructor
@@ -462,8 +462,8 @@ namespace ATC {
 
     // constructor
     FluctuatingVelocity(ATC_Method * atc,
-                       PerAtomQuantity<double> * atomVelocities = NULL,
-                       PerAtomQuantity<double> * atomMeanVelocities = NULL,
+                       PerAtomQuantity<double> * atomVelocities = nullptr,
+                       PerAtomQuantity<double> * atomMeanVelocities = nullptr,
                        AtomType atomType = INTERNAL);
 
     // destructor
@@ -497,8 +497,8 @@ namespace ATC {
 
     // constructor
     ChargeVelocity(ATC_Method * atc,
-                       PerAtomQuantity<double> * fluctuatingVelocities = NULL,
-                       FundamentalAtomQuantity * atomCharges = NULL,
+                       PerAtomQuantity<double> * fluctuatingVelocities = nullptr,
+                       FundamentalAtomQuantity * atomCharges = nullptr,
                        AtomType atomType = INTERNAL);
 
     // destructor
@@ -532,8 +532,8 @@ namespace ATC {
 
     // constructor
     SpeciesVelocity(ATC_Method * atc,
-                       PerAtomQuantity<double> * fluctuatingVelocities = NULL,
-                       PerAtomQuantity<double> * atomTypeVector = NULL,
+                       PerAtomQuantity<double> * fluctuatingVelocities = nullptr,
+                       PerAtomQuantity<double> * atomTypeVector = nullptr,
                        AtomType atomType = INTERNAL);
 
     // destructor
@@ -567,8 +567,8 @@ namespace ATC {
 
     // constructor
     AtomicMomentum(ATC_Method * atc,
-                   PerAtomQuantity<double> * atomVelocities = NULL,
-                   PerAtomQuantity<double> * atomMasses = NULL,
+                   PerAtomQuantity<double> * atomVelocities = nullptr,
+                   PerAtomQuantity<double> * atomMasses = nullptr,
                    AtomType atomType = INTERNAL);
 
     // destructor
@@ -631,8 +631,8 @@ namespace ATC {
 
     // constructor
     TwiceKineticEnergy(ATC_Method * atc,
-                       PerAtomQuantity<double> * atomVelocities = NULL,
-                       PerAtomQuantity<double> * atomMasses = NULL,
+                       PerAtomQuantity<double> * atomVelocities = nullptr,
+                       PerAtomQuantity<double> * atomMasses = nullptr,
                        AtomType atomType = INTERNAL);
 
     // destructor
@@ -670,8 +670,8 @@ namespace ATC {
 
     // constructor
     KineticTensor(ATC_Method * atc,
-                       PerAtomQuantity<double> * atomVelocities = NULL,
-                       PerAtomQuantity<double> * atomMasses = NULL,
+                       PerAtomQuantity<double> * atomVelocities = nullptr,
+                       PerAtomQuantity<double> * atomMasses = nullptr,
                        AtomType atomType = INTERNAL);
 
     // destructor
@@ -707,9 +707,9 @@ namespace ATC {
 
     // constructor
     FluctuatingKineticTensor(ATC_Method * atc,
-                       PerAtomQuantity<double> * atomVelocities = NULL,
-                       PerAtomQuantity<double> * atomMasses = NULL,
-                       PerAtomQuantity<double> * atomMeanVelocities = NULL,
+                       PerAtomQuantity<double> * atomVelocities = nullptr,
+                       PerAtomQuantity<double> * atomMasses = nullptr,
+                       PerAtomQuantity<double> * atomMeanVelocities = nullptr,
                        AtomType atomType = INTERNAL);
 
     // destructor
@@ -747,9 +747,9 @@ namespace ATC {
 
     // constructor
     TwiceFluctuatingKineticEnergy(ATC_Method * atc,
-                                  PerAtomQuantity<double> * atomVelocities = NULL,
-                                  PerAtomQuantity<double> * atomMasses = NULL,
-                                  PerAtomQuantity<double> * atomMeanVelocities = NULL,
+                                  PerAtomQuantity<double> * atomVelocities = nullptr,
+                                  PerAtomQuantity<double> * atomMasses = nullptr,
+                                  PerAtomQuantity<double> * atomMeanVelocities = nullptr,
                                   AtomType atomType = INTERNAL);
 
     // destructor
@@ -793,8 +793,8 @@ namespace ATC {
     MixedKePeEnergy(ATC_Method * atc,
                     double keMultiplier,
                     double peMultiplier,
-                    PerAtomQuantity<double> * twiceKineticEnergy = NULL,
-                    PerAtomQuantity<double> * potentialEnergy = NULL,
+                    PerAtomQuantity<double> * twiceKineticEnergy = nullptr,
+                    PerAtomQuantity<double> * potentialEnergy = nullptr,
                     AtomType atomType = INTERNAL);
 
     // destructor
@@ -838,8 +838,8 @@ namespace ATC {
 
     // constructor
     TotalEnergy(ATC_Method * atc,
-                PerAtomQuantity<double> * twiceKineticEnergy = NULL,
-                PerAtomQuantity<double> * potentialEnergy = NULL,
+                PerAtomQuantity<double> * twiceKineticEnergy = nullptr,
+                PerAtomQuantity<double> * potentialEnergy = nullptr,
                 AtomType atomType = INTERNAL);
 
     // destructor
@@ -871,8 +871,8 @@ namespace ATC {
 
     // constructor
     FluctuatingPotentialEnergy(ATC_Method * atc,
-                               PerAtomQuantity<double> * potentialEnergy = NULL,
-                               PerAtomQuantity<double> * referencePotential = NULL,
+                               PerAtomQuantity<double> * potentialEnergy = nullptr,
+                               PerAtomQuantity<double> * referencePotential = nullptr,
                                AtomType atomType = INTERNAL);
 
     // destructor
@@ -911,8 +911,8 @@ namespace ATC {
 
     // constructor
     DotTwiceKineticEnergy(ATC_Method * atc,
-                          PerAtomQuantity<double> * atomForces = NULL,
-                          PerAtomQuantity<double> * atomVelocities = NULL,
+                          PerAtomQuantity<double> * atomForces = nullptr,
+                          PerAtomQuantity<double> * atomVelocities = nullptr,
                           AtomType atomType = INTERNAL);
 
     // destructor
@@ -948,7 +948,7 @@ namespace ATC {
 
     // constructor
     VelocitySquared(ATC_Method *atc,
-                    PerAtomQuantity<double> * atomVelocities = NULL,
+                    PerAtomQuantity<double> * atomVelocities = nullptr,
                     AtomType atomType = INTERNAL);
 
     // destructor
@@ -981,9 +981,9 @@ namespace ATC {
 
     // constructor
     LambdaSquared(ATC_Method *atc,
-                  PerAtomQuantity<double> * atomMasses = NULL,
-                  PerAtomQuantity<double> * atomVelocitiesSquared = NULL,
-                  PerAtomQuantity<double> * atomLambdas = NULL,
+                  PerAtomQuantity<double> * atomMasses = nullptr,
+                  PerAtomQuantity<double> * atomVelocitiesSquared = nullptr,
+                  PerAtomQuantity<double> * atomLambdas = nullptr,
                   AtomType atomType = INTERNAL);
 
     // destructor
@@ -1045,26 +1045,26 @@ namespace ATC {
     virtual int memory_usage() const {return 0;};
 
     /** packs up data for parallel transfer when atoms change processors */
-    virtual int pack_exchange(int i, double *buffer) {return 0;};
+    virtual int pack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** unpacks data after parallel transfer when atoms change processors */
-    virtual int unpack_exchange(int i, double *buffer) {return 0;};
+    virtual int unpack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** packs up data for parallel transfer to ghost atoms on other processors */
-    virtual int pack_comm(int index, double *buf, 
-                          int pbc_flag, int *pbc) {return 0;};
+    virtual int pack_comm(int /* index */, double * /* buf */, 
+                          int /* pbc_flag */, int * /* pbc */) {return 0;};
 
     /** unpacks data after parallel transfer to ghost atoms on other processors */
-    virtual int unpack_comm(int index, double *buf) {return 0;};
+    virtual int unpack_comm(int /* index */, double * /* buf */) {return 0;};
 
     /** returns size of per-atom communication */
     virtual int size_comm() const {return 0;};
 
     /** changes size of temperary lammps storage data if transfer is being used */
-    virtual void grow_lammps_array(int nmax, const std::string & tag) {};
+    virtual void grow_lammps_array(int /* nmax */, const std::string & /* tag */) {};
 
     /** rearrange memory of temporary lammps storage data, called from copy_array */
-    virtual void copy_lammps_array(int i, int j) {};
+    virtual void copy_lammps_array(int /* i */, int /* j */) {};
 
   protected:
 
@@ -1149,7 +1149,7 @@ namespace ATC {
     // constructor
     AtomToNodeset(ATC_Method * atc,
                   SetDependencyManager<int> * subsetNodes,
-                  PerAtomQuantity<int> * atomElement = NULL,
+                  PerAtomQuantity<int> * atomElement = nullptr,
                   AtomType atomType = INTERNAL);
     
     // destructor
@@ -1194,7 +1194,7 @@ namespace ATC {
     // constructor
     AtomToElementset(ATC_Method * atc,
                      MatrixDependencyManager<DenseMatrix, bool> * elementMask,
-                     PerAtomQuantity<int> * atomElement = NULL,
+                     PerAtomQuantity<int> * atomElement = nullptr,
                      AtomType atomType = INTERNAL);
     
     // destructor
@@ -1273,7 +1273,7 @@ namespace ATC {
     // constructor
     VelocitySquaredMapped(ATC_Method *atc,
                           MatrixDependencyManager<DenseMatrix, int> * atomMap,
-                          PerAtomQuantity<double> * atomVelocities = NULL,
+                          PerAtomQuantity<double> * atomVelocities = nullptr,
                           AtomType atomType = INTERNAL);
 
     // destructor
@@ -1307,9 +1307,9 @@ namespace ATC {
     // constructor
     LambdaSquaredMapped(ATC_Method *atc,
                         MatrixDependencyManager<DenseMatrix, int> * atomMap,
-                        PerAtomQuantity<double> * atomMasses = NULL,
-                        PerAtomQuantity<double> * atomVelocitiesSquared = NULL,
-                        PerAtomQuantity<double> * atomLambdas = NULL,
+                        PerAtomQuantity<double> * atomMasses = nullptr,
+                        PerAtomQuantity<double> * atomVelocitiesSquared = nullptr,
+                        PerAtomQuantity<double> * atomLambdas = nullptr,
                         AtomType atomType = INTERNAL);
 
     // destructor
@@ -1371,7 +1371,7 @@ namespace ATC {
 
     // constructor
     AtomicVelocityRescaleFactor(ATC_Method * atc,
-                                PerAtomQuantity<double> * atomLambdas = NULL,
+                                PerAtomQuantity<double> * atomLambdas = nullptr,
                                 AtomType atomType = INTERNAL);
 
     // destructor
@@ -1403,8 +1403,8 @@ namespace ATC {
 
     // constructor
     AtomicFluctuatingVelocityRescaled(ATC_Method * atc,
-                                      PerAtomQuantity<double> * atomRescaleFactor = NULL,
-                                      PerAtomQuantity<double> * atomFluctuatingVelocity = NULL,
+                                      PerAtomQuantity<double> * atomRescaleFactor = nullptr,
+                                      PerAtomQuantity<double> * atomFluctuatingVelocity = nullptr,
                                       AtomType atomType = INTERNAL);
 
     // destructor
@@ -1439,10 +1439,10 @@ namespace ATC {
 
     // constructor
     AtomicCombinedRescaleThermostatError(ATC_Method * atc,
-                                         PerAtomQuantity<double> * atomFluctuatingMomentumRescaled = NULL,
-                                         PerAtomQuantity<double> * atomMeanVelocity = NULL,
-                                         PerAtomQuantity<double> * atomStreamingVelocity = NULL,
-                                         PerAtomQuantity<double> * atomMass = NULL,
+                                         PerAtomQuantity<double> * atomFluctuatingMomentumRescaled = nullptr,
+                                         PerAtomQuantity<double> * atomMeanVelocity = nullptr,
+                                         PerAtomQuantity<double> * atomStreamingVelocity = nullptr,
+                                         PerAtomQuantity<double> * atomMass = nullptr,
                                          AtomType atomType = INTERNAL);
 
     // destructor
@@ -1483,8 +1483,8 @@ namespace ATC {
 
     // constructor
     AtomicThermostatForce(ATC_Method * atc,
-                          PerAtomQuantity<double> * atomLambdas = NULL,
-                          PerAtomQuantity<double> * atomVelocities = NULL,
+                          PerAtomQuantity<double> * atomLambdas = nullptr,
+                          PerAtomQuantity<double> * atomVelocities = nullptr,
                           AtomType atomType = INTERNAL);
 
     // destructor
@@ -1519,8 +1519,8 @@ namespace ATC {
 
     // constructor
     AtomicKinetostatForceDisplacement(ATC_Method * atc,
-                                      PerAtomQuantity<double> * atomLambda = NULL,
-                                      PerAtomQuantity<double> * atomMass = NULL,
+                                      PerAtomQuantity<double> * atomLambda = nullptr,
+                                      PerAtomQuantity<double> * atomMass = nullptr,
                                       AtomType atomType = INTERNAL);
 
     // destructor
@@ -1558,8 +1558,8 @@ namespace ATC {
 
     // constructor
     AtomicKinetostatForceVelocity(ATC_Method * atc,
-                                  PerAtomQuantity<double> * atomLambda = NULL,
-                                  PerAtomQuantity<double> * atomMass = NULL,
+                                  PerAtomQuantity<double> * atomLambda = nullptr,
+                                  PerAtomQuantity<double> * atomMass = nullptr,
                                   AtomType atomType = INTERNAL) :
       AtomicKinetostatForceDisplacement(atc,atomLambda,atomMass,atomType) {};
 
@@ -1589,7 +1589,7 @@ namespace ATC {
 
     // constructor
     AtomicKinetostatForceStress(ATC_Method * atc,
-                                PerAtomQuantity<double> * atomLambda = NULL,
+                                PerAtomQuantity<double> * atomLambda = nullptr,
                                 AtomType atomType = INTERNAL);
 
     // destructor
@@ -1621,7 +1621,7 @@ namespace ATC {
 
     // constructor
     PerAtomKernelFunction(ATC_Method * atc,
-                          PerAtomQuantity<double> * atomPositions = NULL,
+                          PerAtomQuantity<double> * atomPositions = nullptr,
                           AtomType atomType = INTERNAL);
 
     // destructor
@@ -1656,8 +1656,8 @@ namespace ATC {
 
     // constructor
     PerAtomShapeFunction(ATC_Method * atc,
-                         PerAtomQuantity<double> * atomPositions = NULL,
-                         PerAtomQuantity<int> * atomElements = NULL,
+                         PerAtomQuantity<double> * atomPositions = nullptr,
+                         PerAtomQuantity<int> * atomElements = nullptr,
                          AtomType atomType = INTERNAL);
 
     // destructor
@@ -1695,8 +1695,8 @@ namespace ATC {
 
     // constructor
     LambdaCouplingMatrix(ATC_Method * atc,
-                         MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = NULL,
-                         SPAR_MAN * shapeFunction = NULL);
+                         MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = nullptr,
+                         SPAR_MAN * shapeFunction = nullptr);
     
     // destructor
     virtual ~LambdaCouplingMatrix() {
@@ -1734,9 +1734,9 @@ namespace ATC {
 
     // constructor
     LocalLambdaCouplingMatrix(ATC_Method * atc,
-                              MatrixDependencyManager<DenseMatrix, int> * lambdaAtomMap = NULL,
-                              MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = NULL,
-                              SPAR_MAN * shapeFunction = NULL);
+                              MatrixDependencyManager<DenseMatrix, int> * lambdaAtomMap = nullptr,
+                              MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = nullptr,
+                              SPAR_MAN * shapeFunction = nullptr);
     
     // destructor
     virtual ~LocalLambdaCouplingMatrix() {
@@ -1771,7 +1771,7 @@ namespace ATC {
     GhostCouplingMatrix(ATC_Method * atc,
                         SPAR_MAN * shapeFunction,
                         SetDependencyManager<int> * subsetNodes,
-                        MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = NULL);
+                        MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = nullptr);
     
     // destructor
     virtual ~GhostCouplingMatrix() {

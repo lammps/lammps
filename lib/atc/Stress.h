@@ -24,7 +24,7 @@ namespace ATC {
       virtual ~Stress() {};
       virtual void initialize(void){};
       //* Returns parameter values, (Nothing uses this).
-      virtual void parameters(std::map<std::string,double> &parameters) {}
+      virtual void parameters(std::map<std::string,double> & /* parameters */) {}
       //* Computes stress given a displacement gradient.
       //* Units: mvv/L^3 (i.e. for units Real: g/(mol ps^2 A^2) )
       virtual void stress(const FIELD_MATS &fields,
@@ -36,7 +36,7 @@ namespace ATC {
                                   const GRAD_FIELD_MATS &gradFields,
                                   DENS_MAT &energy) const;
       //* Returns the material tangent at a given deformation gradient.
-      virtual void tangent(const MATRIX &F, MATRIX &C) const 
+      virtual void tangent(const MATRIX & /* F */, MATRIX & /* C */) const 
         {throw ATC_Error("Stress::tangent: unimplemented function");}
   };
 
@@ -59,7 +59,7 @@ namespace ATC {
       virtual void elastic_energy(const FIELD_MATS &fields,
                           const GRAD_FIELD_MATS &gradFields,
                           DENS_MAT &energy) const;
-      virtual void tangent(const MATRIX &F, MATRIX &C) const {C=C_;}
+      virtual void tangent(const MATRIX & /* F */, MATRIX &C) const {C=C_;}
     protected:
       double c11_, c12_, c44_;
       DENS_MAT C_;
@@ -149,7 +149,7 @@ namespace ATC {
       DENS_VEC elasticity_tensor(const VECTOR &Fv, MATRIX &C, const ElasticityTensorType type=FIRST_ELASTICITY_TENSOR) const;
       DENS_VEC elasticity_tensor(const MATRIX &F, MATRIX &C, const ElasticityTensorType type=FIRST_ELASTICITY_TENSOR) const;
     protected:
-      void linearize(MATRIX *F=NULL);
+      void linearize(MATRIX *F=nullptr);
       CBLattice   *cblattice_;       //*> CbLattice -> makes atom clusters.
       CbPotential *potential_;       //*> CbPotential -> interatomic forces.
       bool makeLinear_;

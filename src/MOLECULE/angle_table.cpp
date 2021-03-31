@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,10 +15,11 @@
    Contributing author: Chuanfu Luo (luochuanfu@gmail.com)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "angle_table.h"
+
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "domain.h"
@@ -28,12 +29,15 @@
 #include "memory.h"
 #include "error.h"
 
+#include "tokenizer.h"
+#include "table_file_reader.h"
+
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 enum{LINEAR,SPLINE};
 
-#define MAXLINE 1024
 #define SMALL 0.001
 #define TINY  1.E-10
 
@@ -43,7 +47,7 @@ AngleTable::AngleTable(LAMMPS *lmp) : Angle(lmp)
 {
   writedata = 0;
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -71,8 +75,7 @@ void AngleTable::compute(int eflag, int vflag)
   double theta,u,mdu; //mdu: minus du, -du/dx=f
 
   eangle = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -187,7 +190,7 @@ void AngleTable::settings(int narg, char **arg)
   else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
   else error->all(FLERR,"Unknown table style in angle style table");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of angle table entries");
 
   // delete old tables, since cannot just change settings
@@ -202,7 +205,7 @@ void AngleTable::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -215,7 +218,7 @@ void AngleTable::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -238,7 +241,7 @@ void AngleTable::coeff(int narg, char **arg)
 
   // convert theta from degrees to radians
 
-  for (int i = 0; i < tb->ninput; i++){
+  for (int i = 0; i < tb->ninput; i++) {
     tb->afile[i] *= MY_PI/180.0;
     tb->ffile[i] *= 180.0/MY_PI;
   }
@@ -278,8 +281,7 @@ double AngleTable::equilibrium_angle(int i)
 
 void AngleTable::write_restart(FILE *fp)
 {
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
+  write_restart_settings(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -288,14 +290,32 @@ void AngleTable::write_restart(FILE *fp)
 
 void AngleTable::read_restart(FILE *fp)
 {
+  read_restart_settings(fp);
+  allocate();
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+ ------------------------------------------------------------------------- */
+
+void AngleTable::write_restart_settings(FILE *fp)
+{
+  fwrite(&tabstyle,sizeof(int),1,fp);
+  fwrite(&tablength,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+    proc 0 reads from restart file, bcasts
+ ------------------------------------------------------------------------- */
+
+void AngleTable::read_restart_settings(FILE *fp)
+{
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);
-
-  allocate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -331,10 +351,10 @@ double AngleTable::single(int type, int i1, int i2, int i3)
 
 void AngleTable::null_table(Table *tb)
 {
-  tb->afile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->ang = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->afile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->ang = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -362,52 +382,46 @@ void AngleTable::free_table(Table *tb)
 
 void AngleTable::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE];
+  TableFileReader reader(lmp, file, "angle");
 
-  // open file
+  char * line = reader.find_section_start(keyword);
 
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
-
-  // loop until section found with matching keyword
-
-  while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n") == strlen(line)) continue;    // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
-    param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
-    for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
+  if (!line) {
+    error->one(FLERR,"Did not find keyword in table file");
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
-  param_extract(tb,line);
-  memory->create(tb->afile,tb->ninput,"angle:afile");
-  memory->create(tb->efile,tb->ninput,"angle:efile");
-  memory->create(tb->ffile,tb->ninput,"angle:ffile");
+  line = reader.next_line();
+  param_extract(tb, line);
+  memory->create(tb->afile, tb->ninput, "angle:afile");
+  memory->create(tb->efile, tb->ninput, "angle:efile");
+  memory->create(tb->ffile, tb->ninput, "angle:ffile");
 
   // read a,e,f table values from file
 
-  int itmp;
-  fgets(line,MAXLINE,fp);
+  int cerror = 0;
+  reader.skip_line();
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
-    sscanf(line,"%d %lg %lg %lg",
-      &itmp,&tb->afile[i],&tb->efile[i],&tb->ffile[i]);
+    line = reader.next_line(4);
+    try {
+      ValueTokenizer values(line);
+      values.next_int();
+      tb->afile[i] = values.next_double();
+      tb->efile[i] = values.next_double();
+      tb->ffile[i] = values.next_double();
+    } catch (TokenizerException &e) {
+      ++cerror;
+    }
   }
 
-  fclose(fp);
+  // warn if data was read incompletely, e.g. columns were missing
+
+  if (cerror) {
+    std::string str = fmt::format("{} of {} lines in table were incomplete or could not be parsed completely", cerror, tb->ninput);
+    error->warning(FLERR,str.c_str());
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -490,28 +504,30 @@ void AngleTable::param_extract(Table *tb, char *line)
 {
   tb->ninput = 0;
   tb->fpflag = 0;
-  tb->theta0 = 180.0;
+  tb->theta0 = MY_PI;
 
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      tb->ninput = atoi(word);
-    } else if (strcmp(word,"FP") == 0) {
-      tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
-      tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
-      tb->fphi = atof(word);
-      tb->fplo *= (180.0/MY_PI)*(180.0/MY_PI);
-      tb->fphi *= (180.0/MY_PI)*(180.0/MY_PI);
-    } else if (strcmp(word,"EQ") == 0) {
-      word = strtok(NULL," \t\n\r\f");
-      tb->theta0 = atof(word);
-    } else {
-      error->one(FLERR,"Invalid keyword in angle table parameters");
+  try {
+    ValueTokenizer values(line);
+
+    while (values.has_next()) {
+      std::string word = values.next_string();
+
+      if (word == "N") {
+        tb->ninput = values.next_int();
+      } else if (word == "FP") {
+        tb->fpflag = 1;
+        tb->fplo = values.next_double();
+        tb->fphi = values.next_double();
+        tb->fplo *= (180.0/MY_PI)*(180.0/MY_PI);
+        tb->fphi *= (180.0/MY_PI)*(180.0/MY_PI);
+      } else if (word == "EQ") {
+        tb->theta0 = values.next_double()/180.0*MY_PI;
+      } else {
+        error->one(FLERR,"Invalid keyword in angle table parameters");
+      }
     }
-    word = strtok(NULL," \t\n\r\f");
+  } catch(TokenizerException &e) {
+    error->one(FLERR, e.what());
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Angle table parameters did not set N");

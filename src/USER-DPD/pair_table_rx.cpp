@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,19 +15,18 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "pair_table_rx.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
-#include "comm.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -47,8 +46,8 @@ enum{NONE,RLINEAR,RSQ,BMP};
 PairTableRX::PairTableRX(LAMMPS *lmp) : PairTable(lmp)
 {
   fractionalWeighting = true;
-  site1 = NULL;
-  site2 = NULL;
+  site1 = nullptr;
+  site2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,8 +77,7 @@ void PairTableRX::compute(int eflag, int vflag)
 
   evdwlOld = 0.0;
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -95,10 +93,10 @@ void PairTableRX::compute(int eflag, int vflag)
   double *uCG = atom->uCG;
   double *uCGnew = atom->uCGnew;
 
-  double *mixWtSite1old = NULL;
-  double *mixWtSite2old = NULL;
-  double *mixWtSite1 = NULL;
-  double *mixWtSite2 = NULL;
+  double *mixWtSite1old = nullptr;
+  double *mixWtSite2old = nullptr;
+  double *mixWtSite1 = nullptr;
+  double *mixWtSite2 = nullptr;
 
   {
     const int ntotal = atom->nlocal + atom->nghost;
@@ -200,14 +198,14 @@ void PairTableRX::compute(int eflag, int vflag)
 
         if (tabstyle == LOOKUP)
           evdwl = tb->e[itable];
-        else if (tabstyle == LINEAR || tabstyle == BITMAP){
+        else if (tabstyle == LINEAR || tabstyle == BITMAP) {
           evdwl = tb->e[itable] + fraction*tb->de[itable];
         }
         else
           evdwl = a * tb->e[itable] + b * tb->e[itable+1] +
             ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
             tb->deltasq6;
-        if (isite1 == isite2){
+        if (isite1 == isite2) {
           evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwl;
           evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwl;
         } else {
@@ -260,7 +258,7 @@ void PairTableRX::settings(int narg, char **arg)
   else if (strcmp(arg[0],"bitmap") == 0) tabstyle = BITMAP;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // optional keywords
@@ -292,7 +290,7 @@ void PairTableRX::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -306,12 +304,12 @@ void PairTableRX::coeff(int narg, char **arg)
 
   bool rx_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"rx",2) == 0) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairTableRX requires a fix rx command.");
+    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
+  if (!rx_flag) error->all(FLERR,"Pair style table/rx requires a fix rx command.");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -323,24 +321,20 @@ void PairTableRX::coeff(int narg, char **arg)
   bcast_table(tb);
 
   nspecies = atom->nspecies_dpd;
-  if(nspecies==0) error->all(FLERR,"There are no rx species specified.");
-  int n;
-  n = strlen(arg[4]) + 1;
-  site1 = new char[n];
-  strcpy(site1,arg[4]);
+  if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
+
+  site1 = utils::strdup(arg[4]);
 
   int ispecies;
-  for (ispecies = 0; ispecies < nspecies; ispecies++){
+  for (ispecies = 0; ispecies < nspecies; ispecies++) {
     if (strcmp(site1,&atom->dname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
 
-  n = strlen(arg[5]) + 1;
-  site2 = new char[n];
-  strcpy(site2,arg[5]);
+  site2 = utils::strdup(arg[5]);
 
-  for (ispecies = 0; ispecies < nspecies; ispecies++){
+  for (ispecies = 0; ispecies < nspecies; ispecies++) {
     if (strcmp(site2,&atom->dname[ispecies][0]) == 0) break;
   }
   if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
@@ -348,7 +342,7 @@ void PairTableRX::coeff(int narg, char **arg)
 
   // set table cutoff
 
-  if (narg == 7) tb->cut = force->numeric(FLERR,arg[6]);
+  if (narg == 7) tb->cut = utils::numeric(FLERR,arg[6],false,lmp);
   else if (tb->rflag) tb->cut = tb->rhi;
   else tb->cut = tb->rfile[tb->ninput-1];
 
@@ -402,13 +396,13 @@ void PairTableRX::coeff(int narg, char **arg)
   ntables++;
 
   {
-     if ( strcmp(site1,"1fluid") == 0 )
+     if (strcmp(site1,"1fluid") == 0)
        isite1 = OneFluidValue;
      else {
        isite1 = nspecies;
 
-       for (int k = 0; k < nspecies; k++){
-         if (strcmp(site1, atom->dname[k]) == 0){
+       for (int k = 0; k < nspecies; k++) {
+         if (strcmp(site1, atom->dname[k]) == 0) {
            isite1 = k;
            break;
          }
@@ -417,13 +411,13 @@ void PairTableRX::coeff(int narg, char **arg)
        if (isite1 == nspecies) error->all(FLERR,"isite1 == nspecies");
      }
 
-     if ( strcmp(site2,"1fluid") == 0 )
+     if (strcmp(site2,"1fluid") == 0)
        isite2 = OneFluidValue;
      else {
        isite2 = nspecies;
 
-       for (int k = 0; k < nspecies; k++){
-         if (strcmp(site2, atom->dname[k]) == 0){
+       for (int k = 0; k < nspecies; k++) {
+         if (strcmp(site2, atom->dname[k]) == 0) {
            isite2 = ispecies;
            break;
          }
@@ -521,46 +515,46 @@ void PairTableRX::getMixingWeights(int id, double &mixWtSite1old, double &mixWtS
 
   nTotal = 0.0;
   nTotalOld = 0.0;
-  for (int ispecies = 0; ispecies < nspecies; ++ispecies){
+  for (int ispecies = 0; ispecies < nspecies; ++ispecies) {
     nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
-  if(nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+  if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
     error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
-  if (isOneFluid(isite1) == false){
+  if (isOneFluid(isite1) == false) {
     nMoleculesOld1 = atom->dvector[isite1+nspecies][id];
     nMolecules1 = atom->dvector[isite1][id];
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
-  if (isOneFluid(isite2) == false){
+  if (isOneFluid(isite2) == false) {
     nMoleculesOld2 = atom->dvector[isite2+nspecies][id];
     nMolecules2 = atom->dvector[isite2][id];
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
 
-  if (isOneFluid(isite1) || isOneFluid(isite2)){
+  if (isOneFluid(isite1) || isOneFluid(isite2)) {
     nMoleculesOFAold  = 0.0;
     nMoleculesOFA  = 0.0;
     fractionOFAold  = 0.0;
     fractionOFA  = 0.0;
 
-    for (int ispecies = 0; ispecies < nspecies; ispecies++){
+    for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
       nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
       nMoleculesOFA += atom->dvector[ispecies][id];
       fractionOFAold += atom->dvector[ispecies+nspecies][id]/nTotalOld;
       fractionOFA += atom->dvector[ispecies][id]/nTotal;
     }
-    if(isOneFluid(isite1)){
+    if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld1 = fractionOFAold;
       fraction1 = fractionOFA;
     }
-    if(isOneFluid(isite2)){
+    if (isOneFluid(isite2)) {
       nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
       nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
       fractionOld2 = fractionOFAold;
@@ -568,7 +562,7 @@ void PairTableRX::getMixingWeights(int id, double &mixWtSite1old, double &mixWtS
     }
   }
 
-  if(fractionalWeighting){
+  if (fractionalWeighting) {
     mixWtSite1old = fractionOld1;
     mixWtSite1 = fraction1;
     mixWtSite2old = fractionOld2;

@@ -1,0 +1,172 @@
+LAMMPS (20 Nov 2019)
+
+WARNING-WARNING-WARNING-WARNING-WARNING
+This LAMMPS executable was compiled using C++98 compatibility.
+Please report the compiler info below at https://github.com/lammps/lammps/issues/1659
+GNU C++ 4.8.5
+WARNING-WARNING-WARNING-WARNING-WARNING
+
+Reading data file ...
+  orthogonal box = (10 -10 -15) to (30 20 10)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  118 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  18 = max dihedrals/atom
+  scanning impropers ...
+  4 = max impropers/atom
+  reading bonds ...
+  123 bonds
+  reading angles ...
+  221 angles
+  reading dihedrals ...
+  302 dihedrals
+  reading impropers ...
+  115 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:   0          0          0         
+  special bond factors coul: 0          0          0         
+  4 = max # of 1-2 neighbors
+  10 = max # of 1-3 neighbors
+  19 = max # of 1-4 neighbors
+  22 = max # of special neighbors
+  special bonds CPU = 0.000286808 secs
+  read_data CPU = 0.00724107 secs
+Read molecule mol1:
+  31 atoms with max type 10
+  30 bonds with max type 15
+  53 angles with max type 29
+  66 dihedrals with max type 39
+  31 impropers with max type 5
+Read molecule mol2:
+  31 atoms with max type 10
+  30 bonds with max type 17
+  55 angles with max type 36
+  75 dihedrals with max type 51
+  34 impropers with max type 5
+Read molecule mol3:
+  31 atoms with max type 11
+  30 bonds with max type 18
+  53 angles with max type 37
+  72 dihedrals with max type 53
+  31 impropers with max type 5
+Read molecule mol4:
+  42 atoms with max type 11
+  41 bonds with max type 18
+  73 angles with max type 41
+  96 dihedrals with max type 54
+  43 impropers with max type 5
+Read molecule mol5:
+  42 atoms with max type 11
+  41 bonds with max type 18
+  75 angles with max type 37
+  108 dihedrals with max type 53
+  46 impropers with max type 5
+Read molecule mol6:
+  42 atoms with max type 11
+  41 bonds with max type 19
+  73 angles with max type 50
+  102 dihedrals with max type 66
+  43 impropers with max type 22
+dynamic group bond_react_MASTER_group defined
+dynamic group statted_grp_REACT defined
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 4 6 5
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/class2, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) fix bond/react, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 1
+Per MPI rank memory allocation (min/avg/max) = 17.28 | 17.28 | 17.28 Mbytes
+Step Temp f_rxns[1] f_rxns[2] f_rxns[3] f_rxns[4] 
+       0          300            0            0            0            0 
+      50    391.52956            1            0            0            0 
+     100    475.26826            1            1            0            0 
+     150    605.26215            1            1            1            0 
+     200     545.7485            1            1            1            0 
+     250    461.64929            1            1            1            1 
+     300    452.10611            1            1            1            1 
+     350    379.61671            1            1            1            1 
+     400    331.22444            1            1            1            1 
+     450    275.63969            1            1            1            1 
+     500    316.63407            1            1            1            1 
+     550    261.39841            1            1            1            1 
+     600    313.70928            1            1            1            1 
+     650    294.24011            1            1            1            1 
+     700    285.81736            1            1            1            1 
+     750    340.37496            1            1            1            1 
+     800     333.2496            1            1            1            1 
+     850    307.40826            1            1            1            1 
+     900    304.68718            1            1            1            1 
+     950     328.0289            1            1            1            1 
+    1000    290.22808            1            1            1            1 
+    1050    272.78518            1            1            1            1 
+    1100    291.30546            1            1            1            1 
+    1150    320.33992            1            1            1            1 
+    1200    330.57057            1            1            1            1 
+    1250    300.51008            1            1            1            1 
+    1300     293.6209            1            1            1            1 
+    1350    324.36604            1            1            1            1 
+    1400    331.15408            1            1            1            1 
+    1450    302.23396            1            1            1            1 
+    1500    297.55562            1            1            1            1 
+    1550     277.3187            1            1            1            1 
+    1600    289.66052            1            1            1            1 
+    1650    281.85404            1            1            1            1 
+    1700     293.4999            1            1            1            1 
+    1750    306.21866            1            1            1            1 
+    1800    283.22696            1            1            1            1 
+    1850    295.10473            1            1            1            1 
+    1900     317.3843            1            1            1            1 
+    1950    305.14825            1            1            1            1 
+    2000    289.00911            1            1            1            1 
+Loop time of 1.87066 on 1 procs for 2000 steps with 118 atoms
+
+Performance: 92.374 ns/day, 0.260 hours/ns, 1069.141 timesteps/s
+98.4% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.12832    | 0.12832    | 0.12832    |   0.0 |  6.86
+Bond    | 0.77458    | 0.77458    | 0.77458    |   0.0 | 41.41
+Neigh   | 0.45068    | 0.45068    | 0.45068    |   0.0 | 24.09
+Comm    | 0.029785   | 0.029785   | 0.029785   |   0.0 |  1.59
+Output  | 0.31635    | 0.31635    | 0.31635    |   0.0 | 16.91
+Modify  | 0.16657    | 0.16657    | 0.16657    |   0.0 |  8.90
+Other   |            | 0.004368   |            |       |  0.23
+
+Nlocal:    118 ave 118 max 118 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    332 ave 332 max 332 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    4338 ave 4338 max 4338 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4338
+Ave neighs/atom = 36.7627
+Ave special neighs/atom = 10.5763
+Neighbor list builds = 2000
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:02

@@ -1,0 +1,49 @@
+# sample script to compare and debug GPU accelerated tip4p water
+# use '-sf gpu' to enables the GPU accelerated pair style
+# without it the original lj/cut/tip4p/long from module KSPACE will be used
+
+units         real
+boundary      p p p
+
+atom_style    full
+bond_style    harmonic
+angle_style   harmonic
+atom_modify   map array
+
+pair_style    lj/cut/tip4p/long 1 2 1 1 0.1546 9.0 9.0
+pair_modify   table 0
+
+#long-range solver for TIP4P from module KSPACE works on CPU
+suffix off
+newton on
+kspace_style  pppm/tip4p 1.0e-5
+suffix on
+
+read_data     data.spce
+
+pair_coeff    * * 0.0 0.0
+pair_coeff    1 1 0.1852 3.1589
+
+bond_coeff    1 0.0 0.9572
+angle_coeff   1 0.0 104.52
+
+group water type 1 2
+
+#maintain the water molecule rigid
+fix           1 water shake 1.0e-4 200 0 b 1 a 1
+fix           2 water nve
+
+thermo        100
+thermo_style  custom step etotal ke pe temp  evdwl ecoul elong press
+thermo_modify format float "%.15g"
+
+velocity      water create 300 123
+
+if $(is_active(package,gpu)) &
+ then "dump 11 all custom 1 dump.force_gpu id type  x y z fx fy fz"&
+ else "dump 11 all custom 1 dump.force_cpu id type  x y z fx fy fz"
+dump_modify 11 sort id
+
+timestep      1
+
+run           1

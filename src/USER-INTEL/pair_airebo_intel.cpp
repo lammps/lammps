@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,42 +15,40 @@
    Contributing author: Markus Hohnerbach (RWTH)
 ------------------------------------------------------------------------- */
 
-#ifdef __INTEL_OFFLOAD
-#pragma offload_attribute(push, target(mic))
-#endif
-#include <unistd.h>
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
-#include <cstdio>
-#include <stdint.h> // <cstdint> requires C++-11
+#include "pair_airebo_intel.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "suffix.h"
+
 #include <cassert>
-#include <cstddef>
-#include "lmptype.h"
+#include <cmath>
+#include <cstring>
+
 #include "intel_preprocess.h"
 #include "intel_intrinsics_airebo.h"
+
 #ifdef __INTEL_OFFLOAD
 #pragma offload_attribute(pop)
+#endif
+
+#ifdef __INTEL_OFFLOAD
+#pragma offload_attribute(push, target(mic))
 #endif
 
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
-#include "pair_airebo_intel.h"
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "group.h"
-#include "kspace.h"
-#include "modify.h"
-#include "suffix.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #ifdef __INTEL_OFFLOAD
 #pragma offload_attribute(push, target(mic))
@@ -161,10 +159,10 @@ void aut_frebo(KernelArgsAIREBOT<flt_t,acc_t> * ka, int torsion_flag);
 PairAIREBOIntel::PairAIREBOIntel(LAMMPS *lmp) : PairAIREBO(lmp)
 {
   suffix_flag |= Suffix::INTEL;
-  REBO_cnumneigh = NULL;
-  REBO_num_skin = NULL;
-  REBO_list_data = NULL;
-  fix = NULL;
+  REBO_cnumneigh = nullptr;
+  REBO_num_skin = nullptr;
+  REBO_list_data = nullptr;
+  fix = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -292,8 +290,10 @@ template<class flt_t, class acc_t>
 void PairAIREBOIntel::compute(
     int eflag, int vflag, IntelBuffers<flt_t,acc_t> * buffers
 ) {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
+
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   const int inum = list->inum;
@@ -308,7 +308,7 @@ void PairAIREBOIntel::compute(
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -450,7 +450,7 @@ void PairAIREBOIntel::eval(
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
 
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneigh:length(0) alloc_if(0) free_if(0)) \
     in(numneighhalf:length(0) alloc_if(0) free_if(0)) \
@@ -635,8 +635,6 @@ namespace overloaded {
     compared to original code.
    ---------------------------------------------------------------------- */
 
-#define M_PI           3.14159265358979323846  /* pi */
-
 #define CARBON 0
 #define HYDROGEN 1
 #define TOL 1.0e-9
@@ -660,8 +658,8 @@ inline flt_t Sp(flt_t r, flt_t lo, flt_t hi, flt_t * del) {
     if (del) *del = 0;
     return 0;
   } else {
-    t *= static_cast<flt_t>(M_PI);
-    if (del) *del = static_cast<flt_t>(-0.5 * M_PI)
+    t *= static_cast<flt_t>(MY_PI);
+    if (del) *del = static_cast<flt_t>(-0.5 * MY_PI)
                   * overloaded::sin(t) / (hi - lo);
     return static_cast<flt_t>(0.5) * (1 + overloaded::cos(t));
   }
@@ -699,7 +697,7 @@ inline flt_t gSpline(KernelArgsAIREBOT<flt_t,acc_t> * ka, int itype, flt_t cos, 
   flt_t NCmin = ka->params.NCmin;
   flt_t NCmax = ka->params.NCmax;
   int index = 0;
-  flt_t * gDom = NULL;
+  flt_t * gDom = nullptr;
   int nDom = 0;
   int offs = 0;
   if (itype == 0) {
@@ -923,7 +921,7 @@ inline flt_t frebo_pij(KernelArgsAIREBOT<flt_t,acc_t> * ka, int i, int j,
       if (pass == 0) {
         sum_pij += wik * g * ex_lam;
         sum_dpij_dN += wik * dgdN * ex_lam;
-        flt_t cutN = Sp<flt_t>(Nki, Nmin, Nmax, NULL);
+        flt_t cutN = Sp<flt_t>(Nki, Nmin, Nmax, nullptr);
         *sum_N += (1 - ktype) * wik * cutN;
       } else {
         flt_t tmp = -0.5 * pij * pij * pij;
@@ -1585,9 +1583,9 @@ void ref_rebo_neigh(KernelArgsAIREBOT<flt_t,acc_t> * ka) {
         flt_t rcmin = ka->params.rcmin[itype][jtype];
         flt_t rcmax = ka->params.rcmax[itype][jtype];
         if (jtype == CARBON)
-          ka->nC[i] += Sp<flt_t>(overloaded::sqrt(rsq), rcmin, rcmax, NULL);
+          ka->nC[i] += Sp<flt_t>(overloaded::sqrt(rsq), rcmin, rcmax, nullptr);
         else
-          ka->nH[i] += Sp<flt_t>(overloaded::sqrt(rsq), rcmin, rcmax, NULL);
+          ka->nH[i] += Sp<flt_t>(overloaded::sqrt(rsq), rcmin, rcmax, nullptr);
       }
     }
     ka->neigh_rebo.num[i] = n;
@@ -2246,7 +2244,7 @@ static fvec aut_Sp_deriv(fvec r, fvec lo, fvec hi, fvec * d) {
   fvec c_1 = fvec::set1(1);
   fvec c_0_5 = fvec::set1(0.5);
   fvec c_m0_5 = fvec::set1(-0.5);
-  fvec c_PI = fvec::set1(M_PI);
+  fvec c_PI = fvec::set1(MY_PI);
   bvec m_lo = fvec::cmple(r, lo);
   bvec m_hi = fvec::cmpnlt(r, hi); // nlt == ge
   bvec m_tr = bvec::kandn(m_lo, ~ m_hi);
@@ -2271,7 +2269,7 @@ static fvec aut_Sp_deriv(fvec r, fvec lo, fvec hi, fvec * d) {
 static fvec aut_mask_Sp(bvec mask, fvec r, fvec lo, fvec hi) {
   fvec c_1 = fvec::set1(1);
   fvec c_0_5 = fvec::set1(0.5);
-  fvec c_PI = fvec::set1(M_PI);
+  fvec c_PI = fvec::set1(MY_PI);
   bvec m_lo = fvec::mask_cmple(mask, r, lo);
   bvec m_hi = fvec::mask_cmpnlt(mask, r, hi); // nlt == ge
   bvec m_tr = bvec::kandn(m_lo, bvec::kandn(m_hi, mask));
@@ -2410,7 +2408,7 @@ static fvec aut_mask_gSpline_pd_2(KernelArgsAIREBOT<flt_t,acc_t> * ka,
                                   bvec /*active_mask*/, int itype, fvec cosjik,
                                   fvec Nij, fvec *dgdc, fvec *dgdN) {
   int i;
-  flt_t * gDom = NULL;
+  flt_t * gDom = nullptr;
   int nDom = 0;
   ivec offs = ivec::setzero();
   fvec NCmin = fvec::set1(ka->params.NCmin);
@@ -4478,7 +4476,7 @@ exceed_limits:
  * Calculate the lennard-jones interaction.
  * Uses the above hash-map, and outlines the calculation if the bondorder is
  *  needed.
- * Agressively compresses to get the most values calculated.
+ * Aggressively compresses to get the most values calculated.
  */
 template<int MORSEFLAG>
 static void aut_lennard_jones(KernelArgsAIREBOT<flt_t,acc_t> * ka) {

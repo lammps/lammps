@@ -28,16 +28,16 @@ class ComputeOrientOrderAtom : public Compute {
  public:
   ComputeOrientOrderAtom(class LAMMPS *, int, char **);
   ~ComputeOrientOrderAtom();
-  void init();
+  virtual void init();
   void init_list(int, class NeighList *);
-  void compute_peratom();
+  virtual void compute_peratom();
   double memory_usage();
   double cutsq;
-  int iqlcomp, qlcomp, qlcompflag;
+  int iqlcomp, qlcomp, qlcompflag, wlflag, wlhatflag;
   int *qlist;
   int nqlist;
 
- private:
+ protected:
   int nmax,maxneigh,ncol,nnn;
   class NeighList *list;
   double *distsq;
@@ -55,6 +55,11 @@ class ComputeOrientOrderAtom : public Compute {
 
   double polar_prefactor(int, int, double);
   double associated_legendre(int, int, double);
+
+  virtual void init_clebsch_gordan();
+  double *cglist;                      // Clebsch-Gordan coeffs
+  int idxcg_max;
+  int chunksize;
 };
 
 }

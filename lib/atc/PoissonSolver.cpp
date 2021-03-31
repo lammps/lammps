@@ -33,9 +33,9 @@ PoissonSolver::PoissonSolver(
     fieldName_(fieldName),
     rhsMask_(rhsMask),
     linear_(false),
-    solver_(NULL),
-    solverNL_(NULL),
-    tangent_(NULL),
+    solver_(nullptr),
+    solverNL_(nullptr),
+    tangent_(nullptr),
     solverType_(solverType),
     solverTol_(0),
     solverMaxIter_(0),
@@ -71,7 +71,7 @@ PoissonSolver::~PoissonSolver()
 //  Parser
 // --------------------------------------------------------------------
 
-bool PoissonSolver::modify(int narg, char **arg)
+  bool PoissonSolver::modify(int /* narg */, char **arg)
 {
   bool match = false;
   /*! \page man_poisson_solver fix_modify AtC poisson_solver 

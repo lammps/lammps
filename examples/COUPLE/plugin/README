@@ -1,0 +1,63 @@
+This directory has a simple C code that shows how LAMMPS can be included
+in an application as a shared library loaded at runtime. The code is
+essentially the same as in the "simple" example that links to LAMMPS
+either with a static or shared library. The purpose is to illustrate
+how another code could be built without having a LAMMPS library present
+and then load the (separately compiled) shared library.
+
+simple.c           is the C driver
+liblammpsplugin.c  is the LAMMPS library plugin loader
+
+You can then build the driver executable codes with a compile line
+like below.
+
+mpicc -c -O -Wall -g -I$HOME/lammps/src liblammpsplugin.c
+mpicc -c -O -Wall -g simple.c
+mpicc simple.o liblammsplugin.o -ldl -o simpleC
+
+You also need to build LAMMPS as a shared library
+(see examples/COUPLE/README), e.g. 
+
+cd $HOME/lammps/src
+make mode=shlib mpi
+
+or 
+
+cd $HOME/lammps
+mkdir build-shared
+cd build-shared
+cmake -D BUILD_LIB=on -D BUILD_SHARED_LIBS=on ../cmake
+make
+
+You then run simpleC on a parallel machine
+on some number of processors Q with 3 arguments:
+
+% mpirun -np Q simpleC P in.lj $HOME/lammps/src/liblammps.so
+
+or
+
+% mpirun -np Q simpleC P in.lj $HOME/lammps/build-shared/liblammps.so
+
+P is the number of procs you want LAMMPS to run on (must be <= Q) and
+in.lj is a LAMMPS input script and the last argument is the path to
+the LAMMPS shared library. This either has to be an absolute path, or
+liblammps.so has to be in a folder that is included in the environment
+variable LD_LIBRARY_PATH so it will be found by the dynamic object loader.
+
+The driver will launch LAMMPS on P procs, read the input script a line
+at a time, and pass each command line to LAMMPS.  The final line of
+the script is a "run" command, so LAMMPS will run the problem.
+
+The driver then requests all the atom coordinates from LAMMPS, moves
+one of the atoms a small amount "epsilon", passes the coordinates back
+to LAMMPS, and runs LAMMPS again.  If you look at the output, you
+should see a small energy change between runs, due to the moved atom.
+
+The C driver is calling C-style routines in the src/library.cpp file
+of LAMMPS through the function pointers in the liblammpsplugin_t struct.
+This has the benefit that your binary is not linked to liblammps.so directly
+and thus you can change the name of the shared library (e.g. to have 
+different variants compiled, or to load a different LAMMPS versions without
+having to update your executable). The shared library still has to be
+compatible with the compilation settings the plugin code.
+

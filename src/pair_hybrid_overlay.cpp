@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+#include "pair_hybrid_overlay.h"
+
+#include "atom.h"
+#include "error.h"
+
 #include <cstring>
 #include <cctype>
-#include "pair_hybrid_overlay.h"
-#include "atom.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -37,8 +35,8 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // 3rd arg = pair sub-style name
   // 4th arg = pair sub-style index if name used multiple times
@@ -55,7 +53,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
         if (!isdigit(arg[3][0]))
           error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = force->inumeric(FLERR,arg[3]);
+        int index = utils::inumeric(FLERR,arg[3],false,lmp);
         if (index == multiple[m]) break;
         else continue;
       } else break;
@@ -104,4 +102,53 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+}
+
+
+/* ----------------------------------------------------------------------
+   we need to handle Pair::svector special for hybrid/overlay
+------------------------------------------------------------------------- */
+
+void PairHybridOverlay::init_svector()
+{
+  // single_extra = list all sub-style single_extra
+  // allocate svector
+
+  single_extra = 0;
+  for (int m = 0; m < nstyles; m++)
+    single_extra += styles[m]->single_extra;
+
+  if (single_extra) {
+    delete [] svector;
+    svector = new double[single_extra];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   we need to handle Pair::svector special for hybrid/overlay
+------------------------------------------------------------------------- */
+
+void PairHybridOverlay::copy_svector(int itype, int jtype)
+{
+  int n=0;
+  Pair *this_style;
+
+  // fill svector array.
+  // copy data from active styles and use 0.0 for inactive ones
+  for (int m = 0; m < nstyles; m++) {
+    for (int k = 0; k < nmap[itype][jtype]; ++k) {
+      if (m == map[itype][jtype][k]) {
+        this_style = styles[m];
+      } else {
+        this_style = nullptr;
+      }
+    }
+    for (int l = 0; l < styles[m]->single_extra; ++l) {
+      if (this_style) {
+        svector[n++] = this_style->svector[l];
+      } else {
+        svector[n++] = 0.0;
+      }
+    }
+  }
 }

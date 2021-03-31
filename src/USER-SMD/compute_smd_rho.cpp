@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,13 +22,12 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_smd_rho.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
-#include "force.h"
 #include "memory.h"
 #include "error.h"
 
@@ -47,7 +46,7 @@ ComputeSMDRho::ComputeSMDRho(LAMMPS *lmp, int narg, char **arg) :
         size_peratom_cols = 0;
 
         nmax = 0;
-        rhoVector = NULL;
+        rhoVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,6 +101,6 @@ void ComputeSMDRho::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDRho::memory_usage() {
-        double bytes = nmax * sizeof(double);
+        double bytes = (double)nmax * sizeof(double);
         return bytes;
 }

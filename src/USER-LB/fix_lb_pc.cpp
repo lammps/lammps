@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,21 +15,18 @@
    Contributing authors: Frances Mackay, Santtu Ollila, Colin Denniston (UWO)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_lb_pc.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "update.h"
-#include "respa.h"
 #include "error.h"
 #include "memory.h"
-#include "comm.h"
 #include "domain.h"
 #include "fix_lb_fluid.h"
 #include "modify.h"
-#include <mpi.h>
+
 #include "group.h"
 
 using namespace LAMMPS_NS;
@@ -48,28 +45,28 @@ FixLbPC::FixLbPC(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  force_old = NULL;
-  up = NULL;
-  up_old = NULL;
+  force_old = nullptr;
+  up = nullptr;
+  up_old = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  atom->add_callback(Atom::GROW);
 
   Gamma_MD = new double[atom->ntypes+1];
 
  int groupbit_lb_fluid = 0;
-  for(int ifix=0; ifix<modify->nfix; ifix++)
-    if(strcmp(modify->fix[ifix]->style,"lb/fluid")==0){
+  for (int ifix=0; ifix<modify->nfix; ifix++)
+    if (strcmp(modify->fix[ifix]->style,"lb/fluid")==0) {
       fix_lb_fluid = (FixLbFluid *)modify->fix[ifix];
       groupbit_lb_fluid = group->bitmask[modify->fix[ifix]->igroup];
     }
 
-  if(groupbit_lb_fluid == 0)
+  if (groupbit_lb_fluid == 0)
     error->all(FLERR,"the lb/fluid fix must also be used if using the lb/pc fix");
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  for(int j=0; j<nlocal; j++){
-    if((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
+  for (int j=0; j<nlocal; j++) {
+    if ((mask[j] & groupbit) && !(mask[j] & groupbit_lb_fluid))
       error->one(FLERR,"can only use the lb/pc fix for an atom if also using the lb/fluid fix for that atom");
   }
 
@@ -79,7 +76,7 @@ FixLbPC::FixLbPC(LAMMPS *lmp, int narg, char **arg) :
 
 FixLbPC::~FixLbPC() {
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   memory->destroy(force_old);
   memory->destroy(up);
@@ -112,7 +109,7 @@ void FixLbPC::init()
   dtv = update->dt;
   dtf = update->dt * force->ftm2v;
 
-  for(int i=0; i<=atom->ntypes; i++)
+  for (int i=0; i<=atom->ntypes; i++)
     Gamma_MD[i] = Gamma[i]*dm_lb/dt_lb;
 
 }
@@ -135,7 +132,7 @@ void FixLbPC::initial_integrate(int /*vflag*/) {
 
   compute_up();
 
-  for(int i=0; i<nlocal; i++){
+  for (int i=0; i<nlocal; i++) {
     up_old[i][0] = up[i][0];
     up_old[i][1] = up[i][1];
     up_old[i][2] = up[i][2];
@@ -145,7 +142,7 @@ void FixLbPC::initial_integrate(int /*vflag*/) {
   }
 
 
-  if(rmass){
+  if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         dtfm = dtf/rmass[i];
@@ -160,11 +157,11 @@ void FixLbPC::initial_integrate(int /*vflag*/) {
         x[i][2] += dx[2];
 
         // Approximation for v
-        if(Gamma_MD[type[i]] == 0.0){
+        if (Gamma_MD[type[i]] == 0.0) {
           v[i][0] += f[i][0]*dtfm;
           v[i][1] += f[i][1]*dtfm;
           v[i][2] += f[i][2]*dtfm;
-        }else{
+        } else {
           v[i][0] = (v[i][0]-up[i][0]-f[i][0]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
             f[i][0]*force->ftm2v/Gamma_MD[type[i]] + up[i][0];
           v[i][1] = (v[i][1]-up[i][1]-f[i][1]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
@@ -191,11 +188,11 @@ void FixLbPC::initial_integrate(int /*vflag*/) {
         x[i][2] += dx[2];
 
         // Approximation for v
-        if(Gamma_MD[type[i]] == 0.0){
+        if (Gamma_MD[type[i]] == 0.0) {
           v[i][0] += f[i][0]*dtfm;
           v[i][1] += f[i][1]*dtfm;
           v[i][2] += f[i][2]*dtfm;
-        }else{
+        } else {
           v[i][0] = (v[i][0]-up[i][0]-f[i][0]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
             f[i][0]*force->ftm2v/Gamma_MD[type[i]] + up[i][0];
           v[i][1] = (v[i][1]-up[i][1]-f[i][1]*force->ftm2v/Gamma_MD[type[i]])*expminusdttimesgamma +
@@ -223,18 +220,18 @@ void FixLbPC::final_integrate()
 
   compute_up();
 
-  if(rmass){
+  if (rmass) {
     for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         dtfm = dtf/rmass[i];
         expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/rmass[i]);
         DMDcoeff = (dtv - rmass[i]*(1.0-expminusdttimesgamma)/Gamma_MD[type[i]]);
 
-        if(Gamma_MD[type[i]] == 0.0){
+        if (Gamma_MD[type[i]] == 0.0) {
           v[i][0] += 0.5*(f[i][0] - force_old[i][0])*dtfm;
           v[i][1] += 0.5*(f[i][1] - force_old[i][1])*dtfm;
           v[i][2] += 0.5*(f[i][2] - force_old[i][2])*dtfm;
-        }else{
+        } else {
           v[i][0] += DMDcoeff*((f[i][0] - force_old[i][0])*force->ftm2v/Gamma_MD[type[i]] + up[i][0] - up_old[i][0])/dtv;
           v[i][1] += DMDcoeff*((f[i][1] - force_old[i][1])*force->ftm2v/Gamma_MD[type[i]] + up[i][1] - up_old[i][1])/dtv;
           v[i][2] += DMDcoeff*((f[i][2] - force_old[i][2])*force->ftm2v/Gamma_MD[type[i]] + up[i][2] - up_old[i][2])/dtv;
@@ -251,11 +248,11 @@ void FixLbPC::final_integrate()
         expminusdttimesgamma = exp(-dtv*Gamma_MD[type[i]]/mass[type[i]]);
         DMDcoeff = (dtv - mass[type[i]]*(1.0-expminusdttimesgamma)/Gamma_MD[type[i]]);
 
-        if(Gamma_MD[type[i]] == 0.0){
+        if (Gamma_MD[type[i]] == 0.0) {
           v[i][0] += 0.5*(f[i][0] - force_old[i][0])*dtfm;
           v[i][1] += 0.5*(f[i][1] - force_old[i][1])*dtfm;
           v[i][2] += 0.5*(f[i][2] - force_old[i][2])*dtfm;
-        }else{
+        } else {
           v[i][0] += DMDcoeff*((f[i][0] - force_old[i][0])*force->ftm2v/Gamma_MD[type[i]] + up[i][0] - up_old[i][0])/dtv;
           v[i][1] += DMDcoeff*((f[i][1] - force_old[i][1])*force->ftm2v/Gamma_MD[type[i]] + up[i][1] - up_old[i][1])/dtv;
           v[i][2] += DMDcoeff*((f[i][2] - force_old[i][2])*force->ftm2v/Gamma_MD[type[i]] + up[i][2] - up_old[i][2])/dtv;
@@ -360,8 +357,8 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
    double FfP[64];
    int trilinear_stencil = fix_lb_fluid->trilinear_stencil;
 
-   for(i=0; i<nlocal; i++){
-    if(mask[i] & groupbit){
+   for (i=0; i<nlocal; i++) {
+    if (mask[i] & groupbit) {
 
       //Calculate nearest leftmost grid point.
       //Since array indices from 1 to subNb-2 correspond to the
@@ -382,42 +379,42 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
       dz1 = dz1/dx_lb;
 
       up[i][0]=0.0; up[i][1]=0.0; up[i][2]=0.0;
-      if(trilinear_stencil==0){
+      if (trilinear_stencil==0) {
         isten=0;
-        for(ii=-1; ii<3; ii++){
+        for (ii=-1; ii<3; ii++) {
           rsq=(-dx1+ii)*(-dx1+ii);
 
-          if(rsq>=4)
+          if (rsq>=4) {
             weightx=0.0;
-          else{
+          } else {
             r=sqrt(rsq);
-            if(rsq>1){
+            if (rsq>1) {
               weightx=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-            } else{
+            } else {
               weightx=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
             }
           }
-          for(jj=-1; jj<3; jj++){
+          for (jj=-1; jj<3; jj++) {
             rsq=(-dy1+jj)*(-dy1+jj);
-            if(rsq>=4)
+            if (rsq>=4) {
               weighty=0.0;
-            else{
+            } else {
               r=sqrt(rsq);
-              if(rsq>1){
+              if (rsq>1) {
                 weighty=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-              } else{
+              } else {
                 weighty=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
               }
             }
-            for(kk=-1; kk<3; kk++){
+            for (kk=-1; kk<3; kk++) {
               rsq=(-dz1+kk)*(-dz1+kk);
-              if(rsq>=4)
+              if (rsq>=4) {
                 weightz=0.0;
-              else{
+              } else {
                 r=sqrt(rsq);
-                if(rsq>1){
+                if (rsq>1) {
                   weightz=(5.0-2.0*r-sqrt(-7.0+12.0*r-4.0*rsq))/8.;
-                } else{
+                } else {
                   weightz=(3.0-2.0*r+sqrt(1.0+4.0*r-4.0*rsq))/8.;
                 }
               }
@@ -426,19 +423,19 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
               izp = iz+kk;
 
 
-              if(ixp==-1) ixp=subNbx+2;
-              if(iyp==-1) iyp=subNby+2;
-              if(izp==-1) izp=subNbz+2;
+              if (ixp==-1) ixp=subNbx+2;
+              if (iyp==-1) iyp=subNby+2;
+              if (izp==-1) izp=subNbz+2;
 
               FfP[isten] = weightx*weighty*weightz;
               // interpolated velocity based on delta function.
-              for(k=0; k<3; k++){
+              for (k=0; k<3; k++) {
                 up[i][k] += u_lb[ixp][iyp][izp][k]*FfP[isten];
               }
             }
           }
         }
-      }else{
+      } else {
         FfP[0] = (1.-dx1)*(1.-dy1)*(1.-dz1);
         FfP[1] = (1.-dx1)*(1.-dy1)*dz1;
         FfP[2] = (1.-dx1)*dy1*(1.-dz1);
@@ -463,7 +460,7 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
             + u_lb[ixp][iyp][izp][k]*FfP[7];
         }
       }
-      for(k=0; k<3; k++)
+      for (k=0; k<3; k++)
         up[i][k] = up[i][k]*dx_lb/dt_lb;
 
     }

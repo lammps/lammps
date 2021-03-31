@@ -1,6 +1,6 @@
 # simulation of negatively charge liquid argon-positively charged solid/frozen argon
 # MAKE this conducting_interface then interface (major difference: non-uniform grid)
-# START with extrinsic charges on both and then use an instrinsic charge density for frozen
+# START with extrinsic charges on both and then use an intrinsic charge density for frozen
 echo both
 units     	real
 atom_style full

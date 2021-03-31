@@ -23,7 +23,7 @@ const char *born_coul_wolf=0;
 
 #include "lal_born_coul_wolf.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BornCoulWolfT BornCoulWolf<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -131,20 +131,9 @@ double BornCoulWolfT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BornCoulWolfT::loop(const bool _eflag, const bool _vflag) {
+int BornCoulWolfT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
-
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -152,8 +141,8 @@ void BornCoulWolfT::loop(const bool _eflag, const bool _vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   if (shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &coeff1, &coeff2, &sp_lj,
+    this->k_pair_sel->set_size(GX,BX);
+    this->k_pair_sel->run(&this->atom->x, &coeff1, &coeff2, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag, &vflag,
                           &ainum, &nbor_pitch, &this->atom->q,
@@ -171,6 +160,8 @@ void BornCoulWolfT::loop(const bool _eflag, const bool _vflag) {
                    &this->_threads_per_atom);
   }
   this->time_pair.stop();
+  return GX;
 }
 
 template class BornCoulWolf<PRECISION,ACC_PRECISION>;
+}

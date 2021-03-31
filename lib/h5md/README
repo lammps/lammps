@@ -19,7 +19,7 @@ ch5md is a set of C routines to manipulate H5MD files. H5MD is a file format
 specification based on [HDF5](http://www.hdfgroup.org/HDF5/) for storing
 molecular data, whose development is found at <http://nongnu.org/h5md/>.
 
-ch5md is developped by Pierre de Buyl and is released under the 3-clause BSD
+ch5md is developed by Pierre de Buyl and is released under the 3-clause BSD
 license that can be found in the file LICENSE.
 
 To use the h5md dump style in lammps, execute

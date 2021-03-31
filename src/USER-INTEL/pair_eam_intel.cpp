@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,21 +15,21 @@
    Contributing authors: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam_intel.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -78,9 +78,9 @@ void PairEAMIntel::compute(int eflag, int vflag,
                            IntelBuffers<flt_t,acc_t> *buffers,
                            const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -95,7 +95,7 @@ void PairEAMIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -305,7 +305,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         acc_t rhoi = (acc_t)0.0;
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma ivdep
         #endif
         for (int jj = 0; jj < jnum; jj++) {
@@ -324,7 +324,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma simd reduction(+:rhoi)
         #endif
         for (int jj = 0; jj < ej; jj++) {
@@ -411,7 +411,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       if (EFLAG) tevdwl = (acc_t)0.0;
 
       #if defined(LMP_SIMD_COMPILER)
-      #pragma vector aligned
+      #pragma vector aligned nog2s
       #pragma simd reduction(+:tevdwl)
       #endif
       for (int ii = iifrom; ii < iito; ++ii) {
@@ -451,7 +451,6 @@ void PairEAMIntel::eval(const int offload, const int vflag,
 
       if (tid == 0)
         comm->forward_comm_pair(this);
-      if (NEWTON_PAIR) memset(f + minlocal, 0, f_stride * sizeof(FORCE_T));
 
       #if defined(_OPENMP)
       #pragma omp barrier
@@ -482,11 +481,11 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         fxtmp = fytmp = fztmp = (acc_t)0;
         if (EFLAG) fwtmp = sevdwl = (acc_t)0;
         if (NEWTON_PAIR == 0)
-          if (vflag==1) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
+          if (vflag == VIRIAL_PAIR) sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0;
 
         int ej = 0;
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma ivdep
         #endif
         for (int jj = 0; jj < jnum; jj++) {
@@ -508,7 +507,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
         }
 
         #if defined(LMP_SIMD_COMPILER)
-        #pragma vector aligned
+        #pragma vector aligned nog2s
         #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                  sv0, sv1, sv2, sv3, sv4, sv5)
         #endif
@@ -712,6 +711,8 @@ void PairEAMIntel::pack_force_const(ForceConst<flt_t> &fc,
       if (type2rhor[i][j] >= 0) {
         const int joff = ioff + j * fc.rhor_jstride();
         for (int k = 0; k < nr + 1; k++) {
+          if ((type2rhor[j][i] < 0) || (type2rhor[i][j] < 0))
+            continue;
           if (type2rhor[j][i] != type2rhor[i][j])
             _onetype = 0;
           else if (_onetype < 0)

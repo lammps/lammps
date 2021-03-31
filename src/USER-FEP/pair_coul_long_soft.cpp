@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,24 +13,22 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Paul Crozier (SNL)
-   Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Soft-core version: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_long_soft.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
-#include "integrate.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -78,8 +76,7 @@ void PairCoulLongSoft::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -189,10 +186,10 @@ void PairCoulLongSoft::settings(int narg, char **arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal pair_style command");
 
-  nlambda = force->numeric(FLERR,arg[0]);
-  alphac  = force->numeric(FLERR,arg[1]);
+  nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  alphac  = utils::numeric(FLERR,arg[1],false,lmp);
 
-  cut_coul = force->numeric(FLERR,arg[2]);
+  cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -206,10 +203,10 @@ void PairCoulLongSoft::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double lambda_one = force->numeric(FLERR,arg[2]);
+  double lambda_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -239,7 +236,7 @@ void PairCoulLongSoft::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
- if (force->kspace == NULL)
+ if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 }
@@ -298,11 +295,11 @@ void PairCoulLongSoft::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0)
-          fread(&lambda[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,nullptr,error);
         MPI_Bcast(&lambda[i][j],1,MPI_DOUBLE,0,world);
       }
     }
@@ -329,12 +326,12 @@ void PairCoulLongSoft::write_restart_settings(FILE *fp)
 void PairCoulLongSoft::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&nlambda,sizeof(double),1,fp);
-    fread(&alphac,sizeof(double),1,fp);
+    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&alphac,sizeof(double),1,fp,nullptr,error);
 
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&alphac,1,MPI_DOUBLE,0,world);
@@ -391,5 +388,5 @@ void *PairCoulLongSoft::extract(const char *str, int &dim)
   if (strcmp(str,"scale") == 0) return (void *) scale;
   if (strcmp(str,"lambda") == 0) return (void *) lambda;
 
-  return NULL;
+  return nullptr;
 }

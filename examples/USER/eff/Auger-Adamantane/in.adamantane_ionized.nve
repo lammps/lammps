@@ -1,5 +1,4 @@
 variable	sname index adamantane_ionized
-log		${sname}.nve.log
 
 units 		electron
 newton		on

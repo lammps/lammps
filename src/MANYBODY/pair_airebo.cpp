@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,36 +20,35 @@
      Thomas C. O'Connor (JHU) 2014
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <mpi.h>
 #include "pair_airebo.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "my_page.h"
-#include "math_const.h"
+#include "error.h"
+#include "force.h"
 #include "math_special.h"
 #include "memory.h"
-#include "error.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace MathSpecial;
 
-#define MAXLINE 1024
 #define TOL 1.0e-9
 #define PGDELTA 1
 
 /* ---------------------------------------------------------------------- */
 
-PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
+PairAIREBO::PairAIREBO(LAMMPS *lmp)
+  : Pair(lmp), variant(AIREBO)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -62,14 +61,15 @@ PairAIREBO::PairAIREBO(LAMMPS *lmp) : Pair(lmp)
   pvector = new double[nextra];
 
   maxlocal = 0;
-  REBO_numneigh = NULL;
-  REBO_firstneigh = NULL;
-  ipage = NULL;
+  REBO_numneigh = nullptr;
+  REBO_firstneigh = nullptr;
+  ipage = nullptr;
   pgsize = oneatom = 0;
 
-  nC = nH = NULL;
-  map = NULL;
+  nC = nH = nullptr;
+  map = nullptr;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   sigwid = 0.84;
   sigcut = 3.0;
@@ -107,8 +107,7 @@ PairAIREBO::~PairAIREBO()
 
 void PairAIREBO::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = vflag_atom = 0;
+  ev_init(eflag,vflag);
   pvector[0] = pvector[1] = pvector[2] = 0.0;
 
   REBO_neigh();
@@ -156,22 +155,18 @@ void PairAIREBO::settings(int narg, char **arg)
   if (narg != 1 && narg != 3 && narg != 4)
     error->all(FLERR,"Illegal pair_style command");
 
-  cutlj = force->numeric(FLERR,arg[0]);
+  cutlj = utils::numeric(FLERR,arg[0],false,lmp);
 
   if (narg >= 3) {
-    ljflag = force->inumeric(FLERR,arg[1]);
-    torflag = force->inumeric(FLERR,arg[2]);
+    ljflag = utils::inumeric(FLERR,arg[1],false,lmp);
+    torflag = utils::inumeric(FLERR,arg[2],false,lmp);
   }
   if (narg == 4) {
     sigcut = cutlj;
-    sigmin = force->numeric(FLERR,arg[3]);
+    sigmin = utils::numeric(FLERR,arg[3],false,lmp);
     sigwid = sigcut - sigmin;
   }
 
-  // this one parameter for C-C interactions is different in AIREBO vs REBO
-  // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
-
-  PCCf_2_0 = -0.0276030;
 }
 
 /* ----------------------------------------------------------------------
@@ -191,7 +186,7 @@ void PairAIREBO::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read args that map atom types to C and H
-  // map[i] = which element (0,1) the Ith atom type is, -1 if NULL
+  // map[i] = which element (0,1) the Ith atom type is, -1 if "NULL"
 
   for (int i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -251,7 +246,7 @@ void PairAIREBO::init_style()
   // create pages if first time or if neighbor pgsize/oneatom has changed
 
   int create = 0;
-  if (ipage == NULL) create = 1;
+  if (ipage == nullptr) create = 1;
   if (pgsize != neighbor->pgsize) create = 1;
   if (oneatom != neighbor->oneatom) create = 1;
 
@@ -2089,9 +2084,9 @@ double PairAIREBO::bondorder(int i, int j, double rij[3],
 
 This function calculates S(t_b(b_ij*)) as specified in the AIREBO paper.
 To do so, it needs to compute b_ij*, i.e. the bondorder given that the
-atoms i and j are placed a ficticious distance rijmag_mod apart.
+atoms i and j are placed a fictitious distance rijmag_mod apart.
 Now there are two approaches to calculate the resulting forces:
-1. Carry through the ficticious distance and corresponding vector
+1. Carry through the fictitious distance and corresponding vector
    rij_mod, correcting afterwards using the derivative of r/|r|.
 2. Perform all the calculations using the real distance, and do not
    use a correction, only using rijmag_mod where necessary.
@@ -2116,7 +2111,7 @@ but of the vector r_ij.
 
 */
 
-double PairAIREBO::bondorderLJ(int i, int j, double /*rij_mod*/[3], double rijmag_mod,
+double PairAIREBO::bondorderLJ(int i, int j, double /* rij_mod */[3], double rijmag_mod,
                                double VA, double rij[3], double rijmag,
                                double **f, int vflag_atom)
 {
@@ -3201,6 +3196,7 @@ double PairAIREBO::piRCSpline(double Nij, double Nji, double Nijconj,
   dN3[0]=0.0;
   dN3[1]=0.0;
   dN3[2]=0.0;
+  piRC=0.0;
 
   if (typei==0 && typej==0) {
 
@@ -3338,9 +3334,6 @@ double PairAIREBO::TijSpline(double Nij, double Nji,
 
 void PairAIREBO::read_file(char *filename)
 {
-  int i,j,k,l,limit;
-  char s[MAXLINE];
-
   // REBO Parameters (AIREBO)
 
   double rcmin_CC,rcmin_CH,rcmin_HH,rcmax_CC,rcmax_CH,
@@ -3364,409 +3357,298 @@ void PairAIREBO::read_file(char *filename)
   double epsilonM_CC,epsilonM_CH,epsilonM_HH,alphaM_CC,alphaM_CH,alphaM_HH;
   double reqM_CC,reqM_CH,reqM_HH;
 
-  MPI_Comm_rank(world,&me);
-
   // read file on proc 0
 
-  if (me == 0) {
-    FILE *fp = force->open_potential(filename);
-    if (fp == NULL) {
-      char str[128];
-      if (morseflag)
-        snprintf(str,128,"Cannot open AIREBO-M potential file %s",filename);
-      else
-        snprintf(str,128,"Cannot open AIREBO potential file %s",filename);
-      error->one(FLERR,str);
+  if (comm->me == 0) {
+    std::string potential_name;
+    std::string header;
+    switch (variant) {
+    case AIREBO:
+      potential_name = "airebo";
+      header = "# AIREBO ";
+      break;
+
+    case REBO_2:
+      potential_name = "rebo";
+      header = "# REBO2 ";
+      break;
+
+    case AIREBO_M:
+      potential_name = "airebo/morse";
+      header = "# AIREBO-M ";
+      break;
+
+    default:
+      error->one(FLERR, fmt::format("Unknown REBO style variant {}",variant));
     }
 
-    // skip initial comment lines
+    PotentialFileReader reader(lmp, filename, potential_name);
+    reader.ignore_comments(false);
 
-    while (1) {
-      fgets(s,MAXLINE,fp);
-      if (s[0] != '#') break;
+    // skip initial comment line and check for potential file style identifier comment
+
+    reader.skip_line();
+    char * line = reader.next_line();
+
+    if (std::string(line).find(header) == std::string::npos) {
+      error->one(FLERR, fmt::format("Potential file does not match AIREBO/REBO style variant: {}: {}", header, line));
     }
+
+    // skip remaining comments
+    reader.ignore_comments(true);
 
     // read parameters
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmin_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmin_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmin_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmax_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmax_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmax_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmaxp_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmaxp_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcmaxp_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&smin);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Nmin);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Nmax);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&NCmin);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&NCmax);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Q_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Q_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Q_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&alpha_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&alpha_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&alpha_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&A_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&A_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&A_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CC1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CC2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CC3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CH1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CH2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_CH3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_HH1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_HH2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&BIJc_HH3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CC1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CC2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CC3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CH1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CH2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_CH3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_HH1);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_HH2);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&Beta_HH3);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rho_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rho_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rho_HH);
+    std::vector<double*> params {
+      &rcmin_CC,
+      &rcmin_CH,
+      &rcmin_HH,
+      &rcmax_CC,
+      &rcmax_CH,
+      &rcmax_HH,
+      &rcmaxp_CC,
+      &rcmaxp_CH,
+      &rcmaxp_HH,
+      &smin,
+      &Nmin,
+      &Nmax,
+      &NCmin,
+      &NCmax,
+      &Q_CC,
+      &Q_CH,
+      &Q_HH,
+      &alpha_CC,
+      &alpha_CH,
+      &alpha_HH,
+      &A_CC,
+      &A_CH,
+      &A_HH,
+      &BIJc_CC1,
+      &BIJc_CC2,
+      &BIJc_CC3,
+      &BIJc_CH1,
+      &BIJc_CH2,
+      &BIJc_CH3,
+      &BIJc_HH1,
+      &BIJc_HH2,
+      &BIJc_HH3,
+      &Beta_CC1,
+      &Beta_CC2,
+      &Beta_CC3,
+      &Beta_CH1,
+      &Beta_CH2,
+      &Beta_CH3,
+      &Beta_HH1,
+      &Beta_HH2,
+      &Beta_HH3,
+      &rho_CC,
+      &rho_CH,
+      &rho_HH,
 
-    // LJ parameters
-
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmin_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmin_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmin_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmax_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmax_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&rcLJmax_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmin_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmin_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmin_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmax_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmax_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&bLJmax_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilon_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilon_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilon_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&sigma_CC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&sigma_CH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&sigma_HH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilonT_CCCC);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilonT_CCCH);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%lg",&epsilonT_HCCH);
+      // LJ parameters
+      &rcLJmin_CC,
+      &rcLJmin_CH,
+      &rcLJmin_HH,
+      &rcLJmax_CC,
+      &rcLJmax_CH,
+      &rcLJmax_HH,
+      &bLJmin_CC,
+      &bLJmin_CH,
+      &bLJmin_HH,
+      &bLJmax_CC,
+      &bLJmax_CH,
+      &bLJmax_HH,
+      &epsilon_CC,
+      &epsilon_CH,
+      &epsilon_HH,
+      &sigma_CC,
+      &sigma_CH,
+      &sigma_HH,
+      &epsilonT_CCCC,
+      &epsilonT_CCCH,
+      &epsilonT_HCCH
+    };
 
     if (morseflag) {
       // lines for reading in MORSE parameters from CH.airebo_m file
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&epsilonM_CC);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&epsilonM_CH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&epsilonM_HH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&alphaM_CC);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&alphaM_CH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&alphaM_HH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&reqM_CC);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&reqM_CH);
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&reqM_HH);
+      params.push_back(&epsilonM_CC);
+      params.push_back(&epsilonM_CH);
+      params.push_back(&epsilonM_HH);
+      params.push_back(&alphaM_CC);
+      params.push_back(&alphaM_CH);
+      params.push_back(&alphaM_HH);
+      params.push_back(&reqM_CC);
+      params.push_back(&reqM_CH);
+      params.push_back(&reqM_HH);
     }
 
+    std::string current_section;
 
-    // gC spline
+    try {
+      /////////////////////////////////////////////////////////////////////////
+      // global parameters
+      current_section = "global parameters";
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-
-    // number-1 = # of domains for the spline
-
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
-
-    for (i = 0; i < limit; i++) {
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&gCdom[i]);
-    }
-    fgets(s,MAXLINE,fp);
-    for (i = 0; i < limit-1; i++) {
-      for (j = 0; j < 6; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&gC1[i][j]);
+      for (int i = 0; i < (int)params.size(); i++) {
+        *params[i] = reader.next_double();
       }
-    }
-    fgets(s,MAXLINE,fp);
-    for (i = 0; i < limit-1; i++) {
-      for (j = 0; j < 6; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&gC2[i][j]);
+
+
+      /////////////////////////////////////////////////////////////////////////
+      // gC spline
+      current_section = "gC spline";
+
+      // number-1 = # of domains for the spline
+
+      int limit = reader.next_int();
+      reader.next_dvector(gCdom, limit);
+
+      for (int i = 0; i < limit-1; i++) {
+        reader.next_dvector(&gC1[i][0], 6);
       }
-    }
 
-    // gH spline
-
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
-
-    for (i = 0; i < limit; i++) {
-      fgets(s,MAXLINE,fp);
-      sscanf(s,"%lg",&gHdom[i]);
-    }
-
-    fgets(s,MAXLINE,fp);
-
-    for (i = 0; i < limit-1; i++) {
-      for (j = 0; j < 6; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&gH[i][j]);
+      for (int i = 0; i < limit-1; i++) {
+        reader.next_dvector(&gC2[i][0], 6);
       }
-    }
 
-    // pCC spline
+      /////////////////////////////////////////////////////////////////////////
+      // gH spline
+      current_section = "gH spline";
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+      limit = reader.next_int();
+      reader.next_dvector(gHdom, limit);
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/2; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&pCCdom[i][j]);
+      for (int i = 0; i < limit-1; i++) {
+        reader.next_dvector(&gH[i][0], 6);
       }
-    }
-    fgets(s,MAXLINE,fp);
 
-    for (i = 0; i < (int) pCCdom[0][1]; i++) {
-      for (j = 0; j < (int) pCCdom[1][1]; j++) {
-        for (k = 0; k < 16; k++) {
-          fgets(s,MAXLINE,fp);
-          sscanf(s,"%lg",&pCC[i][j][k]);
+      /////////////////////////////////////////////////////////////////////////
+      // pCC spline
+      current_section = "pCC spline";
+
+      limit = reader.next_int();
+
+      for (int i = 0; i < limit/2; i++) {
+        reader.next_dvector(&pCCdom[i][0], limit/2);
+      }
+
+      for (int i = 0; i < (int) pCCdom[0][1]; i++) {
+        for (int j = 0; j < (int) pCCdom[1][1]; j++) {
+          reader.next_dvector(&pCC[i][j][0], 16);
         }
       }
-    }
 
-    // pCH spline
+      /////////////////////////////////////////////////////////////////////////
+      // pCH spline
+      current_section = "pCH spline";
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
+      limit = reader.next_int();
 
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/2; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&pCHdom[i][j]);
-      }
-    }
-    fgets(s,MAXLINE,fp);
-
-    for (i = 0; i < (int) pCHdom[0][1]; i++) {
-      for (j = 0; j < (int) pCHdom[1][1]; j++) {
-        for (k = 0; k < 16; k++) {
-          fgets(s,MAXLINE,fp);
-          sscanf(s,"%lg",&pCH[i][j][k]);
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/2; j++) {
+          pCHdom[i][j] = reader.next_double();
         }
       }
-    }
 
-    // piCC cpline
-
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/3; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&piCCdom[i][j]);
+      for (int i = 0; i < (int) pCHdom[0][1]; i++) {
+        for (int j = 0; j < (int) pCHdom[1][1]; j++) {
+          reader.next_dvector(&pCH[i][j][0], 16);
+        }
       }
-    }
-    fgets(s,MAXLINE,fp);
 
-    for (i = 0; i < (int) piCCdom[0][1]; i++) {
-      for (j = 0; j < (int) piCCdom[1][1]; j++) {
-        for (k = 0; k < (int) piCCdom[2][1]; k++) {
-          for (l = 0; l < 64; l = l+1) {
-            fgets(s,MAXLINE,fp);
-            sscanf(s,"%lg",&piCC[i][j][k][l]);
+      /////////////////////////////////////////////////////////////////////////
+      // piCC spline
+      current_section = "piCC spline";
+
+      limit = reader.next_int();
+
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/3; j++) {
+          piCCdom[i][j] = reader.next_double();
+        }
+      }
+
+      for (int i = 0; i < (int) piCCdom[0][1]; i++) {
+        for (int j = 0; j < (int) piCCdom[1][1]; j++) {
+          for (int k = 0; k < (int) piCCdom[2][1]; k++) {
+            reader.next_dvector(&piCC[i][j][k][0], 64);
           }
         }
       }
-    }
 
-    // piCH spline
+      /////////////////////////////////////////////////////////////////////////
+      // piCH spline
+      current_section = "piCH spline";
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+      limit = reader.next_int();
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/3; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&piCHdom[i][j]);
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/3; j++) {
+          piCHdom[i][j] = reader.next_double();
+        }
       }
-    }
-    fgets(s,MAXLINE,fp);
 
-    for (i = 0; i < (int) piCHdom[0][1]; i++) {
-      for (j = 0; j < (int) piCHdom[1][1]; j++) {
-        for (k = 0; k < (int) piCHdom[2][1]; k++) {
-          for (l = 0; l < 64; l = l+1) {
-            fgets(s,MAXLINE,fp);
-            sscanf(s,"%lg",&piCH[i][j][k][l]);
+      for (int i = 0; i < (int) piCHdom[0][1]; i++) {
+        for (int j = 0; j < (int) piCHdom[1][1]; j++) {
+          for (int k = 0; k < (int) piCHdom[2][1]; k++) {
+            reader.next_dvector(&piCH[i][j][k][0], 64);
           }
         }
       }
-    }
 
-    // piHH spline
+      /////////////////////////////////////////////////////////////////////////
+      // piHH spline
+      current_section = "piHH spline";
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+      limit = reader.next_int();
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/3; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&piHHdom[i][j]);
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/3; j++) {
+          piHHdom[i][j] = reader.next_double();
+        }
       }
-    }
-    fgets(s,MAXLINE,fp);
 
-    for (i = 0; i < (int) piHHdom[0][1]; i++) {
-      for (j = 0; j < (int) piHHdom[1][1]; j++) {
-        for (k = 0; k < (int) piHHdom[2][1]; k++) {
-          for (l = 0; l < 64; l = l+1) {
-            fgets(s,MAXLINE,fp);
-            sscanf(s,"%lg",&piHH[i][j][k][l]);
+      for (int i = 0; i < (int) piHHdom[0][1]; i++) {
+        for (int j = 0; j < (int) piHHdom[1][1]; j++) {
+          for (int k = 0; k < (int) piHHdom[2][1]; k++) {
+            reader.next_dvector(&piHH[i][j][k][0], 64);
           }
         }
       }
-    }
 
-    // Tij spline
+      /////////////////////////////////////////////////////////////////////////
+      // Tij spline
+      current_section = "Tij spline";
 
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
-    fgets(s,MAXLINE,fp);
+      limit = reader.next_int();
 
-    fgets(s,MAXLINE,fp);
-    sscanf(s,"%d",&limit);
-
-    for (i = 0; i < limit/2; i++) {
-      for (j = 0; j < limit/3; j++) {
-        fgets(s,MAXLINE,fp);
-        sscanf(s,"%lg",&Tijdom[i][j]);
+      for (int i = 0; i < limit/2; i++) {
+        for (int j = 0; j < limit/3; j++) {
+          Tijdom[i][j] = reader.next_double();
+        }
       }
-    }
-    fgets(s,MAXLINE,fp);
 
-    for (i = 0; i < (int) Tijdom[0][1]; i++) {
-      for (j = 0; j < (int) Tijdom[1][1]; j++) {
-        for (k = 0; k < (int) Tijdom[2][1]; k++) {
-          for (l = 0; l < 64; l = l+1) {
-            fgets(s,MAXLINE,fp);
-            sscanf(s,"%lg",&Tijc[i][j][k][l]);
+      for (int i = 0; i < (int) Tijdom[0][1]; i++) {
+        for (int j = 0; j < (int) Tijdom[1][1]; j++) {
+          for (int k = 0; k < (int) Tijdom[2][1]; k++) {
+            reader.next_dvector(&Tijc[i][j][k][0], 64);
           }
         }
       }
+    } catch (TokenizerException &e) {
+      std::string msg = fmt::format("ERROR reading {} section in {} file\n"
+                                    "REASON: {}\n",
+                                    current_section, potential_name, e.what());
+      error->one(FLERR, msg);
+    } catch (FileReaderException &fre) {
+      error->one(FLERR, fre.what());
+      std::string msg = fmt::format("ERROR reading {} section in {} file\n"
+                                    "REASON: {}\n",
+                                    current_section, potential_name, fre.what());
+      error->one(FLERR, msg);
     }
 
-    fclose(fp);
-  }
-
-  // store read-in values in arrays
-
-  if (me == 0) {
+    // store read-in values in arrays
 
     // REBO
 
@@ -4198,70 +4080,70 @@ void PairAIREBO::Sptricubic_patch_coeffs(
 ) {
   const double C_inv[64][32] = {
     // output_matrix(2, 8*4, get_matrix(3))
-      1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,
-     -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0,
-      2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,
-      9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6, -6,  3, -3,  0,  0,  0,  0,  6,  3, -6, -3,  0,  0,  0,  0,
-     -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4,  4, -2,  2,  0,  0,  0,  0, -3, -3,  3,  3,  0,  0,  0,  0,
-      2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,
-     -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3, -3,  3,  0,  0,  0,  0, -4, -2,  4,  2,  0,  0,  0,  0,
-      4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  2, -2,  0,  0,  0,  0,  2,  2, -2, -2,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     -3,  0,  0,  0,  3,  0,  0,  0, -2,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,
-      9, -9,  0,  0, -9,  9,  0,  0,  6, -6,  0,  0,  3, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  3,  0,  0, -6, -3,  0,  0,
-     -6,  6,  0,  0,  6, -6,  0,  0, -4,  4,  0,  0, -2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3, -3,  0,  0,  3,  3,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9, -9,  0,  0, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      9,  0, -9,  0, -9,  0,  9,  0,  6,  0, -6,  0,  3,  0, -3,  0,  6,  0,  3,  0, -6,  0, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9,  0, -9,  0, -9,  0,  9,  0,
-    -27, 27, 27,-27, 27,-27,-27, 27,-18, 18, 18,-18, -9,  9,  9, -9,-18, 18, -9,  9, 18,-18,  9, -9,-18, -9, 18,  9, 18,  9,-18, -9,
-     18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6, 12,-12,  6, -6,-12, 12, -6,  6,  9,  9, -9, -9, -9, -9,  9,  9,
-     -6,  0,  6,  0,  6,  0, -6,  0, -4,  0,  4,  0, -2,  0,  2,  0, -3,  0, -3,  0,  3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,
-     18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6,  9, -9,  9, -9, -9,  9, -9,  9, 12,  6,-12, -6,-12, -6, 12,  6,
-    -12, 12, 12,-12, 12,-12,-12, 12, -8,  8,  8, -8, -4,  4,  4, -4, -6,  6, -6,  6,  6, -6,  6, -6, -6, -6,  6,  6,  6,  6, -6, -6,
-      2,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,
-     -6,  6,  0,  0,  6, -6,  0,  0, -3,  3,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4, -2,  0,  0,  4,  2,  0,  0,
-      4, -4,  0,  0, -4,  4,  0,  0,  2, -2,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,  0, -2, -2,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, -4,  0,  0, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-     -6,  0,  6,  0,  6,  0, -6,  0, -3,  0,  3,  0, -3,  0,  3,  0, -4,  0, -2,  0,  4,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0,
-     18,-18,-18, 18,-18, 18, 18,-18,  9, -9, -9,  9,  9, -9, -9,  9, 12,-12,  6, -6,-12, 12, -6,  6, 12,  6,-12, -6,-12, -6, 12,  6,
-    -12, 12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -8,  8, -4,  4,  8, -8,  4, -4, -6, -6,  6,  6,  6,  6, -6, -6,
-      4,  0, -4,  0, -4,  0,  4,  0,  2,  0, -2,  0,  2,  0, -2,  0,  2,  0,  2,  0, -2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,
-      0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  0, -4,  0, -4,  0,  4,  0,
-    -12, 12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -6,  6, -6,  6,  6, -6,  6, -6, -8, -4,  8,  4,  8,  4, -8, -4,
-      8, -8, -8,  8, -8,  8,  8, -8,  4, -4, -4,  4,  4, -4, -4,  4,  4, -4,  4, -4, -4,  4, -4,  4,  4,  4, -4, -4, -4, -4,  4,  4,
+    { 1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0},
+    {-3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2, -1,  0,  0,  0,  0,  0,  0},
+    { 2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    {-3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -2,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0},
+    { 9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6, -6,  3, -3,  0,  0,  0,  0,  6,  3, -6, -3,  0,  0,  0,  0},
+    {-6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4,  4, -2,  2,  0,  0,  0,  0, -3, -3,  3,  3,  0,  0,  0,  0},
+    { 2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0},
+    {-6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  3, -3,  3,  0,  0,  0,  0, -4, -2,  4,  2,  0,  0,  0,  0},
+    { 4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  2, -2,  0,  0,  0,  0,  2,  2, -2, -2,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  9, -9, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  4, -4, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    {-3,  0,  0,  0,  3,  0,  0,  0, -2,  0,  0,  0, -1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0},
+    { 9, -9,  0,  0, -9,  9,  0,  0,  6, -6,  0,  0,  3, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  6,  3,  0,  0, -6, -3,  0,  0},
+    {-6,  6,  0,  0,  6, -6,  0,  0, -4,  4,  0,  0, -2,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3, -3,  0,  0,  3,  3,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -3,  0,  0,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9, -9,  0,  0, -9,  9,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 9,  0, -9,  0, -9,  0,  9,  0,  6,  0, -6,  0,  3,  0, -3,  0,  6,  0,  3,  0, -6,  0, -3,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  9,  0, -9,  0, -9,  0,  9,  0},
+    {-27,27, 27,-27, 27,-27,-27, 27,-18, 18, 18,-18, -9,  9,  9, -9,-18, 18, -9,  9, 18,-18,  9, -9,-18, -9, 18,  9, 18,  9,-18, -9},
+    {18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6, 12,-12,  6, -6,-12, 12, -6,  6,  9,  9, -9, -9, -9, -9,  9,  9},
+    {-6,  0,  6,  0,  6,  0, -6,  0, -4,  0,  4,  0, -2,  0,  2,  0, -3,  0, -3,  0,  3,  0,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0},
+    {18,-18,-18, 18,-18, 18, 18,-18, 12,-12,-12, 12,  6, -6, -6,  6,  9, -9,  9, -9, -9,  9, -9,  9, 12,  6,-12, -6,-12, -6, 12,  6},
+    {-12,12, 12,-12, 12,-12,-12, 12, -8,  8,  8, -8, -4,  4,  4, -4, -6,  6, -6,  6,  6, -6,  6, -6, -6, -6,  6,  6,  6,  6, -6, -6},
+    { 2,  0,  0,  0, -2,  0,  0,  0,  1,  0,  0,  0,  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0},
+    {-6,  6,  0,  0,  6, -6,  0,  0, -3,  3,  0,  0, -3,  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -4, -2,  0,  0,  4,  2,  0,  0},
+    { 4, -4,  0,  0, -4,  4,  0,  0,  2, -2,  0,  0,  2, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  2,  0,  0, -2, -2,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  2,  0,  0,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  6,  0,  0,  6, -6,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4, -4,  0,  0, -4,  4,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    {-6,  0,  6,  0,  6,  0, -6,  0, -3,  0,  3,  0, -3,  0,  3,  0, -4,  0, -2,  0,  4,  0,  2,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, -6,  0,  6,  0,  6,  0, -6,  0},
+    {18,-18,-18, 18,-18, 18, 18,-18,  9, -9, -9,  9,  9, -9, -9,  9, 12,-12,  6, -6,-12, 12, -6,  6, 12,  6,-12, -6,-12, -6, 12,  6},
+    {-12,12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -8,  8, -4,  4,  8, -8,  4, -4, -6, -6,  6,  6,  6,  6, -6, -6},
+    { 4,  0, -4,  0, -4,  0,  4,  0,  2,  0, -2,  0,  2,  0, -2,  0,  2,  0,  2,  0, -2,  0, -2,  0,  0,  0,  0,  0,  0,  0,  0,  0},
+    { 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  4,  0, -4,  0, -4,  0,  4,  0},
+    {-12,12, 12,-12, 12,-12,-12, 12, -6,  6,  6, -6, -6,  6,  6, -6, -6,  6, -6,  6,  6, -6,  6, -6, -8, -4,  8,  4,  8,  4, -8, -4},
+    { 8, -8, -8,  8, -8,  8,  8, -8,  4, -4, -4,  4,  4, -4, -4,  4,  4, -4,  4, -4, -4,  4, -4,  4,  4,  4, -4, -4, -4, -4,  4,  4}
   };
   double dx = xmax - xmin;
   double dy = ymax - ymin;
@@ -4311,22 +4193,22 @@ void PairAIREBO::Spbicubic_patch_coeffs(
 ) {
   const double C_inv[16][12] = {
      // output_matrix(1, 4*3, get_matrix(2))
-      1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-     -3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0,
-      2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
-      0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0,
-     -3, 0, 3, 0,-2, 0,-1, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0,
-      9,-9,-9, 9, 6,-6, 3,-3, 6, 3,-6,-3,
-     -6, 6, 6,-6,-4, 4,-2, 2,-3,-3, 3, 3,
-      2, 0,-2, 0, 1, 0, 1, 0, 0, 0, 0, 0,
-      0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0,
-     -6, 6, 6,-6,-3, 3,-3, 3,-4,-2, 4, 2,
-      4,-4,-4, 4, 2,-2, 2,-2, 2, 2,-2,-2,
+    { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0},
+    {-3, 3, 0, 0, 0, 0, 0, 0,-2,-1, 0, 0},
+    { 2,-2, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0},
+    { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0,-3, 3, 0, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 2,-2, 0, 0, 0, 0, 0, 0},
+    {-3, 0, 3, 0,-2, 0,-1, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0,-3, 0, 3, 0},
+    { 9,-9,-9, 9, 6,-6, 3,-3, 6, 3,-6,-3},
+    {-6, 6, 6,-6,-4, 4,-2, 2,-3,-3, 3, 3},
+    { 2, 0,-2, 0, 1, 0, 1, 0, 0, 0, 0, 0},
+    { 0, 0, 0, 0, 0, 0, 0, 0, 2, 0,-2, 0},
+    {-6, 6, 6,-6,-3, 3,-3, 3,-4,-2, 4, 2},
+    { 4,-4,-4, 4, 2,-2, 2,-2, 2, 2,-2,-2}
   };
   double dx = xmax - xmin;
   double dy = ymax - ymin;
@@ -4373,19 +4255,18 @@ void PairAIREBO::spline_init()
   // this one parameter for C-C interactions is different in REBO vs AIREBO
   // see Favata, Micheletti, Ryu, Pugno, Comp Phys Comm (2016)
 
-  PCCf[2][0] = PCCf_2_0;
-
+  PCCf[2][0] = -0.0276030;
   PCCf[2][1] = 0.00317953083;
 
-  PCHf[0][1] = 0.209336733;
-  PCHf[0][2] = -0.0644496154;
-  PCHf[0][3] = -0.303927546;
+  PCHf[0][1] = 0.2093367328250380;
+  PCHf[0][2] = -0.064449615432525;
+  PCHf[0][3] = -0.303927546346162;
   PCHf[1][0] = 0.010;
-  PCHf[1][1] = -0.125123401;
-  PCHf[1][2] = -0.298905246;
-  PCHf[2][0] = -0.122042146;
-  PCHf[2][1] = -0.300529172;
-  PCHf[3][0] = -0.307584705;
+  PCHf[1][1] = -0.1251234006287090;
+  PCHf[1][2] = -0.298905245783;
+  PCHf[2][0] = -0.1220421462782555;
+  PCHf[2][1] = -0.3005291724067579;
+  PCHf[3][0] = -0.307584705066;
 
   for (int nH = 0; nH < 4; nH++) {
     for (int nC = 0; nC < 4; nC++) {
@@ -4500,22 +4381,22 @@ void PairAIREBO::spline_init()
 
   //  make top end of piCC flat instead of zero
   i = 4;
-  for (j = 0; j < 4; j++){
-      for (k = 1; k < 11; k++){
+  for (j = 0; j < 4; j++) {
+      for (k = 1; k < 11; k++) {
           piCCf[i][j][k] = piCCf[i-1][j][k];
       }
   }
-  for (i = 0; i < 4; i++){ // also enforces some symmetry
-      for (j = i+1; j < 5; j++){
-          for (k = 1; k < 11; k++){
+  for (i = 0; i < 4; i++) { // also enforces some symmetry
+      for (j = i+1; j < 5; j++) {
+          for (k = 1; k < 11; k++) {
               piCCf[i][j][k] = piCCf[j][i][k];
           }
       }
   }
   for (k = 1; k < 11; k++) piCCf[4][4][k] = piCCf[3][4][k];
   k = 10;
-  for (i = 0; i < 5; i++){
-      for (j = 0; j < 5; j++){
+  for (i = 0; i < 5; i++) {
+      for (j = 0; j < 5; j++) {
       piCCf[i][j][k] = piCCf[i][j][k-1];
       }
   }
@@ -4543,22 +4424,22 @@ void PairAIREBO::spline_init()
  // also enforces some symmetry
 
   i = 4;
-  for (j = 0; j < 4; j++){
-      for (k = 1; k < 11; k++){
+  for (j = 0; j < 4; j++) {
+      for (k = 1; k < 11; k++) {
           piCHf[i][j][k] = piCHf[i-1][j][k];
       }
   }
-  for (i = 0; i < 4; i++){
-      for (j = i+1; j < 5; j++){
-          for (k = 1; k < 11; k++){
+  for (i = 0; i < 4; i++) {
+      for (j = i+1; j < 5; j++) {
+          for (k = 1; k < 11; k++) {
               piCHf[i][j][k] = piCHf[j][i][k];
           }
       }
   }
   for (k = 1; k < 11; k++) piCHf[4][4][k] = piCHf[3][4][k];
   k = 10;
-  for (i = 0; i < 5; i++){
-      for (j = 0; j < 5; j++){
+  for (i = 0; i < 5; i++) {
+      for (j = 0; j < 5; j++) {
       piCHf[i][j][k] = piCHf[i][j][k-1];
       }
   }
@@ -4616,12 +4497,12 @@ void PairAIREBO::spline_init()
 double PairAIREBO::memory_usage()
 {
   double bytes = 0.0;
-  bytes += maxlocal * sizeof(int);
-  bytes += maxlocal * sizeof(int *);
+  bytes += (double)maxlocal * sizeof(int);
+  bytes += (double)maxlocal * sizeof(int *);
 
   for (int i = 0; i < comm->nthreads; i++)
     bytes += ipage[i].size();
 
-  bytes += 2*maxlocal * sizeof(double);
+  bytes += (double)2*maxlocal * sizeof(double);
   return bytes;
 }

@@ -21,7 +21,6 @@ ComputeStyle(SPEC/ATOM,ComputeSpecAtom)
 #define LMP_COMPUTE_SPEC_ATOM_H
 
 #include "compute.h"
-#include "pointers.h"
 
 namespace LAMMPS_NS {
 

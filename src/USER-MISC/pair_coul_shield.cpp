@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,11 +18,8 @@
    [Maaravi et al, J. Phys. Chem. C 121, 22826-22835 (2017)]
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_coul_shield.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -31,6 +28,7 @@
 #include "memory.h"
 #include "math_special.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -64,8 +62,7 @@ void PairCoulShield::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -105,7 +102,7 @@ void PairCoulShield::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      // only include the interation between different layers
+      // only include the interaction between different layers
       if (rsq < cutsq[itype][jtype] && atom->molecule[i] != atom->molecule[j]) {
         r = sqrt(rsq);
         r3 = rsq*r;
@@ -118,8 +115,8 @@ void PairCoulShield::compute(int eflag, int vflag)
 
         // turn on/off taper function
         if (tap_flag) {
-          Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
-          dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
+          Tap = calc_Tap(r,cut[itype][jtype]);
+          dTap = calc_dTap(r,cut[itype][jtype]);
         } else {Tap = 1.0; dTap = 0.0;}
 
         forcecoul = qqrd2e*qtmp*q[j]*r*depsdr;
@@ -178,8 +175,8 @@ void PairCoulShield::settings(int narg, char **arg)
 {
   if (narg < 1 || narg > 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  if (narg == 2) tap_flag = force->numeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  if (narg == 2) tap_flag = utils::numeric(FLERR,arg[1],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -201,13 +198,13 @@ void PairCoulShield::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double sigmae_one = force->numeric(FLERR,arg[2]);
+  double sigmae_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(FLERR,arg[3]);
+  if (narg == 4) cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -300,10 +297,12 @@ void PairCoulShield::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
+      MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&sigmae[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&sigmae[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&sigmae[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -329,9 +328,9 @@ void PairCoulShield::write_restart_settings(FILE *fp)
 void PairCoulShield::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
@@ -341,34 +340,41 @@ void PairCoulShield::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairCoulShield::single(int i, int j, int itype, int jtype,
-                           double rsq, double factor_coul, double /*factor_lj*/,
-                           double &fforce)
+                              double rsq, double factor_coul, double /*factor_lj*/,
+                              double &fforce)
 {
   double r, rarg,Vc,fvc,forcecoul,phishieldec;
   double r3,th,epsr,depsdr,Tap,dTap;
   double *q = atom->q;
   double qqrd2e = force->qqrd2e;
 
-   r = sqrt(rsq);
-   r3 = rsq*r;
-   rarg = 1.0/sigmae[itype][jtype];
-   th = r3 + MathSpecial::cube(rarg);
-   epsr = 1.0/pow(th,0.333333333333333333);
-   depsdr = epsr*epsr;
-   depsdr *= depsdr;
-   Vc = qqrd2e*q[i]*q[j]*epsr;
+  // only computed between different layers as indicated by different molecule ids.
 
-   // turn on/off taper function
-   if (tap_flag) {
-     Tap = calc_Tap(r,sqrt(cutsq[itype][jtype]));
-     dTap = calc_dTap(r,sqrt(cutsq[itype][jtype]));
-   } else {Tap = 1.0; dTap = 0.0;}
+  if (atom->molecule[i] == atom->molecule[j]) {
+    fforce = 0.0;
+    return 0.0;
+  }
 
-   forcecoul = qqrd2e*q[i]*q[j]*r*depsdr;
-   fvc = forcecoul*Tap - Vc*dTap/r;
-   fforce = factor_coul*fvc;
+  r = sqrt(rsq);
+  r3 = rsq*r;
+  rarg = 1.0/sigmae[itype][jtype];
+  th = r3 + MathSpecial::cube(rarg);
+  epsr = 1.0/pow(th,0.333333333333333333);
+  depsdr = epsr*epsr;
+  depsdr *= depsdr;
+  Vc = qqrd2e*q[i]*q[j]*epsr;
 
-  if (tap_flag) phishieldec = factor_coul*Vc*Tap;
+  // turn on/off taper function
+  if (tap_flag) {
+    Tap = calc_Tap(r,cut[itype][jtype]);
+    dTap = calc_dTap(r,cut[itype][jtype]);
+  } else {Tap = 1.0; dTap = 0.0;}
+
+  forcecoul = qqrd2e*q[i]*q[j]*r*depsdr;
+  fvc = forcecoul*Tap - Vc*dTap/r;
+  fforce = factor_coul*fvc;
+
+  if (tap_flag) phishieldec = Vc*Tap;
   else phishieldec = Vc - offset[itype][jtype];
   return factor_coul*phishieldec;
 }

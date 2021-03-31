@@ -21,8 +21,6 @@ PairStyle(kolmogorov/crespi/full,PairKolmogorovCrespiFull)
 #define LMP_PAIR_KolmogorovCrespi_FULL_H
 
 #include "pair.h"
-#include "my_page.h"
-#include <cmath>
 
 namespace LAMMPS_NS {
 
@@ -36,9 +34,10 @@ class PairKolmogorovCrespiFull : public Pair {
   void coeff(int, char **);
   double init_one(int, int);
   void init_style();
+  void KC_neigh();
   void calc_normal();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  void calc_FRep(int, int);
+  void calc_FvdW(int, int);
   double single(int, int, int, int, double, double, double, double &);
 
  protected:
@@ -49,7 +48,7 @@ class PairKolmogorovCrespiFull : public Pair {
   MyPage<int> *ipage;              // neighbor list pages
   int *KC_numneigh;                // # of pair neighbors for each atom
   int **KC_firstneigh;             // ptr to 1st neighbor of each atom
-  int tap_flag;			   // flag to turn on/off taper function
+  int tap_flag;                    // flag to turn on/off taper function
 
 
   struct Param {
@@ -58,12 +57,6 @@ class PairKolmogorovCrespiFull : public Pair {
     int ielement,jelement;
   };
   Param *params;       // parameter set for I-J interactions
-  char **elements;     // names of unique elements
-  int **elem2param;    // mapping from element pairs to parameters
-  int *map;            // mapping from atom types to elements
-  int nelements;       // # of unique elements
-  int nparams;         // # of stored parameter sets
-  int maxparam;        // max # of parameter sets
   int nmax;            // max # of atoms
 
   double cut_global;
@@ -77,7 +70,6 @@ class PairKolmogorovCrespiFull : public Pair {
 
   void read_file( char * );
   void allocate();
-  void KC_neigh();
 
 
   /* ----Calculate the long-range cutoff term */
@@ -86,7 +78,7 @@ class PairKolmogorovCrespiFull : public Pair {
     double Tap_coeff[8] = {1.0,0.0,0.0,0.0,-35.0,84.0,-70.0,20.0};
 
     r = r_ij/Rcut;
-    if(r >= 1.0) {Tap = 0.0;}
+    if (r >= 1.0) {Tap = 0.0;}
     else{
       Tap = Tap_coeff[7] * r + Tap_coeff[6];
       Tap = Tap * r  + Tap_coeff[5];
@@ -106,7 +98,7 @@ class PairKolmogorovCrespiFull : public Pair {
     double Tap_coeff[8] = {1.0,0.0,0.0,0.0,-35.0,84.0,-70.0,20.0};
 
     r = r_ij/Rcut;
-    if(r >= 1.0) {dTap = 0.0;}
+    if (r >= 1.0) {dTap = 0.0;}
     else {
       dTap = 7.0*Tap_coeff[7] * r + 6.0*Tap_coeff[6];
       dTap = dTap * r  + 5.0*Tap_coeff[5];

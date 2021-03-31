@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,18 +12,19 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 
 #include "pair_adp_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -39,9 +40,7 @@ PairADPOMP::PairADPOMP(LAMMPS *lmp) :
 
 void PairADPOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
@@ -64,7 +63,7 @@ void PairADPOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -72,7 +71,7 @@ void PairADPOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (force->newton_pair)
       thr->init_adp(nall, rho, mu, lambda);
@@ -388,7 +387,7 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 double PairADPOMP::memory_usage()
 {
   double bytes = memory_usage_thr();
-  bytes += PairADP::memory_usage();
-  bytes += (comm->nthreads-1) * nmax * (10*sizeof(double) + 3*sizeof(double *));
+  bytes += (double)PairADP::memory_usage();
+  bytes += (double)(comm->nthreads-1) * nmax * (10*sizeof(double) + 3*sizeof(double *));
   return bytes;
 }

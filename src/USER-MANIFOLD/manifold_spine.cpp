@@ -45,10 +45,10 @@ double manifold_spine::g_and_n( const double *x, double *nn )
   double AMs, AMc;
   double dazc, dAMs;
 
-  if( x[2] > 0 ){
+  if (x[2] > 0) {
     BB = B;
     cc = c;
-  }else{
+  } else {
     BB = B2;
     cc = 1.0;
   }
@@ -94,10 +94,10 @@ void manifold_spine::n( const double *x, double *nn )
   double AMs, AMc;
   double dazc, dAMs;
 
-  if( x[2] > 0 ){
+  if (x[2] > 0) {
     BB = B;
     cc = c;
-  }else{
+  } else {
     BB = B2;
     cc = 1.0;
   }
@@ -138,10 +138,10 @@ double manifold_spine::g( const double *x )
   double c2, As, azc, Apart;
   double AMs;
 
-  if( x[2] > 0 ){
+  if (x[2] > 0) {
     BB = B;
     cc = c;
-  }else{
+  } else {
     BB = B2;
     cc = 1.0;
   }

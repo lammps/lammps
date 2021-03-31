@@ -75,7 +75,7 @@ fix_modify	AtC control localized_lambda on
 #fix_modify      AtC  filter scale 1000.0
 #fix_modify      AtC  filter on
 
-# ouput commands
+# output commands
 fix_modify      AtC  output shear_flowFE 100 text #binary
 #undump          D1
 #dump		D1 all custom 100 shear_flow.dmp id type xs ys zs vx vy vz

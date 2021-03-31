@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,16 +12,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_vashishta_omp.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
-
+#include "neighbor.h"
 #include "suffix.h"
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -37,16 +38,14 @@ PairVashishtaOMP::PairVashishtaOMP(LAMMPS *lmp) :
 
 void PairVashishtaOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -54,7 +53,7 @@ void PairVashishtaOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (evflag) {
       if (eflag) {
@@ -144,7 +143,7 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       if (rsq >= params[ijparam].cutsq) continue;
 
       twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
@@ -165,7 +164,7 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < jnumm1; jj++) {
       j = neighshort_thr[jj];
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       delr1[0] = x[j].x - xtmp;
       delr1[1] = x[j].y - ytmp;
       delr1[2] = x[j].z - ztmp;
@@ -178,8 +177,8 @@ void PairVashishtaOMP::eval(int iifrom, int iito, ThrData * const thr)
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort_thr[kk];
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k].x - xtmp;
         delr2[1] = x[k].y - ytmp;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,13 +15,13 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_eos_table.h"
+
 #include "atom.h"
 #include "error.h"
-#include "force.h"
 #include "memory.h"
+
+#include <cstring>
 
 #define MAXLINE 1024
 
@@ -31,7 +31,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEOStable::FixEOStable(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ntables(0), tables(NULL)
+  Fix(lmp, narg, arg), ntables(0), tables(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix eos/table command");
   nevery = 1;
@@ -39,11 +39,11 @@ FixEOStable::FixEOStable(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
   else error->all(FLERR,"Unknown table style in fix eos/table");
 
-  tablength = force->inumeric(FLERR,arg[5]);
+  tablength = utils::inumeric(FLERR,arg[5],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of eos/table entries");
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
   int me;
   MPI_Comm_rank(world,&me);
   tables = (Table *)
@@ -111,14 +111,14 @@ void FixEOStable::init()
   double *dpdTheta = atom->dpdTheta;
   double tmp;
 
-  if(this->restart_reset){
+  if (this->restart_reset) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit)
         temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        if(dpdTheta[i] <= 0.0)
+        if (dpdTheta[i] <= 0.0)
           error->one(FLERR,"Internal temperature <= zero");
         energy_lookup(dpdTheta[i],tmp);
         uCond[i] = 0.0;
@@ -138,9 +138,9 @@ void FixEOStable::post_integrate()
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
-      if(dpdTheta[i] <= 0.0)
+      if (dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -156,9 +156,9 @@ void FixEOStable::end_of_step()
   double *dpdTheta = atom->dpdTheta;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit){
+    if (mask[i] & groupbit) {
       temperature_lookup(uCond[i]+uMech[i],dpdTheta[i]);
-      if(dpdTheta[i] <= 0.0)
+      if (dpdTheta[i] <= 0.0)
         error->one(FLERR,"Internal temperature <= zero");
     }
 }
@@ -167,10 +167,10 @@ void FixEOStable::end_of_step()
 
 void FixEOStable::null_table(Table *tb)
 {
-  tb->rfile = tb->efile = NULL;
-  tb->e2file = NULL;
-  tb->r = tb->e = tb->de = NULL;
-  tb->e2 = NULL;
+  tb->rfile = tb->efile = nullptr;
+  tb->e2file = nullptr;
+  tb->r = tb->e = tb->de = nullptr;
+  tb->e2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,8 +197,8 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 
   // open file
 
-  FILE *fp = force->open_potential(file);
-  if (fp == NULL) {
+  FILE *fp = utils::open_potential(file,lmp,nullptr);
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
@@ -207,22 +207,22 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   // loop until section found with matching keyword
 
   while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
+    if (fgets(line,MAXLINE,fp) == nullptr)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
     if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
     param_extract(tb,tb2,line);
-    fgets(line,MAXLINE,fp);
-    for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
+    for (int i = 0; i < tb->ninput; i++) utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   }
 
   // read args on 2nd line of section
   // allocate table arrays for file values
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,tb2,line);
   memory->create(tb->rfile,tb->ninput,"eos:rfile");
   memory->create(tb->efile,tb->ninput,"eos:efile");
@@ -232,9 +232,9 @@ void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   // read r,e table values from file
 
   int itmp;
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     sscanf(line,"%d %lg %lg",&itmp,&tb->rfile[i],&tb->efile[i]);
     sscanf(line,"%d %lg %lg",&itmp,&tb2->efile[i],&tb2->rfile[i]);
   }
@@ -305,13 +305,13 @@ void FixEOStable::param_extract(Table *tb, Table *tb2, char *line)
   char *word = strtok(line," \t\n\r\f");
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       tb->ninput = atoi(word);
       tb2->ninput = atoi(word);
     } else {
       error->one(FLERR,"Invalid keyword in fix eos/table parameters");
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok(nullptr," \t\n\r\f");
   }
 
   if (tb->ninput == 0) error->one(FLERR,"fix eos/table parameters did not set N");
@@ -406,7 +406,7 @@ void FixEOStable::energy_lookup(double t, double &u)
   double fraction;
 
   Table *tb = &tables[0];
-  if(t < tb->lo || t > tb->hi){
+  if (t < tb->lo || t > tb->hi) {
     printf("Temperature=%lf TableMin=%lf TableMax=%lf\n",t,tb->lo,tb->hi);
     error->one(FLERR,"Temperature is not within table cutoffs");
   }
@@ -428,7 +428,7 @@ void FixEOStable::temperature_lookup(double u, double &t)
   double fraction;
 
   Table *tb = &tables[1];
-  if(u < tb->lo || u > tb->hi){
+  if (u < tb->lo || u > tb->hi) {
     printf("Energy=%lf TableMin=%lf TableMax=%lf\n",u,tb->lo,tb->hi);
     error->one(FLERR,"Energy is not within table cutoffs");
   }

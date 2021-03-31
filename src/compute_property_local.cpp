@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_property_local.h"
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "update.h"
@@ -35,7 +35,7 @@ enum{TYPE,RADIUS};
 
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  vlocal(NULL), alocal(NULL), indices(NULL), pack_choice(NULL)
+  vlocal(nullptr), alocal(nullptr), indices(nullptr), pack_choice(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute property/local command");
 
@@ -233,7 +233,7 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular == 2 && (kindflag == BOND || kindflag == ANGLE ||
+  if (atom->molecular == Atom::TEMPLATE && (kindflag == BOND || kindflag == ANGLE ||
                                kindflag == DIHEDRAL || kindflag == IMPROPER))
     error->all(FLERR,"Compute property/local does not (yet) work "
                "with atom_style template");
@@ -254,8 +254,8 @@ ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute property/local requires atom attribute radius");
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -273,7 +273,7 @@ ComputePropertyLocal::~ComputePropertyLocal()
 void ComputePropertyLocal::init()
 {
   if (kindflag == NEIGH || kindflag == PAIR) {
-    if (force->pair == NULL)
+    if (force->pair == nullptr)
       error->all(FLERR,"No pair style is defined for compute property/local");
     if (force->pair->single_enable == 0)
       error->all(FLERR,"Pair style does not support compute property/local");
@@ -650,8 +650,8 @@ void ComputePropertyLocal::reallocate(int n)
 
 double ComputePropertyLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
-  bytes += nmax*2 * sizeof(int);
+  double bytes = (double)nmax*nvalues * sizeof(double);
+  bytes += (double)nmax*2 * sizeof(int);
   return bytes;
 }
 

@@ -93,7 +93,7 @@ fix_modify	AtC  fix_flux temperature lbndy  0.0000000001
 fix_modify      AtC  fix_flux temperature rbndy -0.0000000001
 # set up output, should be before a "run"
 fix_modify      AtC  output bar1d_all_atomsFE 200 text binary
-# ouput command
+# output command
 #dump            D1 all atom 1000 dump.bar1d
 # run with FE
 reset_timestep 	0

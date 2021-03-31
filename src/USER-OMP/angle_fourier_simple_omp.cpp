@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,20 +15,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "angle_fourier_simple_omp.h"
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
-#include "domain.h"
 
-#include "math_const.h"
-
-#include <cmath>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define SMALL 0.001
 
@@ -44,17 +41,14 @@ AngleFourierSimpleOMP::AngleFourierSimpleOMP(class LAMMPS *lmp)
 
 void AngleFourierSimpleOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = neighbor->nanglelist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -62,7 +56,7 @@ void AngleFourierSimpleOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {
@@ -141,10 +135,10 @@ void AngleFourierSimpleOMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // handle sin(n th)/sin(th) singulatiries
 
-    if ( fabs(c)-1.0 > 0.0001 ) {
+    if (fabs(c)-1.0 > 0.0001) {
       a = k[type]*C[type]*N[type]*sin(nth)/sin(th);
     } else {
-      if ( c >= 0.0 ) {
+      if (c >= 0.0) {
         term = 1.0 - c;
         sgn = 1.0;
       } else {

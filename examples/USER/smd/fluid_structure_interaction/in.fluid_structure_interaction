@@ -1,0 +1,154 @@
+####################################################################################################
+#
+# combined TLSPH / ULSPH example
+#
+# A column of water is placed in a container and allowed to collapse unter the
+# influence of gravity. Several solid objects are also placed in the container.
+# The water flow pushes the solid objects around until the system comes to halt due to
+# viscous damping. The solid objects have a lower mass density than water and finally float on
+# the water surface.
+#
+# Water is modelled using the Updated Lagrangian formalism. Solid bodies are modelled using the
+# Total Lagrangian formalism. Contact forces between container, solid bodies, and water prevent
+# mutual penetration of these physical entities.
+#
+# unit system: GPa / mm / ms
+#
+####################################################################################################
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        rho_water equal 1000 # mass density water
+variable        rho_obj equal 300 # mass density solid objects
+variable        c0 equal 10.0 # speed of sound for water
+variable        E equal 5*${c0}*${c0}*${rho_water} # Young's modulus for solid objects
+variable        nu equal 0.3 # Poisson ratio for solid objects
+variable        sigma_yield equal 0.1*${E} # plastic yield stress for solid objects
+variable        hardening_parameter equal 0 # plastic hardening parameter for solid objects
+variable        contact_stiffness equal 2.5*${c0}^2*${rho_water} # contact force amplitude
+variable        q1 equal 1.0 # artificial viscosity
+variable        q2 equal 0.0 # artificial viscosity
+variable        Hg equal 10 # Hourglass control coefficient for solid objects
+variable        Cp equal 1.0 # heat capacity -- not used here
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+units           si
+dimension       2
+boundary        sm sm p
+atom_style      smd
+neigh_modify    every 5 delay 0 check yes
+comm_modify     vel yes
+newton          off
+atom_modify     map array
+comm_style      tiled
+
+####################################################################################################
+# CREATE INITIAL GEOMETRY
+####################################################################################################
+# create simulation box, a container, and a water column
+variable        l0 equal 0.05 # initial particle lattice spacing
+region          box block 0 6 0 8 -0.01 0.01 units box
+create_box      3 box
+region          water block 0.25 1 0.25 4 EDGE EDGE units box
+region          container block 0.15 5.85 0.15 8 -0.01 0.01 units box side out # container
+lattice         sq ${l0}
+create_atoms    1 region water
+group           water type 1
+create_atoms    3 region container
+group           container type 3
+
+# create some solid objects to be pushed around
+region          obj1 prism 2 2.6 0.25 0.85 EDGE EDGE 0.3 0 0 units box
+region          obj2 block 3 3.6 0.25 0.85 EDGE EDGE units box
+region          obj3 sphere 4.3 0.5 0 0.25 units box
+create_atoms    2 region obj1
+create_atoms    2 region obj2
+create_atoms    2 region obj3
+group           solids type 2
+group           tlsph type 2
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        h equal 2.5*${l0} # SPH kernel diameter
+variable        vol_one equal ${l0}^2 # initial particle volume for 2d simulation
+set             group all diameter ${h}
+set             group all smd/contact/radius ${l0}
+set             group all volume  ${vol_one}
+set             group all smd/mass/density ${rho_water}
+set             group solids smd/mass/density ${rho_obj}
+variable        contact_scale equal 1.5 # scale factor to increase contact gap between bodies
+variable        skin equal ${h} # Verlet list range
+neighbor        ${skin} bin
+
+####################################################################################################
+# DEFINE BOUNDARY CONDITIONS
+#
+# note that the the particles constituting the container are simply not integrated in time,
+# thus these particles never move. This is equivalent to a fixed displacement boundary condition.
+####################################################################################################
+fix             gfix all gravity -9.81 vector 0 1 0 # add gravity
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+# 3 different pair styles are used:
+#     - updated Lagrangian SPH for water
+#     - total Lagrangian SPH for solid objects
+#     - a repulsive Hertzian potential for contact forces between different physical bodies
+####################################################################################################
+pair_style      hybrid/overlay smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION &
+                               smd/tlsph smd/hertz ${contact_scale}
+pair_coeff      1 1 smd/ulsph *COMMON ${rho_water} ${c0} ${q1} ${Cp} 0 &
+                *EOS_TAIT 7.0 &
+                *END
+pair_coeff      2 2 smd/tlsph *COMMON ${rho_obj} ${E} ${nu} ${q1} ${q2} ${Hg} ${Cp} &
+                *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter} &
+                *EOS_LINEAR &
+                *END
+pair_coeff      3 3 none
+pair_coeff      1 2 smd/hertz ${contact_stiffness}
+pair_coeff      1 3 smd/hertz ${contact_stiffness}
+pair_coeff      2 3 smd/hertz ${contact_stiffness}
+pair_coeff      2 2 smd/hertz ${contact_stiffness}
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix_water water smd/integrate_ulsph adjust_radius 1.01 10 15
+fix             integration_fix_solids solids smd/integrate_tlsph
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+compute         eint all smd/internal/energy
+compute         contact_radius all smd/contact/radius
+compute         S solids smd/tlsph/stress
+compute         nn water smd/ulsph/num/neighs
+compute         epl solids smd/plastic/strain
+compute         vol all smd/vol
+compute         rho all smd/rho
+
+dump            dump_id all custom 100 dump.LAMMPS id type x y &
+                fx fy vx vy c_eint c_contact_radius mol &
+                c_S[1] c_S[2] c_S[4] mass radius c_epl c_vol c_rho c_nn proc
+dump_modify     dump_id first yes
+
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+compute         alleint all reduce sum c_eint
+variable        etot equal pe+ke+c_alleint+f_gfix # total energy of the system
+thermo          100
+thermo_style    custom step ke pe v_etot c_alleint f_dtfix dt
+thermo_modify   lost ignore
+
+####################################################################################################
+# RUN SIMULATION
+####################################################################################################
+fix             balance_fix all balance 500 0.9 rcb # load balancing for MPI
+run             10000

@@ -53,7 +53,7 @@ class FixRigidNHSmall : public FixRigidSmall {
 
   int kspace_flag;                    // 1 if KSpace invoked, 0 if not
   int nrigidfix;                      // number of rigid fixes
-  int *rfix;                          // indicies of rigid fixes
+  int *rfix;                          // indices of rigid fixes
 
   double vol0;                        // reference volume
   double t0;                          // reference temperature

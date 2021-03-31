@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,16 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "bond.h"
+
 #include "atom.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <ctime>
 
 using namespace LAMMPS_NS;
 
@@ -34,15 +37,16 @@ enum{NONE,LINEAR,SPLINE};
 Bond::Bond(LAMMPS *lmp) : Pointers(lmp)
 {
   energy = 0.0;
+  virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
   writedata = 1;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
-  setflag = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  setflag = nullptr;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
@@ -76,7 +80,16 @@ void Bond::init()
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise set to 0:
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM or VIRIAL_CENTROID bit of vflag set
+                       two-body and centroid stress are identical for bonds
+     vflag_either != 0 if vflag_global or vflag_atom is set
 ------------------------------------------------------------------------- */
 
 void Bond::ev_setup(int eflag, int vflag, int alloc)
@@ -86,12 +99,12 @@ void Bond::ev_setup(int eflag, int vflag, int alloc)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
   vflag_either = vflag;
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & (VIRIAL_ATOM | VIRIAL_CENTROID);
 
   // reallocate per-atom arrays if necessary
 
@@ -229,31 +242,59 @@ void Bond::write_file(int narg, char **arg)
   int itype = 0;
   int jtype = 0;
   if (narg == 8) {
-    itype = force->inumeric(FLERR,arg[6]);
-    jtype = force->inumeric(FLERR,arg[7]);
+    itype = utils::inumeric(FLERR,arg[6],false,lmp);
+    jtype = utils::inumeric(FLERR,arg[7],false,lmp);
     if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
     error->all(FLERR,"Invalid atom types in bond_write command");
   }
 
-  int btype = force->inumeric(FLERR,arg[0]);
-  int n = force->inumeric(FLERR,arg[1]);
-  double inner = force->numeric(FLERR,arg[2]);
-  double outer = force->numeric(FLERR,arg[3]);
+  int btype = utils::inumeric(FLERR,arg[0],false,lmp);
+  int n = utils::inumeric(FLERR,arg[1],false,lmp);
+  double inner = utils::numeric(FLERR,arg[2],false,lmp);
+  double outer = utils::numeric(FLERR,arg[3],false,lmp);
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid rlo/rhi values in bond_write command");
 
 
   double r0 = equilibrium_distance(btype);
 
-  // open file in append mode
+  // open file in append mode if exists
+  // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by bond_style table
 
-  int me;
-  MPI_Comm_rank(world,&me);
-  FILE *fp;
-  if (me == 0) {
-    fp = fopen(arg[4],"a");
-    if (fp == NULL) error->one(FLERR,"Cannot open bond_write file");
+  FILE *fp = nullptr;
+  if (comm->me == 0) {
+    std::string table_file = arg[4];
+
+    // units sanity check:
+    // - if this is the first time we write to this potential file,
+    //   write out a line with "DATE:" and "UNITS:" tags
+    // - if the file already exists, print a message about appending
+    //   while printing the date and check that units are consistent.
+    if (utils::file_is_readable(table_file)) {
+      std::string units = utils::get_potential_units(table_file,"table");
+      if (!units.empty() && (units != update->unit_style)) {
+        error->one(FLERR,fmt::format("Trying to append to a table file "
+                                     "with UNITS: {} while units are {}",
+                                     units, update->unit_style));
+      }
+      std::string date = utils::get_potential_date(table_file,"table");
+      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
+                                     "DATE: {}\n", table_file, date));
+      fp = fopen(table_file.c_str(),"a");
+    } else {
+      char datebuf[16];
+      time_t tv = time(nullptr);
+      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
+      utils::logmesg(lmp,fmt::format("Creating table file {} with "
+                                     "DATE: {}\n", table_file, datebuf));
+      fp = fopen(table_file.c_str(),"w");
+      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by bond_write\n",
+                         datebuf, update->unit_style);
+    }
+    if (fp == nullptr)
+      error->one(FLERR,fmt::format("Cannot open bond_write file {}: {}",
+                                   arg[4], utils::getsyserror()));
   }
 
   // initialize potentials before evaluating bond potential
@@ -264,7 +305,7 @@ void Bond::write_file(int narg, char **arg)
   force->init();
   neighbor->init();
 
-  if (me == 0) {
+  if (comm->me == 0) {
     double r,e,f;
 
     // evaluate energy and force at each of N distances
@@ -288,8 +329,8 @@ void Bond::write_file(int narg, char **arg)
 
 double Bond::memory_usage()
 {
-  double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  double bytes = (double)comm->nthreads*maxeatom * sizeof(double);
+  bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
   return bytes;
 }
 

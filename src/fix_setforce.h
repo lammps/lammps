@@ -45,7 +45,7 @@ class FixSetForce : public Fix {
   char *xstr,*ystr,*zstr;
   char *idregion;
   int xvar,yvar,zvar,xstyle,ystyle,zstyle;
-  double foriginal[3],foriginal_all[3];
+  double foriginal[3],foriginal_all[3],foriginal_saved[3];
   int force_flag;
   int nlevels_respa,ilevel_respa;
 

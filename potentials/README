@@ -35,6 +35,11 @@ DATE will be added to the file.  This means you can "diff" an old and
 new log file and see that the potential file changed, which could
 affect your simulation results.
 
+3rd IMPORTANT NOTE: The UNITS field in the first line of these files
+is parsed and checked against the current units setting in LAMMPS.
+If there is a mismatch, LAMMPS will stop with an error. If there is
+no UNITS field provided, there is no check.
+
 A small amount of metadata is included in the first line of each file
 in order to track the provenance of each file. The metadata is
 indicated by a keyword followed by white space, followed by the
@@ -42,11 +47,15 @@ metadata, followed by whitespace. The metadata is intended to be
 straightforward and human-readable, while still conforming to a
 standard format.
 
-DATE: Format is "yyyy-mm-dd". This indicates the date of a significant
+DATE: Format is "yyyy-mm-dd".  This indicates the date of a significant
 change to the file. Multiple entries can appear in reverse
 chronological order. As described above, the first of these will be
 printed to the screen and log file when it is read by a LAMMPS input
 script.
+
+UNITS: Format is "unit".  This indicates the LAMMPS unit style this
+potential was parameterized for.  Any difference to the currently used
+unit style in a LAMMPS simulation will cause termination with an error.
 
 CONTRIBUTOR: Format is "name[, email address]". This indicates the person
 who contributed the file and/or who is best able to provide more details
@@ -89,7 +98,11 @@ lcbop         LCBOP long-range bond-order potential
 meam	      modified EAM (MEAM) library and individual elements/alloys
 meam.spline   modified EAM (MEAM) spline potential
 meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
+mesocnt       mesoscopic carbon nanotube (CNT) potential
 mgpt          model generalized pseudopotential theory (MGPT) potential
+mliap         MLIAP potential
+mliap.descriptor MLIAP potential descriptor
+mliap.model   MLIAP potential model
 nb3b.harmonic nonbonded 3-body harmonic potential
 poly          polymorphic 3-body potential
 reax	      ReaxFF potential (see README.reax for more info)

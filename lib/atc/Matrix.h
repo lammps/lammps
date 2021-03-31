@@ -150,7 +150,7 @@ protected:
 
 //* Matrix operations 
 //@{
-//* Sets C as b*C + a*A[tranpose?]*B[transpose?] 
+//* Sets C as b*C + a*A[transpose?]*B[transpose?]
 template<typename T>
 void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C, 
             bool At=0, bool Bt=0, T a=1, T b=0);
@@ -248,7 +248,7 @@ DenseMatrix<T> operator-(const Matrix<T> &A, const Matrix<T> &B)
 //* performs a matrix-matrix multiply with general type implementation
 template<typename T>
 void MultAB(const Matrix<T> &A, const Matrix<T> &B, DenseMatrix<T> &C, 
-            const bool At, const bool Bt, T a, T b)
+            const bool At, const bool Bt, T /* a */, T b)
 {
   const INDEX sA[2] = {A.nRows(), A.nCols()};  // m is sA[At] k is sA[!At]
   const INDEX sB[2] = {B.nRows(), B.nCols()};  // k is sB[Bt] n is sB[!Bt]
@@ -622,7 +622,7 @@ Matrix<T>& Matrix<T>::operator+=(const T v)
   return *this;
 }
 //-----------------------------------------------------------------------------
-// substracts a constant to this matrix 
+// subtracts a constant to this matrix
 //-----------------------------------------------------------------------------
 template<typename T>
 Matrix<T>& Matrix<T>::operator-=(const T v)       

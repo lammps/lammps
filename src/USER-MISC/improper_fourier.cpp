@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +16,17 @@
    [ based on improper_umbrella.cpp Tod A Pascal (Caltech) ]
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "improper_fourier.h"
+
+#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -49,6 +47,7 @@ ImproperFourier::~ImproperFourier()
     memory->destroy(C0);
     memory->destroy(C1);
     memory->destroy(C2);
+    memory->destroy(all);
   }
 }
 
@@ -59,8 +58,7 @@ void ImproperFourier::compute(int eflag, int vflag)
   int i1,i2,i3,i4,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   int **improperlist = neighbor->improperlist;
@@ -95,7 +93,7 @@ void ImproperFourier::compute(int eflag, int vflag)
            vb1x, vb1y, vb1z,
            vb2x, vb2y, vb2z,
            vb3x, vb3y, vb3z);
-    if ( all[type] ) {
+    if (all[type]) {
       addone(i1,i4,i2,i3, type,evflag,eflag,
              vb3x, vb3y, vb3z,
              vb1x, vb1y, vb1z,
@@ -206,17 +204,17 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
   dahy = ary-c*hry;
   dahz = arz-c*hrz;
 
-  f2[0] = (dhay*vb1z - dhaz*vb1y)*rar;
-  f2[1] = (dhaz*vb1x - dhax*vb1z)*rar;
-  f2[2] = (dhax*vb1y - dhay*vb1x)*rar;
+  f2[0] = (dhay*vb1z - dhaz*vb1y)*rar*a;
+  f2[1] = (dhaz*vb1x - dhax*vb1z)*rar*a;
+  f2[2] = (dhax*vb1y - dhay*vb1x)*rar*a;
 
-  f3[0] = (-dhay*vb2z + dhaz*vb2y)*rar;
-  f3[1] = (-dhaz*vb2x + dhax*vb2z)*rar;
-  f3[2] = (-dhax*vb2y + dhay*vb2x)*rar;
+  f3[0] = (-dhay*vb2z + dhaz*vb2y)*rar*a;
+  f3[1] = (-dhaz*vb2x + dhax*vb2z)*rar*a;
+  f3[2] = (-dhax*vb2y + dhay*vb2x)*rar*a;
 
-  f4[0] = dahx*rhr;
-  f4[1] = dahy*rhr;
-  f4[2] = dahz*rhr;
+  f4[0] = dahx*rhr*a;
+  f4[1] = dahy*rhr*a;
+  f4[2] = dahz*rhr*a;
 
   f1[0] = -(f2[0] + f3[0] + f4[0]);
   f1[1] = -(f2[1] + f3[1] + f4[1]);
@@ -225,32 +223,32 @@ void ImproperFourier::addone(const int &i1,const int &i2,const int &i3,const int
   // apply force to each of 4 atoms
 
   if (newton_bond || i1 < nlocal) {
-    f[i1][0] += f1[0]*a;
-    f[i1][1] += f1[1]*a;
-    f[i1][2] += f1[2]*a;
+    f[i1][0] += f1[0];
+    f[i1][1] += f1[1];
+    f[i1][2] += f1[2];
   }
 
   if (newton_bond || i2 < nlocal) {
-    f[i2][0] += f3[0]*a;
-    f[i2][1] += f3[1]*a;
-    f[i2][2] += f3[2]*a;
+    f[i2][0] += f3[0];
+    f[i2][1] += f3[1];
+    f[i2][2] += f3[2];
   }
 
   if (newton_bond || i3 < nlocal) {
-    f[i3][0] += f2[0]*a;
-    f[i3][1] += f2[1]*a;
-    f[i3][2] += f2[2]*a;
+    f[i3][0] += f2[0];
+    f[i3][1] += f2[1];
+    f[i3][2] += f2[2];
   }
 
   if (newton_bond || i4 < nlocal) {
-    f[i4][0] += f4[0]*a;
-    f[i4][1] += f4[1]*a;
-    f[i4][2] += f4[2]*a;
+    f[i4][0] += f4[0];
+    f[i4][1] += f4[1];
+    f[i4][2] += f4[2];
   }
 
   if (evflag)
-    ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,f1,f3,f4,
-             vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
+      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,f1,f2,f4,
+               -vb1x,-vb1y,-vb1z,vb2x-vb1x,vb2y-vb1y,vb2z-vb1z,vb3x-vb2x,vb3y-vb2y,vb3z-vb2z);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -277,19 +275,19 @@ void ImproperFourier::allocate()
 void ImproperFourier::coeff(int narg, char **arg)
 {
 
-  if ( narg != 5 && narg != 6 ) error->all(FLERR,"Incorrect args for improper coefficients");
+  if (narg != 5 && narg != 6) error->all(FLERR,"Incorrect args for improper coefficients");
 
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nimpropertypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double C0_one = force->numeric(FLERR,arg[2]);
-  double C1_one = force->numeric(FLERR,arg[3]);
-  double C2_one = force->numeric(FLERR,arg[4]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double C0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double C1_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double C2_one = utils::numeric(FLERR,arg[4],false,lmp);
   int all_one = 1;
-  if ( narg == 6 ) all_one = force->inumeric(FLERR,arg[5]);
+  if (narg == 6) all_one = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // convert w0 from degrees to radians
 
@@ -329,11 +327,11 @@ void ImproperFourier::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&C0[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&C1[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&C2[1],sizeof(double),atom->nimpropertypes,fp);
-    fread(&all[1],sizeof(int),atom->nimpropertypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C0[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C1[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&C2[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
+    utils::sfread(FLERR,&all[1],sizeof(int),atom->nimpropertypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&C0[1],atom->nimpropertypes,MPI_DOUBLE,0,world);

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,33 +11,27 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
-
-#include "lmptype.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "neb.h"
-#include "universe.h"
+
 #include "atom.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
-#include "min.h"
-#include "modify.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
 #include "fix.h"
 #include "fix_neb.h"
+#include "math_const.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
 #include "output.h"
 #include "thermo.h"
-#include "finish.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
-#include "math_const.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -48,7 +42,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
+NEB::NEB(LAMMPS *lmp) : Pointers(lmp), all(nullptr), rdist(nullptr) {}
 
 /* ----------------------------------------------------------------------
    internal NEB constructor, called from TAD
@@ -56,7 +50,7 @@ NEB::NEB(LAMMPS *lmp) : Pointers(lmp) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
-  : Pointers(lmp)
+  : Pointers(lmp), all(nullptr), rdist(nullptr)
 {
   double delx,dely,delz;
 
@@ -75,9 +69,7 @@ NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
   MPI_Comm_rank(world,&me);
 
   // generate linear interpolate replica
-
   double fraction = ireplica/(nreplica-1.0);
-
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
@@ -114,11 +106,11 @@ void NEB::command(int narg, char **arg)
 
   if (narg < 6) error->universe_all(FLERR,"Illegal NEB command");
 
-  etol = force->numeric(FLERR,arg[0]);
-  ftol = force->numeric(FLERR,arg[1]);
-  n1steps = force->inumeric(FLERR,arg[2]);
-  n2steps = force->inumeric(FLERR,arg[3]);
-  nevery = force->inumeric(FLERR,arg[4]);
+  etol = utils::numeric(FLERR,arg[0],false,lmp);
+  ftol = utils::numeric(FLERR,arg[1],false,lmp);
+  n1steps = utils::inumeric(FLERR,arg[2],false,lmp);
+  n2steps = utils::inumeric(FLERR,arg[3],false,lmp);
+  nevery = utils::inumeric(FLERR,arg[4],false,lmp);
 
   // error checks
 
@@ -139,19 +131,19 @@ void NEB::command(int narg, char **arg)
   // error checks
 
   if (nreplica == 1) error->all(FLERR,"Cannot use NEB with a single replica");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use NEB unless atom map exists");
 
   // process file-style setting to setup initial configs for all replicas
 
   if (strcmp(arg[5],"final") == 0) {
     if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB command");
-    infile = arg[6];
-    readfile(infile,0);
+    inpfile = arg[6];
+    readfile(inpfile,0);
   } else if (strcmp(arg[5],"each") == 0) {
     if (narg != 7 && narg !=8) error->universe_all(FLERR,"Illegal NEB command");
-    infile = arg[6];
-    readfile(infile,1);
+    inpfile = arg[6];
+    readfile(inpfile,1);
   } else if (strcmp(arg[5],"none") == 0) {
     if (narg != 6 && narg !=7) error->universe_all(FLERR,"Illegal NEB command");
   } else error->universe_all(FLERR,"Illegal NEB command");
@@ -397,28 +389,33 @@ void NEB::readfile(char *file, int flag)
       open(file);
       while (1) {
         eof = fgets(line,MAXLINE,fp);
-        if (eof == NULL) error->one(FLERR,"Unexpected end of neb file");
+        if (eof == nullptr) error->one(FLERR,"Unexpected end of NEB file");
         start = &line[strspn(line," \t\n\v\f\r")];
         if (*start != '\0' && *start != '#') break;
       }
-      sscanf(line,"%d",&nlines);
+      int rv = sscanf(line,"%d",&nlines);
+      if (rv != 1) nlines = -1;
     }
     MPI_Bcast(&nlines,1,MPI_INT,0,uworld);
-
+    if (nlines < 0)
+      error->universe_all(FLERR,"Incorrectly formatted NEB file");
   } else {
     if (me == 0) {
       if (ireplica) {
         open(file);
         while (1) {
           eof = fgets(line,MAXLINE,fp);
-          if (eof == NULL) error->one(FLERR,"Unexpected end of neb file");
+          if (eof == nullptr) error->one(FLERR,"Unexpected end of NEB file");
           start = &line[strspn(line," \t\n\v\f\r")];
           if (*start != '\0' && *start != '#') break;
         }
-        sscanf(line,"%d",&nlines);
+        int rv = sscanf(line,"%d",&nlines);
+        if (rv != 1) nlines = -1;
       } else nlines = 0;
     }
     MPI_Bcast(&nlines,1,MPI_INT,0,world);
+    if (nlines < 0)
+      error->all(FLERR,"Incorrectly formatted NEB file");
   }
 
   char *buffer = new char[CHUNK*MAXLINE];
@@ -442,16 +439,16 @@ void NEB::readfile(char *file, int flag)
       eofflag = comm->read_lines_from_file_universe(fp,nchunk,MAXLINE,buffer);
     else
       eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
-    if (eofflag) error->all(FLERR,"Unexpected end of neb file");
+    if (eofflag) error->all(FLERR,"Unexpected end of NEB file");
 
     buf = buffer;
     next = strchr(buf,'\n');
     *next = '\0';
-    int nwords = atom->count_words(buf);
+    int nwords = utils::count_words(utils::trim_comment(buf));
     *next = '\n';
 
     if (nwords != ATTRIBUTE_PERLINE)
-      error->all(FLERR,"Incorrect atom format in neb file");
+      error->all(FLERR,"Incorrect atom format in NEB file");
 
     // loop over lines of atom coords
     // tokenize the line into values
@@ -461,18 +458,17 @@ void NEB::readfile(char *file, int flag)
 
       values[0] = strtok(buf," \t\n\r\f");
       for (j = 1; j < nwords; j++)
-        values[j] = strtok(NULL," \t\n\r\f");
+        values[j] = strtok(nullptr," \t\n\r\f");
 
       // adjust atom coord based on replica fraction
       // for flag = 0, interpolate for intermediate and final replicas
       // for flag = 1, replace existing coord with new coord
-      // ignore image flags of final x
-      // for interpolation:
-      //   new x is displacement from old x via minimum image convention
-      //   if final x is across periodic boundary:
-      //     new x may be outside box
-      //     will be remapped back into box when simulation starts
-      //     its image flags will then be adjusted
+      // ignore image flags of replica x
+      // displacement from first replica is via minimum image convention
+      // if x of some replica is across periodic boundary:
+      //   new x may be outside box
+      //   will be remapped back into box when simulation starts
+      //   its image flags will then be adjusted
 
       tag = ATOTAGINT(values[0]);
       m = atom->map(tag);
@@ -482,18 +478,20 @@ void NEB::readfile(char *file, int flag)
         yy = atof(values[2]);
         zz = atof(values[3]);
 
+        delx = xx - x[m][0];
+        dely = yy - x[m][1];
+        delz = zz - x[m][2];
+
+        domain->minimum_image(delx,dely,delz);
+
         if (flag == 0) {
-          delx = xx - x[m][0];
-          dely = yy - x[m][1];
-          delz = zz - x[m][2];
-          domain->minimum_image(delx,dely,delz);
           x[m][0] += fraction*delx;
           x[m][1] += fraction*dely;
           x[m][2] += fraction*delz;
         } else {
-          x[m][0] = xx;
-          x[m][1] = yy;
-          x[m][2] = zz;
+          x[m][0] += delx;
+          x[m][1] += dely;
+          x[m][2] += delz;
         }
       }
 
@@ -509,12 +507,12 @@ void NEB::readfile(char *file, int flag)
     int ntotal;
     MPI_Allreduce(&ncount,&ntotal,1,MPI_INT,MPI_SUM,uworld);
     if (ntotal != nreplica*nlines)
-      error->universe_all(FLERR,"Invalid atom IDs in neb file");
+      error->universe_all(FLERR,"Invalid atom IDs in NEB file");
   } else {
     int ntotal;
     MPI_Allreduce(&ncount,&ntotal,1,MPI_INT,MPI_SUM,world);
     if (ntotal != nlines)
-      error->all(FLERR,"Invalid atom IDs in neb file");
+      error->all(FLERR,"Invalid atom IDs in NEB file");
   }
 
   // clean up
@@ -562,7 +560,7 @@ void NEB::open(char *file)
 #endif
   }
 
-  if (fp == NULL) {
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);

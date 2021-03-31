@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,22 +16,21 @@
                          Aidan Thompson (Sandia, athomps@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_quip.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -39,11 +38,17 @@ using namespace LAMMPS_NS;
 
 PairQUIP::PairQUIP(LAMMPS *lmp) : Pair(lmp)
 {
-   single_enable = 0;
-   restartinfo = 0;
-   one_coeff = 1;
-   no_virial_fdotr_compute = 1;
-   manybody_flag = 1;
+  single_enable = 0;
+  restartinfo = 0;
+  one_coeff = 1;
+  no_virial_fdotr_compute = 1;
+  manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
+
+  map = nullptr;
+  quip_potential = nullptr;
+  quip_file = nullptr;
+  quip_string = nullptr;
 }
 
 PairQUIP::~PairQUIP()
@@ -52,8 +57,10 @@ PairQUIP::~PairQUIP()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] map;
-    delete [] quip_potential;
   }
+  delete [] quip_potential;
+  delete [] quip_file;
+  delete [] quip_string;
 }
 
 void PairQUIP::compute(int eflag, int vflag)
@@ -75,8 +82,7 @@ void PairQUIP::compute(int eflag, int vflag)
 
   double *quip_local_e, *quip_force, *quip_local_virial, *quip_virial, quip_energy, *lattice;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   inum = list->inum;
   ilist = list->ilist;
@@ -101,14 +107,14 @@ void PairQUIP::compute(int eflag, int vflag)
     jnum = numneigh[i];
 
     for (jj = 0; jj < jnum; jj++) {
-       quip_neigh[iquip] = (jlist[jj] & NEIGHMASK) + 1;
-       iquip++;
+      quip_neigh[iquip] = (jlist[jj] & NEIGHMASK) + 1;
+      iquip++;
     }
   }
 
   atomic_numbers = new int[ntotal];
   for (ii = 0; ii < ntotal; ii++)
-     atomic_numbers[ii] = map[type[ii]-1];
+     atomic_numbers[ii] = map[type[ii]];
 
   quip_local_e = new double [ntotal];
   quip_force = new double [ntotal*3];
@@ -156,17 +162,17 @@ void PairQUIP::compute(int eflag, int vflag)
 
   iquip = 0;
   for (ii = 0; ii < ntotal; ii++) {
-     for( jj = 0; jj < 3; jj++ ) {
+     for (jj = 0; jj < 3; jj++) {
         f[ii][jj] += quip_force[iquip];
         iquip++;
      }
   }
 
-  if(eflag_global) {
+  if (eflag_global) {
     eng_vdwl = quip_energy;
   }
 
-  if(eflag_atom) {
+  if (eflag_atom) {
     for (ii = 0; ii < ntotal; ii++) {
       eatom[ii] = quip_local_e[ii];
     }
@@ -181,9 +187,9 @@ void PairQUIP::compute(int eflag, int vflag)
       virial[5] = (quip_virial[5] + quip_virial[7])*0.5;
   }
 
-  if(vflag_atom) {
+  if (vflag_atom) {
     int iatom = 0;
-     for(ii = 0; ii < ntotal; ii++) {
+     for (ii = 0; ii < ntotal; ii++) {
        vatom[ii][0] += quip_local_virial[iatom+0];
        vatom[ii][1] += quip_local_virial[iatom+4];
        vatom[ii][2] += quip_local_virial[iatom+8];
@@ -212,17 +218,20 @@ void PairQUIP::compute(int eflag, int vflag)
    global settings
 ------------------------------------------------------------------------- */
 
-void PairQUIP::settings(int narg, char **/*arg*/)
+void PairQUIP::settings(int narg, char ** /* arg */)
 {
   if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  if (strcmp(force->pair_style,"hybrid") == 0)
-    error->all(FLERR,"Pair style quip is only compatible with hybrid/overlay");
 
   // check if linked to the correct QUIP library API version
   // as of 2017-07-19 this is API_VERSION 1
   if (quip_lammps_api_version() != 1)
     error->all(FLERR,"QUIP LAMMPS wrapper API version is not compatible "
         "with this version of LAMMPS");
+
+  // QUIP potentials are parameterized in metal units
+
+  if (strcmp("metal",update->unit_style) != 0)
+    error->all(FLERR,"QUIP potentials require 'metal' units");
 }
 
 /* ----------------------------------------------------------------------
@@ -235,52 +244,55 @@ void PairQUIP::allocate()
 
   setflag = memory->create(setflag,n+1,n+1,"pair:setflag");
   cutsq = memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  map = new int[n];
+  map = new int[n+1];
 }
 
 void PairQUIP::coeff(int narg, char **arg)
 {
-   if (!allocated) allocate();
+  if (!allocated) allocate();
 
-   int n = atom->ntypes;
+  int n = atom->ntypes;
+  if (narg != (4+n))
+    error->all(FLERR,fmt::format("Number of arguments {} is not correct, "
+                                 "it should be {}", narg, 4+n));
 
   // ensure I,J args are * *
 
-   for (int i = 1; i <= n; i++){
-      for (int j = 1; j <= n; j++) {
-         setflag[i][j] = 1;
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  quip_file = utils::strdup(arg[2]);
+  quip_string = utils::strdup(arg[3]);
+
+  for (int i = 4; i < narg; i++) {
+    if (strcmp(arg[i],"NULL") == 0)
+      map[i-3] = -1;
+    else
+      map[i-3] = utils::inumeric(FLERR,arg[i],false,lmp);
+  }
+
+  // clear setflag since coeff() called once with I,J = * *
+
+  n = atom->ntypes;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
+  // set setflag i,j for type pairs where both are mapped to elements
+
+  int count = 0;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      if (map[i] >= 0 && map[j] >= 0) {
+        setflag[i][j] = 1;
+        count++;
       }
-   }
 
-   if( narg != (4+n) ) {
-      char str[1024];
-      sprintf(str,"Number of arguments %d is not correct, it should be %d", narg, 4+n);
-      error->all(FLERR,str);
-   }
-
-   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-      error->all(FLERR,"Incorrect args for pair coefficients");
-
-   n_quip_file = strlen(arg[2]);
-   quip_file = new char[n_quip_file+1];
-   strcpy(quip_file,arg[2]);
-
-   n_quip_string = strlen(arg[3]);
-   quip_string = new char[n_quip_string+1];
-   strcpy(quip_string,arg[3]);
-
-   for (int i = 4; i < narg; i++) {
-
-      if( 0 == sscanf(arg[i],"%d",&map[i-4])) {
-         char str[1024];
-         sprintf(str,"Incorrect atomic number %s at position %d",arg[i],i);
-         error->all(FLERR,str);
-      }
-   }
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // Initialise potential
-  // First call initialises potential via the fortran code in memory, and returns the necessary size
-  // of quip_potential. This behaviour is invoked by setting n_potential_quip to 0.
+  // First call initializes potential via the fortran code in memory, and returns the necessary size
+  // of quip_potential. This behavior is invoked by setting n_potential_quip to 0.
   n_quip_potential = 0;
   quip_potential = new int[0];
   quip_lammps_potential_initialise(quip_potential,&n_quip_potential,&cutoff,quip_file,&n_quip_file,quip_string,&n_quip_string);

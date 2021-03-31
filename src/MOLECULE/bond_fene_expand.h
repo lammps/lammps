@@ -20,7 +20,6 @@ BondStyle(fene/expand,BondFENEExpand)
 #ifndef LMP_BOND_FENE_EXPAND_H
 #define LMP_BOND_FENE_EXPAND_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {

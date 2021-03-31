@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 
 class PairMorseSoft : public PairMorse {
  public:
-  PairMorseSoft(class LAMMPS *lmp) : PairMorse(lmp) {};
+  PairMorseSoft(class LAMMPS *lmp) : PairMorse(lmp), lambda(nullptr) {};
   virtual ~PairMorseSoft();
   virtual void compute(int, int);
 
@@ -38,6 +38,8 @@ class PairMorseSoft : public PairMorse {
   virtual double init_one(int, int);
   virtual void write_restart(FILE *);
   virtual void read_restart(FILE *);
+  virtual void write_restart_settings(FILE *);
+  virtual void read_restart_settings(FILE *);
 
   void write_data(FILE *);
   void write_data_all(FILE *);

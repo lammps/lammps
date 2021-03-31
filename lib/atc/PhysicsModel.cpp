@@ -95,7 +95,7 @@ void PhysicsModel::parse_material_file(string fileName)
         }
       }
       else {
-        throw ATC_Error("units need to be specfied in material file"); 
+        throw ATC_Error("units need to be specified in material file");
       }
     }
   }

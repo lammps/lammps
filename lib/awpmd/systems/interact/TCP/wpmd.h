@@ -2,12 +2,12 @@
  *
  *   Copyright (c), Ilya Valuev 2005        All Rights Reserved.
  *
- *   Author	: Ilya Valuev, MIPT, Moscow, Russia
+ *   Author     : Ilya Valuev, MIPT, Moscow, Russia
  *
- *   Project	: GridMD, ivutils
+ *   Project    : GridMD, ivutils
  *
  *****************************************************************************/
-  
+
 /*s****************************************************************************
  * $Log: wpmd.h,v $
  * Revision 1.4  2011/06/11 16:53:55  valuev
@@ -134,8 +134,8 @@
 *******************************************************************************/
 # ifndef WPMD_H
 # define WPMD_H
-  
-/** @file wpmd.h 
+
+/** @file wpmd.h
     @brief Classes for Wave Packet Molecular Dynamics of two component plasma. */
 
 # ifndef _USE_MATH_DEFINES
@@ -143,7 +143,7 @@
 # endif
 # include <complex>
 # include <vector>
-# include <cmath> 
+# include <cmath>
 # include "logexc.h"
 # include "cvector_3.h"
 # include "pairhash.h"
@@ -168,7 +168,7 @@ const double h_plank2 = h_plank * 2.;
 inline cdouble cerf_div(const cdouble &z, const cdouble &c=i_unit){
   if((fabs(real(z))+fabs(imag(z)))<1e-8)
     return c*two_over_sqr_pi;
-  else 
+  else
     return cerf(z*c)/z;
 }
 
@@ -176,7 +176,7 @@ inline cdouble cerf_div(const cdouble &z, const cdouble &c=i_unit){
 inline double erf_div(const double &z, double c=1){
   if(fabs(z)<1e-8)
     return c*two_over_sqr_pi;
-  else 
+  else
     return erf(z*c)/z;
 }
 
@@ -201,7 +201,7 @@ inline pair<double,double> operator*(const pair<double,double> &right, double le
   return make_pair(right.first*left,right.second*left);
 }
 
-// Auxilary class to handle the normalizing term derivatives
+// Auxiliary class to handle the normalizing term derivatives
 class NormDeriv
 {
 public:
@@ -235,7 +235,7 @@ inline NormDeriv conj(const NormDeriv& src){
   return dst;
 }
 
-///\en Auxilary class to handle derivatives of overlaps
+///\en Auxiliary class to handle derivatives of overlaps
 class OverlapDeriv{
 public:
   WavePacket w1, w2, w12;
@@ -247,7 +247,7 @@ public:
 
 
   OverlapDeriv():I0(0),I1(0),IDD(10){}
-  
+
   void set1(const WavePacket& w1_) {
     w1=w1_;
     d1.set(w1);
@@ -255,7 +255,7 @@ public:
   }
 
   //e Create NormDeriv object and calculate the derivatived for the given WP
-  void set2(const WavePacket& w2_, const cdouble *I0_=NULL){
+  void set2(const WavePacket& w2_, const cdouble *I0_=nullptr){
     w2=w2_;
     d2.set(w2);
     w12=conj(w1)*w2;
@@ -330,7 +330,7 @@ public:
 
   enum {NORM_UNDEFINED, NORM_CALCULATED, NORM_FACTORIZED, NORM_INVERTED};
   int norm_matrix_state[2];
-  
+
   // Arrays for temporal data
   chmatrix IDD;  // Second derivatives of the overlap integral (used in Norm matrix)
   vector<cdouble> ID, IDYs;  // First derivatives of the overlap integral (used in Norm matrix)
@@ -346,7 +346,7 @@ public:
   ///    HARTREE Hartree product (no antisymmetrization) \n
   ///    DPRODUCT product of det0*det1 of antisymmetrized functions for spins 0, 1 \n
   ///    UHF unrestricted Hartree-Fock
-  enum APPROX {HARTREE, DPRODUCT,  UHF } approx; 
+  enum APPROX {HARTREE, DPRODUCT,  UHF } approx;
   ///\em Sets overlap matrix element to zero if the overlap norm is less than this value
   double ovl_tolerance;
 
@@ -375,14 +375,14 @@ public:
 
   ///\en 0 -- indicates that the inter-partition force should be full, and energy half,\n
   ///    1 -- inter-partition force and energy counts one half (LAMMPS compatibility)
-  int newton_pair; 
+  int newton_pair;
 
   //int myid; ///<\en id for partitions
-  
+
   ///\en Partition arrays storing the tags of particles. The initial tags should be >0.
   ///    If the tag stored is <0, then the particle is ghost with -tag.
   ///    partition1[2] is for ions, 0, 1 for each electron spin
-  vector<int> partition1[3]; 
+  vector<int> partition1[3];
   //vector<int> partition2[3]; ///<\en 2 for ions
 
 
@@ -391,7 +391,7 @@ public:
   }
 
 
-  ///\en 1 -- all my, -1 all other, 2 -- my mixed term, -2 -- other mixed term 
+  ///\en 1 -- all my, -1 all other, 2 -- my mixed term, -2 -- other mixed term
   int check_ee(int s1,int icj1,int ick2){
     //printf(" (%d %d) ",partition1[s1][icj1],partition1[s1][ick2]);
     int c1=(int)(partition1[s1][icj1]>0);
@@ -402,8 +402,8 @@ public:
       int tag2=abs(partition1[s1][ick2]);
       int num=tag_index(tag1-1,tag2-1);
       if(num<0){ // compare wave packets
-        int cmp= s1<2 ? 
-          wp[s1][icj1].compare(wp[s1][ick2],1e-15) : 
+        int cmp= s1<2 ?
+          wp[s1][icj1].compare(wp[s1][ick2],1e-15) :
           compare_vec(xi[icj1],xi[ick2],1e-15);
         if((cmp>0 && c1) || (cmp<0 && c2))
           res= 2; // my mixed term
@@ -421,12 +421,12 @@ public:
   }
 
   ///\en Returns electron-electron inter-partition multipliers for energy (first) and force (second)
-  ///    for a 4- and 2- electron additive terms (all inter-partition interactions are 
+  ///    for a 4- and 2- electron additive terms (all inter-partition interactions are
   ///    calculated only once based on particle tags)
   ///    If force multiplier is zero, then the term may be omitted (energy will also be zero).
   ///    NOW ASSIGNS BASED ON THE FIRST PAIR ONLY
-  pair<double, double> check_part1(int s1,int icj1,int ick2, int s2=-1,int icj3=-1,int ick4=-1){
-    int res=check_ee(s1,icj1,ick2);    
+  pair<double, double> check_part1(int s1,int icj1,int ick2){
+    int res=check_ee(s1,icj1,ick2);
     if(res==1){ // my term
       //printf(" *\n");
       return make_pair(1.,1.); // all at my partition
@@ -439,7 +439,7 @@ public:
       //printf(" *\n");
       return make_pair(1.,1.); // my inter-partition
     }
-    else if(res==-2){ 
+    else if(res==-2){
       //printf(" \n");
       return make_pair(0., newton_pair ? 0.0 : 1. ); // other inter-partition: must add force if newton comm is off
     }
@@ -447,18 +447,18 @@ public:
   }
 
   ///\en Returns elctron-ion inter-partition multipliers for energy (first) and force (second)
-  ///    for ion-electron additive terms (all inter-partition interactions are 
+  ///    for ion-electron additive terms (all inter-partition interactions are
   ///    calculated only once based on particle tags)
   ///    If force multiplier is zero, then the term may be omitted (energy will also be zero).
   ///    BASED ON ION ATTACHMENT
   pair<double,double> check_part1ei(int s1,int icj1,int ick2, int ion){
     //printf("%d ",partition1[2][ion]);
     int ci=(int)(partition1[2][ion]>0);
-    
+
     if(!newton_pair){ // care about mixed terms
       int cee=check_ee(s1,icj1,ick2);
       if((cee==2 || cee==-2) || (ci && cee==-1) || (!ci && cee==1)) // all mixed variants
-        make_pair(0., 1. ); // other inter-partition: must add force if newton comm is off 
+        make_pair(0., 1. ); // other inter-partition: must add force if newton comm is off
     }
     if(ci){
       //printf(" *\n");
@@ -471,7 +471,7 @@ public:
   }
 
   ///\en Returns ion-ion inter-partition multipliers for energy (first) and force (second)
-  ///    for ion-electron additive terms (all inter-partition interactions are 
+  ///    for ion-electron additive terms (all inter-partition interactions are
   ///    calculated only once based on particle tags)
   ///    If force multiplier is zero, then the term may be omitted (energy will also be zero).
   pair<double,double> check_part1ii(int ion1, int ion2){
@@ -485,7 +485,7 @@ public:
     norm_matrix_state[0] = norm_matrix_state[1] = NORM_UNDEFINED;
     ovl_tolerance=0.;
     approx = DPRODUCT;
-    
+
     me=m_electron;
     one_h=1./h_plank;
     h2_me=h_sq/me;
@@ -496,7 +496,7 @@ public:
   }
 
 protected:
-  //e translates wp2 to the nearest image postion relative to wp1
+  //e translates wp2 to the nearest image position relative to wp1
   //e gets the translation vector
   Vector_3 move_to_image(const WavePacket &wp1, WavePacket &wp2) const {
     Vector_3 r1=wp1.get_r();
@@ -530,11 +530,11 @@ protected:
   ///\en resizes all internal arrays according to new electrons added
   virtual void resize(int flag);
 public:
-  
-  
-  
+
+
+
   ///\en Prepares to setup a new system of particles using \ref add_ion() and add_electron().
-  ///    There is no need to call this function when using 
+  ///    There is no need to call this function when using
   ///    \ref set_electrons() and \ref set_ions() to setup particles.
   virtual void reset(){
     for(int s=0;s<2;s++){
@@ -556,15 +556,15 @@ public:
   //e                  0x4 -- PBC along Z
   //e cell specifies the lengths of the simulation box in all directions
   //e if PBCs are used, the corresponding coordinates of electrons and ions
-  //e in periodic directions must be within the range  [0, cell[per_dir]) 
+  //e in periodic directions must be within the range  [0, cell[per_dir])
   //e @returns 1 if OK
-  int set_pbc(const Vector_3P pcell=NULL, int pbc_=0x7);
- 
+  int set_pbc(const Vector_3P pcell=nullptr, int pbc_=0x7);
+
   ///\en Setup electrons: forms internal wave packet representations.
   ///    If PBCs are used the coords must be within a range [0, cell).
   ///    Default electron mass is AWPMD::me.
-  ///    Default (q=NULL )electron charges are -1.
-  int set_electrons(int spin, int n, Vector_3P x, Vector_3P v, double* w, double* pw, double mass=-1, double *q=NULL);
+  ///    Default (q=nullptr )electron charges are -1.
+  int set_electrons(int spin, int n, Vector_3P x, Vector_3P v, double* w, double* pw, double mass=-1, double *q=nullptr);
 
   //e setup ion charges and coordinates
   //e if PBCs are used the coords must be within a range [0, cell)
@@ -572,9 +572,9 @@ public:
 
   ///\en Adds an ion with charge q and position x,
   ///    \return id of the ion starting from 0
-  ///    The tags must be nonzero, >0 for the local particle, <0 for ghost particle. 
+  ///    The tags must be nonzero, >0 for the local particle, <0 for ghost particle.
   ///    Unique particle id  is abs(tag).
-  ///    Default tag (0) means inserting the current particle id as local particle. 
+  ///    Default tag (0) means inserting the current particle id as local particle.
   int add_ion(double q, const Vector_3 &x, int tag=0){
     qi.push_back(q);
     xi.push_back(x);
@@ -586,24 +586,24 @@ public:
   }
 
 
-  //e calculates interaction in the system of ni ions + electrons 
+  //e calculates interaction in the system of ni ions + electrons
   //e the electonic subsystem must be previously setup by set_electrons, ionic by set_ions
   //e the iterators are describing ionic system only
   // 0x1 -- give back ion forces
   // 0x2 -- add ion forces to the existing set
   // 0x4 -- calculate derivatives for electronic time step (NOT IMPLEMENTED)
   //e if PBCs are used the coords must be within a range [0, cell)
-  virtual int interaction(int flag=0, Vector_3P fi=NULL, Vector_3P fe_x=NULL, 
-                                      Vector_3P fe_p=NULL, double *fe_w=NULL, double *fe_pw=NULL, Vector_2P fe_c=NULL);
+  virtual int interaction(int flag=0, Vector_3P fi=nullptr, Vector_3P fe_x=nullptr,
+                                      Vector_3P fe_p=nullptr, double *fe_w=nullptr, double *fe_pw=nullptr, Vector_2P fe_c=nullptr);
 
   //e same as interaction, but using Hartee factorization (no antisymmetrization)
-  virtual int interaction_hartree(int flag=0, Vector_3P fi=NULL, Vector_3P fe_x=NULL, 
-                                      Vector_3P fe_p=NULL, double *fe_w=NULL, double *fe_pw=NULL, Vector_2P fe_c=NULL);
+  virtual int interaction_hartree(int flag=0, Vector_3P fi=nullptr, Vector_3P fe_x=nullptr,
+                                      Vector_3P fe_p=nullptr, double *fe_w=nullptr, double *fe_pw=nullptr, Vector_2P fe_c=nullptr);
 
   ///\en Calculates ion-ion interactions and updates Eii and ion forces if requested. This function
   ///    is called form intaraction() and interaction_hartree if calc_ii is set.
-  virtual int interaction_ii(int flag,Vector_3P fi=NULL);
-  
+  virtual int interaction_ii(int flag,Vector_3P fi=nullptr);
+
   //e Calculates Norm matrix
   //e The result is saved in AWPMD::Norm[s]
   void norm_matrix(int s);
@@ -642,16 +642,16 @@ public:
   }
 
   ///\en Prepares force arrays according to \a flag setting for interaction()
-  virtual void clear_forces(int flagi,Vector_3P fi, Vector_3P fe_x, 
-                    Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c=NULL);
+  virtual void clear_forces(int flagi,Vector_3P fi, Vector_3P fe_x,
+                    Vector_3P fe_p, double *fe_w, double *fe_pw, Vector_2P fe_c=nullptr);
 
 
-  ///\en Creates wave packet acording to the given physical parameters.
+  ///\en Creates wave packet according to the given physical parameters.
   ///    The function may change its arguments by applying existing constraints!
   ///    Default mass (-1) is the electron mass AWPMD::me.
   WavePacket create_wp(Vector_3 &x, Vector_3 &v, double &w, double &pw, double mass=-1);
 
-  
+
 };
 
 

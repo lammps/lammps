@@ -20,7 +20,6 @@ FixStyle(ave/chunk,FixAveChunk)
 #ifndef LMP_FIX_AVE_CHUNK_H
 #define LMP_FIX_AVE_CHUNK_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -37,7 +36,7 @@ class FixAveChunk : public Fix {
   double memory_usage();
 
  private:
-  int me,nvalues;
+  int nvalues;
   int nrepeat,nfreq,irepeat;
   int normflag,scaleflag,overwrite,biasflag,colextra;
   bigint nvalid,nvalid_last;

@@ -48,8 +48,8 @@ OutputManager::OutputManager(string outputPrefix, set<int> & otypes)
     firstStep_(true),
     firstGlobalsWrite_(true),
     writeGlobalsHeader_(true),
-    coordinates_(NULL),
-    connectivities_(NULL),
+    coordinates_(nullptr),
+    connectivities_(nullptr),
     dataType_(POINT),
     outputPrefix_(outputPrefix),
     ensightOutput_(otypes.count(ENSIGHT)),
@@ -68,8 +68,8 @@ OutputManager::OutputManager()
     firstStep_(true),
     firstGlobalsWrite_(true),
     writeGlobalsHeader_(true),
-    coordinates_(NULL),
-    connectivities_(NULL),
+    coordinates_(nullptr),
+    connectivities_(nullptr),
     dataType_(POINT),
     outputPrefix_("NULL"),
     ensightOutput_(true),
@@ -132,7 +132,7 @@ void OutputManager::print_custom_names() {
 // Dump text-based fields to disk for later restart
 void OutputManager::write_restart_file(string fileName, RESTART_LIST *data)
 {
-  FILE * fp=NULL;
+  FILE * fp=nullptr;
   fp=fopen(fileName.c_str(),"wb"); // open
   RESTART_LIST::iterator iter;
   for (iter = data->begin(); iter != data->end(); iter++) {
@@ -153,7 +153,7 @@ void OutputManager::write_restart_file(string fileName, RESTART_LIST *data)
 
 void OutputManager::read_restart_file(string fileName, RESTART_LIST *data)
 {
-  FILE * fp=NULL;
+  FILE * fp=nullptr;
   fp=fopen(fileName.c_str(),"rb"); // open
   RESTART_LIST::iterator iter;
   for (iter = data->begin(); iter != data->end(); iter++) {
@@ -161,8 +161,8 @@ void OutputManager::read_restart_file(string fileName, RESTART_LIST *data)
     for (int i = 0; i < field_data->nRows(); ++i) {
       for (int j = 0; j < field_data->nCols(); ++j) {
         double myVal;
-        fread(&myVal,sizeof(double),1,fp);
-        (*field_data)(i,j) = myVal;  
+        if (fread(&myVal,sizeof(double),1,fp) == 1)
+          (*field_data)(i,j) = myVal;  
     
       }
     }
@@ -230,7 +230,7 @@ void OutputManager::write_geometry_ensight(void)
   string geom_file_name = outputPrefix_ + ".geo";
 
   // open file
-  FILE * fp=NULL;
+  FILE * fp=nullptr;
   char buffer[80];
   if ( ! initialized_ ) {
     fp=fopen(geom_file_name.c_str(),"wb"); // open
@@ -240,7 +240,7 @@ void OutputManager::write_geometry_ensight(void)
   else {
     fp=fopen(geom_file_name.c_str(),"ab"); // append
   }
-  if (fp == NULL) {
+  if (fp == nullptr) {
     throw ATC_Error("can not create Ensight geometry file");
   }
 
@@ -491,14 +491,14 @@ void OutputManager::write_data_ensight(string field_name, const MATRIX *field_da
  
     // open or append data file
     string data_file_name = filenames[ifile];
-    FILE * fp=NULL;
+    FILE * fp=nullptr;
     if ( outputTimes_.size() == 1 ) {
       fp=fopen(data_file_name.c_str(),"wb"); // open
     }
     else {
       fp=fopen(data_file_name.c_str(),"ab"); // append
     }
-    if (fp == NULL) {
+    if (fp == nullptr) {
       throw ATC_Error("can not create Ensight data file: "+data_file_name);
     }
   
@@ -792,15 +792,15 @@ void OutputManager::write_data_vtk(OUTPUT_LIST *data)
 }
 
 /** write (ensight gold : ASCII "C" format) dictionary */
-void OutputManager::write_dictionary(double time, OUTPUT_LIST *data)
+void OutputManager::write_dictionary(double /* time */, OUTPUT_LIST *data)
 {
   // file names
   string dict_file_name = outputPrefix_ + ".case";
   string geom_file_name = outputPrefix_ + ".geo";
   
   // open file
-  FILE * fp=NULL;
-  if ((fp=fopen(dict_file_name.c_str(),"w")) == NULL) 
+  FILE * fp=nullptr;
+  if ((fp=fopen(dict_file_name.c_str(),"w")) == nullptr) 
   {
     throw ATC_Error("can not create Ensight case file");
   }

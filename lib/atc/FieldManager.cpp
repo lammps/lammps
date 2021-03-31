@@ -271,7 +271,7 @@ typedef PerAtomQuantity<double> PAQ;
       u = new AtfShapeFunctionMdProjection(atc_,restricted,VELOCITY);
     }
     else {
-      DENS_MAN * q = NULL;
+      DENS_MAN * q = nullptr;
       if (atc_->kernel_on_the_fly()) {
         if (atc_->kernel_based()) {
           q = new OnTheFlyKernelAccumulationNormalized(atc_, atomic,
@@ -298,7 +298,7 @@ typedef PerAtomQuantity<double> PAQ;
 //-----------------------------------------------------------------------------
 //* REFERENCE_POTENTIAL_ENERGY 
 //-----------------------------------------------------------------------------
-  DENS_MAN * FieldManager::reference_potential_energy(string name)
+  DENS_MAN * FieldManager::reference_potential_energy(string /* name */)
   {
     DENS_MAN * rpe = interscaleManager_.dense_matrix(field_to_string(REFERENCE_POTENTIAL_ENERGY));
     if (! rpe ) { 

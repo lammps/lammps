@@ -36,7 +36,7 @@ class ComputeSNAVAtom : public Compute {
   double memory_usage();
 
  private:
-  int nmax, njmax, diagonalstyle;
+  int nmax;
   int ncoeff, nperdim;
   double **cutsq;
   class NeighList *list;
@@ -44,9 +44,10 @@ class ComputeSNAVAtom : public Compute {
   double rcutfac;
   double *radelem;
   double *wjelem;
-  class SNA** snaptr;
+  int *map;  // map types to [0,nelements)
+  int nelements, chemflag;
+  class SNA* snaptr;
   int quadraticflag;
-  int nthreads;
 };
 
 }

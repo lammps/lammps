@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -109,7 +109,9 @@ cvm::real colvar_grid_scalar::entropy() const
 {
   cvm::real sum = 0.0;
   for (size_t i = 0; i < nt; i++) {
-    sum += -1.0 * data[i] * std::log(data[i]);
+    if (data[i] >0) {
+      sum += -1.0 * data[i] * cvm::logn(data[i]);
+    }
   }
   cvm::real bin_volume = 1.0;
   for (size_t id = 0; id < widths.size(); id++) {
@@ -421,8 +423,8 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
       index++;
     }
     // Edges along x (x components only)
-    index = 0; // Follows left edge
-    index2 = h * (w - 1); // Follows right edge
+    index = 0L; // Follows left edge
+    index2 = h * static_cast<size_t>(w - 1); // Follows right edge
     if (periodic[0]) {
       xm =  h * (w - 1);
       xp =  h;
@@ -476,7 +478,7 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
       index += 2; // skip the edges and move to next column
     }
     // Edges along y (y components only)
-    index = 0; // Follows bottom edge
+    index = 0L; // Follows bottom edge
     index2 = h - 1; // Follows top edge
     if (periodic[1]) {
       fact = periodic[0] ? 1.0 : 0.5;
@@ -543,7 +545,7 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
     cvm::real ifactz = 1 / factz;
 
     // All x components except on x edges
-    index = d * h; // Skip left slab
+    index = d * static_cast<size_t>(h); // Skip left slab
     fact = facty * factz;
     for (i=1; i<w-1; i++) {
       for (j=0; j<d; j++) { // full range of y
@@ -562,8 +564,8 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
       }
     }
     // Edges along x (x components only)
-    index = 0; // Follows left slab
-    index2 = d * h * (w - 1); // Follows right slab
+    index = 0L; // Follows left slab
+    index2 = static_cast<size_t>(d) * h * (w - 1); // Follows right slab
     if (periodic[0]) {
       xm =  d * h * (w - 1);
       xp =  d * h;
@@ -637,8 +639,8 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
       index += 2 * h; // skip columns in front and back slabs
     }
     // Edges along y (y components only)
-    index = 0; // Follows front slab
-    index2 = h * (d - 1); // Follows back slab
+    index = 0L; // Follows front slab
+    index2 = h * static_cast<size_t>(d - 1); // Follows back slab
     if (periodic[1]) {
       ym = h * (d - 1);
       yp = h;
@@ -662,8 +664,8 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
         LA[index2] += fact * ffy * (A[index2 - yp] + A[index2 - ym] - 2.0 * A[index2]);
         index++;
         index2++;
-        index  += h * (d - 1);
-        index2 += h * (d - 1);
+        index  += h * static_cast<size_t>(d - 1);
+        index2 += h * static_cast<size_t>(d - 1);
       }
     } else {
       ym = -h;
@@ -689,8 +691,8 @@ void integrate_potential::atimes(const std::vector<cvm::real> &A, std::vector<cv
         LA[index2] += fact * ffy * (A[index2 + ym] - A[index2]);
         index++;
         index2++;
-        index  += h * (d - 1);
-        index2 += h * (d - 1);
+        index  += h * static_cast<size_t>(d - 1);
+        index2 += h * static_cast<size_t>(d - 1);
       }
     }
 

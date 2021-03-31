@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,23 +16,24 @@
                          Pablo Piaggi (EPFL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
+#include "fix_plumed.h"
 
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "respa.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
-#include "fix_plumed.h"
-#include "universe.h"
-#include "compute.h"
 #include "modify.h"
 #include "pair.h"
+#include "respa.h"
+#include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 #include "plumed/wrapper/Plumed.h"
 
@@ -47,12 +48,11 @@ static char plumed_default_kernel[] = "PLUMED_KERNEL=" PLUMED_QUOTE(__PLUMED_DEF
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define INVOKED_SCALAR 1
 
 FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  p(NULL), nlocal(0), gatindex(NULL), masses(NULL), charges(NULL),
-  id_pe(NULL), id_press(NULL)
+  p(nullptr), nlocal(0), gatindex(nullptr), masses(nullptr), charges(nullptr),
+  id_pe(nullptr), id_press(nullptr)
 {
 
   if (!atom->tag_enable)
@@ -66,7 +66,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
                    "Group will be ignored.");
 
 #if defined(__PLUMED_DEFAULT_KERNEL)
-  if (getenv("PLUMED_KERNEL") == NULL)
+  if (getenv("PLUMED_KERNEL") == nullptr)
     putenv(plumed_default_kernel);
 #endif
 
@@ -74,11 +74,13 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Check API version
 
-  int api_version;
+  int api_version=0;
   p->cmd("getApiVersion",&api_version);
-  if (api_version > 6)
-    error->all(FLERR,"Incompatible API version for PLUMED in fix plumed");
+  if ((api_version < 5) || (api_version > 8))
+    error->all(FLERR,"Incompatible API version for PLUMED in fix plumed. "
+               "Only Plumed 2.4.x, 2.5.x, 2.6.x, 2.7.x are tested and supported.");
 
+#if !defined(MPI_STUBS)
   // If the -partition option is activated then enable
   // inter-partition communication
 
@@ -97,7 +99,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
       //    it is defined inside plumed.
       p->cmd("GREX setMPIIntercomm",&inter_comm);
     }
-    p->cmd("GREX init",NULL);
+    p->cmd("GREX init",nullptr);
   }
 
   // The general communicator is independent of the existence of partitions,
@@ -105,13 +107,16 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   // whereas if partitions are not defined then world is equal to
   // MPI_COMM_WORLD.
 
+  // plumed does not know about LAMMPS using the MPI STUBS library and will
+  // fail if this is called under these circumstances
   p->cmd("setMPIComm",&world);
+#endif
 
   // Set up units
   // LAMMPS units wrt kj/mol - nm - ps
   // Set up units
 
-  if(strcmp(update->unit_style,"lj") == 0) {
+  if (strcmp(update->unit_style,"lj") == 0) {
     // LAMMPS units lj
     p->cmd("setNaturalUnits");
   } else {
@@ -203,9 +208,9 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   double dt=update->dt;
   p->cmd("setTimestep",&dt);
 
-  virial_flag=1;
-  thermo_virial=1;
   scalar_flag = 1;
+  energy_global_flag = virial_global_flag = 1;
+  thermo_energy = thermo_virial = 1;
 
   // This is the real initialization:
 
@@ -213,8 +218,8 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Define compute to calculate potential energy
 
-  id_pe = new char[7];
-  id_pe = (char *) "plmd_pe";
+  id_pe = new char[8];
+  strcpy(id_pe,"plmd_pe");
   char **newarg = new char*[3];
   newarg[0] = id_pe;
   newarg[1] = (char *) "all";
@@ -226,8 +231,8 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Define compute to calculate pressure tensor
 
-  id_press = new char[9];
-  id_press = (char *) "plmd_press";
+  id_press = new char[11];
+  strcpy(id_press,"plmd_press");
   newarg = new char*[5];
   newarg[0] = id_press;
   newarg[1] = (char *) "all";
@@ -250,15 +255,15 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
     // Avoid conflict with fixes that define internal pressure computes.
     // See comment in the setup method
 
-    if ((strncmp(check_style,"nph",3) == 0) ||
-        (strncmp(check_style,"npt",3) == 0) ||
-        (strncmp(check_style,"rigid/nph",9) == 0) ||
-        (strncmp(check_style,"rigid/npt",9) == 0) ||
-        (strncmp(check_style,"msst",4) == 0) ||
-        (strncmp(check_style,"nphug",5) == 0) ||
-        (strncmp(check_style,"ipi",3) == 0) ||
-        (strncmp(check_style,"press/berendsen",15) == 0) ||
-        (strncmp(check_style,"qbmsst",6) == 0))
+    if (utils::strmatch(check_style,"^nph") ||
+        utils::strmatch(check_style,"^npt") ||
+        utils::strmatch(check_style,"^rigid/nph") ||
+        utils::strmatch(check_style,"^rigid/npt") ||
+        utils::strmatch(check_style,"^msst") ||
+        utils::strmatch(check_style,"^nphug") ||
+        utils::strmatch(check_style,"^ipi") ||
+        utils::strmatch(check_style,"^press/berendsen") ||
+        utils::strmatch(check_style,"^qbmsst"))
       error->all(FLERR,"Fix plumed must be defined before any other fixes, "
                  "that compute pressure internally");
   }
@@ -281,7 +286,6 @@ int FixPlumed::setmask()
   // set with a bitmask how and when apply the force from plumed
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -289,7 +293,7 @@ int FixPlumed::setmask()
 
 void FixPlumed::init()
 {
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // This avoids nan pressure if compute_pressure is called
@@ -309,12 +313,12 @@ void FixPlumed::setup(int vflag)
   // has to be executed first. This creates a race condition with the
   // setup method of fix_nh. This is why in the constructor I check if
   // nh fixes have already been called.
-  if (strcmp(update->integrate_style,"verlet") == 0)
-    post_force(vflag);
-  else {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
     post_force_respa(vflag,nlevels_respa-1,0);
     ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
+  } else {
+    post_force(vflag);
   }
 }
 
@@ -405,6 +409,8 @@ void FixPlumed::post_force(int /* vflag */)
 
   // pass all pointers to plumed:
   p->cmd("setStep",&step);
+  int plumedStopCondition=0;
+  p->cmd("setStopFlag",&plumedStopCondition);
   p->cmd("setPositions",&atom->x[0][0]);
   p->cmd("setBox",&box[0][0]);
   p->cmd("setForces",&atom->f[0][0]);
@@ -477,6 +483,8 @@ void FixPlumed::post_force(int /* vflag */)
   // do the real calculation:
   p->cmd("performCalc");
 
+  if (plumedStopCondition) timer->force_timeout();
+
   // retransform virial to lammps representation and assign it to this
   // fix's virial. If the energy is biased, Plumed is giving back the full
   // virial and therefore we have to subtract the initial virial i.e. virial_lmp.
@@ -533,9 +541,7 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     modify->delete_compute(id_pe);
     delete[] id_pe;
-    int n = strlen(arg[1]) + 1;
-    id_pe = new char[n];
-    strcpy(id_pe,arg[1]);
+    id_pe = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify potential energy ID");
@@ -552,9 +558,7 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     modify->delete_compute(id_press);
     delete[] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

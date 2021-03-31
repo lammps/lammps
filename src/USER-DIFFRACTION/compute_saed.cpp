@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,23 +15,24 @@
    Contributing authors: Shawn Coleman & Douglas Spearot (Arkansas)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include "math_const.h"
 #include "compute_saed.h"
-#include "compute_saed_consts.h"
-#include "atom.h"
-#include "comm.h"
-#include "update.h"
-#include "domain.h"
-#include "group.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
 
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "compute_saed_consts.h"
+#include "domain.h"
+#include "error.h"
+#include "group.h"
+#include "math_const.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+#include <strings.h>    // for strcasecmp()
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -49,7 +50,7 @@ static const char cite_compute_saed_c[] =
 /* ---------------------------------------------------------------------- */
 
 ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), ztype(NULL), store_tmp(NULL)
+  Compute(lmp, narg, arg), ztype(nullptr), store_tmp(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_saed_c);
 
@@ -76,19 +77,19 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   if (lambda < 0)
     error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
 
-  // Define atom types for atomic scattering factor coefficents
+  // Define atom types for atomic scattering factor coefficients
   int iarg = 4;
   ztype = new int[ntypes];
-  for (int i = 0; i < ntypes; i++){
+  for (int i = 0; i < ntypes; i++) {
     ztype[i] = SAEDmaxType + 1;
   }
   for (int i=0; i<ntypes; i++) {
-       for(int j = 0; j < SAEDmaxType; j++){
+       for (int j = 0; j < SAEDmaxType; j++) {
          if (strcasecmp(arg[iarg],SAEDtypeList[j]) == 0) {
          ztype[i] = j;
          }
        }
-       if ( ztype[i] == SAEDmaxType + 1 )
+       if (ztype[i] == SAEDmaxType + 1)
           error->all(FLERR,"Compute SAED: Invalid ASF atom type");
     iarg++;
   }
@@ -148,7 +149,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // Zone flag to capture entire recrocal space volume
-  if (  (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
+  if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
   } else {
       R_Ewald = (1 / lambda);
       double Rnorm = R_Ewald/ sqrt(Zone[0] * Zone[0] +
@@ -168,28 +169,28 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     double *prd;
     double ave_inv = 0.0;
     prd = domain->prd;
-    if (periodicity[0]){
+    if (periodicity[0]) {
       prd_inv[0] = 1 / prd[0];
       ave_inv += prd_inv[0];
     }
-    if (periodicity[1]){
+    if (periodicity[1]) {
       prd_inv[1] = 1 / prd[1];
       ave_inv += prd_inv[1];
     }
-    if (periodicity[2]){
+    if (periodicity[2]) {
       prd_inv[2] = 1 / prd[2];
       ave_inv += prd_inv[2];
     }
 
     // Using the average inverse dimensions for non-periodic direction
     ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
-    if (!periodicity[0]){
+    if (!periodicity[0]) {
       prd_inv[0] = ave_inv;
     }
-    if (!periodicity[1]){
+    if (!periodicity[1]) {
       prd_inv[1] = ave_inv;
     }
-    if (!periodicity[2]){
+    if (!periodicity[2]) {
       prd_inv[2] = ave_inv;
     }
   }
@@ -213,7 +214,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   double K[3];
 
   // Zone flag to capture entire recrocal space volume
-  if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
+  if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
       for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
         for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
@@ -239,7 +240,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
               r2 += pow(K[m] - Zone[m],2.0);
             EmdR2 = pow(R_Ewald - dR_Ewald,2);
             EpdR2 = pow(R_Ewald + dR_Ewald,2);
-            if  ( (r2 >  EmdR2 ) && (r2 < EpdR2 ) ) {
+            if ((r2 > EmdR2) && (r2 < EpdR2)) {
               n++;
             }
           }
@@ -293,7 +294,7 @@ void ComputeSAED::init()
   int n = 0;
 
   // Zone 0 0 0 flag to capture entire recrocal space volume
-  if ( (Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0) ){
+  if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
     for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
       for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
         for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
@@ -324,7 +325,7 @@ void ComputeSAED::init()
               r2 += pow(K[m] - Zone[m],2.0);
             EmdR2 = pow(R_Ewald - dR_Ewald,2);
             EpdR2 = pow(R_Ewald + dR_Ewald,2);
-            if  ( (r2 >  EmdR2 ) && (r2 < EpdR2 ) ) {
+            if ((r2 > EmdR2) && (r2 < EpdR2)) {
               store_tmp[3*n] = i;
               store_tmp[3*n+1] = j;
               store_tmp[3*n+2] = k;
@@ -395,7 +396,7 @@ void ComputeSAED::compute_vector()
 */
 
 
- // determining paramater set to use based on maximum S = sin(theta)/lambda
+ // determining parameter set to use based on maximum S = sin(theta)/lambda
   double Smax = Kmax / 2;
 
   int offset = 0;                 // offset the ASFSAED matrix for appropriate value
@@ -419,7 +420,7 @@ void ComputeSAED::compute_vector()
   double frac = 0.1;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
 #endif
   {
     double *f = new double[ntypes];    // atomic structure factor by type
@@ -450,18 +451,18 @@ void ComputeSAED::compute_vector()
       Fatom1 = 0.0;
       Fatom2 = 0.0;
 
-      // Calculate the atomic structre factor by type
-      // determining paramater set to use based on S = sin(theta)/lambda <> 2
-      for (int ii = 0; ii < ntypes; ii++){
+      // Calculate the atomic structure factor by type
+      // determining parameter set to use based on S = sin(theta)/lambda <> 2
+      for (int ii = 0; ii < ntypes; ii++) {
         f[ii] = 0;
-        for (int C = 0; C < 5; C++){
+        for (int C = 0; C < 5; C++) {
           int D = C + offset;
           f[ii] += ASFSAED[ztype[ii]][D] * exp(-1*ASFSAED[ztype[ii]][5+D] * SinTheta_lambda * SinTheta_lambda);
         }
       }
 
       // Evaluate the structure factor equation -- looping over all atoms
-      for (int ii = 0; ii < nlocalgroup; ii++){
+      for (int ii = 0; ii < nlocalgroup; ii++) {
         typei=typelocal[ii]-1;
         inners = 2 * MY_PI * (K[0] * xlocal[3*ii+0] + K[1] * xlocal[3*ii+1] +
                   K[2] * xlocal[3*ii+2]);
@@ -473,13 +474,13 @@ void ComputeSAED::compute_vector()
       Fvec[2*n+1] = Fatom2;
 
       // reporting progress of calculation
-      if ( echo ) {
+      if (echo) {
 #if defined(_OPENMP)
         #pragma omp critical
       // TODO use VMD timer style incrementer
 #endif
         {
-          if ( m == round(frac * nRows) ) {
+          if (m == round(frac * nRows)) {
             if (me == 0 && screen) fprintf(screen," %0.0f%% -",frac*100);
             frac += 0.1;
           }
@@ -502,16 +503,11 @@ void ComputeSAED::compute_vector()
   double t2 = MPI_Wtime();
 
   // compute memory usage per processor
-  double bytes = nRows * sizeof(double); //vector
-  bytes +=  4.0 * nRows * sizeof(double); //Fvec1 & 2, scratch1 & 2
-  bytes += ntypes * sizeof(double); // f
-  bytes += 3.0 * nlocalgroup * sizeof(double); // xlocal
-  bytes += nlocalgroup * sizeof(int); // typelocal
-  bytes += 3.0 * nRows * sizeof(int); // store_temp
+  double bytes = memory_usage();
 
   if (me == 0 && echo) {
     if (screen)
-      fprintf(screen," 100%% \nTime ellapsed during compute_saed = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0,  bytes/1024.0/1024.0);
+      fprintf(screen," 100%% \nTime elapsed during compute_saed = %0.2f sec using %0.2f Mbytes/processor\n-----\n", t2-t0,  bytes/1024.0/1024.0);
   }
 
   delete [] xlocal;
@@ -527,11 +523,11 @@ void ComputeSAED::compute_vector()
 double ComputeSAED::memory_usage()
 {
   double bytes = nRows * sizeof(double); //vector
-  bytes +=  4.0 * nRows * sizeof(double); //Fvec1 & 2, scratch1 & 2
-  bytes += ntypes * sizeof(double); // f
-  bytes += 3.0 * nlocalgroup * sizeof(double); // xlocal
-  bytes += nlocalgroup * sizeof(int); // typelocal
-  bytes += 3.0 * nRows * sizeof(int); // store_temp
+  bytes += (double) 4.0 * nRows * sizeof(double); //Fvec1 & 2, scratch1 & 2
+  bytes += (double)ntypes * sizeof(double); // f
+  bytes += (double)3.0 * nlocalgroup * sizeof(double); // xlocal
+  bytes += (double)nlocalgroup * sizeof(int); // typelocal
+  bytes += (double)3.0 * nRows * sizeof(int); // store_temp
 
   return bytes;
 }

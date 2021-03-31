@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +15,11 @@
    Contributing authors: Stefan Paquay & Matthew Peterson (Brandeis University)
 ------------------------------------------------------------------------- */
 
+#include "fix_enforce2d_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
 #include "comm.h"
 #include "error.h"
-#include "fix_enforce2d_kokkos.h"
 
 
 using namespace LAMMPS_NS;
@@ -34,10 +34,10 @@ FixEnforce2DKokkos<DeviceType>::FixEnforce2DKokkos(LAMMPS *lmp, int narg, char *
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read   = V_MASK | F_MASK | OMEGA_MASK | MASK_MASK
-	  | TORQUE_MASK | ANGMOM_MASK;
+          | TORQUE_MASK | ANGMOM_MASK;
 
   datamask_modify = V_MASK | F_MASK | OMEGA_MASK
-	  | TORQUE_MASK | ANGMOM_MASK;
+          | TORQUE_MASK | ANGMOM_MASK;
 }
 
 
@@ -49,20 +49,20 @@ void FixEnforce2DKokkos<DeviceType>::setup(int vflag)
 
 
 template <class DeviceType>
-void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
+void FixEnforce2DKokkos<DeviceType>::post_force(int /*vflag*/)
 {
   atomKK->sync(execution_space,datamask_read);
 
   v = atomKK->k_v.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
 
-  if( atomKK->omega_flag )
+  if (atomKK->omega_flag)
     omega  = atomKK->k_omega.view<DeviceType>();
 
-  if( atomKK->angmom_flag )
+  if (atomKK->angmom_flag)
     angmom = atomKK->k_angmom.view<DeviceType>();
 
-  if( atomKK->torque_flag )
+  if (atomKK->torque_flag)
     torque = atomKK->k_torque.view<DeviceType>();
 
 
@@ -72,12 +72,12 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
   int flag_mask = 0;
-  if( atomKK->omega_flag ) flag_mask  |= 1;
-  if( atomKK->angmom_flag ) flag_mask |= 2;
-  if( atomKK->torque_flag ) flag_mask |= 4;
+  if (atomKK->omega_flag) flag_mask  |= 1;
+  if (atomKK->angmom_flag) flag_mask |= 2;
+  if (atomKK->torque_flag) flag_mask |= 4;
 
   copymode = 1;
-  switch( flag_mask ){
+  switch (flag_mask) {
     case 0:{
       FixEnforce2DKokkosPostForceFunctor<DeviceType,0,0,0> functor(this);
       Kokkos::parallel_for(nlocal,functor);
@@ -136,23 +136,24 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int vflag)
 
 template <class DeviceType>
 template <int omega_flag, int angmom_flag, int torque_flag>
+KOKKOS_INLINE_FUNCTION
 void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 {
-  if (mask[i] & groupbit){
+  if (mask[i] & groupbit) {
     v(i,2) = 0.0;
     f(i,2) = 0.0;
 
-    if(omega_flag){
+    if (omega_flag) {
       omega(i,0) = 0.0;
       omega(i,1) = 0.0;
     }
 
-    if(angmom_flag){
+    if (angmom_flag) {
       angmom(i,0) = 0.0;
       angmom(i,1) = 0.0;
     }
 
-    if(torque_flag){
+    if (torque_flag) {
       torque(i,0) = 0.0;
       torque(i,1) = 0.0;
     }
@@ -162,7 +163,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 
 namespace LAMMPS_NS {
 template class FixEnforce2DKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixEnforce2DKokkos<LMPHostType>;
 #endif
 }

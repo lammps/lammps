@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_drude.h"
+
+#include <cstring>
+#include <map>
 #include "atom.h"
 #include "comm.h"
 #include "modify.h"
@@ -52,11 +53,11 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR, "Illegal fix drude command");
   }
 
-  drudeid = NULL;
+  drudeid = nullptr;
   grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
-  atom->add_callback(2);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
+  atom->add_callback(Atom::BORDER);
 
   // one-time assignment of Drude partners
 
@@ -71,9 +72,9 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 
 FixDrude::~FixDrude()
 {
-  atom->delete_callback(id,2);
-  atom->delete_callback(id,1);
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::BORDER);
+  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(id,Atom::GROW);
   memory->destroy(drudetype);
   memory->destroy(drudeid);
 }
@@ -101,7 +102,7 @@ int FixDrude::setmask()
 /* ----------------------------------------------------------------------
    look in bond lists for Drude partner tags and fill drudeid
 ------------------------------------------------------------------------- */
-void FixDrude::build_drudeid(){
+void FixDrude::build_drudeid() {
   int nlocal = atom->nlocal;
   int *type = atom->type;
 
@@ -109,13 +110,13 @@ void FixDrude::build_drudeid(){
   std::vector<tagint> core_drude_vec;
   partner_set = new std::set<tagint>[nlocal]; // Temporary sets of bond partner tags
 
-  if (atom->molecular == 1)
+  if (atom->molecular == Atom::MOLECULAR)
   {
     // Build list of my atoms' bond partners
-    for (int i=0; i<nlocal; i++){
+    for (int i=0; i<nlocal; i++) {
       if (drudetype[type[i]] == NOPOL_TYPE) continue;
       drudeid[i] = 0;
-      for (int k=0; k<atom->num_bond[i]; k++){
+      for (int k=0; k<atom->num_bond[i]; k++) {
         core_drude_vec.push_back(atom->tag[i]);
         core_drude_vec.push_back(atom->bond_atom[i][k]);
       }
@@ -128,7 +129,7 @@ void FixDrude::build_drudeid(){
     atommols = atom->avec->onemols;
 
     // Build list of my atoms' bond partners
-    for (int i=0; i<nlocal; i++){
+    for (int i=0; i<nlocal; i++) {
       int imol = atom->molindex[i];
       int iatom = atom->molatom[i];
       tagint *batom = atommols[imol]->bond_atom[iatom];
@@ -137,7 +138,7 @@ void FixDrude::build_drudeid(){
 
       if (drudetype[type[i]] == NOPOL_TYPE) continue;
       drudeid[i] = 0;
-      for (int k=0; k<nbonds; k++){
+      for (int k=0; k<nbonds; k++) {
         core_drude_vec.push_back(atom->tag[i]);
         core_drude_vec.push_back(batom[k]+tagprev);
       }
@@ -146,13 +147,13 @@ void FixDrude::build_drudeid(){
   // Loop on procs to fill my atoms' sets of bond partners
   comm->ring(core_drude_vec.size(), sizeof(tagint),
              (char *) core_drude_vec.data(),
-             4, ring_build_partner, NULL, (void *)this, 1);
+             4, ring_build_partner, nullptr, (void *)this, 1);
 
   // Build the list of my Drudes' tags
   // The only bond partners of a Drude particle is its core,
   // so fill drudeid for my Drudes.
-  for (int i=0; i<nlocal; i++){
-    if (drudetype[type[i]] == DRUDE_TYPE){
+  for (int i=0; i<nlocal; i++) {
+    if (drudetype[type[i]] == DRUDE_TYPE) {
       drude_vec.push_back(atom->tag[i]);
       drudeid[i] = *partner_set[i].begin(); // only one 1-2 neighbor, the core
     }
@@ -162,7 +163,7 @@ void FixDrude::build_drudeid(){
   // so that each core finds its Drude.
   comm->ring(drude_vec.size(), sizeof(tagint),
              (char *) drude_vec.data(),
-             3, ring_search_drudeid, NULL, (void *)this, 1);
+             3, ring_search_drudeid, nullptr, (void *)this, 1);
   delete [] partner_set;
 }
 
@@ -171,7 +172,7 @@ void FixDrude::build_drudeid(){
  * Look in my cores' bond partner tags if there is a Drude tag.
  * If so fill this core's dureid.
 ------------------------------------------------------------------------- */
-void FixDrude::ring_search_drudeid(int size, char *cbuf, void *ptr){
+void FixDrude::ring_search_drudeid(int size, char *cbuf, void *ptr) {
   // Search for the drude partner of my cores
   FixDrude *fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
@@ -189,7 +190,7 @@ void FixDrude::ring_search_drudeid(int size, char *cbuf, void *ptr){
   for (int i=0; i<nlocal; i++) {
     if (drudetype[type[i]] != CORE_TYPE || drudeid[i] > 0) continue;
     for (it = partner_set[i].begin(); it != partner_set[i].end(); it++) { // Drude-core are 1-2 neighbors
-      if (drude_set.count(*it) > 0){
+      if (drude_set.count(*it) > 0) {
         drudeid[i] = *it;
         break;
       }
@@ -201,7 +202,7 @@ void FixDrude::ring_search_drudeid(int size, char *cbuf, void *ptr){
  * buffer contains bond partners. Look for my atoms and add their partner's
  * tag in its set of bond partners.
 ------------------------------------------------------------------------- */
-void FixDrude::ring_build_partner(int size, char *cbuf, void *ptr){
+void FixDrude::ring_build_partner(int size, char *cbuf, void *ptr) {
   // Add partners from incoming list
   FixDrude *fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
@@ -269,7 +270,7 @@ int FixDrude::unpack_exchange(int nlocal, double *buf)
 int FixDrude::pack_border(int n, int *list, double *buf)
 {
     int m = 0;
-    for (int i=0; i<n; i++){
+    for (int i=0; i<n; i++) {
         int j = list[i];
         buf[m++] = ubuf(drudeid[j]).d;
     }
@@ -283,7 +284,7 @@ int FixDrude::pack_border(int n, int *list, double *buf)
 int FixDrude::unpack_border(int n, int first, double *buf)
 {
     int m = 0;
-    for (int i=first; i<first+n; i++){
+    for (int i=first; i<first+n; i++) {
         drudeid[i] = (tagint) ubuf(buf[m++]).i;
     }
     return m;
@@ -294,7 +295,7 @@ int FixDrude::unpack_border(int n, int first, double *buf)
    so that each Drude particle is equivalent to its core atom.
 ------------------------------------------------------------------------- */
 
-void FixDrude::rebuild_special(){
+void FixDrude::rebuild_special() {
   rebuildflag = 1;
 
   int nlocal = atom->nlocal;
@@ -329,7 +330,7 @@ void FixDrude::rebuild_special(){
   for (int i=0; i<nlocal; i++) {
     if (drudetype[type[i]] == DRUDE_TYPE) {
       drude_vec.push_back(atom->tag[i]);
-    } else if (drudetype[type[i]] == CORE_TYPE){
+    } else if (drudetype[type[i]] == CORE_TYPE) {
       core_drude_vec.push_back(atom->tag[i]);
       core_drude_vec.push_back(drudeid[i]);
     }
@@ -337,11 +338,11 @@ void FixDrude::rebuild_special(){
   // Remove Drude particles from the special lists of each proc
   comm->ring(drude_vec.size(), sizeof(tagint),
              (char *) drude_vec.data(),
-             9, ring_remove_drude, NULL, (void *)this, 1);
+             9, ring_remove_drude, nullptr, (void *)this, 1);
   // Add back Drude particles in the lists just after their core
   comm->ring(core_drude_vec.size(), sizeof(tagint),
              (char *) core_drude_vec.data(),
-             10, ring_add_drude, NULL, (void *)this, 1);
+             10, ring_add_drude, nullptr, (void *)this, 1);
 
   // Check size of special list
   nspecmax_loc = 0;
@@ -372,14 +373,14 @@ void FixDrude::rebuild_special(){
   // Copy core's list into their drude list
   comm->ring(core_special_vec.size(), sizeof(tagint),
              (char *) core_special_vec.data(),
-             11, ring_copy_drude, NULL, (void *)this, 1);
+             11, ring_copy_drude, nullptr, (void *)this, 1);
 }
 
 /* ----------------------------------------------------------------------
  * When receive buffer, build a set of drude tags, look into my atoms'
  * special list if some tags are drude particles. If so, remove it.
 ------------------------------------------------------------------------- */
-void FixDrude::ring_remove_drude(int size, char *cbuf, void *ptr){
+void FixDrude::ring_remove_drude(int size, char *cbuf, void *ptr) {
   // Remove all drude particles from special list
   FixDrude *fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
@@ -415,7 +416,7 @@ void FixDrude::ring_remove_drude(int size, char *cbuf, void *ptr){
  * Loop on my atoms' special list to find core tags. Insert their Drude
  * particle if they have one.
 ------------------------------------------------------------------------- */
-void FixDrude::ring_add_drude(int size, char *cbuf, void *ptr){
+void FixDrude::ring_add_drude(int size, char *cbuf, void *ptr) {
   // Assume special array size is big enough
   // Add all particle just after their core in the special list
   FixDrude *fdptr = (FixDrude *) ptr;
@@ -472,7 +473,7 @@ void FixDrude::ring_add_drude(int size, char *cbuf, void *ptr){
  * in the buffer. Loop on my Drude particles and copy their special
  * info from that of their core if the latter is found in the map.
 ------------------------------------------------------------------------- */
-void FixDrude::ring_copy_drude(int size, char *cbuf, void *ptr){
+void FixDrude::ring_copy_drude(int size, char *cbuf, void *ptr) {
   // Copy special list of drude from its core (except itself)
   FixDrude *fdptr = (FixDrude *) ptr;
   Atom *atom = fdptr->atom;
@@ -519,8 +520,8 @@ void FixDrude::ring_copy_drude(int size, char *cbuf, void *ptr){
  * Set drudeid when a new atom is created,
  * special list must be up-to-date
  * ----------------------------------------------------------------------*/
-void FixDrude::set_arrays(int i){
-    if (drudetype[atom->type[i]] != NOPOL_TYPE){
+void FixDrude::set_arrays(int i) {
+    if (drudetype[atom->type[i]] != NOPOL_TYPE) {
         if (atom->nspecial[i] ==0) error->all(FLERR, "Polarizable atoms cannot be inserted with special lists info from the molecule template");
         drudeid[i] = atom->special[i][0]; // Drude partner should be at first place in the special list
     } else {

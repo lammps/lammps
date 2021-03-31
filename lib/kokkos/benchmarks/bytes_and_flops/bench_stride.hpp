@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -41,84 +42,82 @@
 //@HEADER
 */
 
-
 #define UNROLL 1
-#include<bench_unroll_stride.hpp>
+#include <bench_unroll_stride.hpp>
 #undef UNROLL
 #define UNROLL 2
-#include<bench_unroll_stride.hpp>
+#include <bench_unroll_stride.hpp>
 #undef UNROLL
 #define UNROLL 3
-#include<bench_unroll_stride.hpp>
+#include <bench_unroll_stride.hpp>
 #undef UNROLL
 #define UNROLL 4
-#include<bench_unroll_stride.hpp>
+#include <bench_unroll_stride.hpp>
 #undef UNROLL
 #define UNROLL 5
-#include<bench_unroll_stride.hpp>
+#include <bench_unroll_stride.hpp>
 #undef UNROLL
 #define UNROLL 6
-#include<bench_unroll_stride.hpp>
+#include <bench_unroll_stride.hpp>
 #undef UNROLL
 #define UNROLL 7
-#include<bench_unroll_stride.hpp>
+#include <bench_unroll_stride.hpp>
 #undef UNROLL
 #define UNROLL 8
-#include<bench_unroll_stride.hpp>
+#include <bench_unroll_stride.hpp>
 #undef UNROLL
 
-template<class Scalar>
-struct RunStride<Scalar,STRIDE> {
-static void run_1(int N, int K, int R, int F, int T, int S) {
-  Run<Scalar,1,STRIDE>::run(N,K,R,F,T,S);
-}
-static void run_2(int N, int K, int R, int F, int T, int S) {
-  Run<Scalar,2,STRIDE>::run(N,K,R,F,T,S);
-}
-static void run_3(int N, int K, int R, int F, int T, int S) {
-  Run<Scalar,3,STRIDE>::run(N,K,R,F,T,S);
-}
-static void run_4(int N, int K, int R, int F, int T, int S) {
-  Run<Scalar,4,STRIDE>::run(N,K,R,F,T,S);
-}
-static void run_5(int N, int K, int R, int F, int T, int S) {
-  Run<Scalar,5,STRIDE>::run(N,K,R,F,T,S);
-}
-static void run_6(int N, int K, int R, int F, int T, int S) {
-  Run<Scalar,6,STRIDE>::run(N,K,R,F,T,S);
-}
-static void run_7(int N, int K, int R, int F, int T, int S) {
-  Run<Scalar,7,STRIDE>::run(N,K,R,F,T,S);
-}
-static void run_8(int N, int K, int R, int F, int T, int S) {
-  Run<Scalar,8,STRIDE>::run(N,K,R,F,T,S);
-}
+template <class Scalar>
+struct RunStride<Scalar, STRIDE> {
+  static void run_1(int N, int K, int R, int F, int T, int S) {
+    Run<Scalar, 1, STRIDE>::run(N, K, R, F, T, S);
+  }
+  static void run_2(int N, int K, int R, int F, int T, int S) {
+    Run<Scalar, 2, STRIDE>::run(N, K, R, F, T, S);
+  }
+  static void run_3(int N, int K, int R, int F, int T, int S) {
+    Run<Scalar, 3, STRIDE>::run(N, K, R, F, T, S);
+  }
+  static void run_4(int N, int K, int R, int F, int T, int S) {
+    Run<Scalar, 4, STRIDE>::run(N, K, R, F, T, S);
+  }
+  static void run_5(int N, int K, int R, int F, int T, int S) {
+    Run<Scalar, 5, STRIDE>::run(N, K, R, F, T, S);
+  }
+  static void run_6(int N, int K, int R, int F, int T, int S) {
+    Run<Scalar, 6, STRIDE>::run(N, K, R, F, T, S);
+  }
+  static void run_7(int N, int K, int R, int F, int T, int S) {
+    Run<Scalar, 7, STRIDE>::run(N, K, R, F, T, S);
+  }
+  static void run_8(int N, int K, int R, int F, int T, int S) {
+    Run<Scalar, 8, STRIDE>::run(N, K, R, F, T, S);
+  }
 
-static void run(int N, int K, int R, int U, int F, int T, int S) {
-  if(U==1) {
-    run_1(N,K,R,F,T,S);
+  static void run(int N, int K, int R, int U, int F, int T, int S) {
+    if (U == 1) {
+      run_1(N, K, R, F, T, S);
+    }
+    if (U == 2) {
+      run_2(N, K, R, F, T, S);
+    }
+    if (U == 3) {
+      run_3(N, K, R, F, T, S);
+    }
+    if (U == 4) {
+      run_4(N, K, R, F, T, S);
+    }
+    if (U == 5) {
+      run_5(N, K, R, F, T, S);
+    }
+    if (U == 6) {
+      run_6(N, K, R, F, T, S);
+    }
+    if (U == 7) {
+      run_7(N, K, R, F, T, S);
+    }
+    if (U == 8) {
+      run_8(N, K, R, F, T, S);
+    }
   }
-  if(U==2) {
-    run_2(N,K,R,F,T,S);
-  }
-  if(U==3) {
-    run_3(N,K,R,F,T,S);
-  }
-  if(U==4) {
-    run_4(N,K,R,F,T,S);
-  }
-  if(U==5) {
-    run_5(N,K,R,F,T,S);
-  }
-  if(U==6) {
-    run_6(N,K,R,F,T,S);
-  }
-  if(U==7) {
-    run_7(N,K,R,F,T,S);
-  }
-  if(U==8) {
-    run_8(N,K,R,F,T,S);
-  } 
-}
 };
-

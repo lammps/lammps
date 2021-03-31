@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,8 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sph_taitwater_morris.h"
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -21,6 +20,7 @@
 #include "memory.h"
 #include "error.h"
 #include "domain.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -58,17 +58,14 @@ void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
   double vxtmp, vytmp, vztmp, imass, jmass, fi, fj, fvisc, h, ih, ihsq, velx, vely, velz;
   double rsq, tmp, wfd, delVdotDelR, deltaE;
 
-  if (eflag || vflag)
-    ev_setup(eflag, vflag);
-  else
-    evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **v = atom->vest;
   double **x = atom->x;
   double **f = atom->f;
   double *rho = atom->rho;
   double *mass = atom->mass;
-  double *de = atom->de;
+  double *desph = atom->desph;
   double *drho = atom->drho;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -181,13 +178,13 @@ void PairSPHTaitwaterMorris::compute(int eflag, int vflag) {
         drho[i] += jmass * delVdotDelR * wfd;
 
         // change in thermal energy
-        de[i] += deltaE;
+        desph[i] += deltaE;
 
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx * fpair + velx * fvisc;
           f[j][1] -= dely * fpair + vely * fvisc;
           f[j][2] -= delz * fpair + velz * fvisc;
-          de[j] += deltaE;
+          desph[j] += deltaE;
           drho[j] += imass * delVdotDelR * wfd;
         }
 
@@ -244,13 +241,13 @@ void PairSPHTaitwaterMorris::coeff(int narg, char **arg) {
     allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-  force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double rho0_one = force->numeric(FLERR,arg[2]);
-  double soundspeed_one = force->numeric(FLERR,arg[3]);
-  double viscosity_one = force->numeric(FLERR,arg[4]);
-  double cut_one = force->numeric(FLERR,arg[5]);
+  double rho0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double soundspeed_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double viscosity_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double cut_one = utils::numeric(FLERR,arg[5],false,lmp);
   double B_one = soundspeed_one * soundspeed_one * rho0_one / 7.0;
 
   int count = 0;

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,17 +15,17 @@
    Contributing author: Mathias Puetz (SNL) and friends
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "dihedral_multi_harmonic.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "update.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -34,7 +34,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -64,8 +67,7 @@ void DihedralMultiHarmonic::compute(int eflag, int vflag)
   double s2,sin2;
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -273,13 +275,13 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double a1_one = force->numeric(FLERR,arg[1]);
-  double a2_one = force->numeric(FLERR,arg[2]);
-  double a3_one = force->numeric(FLERR,arg[3]);
-  double a4_one = force->numeric(FLERR,arg[4]);
-  double a5_one = force->numeric(FLERR,arg[5]);
+  double a1_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double a2_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double a3_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double a4_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double a5_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -317,11 +319,11 @@ void DihedralMultiHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&a1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&a2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&a3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&a4[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&a5[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&a1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&a2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&a3[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&a4[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&a5[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
   }
   MPI_Bcast(&a1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&a2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

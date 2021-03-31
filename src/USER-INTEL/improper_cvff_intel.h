@@ -24,7 +24,6 @@ ImproperStyle(cvff/intel,ImproperCvffIntel)
 #ifndef LMP_IMPROPER_CVFF_INTEL_H
 #define LMP_IMPROPER_CVFF_INTEL_H
 
-#include <cstdio>
 #include "improper_cvff.h"
 #include "fix_intel.h"
 
@@ -63,7 +62,7 @@ class ImproperCvffIntel : public ImproperCvff {
     fc_packed1 *fc;
 
     ForceConst() : _nimpropertypes(0)  {}
-    ~ForceConst() { set_ntypes(0, NULL); }
+    ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nimpropertypes, Memory *memory);
 

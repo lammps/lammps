@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,20 +21,26 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxc.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
+#include "citeme.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_reaxc.h"
-#include "citeme.h"
+#include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
+#include <strings.h>    // for strcasecmp()
+
+#include "reaxc_defs.h"
 #include "reaxc_types.h"
 #include "reaxc_allocate.h"
 #include "reaxc_control.h"
@@ -45,9 +51,7 @@
 #include "reaxc_list.h"
 #include "reaxc_lookup.h"
 #include "reaxc_reset_tools.h"
-#include "reaxc_traj.h"
 #include "reaxc_vector.h"
-#include "fix_reaxc_bonds.h"
 
 using namespace LAMMPS_NS;
 
@@ -72,12 +76,18 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
+
+  fix_id = new char[24];
+  snprintf(fix_id,24,"REAXC_%d",instance_me);
 
   system = (reax_system *)
     memory->smalloc(sizeof(reax_system),"reax:system");
+  memset(system,0,sizeof(reax_system));
   control = (control_params *)
     memory->smalloc(sizeof(control_params),"reax:control");
+  memset(control,0,sizeof(control_params));
   data = (simulation_data *)
     memory->smalloc(sizeof(simulation_data),"reax:data");
   workspace = (storage *)
@@ -87,10 +97,11 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   memset(lists,0,LIST_N * sizeof(reax_list));
   out_control = (output_controls *)
     memory->smalloc(sizeof(output_controls),"reax:out_control");
+  memset(out_control,0,sizeof(output_controls));
   mpi_data = (mpi_datatypes *)
     memory->smalloc(sizeof(mpi_datatypes),"reax:mpi");
 
-  MPI_Comm_rank(world,&system->my_rank);
+  control->me = system->my_rank = comm->me;
 
   system->my_coords[0] = 0;
   system->my_coords[1] = 0;
@@ -106,14 +117,16 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->bndry_cuts.ghost_hbond = 0;
   system->bndry_cuts.ghost_bond = 0;
   system->bndry_cuts.ghost_cutoff = 0;
-  system->my_atoms = NULL;
+  system->my_atoms = nullptr;
   system->pair_ptr = this;
+  system->error_ptr = error;
+  control->error_ptr = error;
 
   system->omp_active = 0;
 
-  fix_reax = NULL;
-  tmpid = NULL;
-  tmpbo = NULL;
+  fix_reax = nullptr;
+  tmpid = nullptr;
+  tmpbo = nullptr;
 
   nextra = 14;
   pvector = new double[nextra];
@@ -130,19 +143,20 @@ PairReaxC::~PairReaxC()
 {
   if (copymode) return;
 
-  if (fix_reax) modify->delete_fix("REAXC");
+  if (fix_reax) modify->delete_fix(fix_id);
+  delete[] fix_id;
 
   if (setup_flag) {
     Close_Output_Files( system, control, out_control, mpi_data );
 
     // deallocate reax data-structures
 
-    if( control->tabulate ) Deallocate_Lookup_Tables( system );
+    if (control->tabulate ) Deallocate_Lookup_Tables( system);
 
-    if( control->hbond_cut > 0 )  Delete_List( lists+HBONDS, world );
-    Delete_List( lists+BONDS, world );
-    Delete_List( lists+THREE_BODIES, world );
-    Delete_List( lists+FAR_NBRS, world );
+    if (control->hbond_cut > 0 )  Delete_List( lists+HBONDS );
+    Delete_List( lists+BONDS );
+    Delete_List( lists+THREE_BODIES );
+    Delete_List( lists+FAR_NBRS );
 
     DeAllocate_Workspace( control, workspace );
     DeAllocate_System( system );
@@ -157,11 +171,10 @@ PairReaxC::~PairReaxC()
   memory->destroy( mpi_data );
 
   // deallocate interface storage
-  if( allocated ) {
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
-    delete [] map;
 
     delete [] chi;
     delete [] eta;
@@ -230,9 +243,10 @@ void PairReaxC::settings(int narg, char **arg)
   qeqflag = 1;
   control->lgflag = 0;
   control->enobondsflag = 1;
-  system->mincap = MIN_CAP;
-  system->safezone = SAFE_ZONE;
-  system->saferzone = SAFER_ZONE;
+  system->mincap = REAX_MIN_CAP;
+  system->minhbonds = REAX_MIN_HBONDS;
+  system->safezone = REAX_SAFE_ZONE;
+  system->saferzone = REAX_SAFER_ZONE;
 
   // process optional keywords
 
@@ -251,7 +265,7 @@ void PairReaxC::settings(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"no") == 0) control->enobondsflag = 0;
       else error->all(FLERR,"Illegal pair_style reax/c command");
       iarg += 2;
-  } else if (strcmp(arg[iarg],"lgvdw") == 0) {
+    } else if (strcmp(arg[iarg],"lgvdw") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
       if (strcmp(arg[iarg+1],"yes") == 0) control->lgflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) control->lgflag = 0;
@@ -259,16 +273,22 @@ void PairReaxC::settings(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"safezone") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->safezone = force->numeric(FLERR,arg[iarg+1]);
+      system->safezone = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (system->safezone < 0.0)
         error->all(FLERR,"Illegal pair_style reax/c safezone command");
       system->saferzone = system->safezone*1.2 + 0.2;
       iarg += 2;
     } else if (strcmp(arg[iarg],"mincap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
-      system->mincap = force->inumeric(FLERR,arg[iarg+1]);
+      system->mincap = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (system->mincap < 0)
         error->all(FLERR,"Illegal pair_style reax/c mincap command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"minhbonds") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reax/c command");
+      system->minhbonds = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (system->minhbonds < 0)
+        error->all(FLERR,"Illegal pair_style reax/c minhbonds command");
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
@@ -296,8 +316,8 @@ void PairReaxC::coeff( int nargs, char **args )
 
   char *file = args[2];
   FILE *fp;
-  fp = force->open_potential(file);
-  if (fp != NULL)
+  fp = utils::open_potential(file,lmp,nullptr);
+  if (fp != nullptr)
     Read_Force_Field(fp, &(system->reax_param), control);
   else {
       char str[128];
@@ -306,7 +326,7 @@ void PairReaxC::coeff( int nargs, char **args )
   }
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   int itmp = 0;
   int nreax_types = system->reax_param.num_atom_types;
@@ -359,11 +379,10 @@ void PairReaxC::init_style( )
 
   // firstwarn = 1;
 
-  int iqeq;
-  for (iqeq = 0; iqeq < modify->nfix; iqeq++)
-    if (strstr(modify->fix[iqeq]->style,"qeq/reax")) break;
-  if (iqeq == modify->nfix && qeqflag == 1)
-    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax");
+  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
+                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
+  if (!have_qeq && qeqflag == 1)
+    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax or qeq/shielded");
 
   system->n = atom->nlocal; // my atoms
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -379,6 +398,14 @@ void PairReaxC::init_style( )
     error->all(FLERR,"Pair style reax/c requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c requires newton pair on");
+  if ((atom->map_tag_max > 99999999) && (comm->me == 0))
+    error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c "
+                   "native output files may get misformatted or corrupted");
+
+  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
+
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for pair style reax/c");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
@@ -392,12 +419,13 @@ void PairReaxC::init_style( )
     error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
                    "increased neighbor list skin.");
 
-  for( int i = 0; i < LIST_N; ++i )
-    lists[i].allocated = 0;
+  for (int i = 0; i < LIST_N; ++i)
+    if (lists[i].allocated != 1)
+      lists[i].allocated = 0;
 
-  if (fix_reax == NULL) {
+  if (fix_reax == nullptr) {
     char **fixarg = new char*[3];
-    fixarg[0] = (char *) "REAXC";
+    fixarg[0] = (char *) fix_id;
     fixarg[1] = (char *) "all";
     fixarg[2] = (char *) "REAXC";
     modify->add_fix(3,fixarg);
@@ -435,18 +463,21 @@ void PairReaxC::setup( )
 
     // initialize my data structures
 
-    PreAllocate_Space( system, control, workspace, world );
+    PreAllocate_Space( system, control, workspace );
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
-    if(!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
-                  lists+FAR_NBRS, world))
+    if (num_nbrs < 0)
+      error->all(FLERR,"Too many neighbors for pair style reax/c");
+    if (!Make_List(system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
+                  lists+FAR_NBRS))
       error->all(FLERR,"Pair reax/c problem in far neighbor list");
+    (lists+FAR_NBRS)->error_ptr=error;
 
     write_reax_lists();
     Initialize( system, control, data, workspace, &lists, out_control,
                 mpi_data, world );
-    for( int k = 0; k < system->N; ++k ) {
+    for (int k = 0; k < system->N; ++k) {
       num_bonds[k] = system->my_atoms[k].num_bonds;
       num_hbonds[k] = system->my_atoms[k].num_hbonds;
     }
@@ -459,12 +490,12 @@ void PairReaxC::setup( )
 
     // reset the bond list info for new atoms
 
-    for(int k = oldN; k < system->N; ++k)
+    for (int k = oldN; k < system->N; ++k)
       Set_End_Index( k, Start_Index( k, lists+BONDS ), lists+BONDS );
 
     // check if I need to shrink/extend my data-structs
 
-    ReAllocate( system, control, data, workspace, &lists, mpi_data );
+    ReAllocate( system, control, data, workspace, &lists );
   }
 
   bigint local_ngroup = list->inum;
@@ -496,8 +527,7 @@ void PairReaxC::compute(int eflag, int vflag)
   int *num_hbonds = fix_reax->num_hbonds;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else ev_unset();
+  ev_init(eflag,vflag);
 
   if (vflag_global) control->virial = 1;
   else control->virial = 0;
@@ -510,16 +540,16 @@ void PairReaxC::compute(int eflag, int vflag)
   system->big_box.box_norms[0] = 0;
   system->big_box.box_norms[1] = 0;
   system->big_box.box_norms[2] = 0;
-  if( comm->me == 0 ) t_start = MPI_Wtime();
+  if (comm->me == 0 ) t_start = MPI_Wtime();
 
   // setup data structures
 
   setup();
 
-  Reset( system, control, data, workspace, &lists, world );
+  Reset( system, control, data, workspace, &lists );
   workspace->realloc.num_far = write_reax_lists();
   // timing for filling in the reax lists
-  if( comm->me == 0 ) {
+  if (comm->me == 0) {
     t_end = MPI_Wtime();
     data->timing.nbrs = t_end - t_start;
   }
@@ -529,7 +559,7 @@ void PairReaxC::compute(int eflag, int vflag)
   Compute_Forces(system,control,data,workspace,&lists,out_control,mpi_data);
   read_reax_forces(vflag);
 
-  for(int k = 0; k < system->N; ++k) {
+  for (int k = 0; k < system->N; ++k) {
     num_bonds[k] = system->my_atoms[k].num_bonds;
     num_hbonds[k] = system->my_atoms[k].num_hbonds;
   }
@@ -585,7 +615,7 @@ void PairReaxC::compute(int eflag, int vflag)
   // populate tmpid and tmpbo arrays for fix reax/c/species
   int i, j;
 
-  if(fixspecies_flag) {
+  if (fixspecies_flag) {
     if (system->N > nmax) {
       memory->destroy(tmpid);
       memory->destroy(tmpbo);
@@ -614,7 +644,7 @@ void PairReaxC::write_reax_atoms()
   if (system->N > system->total_cap)
     error->all(FLERR,"Too many ghost atoms");
 
-  for( int i = 0; i < system->N; ++i ){
+  for (int i = 0; i < system->N; ++i) {
     system->my_atoms[i].orig_id = atom->tag[i];
     system->my_atoms[i].type = map[atom->type[i]];
     system->my_atoms[i].x[0] = atom->x[i][0];
@@ -672,25 +702,25 @@ int PairReaxC::estimate_reax_lists()
 
   int numall = list->inum + list->gnum;
 
-  for( itr_i = 0; itr_i < numall; ++itr_i ){
+  for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     marked[i] = 1;
     ++num_marked;
     jlist = firstneigh[i];
 
-    for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
+    for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
       j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
 
-      if( d_sqr <= SQR(control->nonb_cut) )
+      if (d_sqr <= SQR(control->nonb_cut))
         ++num_nbrs;
     }
   }
 
   free( marked );
 
-  return static_cast<int> (MAX( num_nbrs*safezone, mincap*MIN_NBRS ));
+  return static_cast<int> (MAX(num_nbrs*safezone, mincap*REAX_MIN_NBRS));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -720,7 +750,7 @@ int PairReaxC::write_reax_lists()
 
   int numall = list->inum + list->gnum;
 
-  for( itr_i = 0; itr_i < numall; ++itr_i ){
+  for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     jlist = firstneigh[i];
     Set_Start_Index( i, num_nbrs, far_nbrs );
@@ -730,12 +760,12 @@ int PairReaxC::write_reax_lists()
     else
       cutoff_sqr = control->bond_cut*control->bond_cut;
 
-    for( itr_j = 0; itr_j < numneigh[i]; ++itr_j ){
+    for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
       j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance( x[j], x[i], &d_sqr, &dvec );
 
-      if( d_sqr <= (cutoff_sqr) ){
+      if (d_sqr <= (cutoff_sqr)) {
         dist[j] = sqrt( d_sqr );
         set_far_nbr( &far_list[num_nbrs], j, dist[j], dvec );
         ++num_nbrs;
@@ -753,7 +783,7 @@ int PairReaxC::write_reax_lists()
 
 void PairReaxC::read_reax_forces(int /*vflag*/)
 {
-  for( int i = 0; i < system->N; ++i ) {
+  for (int i = 0; i < system->N; ++i) {
     system->my_atoms[i].f[0] = workspace->f[i][0];
     system->my_atoms[i].f[1] = workspace->f[i][1];
     system->my_atoms[i].f[2] = workspace->f[i][2];
@@ -788,7 +818,7 @@ void *PairReaxC::extract(const char *str, int &dim)
       else gamma[i] = 0.0;
     return (void *) gamma;
   }
-  return NULL;
+  return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -798,25 +828,25 @@ double PairReaxC::memory_usage()
   double bytes = 0.0;
 
   // From pair_reax_c
-  bytes += 1.0 * system->N * sizeof(int);
-  bytes += 1.0 * system->N * sizeof(double);
+  bytes += (double)1.0 * system->N * sizeof(int);
+  bytes += (double)1.0 * system->N * sizeof(double);
 
   // From reaxc_allocate: BO
-  bytes += 1.0 * system->total_cap * sizeof(reax_atom);
-  bytes += 19.0 * system->total_cap * sizeof(double);
-  bytes += 3.0 * system->total_cap * sizeof(int);
+  bytes += (double)1.0 * system->total_cap * sizeof(reax_atom);
+  bytes += (double)19.0 * system->total_cap * sizeof(double);
+  bytes += (double)3.0 * system->total_cap * sizeof(int);
 
   // From reaxc_lists
-  bytes += 2.0 * lists->n * sizeof(int);
-  bytes += lists->num_intrs * sizeof(three_body_interaction_data);
-  bytes += lists->num_intrs * sizeof(bond_data);
-  bytes += lists->num_intrs * sizeof(dbond_data);
-  bytes += lists->num_intrs * sizeof(dDelta_data);
-  bytes += lists->num_intrs * sizeof(far_neighbor_data);
-  bytes += lists->num_intrs * sizeof(hbond_data);
+  bytes += (double)2.0 * lists->n * sizeof(int);
+  bytes += (double)lists->num_intrs * sizeof(three_body_interaction_data);
+  bytes += (double)lists->num_intrs * sizeof(bond_data);
+  bytes += (double)lists->num_intrs * sizeof(dbond_data);
+  bytes += (double)lists->num_intrs * sizeof(dDelta_data);
+  bytes += (double)lists->num_intrs * sizeof(far_neighbor_data);
+  bytes += (double)lists->num_intrs * sizeof(hbond_data);
 
-  if(fixspecies_flag)
-    bytes += 2 * nmax * MAXSPECBOND * sizeof(double);
+  if (fixspecies_flag)
+    bytes += (double)2 * nmax * MAXSPECBOND * sizeof(double);
 
   return bytes;
 }
@@ -833,14 +863,14 @@ void PairReaxC::FindBond()
 
   for (i = 0; i < system->n; i++) {
     nj = 0;
-    for( pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj ) {
+    for (pj = Start_Index(i, lists); pj < End_Index(i, lists); ++pj) {
       bo_ij = &( lists->select.bond_list[pj] );
       j = bo_ij->nbr;
       if (j < i) continue;
 
       bo_tmp = bo_ij->bo_data.BO;
 
-      if (bo_tmp >= bo_cut ) {
+      if (bo_tmp >= bo_cut) {
         tmpid[i][nj] = j;
         tmpbo[i][nj] = bo_tmp;
         nj ++;

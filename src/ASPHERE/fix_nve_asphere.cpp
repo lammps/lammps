@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,17 +15,12 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstring>
 #include "fix_nve_asphere.h"
-#include "math_extra.h"
+
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "force.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
+#include "math_extra.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

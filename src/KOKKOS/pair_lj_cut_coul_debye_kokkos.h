@@ -105,12 +105,12 @@ class PairLJCutCoulDebyeKokkos : public PairLJCutCoulDebye {
   double qqrd2e;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJCutCoulDebyeKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJCutCoulDebyeKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulDebyeKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulDebyeKokkos,FULL,void>(PairLJCutCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulDebyeKokkos,HALF,void>(PairLJCutCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulDebyeKokkos,HALFTHREAD,void>(PairLJCutCoulDebyeKokkos*,NeighListKokkos<DeviceType>*);

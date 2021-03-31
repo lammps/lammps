@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +15,11 @@
    Contributing author: Trung Dac Nguyen (ORNL)
 ------------------------------------------------------------------------- */
 
+#include "pair_buck_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
-#include "pair_buck_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -34,6 +34,7 @@
 #include "update.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
@@ -46,8 +47,8 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                   const int nall, const int max_nbors,  const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
 void buck_gpu_reinit(const int ntypes, double **cutsq, double **host_rhoinv,
-                  double **host_buck1, double **host_buck2,
-                  double **host_a, double **host_c, double **offset);
+                     double **host_buck1, double **host_buck2,
+                     double **host_a, double **host_c, double **offset);
 void buck_gpu_clear();
 int ** buck_gpu_compute_n(const int ago, const int inum_full, const int nall,
                           double **host_x, int *host_type, double *sublo,
@@ -69,6 +70,7 @@ PairBuckGPU::PairBuckGPU(LAMMPS *lmp) : PairBuck(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -85,8 +87,7 @@ PairBuckGPU::~PairBuckGPU()
 
 void PairBuckGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -94,10 +95,21 @@ void PairBuckGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = buck_gpu_compute_n(neighbor->ago, inum, nall,
-                                    atom->x, atom->type, domain->sublo,
-                                    domain->subhi, atom->tag, atom->nspecial,
+                                    atom->x, atom->type, sublo,
+                                    subhi, atom->tag, atom->nspecial,
                                     atom->special, eflag, vflag, eflag_atom,
                                     vflag_atom, host_start,
                                     &ilist, &numneigh, cpu_time, success);
@@ -147,11 +159,12 @@ void PairBuckGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = buck_gpu_init(atom->ntypes+1, cutsq, rhoinv, buck1, buck2,
                               a, c, offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              atom->nlocal+atom->nghost, mnf, maxspecial,
                               cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -182,8 +195,8 @@ double PairBuckGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                               int *ilist, int *numneigh, int **firstneigh) {
+void PairBuckGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */,
+                              int *ilist, int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcebuck,factor_lj;

@@ -85,7 +85,7 @@ fix_modify	AtC control localized_lambda on
 fix_modify      AtC  filter type exponential
 fix_modify      AtC  filter scale 1000.0
 fix_modify      AtC  filter on
-# ouput commands
+# output commands
 fix_modify      AtC  output bar1d_fluidsFE 100 text
 #undump          D1
 #dump		D2 all atom 200 dump.bar1d

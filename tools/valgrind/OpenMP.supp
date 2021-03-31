@@ -1,0 +1,74 @@
+{
+   OpenMP_cuda_init_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:_dlerror_run
+   fun:dlopen*
+   obj:*/lib*/libcuda.so.*
+   obj:*
+   ...
+   fun:call_init.part.0
+   fun:_dl_init
+   obj:/usr/lib*/ld-2.*.so
+}
+{
+   OpenMP_init_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   obj:/usr/lib*/libgomp.so.1*
+   fun:call_init.part.0
+   fun:_dl_init
+}
+{
+   OpenMP_init_part2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   obj:/usr/lib*/libgomp.so.1*
+   fun:GOMP_parallel
+   ...
+   fun:main
+}
+{
+   OpenMP_init_part3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   obj:/usr/lib*/libgomp.so.1*
+   fun:omp_set_num_threads
+   ...
+   fun:main
+}
+{
+   OpenMP_init_part4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:GOMP_parallel
+   ...
+}
+{
+   OpenMP_init_part5
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   obj:/usr/lib*/libgomp.so.1*
+   fun:omp_set_num_threads
+   ...
+}
+{
+   OpenMP_init_part6
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:GOMP_parallel
+   ...
+}

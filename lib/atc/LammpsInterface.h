@@ -534,7 +534,7 @@ class LammpsInterface {
   /** Dulong-Petit heat capacity per volume in M,L,T,t units */
   double heat_capacity(void) const;
   /** mass per volume in reference configuraturation in M,L units */
-  double mass_density(int* numPerType=NULL) const;
+  double mass_density(int* numPerType=nullptr) const;
   /**  permittivity of free space, converts from LAMMPS potential units implied by the electric field units to LAMMPS charge units/LAMMPS length units (e.g., V to elemental charge/A) */
   double epsilon0(void) const;
   double coulomb_constant(void) const;

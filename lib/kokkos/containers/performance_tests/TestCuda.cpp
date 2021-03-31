@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -42,7 +43,6 @@
 */
 
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ENABLE_CUDA )
 
 #include <cstdint>
 #include <string>
@@ -65,46 +65,26 @@
 
 namespace Performance {
 
-class cuda : public ::testing::Test {
-protected:
-  static void SetUpTestCase()
-  {
-    std::cout << std::setprecision(5) << std::scientific;
-    Kokkos::InitArguments args(-1, -1, 0);
-    Kokkos::initialize(args);
-  }
-  static void TearDownTestCase()
-  {
-    Kokkos::finalize();
-  }
-};
-
-TEST_F( cuda, dynrankview_perf )
-{
+TEST(TEST_CATEGORY, dynrankview_perf) {
   std::cout << "Cuda" << std::endl;
   std::cout << " DynRankView vs View: Initialization Only " << std::endl;
-  test_dynrankview_op_perf<Kokkos::Cuda>( 40960 );
+  test_dynrankview_op_perf<Kokkos::Cuda>(40960);
 }
 
-TEST_F( cuda, global_2_local)
-{
+TEST(TEST_CATEGORY, global_2_local) {
   std::cout << "Cuda" << std::endl;
   std::cout << "size, create, generate, fill, find" << std::endl;
-  for (unsigned i=Performance::begin_id_size; i<=Performance::end_id_size; i *= Performance::id_step)
+  for (unsigned i = Performance::begin_id_size; i <= Performance::end_id_size;
+       i *= Performance::id_step)
     test_global_to_local_ids<Kokkos::Cuda>(i);
 }
 
-TEST_F( cuda, unordered_map_performance_near)
-{
-  Perf::run_performance_tests<Kokkos::Cuda,true>("cuda-near");
+TEST(TEST_CATEGORY, unordered_map_performance_near) {
+  Perf::run_performance_tests<Kokkos::Cuda, true>("cuda-near");
 }
 
-TEST_F( cuda, unordered_map_performance_far)
-{
-  Perf::run_performance_tests<Kokkos::Cuda,false>("cuda-far");
+TEST(TEST_CATEGORY, unordered_map_performance_far) {
+  Perf::run_performance_tests<Kokkos::Cuda, false>("cuda-far");
 }
 
-}
-#else
-void KOKKOS_CONTAINERS_PERFORMANCE_TESTS_TESTCUDA_PREVENT_EMPTY_LINK_ERROR() {}
-#endif  /* #if defined( KOKKOS_ENABLE_CUDA ) */
+}  // namespace Performance

@@ -21,7 +21,7 @@
    This file is part of the user-manifold package written by
    Stefan Paquay at the Eindhoven University of Technology.
    This module makes it possible to do MD with particles constrained
-   to pretty arbitrary manifolds characterised by some constraint function
+   to pretty arbitrary manifolds characterized by some constraint function
    g(x,y,z) = 0 and its normal grad(g). The number of manifolds available
    right now is limited but can be extended straightforwardly by making
    a new class that inherits from manifold and implements all pure virtual
@@ -43,9 +43,9 @@ FixStyle(manifoldforce,FixManifoldForce)
 #define LMP_FIX_MANIFOLDFORCE_H
 
 #include "fix.h"
-#include "manifold.h"
 
 namespace LAMMPS_NS {
+namespace user_manifold { class manifold; }
 
 class FixManifoldForce : public Fix {
  public:

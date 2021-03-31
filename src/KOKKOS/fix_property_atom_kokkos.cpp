@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,14 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_property_atom_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "comm.h"
-#include "memory_kokkos.h"
+#include "atom_masks.h"
 #include "error.h"
-#include "update.h"
+#include "memory_kokkos.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -61,8 +61,10 @@ void FixPropertyAtomKokkos::grow_arrays(int nmax)
       size_t nbytes = (nmax-nmax_old) * sizeof(int);
       memset(&atom->ivector[index[m]][nmax_old],0,nbytes);
     } else if (style[m] == DOUBLE) {
+      atomKK->sync(Device,DVECTOR_MASK);
       memoryKK->grow_kokkos(atomKK->k_dvector,atomKK->dvector,atomKK->k_dvector.extent(0),nmax,
                           "atom:dvector");
+      atomKK->modified(Device,DVECTOR_MASK);
       //memory->grow(atom->dvector[index[m]],nmax,"atom:dvector");
       //size_t nbytes = (nmax-nmax_old) * sizeof(double);
       //memset(&atom->dvector[index[m]][nmax_old],0,nbytes);

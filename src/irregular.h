@@ -30,24 +30,27 @@ class Irregular : protected Pointers {
   Irregular(class LAMMPS *);
   ~Irregular();
   void migrate_atoms(int sortflag = 0, int preassign = 0,
-                     int *procassign = NULL);
+                     int *procassign = nullptr);
   int migrate_check();
   int create_data(int, int *, int sortflag = 0);
+  int create_data_grouped(int, int *, int sortflag = 0);
   void exchange_data(char *, int, char *);
   void destroy_data();
-  bigint memory_usage();
+  double memory_usage();
 
  private:
   int me,nprocs;
   int triclinic;
   int map_style;
 
+  int bufextra;                     // augment send buf size for a migrating atom
   int maxsend,maxrecv;              // size of buf send/recv in # of doubles
   double *buf_send,*buf_recv;       // bufs used in migrate_atoms
   int maxdbuf;                      // size of double buf in bytes
   double *dbuf;                     // double buf for largest single atom send
   int maxbuf;                       // size of char buf in bytes
   char *buf;                        // char buf for largest single data send
+  int maxindex;                     // combined size of index_send + index_self
 
   int *mproclist,*msizes;           // persistent vectors in migrate_atoms
   int maxlocal;                     // allocated size of mproclist and msizes
@@ -89,6 +92,7 @@ class Irregular : protected Pointers {
 
   int binary(double, int, double *);
 
+  void init_exchange();             // reset bufxtra
   void grow_send(int,int);          // reallocate send buffer
   void grow_recv(int);              // free/allocate recv buffer
 };

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,11 +17,11 @@
             Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
  ------------------------------------------------------------------------- */
 
+#include "pair_ufm_gpu.h"
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
-#include "pair_ufm_gpu.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "comm.h"
@@ -36,34 +36,34 @@
 #include "update.h"
 #include "domain.h"
 #include "gpu_extra.h"
+#include "suffix.h"
 
 using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
 int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
-                 double **host_uf2, double **host_uf3, double **host_uf4,
-                 double **offset, double *special_lj, const int nlocal,
-                 const int nall, const int max_nbors, const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen);
+                  double **host_uf2, double **host_uf3,
+                  double **offset, double *special_lj, const int nlocal,
+                  const int nall, const int max_nbors, const int maxspecial,
+                  const double cell_size, int &gpu_mode, FILE *screen);
 
 int ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
-                   double **host_uf2, double **host_uf3, double **host_uf4,
-                   double **offset);
+                    double **host_uf2, double **host_uf3, double **offset);
 
 void ufml_gpu_clear();
-int ** ufml_gpu_compute_n(const int ago, const int inum,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum,
-                         const double cpu_time, bool &success);
+int ** ufml_gpu_compute_n(const int ago, const int inum, const int nall,
+                          double **host_x, int *host_type, double *sublo,
+                          double *subhi, tagint *tag, int **nspecial,
+                          tagint **special, const bool eflag, const bool vflag,
+                          const bool eatom, const bool vatom, int &host_start,
+                          int **ilist, int **jnum,
+                          const double cpu_time, bool &success);
 void ufml_gpu_compute(const int ago, const int inum, const int nall,
-                     double **host_x, int *host_type, int *ilist, int *numj,
-                     int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success);
+                      double **host_x, int *host_type, int *ilist, int *numj,
+                      int **firstneigh, const bool eflag, const bool vflag,
+                      const bool eatom, const bool vatom, int &host_start,
+                      const double cpu_time, bool &success);
 double ufml_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
@@ -72,6 +72,7 @@ PairUFMGPU::PairUFMGPU(LAMMPS *lmp) : PairUFM(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -88,8 +89,7 @@ PairUFMGPU::~PairUFMGPU()
 
 void PairUFMGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -97,10 +97,21 @@ void PairUFMGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = ufml_gpu_compute_n(neighbor->ago, inum, nall,
-                                   atom->x, atom->type, domain->sublo,
-                                   domain->subhi, atom->tag, atom->nspecial,
+                                   atom->x, atom->type, sublo,
+                                   subhi, atom->tag, atom->nspecial,
                                    atom->special, eflag, vflag, eflag_atom,
                                    vflag_atom, host_start,
                                    &ilist, &numneigh, cpu_time, success);
@@ -129,7 +140,7 @@ void PairUFMGPU::compute(int eflag, int vflag)
 
 void PairUFMGPU::init_style()
 {
-//  cut_respa = NULL;
+//  cut_respa = nullptr;
 
   if (force->newton_pair)
     error->all(FLERR,"Cannot use newton pair with ufm/gpu pair style");
@@ -152,11 +163,12 @@ void PairUFMGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
-  int success = ufml_gpu_init(atom->ntypes+1, cutsq, uf1, uf2, uf3, uf4,
+  int mnf = 5e-2 * neighbor->oneatom;
+  int success = ufml_gpu_init(atom->ntypes+1, cutsq, uf1, uf2, uf3,
                              offset, force->special_lj, atom->nlocal,
-                             atom->nlocal+atom->nghost, 300, maxspecial,
+                             atom->nlocal+atom->nghost, mnf, maxspecial,
                              cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -173,7 +185,7 @@ void PairUFMGPU::reinit()
 {
   Pair::reinit();
 
-  ufml_gpu_reinit(atom->ntypes+1, cutsq, uf1, uf2, uf3, uf4, offset);
+  ufml_gpu_reinit(atom->ntypes+1, cutsq, uf1, uf2, uf3, offset);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -186,8 +198,8 @@ double PairUFMGPU::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void PairUFMGPU::cpu_compute(int start, int inum, int eflag, int vflag,
-                               int *ilist, int *numneigh, int **firstneigh) {
+void PairUFMGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */,
+                             int *ilist, int *numneigh, int **firstneigh) {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,expuf,factor_lj;

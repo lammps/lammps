@@ -35,9 +35,9 @@ LinearSolver::LinearSolver(
     allowReinitialization_(false),
     homogeneousBCs_(false),
     bcs_(&bcs),
-    rhs_(NULL),
+    rhs_(nullptr),
     rhsDense_(),
-    b_(NULL),
+    b_(nullptr),
     matrix_(A),
     matrixDense_(),
     matrixFreeFree_(), matrixFreeFixed_(),matrixInverse_(),
@@ -65,9 +65,9 @@ LinearSolver::LinearSolver(
     matrixModified_(false),
     allowReinitialization_(false), 
     homogeneousBCs_(false),
-    bcs_(NULL), // null implies no constraints will be added later
-    rhs_(NULL),
-    rhsDense_(), b_(NULL),
+    bcs_(nullptr), // null implies no constraints will be added later
+    rhs_(nullptr),
+    rhsDense_(), b_(nullptr),
     matrix_(A),
     matrixDense_(), 
     matrixFreeFree_(), matrixFreeFixed_(),matrixInverse_(),
@@ -343,7 +343,7 @@ void LinearSolver::set_fixed_values(VECTOR & X)
 void LinearSolver::eigen_system( DENS_MAT & eigenvalues, DENS_MAT & eigenvectors, const DENS_MAT * M) /* const */
 {
   initialize_matrix(); // no inverse needed
-  const DENS_MAT * Kp = NULL;
+  const DENS_MAT * Kp = nullptr;
   const DENS_MAT * Mp =M;
   DENS_MAT MM;
   DENS_MAT KM;
@@ -388,7 +388,7 @@ void LinearSolver::eigen_system( DENS_MAT & eigenvalues, DENS_MAT & eigenvectors
 
 bool LinearSolver::solve(VECTOR & x, const VECTOR & b)
 {
-  SPAR_MAT * A = NULL;
+  SPAR_MAT * A = nullptr;
 
   rhs_ = &b;
   initialized_ = false;
@@ -479,7 +479,7 @@ bool LinearSolver::solve(VECTOR & x, const VECTOR & b)
 
 void LinearSolver::greens_function(int I, VECTOR & G_I)
 {
-  SPAR_MAT * A = NULL;
+  SPAR_MAT * A = nullptr;
 
 
 

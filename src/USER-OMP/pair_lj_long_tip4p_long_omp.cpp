@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    This software is distributed under the GNU General Public License.
@@ -12,19 +12,21 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pair_lj_long_tip4p_long_omp.h"
+
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
-#include "math_vector.h"
-#include "force.h"
-#include "neighbor.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 #define EWALD_F   1.12837917
@@ -42,9 +44,9 @@ PairLJLongTIP4PLongOMP::PairLJLongTIP4PLongOMP(LAMMPS *lmp) :
 {
   suffix_flag |= Suffix::OMP;
   respa_enable = 1;
-  cut_respa = NULL;
-  newsite_thr = NULL;
-  hneigh_thr = NULL;
+  cut_respa = nullptr;
+  newsite_thr = nullptr;
+  hneigh_thr = nullptr;
   tip4pflag = dispersionflag = 1;
   no_virial_fdotr_compute = 1;
   single_enable = 0;
@@ -63,12 +65,10 @@ PairLJLongTIP4PLongOMP::~PairLJLongTIP4PLongOMP()
 
 void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
@@ -98,7 +98,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -106,7 +106,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (order6) {
       if (order1) {
@@ -356,7 +356,7 @@ void PairLJLongTIP4PLongOMP::compute(int eflag, int vflag)
 void PairLJLongTIP4PLongOMP::compute_inner()
 {
    // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
   const int nall = atom->nlocal + atom->nghost;
 
@@ -381,7 +381,7 @@ void PairLJLongTIP4PLongOMP::compute_inner()
   const int nthreads = comm->nthreads;
   const int inum = list->inum_inner;
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int ifrom, ito, tid;
@@ -389,7 +389,7 @@ void PairLJLongTIP4PLongOMP::compute_inner()
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(0, 0, nall, 0, 0, thr);
+    ev_setup_thr(0, 0, nall, 0, 0, nullptr, thr);
     eval_inner(ifrom, ito, thr);
     thr->timer(Timer::PAIR);
 
@@ -406,7 +406,7 @@ void PairLJLongTIP4PLongOMP::compute_middle()
   const int inum = list->inum_middle;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none)
+#pragma omp parallel LMP_DEFAULT_NONE
 #endif
   {
     int ifrom, ito, tid;
@@ -414,7 +414,7 @@ void PairLJLongTIP4PLongOMP::compute_middle()
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(0, 0, nall, 0, 0, thr);
+    ev_setup_thr(0, 0, nall, 0, 0, nullptr, thr);
     eval_middle(ifrom, ito, thr);
     thr->timer(Timer::PAIR);
 
@@ -425,16 +425,14 @@ void PairLJLongTIP4PLongOMP::compute_middle()
 
 void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
   const int order1 = ewald_order&(1<<1);
   const int order6 = ewald_order&(1<<6);
 
   const int nall = atom->nlocal + atom->nghost;
 
   // reallocate hneigh_thr & newsite_thr if necessary
-  // initialize hneigh_thr[0] to -1 on steps when reneighboring occured
+  // initialize hneigh_thr[0] to -1 on steps when reneighboring occurred
   // initialize hneigh_thr[2] to 0 every step
 
   if (atom->nmax > nmax) {
@@ -460,7 +458,7 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
   const int inum = list->inum;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -468,7 +466,7 @@ void PairLJLongTIP4PLongOMP::compute_outer(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
 
     if (order6) {
       if (order1) {
@@ -1189,7 +1187,7 @@ void PairLJLongTIP4PLongOMP::eval_inner(int iifrom, int iito, ThrData * const th
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq ) {  // lj
+      if (rsq < cut_ljsq[itype][jtype] && rsq < cut_out_off_sq) {  // lj
         r2inv = 1.0/rsq;
         double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);
@@ -1443,7 +1441,7 @@ void PairLJLongTIP4PLongOMP::eval_middle(int iifrom, int iito, ThrData * const t
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq ) {  // lj
+      if (rsq < cut_ljsq[itype][jtype] && rsq >= cut_in_off_sq && rsq <= cut_out_off_sq) {  // lj
         r2inv = 1.0/rsq;
         double rn = r2inv*r2inv*r2inv;
         if (ni == 0) forcelj = rn*(rn*lj1i[jtype]-lj2i[jtype]);

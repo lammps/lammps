@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,8 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_half_multi_3d_newtoff.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "atom.h"
 
 using namespace LAMMPS_NS;

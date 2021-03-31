@@ -14,7 +14,7 @@
 #ifndef LMP_KSPACE_H
 #define LMP_KSPACE_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 #ifdef FFT_SINGLE
 typedef float FFT_SCALAR;
@@ -32,7 +32,7 @@ class KSpace : protected Pointers {
  public:
   double energy;                 // accumulated energies
   double energy_1,energy_6;
-  double virial[6];              // accumulated virial
+  double virial[6];              // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;         // accumulated per-atom energy/virial
   double e2group;                // accumulated group-group energy
   double f2group[3];             // accumulated group-group force
@@ -44,6 +44,7 @@ class KSpace : protected Pointers {
   int dispersionflag;            // 1 if a LJ/dispersion solver
   int tip4pflag;                 // 1 if a TIP4P solver
   int dipoleflag;                // 1 if a dipole solver
+  int spinflag;                  // 1 if a spin solver
   int differentiation_flag;
   int neighrequest_flag;         // used to avoid obsolete construction
                                  // of neighbor lists
@@ -63,7 +64,7 @@ class KSpace : protected Pointers {
   double accuracy;                  // accuracy of KSpace solver (force units)
   double accuracy_absolute;         // user-specified accuracy in force units
   double accuracy_relative;         // user-specified dimensionless accuracy
-                                    // accurary = acc_rel * two_charge_force
+                                    // accuracy = acc_rel * two_charge_force
   double accuracy_real_6;           // real space accuracy for
                                     // dispersion solver (force units)
   double accuracy_kspace_6;         // reciprocal space accuracy for
@@ -78,6 +79,11 @@ class KSpace : protected Pointers {
   int nx_msm_max,ny_msm_max,nz_msm_max;
 
   int group_group_enable;         // 1 if style supports group/group calculation
+
+  int centroidstressflag;        // centroid stress compared to two-body stress
+                                 // CENTROID_SAME = same as two-body stress
+                                 // CENTROID_AVAIL = different and implemented
+                                 // CENTROID_NOTAVAIL = different, not yet implemented
 
   // KOKKOS host/device flag and data masks
 
@@ -94,6 +100,7 @@ class KSpace : protected Pointers {
 
   KSpace(class LAMMPS *);
   virtual ~KSpace();
+  void two_charge();
   void triclinic_check();
   void modify_params(int, char **);
   void *extract(const char *);
@@ -108,7 +115,7 @@ class KSpace : protected Pointers {
 
   // public so can be called by commands that change charge
 
-  void qsum_qsq();
+  void qsum_qsq(int warning_flag = 1);
 
   // general child-class methods
 
@@ -119,10 +126,10 @@ class KSpace : protected Pointers {
   virtual void compute(int, int) = 0;
   virtual void compute_group_group(int, int, int) {};
 
-  virtual void pack_forward(int, FFT_SCALAR *, int, int *) {};
-  virtual void unpack_forward(int, FFT_SCALAR *, int, int *) {};
-  virtual void pack_reverse(int, FFT_SCALAR *, int, int *) {};
-  virtual void unpack_reverse(int, FFT_SCALAR *, int, int *) {};
+  virtual void pack_forward_grid(int, void *, int, int *) {};
+  virtual void unpack_forward_grid(int, void *, int, int *) {};
+  virtual void pack_reverse_grid(int, void *, int, int *) {};
+  virtual void unpack_reverse_grid(int, void *, int, int *) {};
 
   virtual int timing(int, double &, double &) {return 0;}
   virtual int timing_1d(int, double &) {return 0;}
@@ -194,6 +201,10 @@ class KSpace : protected Pointers {
   int kx_ewald,ky_ewald,kz_ewald;   // kspace settings for Ewald sum
 
   void pair_check();
+  void ev_init(int eflag, int vflag, int alloc = 1) {
+    if (eflag||vflag) ev_setup(eflag, vflag, alloc);
+    else evflag = evflag_atom = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+  }
   void ev_setup(int, int, int alloc = 1);
   double estimate_table_accuracy(double, double);
 };
@@ -246,6 +257,18 @@ command-line option when running LAMMPS to see the offending line.
 E: Bad kspace_modify slab parameter
 
 Kspace_modify value for the slab/volume keyword must be >= 2.0.
+
+E: Kspace_modify mesh parameter must be all zero or all positive
+
+Valid kspace mesh parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero (the default).
+
+E: Kspace_modify mesh/disp parameter must be all zero or all positive
+
+Valid kspace mesh/disp parameters are >0. The code will try to auto-detect
+suitable values when all three mesh sizes are set to zero [and]
+the required accuracy via {force/disp/real} as well as
+{force/disp/kspace} is set.
 
 W: Kspace_modify slab param < 2.0 may cause unphysical behavior
 

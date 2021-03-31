@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,25 +16,23 @@
                          Mario Pinto (Computational Research Lab, Pune, India)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
 #include "compute_heat_flux.h"
+
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "force.h"
-#include "group.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
 ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  id_ke(NULL), id_pe(NULL), id_stress(NULL)
+  id_ke(nullptr), id_pe(nullptr), id_stress(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal compute heat/flux command");
 
@@ -45,17 +43,9 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   // store ke/atom, pe/atom, stress/atom IDs used by heat flux computation
   // insure they are valid for these computations
 
-  int n = strlen(arg[3]) + 1;
-  id_ke = new char[n];
-  strcpy(id_ke,arg[3]);
-
-  n = strlen(arg[4]) + 1;
-  id_pe = new char[n];
-  strcpy(id_pe,arg[4]);
-
-  n = strlen(arg[5]) + 1;
-  id_stress = new char[n];
-  strcpy(id_stress,arg[5]);
+  id_ke = utils::strdup(arg[3]);
+  id_pe = utils::strdup(arg[4]);
+  id_stress = utils::strdup(arg[5]);
 
   int ike = modify->find_compute(id_ke);
   int ipe = modify->find_compute(id_pe);
@@ -66,11 +56,12 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Compute heat/flux compute ID does not compute ke/atom");
   if (modify->compute[ipe]->peatomflag == 0)
     error->all(FLERR,"Compute heat/flux compute ID does not compute pe/atom");
-  if (modify->compute[istress]->pressatomflag == 0)
+  if (modify->compute[istress]->pressatomflag != 1
+      && modify->compute[istress]->pressatomflag != 2)
     error->all(FLERR,
-               "Compute heat/flux compute ID does not compute stress/atom");
+               "Compute heat/flux compute ID does not compute stress/atom or centroid/stress/atom");
 
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,17 +99,17 @@ void ComputeHeatFlux::compute_vector()
 
   // invoke 3 computes if they haven't been already
 
-  if (!(c_ke->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_ke->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_ke->compute_peratom();
-    c_ke->invoked_flag |= INVOKED_PERATOM;
+    c_ke->invoked_flag |= Compute::INVOKED_PERATOM;
   }
-  if (!(c_pe->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_pe->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_pe->compute_peratom();
-    c_pe->invoked_flag |= INVOKED_PERATOM;
+    c_pe->invoked_flag |= Compute::INVOKED_PERATOM;
   }
-  if (!(c_stress->invoked_flag & INVOKED_PERATOM)) {
+  if (!(c_stress->invoked_flag & Compute::INVOKED_PERATOM)) {
     c_stress->compute_peratom();
-    c_stress->invoked_flag |= INVOKED_PERATOM;
+    c_stress->invoked_flag |= Compute::INVOKED_PERATOM;
   }
 
   // heat flux vector = jc[3] + jv[3]
@@ -138,18 +129,48 @@ void ComputeHeatFlux::compute_vector()
   double jv[3] = {0.0,0.0,0.0};
   double eng;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      eng = pe[i] + ke[i];
-      jc[0] += eng*v[i][0];
-      jc[1] += eng*v[i][1];
-      jc[2] += eng*v[i][2];
-      jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
-        stress[i][4]*v[i][2];
-      jv[1] -= stress[i][3]*v[i][0] + stress[i][1]*v[i][1] +
-        stress[i][5]*v[i][2];
-      jv[2] -= stress[i][4]*v[i][0] + stress[i][5]*v[i][1] +
-        stress[i][2]*v[i][2];
+  // heat flux via centroid atomic stress
+  if (c_stress->pressatomflag == 2) {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        eng = pe[i] + ke[i];
+        jc[0] += eng*v[i][0];
+        jc[1] += eng*v[i][1];
+        jc[2] += eng*v[i][2];
+        // stress[0]: rijx*fijx
+        // stress[1]: rijy*fijy
+        // stress[2]: rijz*fijz
+        // stress[3]: rijx*fijy
+        // stress[4]: rijx*fijz
+        // stress[5]: rijy*fijz
+        // stress[6]: rijy*fijx
+        // stress[7]: rijz*fijx
+        // stress[8]: rijz*fijy
+        // jv[0]  = rijx fijx vjx + rijx fijy vjy + rijx fijz vjz
+        jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
+          stress[i][4]*v[i][2];
+        // jv[1]  = rijy fijx vjx + rijy fijy vjy + rijy fijz vjz
+        jv[1] -= stress[i][6]*v[i][0] + stress[i][1]*v[i][1] +
+          stress[i][5]*v[i][2];
+        // jv[2]  = rijz fijx vjx + rijz fijy vjy + rijz fijz vjz
+        jv[2] -= stress[i][7]*v[i][0] + stress[i][8]*v[i][1] +
+          stress[i][2]*v[i][2];
+      }
+    }
+  } else {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
+        eng = pe[i] + ke[i];
+        jc[0] += eng*v[i][0];
+        jc[1] += eng*v[i][1];
+        jc[2] += eng*v[i][2];
+        jv[0] -= stress[i][0]*v[i][0] + stress[i][3]*v[i][1] +
+          stress[i][4]*v[i][2];
+        jv[1] -= stress[i][3]*v[i][0] + stress[i][1]*v[i][1] +
+          stress[i][5]*v[i][2];
+        jv[2] -= stress[i][4]*v[i][0] + stress[i][5]*v[i][1] +
+          stress[i][2]*v[i][2];
+      }
     }
   }
 

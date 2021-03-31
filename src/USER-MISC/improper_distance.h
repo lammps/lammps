@@ -20,7 +20,6 @@ ImproperStyle(distance,ImproperDistance)
 #ifndef LMP_IMPROPER_DISTANCE_H
 #define LMP_IMPROPER_DISTANCE_H
 
-#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {

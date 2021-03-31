@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_erotate_sphere_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 ComputeErotateSphereAtom::
 ComputeErotateSphereAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  erot(NULL)
+  erot(nullptr)
 {
   if (narg != 3)
     error->all(FLERR,"Illegal compute erotate/sphere//atom command");
@@ -105,6 +105,6 @@ void ComputeErotateSphereAtom::compute_peratom()
 
 double ComputeErotateSphereAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

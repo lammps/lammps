@@ -15,7 +15,6 @@
 #define LMP_IMAGE_H
 
 #include <cmath>
-#include <cstdio>
 #include "pointers.h"
 
 namespace LAMMPS_NS {
@@ -73,6 +72,10 @@ class Image : protected Pointers {
   double *depthBuffer,*surfaceBuffer;
   double *depthcopy,*surfacecopy;
   unsigned char *imageBuffer,*rgbcopy,*writeBuffer;
+
+  // MPI_Gatherv
+
+  int *recvcounts,*displs;
 
   // constant view params
 

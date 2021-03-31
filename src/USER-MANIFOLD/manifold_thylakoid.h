@@ -3,14 +3,11 @@
 
 #include "manifold.h"
 #include <vector>
-#include <cstdio>
-
-#include "manifold_thylakoid_shared.h"
 
 namespace LAMMPS_NS {
 
 namespace user_manifold {
-
+  struct thyla_part;
 
   class manifold_thylakoid : public manifold {
    public:
@@ -21,10 +18,10 @@ namespace user_manifold {
     virtual double g( const double *x );
     virtual void   n( const double *x, double *n );
 
-    static const char* type(){ return "thylakoid"; }
-    virtual const char *id(){ return type(); }
-    static int expected_argc(){ return NPARAMS; }
-    virtual int nparams(){ return NPARAMS; }
+    static const char* type() { return "thylakoid"; }
+    virtual const char *id() { return type(); }
+    static int expected_argc() { return NPARAMS; }
+    virtual int nparams() { return NPARAMS; }
 
 
     virtual void post_param_init();
@@ -32,7 +29,7 @@ namespace user_manifold {
    private:
     void init_domains();
 
-    thyla_part *get_thyla_part( const double *x, int *err_flag, std::size_t *idx = NULL );
+    thyla_part *get_thyla_part( const double *x, int *err_flag, std::size_t *idx = nullptr );
     int is_in_domain( thyla_part *p, const double *x );
     void check_overlap();
     std::vector<thyla_part*> parts;

@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,21 +22,19 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <Eigen/Eigen>
-#include <Eigen/Geometry>
 #include "compute_smd_tlsph_shape.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <Eigen/Eigen>          // IWYU pragma: export
 
 using namespace Eigen;
 using namespace std;
@@ -53,7 +51,7 @@ ComputeSmdTlsphShape::ComputeSmdTlsphShape(LAMMPS *lmp, int narg, char **arg) :
         size_peratom_cols = 7;
 
         nmax = 0;
-        strainVector = NULL;
+        strainVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,12 +89,12 @@ void ComputeSmdTlsphShape::compute_peratom() {
 
         int itmp = 0;
         Matrix3d *R = (Matrix3d *) force->pair->extract("smd/tlsph/rotation_ptr", itmp);
-        if (R == NULL) {
+        if (R == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_shape failed to access rotation array");
         }
 
         Matrix3d *F = (Matrix3d *) force->pair->extract("smd/tlsph/Fincr_ptr", itmp);
-        if (F == NULL) {
+        if (F == nullptr) {
                 error->all(FLERR, "compute smd/tlsph_shape failed to access deformation gradient array");
         }
 
@@ -132,6 +130,6 @@ void ComputeSmdTlsphShape::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSmdTlsphShape::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

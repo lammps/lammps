@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,17 +18,20 @@
     references: Espanol and Revenga, Phys Rev E 67, 026705 (2003)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "pair_sdpd_taitwater_isothermal.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "update.h"
+
+#include <cmath>
+
 #ifndef USE_ZEST
 #include "random_mars.h"
 #endif
@@ -71,8 +74,7 @@ void PairSDPDTaitwaterIsothermal::compute (int eflag, int vflag) {
   double rsq, tmp, wfd, delVdotDelR;
   double prefactor, wiener[3][3], f_random[3];
 
-  if (eflag || vflag) ev_setup (eflag, vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
 
   double **v = atom->vest;
   double **x = atom->x;
@@ -240,17 +242,17 @@ void PairSDPDTaitwaterIsothermal::allocate () {
 void PairSDPDTaitwaterIsothermal::settings (int narg, char **arg) {
   if (narg != 2 && narg != 3)
     error->all (FLERR, "Illegal number of arguments for "
-                "pair_style sdpd/taitwater/morris/isothermal");
+                "pair_style sdpd/taitwater/isothermal");
 
-  temperature = force->numeric (FLERR, arg[0]);
-  viscosity = force->numeric (FLERR, arg[1]);
+  temperature = utils::numeric(FLERR, arg[0], false, lmp);
+  viscosity = utils::numeric(FLERR, arg[1], false, lmp);
 
   if (temperature <= 0) error->all (FLERR, "Temperature must be positive");
   if (viscosity <= 0) error->all (FLERR, "Viscosity must be positive");
 
   // seed is immune to underflow/overflow because it is unsigned
   seed = comm->nprocs + comm->me + atom->nlocal;
-  if (narg == 3) seed += force->inumeric (FLERR, arg[2]);
+  if (narg == 3) seed += utils::inumeric(FLERR, arg[2], false, lmp);
 #ifdef USE_ZEST
   generator.seed (seed);
 #else
@@ -270,12 +272,12 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
-  force->bounds (FLERR, arg[0], atom->ntypes, ilo, ihi);
-  force->bounds (FLERR, arg[1], atom->ntypes, jlo, jhi);
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  double rho0_one = force->numeric (FLERR,arg[2]);
-  double soundspeed_one = force->numeric (FLERR,arg[3]);
-  double cut_one = force->numeric (FLERR,arg[4]);
+  double rho0_one = utils::numeric(FLERR,arg[2], false, lmp);
+  double soundspeed_one = utils::numeric(FLERR,arg[3], false, lmp);
+  double cut_one = utils::numeric(FLERR,arg[4], false, lmp);
   double B_one = soundspeed_one * soundspeed_one * rho0_one / 7.0;
 
   if (rho0_one <= 0) error->all (FLERR, "Density must be positive");
@@ -300,12 +302,25 @@ void PairSDPDTaitwaterIsothermal::coeff (int narg, char **arg) {
 }
 
 /* ----------------------------------------------------------------------
+ init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairSDPDTaitwaterIsothermal::init_style()
+{
+  if ((!atom->rho_flag) || (atom->drho == nullptr))
+    error->all(FLERR,"Pair style dpd/taitwater/isothermal requires atom "
+               "attributes rho and drho");
+
+  neighbor->request(this,instance_me);
+}
+
+/* ----------------------------------------------------------------------
  init for one type pair i,j and corresponding j,i
  ------------------------------------------------------------------------- */
 
 double PairSDPDTaitwaterIsothermal::init_one (int i, int j) {
   if (setflag[i][j] == 0)
-    error->all(FLERR,"Not all pair sph/taitwater/morris coeffs are set");
+    error->all(FLERR,"Not all pair sdpd/taitwater/isothermal coeffs are set");
 
   cut[j][i] = cut[i][j];
 

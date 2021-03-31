@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cmath>
 #include "compute_force_tally.h"
+
+#include <cmath>
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
@@ -41,6 +41,7 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 0;
   peratom_flag = 1;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   comm_reverse = size_peratom_cols = 3;
   extscalar = 1;
@@ -48,7 +49,7 @@ ComputeForceTally::ComputeForceTally(LAMMPS *lmp, int narg, char **arg) :
 
   did_setup = invoked_peratom = invoked_scalar = -1;
   nmax = -1;
-  fatom = NULL;
+  fatom = nullptr;
   vector = new double[size_peratom_cols];
 }
 
@@ -65,7 +66,7 @@ ComputeForceTally::~ComputeForceTally()
 
 void ComputeForceTally::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Trying to use compute force/tally without pair style");
   else
     force->pair->add_tally_callback(this);
@@ -85,6 +86,11 @@ void ComputeForceTally::init()
 
 void ComputeForceTally::pair_setup_callback(int, int)
 {
+  // run setup only once per time step.
+  // we may be called from multiple pair styles
+
+  if (did_setup == update->ntimestep) return;
+
   const int ntotal = atom->nlocal + atom->nghost;
 
   // grow per-atom storage, if needed
@@ -116,7 +122,7 @@ void ComputeForceTally::pair_tally_callback(int i, int j, int nlocal, int newton
   const int * const mask = atom->mask;
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-       || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ) {
+       || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
     if (newton || i < nlocal) {
       if (mask[i] & groupbit) {

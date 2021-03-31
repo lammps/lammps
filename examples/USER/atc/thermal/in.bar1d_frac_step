@@ -72,7 +72,7 @@ fix_modify      AtC  filter scale 1000.0
 fix_modify      AtC  filter on
 # set up output, should be before a "run"
 fix_modify      AtC  output bar1d_frac_stepFE 200 text
-# ouput command
+# output command
 #dump            D1 all atom 1000 dump.bar1d
 # run with FE
 reset_timestep 0

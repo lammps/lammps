@@ -49,14 +49,14 @@ class PairPolymorphic : public Pair {
       xmax = 0.0;
       xmaxsq = xmax*xmax;
       vmax = 0.0;
-      xs = NULL;
-      ys = NULL;
-      ys1 = NULL;
-      ys2 = NULL;
-      ys3 = NULL;
-      ys4 = NULL;
-      ys5 = NULL;
-      ys6 = NULL;
+      xs = nullptr;
+      ys = nullptr;
+      ys1 = nullptr;
+      ys2 = nullptr;
+      ys3 = nullptr;
+      ys4 = nullptr;
+      ys5 = nullptr;
+      ys6 = nullptr;
     }
     tabularFunction(int n) {
       size = n;
@@ -87,14 +87,14 @@ class PairPolymorphic : public Pair {
       ys6 = new double[n];
     }
     virtual ~tabularFunction() {
-      if (xs) delete [] xs;
-      if (ys) delete [] ys;
-      if (ys1) delete [] ys1;
-      if (ys2) delete [] ys2;
-      if (ys3) delete [] ys3;
-      if (ys4) delete [] ys4;
-      if (ys5) delete [] ys5;
-      if (ys6) delete [] ys6;
+      delete [] xs;
+      delete [] ys;
+      delete [] ys1;
+      delete [] ys2;
+      delete [] ys3;
+      delete [] ys4;
+      delete [] ys5;
+      delete [] ys6;
     }
     void set_xrange(double x1, double x2) {
       xmin = x1;
@@ -103,32 +103,59 @@ class PairPolymorphic : public Pair {
     }
     void set_values(int n, double x1, double x2, double * values, double epsilon)
     {
-      int i0;
-      i0 = n-1;
-//    shrink (remove near zero points) reduces cutoff radius, and therefore computational cost
-//    do not shrink when x2 < 1.1 (angular function) or x2 > 20.0 (non-radial function)
-      if (x2 >= 1.1 && x2 <= 20.0) {
-        for (int i = n-1; i >= 0; i--) {
-          if (fabs(values[i]) > epsilon) {
-            i0 = i;
-            break;
-          }
+      int shrink = 1;
+      int ilo,ihi;
+      double vlo,vhi;
+      ilo = 0;
+      ihi = n-1;
+      for (int i = 0; i < n; i++) {
+        if (fabs(values[i]) <= epsilon) {
+          ilo = i;
+        } else {
+          break;
         }
       }
-//    do not shrink when when list is abnormally small
-      if (i0 < 10/n) {
-        i0 = n-1;
-      } else if (i0 < n-1) {
-        values[i0] = 0.0;
-        i0 = i0 + 1;
-        values[i0] = 0.0;
+      for (int i = n-1; i >= 0; i--) {
+        if (fabs(values[i]) <= epsilon) {
+          ihi = i;
+        } else {
+          break;
+        }
       }
-      xmin = x1;
-      xmax = x1 + (x2-x1)/(n -1)*i0;
+      if (ihi < ilo) ihi = ilo;
+      vlo = values[ilo];
+      vhi = values[ilo];
+      for (int i = ilo; i <= ihi; i++) {
+        if (vlo > values[i]) vlo = values[i];
+        if (vhi < values[i]) vhi = values[i];
+      }
+
+//    shrink (remove near zero points) reduces cutoff radius, and therefore computational cost
+//    do not shrink when x2 < 1.1 (angular function) or x2 > 20.0 (non-radial function)
+      if (x2 < 1.1 || x2 > 20.0) {
+        shrink = 0;
+      }
+//    do not shrink when when list is abnormally small
+      if (ihi - ilo < 50) {
+        shrink = 0;
+      }
+//    shrink if it is a constant
+      if (vhi - vlo <= epsilon) {
+//        shrink = 1;
+      }
+
+      if (shrink == 0) {
+        ilo = 0;
+        ihi = n-1;
+      }
+      xmin = x1 + (x2-x1)/(n -1)*ilo;
+      xmax = xmin + (x2-x1)/(n -1)*(ihi-ilo);
       xmaxsq = xmax*xmax;
-      n = i0+1;
+      n = ihi - ilo + 1;
       resize(n);
-      memcpy(ys,values,n*sizeof(double));
+      for (int i = ilo; i <= ihi; i++) {
+        ys[i-ilo] = values[i];
+      }
       initialize();
     }
     void value(double x, double &y, int ny, double &y1, int ny1)
@@ -170,21 +197,21 @@ class PairPolymorphic : public Pair {
     void resize(int n) {
       if (n != size) {
         size = n;
-        if (xs) delete [] xs;
+        delete [] xs;
         xs = new double[n];
-        if (ys) delete [] ys;
+        delete [] ys;
         ys = new double[n];
-        if (ys1) delete [] ys1;
+        delete [] ys1;
         ys1 = new double[n];
-        if (ys2) delete [] ys2;
+        delete [] ys2;
         ys2 = new double[n];
-        if (ys3) delete [] ys3;
+        delete [] ys3;
         ys3 = new double[n];
-        if (ys4) delete [] ys4;
+        delete [] ys4;
         ys4 = new double[n];
-        if (ys5) delete [] ys5;
+        delete [] ys5;
         ys5 = new double[n];
-        if (ys6) delete [] ys6;
+        delete [] ys6;
         ys6 = new double[n];
       }
     }
@@ -220,39 +247,49 @@ class PairPolymorphic : public Pair {
     }
     int size;
     double xmin,xmax,xmaxsq,rdx,vmax;
-    double * ys, * ys1, * ys2, * ys3, * ys4, * ys5, * ys6;
-    double * xs;
+    double *ys, *ys1, *ys2, *ys3, *ys4, *ys5, *ys6;
+    double *xs;
   };
 
   struct PairParameters {
     double cut;
     double cutsq;
-    bool xi; // "indicator"
-    class tabularFunction * U;
-    class tabularFunction * V;
-    class tabularFunction * W;
-    class tabularFunction * P;
-    class tabularFunction * F;
+    double xi;
+    class tabularFunction *U;
+    class tabularFunction *V;
+    class tabularFunction *W;
+    class tabularFunction *F;
     PairParameters() {
       cut = 0.0;
       cutsq = 0.0;
-      xi =  true;
-      U = NULL;
-      V = NULL;
-      W = NULL;
-      P = NULL;
-      F = NULL;
+      xi =  1.0;
+      U = nullptr;
+      V = nullptr;
+      W = nullptr;
+      F = nullptr;
     };
+    ~PairParameters() {
+      delete U;
+      delete V;
+      delete W;
+      delete F;
+    }
   };
   struct TripletParameters {
-    class tabularFunction * G;
+    class tabularFunction *P;
+    class tabularFunction *G;
     TripletParameters() {
-      G = NULL;
+      P = nullptr;
+      G = nullptr;
     };
+    ~TripletParameters() {
+      delete P;
+      delete G;
+    }
   };
 
   double epsilon;
-  bool eta; // global indicator
+  int eta;
   int nx,nr,ng; // table sizes
   double maxX;
 
@@ -265,53 +302,26 @@ class PairPolymorphic : public Pair {
   double *delxV,*delyV,*delzV,*drV;
   double *delxW,*delyW,*delzW,*drW;
 
-  char **elements;              // names of unique elements
-  int **elem2param;             // map: element pairs to parameters
-  int ***elem3param;            // map: element triplets to parameters
-  int *map;                     // mapping from atom types to elements
   double cutmax;                // max cutoff for all elements
   double cutmaxsq;
-  int nelements;                // # of unique elements
   int npair,ntriple;
   int *match;
 
   void allocate();
-  void grab(FILE *, int, double *);
 
   virtual void read_file(char *);
   void setup_params();
   void write_tables(int);
 
-  void attractive(PairParameters *, TripletParameters *, double, double,
-                  double, double *, double *, double *, double *, double *);
+  void attractive(PairParameters *, PairParameters *, TripletParameters *,
+                  double, double, double, double *, double *, double *,
+                  double *, double *);
 
   void ters_zetaterm_d(double, double *, double, double *, double, double *,
-                       double *, double *, PairParameters *, TripletParameters *);
+                       double *, double *, PairParameters *, PairParameters *,
+                       TripletParameters *);
   void costheta_d(double *, double, double *, double,
                   double *, double *, double *);
-
-  // inlined functions for efficiency
-
-  inline double vec3_dot(const double x[3], const double y[3]) const {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-  }
-
-  inline void vec3_add(const double x[3], const double y[3],
-                       double * const z) const {
-    z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
-  }
-
-  inline void vec3_scale(const double k, const double x[3],
-                         double y[3]) const {
-    y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
-  }
-
-  inline void vec3_scaleadd(const double k, const double x[3],
-                            const double y[3], double * const z) const {
-    z[0] = k*x[0]+y[0];
-    z[1] = k*x[1]+y[1];
-    z[2] = k*x[2]+y[2];
-  }
 };
 
 }

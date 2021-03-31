@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,6 +17,19 @@
 
 #include "pair_sw_intel.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "neighbor.h"
+#include "suffix.h"
+
+#include <cstring>
+
 #ifdef _LMP_INTEL_OFFLOAD
 #pragma offload_attribute(push,target(mic))
 #endif
@@ -25,21 +38,6 @@
 #pragma offload_attribute(pop)
 #endif
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "modify.h"
-#include "suffix.h"
 
 #ifdef LMP_USE_AVXCD
 #include "intel_simd.h"
@@ -95,9 +93,9 @@ void PairSWIntel::compute(int eflag, int vflag,
                           IntelBuffers<flt_t,acc_t> *buffers,
                           const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag, vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag, vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -112,7 +110,7 @@ void PairSWIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -229,7 +227,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
   int *overflow = fix->get_off_overflow_flag();
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(p2,p2f,p2f2,p2e,p3:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
@@ -648,7 +646,7 @@ void PairSWIntel::eval(const int offload, const int vflag,
   int *overflow = fix->get_off_overflow_flag();
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload) \
+  #pragma offload target(mic:_cop) if (offload) \
     in(p2,p2f,p2f2,p2e,p3:length(0) alloc_if(0) free_if(0)) \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
     in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
@@ -1206,7 +1204,7 @@ void PairSWIntel::pack_force_const(ForceConst<flt_t> &fc,
         fc.p2e[ii][jj].c5 = 0;
         fc.p2e[ii][jj].c6 = 0;
       } else {
-        int ijparam = elem2param[i][j][j];
+        int ijparam = elem3param[i][j][j];
         fc.p2[ii][jj].cutsq = params[ijparam].cutsq;
         fc.p2[ii][jj].cut = params[ijparam].cut;
         fc.p2[ii][jj].sigma_gamma = params[ijparam].sigma_gamma;
@@ -1239,7 +1237,7 @@ void PairSWIntel::pack_force_const(ForceConst<flt_t> &fc,
           mytypes++;
           _onetype = ii * tp1 + jj;
           _onetype3 = ii * tp1 * tp1 + jj * tp1 + kk;
-          int ijkparam = elem2param[i][j][k];
+          int ijkparam = elem3param[i][j][k];
           fc.p3[ii][jj][kk].costheta = params[ijkparam].costheta;
           fc.p3[ii][jj][kk].lambda_epsilon = params[ijkparam].lambda_epsilon;
           fc.p3[ii][jj][kk].lambda_epsilon2 = params[ijkparam].lambda_epsilon2;
@@ -1279,18 +1277,18 @@ void PairSWIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       fc_packed3 *op3 = p3[0][0];
 
       #ifdef _LMP_INTEL_OFFLOAD
-      if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL &&
-          op3 != NULL && _cop >= 0) {
+      if (op2 != nullptr && op2f != nullptr && op2f2 != nullptr && op2e != nullptr &&
+          op3 != nullptr && _cop >= 0) {
         #pragma offload_transfer target(mic:_cop) \
           nocopy(op2, op2f, op2f2, op2e, op3: alloc_if(0) free_if(1))
       }
       #endif
 
-      _memory->destroy(op2);
-      _memory->destroy(op2f);
-      _memory->destroy(op2f2);
-      _memory->destroy(op2e);
-      _memory->destroy(op3);
+      memory->destroy(p2);
+      memory->destroy(p2f);
+      memory->destroy(p2f2);
+      memory->destroy(p2e);
+      memory->destroy(p3);
     }
     if (ntypes > 0) {
       _cop = cop;
@@ -1308,8 +1306,8 @@ void PairSWIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       fc_packed3 *op3 = p3[0][0];
       int tp1sq = ntypes * ntypes;
       int tp1cu = tp1sq * ntypes;
-      if (op2 != NULL && op2f != NULL && op2f2 != NULL && op2e != NULL &&
-          op3 != NULL && cop >= 0) {
+      if (op2 != nullptr && op2f != nullptr && op2f2 != nullptr && op2e != nullptr &&
+          op3 != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(op2,op2f,op2f2,op2e: length(tp1sq) alloc_if(1) free_if(0)) \
           nocopy(op3: length(tp1cu) alloc_if(1) free_if(0))

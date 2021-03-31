@@ -23,7 +23,7 @@ const char *coul_long_cs=0;
 
 #include "lal_coul_long_cs.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define CoulLongCST CoulLongCS<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> pair_gpu_device;
@@ -76,3 +76,4 @@ int CoulLongCST::init(const int ntypes, double **host_scale,
 }
 
 template class CoulLongCS<PRECISION,ACC_PRECISION>;
+}

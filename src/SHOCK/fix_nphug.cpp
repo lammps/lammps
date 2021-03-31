@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,19 +11,18 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_nphug.h"
-#include "modify.h"
-#include "error.h"
-#include "update.h"
+
 #include "compute.h"
-#include "force.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
-#include "memory.h"
-#include "comm.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,9 +32,8 @@ enum{ISO,ANISO,TRICLINIC}; // same as fix_nh.cpp
 /* ---------------------------------------------------------------------- */
 
 FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
-  FixNH(lmp, narg, arg), pe(NULL), id_pe(NULL)
+  FixNH(lmp, narg, arg), pe(nullptr), id_pe(nullptr)
 {
-
   // Prevent masses from being updated every timestep
 
   eta_mass_flag = 0;
@@ -122,51 +120,22 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   // and thus its KE/temperature contribution should use group all
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id)+"_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tcomputeflag = 1;
 
   // create a new compute pressure style
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
-
-  newarg = new char*[4];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = id_temp;
-  modify->add_compute(4,newarg);
-  delete [] newarg;
+  id_press = utils::strdup(std::string(id)+"_press");
+  modify->add_compute(fmt::format("{} all pressure {}",id_press,id_temp));
   pcomputeflag = 1;
 
   // create a new compute potential energy compute
 
-  n = strlen(id) + 4;
-  id_pe = new char[n];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
-
-  newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char*)"all";
-  newarg[2] = (char*)"pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_pe = utils::strdup(std::string(id)+"_pe");
+  modify->add_compute(fmt::format("{} all pe",id_pe));
   peflag = 1;
 }
 
@@ -174,13 +143,11 @@ FixNPHug::FixNPHug(LAMMPS *lmp, int narg, char **arg) :
 
 FixNPHug::~FixNPHug()
 {
-
   // temp and press computes handled by base class
   // delete pe compute
 
   if (peflag) modify->delete_compute(id_pe);
   delete [] id_pe;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -208,12 +175,12 @@ void FixNPHug::setup(int vflag)
 {
   FixNH::setup(vflag);
 
-  if ( v0_set == 0 ) {
+  if (v0_set == 0) {
     v0 = compute_vol();
     v0_set = 1;
   }
 
-  if ( p0_set == 0 ) {
+  if (p0_set == 0) {
     p0_set = 1;
     if (uniaxial == 1)
       p0 = p_current[idir];
@@ -221,7 +188,7 @@ void FixNPHug::setup(int vflag)
       p0 = (p_current[0]+p_current[1]+p_current[2])/3.0;
   }
 
-  if ( e0_set == 0 ) {
+  if (e0_set == 0) {
     e0 = compute_etotal();
     e0_set = 1;
   }
@@ -250,9 +217,10 @@ void FixNPHug::compute_temp_target()
 
 double FixNPHug::compute_etotal()
 {
+  if (!pe) return 0.0;
+
   double epot,ekin,etot;
   epot = pe->compute_scalar();
-  if (thermo_energy) epot -= compute_scalar();
   ekin = temperature->compute_scalar();
   ekin *= 0.5 * tdof * force->boltz;
   etot = epot+ekin;
@@ -276,6 +244,8 @@ double FixNPHug::compute_vol()
 
 double FixNPHug::compute_hugoniot()
 {
+  if (!temperature) return 0.0;
+
   double v,e,p;
   double dhugo;
 
@@ -306,6 +276,8 @@ double FixNPHug::compute_hugoniot()
 
 double FixNPHug::compute_us()
 {
+  if (!temperature) return 0.0;
+
   double v,p;
   double eps,us;
 
@@ -348,6 +320,8 @@ double FixNPHug::compute_up()
 
   return up;
 }
+
+/* ----------------------------------------------------------------------- */
 
 // look for index in local class
 // if index not found, look in base class
@@ -442,17 +416,17 @@ int FixNPHug::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"e0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    e0 = force->numeric(FLERR,arg[1]);
+    e0 = utils::numeric(FLERR,arg[1],false,lmp);
     e0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"v0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    v0 = force->numeric(FLERR,arg[1]);
+    v0 = utils::numeric(FLERR,arg[1],false,lmp);
     v0_set = 1;
     return 2;
   } else if (strcmp(arg[0],"p0") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix nphug command");
-    p0 = force->numeric(FLERR,arg[1]);
+    p0 = utils::numeric(FLERR,arg[1],false,lmp);
     p0_set = 1;
     return 2;
   }

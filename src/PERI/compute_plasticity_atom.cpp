@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,15 +15,14 @@
    Contributing author: Rezwanur Rahman, John Foster (UTSA)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_plasticity_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
 #include "comm.h"
-#include "force.h"
-#include "pair_peri_pmb.h"
 #include "fix_peri_neigh.h"
+#include "force.h"
 #include "memory.h"
 #include "error.h"
 
@@ -45,7 +44,7 @@ ComputePlasticityAtom(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
 
   nmax = 0;
-  plasticity = NULL;
+  plasticity = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -67,11 +66,9 @@ void ComputePlasticityAtom::init()
 
   // find associated PERI_NEIGH fix that must exist
 
-  ifix_peri = -1;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"PERI_NEIGH") == 0) ifix_peri = i;
+  ifix_peri = modify->find_fix_by_style("^PERI_NEIGH");
   if (ifix_peri == -1)
-    error->all(FLERR,"Compute plasticity/atom requires Peridynamic pair style");
+    error->all(FLERR,"Compute plasticity/atom requires a Peridynamics pair style");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,6 +103,6 @@ void ComputePlasticityAtom::compute_peratom()
 
 double ComputePlasticityAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,44 +17,40 @@
      Reese Jones (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
+#include "fix_ave_correlate.h"
+
+#include "arg_info.h"
+#include "compute.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cstring>
 #include <unistd.h>
-#include "fix_ave_correlate.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{COMPUTE,FIX,VARIABLE};
 enum{ONE,RUNNING};
 enum{AUTO,UPPER,LOWER,AUTOUPPER,AUTOLOWER,FULL};
-
-#define INVOKED_SCALAR 1
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
 
 /* ---------------------------------------------------------------------- */
 
 FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   Fix (lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL), ids(NULL), fp(NULL),
-  count(NULL), values(NULL), corr(NULL), save_count(NULL), save_corr(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr), ids(nullptr), fp(nullptr),
+  count(nullptr), values(nullptr), corr(nullptr), save_count(nullptr), save_corr(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/correlate command");
 
   MPI_Comm_rank(world,&me);
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  nfreq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   global_freq = nfreq;
 
@@ -62,7 +58,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
   int expand = 0;
   char **earg;
-  int nargnew = input->expand_args(narg-6,&arg[6],0,earg);
+  int nargnew = utils::expand_args(FLERR,narg-6,&arg[6],0,earg,lmp);
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;
@@ -77,33 +73,18 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
 
   int iarg = 0;
   while (iarg < nargnew) {
-    if (strncmp(arg[iarg],"c_",2) == 0 ||
-        strncmp(arg[iarg],"f_",2) == 0 ||
-        strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+    ArgInfo argi(arg[iarg]);
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+    if (argi.get_type() == ArgInfo::NONE) break;
+    if ((argi.get_type() == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+      error->all(FLERR,"Invalid fix ave/correlate command");
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix ave/correlate command");
-        argindex[nvalues] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
+    which[nvalues] = argi.get_type();
+    argindex[nvalues] = argi.get_index1();
+    ids[nvalues] = argi.copy_name();
 
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
-      delete [] suffix;
-
-      nvalues++;
-      iarg++;
-    } else break;
+    nvalues++;
+    iarg++;
   }
 
   // optional args
@@ -112,11 +93,11 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   ave = ONE;
   startstep = 0;
   prefactor = 1.0;
-  fp = NULL;
+  fp = nullptr;
   overwrite = 0;
-  char *title1 = NULL;
-  char *title2 = NULL;
-  char *title3 = NULL;
+  char *title1 = nullptr;
+  char *title2 = nullptr;
+  char *title3 = nullptr;
 
   while (iarg < nargnew) {
     if (strcmp(arg[iarg],"type") == 0) {
@@ -137,21 +118,19 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
-      startstep = force->inumeric(FLERR,arg[iarg+1]);
+      startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"prefactor") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
-      prefactor = force->numeric(FLERR,arg[iarg+1]);
+      prefactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == NULL) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix ave/correlate file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == nullptr)
+          error->one(FLERR,fmt::format("Cannot open fix ave/correlate file {}:"" {}",
+                                       arg[iarg+1], utils::getsyserror()));
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {
@@ -160,23 +139,17 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       delete [] title1;
-      int n = strlen(arg[iarg+1]) + 1;
-      title1 = new char[n];
-      strcpy(title1,arg[iarg+1]);
+      title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       delete [] title2;
-      int n = strlen(arg[iarg+1]) + 1;
-      title2 = new char[n];
-      strcpy(title2,arg[iarg+1]);
+      title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/correlate command");
       delete [] title3;
-      int n = strlen(arg[iarg+1]) + 1;
-      title3 = new char[n];
-      strcpy(title3,arg[iarg+1]);
+      title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/correlate command");
   }
@@ -194,7 +167,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
     error->all(FLERR,"Illegal fix ave/correlate command");
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/correlate does not exist");
@@ -208,7 +181,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Fix ave/correlate compute vector "
                    "is accessed out-of-range");
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/correlate does not exist");
@@ -223,7 +196,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Fix for fix ave/correlate "
                    "not computed at compatible time");
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/correlate does not exist");
@@ -369,19 +342,19 @@ void FixAveCorrelate::init()
   // set current indices for all computes,fixes,variables
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/correlate does not exist");
       value2index[i] = icompute;
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/correlate does not exist");
       value2index[i] = ifix;
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/correlate does not exist");
@@ -440,26 +413,26 @@ void FixAveCorrelate::end_of_step()
 
     // invoke compute if not previously invoked
 
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[m];
 
       if (argindex[i] == 0) {
-        if (!(compute->invoked_flag & INVOKED_SCALAR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_SCALAR)) {
           compute->compute_scalar();
-          compute->invoked_flag |= INVOKED_SCALAR;
+          compute->invoked_flag |= Compute::INVOKED_SCALAR;
         }
         scalar = compute->scalar;
       } else {
-        if (!(compute->invoked_flag & INVOKED_VECTOR)) {
+        if (!(compute->invoked_flag & Compute::INVOKED_VECTOR)) {
           compute->compute_vector();
-          compute->invoked_flag |= INVOKED_VECTOR;
+          compute->invoked_flag |= Compute::INVOKED_VECTOR;
         }
         scalar = compute->vector[argindex[i]-1];
       }
 
     // access fix fields, guaranteed to be ready
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       if (argindex[i] == 0)
         scalar = modify->fix[m]->compute_scalar();
       else
@@ -467,7 +440,7 @@ void FixAveCorrelate::end_of_step()
 
     // evaluate equal-style or vector-style variable
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       if (argindex[i] == 0)
         scalar = input->variable->compute_equal(m);
       else {
@@ -534,7 +507,8 @@ void FixAveCorrelate::end_of_step()
 
     if (overwrite) {
       long fileend = ftell(fp);
-      if (fileend > 0) ftruncate(fileno(fp),fileend);
+      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
+        perror("Error while tuncating output");
     }
   }
 

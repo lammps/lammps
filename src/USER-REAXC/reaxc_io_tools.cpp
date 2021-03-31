@@ -21,18 +21,15 @@
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
   See the GNU General Public License for more details:
-  <http://www.gnu.org/licenses/>.
+  <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "pair_reaxc.h"
-#include "update.h"
 #include "reaxc_io_tools.h"
-#include "reaxc_list.h"
-#include "reaxc_reset_tools.h"
+#include <cstdio>
+#include <cstring>
+#include "reaxc_defs.h"
 #include "reaxc_system_props.h"
-#include "reaxc_tool_box.h"
 #include "reaxc_traj.h"
-#include "reaxc_vector.h"
 
 int Init_Output_Files( reax_system *system, control_params *control,
                        output_controls *out_control, mpi_datatypes *mpi_data,
@@ -41,22 +38,21 @@ int Init_Output_Files( reax_system *system, control_params *control,
   char temp[MAX_STR+8];
   int ret;
 
-  if( out_control->write_steps > 0 ){
+  if (out_control->write_steps > 0) {
     ret = Init_Traj( system, control, out_control, mpi_data, msg );
-    if( ret == FAILURE )
+    if (ret == FAILURE)
       return ret;
   }
 
-  if( system->my_rank == MASTER_NODE ) {
+  if (system->my_rank == MASTER_NODE) {
     /* These files are written only by the master node */
-    if( out_control->energy_update_freq > 0 ) {
+    if (out_control->energy_update_freq > 0) {
 
       /* init potentials file */
       sprintf( temp, "%s.pot", control->sim_name );
-      if( (out_control->pot = fopen( temp, "w" )) != NULL ) {
+      if ((out_control->pot = fopen( temp, "w" )) != nullptr) {
         fflush( out_control->pot );
-      }
-      else {
+      } else {
         strcpy( msg, "init_out_controls: .pot file could not be opened\n" );
         return FAILURE;
       }
@@ -65,17 +61,16 @@ int Init_Output_Files( reax_system *system, control_params *control,
     }
 
     /* init pressure file */
-    if( control->ensemble == NPT  ||
+    if ( control->ensemble == NPT  ||
         control->ensemble == iNPT ||
-        control->ensemble == sNPT ) {
+        control->ensemble == sNPT) {
       sprintf( temp, "%s.prs", control->sim_name );
-      if( (out_control->prs = fopen( temp, "w" )) != NULL ) {
+      if ((out_control->prs = fopen( temp, "w" )) != nullptr) {
         fprintf(out_control->prs,"%8s%13s%13s%13s%13s%13s%13s%13s\n",
                 "step", "Pint/norm[x]", "Pint/norm[y]", "Pint/norm[z]",
                 "Pext/Ptot[x]", "Pext/Ptot[y]", "Pext/Ptot[z]", "Pkin/V" );
         fflush( out_control->prs );
-      }
-      else {
+      } else {
         strcpy(msg,"init_out_controls: .prs file couldn't be opened\n");
         return FAILURE;
       }
@@ -87,20 +82,22 @@ int Init_Output_Files( reax_system *system, control_params *control,
 
 
 /************************ close output files ************************/
-int Close_Output_Files( reax_system *system, control_params *control,
+int Close_Output_Files( reax_system *system, control_params * /* control */,
                         output_controls *out_control, mpi_datatypes * /*mpi_data*/ )
 {
-  if( out_control->write_steps > 0 )
+  if (out_control->write_steps > 0)
     End_Traj( system->my_rank, out_control );
 
-  if( system->my_rank == MASTER_NODE ) {
-    if( out_control->energy_update_freq > 0 ) {
+  if (system->my_rank == MASTER_NODE) {
+    if (out_control->pot) {
       fclose( out_control->pot );
+      out_control->pot = nullptr;
     }
 
-    if( control->ensemble == NPT || control->ensemble == iNPT ||
-        control->ensemble == sNPT )
-      fclose( out_control->prs );
+    if (out_control->prs) {
+      fclose(out_control->prs);
+      out_control->prs = nullptr;
+    }
   }
 
   return SUCCESS;
@@ -112,19 +109,19 @@ void Output_Results( reax_system *system, control_params *control,
                      output_controls *out_control, mpi_datatypes *mpi_data )
 {
 
-  if((out_control->energy_update_freq > 0 &&
+  if ((out_control->energy_update_freq > 0 &&
       data->step%out_control->energy_update_freq == 0) ||
      (out_control->write_steps > 0 &&
-      data->step%out_control->write_steps == 0)){
+      data->step%out_control->write_steps == 0)) {
     /* update system-wide energies */
     Compute_System_Energy( system, data, mpi_data->world );
 
     /* output energies */
-    if( system->my_rank == MASTER_NODE &&
+    if ( system->my_rank == MASTER_NODE &&
         out_control->energy_update_freq > 0 &&
-        data->step % out_control->energy_update_freq == 0 ) {
+        data->step % out_control->energy_update_freq == 0) {
 
-      if( control->virial ){
+      if (control->virial && out_control->prs) {
         fprintf( out_control->prs,
                  "%8d%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n",
                  data->step,
@@ -144,8 +141,8 @@ void Output_Results( reax_system *system, control_params *control,
     }
 
     /* write current frame */
-    if( out_control->write_steps > 0 &&
-        (data->step-data->prev_steps) % out_control->write_steps == 0 ) {
+    if ( out_control->write_steps > 0 &&
+        (data->step-data->prev_steps) % out_control->write_steps == 0) {
       Append_Frame( system, control, data, lists, out_control, mpi_data );
     }
   }

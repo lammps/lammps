@@ -126,7 +126,7 @@ sub bonds {
   }
 
   close (OUTPUT2); #close the temp file as output
-  open INPUT3, "<temp_$frame.dat" or die "Cannot open temp file: $!"; # opne it as input
+  open INPUT3, "<temp_$frame.dat" or die "Cannot open temp file: $!"; # open it as input
   while(<INPUT3>) {
       next if(/Frame/);
       split;

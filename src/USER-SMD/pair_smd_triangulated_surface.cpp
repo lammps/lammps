@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,26 +26,22 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-#include <Eigen/Eigen>
 #include "pair_smd_triangulated_surface.h"
+
+#include <cmath>
+
+#include <cstring>
+#include <Eigen/Eigen>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace std;
 using namespace LAMMPS_NS;
@@ -58,9 +54,9 @@ using namespace Eigen;
 PairTriSurf::PairTriSurf(LAMMPS *lmp) :
                 Pair(lmp) {
 
-        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = NULL;
-        bulkmodulus = NULL;
-        kn = NULL;
+        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
+        bulkmodulus = nullptr;
+        kn = nullptr;
         scale = 1.0;
 }
 
@@ -96,10 +92,7 @@ void PairTriSurf::compute(int eflag, int vflag) {
         Vector2d w2d, rhs;
 
         evdwl = 0.0;
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         tagint *mol = atom->molecule;
         double **f = atom->f;
@@ -329,7 +322,7 @@ void PairTriSurf::settings(int narg, char **arg) {
         if (narg != 1)
                 error->all(FLERR, "Illegal number of args for pair_style smd/tri_surface");
 
-        scale = force->numeric(FLERR, arg[0]);
+        scale = utils::numeric(FLERR, arg[0],false,lmp);
         if (comm->me == 0) {
                 printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
                 printf("SMD/TRI_SURFACE CONTACT SETTINGS:\n");
@@ -350,8 +343,8 @@ void PairTriSurf::coeff(int narg, char **arg) {
                 allocate();
 
         int ilo, ihi, jlo, jhi;
-        force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-        force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+        utils::bounds(FLERR,arg[0], 1,atom->ntypes, ilo, ihi, error);
+        utils::bounds(FLERR,arg[1], 1,atom->ntypes, jlo, jhi, error);
 
         double bulkmodulus_one = atof(arg[2]);
 
@@ -489,7 +482,7 @@ double PairTriSurf::memory_usage() {
  % Release: 1.2 Fixed Bug because of typo in region 5 20101013
  % Release: 1.3 Fixed Bug because of typo in region 2 20101014
 
- % Possible extention could be a version tailored not to return the distance
+ % Possible extension could be a version tailored not to return the distance
  % and additionally the closest point, but instead return only the closest
  % point. Could lead to a small speed gain.
 
@@ -524,7 +517,7 @@ double PairTriSurf::memory_usage() {
  % The algorithm is based on
  % "David Eberly, 'Distance Between Point and Triangle in 3D',
  % Geometric Tools, LLC, (1999)"
- % http:\\www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
+ % https://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
  %
  %        ^t
  %  \     |
@@ -746,7 +739,7 @@ double PairTriSurf::memory_usage() {
  * % The algorithm is based on
  % "David Eberly, 'Distance Between Point and Triangle in 3D',
  % Geometric Tools, LLC, (1999)"
- % http:\\www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
+ % https://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
  */
 
 void PairTriSurf::PointTriangleDistance(const Vector3d sourcePosition, const Vector3d TRI0, const Vector3d TRI1,
@@ -840,6 +833,6 @@ void *PairTriSurf::extract(const char *str, int &/*i*/) {
                 return (void *) &stable_time_increment;
         }
 
-        return NULL;
+        return nullptr;
 
 }

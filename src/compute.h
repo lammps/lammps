@@ -14,12 +14,20 @@
 #ifndef LMP_COMPUTE_H
 #define LMP_COMPUTE_H
 
-#include "pointers.h"
+#include "pointers.h"  // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
 class Compute : protected Pointers {
  public:
+  enum {
+    INVOKED_NONE    = 0,
+    INVOKED_SCALAR  = 1<<0,
+    INVOKED_VECTOR  = 1<<1,
+    INVOKED_ARRAY   = 1<<2,
+    INVOKED_PERATOM = 1<<3,
+    INVOKED_LOCAL   = 1<<4,
+  };
   static int instance_total;     // # of Compute classes ever instantiated
 
   char *id,*style;
@@ -59,6 +67,8 @@ class Compute : protected Pointers {
   int pressflag;      // 1 if Compute can be used as pressure (uses virial)
                       // must have both compute_scalar, compute_vector
   int pressatomflag;  // 1 if Compute calculates per-atom virial
+                      // 2 if Compute calculates per-atom centroid virial
+                      // 3 if Compute calculates both
   int peflag;         // 1 if Compute calculates PE (uses Force energies)
   int peatomflag;     // 1 if Compute calculates per-atom PE
   int create_attribute;    // 1 if compute stores attributes that need
@@ -89,7 +99,7 @@ class Compute : protected Pointers {
   ExecutionSpace execution_space;
   unsigned int datamask_read,datamask_modify;
 
-  int copymode;
+  int copymode,kokkosable;
 
   Compute(class LAMMPS *, int, char **);
   virtual ~Compute();
@@ -158,17 +168,6 @@ class Compute : protected Pointers {
   inline int sbmask(int j) const {
     return j >> SBBITS & 3;
   }
-
-  // union data struct for packing 32-bit and 64-bit ints into double bufs
-  // see atom_vec.h for documentation
-
-  union ubuf {
-    double d;
-    int64_t i;
-    ubuf(double arg) : d(arg) {}
-    ubuf(int64_t arg) : i(arg) {}
-    ubuf(int arg) : i(arg) {}
-  };
 
   // private methods
 

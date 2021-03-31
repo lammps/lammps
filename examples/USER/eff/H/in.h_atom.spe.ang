@@ -1,5 +1,4 @@
 variable	sname index h_atom.ang
-log		${sname}.spe.log
 
 units 		real
 newton		on

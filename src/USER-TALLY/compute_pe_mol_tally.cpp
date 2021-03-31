@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,13 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_pe_mol_tally.h"
+
 #include "atom.h"
 #include "group.h"
 #include "pair.h"
 #include "update.h"
-#include "memory.h"
 #include "error.h"
 #include "force.h"
 #include "comm.h"
@@ -39,6 +38,7 @@ ComputePEMolTally::ComputePEMolTally(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   size_vector = 4;
   timeflag = 1;
+  dynamic_group_allow = 0;
 
   extvector = 1;
   peflag = 1;                   // we need Pair::ev_tally() to be run
@@ -59,7 +59,7 @@ ComputePEMolTally::~ComputePEMolTally()
 
 void ComputePEMolTally::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Trying to use compute pe/mol/tally without pair style");
   else
     force->pair->add_tally_callback(this);
@@ -82,6 +82,11 @@ void ComputePEMolTally::init()
 
 void ComputePEMolTally::pair_setup_callback(int, int)
 {
+  // run setup only once per time step.
+  // we may be called from multiple pair styles
+
+  if (did_setup == update->ntimestep) return;
+
   etotal[0] = etotal[1] = etotal[2] = etotal[3] = 0.0;
   did_setup = update->ntimestep;
 }
@@ -95,7 +100,7 @@ void ComputePEMolTally::pair_tally_callback(int i, int j, int nlocal, int newton
   const tagint * const molid = atom->molecule;
 
   if ( ((mask[i] & groupbit) && (mask[j] & groupbit2))
-     || ((mask[i] & groupbit2) && (mask[j] & groupbit)) ){
+     || ((mask[i] & groupbit2) && (mask[j] & groupbit))) {
 
     evdwl *= 0.5; ecoul *= 0.5;
     if (newton || i < nlocal) {

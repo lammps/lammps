@@ -21,7 +21,6 @@ FixStyle(langevin/drude,FixLangevinDrude)
 #define LMP_FIX_LANGEVIN_DRUDE_H
 
 #include "fix.h"
-#include "fix_drude.h"
 
 namespace LAMMPS_NS {
 
@@ -51,7 +50,7 @@ class FixLangevinDrude : public Fix {
   class RanMars *random_core, *random_drude;
   int zero;
   bigint ncore;
-  FixDrude * fix_drude;
+  class FixDrude * fix_drude;
   class Compute *temperature;
   char *id_temp;
 };

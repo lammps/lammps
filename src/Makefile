@@ -7,37 +7,31 @@ PYTHON = python
 
 # Definitions
 
-ROOT =	 lmp
-EXE =	 lmp_$@
+ROOT =   lmp
+EXE =    lmp_$@
 ARLIB =  liblammps_$@.a
-SHLIB =	 liblammps_$@.so
+SHLIB =  liblammps_$@.so
 ARLINK = liblammps.a
 SHLINK = liblammps.so
+TMPNAME= tmp_$@_name
+LMPLINK= -L. -llammps_$@
 
 OBJDIR =   Obj_$@
 OBJSHDIR = Obj_shared_$@
 
-SRC =	$(wildcard *.cpp)
-INC =	$(filter-out lmpinstalledpkgs.h,$(wildcard *.h))
-OBJ = 	$(SRC:.cpp=.o)
+SRC =   $(wildcard *.cpp)
+INC =   $(filter-out lmpinstalledpkgs.h lmpgitversion.h,$(wildcard *.h))
+OBJ =   $(SRC:.cpp=.o)
 
 SRCLIB = $(filter-out main.cpp,$(SRC))
 OBJLIB = $(filter-out main.o,$(OBJ))
 
-# Command-line options for mode: exe (default), shexe, lib, shlib
+# Command-line options for mode: static (default), shared, or print
 
-mode = exe
+mode = static
 objdir = $(OBJDIR)
 
-ifeq ($(mode),shexe)
-objdir = $(OBJSHDIR)
-endif
-
-ifeq ($(mode),lib)
-objdir = $(OBJDIR)
-endif
-
-ifeq ($(mode),shlib)
+ifeq ($(mode),shared)
 objdir = $(OBJSHDIR)
 endif
 
@@ -53,41 +47,46 @@ endif
 # PACKEXT    = subset that require an external (downloaded) library
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim kokkos kspace latte manybody mc meam message misc \
-	  molecule mpiio mscg opt peri poems \
-	  python qeq reax replica rigid shock snap spin srd voronoi
+	  granular kim kokkos kspace latte manybody mc message misc \
+	  mliap molecule mpiio mscg opt peri poems \
+	  python qeq replica rigid shock snap spin srd voronoi
 
-PACKUSER = user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
+PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
 	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-meso \
+	   user-intel user-lb user-manifold user-meamc user-mesodpd user-mesont \
 	   user-mgpt user-misc user-mofff user-molfile \
 	   user-netcdf user-omp user-phonon user-plumed user-ptm user-qmmm \
-	   user-qtb user-quip user-reaxc user-scafacos user-smd user-smtbq \
-	   user-sdpd user-sph user-tally user-uef user-vtk
+	   user-qtb user-quip user-reaction user-reaxc user-scafacos user-smd user-smtbq \
+	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
 
-PACKLIB = compress gpu kim kokkos latte meam message mpiio mscg poems \
-	  python reax voronoi \
-	  user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
+PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems \
+	  python voronoi \
+	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-molfile \
 	  user-netcdf user-plumed user-qmmm user-quip user-scafacos \
-	  user-smd user-vtk
+	  user-smd user-vtk user-mesont
 
 PACKSYS = compress mpiio python user-lb
 
-PACKINT = gpu kokkos meam message poems reax user-atc user-awpmd user-colvars
+PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont
 
 PACKEXT = kim latte mscg voronoi \
-	  user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
+	  user-adios user-h5md user-molfile user-netcdf user-plumed user-qmmm user-quip \
 	  user-smd user-vtk
 
 PACKALL = $(PACKAGE) $(PACKUSER)
 
-PACKAGEUC = $(shell echo $(PACKAGE) | tr a-z A-Z)
-PACKUSERUC = $(shell echo $(PACKUSER) | tr a-z A-Z)
+# Helper GNU make function for conversion to upper case without using shell commands
+uppercase_TABLE:=a,A b,B c,C d,D e,E f,F g,G h,H i,I j,J k,K l,L m,M n,N o,O p,P q,Q r,R s,S t,T u,U v,V w,W x,X y,Y z,Z
+uppercase_internal=$(if $1,$$(subst $(firstword $1),$(call uppercase_internal,$(wordlist 2,$(words $1),$1),$2)),$2)
+uppercase=$(eval uppercase_RESULT:=$(call uppercase_internal,$(uppercase_TABLE),$1))$(uppercase_RESULT)
 
-YESDIR = $(shell echo $(@:yes-%=%) | tr a-z A-Z)
-NODIR  = $(shell echo $(@:no-%=%) | tr a-z A-Z)
-LIBDIR = $(shell echo $(@:lib-%=%))
-LIBUSERDIR = $(shell echo $(@:lib-user-%=%))
+PACKAGEUC = $(call uppercase,$(PACKAGE))
+PACKUSERUC = $(call uppercase,$(PACKUSER))
+
+YESDIR = $(call uppercase,$(@:yes-%=%))
+NODIR  = $(call uppercase,$(@:no-%=%))
+LIBDIR = $(@:lib-%=%)
+LIBUSERDIR = $(@:lib-user-%=%)
 
 # List of all targets
 
@@ -123,12 +122,10 @@ help:
 	@echo 'make lib-package args="..."    download/build/install a package library'
 	@echo 'make purge               purge obsolete copies of source files'
 	@echo ''
-	@echo 'make machine             build LAMMPS for machine'
-	@echo 'make mode=lib machine    build LAMMPS as static lib for machine'
-	@echo 'make mode=shlib machine  build LAMMPS as shared lib for machine'
-	@echo 'make mode=shexe machine  build LAMMPS as shared exe for machine'
-	@echo 'make makelist            create Makefile.list used by old makes'
-	@echo 'make -f Makefile.list machine     build LAMMPS for machine (old)'
+	@echo 'make machine             build LAMMPS for machine with static library'
+	@echo 'make mode=static machine same as above'
+	@echo 'make mode=shared machine build LAMMPS for machine with shared library'
+	@echo 'make mode=print machine  print compiler/linker flags'
 	@echo ''
 	@echo 'machine is one of these from src/MAKE:'
 	@echo ''
@@ -153,33 +150,57 @@ help:
 
 
 lmpinstalledpkgs.h: $(SRC) $(INC)
-	@echo 'Gathering installed package information (may take a little while)'
-	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  lmpinstalledpkgs.tmp
-	@echo '#define LMP_INSTALLED_PKGS_H' >> lmpinstalledpkgs.tmp
-	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> lmpinstalledpkgs.tmp
+	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
+	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
+	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
 	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
-             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> lmpinstalledpkgs.tmp || :; done
-	@echo ' NULL };' >> lmpinstalledpkgs.tmp
-	@echo '#endif' >> lmpinstalledpkgs.tmp
+             [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> ${TMPNAME}.lmpinstalled || :; done
+	@echo ' NULL };' >> ${TMPNAME}.lmpinstalled
+	@echo '#endif' >> ${TMPNAME}.lmpinstalled
 	@if [ -f lmpinstalledpkgs.h ]; \
-          then test "`diff --brief lmpinstalledpkgs.tmp lmpinstalledpkgs.h`" != "" && \
-	        mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h || rm lmpinstalledpkgs.tmp ; \
-        else mv lmpinstalledpkgs.tmp lmpinstalledpkgs.h ; fi
+          then test "`diff --brief ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h`" != "" && \
+	        mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h || rm ${TMPNAME}.lmpinstalled ; \
+        else mv ${TMPNAME}.lmpinstalled lmpinstalledpkgs.h ; fi
 
-# Build LAMMPS in one of 4 modes
-# exe =   exe with static compile in Obj_machine (default)
-# shexe = exe with shared compile in Obj_shared_machine
-# lib =   static lib in Obj_machine
-# shlib = shared lib in Obj_shared_machine
+gitversion:
+	@echo 'Gathering git version information'
+	@echo '#ifndef LMP_GIT_VERSION_H' >  ${TMPNAME}.lmpgitversion
+	@echo '#define LMP_GIT_VERSION_H' >> ${TMPNAME}.lmpgitversion
+	@if (type git && test -e ../.git ) >> /dev/null 2>> /dev/null ; then \
+	  git='true';					\
+	  commit=$$(git rev-parse HEAD);		\
+	  branch=$$(git rev-parse --abbrev-ref HEAD);	\
+	  describe=$$(git describe --dirty=-modified);	\
+	else \
+	  git='false' ;					\
+	  commit='(unknown)' ;				\
+	  branch='(unknown)' ;				\
+	  describe='(unknown)' ;			\
+	fi ; \
+	echo "const bool LAMMPS_NS::LAMMPS::has_git_info = $${git};"        >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_commit[] = \"$${commit}\";" >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_branch[] = \"$${branch}\";" >> ${TMPNAME}.lmpgitversion ; \
+	echo "const char LAMMPS_NS::LAMMPS::git_descriptor[] = \"$${describe}\";" >> ${TMPNAME}.lmpgitversion
+	@echo '#endif' >> ${TMPNAME}.lmpgitversion
+	@if [ -f lmpgitversion.h ]; \
+          then test "`diff --brief ${TMPNAME}.lmpgitversion lmpgitversion.h`" != "" && \
+	        mv ${TMPNAME}.lmpgitversion lmpgitversion.h || rm ${TMPNAME}.lmpgitversion ; \
+        else mv ${TMPNAME}.lmpgitversion lmpgitversion.h ; fi
+
+# Build LAMMPS in one of 2 modes
+# static = static compile in Obj_machine (default)
+# shared = shared compile in Obj_shared_machine
 
 .DEFAULT:
-	@if [ $@ = "serial" -a ! -f STUBS/libmpi_stubs.a ]; \
-	  then $(MAKE) mpi-stubs; fi
+	@if [ $@ = "serial" ]; \
+	  then cd STUBS; $(MAKE); cd ..; fi
 	@test -f MAKE/Makefile.$@ -o -f MAKE/OPTIONS/Makefile.$@ -o \
 	  -f MAKE/MACHINES/Makefile.$@ -o -f MAKE/MINE/Makefile.$@
 	@if [ ! -d $(objdir) ]; then mkdir $(objdir); fi
+	@echo 'Gathering installed package information (may take a little while)'
 	@$(SHELL) Make.sh style
-	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h
+	@$(SHELL) Make.sh packages
+	@$(MAKE) $(MFLAGS) lmpinstalledpkgs.h gitversion
 	@echo 'Compiling LAMMPS for machine $@'
 	@if [ -f MAKE/MACHINES/Makefile.$@ ]; \
 	  then cp MAKE/MACHINES/Makefile.$@ $(objdir)/Makefile; fi
@@ -196,29 +217,39 @@ lmpinstalledpkgs.h: $(SRC) $(INC)
 	@cp Makefile.package Makefile.package.settings $(objdir)
 	@cd $(objdir); rm -f .depend; \
 	$(MAKE) $(MFLAGS) "SRC = $(SRC)" "INC = $(INC)" depend || :
-ifeq ($(mode),exe)
-	@cd $(objdir); \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" "SHFLAGS =" \
-	  "EXE = ../$(EXE)" ../$(EXE)
-endif
-ifeq ($(mode),shexe)
-	@cd $(objdir); \
-	$(MAKE) $(MFLAGS) "OBJ = $(OBJ)" "INC = $(INC)" \
-	  "EXE = ../$(EXE)" ../$(EXE)
-endif
-ifeq ($(mode),lib)
+	@rm -f $(ARLINK) $(SHLINK) $(EXE)
+ifeq ($(mode),static)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
-	  "EXE = ../$(ARLIB)" lib
-	@rm -f $(ARLINK)
+	  "LMPLIB = $(ARLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
+	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(ARLIB) $(ARLINK)
 endif
-ifeq ($(mode),shlib)
+ifeq ($(mode),shared)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
-	  "EXE = ../$(SHLIB)" shlib
-	@rm -f $(SHLINK)
+	  "LMPLIB = $(SHLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
+	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(SHLIB) $(SHLINK)
+endif
+# backward compatibility
+ifeq ($(mode),exe)
+	$(MAKE) $(MFLAGS) mode=static $@
+endif
+ifeq ($(mode),lib)
+	$(MAKE) $(MFLAGS) mode=static $@
+endif
+ifeq ($(mode),shexe)
+	$(MAKE) $(MFLAGS) mode=shared $@
+endif
+ifeq ($(mode),shlib)
+	$(MAKE) $(MFLAGS) mode=shared $@
+endif
+
+ifeq ($(mode),print)
+	@cd $(objdir); \
+	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
+	  "EXE = ../$(ARLIB)" -f ../Makefile.print
 endif
 
 # Remove machine-specific object files
@@ -229,14 +260,11 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
+
 clean-%:
+	@if [ $@ = "clean-serial" ]; \
+		then cd STUBS; $(MAKE) clean; cd ..; fi
 	rm -rf Obj_$(@:clean-%=%) Obj_shared_$(@:clean-%=%)
-
-# Create Makefile.list
-
-makelist:
-	@$(SHELL) Make.sh style
-	@$(SHELL) Make.sh Makefile.list
 
 # Make MPI STUBS library
 
@@ -244,19 +272,22 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
-# include python package settings to
-#   automatically adapt name of python interpreter
+# include python package settings to automatically adapt name of
+# the python interpreter. must purge build folder to not install
+# unwanted outdated files.
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
-	@$(PYTHON) ../python/install.py
+	@rm -rf ../python/build
+	@$(PYTHON) ../python/install.py -v ../src/version.h \
+		-p ../python/lammps -l ../src/liblammps.so
 
 # Create a tarball of src dir and packages
 
 tar:
 	@cd STUBS; $(MAKE) clean
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
-	  src/Make* src/Package.sh src/Depend.sh src/Install.sh \
+	  src/Make* src/Package.sh src/Depend.sh src/Install.sh src/Fetch.sh \
 	  src/MAKE src/DEPEND src/*.cpp src/*.h src/STUBS \
 	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
           --exclude=*/.svn
@@ -335,7 +366,7 @@ yes-%:
 	@if [ ! -e Makefile.package.settings ]; \
 	  then cp Makefile.package.settings.empty Makefile.package.settings; fi
 	@if [ ! -e $(YESDIR) ]; then \
-	  echo "Package $(@:yes-%=%) does not exist"; \
+	  echo "Package $(YESDIR) does not exist"; exit 1; \
 	elif [ -e $(YESDIR)/Install.sh ]; then \
 	  echo "Installing package $(@:yes-%=%)"; \
 	  cd $(YESDIR); $(SHELL) Install.sh 1; cd ..; \
@@ -345,10 +376,11 @@ yes-%:
 	  cd $(YESDIR); $(SHELL) ../Install.sh 1; cd ..; \
 		$(SHELL) Depend.sh $(YESDIR) 1; \
 	fi;
+	@$(SHELL) Fetch.sh $(YESDIR)
 
 no-%:
 	@if [ ! -e $(NODIR) ]; then \
-	  echo "Package $(@:no-%=%) does not exist"; \
+	  echo "Package $(NODIR) does not exist"; exit 1; \
 	elif [ -e $(NODIR)/Install.sh ]; then \
 	  echo "Uninstalling package $(@:no-%=%)"; \
 	  cd $(NODIR); $(SHELL) Install.sh 0; cd ..; \

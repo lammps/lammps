@@ -23,7 +23,7 @@ const char *born_coul_wolf_cs=0;
 
 #include "lal_born_coul_wolf_cs.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define BornCoulWolfCST BornCoulWolfCS<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -95,3 +95,4 @@ int BornCoulWolfCST::init(const int ntypes, double **host_cutsq, double **host_r
 }
 
 template class BornCoulWolfCS<PRECISION,ACC_PRECISION>;
+}

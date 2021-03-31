@@ -112,7 +112,7 @@ class Notice {
   * to format it for the string. Forced newlines can be specified with \n
   *
   * Programs can check whether or not errors have been generated using the []
-  * operator and can 'handle' them by outputing the message or dismissing
+  * operator and can 'handle' them by outputting the message or dismissing
   * them without any output
   *
   * Notices are generated using the public Notice class (see Notice())

@@ -14,6 +14,7 @@
 #ifndef LMP_LAMMPS_H
 #define LMP_LAMMPS_H
 
+#include <mpi.h>
 #include <cstdio>
 
 namespace LAMMPS_NS {
@@ -37,6 +38,12 @@ class LAMMPS {
   class Output *output;          // thermo/dump/restart
   class Timer *timer;            // CPU timing info
 
+  const char *version;           // LAMMPS version string = date
+  int num_ver;                   // numeric version id derived from *version*
+                                 // that is constructed so that will be greater
+                                 // for newer versions in numeric or string
+                                 // value comparisons
+
   MPI_Comm world;                // MPI communicator
   FILE *infile;                  // infile
   FILE *screen;                  // screen output
@@ -44,12 +51,11 @@ class LAMMPS {
 
   double initclock;              // wall clock at instantiation
 
-  char *suffix,*suffix2;         // suffixes to add to input script style names
+  char *suffix,*suffix2,*suffixp;// suffixes to add to input script style names
   int suffix_enable;             // 1 if suffixes are enabled, 0 if disabled
   char *exename;                 // pointer to argv[0]
   char ***packargs;              // arguments for cmdline package commands
   int num_package;               // number of cmdline package commands
-  int cite_enable;               // 1 if generating log.cite, 0 if disabled
 
   int clientserver;              // 0 = neither, 1 = client, 2 = server
   void *cslib;                   // client/server messaging via CSlib
@@ -59,11 +65,18 @@ class LAMMPS {
   class AtomKokkos *atomKK;      // KOKKOS version of Atom class
   class MemoryKokkos *memoryKK;  // KOKKOS version of Memory class
 
-  class Python * python;         // Python interface
+  class Python *python;          // Python interface
 
-  class CiteMe *citeme;          // citation info
+  class CiteMe *citeme;          // handle citation info
 
+  const char *match_style(const char *style, const char *name);
   static const char * installed_packages[];
+  static bool is_installed_pkg(const char *pkg);
+
+  static const bool has_git_info;
+  static const char git_commit[];
+  static const char git_branch[];
+  static const char git_descriptor[];
 
   LAMMPS(int, char **, MPI_Comm);
   ~LAMMPS();
@@ -74,9 +87,13 @@ class LAMMPS {
   void print_config(FILE *);    // print compile time settings
 
  private:
+  struct package_styles_lists *pkg_lists;
+  void init_pkg_lists();
   void help();
-  LAMMPS() {};                   // prohibit using the default constructor
-  LAMMPS(const LAMMPS &) {};     // prohibit using the copy constructor
+  /// Default constructor. Declared private to prohibit its use
+  LAMMPS() {};
+  /// Copy constructor. Declared private to prohibit its use
+  LAMMPS(const LAMMPS &) {};
 };
 
 }

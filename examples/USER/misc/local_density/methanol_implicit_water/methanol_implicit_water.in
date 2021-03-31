@@ -1,0 +1,68 @@
+# LAMMPS input file for 50.0% methanol mole fraction solution
+# with 2500 methanol molecules in implicit water.
+# 
+#
+# Author: David Rosenberger, van der Vegt Group, TU Darmstadt
+#
+# Refer: Rosenberger, Sanyal, Shell, van der Vegt, J. Chem. Theory Comput. 15, 2881-2895 (2019)
+
+
+# Initialize simulation box
+dimension       3
+boundary        p p p 
+units           real
+atom_style      molecular
+
+# Set potential styles
+pair_style      hybrid/overlay table spline 500 local/density
+
+# Read molecule data and set initial velocities
+read_data       methanol_implicit_water.data 
+velocity        all create  3.0000e+02 12142 rot yes dist gaussian
+
+# Assign potentials
+pair_coeff          1     1 table         methanol_implicit_water.pair.table PairMM
+pair_coeff          *     * local/density methanol_implicit_water.localdensity.table
+
+
+
+
+#Recentering during minimization and equilibration
+fix recentering all recenter 0.0 0.0 0.0 units box
+
+#Thermostat & time integration
+timestep        1.0 
+thermo          100
+thermo_style    custom etotal ke pe temp evdwl
+
+#minimization
+minimize        1.e-4 0.0 1000 1000
+
+#set up integration parameters
+fix             timeintegration all nve
+fix             thermostat all langevin  3.0000e+02  3.0000e+02  1.0000e+02 59915
+
+#Equilibration (for realistic results, run for 2000000  steps)
+reset_timestep  0
+thermo          200
+thermo_style    custom etotal ke pe temp evdwl
+
+#run equilibration
+run             2000
+
+#turn off recentering during production run
+unfix recentering
+
+
+#setup trajectory output
+dump            myDump all custom 100 methanol_implicit_water.lammpstrj.gz id type x y z element
+dump_modify     myDump element M
+dump_modify     myDump sort id
+
+#run production (for realistic results, run for 10000000 steps)
+reset_timestep  0
+thermo          1000
+thermo_style    custom etotal ke pe temp  evdwl
+run             10000
+
+

@@ -705,7 +705,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  ReducedSparseMatrix::ReducedSparseMatrix(ATC_Method * atc,
+  ReducedSparseMatrix::ReducedSparseMatrix(ATC_Method * /* atc */,
                                            SPAR_MAN * source,
                                            LargeToSmallAtomMap * map) :
     SparseMatrixTransfer<double>(),
@@ -782,7 +782,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  RowMappedSparseMatrixVector::RowMappedSparseMatrixVector(ATC_Method * atc,
+  RowMappedSparseMatrixVector::RowMappedSparseMatrixVector(ATC_Method * /* atc */,
                                                            VectorDependencyManager<SPAR_MAT * > * source,
                                                            LargeToSmallAtomMap * map) :
     VectorTransfer<SPAR_MAT * >(),
@@ -816,7 +816,7 @@ namespace ATC {
     for (unsigned i = 0; i < quantity_.size(); ++i) {
       if (quantity_[i]) delete quantity_[i];
     }
-    quantity_.resize(source.size(),NULL);
+    quantity_.resize(source.size(),nullptr);
     for (unsigned i = 0; i < source.size(); i++) {
       quantity_[i] = new SPAR_MAT(map_->size(),source[i]->nCols());
     }
@@ -846,7 +846,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  MappedDiagonalMatrix::MappedDiagonalMatrix(ATC_Method * atc,
+  MappedDiagonalMatrix::MappedDiagonalMatrix(ATC_Method * /* atc */,
                                              DIAG_MAN * source,
                                              LargeToSmallAtomMap * map) :
     DiagonalMatrixTransfer<double>(),
@@ -892,7 +892,7 @@ namespace ATC {
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
-  MappedQuantity::MappedQuantity(ATC_Method * atc,
+  MappedQuantity::MappedQuantity(ATC_Method * /* atc */,
                                  DENS_MAN * source,
                                  LargeToSmallMap * map) :
     DenseMatrixTransfer<double>(),
@@ -1363,7 +1363,7 @@ namespace ATC {
   {
     pointToElementMap_->register_dependence(this);
     pointPositions_->register_dependence(this);
-    quantity_.resize(atc->nsd(),NULL);
+    quantity_.resize(atc->nsd(),nullptr);
     for (int i = 0; i < atc->nsd(); ++i) {
       quantity_[i] = new SPAR_MAT();
     }
@@ -1428,7 +1428,7 @@ namespace ATC {
     atomPositions_->register_dependence(this);
 
     // storage container
-    matrices_.resize(atc->nsd(),NULL);
+    matrices_.resize(atc->nsd(),nullptr);
     for (int i = 0; i < atc->nsd(); ++i) {
       matrices_[i] = new AtcAtomSparseMatrix<double>(atc,feEngine_->num_nodes(),
                                                      feEngine_->num_nodes_per_element(),
@@ -1440,7 +1440,7 @@ namespace ATC {
       matrices_[i]->register_dependence(this);
     }
 
-    quantity_.resize(atc->nsd(),NULL);
+    quantity_.resize(atc->nsd(),nullptr);
   }
 
   //--------------------------------------------------------
@@ -1926,7 +1926,7 @@ namespace ATC {
     VectorTransfer<SPAR_MAT * >(),
     feEngine_(atc->fe_engine())
   {
-    quantity_.resize(atc->nsd(),NULL);
+    quantity_.resize(atc->nsd(),nullptr);
     for (int i = 0; i < atc->nsd(); ++i) {
       quantity_[i] = new SPAR_MAT();
     }

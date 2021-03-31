@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,19 +21,19 @@
    The Journal of Chemical Physics, 2016, 144, 104501.
 ------------------------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include "math_const.h"
-#include <cstdlib>
-#include <cstring>
 #include "pair_multi_lucy.h"
+
 #include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -55,14 +55,14 @@ static const char cite_pair_multi_lucy[] =
 /* ---------------------------------------------------------------------- */
 
 PairMultiLucy::PairMultiLucy(LAMMPS *lmp) : Pair(lmp),
-  ntables(0), tables(NULL), tabindex(NULL)
+  ntables(0), tables(nullptr), tabindex(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_multi_lucy);
 
   if (atom->rho_flag != 1) error->all(FLERR,"Pair multi/lucy command requires atom_style with density (e.g. dpd, meso)");
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 
   comm_forward = 1;
   comm_reverse = 1;
@@ -95,8 +95,7 @@ void PairMultiLucy::compute(int eflag, int vflag)
   int tlm1 = tablength - 1;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -191,9 +190,9 @@ void PairMultiLucy::compute(int eflag, int vflag)
       error->one(FLERR,"Density < table inner cutoff");
     itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
     if (tabstyle == LOOKUP) evdwl = tb->e[itable];
-    else if (tabstyle == LINEAR){
+    else if (tabstyle == LINEAR) {
       if (itable >= tlm1) error->one(FLERR,"Density > table outer cutoff");
-      if(itable==0) fraction_i=0.0;
+      if (itable==0) fraction_i=0.0;
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
     } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy");
@@ -220,9 +219,9 @@ void PairMultiLucy::allocate()
   memory->create(cutsq,nt,nt,"pair:cutsq");
   memory->create(tabindex,nt,nt,"pair:tabindex");
 
-  memset(&setflag[0][0],0,nt*nt*sizeof(int));
-  memset(&cutsq[0][0],0,nt*nt*sizeof(double));
-  memset(&tabindex[0][0],0,nt*nt*sizeof(int));
+  memset(&setflag[0][0],0,sizeof(int)*nt*nt);
+  memset(&cutsq[0][0],0,sizeof(double)*nt*nt);
+  memset(&tabindex[0][0],0,sizeof(int)*nt*nt);
 }
 
 /* ----------------------------------------------------------------------
@@ -239,7 +238,7 @@ void PairMultiLucy::settings(int narg, char **arg)
   else if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
   else error->all(FLERR,"Unknown table style in pair_style command");
 
-  tablength = force->inumeric(FLERR,arg[1]);
+  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of pair table entries");
 
   // delete old tables, since cannot just change settings
@@ -255,7 +254,7 @@ void PairMultiLucy::settings(int narg, char **arg)
   allocated = 0;
 
   ntables = 0;
-  tables = NULL;
+  tables = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -268,8 +267,8 @@ void PairMultiLucy::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -281,7 +280,7 @@ void PairMultiLucy::coeff(int narg, char **arg)
   bcast_table(tb);
 
   // set table cutoff
-  if (narg == 5) tb->cut = force->numeric(FLERR,arg[4]);
+  if (narg == 5) tb->cut = utils::numeric(FLERR,arg[4],false,lmp);
   else if (tb->rflag) tb->cut = tb->rhi;
   else tb->cut = tb->rfile[tb->ninput-1];
 
@@ -348,7 +347,7 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
   // open file
 
   FILE *fp = fopen(file,"r");
-  if (fp == NULL) {
+  if (fp == nullptr) {
     char str[128];
     snprintf(str,128,"Cannot open file %s",file);
     error->one(FLERR,str);
@@ -357,22 +356,22 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
   // loop until section found with matching keyword
 
   while (1) {
-    if (fgets(line,MAXLINE,fp) == NULL)
+    if (fgets(line,MAXLINE,fp) == nullptr)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
     if (line[0] == '#') continue;                          // comment
     char *word = strtok(line," \t\n\r");
     if (strcmp(word,keyword) == 0) break;           // matching keyword
-    fgets(line,MAXLINE,fp);                         // no match, skip section
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
     param_extract(tb,line);
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     for (int i = 0; i < tb->ninput; i++) fgets(line,MAXLINE,fp);
   }
 
   // read args on 2nd line of section
-  // allocate table arrays for file values
+  // allocate table arrays for file valuesutils::s
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   param_extract(tb,line);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
@@ -385,9 +384,9 @@ void PairMultiLucy::read_table(Table *tb, char *file, char *keyword)
   int itmp;
   double rtmp;
 
-  fgets(line,MAXLINE,fp);
+  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
   for (int i = 0; i < tb->ninput; i++) {
-    fgets(line,MAXLINE,fp);
+    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
     sscanf(line,"%d %lg %lg %lg",&itmp,&rtmp,&tb->efile[i],&tb->ffile[i]);
 
     if (tb->rflag == RLINEAR)
@@ -480,26 +479,26 @@ void PairMultiLucy::param_extract(Table *tb, char *line)
   char *word = strtok(line," \t\n\r\f");
   while (word) {
     if (strcmp(word,"N") == 0) {
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       tb->ninput = atoi(word);
     } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0) {
       if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
       else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       tb->rlo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       tb->rhi = atof(word);
     } else if (strcmp(word,"FP") == 0) {
       tb->fpflag = 1;
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       tb->fplo = atof(word);
-      word = strtok(NULL," \t\n\r\f");
+      word = strtok(nullptr," \t\n\r\f");
       tb->fphi = atof(word);
     } else {
       printf("WORD: %s\n",word);
       error->one(FLERR,"Invalid keyword in pair table parameters");
     }
-    word = strtok(NULL," \t\n\r\f");
+    word = strtok(nullptr," \t\n\r\f");
   }
 
   if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");
@@ -581,15 +580,15 @@ void PairMultiLucy::compute_table(Table *tb)
 }
 
 /* ----------------------------------------------------------------------
-   set all ptrs in a table to NULL, so can be freed safely
+   set all ptrs in a table to a null pointer, so can be freed safely
 ------------------------------------------------------------------------- */
 
 void PairMultiLucy::null_table(Table *tb)
 {
-  tb->rfile = tb->efile = tb->ffile = NULL;
-  tb->e2file = tb->f2file = NULL;
-  tb->rsq = tb->drsq = tb->e = tb->de = NULL;
-  tb->f = tb->df = tb->e2 = tb->f2 = NULL;
+  tb->rfile = tb->efile = tb->ffile = nullptr;
+  tb->e2file = tb->f2file = nullptr;
+  tb->rsq = tb->drsq = tb->e = tb->de = nullptr;
+  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -706,8 +705,8 @@ void PairMultiLucy::write_restart_settings(FILE *fp)
 void PairMultiLucy::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&tabstyle,sizeof(int),1,fp);
-    fread(&tablength,sizeof(int),1,fp);
+    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
   MPI_Bcast(&tablength,1,MPI_INT,0,world);

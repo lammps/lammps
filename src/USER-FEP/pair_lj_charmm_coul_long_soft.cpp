@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,26 +13,25 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Paul Crozier (SNL)
-   Soft-core version: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Soft-core version: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_charmm_coul_long_soft.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "kspace.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -92,8 +91,7 @@ void PairLJCharmmCoulLongSoft::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -415,8 +413,7 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -631,14 +628,14 @@ void PairLJCharmmCoulLongSoft::settings(int narg, char **arg)
 {
   if (narg != 5 && narg != 6) error->all(FLERR,"Illegal pair_style command");
 
-  nlambda = force->numeric(FLERR,arg[0]);
-  alphalj = force->numeric(FLERR,arg[1]);
-  alphac  = force->numeric(FLERR,arg[2]);
+  nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  alphac  = utils::numeric(FLERR,arg[2],false,lmp);
 
-  cut_lj_inner = force->numeric(FLERR,arg[3]);
-  cut_lj = force->numeric(FLERR,arg[4]);
+  cut_lj_inner = utils::numeric(FLERR,arg[3],false,lmp);
+  cut_lj = utils::numeric(FLERR,arg[4],false,lmp);
   if (narg == 5) cut_coul = cut_lj;
-  else cut_coul = force->numeric(FLERR,arg[5]);
+  else cut_coul = utils::numeric(FLERR,arg[5],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -651,18 +648,18 @@ void PairLJCharmmCoulLongSoft::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double epsilon_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
-  double lambda_one = force->numeric(FLERR,arg[4]);
+  double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double lambda_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   double eps14_one = epsilon_one;
   double sigma14_one = sigma_one;
   if (narg == 7) {
-    eps14_one = force->numeric(FLERR,arg[5]);
-    sigma14_one = force->numeric(FLERR,arg[6]);
+    eps14_one = utils::numeric(FLERR,arg[5],false,lmp);
+    sigma14_one = utils::numeric(FLERR,arg[6],false,lmp);
   }
 
   int count = 0;
@@ -694,38 +691,20 @@ void PairLJCharmmCoulLongSoft::init_style()
   // request regular or rRESPA neighbor lists
 
   int irequest;
+  int respa = 0;
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    int respa = 0;
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
+   if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+   if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+  }
 
-    if (respa == 0) irequest = neighbor->request(this,instance_me);
-    else if (respa == 1) {
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    } else {
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 1;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respainner = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 2;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respamiddle = 1;
-      irequest = neighbor->request(this,instance_me);
-      neighbor->requests[irequest]->id = 3;
-      neighbor->requests[irequest]->half = 0;
-      neighbor->requests[irequest]->respaouter = 1;
-    }
+  irequest = neighbor->request(this,instance_me);
 
-  } else irequest = neighbor->request(this,instance_me);
+  if (respa >= 1) {
+   neighbor->requests[irequest]->respaouter = 1;
+   neighbor->requests[irequest]->respainner = 1;
+  }
+  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
 
   // require cut_lj_inner < cut_lj
 
@@ -742,18 +721,18 @@ void PairLJCharmmCoulLongSoft::init_style()
 
   // set & error check interior rRESPA cutoffs
 
-  if (strstr(update->integrate_style,"respa") &&
+  if (utils::strmatch(update->integrate_style,"^respa") &&
       ((Respa *) update->integrate)->level_inner >= 0) {
     cut_respa = ((Respa *) update->integrate)->cutoff;
     if (MIN(cut_lj,cut_coul) < cut_respa[3])
       error->all(FLERR,"Pair cutoff < Respa interior cutoff");
     if (cut_lj_inner < cut_respa[1])
       error->all(FLERR,"Pair inner cutoff < Respa interior cutoff");
-  } else cut_respa = NULL;
+  } else cut_respa = nullptr;
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 }
@@ -840,15 +819,15 @@ void PairLJCharmmCoulLongSoft::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&epsilon[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&lambda[i][j],sizeof(double),1,fp);
-          fread(&eps14[i][j],sizeof(double),1,fp);
-          fread(&sigma14[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&epsilon[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&lambda[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&eps14[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma14[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&epsilon[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -883,15 +862,15 @@ void PairLJCharmmCoulLongSoft::write_restart_settings(FILE *fp)
 void PairLJCharmmCoulLongSoft::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&nlambda,sizeof(double),1,fp);
-    fread(&alphalj,sizeof(double),1,fp);
-    fread(&alphac,sizeof(double),1,fp);
+    utils::sfread(FLERR,&nlambda,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&alphalj,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&alphac,sizeof(double),1,fp,nullptr,error);
 
-    fread(&cut_lj_inner,sizeof(double),1,fp);
-    fread(&cut_lj,sizeof(double),1,fp);
-    fread(&cut_coul,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_lj_inner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_lj,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_coul,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
 
   MPI_Bcast(&nlambda,1,MPI_DOUBLE,0,world);
@@ -1011,5 +990,5 @@ void *PairLJCharmmCoulLongSoft::extract(const char *str, int &dim)
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;
   if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
 
-  return NULL;
+  return nullptr;
 }

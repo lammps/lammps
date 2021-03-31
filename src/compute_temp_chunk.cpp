@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_temp_chunk.h"
+
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -30,8 +31,8 @@ enum{TEMP,KECOM,INTERNAL};
 
 ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  which(NULL), idchunk(NULL), id_bias(NULL), sum(NULL), sumall(NULL), count(NULL),
-  countall(NULL), massproc(NULL), masstotal(NULL), vcm(NULL), vcmall(NULL)
+  which(nullptr), idchunk(nullptr), id_bias(nullptr), sum(nullptr), sumall(nullptr), count(nullptr),
+  countall(nullptr), massproc(nullptr), masstotal(nullptr), vcm(nullptr), vcmall(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute temp/chunk command");
 
@@ -43,9 +44,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   biasflag = 0;
   init();
@@ -70,7 +69,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   comflag = 0;
   biasflag = 0;
-  id_bias = NULL;
+  id_bias = nullptr;
   adof = domain->dimension;
   cdof = 0.0;
 
@@ -86,19 +85,17 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/chunk command");
       biasflag = 1;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_bias = new char[n];
-      strcpy(id_bias,arg[iarg+1]);
+      id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"adof") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/chunk command");
-      adof = force->numeric(FLERR,arg[iarg+1]);
+      adof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"cdof") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal compute temp/chunk command");
-      cdof = force->numeric(FLERR,arg[iarg+1]);
+      cdof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute temp/chunk command");
   }
@@ -125,7 +122,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // vector data
 
-  vector = new double[6];
+  vector = new double[size_vector];
 
   // chunk-based data
 
@@ -851,11 +848,11 @@ void ComputeTempChunk::allocate()
 double ComputeTempChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (bigint) maxchunk * 2 * sizeof(int);
-  bytes += (bigint) maxchunk * nvalues * sizeof(double);
+  bytes += (double) maxchunk * 2 * sizeof(int);
+  bytes += (double) maxchunk * nvalues * sizeof(double);
   if (comflag || nvalues) {
-    bytes += (bigint) maxchunk * 2 * sizeof(double);
-    bytes += (bigint) maxchunk * 2*3 * sizeof(double);
+    bytes += (double) maxchunk * 2 * sizeof(double);
+    bytes += (double) maxchunk * 2*3 * sizeof(double);
   }
   return bytes;
 }

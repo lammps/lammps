@@ -15,8 +15,8 @@
 #define LMP_UPDATE_H
 
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
 
@@ -37,6 +37,7 @@ class Update : protected Pointers {
   int setupflag;                  // set when setup() is computing forces
   int post_integrate;             // 1 if now at post_integrate() in timestep
   int multireplica;               // 1 if min across replicas, else 0
+  int dt_default;                 // 1 if dt is at default value, else 0
 
   bigint eflag_global,eflag_atom;  // timestep global/peratom eng is tallied on
   bigint vflag_global,vflag_atom;  // ditto for virial
@@ -63,14 +64,15 @@ class Update : protected Pointers {
   void init();
   void set_units(const char *);
   void create_integrate(int, char **, int);
-  void create_minimize(int, char **);
+  void create_minimize(int, char **, int);
   void reset_timestep(int, char **);
   void reset_timestep(bigint);
   void update_time();
-  bigint memory_usage();
+  double memory_usage();
 
  private:
   void new_integrate(char *, int, char **, int, int &);
+  void new_minimize(char *, int, char **, int, int &);
 
   template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
   template <typename T> static Min *minimize_creator(LAMMPS *);

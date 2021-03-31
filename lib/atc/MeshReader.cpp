@@ -20,7 +20,7 @@ namespace ATC {
   /** constructor, takes a filename */
   MeshReader::MeshReader(string filename, 
                          Array<bool> periodicity, 
-                         double tol)
+                         double /* tol */)
     : meshfile_(filename),
       periodicity_(periodicity),
       nNodes_(0),

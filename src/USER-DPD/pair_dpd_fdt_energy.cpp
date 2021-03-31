@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,24 +15,21 @@
    Contributing author: James Larentzos (U.S. Army Research Laboratory)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+#include "pair_dpd_fdt_energy.h"
+
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
-#include "update.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "random_mars.h"
 #include "memory.h"
 #include "modify.h"
-#include "pair_dpd_fdt_energy.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -42,9 +39,9 @@ using namespace LAMMPS_NS;
 
 PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) : Pair(lmp)
 {
-  random = NULL;
-  duCond = NULL;
-  duMech = NULL;
+  random = nullptr;
+  duCond = nullptr;
+  duMech = nullptr;
   splitFDT_flag = false;
   a0_is_zero = false;
 
@@ -85,8 +82,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **v = atom->v;
@@ -339,8 +335,8 @@ void PairDPDfdtEnergy::settings(int narg, char **arg)
   // process keywords
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
-  seed = force->inumeric(FLERR,arg[1]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
+  seed = utils::inumeric(FLERR,arg[1],false,lmp);
   if (atom->dpd_flag != 1)
     error->all(FLERR,"pair_style dpd/fdt/energy requires atom_style with internal temperature and energies (e.g. dpd)");
 
@@ -370,19 +366,19 @@ void PairDPDfdtEnergy::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double a0_one = force->numeric(FLERR,arg[2]);
-  double sigma_one = force->numeric(FLERR,arg[3]);
+  double a0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double cut_one = cut_global;
   double kappa_one, alpha_one;
 
   a0_is_zero = (a0_one == 0.0); // Typical use with SSA is to set a0 to zero
 
-  kappa_one = force->numeric(FLERR,arg[4]);
+  kappa_one = utils::numeric(FLERR,arg[4],false,lmp);
   alpha_one = sqrt(2.0*force->boltz*kappa_one);
-  if (narg == 6) cut_one = force->numeric(FLERR,arg[5]);
+  if (narg == 6) cut_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -410,9 +406,9 @@ void PairDPDfdtEnergy::init_style()
     error->all(FLERR,"Pair dpd/fdt/energy requires ghost atoms store velocity");
 
   splitFDT_flag = false;
-  int irequest = neighbor->request(this,instance_me);
+  neighbor->request(this,instance_me);
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"shardlow", 8) == 0){
+    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) {
       splitFDT_flag = true;
     }
 
@@ -423,8 +419,8 @@ void PairDPDfdtEnergy::init_style()
 
   bool eos_flag = false;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"eos",3) == 0) eos_flag = true;
-  if(!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS to be specified");
+    if (utils::strmatch(modify->fix[i]->style,"^eos")) eos_flag = true;
+  if (!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS fix to be specified");
 }
 
 /* ----------------------------------------------------------------------
@@ -480,14 +476,14 @@ void PairDPDfdtEnergy::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&a0[i][j],sizeof(double),1,fp);
-          fread(&sigma[i][j],sizeof(double),1,fp);
-          fread(&kappa[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&a0[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&kappa[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&a0[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
@@ -517,9 +513,9 @@ void PairDPDfdtEnergy::write_restart_settings(FILE *fp)
 void PairDPDfdtEnergy::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&seed,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);

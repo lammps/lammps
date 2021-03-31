@@ -14,9 +14,7 @@
 #ifndef LMP_VARIABLE_H
 #define LMP_VARIABLE_H
 
-#include <cstdlib>
 #include "pointers.h"
-#include "input.h"
 
 namespace LAMMPS_NS {
 
@@ -26,11 +24,12 @@ class Variable : protected Pointers {
   Variable(class LAMMPS *);
   ~Variable();
   void set(int, char **);
+  void set(const std::string &);
   void set(char *, int, char **);
-  int set_string(char *, char *);
+  int set_string(const char *, const char *);
   int next(int, char **);
 
-  int find(char *);
+  int find(const char *);
   void set_arrays(int);
   void python_command(int, char **);
 
@@ -40,7 +39,7 @@ class Variable : protected Pointers {
   char *pythonstyle(char *, char *);
   int internalstyle(int);
 
-  char *retrieve(char *);
+  char *retrieve(const char *);
   double compute_equal(int);
   double compute_equal(char *);
   void compute_atom(int, int, double *, int, int);
@@ -50,11 +49,13 @@ class Variable : protected Pointers {
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
+ public:
+  int nvar;                // # of defined variables
+  char **names;            // name of each variable
+
  private:
   int me;
-  int nvar;                // # of defined variables
   int maxvar;              // max # of variables following lists can hold
-  char **names;            // name of each variable
   int *style;              // style of each variable
   int *num;                // # of values for each variable
   int *which;              // next available value for each variable
@@ -88,17 +89,15 @@ class Variable : protected Pointers {
     int nvector;           // length of array for vector-style variable
     int nstride;           // stride between atoms if array is a 2d array
     int selfalloc;         // 1 if array is allocated here, else 0
-    int ivalue1,ivalue2;   // extra values for needed for gmask,rmask,grmask
+    int ivalue1,ivalue2;   // extra values needed for gmask,rmask,grmask
     int nextra;            // # of additional args beyond first 2
     Tree *first,*second;   // ptrs further down tree for first 2 args
     Tree **extra;          // ptrs further down tree for nextra args
 
     Tree() :
-      array(NULL), iarray(NULL), barray(NULL),
-      selfalloc(0), nextra(0),
-      first(NULL), second(NULL), extra(NULL)
-    {
-    }
+      array(nullptr), iarray(nullptr), barray(nullptr),
+      selfalloc(0), ivalue1(0), ivalue2(0), nextra(0),
+      first(nullptr), second(nullptr), extra(nullptr) {}
   };
 
   int compute_python(int);
@@ -127,7 +126,8 @@ class Variable : protected Pointers {
   double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
-  void print_var_error(const char *, int, const char *, int);
+  void print_var_error(const std::string &, int, const std::string &,
+                       int, int global=1);
   void print_tree(Tree *, int);
 };
 
@@ -211,6 +211,10 @@ E: Invalid variable style with next command
 
 Variable styles {equal} and {world} cannot be used in a next
 command.
+
+E: Incorrect conversion in format string
+
+A format style variable was not using either a %f, a %g, or a %e conversion.
 
 E: Next command must list all universe and uloop variables
 

@@ -23,7 +23,6 @@ FixStyle(setforce/kk/host,FixSetForceKokkos<LMPHostType>)
 #define LMP_FIX_SET_FORCE_KOKKOS_H
 
 #include "fix_setforce.h"
-#include "region.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
@@ -35,7 +34,7 @@ struct s_double_3 {
     d0 = d1 = d2 = 0.0;
   }
   KOKKOS_INLINE_FUNCTION
-  s_double_3& operator+=(const s_double_3 &rhs){
+  s_double_3& operator+=(const s_double_3 &rhs) {
     d0 += rhs.d0;
     d1 += rhs.d1;
     d2 += rhs.d2;
@@ -82,7 +81,7 @@ class FixSetForceKokkos : public FixSetForce {
   typename AT::t_f_array f;
   typename AT::t_int_1d_randomread mask;
 
-  Region* region;
+  class Region* region;
 };
 
 }

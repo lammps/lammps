@@ -20,7 +20,6 @@ FixStyle(saed/vtk,FixSAEDVTK)
 #ifndef LMP_FIX_SAED_VTK_H
 #define LMP_FIX_SAED_VTK_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -38,10 +37,8 @@ class FixSAEDVTK : public Fix {
 
 
  private:
-  int me,nvalues;
   int nrepeat,nfreq,irepeat;
   bigint nvalid;
-  int which;
   char *ids;
   FILE *fp;
   int nrows;

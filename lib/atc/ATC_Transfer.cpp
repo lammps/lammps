@@ -68,19 +68,19 @@ namespace ATC {
                              LAMMPS_NS::Fix * thisFix,
                              string matParamFile)
     : ATC_Method(groupName,perAtomArray,thisFix),
-      xPointer_(NULL), 
+      xPointer_(nullptr), 
       outputStepZero_(true),
       neighborReset_(false),
-      pairMap_(NULL),
-      bondMatrix_(NULL),
-      pairVirial_(NULL),
-      pairHeatFlux_(NULL),
+      pairMap_(nullptr),
+      bondMatrix_(nullptr),
+      pairVirial_(nullptr),
+      pairHeatFlux_(nullptr),
       nComputes_(0),
       hasPairs_(true),
       hasBonds_(false),
       resetKernelFunction_(false),
       dxaExactMode_(true),
-      cauchyBornStress_(NULL)
+      cauchyBornStress_(nullptr)
   {
     nTypes_ = lammpsInterface_->ntypes();
 
@@ -114,7 +114,7 @@ namespace ATC {
     rateFlags_ = false;
 
     outputFields_.resize(NUM_TOTAL_FIELDS);
-    for (int i = 0; i < NUM_TOTAL_FIELDS; i++) { outputFields_[i] = NULL; }
+    for (int i = 0; i < NUM_TOTAL_FIELDS; i++) { outputFields_[i] = nullptr; }
 
     // Hardy requires ref positions for processor ghosts for bond list
     
@@ -148,7 +148,7 @@ namespace ATC {
     }
 
     if (!initialized_ || ATC::LammpsInterface::instance()->atoms_sorted() || resetKernelFunction_) {
-      // initialize kernel funciton matrix N_Ia
+      // initialize kernel function matrix N_Ia
       if (! kernelOnTheFly_) {
         try{
           if (!moleculeIds_.empty()) compute_kernel_matrix_molecule(); //KKM add
@@ -491,7 +491,7 @@ namespace ATC {
       ComputedAtomQuantity * c = new ComputedAtomQuantity(this, tag);
       interscaleManager_.add_per_atom_quantity(c,tag);
       int projection = iter->second;
-      DIAG_MAN * w = NULL;
+      DIAG_MAN * w = nullptr;
       if      (projection == VOLUME_NORMALIZATION ) 
          { w = accumulantInverseVolumes_; }
       else if (projection == NUMBER_NORMALIZATION ) 
@@ -654,7 +654,7 @@ namespace ATC {
         <TT> fix_modify AtC gradients add temperature velocity stress </TT> \n
         <TT> fix_modify AtC gradients delete velocity </TT> \n
         \section description
-        Requests calculation and ouput of gradients of the fields from the 
+        Requests calculation and output of gradients of the fields from the
         transfer class. These gradients will be with regard to spatial or material
         coordinate for eulerian or lagrangian analysis, respectively, as specified by 
         atom_element_map (see \ref man_atom_element_map )
@@ -698,7 +698,7 @@ namespace ATC {
         <TT> fix_modify AtC rates add temperature velocity stress </TT> \n
         <TT> fix_modify AtC rates delete stress </TT> \n
         \section description
-        Requests calculation and ouput of rates (time derivatives) of the fields from the 
+        Requests calculation and output of rates (time derivatives) of the fields from the
         transfer class. For eulerian analysis (see \ref man_atom_element_map ), these rates
         are the partial time derivatives of the nodal fields, not the full (material) time
         derivatives. \n
@@ -865,7 +865,7 @@ namespace ATC {
   }
 
   //-------------------------------------------------------------------
-  // called at the begining of second half timestep
+  // called at the beginning of second half timestep
   // REFACTOR move this to post_neighbor
   void ATC_Transfer::pre_final_integrate()
   {
@@ -976,7 +976,7 @@ namespace ATC {
       DENS_MAT & H = hardyData_["displacement_gradient"].set_quantity();
       DENS_MAT E(H.nRows(),1);
       ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
-      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      const DENS_MAT *temp = tfield==hardyData_.end() ? nullptr : &((tfield->second).quantity());
       //DENS_MAT & T = hardyData_["temperature"];
       //cauchy_born_entropic_energy(H,E,T); E += hardyData_["internal_energy"];
       cauchy_born_energy(H, E, temp);
@@ -988,14 +988,14 @@ namespace ATC {
     // compute: cauchy born stress 
     if (fieldFlags_(CAUCHY_BORN_STRESS)) {
       ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
-      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      const DENS_MAT *temp = tfield==hardyData_.end() ? nullptr : &((tfield->second).quantity());
       cauchy_born_stress(hardyData_["displacement_gradient"].quantity(),
                          hardyData_["cauchy_born_stress"].set_quantity(), temp);
     }
     // compute: cauchy born energy 
     if (fieldFlags_(CAUCHY_BORN_ENERGY)) {
       ATOMIC_DATA::const_iterator tfield = hardyData_.find("temperature");
-      const DENS_MAT *temp = tfield==hardyData_.end() ? NULL : &((tfield->second).quantity());
+      const DENS_MAT *temp = tfield==hardyData_.end() ? nullptr : &((tfield->second).quantity());
       cauchy_born_energy(hardyData_["displacement_gradient"].quantity(), 
                          hardyData_["cauchy_born_energy"].set_quantity(), temp);
     }
@@ -1658,7 +1658,7 @@ namespace ATC {
   }
   //--------------------------------------------------------------------
   void ATC_Transfer::compute_vacancy_concentration(DENS_MAT & Cv,
-    const DENS_MAT & H, const DENS_MAT & rhoN)
+                                                   const DENS_MAT & H, const DENS_MAT & /* rhoN */)
   {
     int * type = lammpsInterface_->atom_type();
     DENS_MAT new_rho(nNodes_,1);

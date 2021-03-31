@@ -28,7 +28,8 @@ class BondOxdnaFene : public Bond {
  public:
   BondOxdnaFene(class LAMMPS *);
   virtual ~BondOxdnaFene();
-  virtual void compute_interaction_sites(double *, double *, double *);
+  virtual void compute_interaction_sites(double *, double *, double *,
+    double *);
   virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();
@@ -42,6 +43,7 @@ class BondOxdnaFene : public Bond {
   double *k,*Delta,*r0; // FENE
 
   void allocate();
+  void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double);
 };
 
 }

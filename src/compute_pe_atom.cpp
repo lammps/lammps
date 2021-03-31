@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_pe_atom.h"
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "comm.h"
@@ -24,7 +24,6 @@
 #include "improper.h"
 #include "kspace.h"
 #include "modify.h"
-#include "fix.h"
 #include "memory.h"
 #include "error.h"
 
@@ -34,7 +33,7 @@ using namespace LAMMPS_NS;
 
 ComputePEAtom::ComputePEAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  energy(NULL)
+  energy(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute pe/atom command");
 
@@ -120,7 +119,7 @@ void ComputePEAtom::compute_peratom()
 
   // add in per-atom contributions from each force
 
-  if (pairflag && force->pair) {
+  if (pairflag && force->pair && force->pair->compute_flag) {
     double *eatom = force->pair->eatom;
     for (i = 0; i < npair; i++) energy[i] += eatom[i];
   }
@@ -145,7 +144,7 @@ void ComputePEAtom::compute_peratom()
     for (i = 0; i < nbond; i++) energy[i] += eatom[i];
   }
 
-  if (kspaceflag && force->kspace) {
+  if (kspaceflag && force->kspace && force->kspace->compute_flag) {
     double *eatom = force->kspace->eatom;
     for (i = 0; i < nkspace; i++) energy[i] += eatom[i];
   }
@@ -153,8 +152,8 @@ void ComputePEAtom::compute_peratom()
   // add in per-atom contributions from relevant fixes
   // always only for owned atoms, not ghost
 
-  if (fixflag && modify->n_thermo_energy_atom)
-    modify->thermo_energy_atom(nlocal,energy);
+  if (fixflag && modify->n_energy_atom)
+    modify->energy_atom(nlocal,energy);
 
   // communicate ghost energy between neighbor procs
 
@@ -201,6 +200,6 @@ void ComputePEAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputePEAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

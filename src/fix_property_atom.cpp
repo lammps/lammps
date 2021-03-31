@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_property_atom.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "tokenizer.h"
 
-#include "update.h"
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -30,7 +30,7 @@ enum{MOLECULE,CHARGE,RMASS,INTEGER,DOUBLE};
 
 FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalue(0), style(NULL), index(NULL), astyle(NULL)
+  nvalue(0), style(nullptr), index(nullptr), astyle(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix property/atom command");
 
@@ -75,7 +75,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       style[nvalue] = RMASS;
       atom->rmass_flag = rmass_flag = 1;
       nvalue++;
-    } else if (strstr(arg[iarg],"i_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^i_")) {
       style[nvalue] = INTEGER;
       int tmp;
       index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
@@ -83,7 +83,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Fix property/atom vector name already exists");
       index[nvalue] = atom->add_custom(&arg[iarg][2],0);
       nvalue++;
-    } else if (strstr(arg[iarg],"d_") == arg[iarg]) {
+    } else if (utils::strmatch(arg[iarg],"^d_")) {
       style[nvalue] = DOUBLE;
       int tmp;
       index[nvalue] = atom->find_custom(&arg[iarg][2],tmp);
@@ -126,9 +126,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // store current atom style
 
-  int n = strlen(atom->atom_style) + 1;
-  astyle = new char[n];
-  strcpy(astyle,atom->atom_style);
+  astyle = utils::strdup(atom->atom_style);
 
   // perform initial allocation of atom-based array
   // register with Atom class
@@ -136,9 +134,9 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   nmax_old = 0;
   if (!lmp->kokkos)
     grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
-  if (border) atom->add_callback(2);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
+  if (border) atom->add_callback(Atom::BORDER);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -147,26 +145,26 @@ FixPropertyAtom::~FixPropertyAtom()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
-  if (border) atom->delete_callback(id,2);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
+  if (border) atom->delete_callback(id,Atom::BORDER);
 
   // deallocate per-atom vectors in Atom class
-  // set ptrs to NULL, so they no longer exist for Atom class
+  // set ptrs to a null pointer, so they no longer exist for Atom class
 
   for (int m = 0; m < nvalue; m++) {
     if (style[m] == MOLECULE) {
       atom->molecule_flag = 0;
       memory->destroy(atom->molecule);
-      atom->molecule = NULL;
+      atom->molecule = nullptr;
     } else if (style[m] == CHARGE) {
       atom->q_flag = 0;
       memory->destroy(atom->q);
-      atom->q = NULL;
+      atom->q = nullptr;
     } else if (style[m] == RMASS) {
       atom->rmass_flag = 0;
       memory->destroy(atom->rmass);
-      atom->rmass = NULL;
+      atom->rmass = nullptr;
     } else if (style[m] == INTEGER) {
       atom->remove_custom(0,index[m]);
     } else if (style[m] == DOUBLE) {
@@ -192,7 +190,7 @@ int FixPropertyAtom::setmask()
 void FixPropertyAtom::init()
 {
   // error if atom style has changed since fix was defined
-  // don't allow this b/c user could change to style that defines molecule,q
+  // don't allow this because user could change to style that defines molecule,q
 
   if (strcmp(astyle,atom->atom_style) != 0)
     error->all(FLERR,"Atom style was redefined after using fix property/atom");
@@ -211,76 +209,56 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
   char *next;
 
   int mapflag = 0;
-  if (atom->map_style == 0) {
+  if (atom->map_style == Atom::MAP_NONE) {
     mapflag = 1;
     atom->map_init();
     atom->map_set();
   }
 
-  next = strchr(buf,'\n');
-  *next = '\0';
-  int nwords = atom->count_words(buf);
-  *next = '\n';
-
-  if (nwords != nvalue+1) {
-    char str[128];
-    snprintf(str,128,"Incorrect %s format in data file",keyword);
-    error->all(FLERR,str);
-  }
-
-  char **values = new char*[nwords];
-
   // loop over lines of atom info
   // tokenize the line into values
-  // if I own atom tag, unpack its values
+  // if I own atom tag, assign its values
 
   tagint map_tag_max = atom->map_tag_max;
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    *next = '\0';
 
-    values[0] = strtok(buf," \t\n\r\f");
-    if (values[0] == NULL) {
-      char str[128];
-      snprintf(str,128,"Too few lines in %s section of data file",keyword);
-      error->one(FLERR,str);
-    }
-    int format_ok = 1;
-    for (j = 1; j < nwords; j++) {
-      values[j] = strtok(NULL," \t\n\r\f");
-      if (values[j] == NULL) format_ok = 0;
-    }
-    if (!format_ok) {
-      char str[128];
-      snprintf(str,128,"Incorrect %s format in data file",keyword);
-      error->all(FLERR,str);
-    }
+    try {
+      ValueTokenizer values(buf);
+      if ((int)values.count() != nvalue+1)
+        error->all(FLERR,fmt::format("Incorrect format in {} section "
+                                     "of data file: {}",keyword,buf));
 
-    itag = ATOTAGINT(values[0]) + id_offset;
-    if (itag <= 0 || itag > map_tag_max) {
-      char str[128];
-      snprintf(str,128,"Invalid atom ID in %s section of data file",keyword);
-      error->one(FLERR,str);
-    }
+      itag = values.next_tagint() + id_offset;
+      if (itag <= 0 || itag > map_tag_max)
+        error->all(FLERR,fmt::format("Invalid atom ID {} in {} section of "
+                                     "data file",itag, keyword));
 
-    // assign words in line to per-atom vectors
+      // assign words in line to per-atom vectors
 
-    if ((m = atom->map(itag)) >= 0) {
-      for (j = 0; j < nvalue; j++) {
-        if (style[j] == MOLECULE) atom->molecule[m] = ATOTAGINT(values[j+1]);
-        else if (style[j] == CHARGE) atom->q[m] = atof(values[j+1]);
-        else if (style[j] == RMASS) atom->rmass[m] = atof(values[j+1]);
-        else if (style[j] == INTEGER)
-          atom->ivector[index[j]][m] = atoi(values[j+1]);
-        else if (style[j] == DOUBLE)
-          atom->dvector[index[j]][m] = atof(values[j+1]);
+      if ((m = atom->map(itag)) >= 0) {
+        for (j = 0; j < nvalue; j++) {
+          if (style[j] == MOLECULE) {
+            atom->molecule[m] = values.next_tagint();
+          } else if (style[j] == CHARGE) {
+            atom->q[m] = values.next_double();
+          } else if (style[j] == RMASS) {
+            atom->rmass[m] = values.next_double();
+          } else if (style[j] == INTEGER) {
+            atom->ivector[index[j]][m] = values.next_int();
+          } else if (style[j] == DOUBLE) {
+            atom->dvector[index[j]][m] = values.next_double();
+          }
+        }
       }
+    } catch (TokenizerException &e) {
+      error->all(FLERR,fmt::format("Invalid format in {} section of data "
+                                   "file '{}': {}",keyword, buf,e.what()));
     }
-
     buf = next + 1;
   }
-
-  delete [] values;
 
   if (mapflag) {
     atom->map_delete();
@@ -349,8 +327,9 @@ void FixPropertyAtom::write_data_section_pack(int /*mth*/, double **buf)
 }
 
 /* ----------------------------------------------------------------------
-   write section keyword for Mth data section to file
-   use Molecules or Charges if that is only field, else use fix ID
+   write a Molecules or Charges section if that is only field
+   manages by this fix instance. Otherwise write everything
+   to the section labeled by the fix ID
    only called by proc 0
 ------------------------------------------------------------------------- */
 
@@ -358,7 +337,18 @@ void FixPropertyAtom::write_data_section_keyword(int /*mth*/, FILE *fp)
 {
   if (nvalue == 1 && style[0] == MOLECULE) fprintf(fp,"\nMolecules\n\n");
   else if (nvalue == 1 && style[0] == CHARGE) fprintf(fp,"\nCharges\n\n");
-  else fprintf(fp,"\n%s\n\n",id);
+  else {
+    fprintf(fp,"\n%s #",id);
+    // write column hint as comment
+    for (int i = 0; i < nvalue; ++i) {
+      if (style[i] == MOLECULE) fputs(" mol",fp);
+      else if (style[i] == CHARGE) fputs(" q",fp);
+      else if (style[i] == RMASS) fputs(" rmass",fp);
+      else if (style[i] == INTEGER) fprintf(fp," i_%s", atom->iname[index[i]]);
+      else if (style[i] == DOUBLE) fprintf(fp, " d_%s", atom->dname[index[i]]);
+    }
+    fputs("\n\n",fp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -589,6 +579,7 @@ int FixPropertyAtom::unpack_exchange(int nlocal, double *buf)
 
 int FixPropertyAtom::pack_restart(int i, double *buf)
 {
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = nvalue+1;
 
   int m = 1;
@@ -612,6 +603,7 @@ void FixPropertyAtom::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

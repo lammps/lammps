@@ -4,6 +4,7 @@
 #endif
 #include <direct.h>
 #include <cmath>
+#include <cstring>
 // LAMMPS uses usleep with 100 ms arguments, no microsecond precision needed
 #if !defined(__MINGW32__)
 #include "sleep.h"
@@ -15,21 +16,21 @@
 #define ATOBIGINT _atoi64
 
 #define pclose _pclose
+#define strdup _strdup
 
-// the following functions ared defined to get rid of
-// 'ambiguous call to overloaded function' error in VSS for mismathched type arguments
+// the following functions are defined to get rid of
+// 'ambiguous call to overloaded function' error in VSS for mismatched type arguments
 #if !defined(__MINGW32__)
 inline double pow(int i, int j){
   return pow((double)i,j);
 }
-#endif
-inline double sqrt(int i){
-  return sqrt((double) i);
-}
-
 inline double fabs(int i){
   return fabs((double) i);
 }
+inline double sqrt(int i){
+  return sqrt((double) i);
+}
+#endif
 
 inline double trunc(double x) {
   return x > 0 ? floor(x) : ceil(x);

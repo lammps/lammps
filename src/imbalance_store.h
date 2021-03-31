@@ -25,11 +25,11 @@ class ImbalanceStore : public Imbalance {
 
  public:
   // parse options, return number of arguments consumed
-  virtual int options(int, char **);
+  virtual int options(int, char **) override;
   // compute per-atom imbalance and apply to weight array
-  virtual void compute(double *);
+  virtual void compute(double *) override;
   // print information about the state of this imbalance compute (required)
-  virtual void info(FILE *);
+  virtual std::string info() override;
 
  private:
   char *name;                  // property name

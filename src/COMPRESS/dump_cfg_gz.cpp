@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,9 @@
 #include "error.h"
 #include "update.h"
 
+
 #include <cstring>
+
 
 using namespace LAMMPS_NS;
 #define UNWRAPEXPAND 10.0
@@ -25,7 +27,9 @@ using namespace LAMMPS_NS;
 DumpCFGGZ::DumpCFGGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpCFG(lmp, narg, arg)
 {
-  gzFp = NULL;
+  gzFp = nullptr;
+
+  compression_level = Z_BEST_COMPRESSION;
 
   if (!compressed)
     error->all(FLERR,"Dump cfg/gz only writes compressed files");
@@ -37,8 +41,8 @@ DumpCFGGZ::DumpCFGGZ(LAMMPS *lmp, int narg, char **arg) :
 DumpCFGGZ::~DumpCFGGZ()
 {
   if (gzFp) gzclose(gzFp);
-  gzFp = NULL;
-  fp = NULL;
+  gzFp = nullptr;
+  fp = nullptr;
 }
 
 
@@ -77,14 +81,12 @@ void DumpCFGGZ::openfile()
     *ptr = '*';
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[numfiles],filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
         remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[fileidx],filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -93,14 +95,17 @@ void DumpCFGGZ::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
+    std::string mode;
     if (append_flag) {
-      gzFp = gzopen(filecurrent,"ab9");
+      mode = fmt::format("ab{}", compression_level);
     } else {
-      gzFp = gzopen(filecurrent,"wb9");
+      mode = fmt::format("wb{}", compression_level);
     }
 
-    if (gzFp == NULL) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = NULL;
+    gzFp = gzopen(filecurrent, mode.c_str());
+
+    if (gzFp == nullptr) error->one(FLERR,"Cannot open dump file");
+  } else gzFp = nullptr;
 
   // delete string with timestep replaced
 
@@ -156,11 +161,30 @@ void DumpCFGGZ::write()
   if (filewriter) {
     if (multifile) {
       gzclose(gzFp);
-      gzFp = NULL;
+      gzFp = nullptr;
     } else {
       if (flush_flag)
         gzflush(gzFp,Z_SYNC_FLUSH);
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+int DumpCFGGZ::modify_param(int narg, char **arg)
+{
+  int consumed = DumpCFG::modify_param(narg, arg);
+  if (consumed == 0) {
+    if (strcmp(arg[0],"compression_level") == 0) {
+      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+      int min_level = Z_DEFAULT_COMPRESSION;
+      int max_level = Z_BEST_COMPRESSION;
+      compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
+      if (compression_level < min_level || compression_level > max_level)
+        error->all(FLERR, fmt::format("Illegal dump_modify command: compression level must in the range of [{}, {}]", min_level, max_level));
+      return 2;
+    }
+  }
+  return consumed;
 }
 

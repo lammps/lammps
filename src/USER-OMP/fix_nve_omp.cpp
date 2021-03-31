@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "fix_nve_omp.h"
 #include "atom.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -29,7 +29,7 @@ FixNVEOMP::FixNVEOMP(LAMMPS *lmp, int narg, char **arg) :
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */
 
-void FixNVEOMP::initial_integrate(int vflag)
+void FixNVEOMP::initial_integrate(int /* vflag */)
 {
   // update v and x of atoms in group
 
@@ -38,14 +38,13 @@ void FixNVEOMP::initial_integrate(int vflag)
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   if (atom->rmass) {
     const double * const rmass = atom->rmass;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         const double dtfm = dtf / rmass[i];
         v[i].x += dtfm * f[i].x;
@@ -60,9 +59,9 @@ void FixNVEOMP::initial_integrate(int vflag)
     const double * const mass = atom->mass;
     const int * const type = atom->type;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
         v[i].x += dtfm * f[i].x;
@@ -85,14 +84,13 @@ void FixNVEOMP::final_integrate()
   const dbl3_t * _noalias const f = (dbl3_t *) atom->f[0];
   const int * const mask = atom->mask;
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
-  int i;
 
   if (atom->rmass) {
     const double * const rmass = atom->rmass;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         const double dtfm = dtf / rmass[i];
         v[i].x += dtfm * f[i].x;
@@ -104,9 +102,9 @@ void FixNVEOMP::final_integrate()
     const double * const mass = atom->mass;
     const int * const type = atom->type;
 #if defined (_OPENMP)
-#pragma omp parallel for private(i) default(none) schedule(static)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
-    for (i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
         const double dtfm = dtf / mass[type[i]];
         v[i].x += dtfm * f[i].x;

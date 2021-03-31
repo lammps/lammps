@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,15 +22,13 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
-#include <iostream>
-#include <map>
-#include <Eigen/Eigen>
 #include "pair_smd_tlsph.h"
+
+#include <cmath>
+#include <cstring>
+
+#include <iostream>
+#include <Eigen/Eigen>
 #include "fix_smd_tlsph_reference_configuration.h"
 #include "atom.h"
 #include "domain.h"
@@ -41,12 +39,9 @@
 #include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
-#include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
-#include "math_special.h"
-#include "update.h"
 #include "smd_material_models.h"
 #include "smd_kernels.h"
 #include "smd_math.h"
@@ -68,28 +63,28 @@ using namespace SMD_Math;
 PairTlsph::PairTlsph(LAMMPS *lmp) :
                 Pair(lmp) {
 
-        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = NULL;
+        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
 
-        failureModel = NULL;
-        strengthModel = eos = NULL;
+        failureModel = nullptr;
+        strengthModel = eos = nullptr;
 
         nmax = 0; // make sure no atom on this proc such that initial memory allocation is correct
-        Fdot = Fincr = K = PK1 = NULL;
-        R = FincrInv = W = D = NULL;
-        detF = NULL;
-        smoothVelDifference = NULL;
-        numNeighsRefConfig = NULL;
-        CauchyStress = NULL;
-        hourglass_error = NULL;
-        Lookup = NULL;
-        particle_dt = NULL;
+        Fdot = Fincr = K = PK1 = nullptr;
+        R = FincrInv = W = D = nullptr;
+        detF = nullptr;
+        smoothVelDifference = nullptr;
+        numNeighsRefConfig = nullptr;
+        CauchyStress = nullptr;
+        hourglass_error = nullptr;
+        Lookup = nullptr;
+        particle_dt = nullptr;
 
         updateFlag = 0;
         first = true;
         dtCFL = 0.0; // initialize dtCFL so it is set to safe value if extracted on zero-th timestep
 
         comm_forward = 22; // this pair style communicates 20 doubles to ghost atoms : PK1 tensor + F tensor + shepardWeight
-        fix_tlsph_reference_configuration = NULL;
+        fix_tlsph_reference_configuration = nullptr;
 
         cut_comm = MAX(neighbor->cutneighmax, comm->cutghostuser); // cutoff radius within which ghost atoms are communicated.
 }
@@ -185,11 +180,11 @@ void PairTlsph::PreCompute() {
                         h = 2.0 * radius[i];
                         r0 = 0.0;
                         spiky_kernel_and_derivative(h, r0, domain->dimension, wf, wfd);
-                        shepardWeight = wf * voli;
 
                         jnum = npartner[i];
                         irad = radius[i];
                         voli = vfrac[i];
+                        shepardWeight = wf * voli;
 
                         // initialize Eigen data structures from LAMMPS data structures
                         for (idim = 0; idim < 3; idim++) {
@@ -308,7 +303,7 @@ void PairTlsph::PreCompute() {
                          */
 
                         if ((detF[i] < DETF_MIN) || (detF[i] > DETF_MAX) || (numNeighsRefConfig[i] == 0)) {
-                                printf("deleting particle [%d] because det(F)=%f is outside stable range %f -- %f \n", tag[i],
+                                printf("deleting particle [" TAGINT_FORMAT "] because det(F)=%f is outside stable range %f -- %f \n", tag[i],
                                                 Fincr[i].determinant(),
                                                 DETF_MIN, DETF_MAX);
                                 printf("nn = %d, damage=%f\n", numNeighsRefConfig[i], damage[i]);
@@ -423,7 +418,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
         double **x0 = atom->x0;
         double **f = atom->f;
         double *vfrac = atom->vfrac;
-        double *de = atom->de;
+        double *desph = atom->desph;
         double *rmass = atom->rmass;
         double *radius = atom->radius;
         double *damage = atom->damage;
@@ -448,10 +443,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
         Matrix3d eye;
         eye.setIdentity();
 
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         /*
          * iterate over pairs of particles i, j and assign forces using PK1 stress tensor
@@ -600,7 +592,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
                         f[i][0] += sumForces(0);
                         f[i][1] += sumForces(1);
                         f[i][2] += sumForces(2);
-                        de[i] += deltaE;
+                        desph[i] += deltaE;
 
                         // tally atomistic stress tensor
                         if (evflag) {
@@ -686,7 +678,8 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
 
                 } // end loop over jj neighbors of i
 
-                if (shepardWeight != 0.0) {
+                // avoid division by zero and overflow
+                if ((shepardWeight != 0.0) && (fabs(hourglass_error[i]) < 1.0e300)) {
                         hourglass_error[i] /= shepardWeight;
                 }
 
@@ -711,7 +704,7 @@ void PairTlsph::AssembleStress() {
         double *damage = atom->damage;
         double *rmass = atom->rmass;
         double *vfrac = atom->vfrac;
-        double *e = atom->e;
+        double *esph = atom->esph;
         double pInitial, d_iso, pFinal, p_rate, plastic_strain_increment;
         int i, itype;
         int nlocal = atom->nlocal;
@@ -753,7 +746,7 @@ void PairTlsph::AssembleStress() {
                                 d_iso = D[i].trace(); // volumetric part of stretch rate
                                 d_dev = Deviator(D[i]); // deviatoric part of stretch rate
                                 strain = 0.5 * (Fincr[i].transpose() * Fincr[i] - eye);
-                                mass_specific_energy = e[i] / rmass[i]; // energy per unit mass
+                                mass_specific_energy = esph[i] / rmass[i]; // energy per unit mass
                                 rho = rmass[i] / (detF[i] * vfrac[i]);
                                 vol_specific_energy = mass_specific_energy * rho; // energy per current volume
 
@@ -921,7 +914,7 @@ void PairTlsph::settings(int narg, char **arg) {
         /*
          * default value for update_threshold for updates of reference configuration:
          * The maximum relative displacement which is tracked by the construction of LAMMPS' neighborlists
-         * is the folowing.
+         * is the following.
          */
 
         cut_comm = MAX(neighbor->cutneighmax, comm->cutghostuser); // cutoff radius within which ghost atoms are communicated.
@@ -943,7 +936,7 @@ void PairTlsph::settings(int narg, char **arg) {
                         }
 
                         update_method = UPDATE_CONSTANT_THRESHOLD;
-                        update_threshold = force->numeric(FLERR, arg[iarg]);
+                        update_threshold = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                 } else if (strcmp(arg[iarg], "*UPDATE_PAIRWISE") == 0) {
                         iarg++;
@@ -952,7 +945,7 @@ void PairTlsph::settings(int narg, char **arg) {
                         }
 
                         update_method = UPDATE_PAIRWISE_RATIO;
-                        update_threshold = force->numeric(FLERR, arg[iarg]);
+                        update_threshold = utils::numeric(FLERR, arg[iarg],false,lmp);
 
                 } else {
                         char msg[128];
@@ -982,7 +975,7 @@ void PairTlsph::settings(int narg, char **arg) {
                         printf("... will update reference configuration if ratio pairwise distance / smoothing length  exceeds %g\n",
                                         update_threshold);
                 } else if (update_method == UPDATE_NONE) {
-                        printf("... will never update reference configuration");
+                        printf("... will never update reference configuration\n");
                 }
                 printf(
                                 ">>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========\n");
@@ -1010,11 +1003,11 @@ void PairTlsph::coeff(int narg, char **arg) {
         /*
          * check that TLSPH parameters are given only in i,i form
          */
-        if (force->inumeric(FLERR, arg[0]) != force->inumeric(FLERR, arg[1])) {
+        if (utils::inumeric(FLERR, arg[0], false, lmp) != utils::inumeric(FLERR, arg[1], false, lmp)) {
                 sprintf(str, "TLSPH coefficients can only be specified between particles of same type!");
                 error->all(FLERR, str);
         }
-        itype = force->inumeric(FLERR, arg[0]);
+        itype = utils::inumeric(FLERR, arg[0],false,lmp);
 
 // set all eos, strength and failure models to inactive by default
         eos[itype] = EOS_NONE;
@@ -1058,13 +1051,13 @@ void PairTlsph::coeff(int narg, char **arg) {
                 error->all(FLERR, str);
         }
 
-        Lookup[REFERENCE_DENSITY][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-        Lookup[YOUNGS_MODULUS][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-        Lookup[POISSON_RATIO][itype] = force->numeric(FLERR, arg[ioffset + 3]);
-        Lookup[VISCOSITY_Q1][itype] = force->numeric(FLERR, arg[ioffset + 4]);
-        Lookup[VISCOSITY_Q2][itype] = force->numeric(FLERR, arg[ioffset + 5]);
-        Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype] = force->numeric(FLERR, arg[ioffset + 6]);
-        Lookup[HEAT_CAPACITY][itype] = force->numeric(FLERR, arg[ioffset + 7]);
+        Lookup[REFERENCE_DENSITY][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+        Lookup[YOUNGS_MODULUS][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+        Lookup[POISSON_RATIO][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
+        Lookup[VISCOSITY_Q1][itype] = utils::numeric(FLERR, arg[ioffset + 4],false,lmp);
+        Lookup[VISCOSITY_Q2][itype] = utils::numeric(FLERR, arg[ioffset + 5],false,lmp);
+        Lookup[HOURGLASS_CONTROL_AMPLITUDE][itype] = utils::numeric(FLERR, arg[ioffset + 6],false,lmp);
+        Lookup[HEAT_CAPACITY][itype] = utils::numeric(FLERR, arg[ioffset + 7],false,lmp);
 
         Lookup[LAME_LAMBDA][itype] = Lookup[YOUNGS_MODULUS][itype] * Lookup[POISSON_RATIO][itype]
                         / ((1.0 + Lookup[POISSON_RATIO][itype]) * (1.0 - 2.0 * Lookup[POISSON_RATIO][itype]));
@@ -1209,8 +1202,8 @@ void PairTlsph::coeff(int narg, char **arg) {
                                 error->all(FLERR, str);
                         }
 
-                        Lookup[YIELD_STRESS][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                        Lookup[HARDENING_PARAMETER][itype] = force->numeric(FLERR, arg[ioffset + 2]);
+                        Lookup[YIELD_STRESS][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                        Lookup[HARDENING_PARAMETER][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("%60s\n", "Linear elastic / perfectly plastic strength based on strain rate");
@@ -1253,14 +1246,14 @@ void PairTlsph::coeff(int narg, char **arg) {
                                 error->all(FLERR, str);
                         }
 
-                        Lookup[JC_A][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                        Lookup[JC_B][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-                        Lookup[JC_a][itype] = force->numeric(FLERR, arg[ioffset + 3]);
-                        Lookup[JC_C][itype] = force->numeric(FLERR, arg[ioffset + 4]);
-                        Lookup[JC_epdot0][itype] = force->numeric(FLERR, arg[ioffset + 5]);
-                        Lookup[JC_T0][itype] = force->numeric(FLERR, arg[ioffset + 6]);
-                        Lookup[JC_Tmelt][itype] = force->numeric(FLERR, arg[ioffset + 7]);
-                        Lookup[JC_M][itype] = force->numeric(FLERR, arg[ioffset + 8]);
+                        Lookup[JC_A][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                        Lookup[JC_B][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+                        Lookup[JC_a][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
+                        Lookup[JC_C][itype] = utils::numeric(FLERR, arg[ioffset + 4],false,lmp);
+                        Lookup[JC_epdot0][itype] = utils::numeric(FLERR, arg[ioffset + 5],false,lmp);
+                        Lookup[JC_T0][itype] = utils::numeric(FLERR, arg[ioffset + 6],false,lmp);
+                        Lookup[JC_Tmelt][itype] = utils::numeric(FLERR, arg[ioffset + 7],false,lmp);
+                        Lookup[JC_M][itype] = utils::numeric(FLERR, arg[ioffset + 8],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("%60s\n", "Johnson Cook material strength model");
@@ -1378,9 +1371,9 @@ void PairTlsph::coeff(int narg, char **arg) {
                                 error->all(FLERR, str);
                         }
 
-                        Lookup[EOS_SHOCK_C0][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                        Lookup[EOS_SHOCK_S][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-                        Lookup[EOS_SHOCK_GAMMA][itype] = force->numeric(FLERR, arg[ioffset + 3]);
+                        Lookup[EOS_SHOCK_C0][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                        Lookup[EOS_SHOCK_S][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+                        Lookup[EOS_SHOCK_GAMMA][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
                         if (comm->me == 0) {
                                 printf("\n%60s\n", "shock EOS based on strain rate");
                                 printf("%60s : %g\n", "reference speed of sound", Lookup[EOS_SHOCK_C0][itype]);
@@ -1419,13 +1412,13 @@ void PairTlsph::coeff(int narg, char **arg) {
                                 error->all(FLERR, str);
                         }
 
-                        Lookup[EOS_POLYNOMIAL_C0][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                        Lookup[EOS_POLYNOMIAL_C1][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-                        Lookup[EOS_POLYNOMIAL_C2][itype] = force->numeric(FLERR, arg[ioffset + 3]);
-                        Lookup[EOS_POLYNOMIAL_C3][itype] = force->numeric(FLERR, arg[ioffset + 4]);
-                        Lookup[EOS_POLYNOMIAL_C4][itype] = force->numeric(FLERR, arg[ioffset + 5]);
-                        Lookup[EOS_POLYNOMIAL_C5][itype] = force->numeric(FLERR, arg[ioffset + 6]);
-                        Lookup[EOS_POLYNOMIAL_C6][itype] = force->numeric(FLERR, arg[ioffset + 7]);
+                        Lookup[EOS_POLYNOMIAL_C0][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                        Lookup[EOS_POLYNOMIAL_C1][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+                        Lookup[EOS_POLYNOMIAL_C2][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
+                        Lookup[EOS_POLYNOMIAL_C3][itype] = utils::numeric(FLERR, arg[ioffset + 4],false,lmp);
+                        Lookup[EOS_POLYNOMIAL_C4][itype] = utils::numeric(FLERR, arg[ioffset + 5],false,lmp);
+                        Lookup[EOS_POLYNOMIAL_C5][itype] = utils::numeric(FLERR, arg[ioffset + 6],false,lmp);
+                        Lookup[EOS_POLYNOMIAL_C6][itype] = utils::numeric(FLERR, arg[ioffset + 7],false,lmp);
                         if (comm->me == 0) {
                                 printf("\n%60s\n", "polynomial EOS based on strain rate");
                                 printf("%60s : %g\n", "parameter c0", Lookup[EOS_POLYNOMIAL_C0][itype]);
@@ -1470,7 +1463,7 @@ void PairTlsph::coeff(int narg, char **arg) {
 
                         failureModel[itype].failure_max_plastic_strain = true;
                         failureModel[itype].integration_point_wise = true;
-                        Lookup[FAILURE_MAX_PLASTIC_STRAIN_THRESHOLD][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                        Lookup[FAILURE_MAX_PLASTIC_STRAIN_THRESHOLD][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("\n%60s\n", "maximum plastic strain failure criterion");
@@ -1514,7 +1507,7 @@ void PairTlsph::coeff(int narg, char **arg) {
 
                         failureModel[itype].failure_max_pairwise_strain = true;
                         failureModel[itype].integration_point_wise = true;
-                        Lookup[FAILURE_MAX_PAIRWISE_STRAIN_THRESHOLD][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                        Lookup[FAILURE_MAX_PAIRWISE_STRAIN_THRESHOLD][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("\n%60s\n", "maximum pairwise strain failure criterion");
@@ -1554,7 +1547,7 @@ void PairTlsph::coeff(int narg, char **arg) {
 
                         failureModel[itype].failure_max_principal_strain = true;
                         failureModel[itype].integration_point_wise = true;
-                        Lookup[FAILURE_MAX_PRINCIPAL_STRAIN_THRESHOLD][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                        Lookup[FAILURE_MAX_PRINCIPAL_STRAIN_THRESHOLD][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("\n%60s\n", "maximum principal strain failure criterion");
@@ -1591,11 +1584,11 @@ void PairTlsph::coeff(int narg, char **arg) {
                         failureModel[itype].failure_johnson_cook = true;
                         failureModel[itype].integration_point_wise = true;
 
-                        Lookup[FAILURE_JC_D1][itype] = force->numeric(FLERR, arg[ioffset + 1]);
-                        Lookup[FAILURE_JC_D2][itype] = force->numeric(FLERR, arg[ioffset + 2]);
-                        Lookup[FAILURE_JC_D3][itype] = force->numeric(FLERR, arg[ioffset + 3]);
-                        Lookup[FAILURE_JC_D4][itype] = force->numeric(FLERR, arg[ioffset + 4]);
-                        Lookup[FAILURE_JC_EPDOT0][itype] = force->numeric(FLERR, arg[ioffset + 5]);
+                        Lookup[FAILURE_JC_D1][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
+                        Lookup[FAILURE_JC_D2][itype] = utils::numeric(FLERR, arg[ioffset + 2],false,lmp);
+                        Lookup[FAILURE_JC_D3][itype] = utils::numeric(FLERR, arg[ioffset + 3],false,lmp);
+                        Lookup[FAILURE_JC_D4][itype] = utils::numeric(FLERR, arg[ioffset + 4],false,lmp);
+                        Lookup[FAILURE_JC_EPDOT0][itype] = utils::numeric(FLERR, arg[ioffset + 5],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("\n%60s\n", "Johnson-Cook failure criterion");
@@ -1639,7 +1632,7 @@ void PairTlsph::coeff(int narg, char **arg) {
 
                         failureModel[itype].failure_max_principal_stress = true;
                         failureModel[itype].integration_point_wise = true;
-                        Lookup[FAILURE_MAX_PRINCIPAL_STRESS_THRESHOLD][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                        Lookup[FAILURE_MAX_PRINCIPAL_STRESS_THRESHOLD][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("\n%60s\n", "maximum principal stress failure criterion");
@@ -1674,7 +1667,7 @@ void PairTlsph::coeff(int narg, char **arg) {
                         }
 
                         failureModel[itype].failure_energy_release_rate = true;
-                        Lookup[CRITICAL_ENERGY_RELEASE_RATE][itype] = force->numeric(FLERR, arg[ioffset + 1]);
+                        Lookup[CRITICAL_ENERGY_RELEASE_RATE][itype] = utils::numeric(FLERR, arg[ioffset + 1],false,lmp);
 
                         if (comm->me == 0) {
                                 printf("\n%60s\n", "critical energy release rate failure criterion");
@@ -1756,7 +1749,7 @@ void PairTlsph::init_style() {
         if (igroup == -1)
                 error->all(FLERR, "Pair style tlsph requires its particles to be part of a group named tlsph. This group does not exist.");
 
-        if (fix_tlsph_reference_configuration == NULL) {
+        if (fix_tlsph_reference_configuration == nullptr) {
                 char **fixarg = new char*[3];
                 fixarg[0] = (char *) "SMD_TLSPH_NEIGHBORS";
                 fixarg[1] = (char *) "tlsph";
@@ -1784,9 +1777,8 @@ void PairTlsph::init_style() {
  optional granular history list
  ------------------------------------------------------------------------- */
 
-void PairTlsph::init_list(int id, NeighList *ptr) {
-        if (id == 0)
-                list = ptr;
+void PairTlsph::init_list(int id, class NeighList *ptr) {
+  if (id == 0) list = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1794,8 +1786,7 @@ void PairTlsph::init_list(int id, NeighList *ptr) {
  ------------------------------------------------------------------------- */
 
 double PairTlsph::memory_usage() {
-
-        return 118 * nmax * sizeof(double);
+  return 118.0 * nmax * sizeof(double);
 }
 
 /* ----------------------------------------------------------------------
@@ -1834,7 +1825,7 @@ void *PairTlsph::extract(const char *str, int &/*i*/) {
                 return (void *) R;
         }
 
-        return NULL;
+        return nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2044,12 +2035,12 @@ void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d sigmaInitial_d
         int *type = atom->type;
         double *rmass = atom->rmass;
 //double *vfrac = atom->vfrac;
-        double *e = atom->e;
+        double *esph = atom->esph;
         double dt = update->dt;
         double yieldStress;
         int itype;
 
-        double mass_specific_energy = e[i] / rmass[i]; // energy per unit mass
+        double mass_specific_energy = esph[i] / rmass[i]; // energy per unit mass
         plastic_strain_increment = 0.0;
         itype = type[i];
 

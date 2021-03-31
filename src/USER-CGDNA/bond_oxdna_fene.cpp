@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,17 +14,17 @@
    Contributing author: Oliver Henrich (University of Strathclyde, Glasgow)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "bond_oxdna_fene.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "update.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
+
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 
@@ -55,8 +55,8 @@ BondOxdnaFene::~BondOxdnaFene()
 /* ----------------------------------------------------------------------
     compute vector COM-sugar-phosphate backbone interaction site in oxDNA
 ------------------------------------------------------------------------- */
-void BondOxdnaFene::compute_interaction_sites(double e1[3],
-  double /*e2*/[3], double r[3])
+void BondOxdnaFene::compute_interaction_sites(double e1[3], double /*e2*/[3],
+  double /*e3*/[3], double r[3])
 {
   double d_cs=-0.4;
 
@@ -64,6 +64,90 @@ void BondOxdnaFene::compute_interaction_sites(double e1[3],
   r[1] = d_cs*e1[1];
   r[2] = d_cs*e1[2];
 
+}
+
+/* ----------------------------------------------------------------------
+   tally energy and virial into global and per-atom accumulators
+------------------------------------------------------------------------- */
+
+void BondOxdnaFene::ev_tally_xyz(int i, int j, int nlocal, int newton_bond,
+                    double ebond,
+                    double fx, double fy, double fz,
+                    double delx, double dely, double delz)
+{
+  double ebondhalf,v[6];
+
+  if (eflag_either) {
+    if (eflag_global) {
+      if (newton_bond) energy += ebond;
+      else {
+        ebondhalf = 0.5*ebond;
+        if (i < nlocal) energy += ebondhalf;
+        if (j < nlocal) energy += ebondhalf;
+      }
+    }
+    if (eflag_atom) {
+      ebondhalf = 0.5*ebond;
+      if (newton_bond || i < nlocal) eatom[i] += ebondhalf;
+      if (newton_bond || j < nlocal) eatom[j] += ebondhalf;
+    }
+  }
+
+  if (vflag_either) {
+    v[0] = delx*fx;
+    v[1] = dely*fy;
+    v[2] = delz*fz;
+    v[3] = delx*fy;
+    v[4] = delx*fz;
+    v[5] = dely*fz;
+
+    if (vflag_global) {
+      if (newton_bond) {
+        virial[0] += v[0];
+        virial[1] += v[1];
+        virial[2] += v[2];
+        virial[3] += v[3];
+        virial[4] += v[4];
+        virial[5] += v[5];
+      } else {
+        if (i < nlocal) {
+          virial[0] += 0.5*v[0];
+          virial[1] += 0.5*v[1];
+          virial[2] += 0.5*v[2];
+          virial[3] += 0.5*v[3];
+          virial[4] += 0.5*v[4];
+          virial[5] += 0.5*v[5];
+        }
+        if (j < nlocal) {
+          virial[0] += 0.5*v[0];
+          virial[1] += 0.5*v[1];
+          virial[2] += 0.5*v[2];
+          virial[3] += 0.5*v[3];
+          virial[4] += 0.5*v[4];
+          virial[5] += 0.5*v[5];
+        }
+      }
+    }
+
+    if (vflag_atom) {
+      if (newton_bond || i < nlocal) {
+        vatom[i][0] += 0.5*v[0];
+        vatom[i][1] += 0.5*v[1];
+        vatom[i][2] += 0.5*v[2];
+        vatom[i][3] += 0.5*v[3];
+        vatom[i][4] += 0.5*v[4];
+        vatom[i][5] += 0.5*v[5];
+      }
+      if (newton_bond || j < nlocal) {
+        vatom[j][0] += 0.5*v[0];
+        vatom[j][1] += 0.5*v[1];
+        vatom[j][2] += 0.5*v[2];
+        vatom[j][3] += 0.5*v[3];
+        vatom[j][4] += 0.5*v[4];
+        vatom[j][5] += 0.5*v[5];
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -89,6 +173,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
   AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
 
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
@@ -96,8 +181,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   int newton_bond = force->newton_bond;
 
   ebond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // loop over FENE bonds
 
@@ -107,14 +191,14 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     b = bondlist[in][0];
     type = bondlist[in][2];
 
-    qa=bonus[a].quat;
+    qa=bonus[ellipsoid[a]].quat;
     MathExtra::q_to_exyz(qa,ax,ay,az);
-    qb=bonus[b].quat;
+    qb=bonus[ellipsoid[b]].quat;
     MathExtra::q_to_exyz(qb,bx,by,bz);
 
     // vector COM-backbone site a and b
-    compute_interaction_sites(ax,ay,ra_cs);
-    compute_interaction_sites(bx,by,rb_cs);
+    compute_interaction_sites(ax,ay,az,ra_cs);
+    compute_interaction_sites(bx,by,bz,rb_cs);
 
     // vector backbone site b to a
     delr[0] = x[a][0] + ra_cs[0] - x[b][0] - rb_cs[0];
@@ -138,7 +222,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
               TAGINT_FORMAT " " TAGINT_FORMAT " %g",
               update->ntimestep,atom->tag[a],atom->tag[b],r);
       error->warning(FLERR,str,0);
-      if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
+      rlogarg = 0.1;
     }
 
     fbond = -k[type]*rr0/rlogarg/Deltasq/r;
@@ -183,7 +267,11 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     }
 
     // increment energy and virial
-    if (evflag) ev_tally(a,b,nlocal,newton_bond,ebond,fbond,delr[0],delr[1],delr[2]);
+    // NOTE: The virial is calculated on the 'molecular' basis.
+    // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
+
+    if (evflag) ev_tally_xyz(a,b,nlocal,newton_bond,ebond,
+        delf[0],delf[1],delf[2],x[a][0]-x[b][0],x[a][1]-x[b][1],x[a][2]-x[b][2]);
 
   }
 
@@ -215,11 +303,11 @@ void BondOxdnaFene::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double Delta_one = force->numeric(FLERR,arg[2]);
-  double r0_one = force->numeric(FLERR,arg[3]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double Delta_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
 
@@ -241,29 +329,8 @@ void BondOxdnaFene::coeff(int narg, char **arg)
 
 void BondOxdnaFene::init_style()
 {
-  /* special bonds have to be lj = 0 1 1 and coul = 1 1 1 to exclude
-     the ss excluded volume interaction between nearest neighbors   */
-
-  force->special_lj[1] = 0.0;
-  force->special_lj[2] = 1.0;
-  force->special_lj[3] = 1.0;
-  force->special_coul[1] = 1.0;
-  force->special_coul[2] = 1.0;
-  force->special_coul[3] = 1.0;
-
-  fprintf(screen,"Finding 1-2 1-3 1-4 neighbors ...\n"
-                 " Special bond factors lj:   %-10g %-10g %-10g\n"
-                 " Special bond factors coul: %-10g %-10g %-10g\n",
-                 force->special_lj[1],force->special_lj[2],force->special_lj[3],
-                 force->special_coul[1],force->special_coul[2],force->special_coul[3]);
-
-  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
-      force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
-  {
-    if (comm->me == 0)
-      error->warning(FLERR,"Use special bonds lj = 0,1,1 and coul = 1,1,1 with bond style oxdna/fene");
-  }
-
+  if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
+    error->all(FLERR,"Must use 'special_bonds lj 0 1 1' with bond style oxdna/fene, oxdna2/fene or oxrna2/fene");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -293,9 +360,9 @@ void BondOxdnaFene::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&Delta[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&Delta[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&Delta[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -334,7 +401,7 @@ double BondOxdnaFene::single(int type, double rsq, int /*i*/, int /*j*/,
     sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
             update->ntimestep,sqrt(rsq));
     error->warning(FLERR,str,0);
-    if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
+    rlogarg = 0.1;
   }
 
   double eng = -0.5 * k[type]*log(rlogarg);

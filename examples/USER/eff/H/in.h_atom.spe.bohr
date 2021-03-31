@@ -1,5 +1,4 @@
 variable	sname index h_atom.bohr
-log		${sname}.spe.log
 
 units 		electron
 newton		on

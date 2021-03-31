@@ -22,7 +22,6 @@ PairStyle(reax/c/omp,PairReaxCOMP)
 
 #include "pair_reaxc.h"
 #include "thr_omp.h"
-#include "suffix.h"
 
 namespace LAMMPS_NS {
 
@@ -38,8 +37,10 @@ class PairReaxCOMP : public PairReaxC, public ThrOMP {
   };
 
   inline void ev_setup_thr_proxy(int eflagparm, int vflagparm, int nallparm,
-                                 double *eatomparm, double **vatomparm, ThrData *thrparm) {
-    ev_setup_thr(eflagparm, vflagparm, nallparm, eatomparm, vatomparm, thrparm);
+                                 double *eatomparm, double **vatomparm,
+                                 double **cvatomparm, ThrData *thrparm) {
+    ev_setup_thr(eflagparm, vflagparm, nallparm, eatomparm, vatomparm,
+                 cvatomparm, thrparm);
   };
 
   // reduce per thread data as needed

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,12 +15,13 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
+#include "npair_intel.h"
+
 #include "comm.h"
 #include "domain.h"
-#include "timer.h"
 #include "modify.h"
-#include "npair_intel.h"
-#include "nstencil.h"
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 
@@ -124,11 +125,11 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   const int e_nall = nall_t;
 
   const int molecular = atom->molecular;
-  int *ns = NULL;
-  tagint *s = NULL;
+  int *ns = nullptr;
+  tagint *s = nullptr;
   int tag_size = 0, special_size;
   if (buffers->need_tag()) tag_size = e_nall;
-  if (molecular) {
+  if (molecular != Atom::ATOMIC) {
     s = atom->special[0];
     ns = atom->nspecial[0];
     special_size = aend;
@@ -154,12 +155,12 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   const int nlocal = atom->nlocal;
 
   #ifndef _LMP_INTEL_OFFLOAD
-  int * const mask = atom->mask;
-  tagint * const molecule = atom->molecule;
+  int * _noalias const mask = atom->mask;
+  tagint * _noalias const molecule = atom->molecule;
   #endif
 
   int tnum;
-  int *overflow;
+  int * _noalias overflow;
   #ifdef _LMP_INTEL_OFFLOAD
   double *timer_compute;
   if (offload) {
@@ -191,7 +192,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   flt_t * _noalias const ncachez = buffers->get_ncachez();
   int * _noalias const ncachej = buffers->get_ncachej();
   int * _noalias const ncachejtype = buffers->get_ncachejtype();
-  int * _noalias const ncachetag = buffers->get_ncachetag();
+  tagint * _noalias const ncachetag = buffers->get_ncachetag();
   const int ncache_stride = buffers->ncache_stride();
 
   int sb = 1;
@@ -210,7 +211,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
   const int * _noalias const bins = this->bins;
   const int cop = _fix->coprocessor_number();
   const int separate_buffers = _fix->separate_buffers();
-  #pragma offload target(mic:cop) if(offload) \
+  #pragma offload target(mic:cop) if (offload) \
     in(x:length(e_nall+1) alloc_if(0) free_if(0)) \
     in(tag:length(tag_size) alloc_if(0) free_if(0)) \
     in(special:length(special_size*maxspecial) alloc_if(0) free_if(0)) \
@@ -263,7 +264,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
     }
 
     #if defined(_OPENMP)
-    #pragma omp parallel default(none) \
+    #pragma omp parallel LMP_DEFAULT_NONE \
       shared(overflow, nstencilp, binstart, binend)
     #endif
     {
@@ -298,8 +299,8 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
       const int obound = maxnbors * 3;
       #endif
       int ct = (ifrom + tid * 2) * maxnbors;
-      int *neighptr = intel_list + ct;
-      int *neighptr2;
+      int * _noalias neighptr = intel_list + ct;
+      int * _noalias neighptr2;
       if (THREE) neighptr2 = neighptr;
 
       const int toffs = tid * ncache_stride;
@@ -308,7 +309,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
       flt_t * _noalias const tz = ncachez + toffs;
       int * _noalias const tj = ncachej + toffs;
       int * _noalias const tjtype = ncachejtype + toffs;
-      int * _noalias const ttag = ncachetag + toffs;
+      tagint * _noalias const ttag = ncachetag + toffs;
 
       flt_t * _noalias itx;
       flt_t * _noalias ity;
@@ -360,7 +361,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             if (THREE) ttag[u] = tag[j];
           }
 
-          if (FULL == 0 || TRI == 1) {
+          if (FULL == 0 && TRI != 1) {
             icount = 0;
             istart = ncount;
             IP_PRE_edge_align(istart, sizeof(int));
@@ -392,7 +393,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
         // ---------------------- Loop over i bin
 
         int n = 0;
-        if (FULL == 0 || TRI == 1) {
+        if (FULL == 0 && TRI != 1) {
           #if defined(LMP_SIMD_COMPILER)
           #pragma vector aligned
           #pragma ivdep
@@ -501,7 +502,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           }
 
           if (THREE) {
-            const int jtag = ttag[u];
+            const tagint jtag = ttag[u];
             int flist = 0;
             if (itag > jtag) {
               if (((itag+jtag) & 1) == 0) flist = 1;
@@ -525,7 +526,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           }
         } // for u
 
-        if (molecular) {
+        if (molecular != Atom::ATOMIC) {
           if (!THREE) neighptr2 = neighptr;
           int alln = n;
 

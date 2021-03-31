@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,11 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_nvt_intel.h"
+
+#include "error.h"
 #include "group.h"
 #include "modify.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -26,25 +28,15 @@ FixNVTIntel::FixNVTIntel(LAMMPS *lmp, int narg, char **arg) :
   FixNHIntel(lmp, narg, arg)
 {
   if (!tstat_flag)
-    error->all(FLERR,"Temperature control must be used with fix nvt");
+    error->all(FLERR,"Temperature control must be used with fix nvt/intel");
   if (pstat_flag)
-    error->all(FLERR,"Pressure control can not be used with fix nvt");
+    error->all(FLERR,"Pressure control can not be used with fix nvt/intel");
 
   // create a new compute temp style
   // id = fix-ID + temp
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp";
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   tcomputeflag = 1;
 }
 

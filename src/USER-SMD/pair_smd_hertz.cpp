@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,23 +26,21 @@
    Contributing author: Mike Parks (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdlib>
-#include <cstring>
 #include "pair_smd_hertz.h"
+
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -53,9 +51,9 @@ using namespace LAMMPS_NS;
 PairHertz::PairHertz(LAMMPS *lmp) :
                 Pair(lmp) {
 
-        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = NULL;
-        bulkmodulus = NULL;
-        kn = NULL;
+        onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
+        bulkmodulus = nullptr;
+        kn = nullptr;
         scale = 1.0;
 }
 
@@ -87,10 +85,7 @@ void PairHertz::compute(int eflag, int vflag) {
         double *rmass = atom->rmass;
 
         evdwl = 0.0;
-        if (eflag || vflag)
-                ev_setup(eflag, vflag);
-        else
-                evflag = vflag_fdotr = 0;
+        ev_init(eflag, vflag);
 
         double **f = atom->f;
         double **x = atom->x;
@@ -245,7 +240,7 @@ void PairHertz::settings(int narg, char **arg) {
         if (narg != 1)
                 error->all(FLERR, "Illegal number of args for pair_style hertz");
 
-        scale = force->numeric(FLERR, arg[0]);
+        scale = utils::numeric(FLERR, arg[0],false,lmp);
         if (comm->me == 0) {
                 printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
                 printf("SMD/HERTZ CONTACT SETTINGS:\n");
@@ -266,8 +261,8 @@ void PairHertz::coeff(int narg, char **arg) {
                 allocate();
 
         int ilo, ihi, jlo, jhi;
-        force->bounds(FLERR,arg[0], atom->ntypes, ilo, ihi);
-        force->bounds(FLERR,arg[1], atom->ntypes, jlo, jhi);
+        utils::bounds(FLERR,arg[0], 1, atom->ntypes, ilo, ihi, error);
+        utils::bounds(FLERR,arg[1], 1, atom->ntypes, jlo, jhi, error);
 
         double bulkmodulus_one = atof(arg[2]);
 
@@ -379,6 +374,6 @@ void *PairHertz::extract(const char *str, int &/*i*/) {
                 return (void *) &stable_time_increment;
         }
 
-        return NULL;
+        return nullptr;
 
 }

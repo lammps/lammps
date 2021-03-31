@@ -1,0 +1,98 @@
+LAMMPS (9 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+# eFF benchmark of H plasma
+
+units 		electron
+atom_style	electron
+
+read_data  	data.eff
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (41.911791 41.911791 41.911791)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  32000 atoms
+  reading velocities ...
+  32000 velocities
+  read_data CPU = 0.040 seconds
+
+pair_style      eff/cut 12
+pair_coeff	* *
+
+neigh_modify    one 6000 page 60000
+
+comm_modify	vel yes
+
+compute         effTemp all temp/eff
+
+thermo          5
+thermo_style    custom step etotal pe ke temp press
+thermo_modify   temp effTemp
+
+fix		1 all nve/eff
+
+run		100
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 6000, page size: 60000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eff/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 371.5 | 371.5 | 371.5 Mbytes
+Step TotEng PotEng KinEng Temp Press 
+       0    4046.5854    796.63785    3249.9475    42763.133 4.4764483e+12 
+       5    4046.5854    796.95799    3249.6274     42758.92 4.4728546e+12 
+      10    4046.5854    797.71165    3248.8737    42749.004 4.4690821e+12 
+      15    4046.5854     798.8949    3247.6905    42733.435 4.4651331e+12 
+      20    4046.5854    800.50332    3246.0821    42712.271 4.4610102e+12 
+      25    4046.5854    802.53206    3244.0534    42685.577 4.456716e+12 
+      30    4046.5855    804.97579    3241.6097    42653.422 4.4522535e+12 
+      35    4046.5855    807.82873    3238.7567    42615.883 4.4476257e+12 
+      40    4046.5855    811.08467    3235.5008    42573.041 4.4428357e+12 
+      45    4046.5855    814.73696    3231.8485    42524.984 4.437887e+12 
+      50    4046.5855    818.77851     3227.807    42471.806 4.432783e+12 
+      55    4046.5855    823.20183    3223.3837    42413.603 4.4275273e+12 
+      60    4046.5856    827.99901    3218.5866    42350.482 4.4221238e+12 
+      65    4046.5856    833.16176    3213.4238     42282.55 4.4165764e+12 
+      70    4046.5856    838.68137    3207.9042    42209.923 4.4108891e+12 
+      75    4046.5856    844.54877    3202.0369    42132.719 4.4050662e+12 
+      80    4046.5857    850.75454    3195.8311    42051.064 4.399112e+12 
+      85    4046.5857    857.28886    3189.2968    41965.085 4.393031e+12 
+      90    4046.5857    864.14162    3182.4441    41874.916 4.3868277e+12 
+      95    4046.5857    871.30234    3175.2834    41780.695 4.3805068e+12 
+     100    4046.5858    878.76023    3167.8255    41682.563 4.3740731e+12 
+Loop time of 344.943 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 25.048 fs/day, 0.958 hours/fs, 0.290 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 344.71     | 344.71     | 344.71     |   0.0 | 99.93
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.1763     | 0.1763     | 0.1763     |   0.0 |  0.05
+Output  | 0.0024362  | 0.0024362  | 0.0024362  |   0.0 |  0.00
+Modify  | 0.030869   | 0.030869   | 0.030869   |   0.0 |  0.01
+Other   |            | 0.02272    |            |       |  0.01
+
+Nlocal:        32000.0 ave       32000 max       32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:       114349.0 ave      114349 max      114349 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    8.10572e+07 ave 8.10572e+07 max 8.10572e+07 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 81057159
+Ave neighs/atom = 2533.0362
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:05:49

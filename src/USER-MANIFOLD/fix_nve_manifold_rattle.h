@@ -21,7 +21,7 @@
    This file is part of the user-manifold package written by
    Stefan Paquay at the Eindhoven University of Technology.
    This module makes it possible to do MD with particles constrained
-   to pretty arbitrary manifolds characterised by some constraint function
+   to pretty arbitrary manifolds characterized by some constraint function
    g(x,y,z) = 0 and its normal grad(g). The number of manifolds available
    right now is limited but can be extended straightforwardly by making
    a new class that inherits from manifold and implements all pure virtual
@@ -42,12 +42,10 @@ FixStyle(nve/manifold/rattle,FixNVEManifoldRattle)
 #define LMP_FIX_NVE_MANIFOLD_RATTLE_H
 
 #include "fix.h"
-#include "manifold.h"
-
 
 namespace LAMMPS_NS {
 
-// namespace user_manifold {
+namespace user_manifold { class manifold; }
 
   class FixNVEManifoldRattle : public Fix {
    public:
@@ -76,7 +74,7 @@ namespace LAMMPS_NS {
     virtual void reset_dt();
     virtual void end_of_step();
     virtual int dof(int);
-    virtual void setup(int){}  // Not needed for fixNVE but is for fixNVT
+    virtual void setup(int) {}  // Not needed for fixNVE but is for fixNVT
     virtual double memory_usage();
 
    protected:
@@ -98,9 +96,7 @@ namespace LAMMPS_NS {
 
     user_manifold::manifold *ptr_m;
 
-
     void print_stats( const char * );
-
     int was_var( const char * );
 
     virtual void update_var_params();
@@ -129,7 +125,7 @@ E: There is no manifold named ...
 Self-explanatory.  You requested a manifold whose name was not
 registered at the factory.
 
-E: Manifold pointer was NULL for some reason!
+E: Manifold pointer was nullptr for some reason!
 
 This indicates a bug.  The factory was unable to properly create
 the requested manifold even though it was registered. Send the
@@ -140,7 +136,7 @@ E: Manifold ... needs at least ... argument(s)!
 Self-explanatory.  Provide enough arguments for the proper
 creating of the requested manifold.
 
-E: Parameter pointer was NULL!
+E: Parameter pointer was nullptr!
 
 This indicates a bug.  The array that contains the parameters
 could not be allocated. Send the maintainer an e-mail.

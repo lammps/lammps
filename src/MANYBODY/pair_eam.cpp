@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +15,11 @@
    Contributing authors: Stephen Foiles (SNL), Murray Daw (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam.h"
+
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -27,6 +27,10 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
+
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
 
@@ -38,27 +42,31 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
 {
   restartinfo = 0;
   manybody_flag = 1;
+  embedstep = -1;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   nmax = 0;
-  rho = NULL;
-  fp = NULL;
-  map = NULL;
-  type2frho = NULL;
+  rho = nullptr;
+  fp = nullptr;
+  numforce = nullptr;
+  type2frho = nullptr;
 
   nfuncfl = 0;
-  funcfl = NULL;
+  funcfl = nullptr;
 
-  setfl = NULL;
-  fs = NULL;
+  setfl = nullptr;
+  fs = nullptr;
 
-  frho = NULL;
-  rhor = NULL;
-  z2r = NULL;
-  scale = NULL;
+  frho = nullptr;
+  rhor = nullptr;
+  z2r = nullptr;
+  scale = nullptr;
 
-  frho_spline = NULL;
-  rhor_spline = NULL;
-  z2r_spline = NULL;
+  rhomax = rhomin = 0.0;
+
+  frho_spline = nullptr;
+  rhor_spline = nullptr;
+  z2r_spline = nullptr;
 
   // set comm size needed by this Pair
 
@@ -76,14 +84,13 @@ PairEAM::~PairEAM()
 
   memory->destroy(rho);
   memory->destroy(fp);
+  memory->destroy(numforce);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
-    map = NULL;
-    type2frho = NULL;
+    type2frho = nullptr;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
     memory->destroy(scale);
@@ -97,29 +104,29 @@ PairEAM::~PairEAM()
       memory->destroy(funcfl[i].zr);
     }
     memory->sfree(funcfl);
-    funcfl = NULL;
+    funcfl = nullptr;
   }
 
   if (setfl) {
     for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
-    delete [] setfl->mass;
+    memory->destroy(setfl->mass);
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
     delete setfl;
-    setfl = NULL;
+    setfl = nullptr;
   }
 
   if (fs) {
     for (int i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
     delete [] fs->elements;
-    delete [] fs->mass;
+    memory->destroy(fs->mass);
     memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);
     delete fs;
-    fs = NULL;
+    fs = nullptr;
   }
 
   memory->destroy(frho);
@@ -142,8 +149,7 @@ void PairEAM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // grow energy and fp arrays if necessary
   // need to be atom->nmax in length
@@ -151,9 +157,11 @@ void PairEAM::compute(int eflag, int vflag)
   if (atom->nmax > nmax) {
     memory->destroy(rho);
     memory->destroy(fp);
+    memory->destroy(numforce);
     nmax = atom->nmax;
     memory->create(rho,nmax,"pair:rho");
     memory->create(fp,nmax,"pair:fp");
+    memory->create(numforce,nmax,"pair:numforce");
   }
 
   double **x = atom->x;
@@ -242,6 +250,7 @@ void PairEAM::compute(int eflag, int vflag)
   // communicate derivative of embedding function
 
   comm->forward_comm_pair(this);
+  embedstep = update->ntimestep;
 
   // compute forces on each atom
   // loop over neighbors of my atoms
@@ -255,6 +264,7 @@ void PairEAM::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    numforce[i] = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -266,6 +276,7 @@ void PairEAM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
+        ++numforce[i];
         jtype = type[j];
         r = sqrt(rsq);
         p = r*rdr + 1.0;
@@ -334,6 +345,7 @@ void PairEAM::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  delete[] map;
   map = new int[n+1];
   for (int i = 1; i <= n; i++) map[i] = -1;
 
@@ -366,8 +378,8 @@ void PairEAM::coeff(int narg, char **arg)
   // parse pair of atom types
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   // read funcfl file if hasn't already been read
   // store filename in Funcfl data struct
@@ -417,6 +429,7 @@ void PairEAM::init_style()
   array2spline();
 
   neighbor->request(this,instance_me);
+  embedstep = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -452,54 +465,68 @@ void PairEAM::read_file(char *filename)
 {
   Funcfl *file = &funcfl[nfuncfl-1];
 
-  int me = comm->me;
-  FILE *fptr;
-  char line[MAXLINE];
+  // read potential file
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
 
-  if (me == 0) {
-    fptr = force->open_potential(filename);
-    if (fptr == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open EAM potential file %s",filename);
-      error->one(FLERR,str);
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
+    try {
+      reader.skip_line();
+
+      ValueTokenizer values = reader.next_values(2);
+      values.next_int(); // ignore
+      file->mass = values.next_double();
+
+      values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr   = values.next_int();
+      file->dr   = values.next_double();
+      file->cut  = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR,"Invalid EAM potential file");
+
+      memory->create(file->frho, (file->nrho+1), "pair:frho");
+      memory->create(file->rhor, (file->nr+1), "pair:rhor");
+      memory->create(file->zr, (file->nr+1), "pair:zr");
+
+      reader.next_dvector(&file->frho[1], file->nrho);
+      reader.next_dvector(&file->zr[1], file->nr);
+      reader.next_dvector(&file->rhor[1], file->nr);
+
+      if (unit_convert) {
+        const double sqrt_conv = sqrt(conversion_factor);
+        for (int i = 1; i <= file->nrho; ++i)
+          file->frho[i] *= conversion_factor;
+        for (int j = 1; j <= file->nr; ++j)
+          file->zr[j] *= sqrt_conv;
+      }
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
     }
   }
 
-  int tmp,nwords;
-  if (me == 0) {
-    fgets(line,MAXLINE,fptr);
-    fgets(line,MAXLINE,fptr);
-    sscanf(line,"%d %lg",&tmp,&file->mass);
-    fgets(line,MAXLINE,fptr);
-    nwords = sscanf(line,"%d %lg %d %lg %lg",
-           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+  MPI_Bcast(&file->mass, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+
+  if (comm->me != 0) {
+    memory->create(file->frho, (file->nrho+1), "pair:frho");
+    memory->create(file->rhor, (file->nr+1), "pair:rhor");
+    memory->create(file->zr, (file->nr+1), "pair:zr");
   }
 
-  MPI_Bcast(&nwords,1,MPI_INT,0,world);
-  MPI_Bcast(&file->mass,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
-  MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->nr,1,MPI_INT,0,world);
-  MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
-
-  if ((nwords != 5) || (file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
-    error->all(FLERR,"Invalid EAM potential file");
-
-  memory->create(file->frho,(file->nrho+1),"pair:frho");
-  memory->create(file->rhor,(file->nr+1),"pair:rhor");
-  memory->create(file->zr,(file->nr+1),"pair:zr");
-
-  if (me == 0) grab(fptr,file->nrho,&file->frho[1]);
-  MPI_Bcast(&file->frho[1],file->nrho,MPI_DOUBLE,0,world);
-
-  if (me == 0) grab(fptr,file->nr,&file->zr[1]);
-  MPI_Bcast(&file->zr[1],file->nr,MPI_DOUBLE,0,world);
-
-  if (me == 0) grab(fptr,file->nr,&file->rhor[1]);
-  MPI_Bcast(&file->rhor[1],file->nr,MPI_DOUBLE,0,world);
-
-  if (me == 0) fclose(fptr);
+  MPI_Bcast(&file->frho[1], file->nrho, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->zr[1], file->nr, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->rhor[1], file->nr, MPI_DOUBLE, 0, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -642,6 +669,7 @@ void PairEAM::file2array()
 
   // create a z2r array for each file against other files, only for I >= J
   // interpolate zri and zrj to a single grid and cutoff
+  // final z2r includes unit conversion of 27.2 eV/Hartree and 0.529 Ang/Bohr
 
   double zri,zrj;
 
@@ -772,26 +800,6 @@ void PairEAM::interpolate(int n, double delta, double *f, double **spline)
   }
 }
 
-/* ----------------------------------------------------------------------
-   grab n values from file fp and put them in list
-   values can be several to a line
-   only called by proc 0
-------------------------------------------------------------------------- */
-
-void PairEAM::grab(FILE *fptr, int n, double *list)
-{
-  char *ptr;
-  char line[MAXLINE];
-
-  int i = 0;
-  while (i < n) {
-    fgets(line,MAXLINE,fptr);
-    ptr = strtok(line," \t\n\r\f");
-    list[i++] = atof(ptr);
-    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 
 double PairEAM::single(int i, int j, int itype, int jtype,
@@ -801,6 +809,26 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   int m;
   double r,p,rhoip,rhojp,z2,z2p,recip,phi,phip,psip;
   double *coeff;
+
+  if (!numforce)
+    error->all(FLERR,"EAM embedding data required for this calculation is missing");
+
+  if ((comm->me == 0) && (embedstep != update->ntimestep)) {
+    error->warning(FLERR,"EAM embedding data not computed for this time step ");
+    embedstep = update->ntimestep;
+  }
+
+  if (numforce[i] > 0) {
+    p = rho[i]*rdrho + 1.0;
+    m = static_cast<int> (p);
+    m = MAX(1,MIN(m,nrho-1));
+    p -= m;
+    p = MIN(p,1.0);
+    coeff = frho_spline[type2frho[itype]][m];
+    phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+    if (rho[i] > rhomax) phi += fp[i] * (rho[i]-rhomax);
+    phi *= 1.0/static_cast<double>(numforce[i]);
+  } else phi = 0.0;
 
   r = sqrt(rsq);
   p = r*rdr + 1.0;
@@ -818,7 +846,7 @@ double PairEAM::single(int i, int j, int itype, int jtype,
   z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
 
   recip = 1.0/r;
-  phi = z2*recip;
+  phi += z2*recip;
   phip = z2p*recip - phi*recip;
   psip = fp[i]*rhojp + fp[j]*rhoip + phip;
   fforce = -psip*recip;
@@ -883,9 +911,9 @@ void PairEAM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairEAM::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }
 
@@ -898,6 +926,9 @@ void PairEAM::swap_eam(double *fp_caller, double **fp_caller_hold)
   double *tmp = fp;
   fp = fp_caller;
   *fp_caller_hold = tmp;
+
+  // skip warning about out-of-sync timestep, since we already warn in the caller
+  embedstep = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -906,5 +937,5 @@ void *PairEAM::extract(const char *str, int &dim)
 {
   dim = 2;
   if (strcmp(str,"scale") == 0) return (void *) scale;
-  return NULL;
+  return nullptr;
 }

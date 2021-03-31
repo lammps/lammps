@@ -29,6 +29,9 @@ class PairHybridOverlay : public PairHybrid {
   PairHybridOverlay(class LAMMPS *);
   virtual ~PairHybridOverlay() {}
   void coeff(int, char **);
+
+  void init_svector();
+  void copy_svector(int,int);
 };
 
 }

@@ -30,8 +30,8 @@ namespace ATC {
                                          string matParamFile,
                                          ExtrinsicModelType extrinsicModel)
     : ATC_Coupling(groupName,perAtomArray,thisFix),
-      nodalAtomicKineticTemperature_(NULL),
-      nodalAtomicConfigurationalTemperature_(NULL)
+      nodalAtomicKineticTemperature_(nullptr),
+      nodalAtomicConfigurationalTemperature_(nullptr)
   {
     // Allocate PhysicsModel 
     create_physics_model(THERMAL, matParamFile);
@@ -103,7 +103,7 @@ namespace ATC {
 
     // always need kinetic energy
     AtomicEnergyForTemperature * atomicTwiceKineticEnergy = new TwiceKineticEnergy(this);
-    AtomicEnergyForTemperature * atomEnergyForTemperature = NULL;
+    AtomicEnergyForTemperature * atomEnergyForTemperature = nullptr;
 
     // Appropriate per-atom quantity based on desired temperature definition
     if (temperatureDef_==KINETIC) {
@@ -364,7 +364,7 @@ namespace ATC {
         (_tiIt_->second)->post_process();
       }
 
-      // auxilliary data
+      // auxiliary data
       for (_tiIt_ = timeIntegrators_.begin(); _tiIt_ != timeIntegrators_.end(); ++_tiIt_) {
         (_tiIt_->second)->output(outputData);
       }

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,8 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_property_chunk.h"
+
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "modify.h"
@@ -26,15 +27,13 @@ using namespace LAMMPS_NS;
 
 ComputePropertyChunk::ComputePropertyChunk(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  idchunk(NULL), count_one(NULL), count_all(NULL)
+  idchunk(nullptr), count_one(nullptr), count_all(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute property/chunk command");
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
 
   init();
 
@@ -255,7 +254,7 @@ void ComputePropertyChunk::allocate()
 double ComputePropertyChunk::memory_usage()
 {
   double bytes = (bigint) nchunk * nvalues * sizeof(double);
-  if (countflag) bytes += (bigint) nchunk * 2 * sizeof(int);
+  if (countflag) bytes += (double) nchunk * 2 * sizeof(int);
   return bytes;
 }
 

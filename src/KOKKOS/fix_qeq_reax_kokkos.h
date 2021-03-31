@@ -26,6 +26,7 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
 #include "kokkos_type.h"
 #include "neigh_list.h"
 #include "neigh_list_kokkos.h"
+#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
@@ -33,9 +34,11 @@ struct TagSparseMatvec1 {};
 struct TagSparseMatvec2 {};
 struct TagSparseMatvec3 {};
 struct TagZeroQGhosts{};
+struct TagFixQEqReaxPackForwardComm {};
+struct TagFixQEqReaxUnpackForwardComm {};
 
 template<class DeviceType>
-class FixQEqReaxKokkos : public FixQEqReax {
+class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -53,8 +56,13 @@ class FixQEqReaxKokkos : public FixQEqReax {
   KOKKOS_INLINE_FUNCTION
   void zero_item(int) const;
 
+  template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void compute_h_item(int, int &, const bool &) const;
+
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void compute_h_team(const typename Kokkos::TeamPolicy <DeviceType> ::member_type &team, int, int) const;
 
   KOKKOS_INLINE_FUNCTION
   void matvec_item(int) const;
@@ -131,14 +139,23 @@ class FixQEqReaxKokkos : public FixQEqReax {
   KOKKOS_INLINE_FUNCTION
   double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixQEqReaxPackForwardComm, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixQEqReaxUnpackForwardComm, const int&) const;
+
   struct params_qeq{
     KOKKOS_INLINE_FUNCTION
-    params_qeq(){chi=0;eta=0;gamma=0;};
+    params_qeq() {chi=0;eta=0;gamma=0;};
     KOKKOS_INLINE_FUNCTION
-    params_qeq(int i){chi=0;eta=0;gamma=0;};
+    params_qeq(int /*i*/) {chi=0;eta=0;gamma=0;};
     F_FLOAT chi, eta, gamma;
   };
 
+  int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
+                       int, int *);
+  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&);
   virtual int pack_forward_comm(int, int *, double *, int, int *);
   virtual void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
@@ -146,9 +163,11 @@ class FixQEqReaxKokkos : public FixQEqReax {
   double memory_usage();
 
  private:
-  int inum;
-  int allocated_flag;
+  int inum,ignum;
+  int allocated_flag, last_allocate;
   int need_dup;
+
+  typename AT::t_int_scalar d_mfill_offset;
 
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType> k_params;
@@ -193,8 +212,13 @@ class FixQEqReaxKokkos : public FixQEqReax {
   HAT::t_ffloat_2d h_s_hist, h_t_hist;
   typename AT::t_ffloat_2d_randomread r_s_hist, r_t_hist;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, DeviceType, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, DeviceType, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
+  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
+
+  int iswap;
+  int first;
+  typename AT::t_int_2d d_sendlist;
+  typename AT::t_xfloat_1d_um d_buf;
 
   void init_shielding_k();
   void init_hist();
@@ -208,11 +232,6 @@ class FixQEqReaxKokkos : public FixQEqReax {
   int nlocal,nall,nmax,newton_pair;
   int count, isuccess;
   double alpha, beta, delta, cutsq;
-
-  int iswap;
-  int first;
-  typename AT::t_int_2d d_sendlist;
-  typename AT::t_xfloat_1d_um v_buf;
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -247,16 +266,50 @@ struct FixQEqReaxKokkosMatVecFunctor  {
   }
 };
 
-template <class DeviceType>
-struct FixQEqReaxKokkosComputeHFunctor  {
-  typedef DeviceType  device_type ;
+template <class DeviceType, int NEIGHFLAG>
+struct FixQEqReaxKokkosComputeHFunctor {
+  int atoms_per_team, vector_length;
+  typedef int value_type;
+  typedef Kokkos::ScratchMemorySpace<DeviceType> scratch_space;
   FixQEqReaxKokkos<DeviceType> c;
+
   FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
+
+  FixQEqReaxKokkosComputeHFunctor(FixQEqReaxKokkos<DeviceType> *c_ptr,
+                                  int _atoms_per_team, int _vector_length)
+    : atoms_per_team(_atoms_per_team), vector_length(_vector_length), c(*c_ptr)  {
+    c.cleanup_copy();
+  };
+
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &m_fill, const bool &final) const {
-    c.compute_h_item(ii,m_fill,final);
+    c.template compute_h_item<NEIGHFLAG>(ii,m_fill,final);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(
+      const typename Kokkos::TeamPolicy<DeviceType>::member_type &team) const {
+    c.template compute_h_team<NEIGHFLAG>(team, atoms_per_team, vector_length);
+  }
+
+  size_t team_shmem_size(int /*team_size*/) const {
+    size_t shmem_size =
+        Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
+            atoms_per_team) + // s_ilist
+        Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
+            atoms_per_team) + // s_numnbrs
+        Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
+            atoms_per_team) + // s_firstnbr
+        Kokkos::View<int **, scratch_space, Kokkos::MemoryUnmanaged>::
+            shmem_size(atoms_per_team, vector_length) + // s_jtype
+        Kokkos::View<int **, scratch_space, Kokkos::MemoryUnmanaged>::
+            shmem_size(atoms_per_team, vector_length) + // s_j
+        Kokkos::View<F_FLOAT **, scratch_space,
+                     Kokkos::MemoryUnmanaged>::shmem_size(atoms_per_team,
+                                                          vector_length); // s_r
+    return shmem_size;
   }
 };
 

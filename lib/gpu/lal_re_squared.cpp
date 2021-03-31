@@ -26,7 +26,7 @@ const char *re_squared_lj=0;
 
 #include "lal_re_squared.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 
 #define RESquaredT RESquared<numtyp, acctyp>
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -116,7 +116,7 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
     host_write[i*4+2]=host_shape[i][2];
   }
   UCL_H_Vec<numtyp4> view4;
-  view4.view((numtyp4*)host_write.begin(),shape.numel(),*(this->ucl_device));
+  view4.view(host_write,shape.numel());
   ucl_copy(shape,view4,false);
 
   well.alloc(ntypes,*(this->ucl_device),UCL_READ_ONLY);
@@ -125,7 +125,7 @@ int RESquaredT::init(const int ntypes, double **host_shape, double **host_well,
     host_write[i*4+1]=host_well[i][1];
     host_write[i*4+2]=host_well[i][2];
   }
-  view4.view((numtyp4*)host_write.begin(),well.numel(),*(this->ucl_device));
+  view4.view(host_write,well.numel());
   ucl_copy(well,view4,false);
 
   _allocated=true;
@@ -172,18 +172,8 @@ double RESquaredT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void RESquaredT::loop(const bool _eflag, const bool _vflag) {
+int RESquaredT::loop(const int eflag, const int vflag) {
   const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
 
   int GX=0, NGX;
   int stride=this->nbor->nbor_pitch();
@@ -201,8 +191,8 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->time_nbor1.stop();
 
       this->time_ellipsoid.start();
-      this->k_ellipsoid.set_size(GX,BX);
-      this->k_ellipsoid.run(&this->atom->x, &this->atom->quat,
+      this->k_elps_sel->set_size(GX,BX);
+      this->k_elps_sel->run(&this->atom->x, &this->atom->quat,
                             &this->shape, &this->well, &this->special_lj,
                             &this->sigma_epsilon, &this->_lj_types,
                             &this->nbor->dev_nbor, &stride,
@@ -218,8 +208,8 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->time_nbor2.stop();
 
       this->time_ellipsoid2.start();
-      this->k_ellipsoid_sphere.set_size(GX,BX);
-      this->k_ellipsoid_sphere.run(&this->atom->x, &this->atom->quat,
+      this->k_elps_sphere_sel->set_size(GX,BX);
+      this->k_elps_sphere_sel->run(&this->atom->x, &this->atom->quat,
                                    &this->shape, &this->well, &this->special_lj,
                                    &this->sigma_epsilon, &this->_lj_types,
                                    &this->nbor->dev_nbor, &stride,
@@ -233,7 +223,7 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
         this->time_nbor3.zero();
         this->time_ellipsoid3.zero();
         this->time_lj.zero();
-        return;
+        return ainum;
       }
 
       // ------------ SPHERE_ELLIPSE ---------------
@@ -249,8 +239,8 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
       this->time_nbor3.stop();
 
       this->time_ellipsoid3.start();
-      this->k_sphere_ellipsoid.set_size(GX,BX);
-      this->k_sphere_ellipsoid.run(&this->atom->x, &this->atom->quat,
+      this->k_sphere_elps_sel->set_size(GX,BX);
+      this->k_sphere_elps_sel->run(&this->atom->x, &this->atom->quat,
                                    &this->shape, &this->well, &this->special_lj,
                                    &this->sigma_epsilon, &this->_lj_types,
                                    &this->nbor->dev_nbor, &stride,
@@ -277,8 +267,8 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
     this->time_lj.start();
     if (this->_last_ellipse<this->ans->inum()) {
       if (this->_shared_types) {
-        this->k_lj_fast.set_size(GX,BX);
-        this->k_lj_fast.run(&this->atom->x, &this->lj1, &this->lj3,
+        this->k_lj_sel->set_size(GX,BX);
+        this->k_lj_sel->run(&this->atom->x, &this->lj1, &this->lj3,
                             &this->special_lj, &stride,
                             &this->nbor->dev_packed, &this->ans->force,
                             &this->ans->engv, &this->dev_error,
@@ -303,8 +293,8 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
                                  ELLIPSE_ELLIPSE,_shared_types,_lj_types);
     this->time_nbor1.stop();
     this->time_ellipsoid.start();
-    this->k_ellipsoid.set_size(GX,BX);
-    this->k_ellipsoid.run(&this->atom->x, &this->atom->quat,
+    this->k_elps_sel->set_size(GX,BX);
+    this->k_elps_sel->run(&this->atom->x, &this->atom->quat,
                           &this->shape, &this->well, &this->special_lj,
                           &this->sigma_epsilon, &this->_lj_types,
                           &this->nbor->dev_nbor, &stride, &this->ans->force,
@@ -312,7 +302,8 @@ void RESquaredT::loop(const bool _eflag, const bool _vflag) {
                           &eflag, &vflag, &ainum, &this->_threads_per_atom);
     this->time_ellipsoid.stop();
   }
+  return ainum;
 }
 
 template class RESquared<PRECISION,ACC_PRECISION>;
-
+}

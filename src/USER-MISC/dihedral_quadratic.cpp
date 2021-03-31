@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,18 +16,18 @@
    [ based on dihedral_helix.cpp Paul Crozier (SNL) ]
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "dihedral_quadratic.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
 #include "force.h"
 #include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -38,7 +38,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) : Dihedral(lmp) {}
+DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) : Dihedral(lmp)
+{
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -65,8 +68,7 @@ void DihedralQuadratic::compute(int eflag, int vflag)
   double s2,cx,cy,cz,cmag,dx,phi,si,siinv,sin2;
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -193,6 +195,8 @@ void DihedralQuadratic::compute(int eflag, int vflag)
     siinv = 1.0/si;
 
     double dphi = phi-phi0[type];
+    if (dphi > MY_PI) dphi -= 2*MY_PI;
+    else if (dphi < -MY_PI) dphi += 2*MY_PI;
     p = k[type]*dphi;
     pd = - 2.0 * p * siinv;
     p = p * dphi;
@@ -285,10 +289,10 @@ void DihedralQuadratic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double phi0_one= force->numeric(FLERR,arg[2]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double phi0_one= utils::numeric(FLERR,arg[2],false,lmp);
 
   // require k >= 0
   if (k_one < 0.0)
@@ -324,8 +328,8 @@ void DihedralQuadratic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi0[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&phi0[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&phi0[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

@@ -18,7 +18,6 @@ AngleStyle(cosine/shift/exp,AngleCosineShiftExp)
 #ifndef LMP_ANGLE_COSINE_SHIFT_EXP_H
 #define LMP_ANGLE_COSINE_SHIFT_EXP_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {

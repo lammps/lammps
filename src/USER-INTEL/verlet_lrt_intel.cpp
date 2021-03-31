@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,7 +45,7 @@ using namespace LAMMPS_NS;
 VerletLRTIntel::VerletLRTIntel(LAMMPS *lmp, int narg, char **arg) :
   Verlet(lmp, narg, arg) {
   #if defined(_LMP_INTEL_LRT_PTHREAD)
-  pthread_mutex_init(&_kmutex,NULL);
+  pthread_mutex_init(&_kmutex,nullptr);
   #endif
 }
 
@@ -66,7 +66,7 @@ void VerletLRTIntel::init()
 {
   Verlet::init();
 
-  _intel_kspace = (PPPMIntel*)(force->kspace_match("pppm/intel", 0));
+  _intel_kspace = (PPPMIntel*)(force->kspace_match("^pppm/intel", 0));
 
   #ifndef LMP_INTEL_USELRT
   error->all(FLERR,
@@ -102,22 +102,24 @@ void VerletLRTIntel::setup(int flag)
   }
 
   #if defined(_LMP_INTEL_LRT_PTHREAD)
+  #if defined(__linux__)
   if (comm->me == 0) {
     cpu_set_t cpuset;
     sched_getaffinity(0, sizeof(cpuset), &cpuset);
     int my_cpu_count = CPU_COUNT(&cpuset);
     if (my_cpu_count < comm->nthreads + 1) {
       char str[128];
-      sprintf(str,"Using %d threads per MPI, but only %d core(s) allocated"
-                  " per MPI",
+      sprintf(str,"Using %d threads per MPI rank, but only %d core(s)"
+                  " allocated for each MPI rank",
               comm->nthreads + 1, my_cpu_count);
       error->warning(FLERR, str);
     }
   }
+  #endif
 
   _kspace_ready = 0;
   _kspace_done = 0;
-  pthread_cond_init(&_kcond, NULL);
+  pthread_cond_init(&_kcond, nullptr);
   pthread_attr_init(&_kspace_attr);
   pthread_attr_setdetachstate(&_kspace_attr, PTHREAD_CREATE_JOINABLE);
   #endif
@@ -169,7 +171,7 @@ void VerletLRTIntel::setup(int flag)
   if (pair_compute_flag) force->pair->compute(eflag,vflag);
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -183,7 +185,7 @@ void VerletLRTIntel::setup(int flag)
   _kspace_done = 0;
   pthread_mutex_unlock(&_kmutex);
   #elif defined(_LMP_INTEL_LRT_11)
-  kspace_thread.join();
+  _kspace_thread.join();
   #endif
 
   if (kspace_compute_flag) _intel_kspace->compute_second(eflag,vflag);
@@ -296,9 +298,9 @@ void VerletLRTIntel::run(int n)
     pthread_cond_signal(&_kcond);
     pthread_mutex_unlock(&_kmutex);
     #elif defined(_LMP_INTEL_LRT_11)
-    std::thread kspace_thread;
+    std::thread _kspace_thread;
     if (kspace_compute_flag)
-      kspace_thread=std::thread([=] {
+      _kspace_thread=std::thread([=] {
         _intel_kspace->compute_first(eflag, vflag);
         timer->stamp(Timer::KSPACE);
       } );
@@ -314,7 +316,7 @@ void VerletLRTIntel::run(int n)
       timer->stamp(Timer::PAIR);
     }
 
-    if (atom->molecular) {
+    if (atom->molecular != Atom::ATOMIC) {
       if (force->bond) force->bond->compute(eflag,vflag);
       if (force->angle) force->angle->compute(eflag,vflag);
       if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -330,7 +332,7 @@ void VerletLRTIntel::run(int n)
     pthread_mutex_unlock(&_kmutex);
     #elif defined(_LMP_INTEL_LRT_11)
     if (kspace_compute_flag)
-      kspace_thread.join();
+      _kspace_thread.join();
     #endif
 
     if (kspace_compute_flag) {
@@ -375,7 +377,7 @@ void VerletLRTIntel::run(int n)
     _kspace_done = 0;
     pthread_cond_signal(&_kcond);
     pthread_mutex_unlock(&_kmutex);
-    pthread_join(_kspace_thread, NULL);
+    pthread_join(_kspace_thread, nullptr);
     pthread_attr_destroy(&_kspace_attr);
   }
   #endif
@@ -426,8 +428,8 @@ void * VerletLRTIntel::k_launch_loop(void *context)
     pthread_mutex_unlock(&(c->_kmutex));
   }
 
-  pthread_exit(NULL);
-  return NULL;
+  pthread_exit(nullptr);
+  return nullptr;
 }
 
 #endif

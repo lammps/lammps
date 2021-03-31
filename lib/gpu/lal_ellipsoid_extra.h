@@ -18,34 +18,35 @@
 
 enum{SPHERE_SPHERE,SPHERE_ELLIPSE,ELLIPSE_SPHERE,ELLIPSE_ELLIPSE};
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex, quat_tex;
+_texture( pos_tex, float4);
+_texture( quat_tex,float4);
 #else
-texture<int4,1> pos_tex, quat_tex;
+_texture_2d( pos_tex,int4);
+_texture_2d( quat_tex,int4);
 #endif
 #else
 #define pos_tex x_
 #define quat_tex qif
 #endif
 
-#define nbor_info_e(nbor_mem, nbor_stride, t_per_atom, ii, offset,           \
-                    i, numj, stride, nbor_end, nbor_begin)                   \
-    i=nbor_mem[ii];                                                          \
-    nbor_begin=ii+nbor_stride;                                               \
-    numj=nbor_mem[nbor_begin];                                               \
-    nbor_begin+=nbor_stride;                                                 \
-    nbor_end=nbor_begin+fast_mul(nbor_stride,numj);                          \
-    nbor_begin+=fast_mul(offset,nbor_stride);                                \
-    stride=fast_mul(t_per_atom,nbor_stride);
+#define nbor_info_e_ss(nbor_mem, nbor_stride, t_per_atom, ii, offset,        \
+                       i, numj, stride, nbor_end, nbor_begin)                \
+  i=nbor_mem[ii];                                                            \
+  nbor_begin=ii+nbor_stride;                                                 \
+  numj=nbor_mem[nbor_begin];                                                 \
+  nbor_begin+=nbor_stride;                                                   \
+  nbor_end=nbor_begin+fast_mul(nbor_stride,numj);                            \
+  nbor_begin+=fast_mul(offset,nbor_stride);                                  \
+  stride=fast_mul(t_per_atom,nbor_stride);
 
-#if (ARCH < 300)
+#if (SHUFFLE_AVAIL == 0)
 
 #define store_answers_t(f, tor, energy, virial, ii, astride, tid,           \
-                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+                        t_per_atom, offset, eflag, vflag, ans, engv, inum)  \
   if (t_per_atom>1) {                                                       \
-    __local acctyp red_acc[7][BLOCK_PAIR];                                  \
     red_acc[0][tid]=f.x;                                                    \
     red_acc[1][tid]=f.y;                                                    \
     red_acc[2][tid]=f.z;                                                    \
@@ -53,6 +54,7 @@ texture<int4,1> pos_tex, quat_tex;
     red_acc[4][tid]=tor.y;                                                  \
     red_acc[5][tid]=tor.z;                                                  \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      simdsync();                                                           \
       if (offset < s) {                                                     \
         for (int r=0; r<6; r++)                                             \
           red_acc[r][tid] += red_acc[r][tid+s];                             \
@@ -64,28 +66,39 @@ texture<int4,1> pos_tex, quat_tex;
     tor.x=red_acc[3][tid];                                                  \
     tor.y=red_acc[4][tid];                                                  \
     tor.z=red_acc[5][tid];                                                  \
-    if (eflag>0 || vflag>0) {                                               \
-      for (int r=0; r<6; r++)                                               \
-        red_acc[r][tid]=virial[r];                                          \
-      red_acc[6][tid]=energy;                                               \
-      for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-        if (offset < s) {                                                   \
-          for (int r=0; r<7; r++)                                           \
-            red_acc[r][tid] += red_acc[r][tid+s];                           \
+    if (EVFLAG && (eflag || vflag)) {                                       \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        for (int r=0; r<6; r++)                                             \
+          red_acc[r][tid]=virial[r];                                        \
+        for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                     \
+          simdsync();                                                       \
+          if (offset < s) {                                                 \
+            for (int r=0; r<6; r++)                                         \
+              red_acc[r][tid] += red_acc[r][tid+s];                         \
+          }                                                                 \
+        }                                                                   \
+        for (int r=0; r<6; r++)                                             \
+          virial[r]=red_acc[r][tid];                                        \
+      }                                                                     \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        red_acc[0][tid]=energy;                                             \
+        for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                     \
+          simdsync();                                                       \
+          if (offset < s) red_acc[0][tid] += red_acc[0][tid+s];             \
         }                                                                   \
       }                                                                     \
-      for (int r=0; r<6; r++)                                               \
-        virial[r]=red_acc[r][tid];                                          \
-      energy=red_acc[6][tid];                                               \
+      energy=red_acc[0][tid];                                               \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
+  if (offset==0 && ii<inum) {                                               \
     __global acctyp *ap1=engv+ii;                                           \
-    if (eflag>0) {                                                          \
+    if (EVFLAG && eflag) {                                                  \
       *ap1=energy*(acctyp)0.5;                                              \
       ap1+=astride;                                                         \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (int i=0; i<6; i++) {                                             \
         *ap1=virial[i]*(acctyp)0.5;                                         \
         ap1+=astride;                                                       \
@@ -98,12 +111,12 @@ texture<int4,1> pos_tex, quat_tex;
 #define acc_answers(f, energy, virial, ii, inum, tid, t_per_atom, offset,   \
                     eflag, vflag, ans, engv)                                \
   if (t_per_atom>1) {                                                       \
-    __local acctyp red_acc[6][BLOCK_PAIR];                                  \
     red_acc[0][tid]=f.x;                                                    \
     red_acc[1][tid]=f.y;                                                    \
     red_acc[2][tid]=f.z;                                                    \
     red_acc[3][tid]=energy;                                                 \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      simdsync();                                                           \
       if (offset < s) {                                                     \
         for (int r=0; r<4; r++)                                             \
           red_acc[r][tid] += red_acc[r][tid+s];                             \
@@ -113,10 +126,11 @@ texture<int4,1> pos_tex, quat_tex;
     f.y=red_acc[1][tid];                                                    \
     f.z=red_acc[2][tid];                                                    \
     energy=red_acc[3][tid];                                                 \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (int r=0; r<6; r++)                                               \
         red_acc[r][tid]=virial[r];                                          \
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
+        simdsync();                                                         \
         if (offset < s) {                                                   \
           for (int r=0; r<6; r++)                                           \
             red_acc[r][tid] += red_acc[r][tid+s];                           \
@@ -126,13 +140,13 @@ texture<int4,1> pos_tex, quat_tex;
         virial[r]=red_acc[r][tid];                                          \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
+  if (offset==0 && ii<inum) {                                               \
     engv+=ii;                                                               \
-    if (eflag>0) {                                                          \
+    if (EVFLAG && eflag) {                                                  \
       *engv+=energy*(acctyp)0.5;                                            \
       engv+=inum;                                                           \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (int i=0; i<6; i++) {                                             \
         *engv+=virial[i]*(acctyp)0.5;                                       \
         engv+=inum;                                                         \
@@ -148,31 +162,31 @@ texture<int4,1> pos_tex, quat_tex;
 #else
 
 #define store_answers_t(f, tor, energy, virial, ii, astride, tid,           \
-                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+                        t_per_atom, offset, eflag, vflag, ans, engv, inum)  \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-        f.x += shfl_xor(f.x, s, t_per_atom);                                \
-        f.y += shfl_xor(f.y, s, t_per_atom);                                \
-        f.z += shfl_xor(f.z, s, t_per_atom);                                \
-        tor.x += shfl_xor(tor.x, s, t_per_atom);                            \
-        tor.y += shfl_xor(tor.y, s, t_per_atom);                            \
-        tor.z += shfl_xor(tor.z, s, t_per_atom);                            \
-        energy += shfl_xor(energy, s, t_per_atom);                          \
+      f.x += shfl_down(f.x, s, t_per_atom);                                 \
+      f.y += shfl_down(f.y, s, t_per_atom);                                 \
+      f.z += shfl_down(f.z, s, t_per_atom);                                 \
+      tor.x += shfl_down(tor.x, s, t_per_atom);                             \
+      tor.y += shfl_down(tor.y, s, t_per_atom);                             \
+      tor.z += shfl_down(tor.z, s, t_per_atom);                             \
+      if (EVFLAG) energy += shfl_down(energy, s, t_per_atom);               \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-          for (int r=0; r<6; r++)                                           \
-            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+        for (int r=0; r<6; r++)                                             \
+          virial[r] += shfl_down(virial[r], s, t_per_atom);                 \
       }                                                                     \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
+  if (offset==0 && ii<inum) {                                               \
     __global acctyp *ap1=engv+ii;                                           \
-    if (eflag>0) {                                                          \
+    if (EVFLAG && eflag) {                                                  \
       *ap1=energy*(acctyp)0.5;                                              \
       ap1+=astride;                                                         \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (int i=0; i<6; i++) {                                             \
         *ap1=virial[i]*(acctyp)0.5;                                         \
         ap1+=astride;                                                       \
@@ -186,25 +200,25 @@ texture<int4,1> pos_tex, quat_tex;
                     eflag, vflag, ans, engv)                                \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
-        f.x += shfl_xor(f.x, s, t_per_atom);                                \
-        f.y += shfl_xor(f.y, s, t_per_atom);                                \
-        f.z += shfl_xor(f.z, s, t_per_atom);                                \
-        energy += shfl_xor(energy, s, t_per_atom);                          \
+      f.x += shfl_down(f.x, s, t_per_atom);                                 \
+      f.y += shfl_down(f.y, s, t_per_atom);                                 \
+      f.z += shfl_down(f.z, s, t_per_atom);                                 \
+      if (EVFLAG) energy += shfl_down(energy, s, t_per_atom);               \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                       \
-          for (int r=0; r<6; r++)                                           \
-            virial[r] += shfl_xor(virial[r], s, t_per_atom);                \
+        for (int r=0; r<6; r++)                                             \
+          virial[r] += shfl_down(virial[r], s, t_per_atom);                 \
       }                                                                     \
     }                                                                       \
   }                                                                         \
-  if (offset==0) {                                                          \
+  if (offset==0 && ii<inum) {                                               \
     engv+=ii;                                                               \
-    if (eflag>0) {                                                          \
+    if (EVFLAG && eflag) {                                                  \
       *engv+=energy*(acctyp)0.5;                                            \
       engv+=inum;                                                           \
     }                                                                       \
-    if (vflag>0) {                                                          \
+    if (EVFLAG && vflag) {                                                  \
       for (int i=0; i<6; i++) {                                             \
         *engv+=virial[i]*(acctyp)0.5;                                       \
         engv+=inum;                                                         \

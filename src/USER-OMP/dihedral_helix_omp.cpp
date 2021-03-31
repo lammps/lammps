@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +15,20 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "dihedral_helix_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "force.h"
-#include "update.h"
-#include "math_const.h"
 #include "error.h"
-
+#include "force.h"
+#include "math_const.h"
+#include "neighbor.h"
 #include "suffix.h"
+#include "update.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -46,17 +48,14 @@ DihedralHelixOMP::DihedralHelixOMP(class LAMMPS *lmp)
 
 void DihedralHelixOMP::compute(int eflag, int vflag)
 {
-
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = 0;
+  ev_init(eflag,vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = neighbor->ndihedrallist;
 
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(eflag,vflag)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
 #endif
   {
     int ifrom, ito, tid;
@@ -64,7 +63,7 @@ void DihedralHelixOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {
@@ -88,7 +87,6 @@ void DihedralHelixOMP::compute(int eflag, int vflag)
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void DihedralHelixOMP::eval(int nfrom, int nto, ThrData * const thr)
 {
-
   int i1,i2,i3,i4,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double edihedral,f1[3],f2[3],f3[3],f4[3];
@@ -213,7 +211,7 @@ void DihedralHelixOMP::eval(int nfrom, int nto, ThrData * const thr)
     if (c < -1.0) c = -1.0;
 
     phi = acos(c);
-    if (dx < 0.0) phi *= -1.0;
+    if (dx > 0.0) phi *= -1.0;
     si = sin(phi);
     if (fabs(si) < SMALLER) si = SMALLER;
     siinv = 1.0/si;

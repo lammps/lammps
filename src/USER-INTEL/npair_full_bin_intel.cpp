@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,12 +16,11 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_full_bin_intel.h"
-#include "neighbor.h"
-#include "neigh_list.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "group.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 
@@ -75,7 +74,7 @@ fbi(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
                      _fix->nbor_pack_width());
 
   int need_ic = 0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     dminimum_image_check(need_ic, neighbor->cutneighmax, neighbor->cutneighmax,
                          neighbor->cutneighmax);
 

@@ -61,14 +61,14 @@ class FixPIMD : public Fix {
 
   void spring_force();
 
-  /* fictious mass */
+  /* fictitious mass */
 
   double fmass, *mass;
 
   /* inter-partition communication */
 
   int max_nsend;
-  int* tag_send;
+  tagint* tag_send;
   double *buf_send;
 
   int max_nlocal;

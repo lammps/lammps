@@ -36,7 +36,7 @@ void WeakEquationPoisson::B_integrand(
 
 //---------------------------------------------------------------------
 void WeakEquationPoisson::BB_tangent_coefficients(
-  const FieldName field,
+  const FieldName /* field */,
   const FIELD_MATS &fields,
   const Material* material,
   DENS_MAT &coefs) const
@@ -47,7 +47,7 @@ void WeakEquationPoisson::BB_tangent_coefficients(
 //---------------------------------------------------------------------
 bool WeakEquationPoisson::N_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
+  const GRAD_FIELD_MATS & /* grad_fields */,
   const Material * material,
   DENS_MAT &flux) const
 {
@@ -56,7 +56,7 @@ bool WeakEquationPoisson::N_integrand(
 
 //---------------------------------------------------------------------
 void WeakEquationPoisson::NN_tangent_coefficients(
-  const FieldName field,
+  const FieldName /* field */,
   const FIELD_MATS &fields,
   const Material* material,
   DENS_MAT &coefs) const
@@ -78,8 +78,8 @@ WeakEquationPoissonConstantRHS::WeakEquationPoissonConstantRHS()
 //---------------------------------------------------------------------
 bool WeakEquationPoissonConstantRHS::N_integrand(
   const FIELD_MATS &fields,
-  const GRAD_FIELD_MATS &grad_fields,
-  const Material * material,
+  const GRAD_FIELD_MATS & /* grad_fields */,
+  const Material * /* material */,
   DENS_MAT &flux) const
 
 {

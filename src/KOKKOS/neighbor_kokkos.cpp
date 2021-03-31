@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,24 +12,26 @@
 ------------------------------------------------------------------------- */
 
 #include "neighbor_kokkos.h"
-#include "atom_kokkos.h"
-#include "pair.h"
-#include "fix.h"
-#include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "update.h"
-#include "atom_masks.h"
-#include "error.h"
-#include "kokkos.h"
-#include "force.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "bond.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "improper.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "neigh_request.h"
+#include "pair.h"
 #include "style_nbin.h"
-#include "style_nstencil.h"
 #include "style_npair.h"
+#include "style_nstencil.h"
 #include "style_ntopo.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -39,10 +41,10 @@ NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp),
   neighbond_host(lmp),neighbond_device(lmp)
 {
   device_flag = 0;
-  bondlist = NULL;
-  anglelist = NULL;
-  dihedrallist = NULL;
-  improperlist = NULL;
+  bondlist = nullptr;
+  anglelist = nullptr;
+  dihedrallist = nullptr;
+  improperlist = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -51,7 +53,7 @@ NeighborKokkos::~NeighborKokkos()
 {
   if (!copymode) {
     memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
-    cutneighsq = NULL;
+    cutneighsq = nullptr;
 
     memoryKK->destroy_kokkos(k_ex_type,ex_type);
     memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
@@ -162,8 +164,6 @@ int NeighborKokkos::check_distance()
 template<class DeviceType>
 int NeighborKokkos::check_distance_kokkos()
 {
-  typedef DeviceType device_type;
-
   double delx,dely,delz;
   double delta,delta1,delta2;
 
@@ -215,7 +215,6 @@ int NeighborKokkos::check_distance_kokkos()
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighborKokkos::operator()(TagNeighborCheckDistance<DeviceType>, const int &i, int &flag) const {
-  typedef DeviceType device_type;
   const X_FLOAT delx = x.view<DeviceType>()(i,0) - xhold.view<DeviceType>()(i,0);
   const X_FLOAT dely = x.view<DeviceType>()(i,1) - xhold.view<DeviceType>()(i,1);
   const X_FLOAT delz = x.view<DeviceType>()(i,2) - xhold.view<DeviceType>()(i,2);
@@ -241,8 +240,6 @@ void NeighborKokkos::build(int topoflag)
 template<class DeviceType>
 void NeighborKokkos::build_kokkos(int topoflag)
 {
-  typedef DeviceType device_type;
-
   int i,m;
 
   ago = 0;
@@ -300,6 +297,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   if (style != Neighbor::NSQ) {
     for (int i = 0; i < nbin; i++) {
+      if (!neigh_bin[i]->kokkos) atomKK->sync(Host,ALL_MASK);
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();
     }
@@ -318,13 +316,12 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   // build topology lists for bonds/angles/etc
 
-  if (atom->molecular && topoflag) build_topology();
+  if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NeighborKokkos::operator()(TagNeighborXhold<DeviceType>, const int &i) const {
-  typedef DeviceType device_type;
   xhold.view<DeviceType>()(i,0) = x.view<DeviceType>()(i,0);
   xhold.view<DeviceType>()(i,1) = x.view<DeviceType>()(i,1);
   xhold.view<DeviceType>()(i,2) = x.view<DeviceType>()(i,2);
@@ -332,7 +329,7 @@ void NeighborKokkos::operator()(TagNeighborXhold<DeviceType>, const int &i) cons
 
 /* ---------------------------------------------------------------------- */
 
-void NeighborKokkos::modify_ex_type_grow_kokkos(){
+void NeighborKokkos::modify_ex_type_grow_kokkos() {
   memoryKK->grow_kokkos(k_ex1_type,ex1_type,maxex_type,"neigh:ex1_type");
   k_ex1_type.modify<LMPHostType>();
   memoryKK->grow_kokkos(k_ex2_type,ex2_type,maxex_type,"neigh:ex2_type");
@@ -340,7 +337,7 @@ void NeighborKokkos::modify_ex_type_grow_kokkos(){
 }
 
 /* ---------------------------------------------------------------------- */
-void NeighborKokkos::modify_ex_group_grow_kokkos(){
+void NeighborKokkos::modify_ex_group_grow_kokkos() {
   memoryKK->grow_kokkos(k_ex1_group,ex1_group,maxex_group,"neigh:ex1_group");
   k_ex1_group.modify<LMPHostType>();
   memoryKK->grow_kokkos(k_ex2_group,ex2_group,maxex_group,"neigh:ex2_group");
@@ -348,15 +345,23 @@ void NeighborKokkos::modify_ex_group_grow_kokkos(){
 }
 
 /* ---------------------------------------------------------------------- */
-void NeighborKokkos::modify_mol_group_grow_kokkos(){
+void NeighborKokkos::modify_mol_group_grow_kokkos() {
   memoryKK->grow_kokkos(k_ex_mol_group,ex_mol_group,maxex_mol,"neigh:ex_mol_group");
   k_ex_mol_group.modify<LMPHostType>();
 }
 
 /* ---------------------------------------------------------------------- */
-void NeighborKokkos::modify_mol_intra_grow_kokkos(){
+void NeighborKokkos::modify_mol_intra_grow_kokkos() {
   memoryKK->grow_kokkos(k_ex_mol_intra,ex_mol_intra,maxex_mol,"neigh:ex_mol_intra");
   k_ex_mol_intra.modify<LMPHostType>();
+}
+
+/* ---------------------------------------------------------------------- */
+void NeighborKokkos::set_binsize_kokkos() {
+  if (!binsizeflag && lmp->kokkos->ngpus > 0) {
+    binsize_user = cutneighmax;
+    binsizeflag = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

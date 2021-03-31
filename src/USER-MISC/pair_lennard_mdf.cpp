@@ -1,7 +1,7 @@
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,28 +16,27 @@
    Contributing author: Paolo Raiteri (Curtin University)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lennard_mdf.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJ_AB_MDF::PairLJ_AB_MDF(LAMMPS *lmp) : Pair(lmp) {}
+PairLennardMDF::PairLennardMDF(LAMMPS *lmp) : Pair(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-PairLJ_AB_MDF::~PairLJ_AB_MDF()
+PairLennardMDF::~PairLennardMDF()
 {
   if (allocated) {
     memory->destroy(setflag);
@@ -57,7 +56,7 @@ PairLJ_AB_MDF::~PairLJ_AB_MDF()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::compute(int eflag, int vflag)
+void PairLennardMDF::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
@@ -65,8 +64,7 @@ void PairLJ_AB_MDF::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -155,7 +153,7 @@ void PairLJ_AB_MDF::compute(int eflag, int vflag)
    allocate all arrays
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::allocate()
+void PairLennardMDF::allocate()
 {
   allocated = 1;
   int n = atom->ntypes;
@@ -182,12 +180,12 @@ void PairLJ_AB_MDF::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::settings(int narg, char **arg)
+void PairLennardMDF::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_inner_global = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  cut_inner_global = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (cut_inner_global <= 0.0 || cut_inner_global > cut_global)
     error->all(FLERR,"Illegal pair_style command");
@@ -209,27 +207,27 @@ void PairLJ_AB_MDF::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::coeff(int narg, char **arg)
+void PairLennardMDF::coeff(int narg, char **arg)
 {
   if (narg != 4 && narg != 6)
     error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double aparm_one = force->numeric(FLERR,arg[2]);
-  double bparm_one = force->numeric(FLERR,arg[3]);
+  double aparm_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double bparm_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
   if (narg == 6) {
-    cut_inner_one = force->numeric(FLERR,arg[4]);
-    cut_one = force->numeric(FLERR,arg[5]);
+    cut_inner_one = utils::numeric(FLERR,arg[4],false,lmp);
+    cut_one = utils::numeric(FLERR,arg[5],false,lmp);
   }
-  if (cut_inner_global <= 0.0 || cut_inner_global > cut_global)
-    error->all(FLERR,"Illegal pair_style command");
+  if (cut_inner_one <= 0.0 || cut_inner_one > cut_one)
+    error->all(FLERR,"Illegal pair_coeff command");
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -250,15 +248,9 @@ void PairLJ_AB_MDF::coeff(int narg, char **arg)
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairLJ_AB_MDF::init_one(int i, int j)
+double PairLennardMDF::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0) {
-    aparm[i][j] = mix_energy(aparm[i][i],aparm[j][j],
-                               bparm[i][i],bparm[j][j]);
-    bparm[i][j] = mix_distance(bparm[i][i],bparm[j][j]);
-    cut_inner[i][j] = mix_distance(cut_inner[i][i],cut_inner[j][j]);
-    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
-  }
+  if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
 
   cut_inner_sq[i][j] = cut_inner[i][j]*cut_inner[i][j];
 
@@ -267,6 +259,7 @@ double PairLJ_AB_MDF::init_one(int i, int j)
   lj3[i][j] = aparm[i][j];
   lj4[i][j] = bparm[i][j];
 
+  cut[j][i] = cut[i][j];
   cut_inner[j][i] = cut_inner[i][j];
   cut_inner_sq[j][i] = cut_inner_sq[i][j];
   lj1[j][i] = lj1[i][j];
@@ -281,7 +274,7 @@ double PairLJ_AB_MDF::init_one(int i, int j)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::write_restart(FILE *fp)
+void PairLennardMDF::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -302,7 +295,7 @@ void PairLJ_AB_MDF::write_restart(FILE *fp)
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::read_restart(FILE *fp)
+void PairLennardMDF::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -311,14 +304,14 @@ void PairLJ_AB_MDF::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&aparm[i][j],sizeof(double),1,fp);
-          fread(&bparm[i][j],sizeof(double),1,fp);
-          fread(&cut_inner[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&aparm[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&bparm[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut_inner[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&aparm[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&bparm[i][j],1,MPI_DOUBLE,0,world);
@@ -332,27 +325,56 @@ void PairLJ_AB_MDF::read_restart(FILE *fp)
   proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::write_restart_settings(FILE *fp)
+void PairLennardMDF::write_restart_settings(FILE *fp)
 {
   fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&cut_global,sizeof(double),1,fp);
+  fwrite(&cut_inner_global,sizeof(double),1,fp);
 }
 
 /* ----------------------------------------------------------------------
   proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairLJ_AB_MDF::read_restart_settings(FILE *fp)
+void PairLennardMDF::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&mix_flag,sizeof(int),1,fp);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_inner_global,sizeof(double),1,fp,nullptr,error);
   }
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_inner_global,1,MPI_DOUBLE,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairLennardMDF::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,aparm[i][i],bparm[i][i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairLennardMDF::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g %g %g\n",
+              i,j,aparm[i][j],bparm[i][j],
+              cut_inner[i][j],cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
+double PairLennardMDF::single(int /*i*/, int /*j*/, int itype, int jtype,
                              double rsq,
                              double /*factor_coul*/, double factor_lj,
                              double &fforce)
@@ -376,7 +398,7 @@ double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
     dt = 30.* d*d * dd*dd * rr / dp;
 
     forcelj = forcelj*tt + philj*dt;
-    philj *= dt;
+    philj *= tt;
   }
 
   fforce = factor_lj*forcelj*r2inv;
@@ -386,10 +408,10 @@ double PairLJ_AB_MDF::single(int /*i*/, int /*j*/, int itype, int jtype,
 
 /* ---------------------------------------------------------------------- */
 
-void *PairLJ_AB_MDF::extract(const char *str, int &dim)
+void *PairLennardMDF::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"aparm") == 0) return (void *) aparm;
-  if (strcmp(str,"bparm") == 0) return (void *) bparm;
-  return NULL;
+  if (strcmp(str,"a") == 0) return (void *) aparm;
+  if (strcmp(str,"b") == 0) return (void *) bparm;
+  return nullptr;
 }

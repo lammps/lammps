@@ -20,7 +20,6 @@ ImproperStyle(fourier,ImproperFourier)
 #ifndef LMP_IMPROPER_FOURIER_H
 #define LMP_IMPROPER_FOURIER_H
 
-#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {

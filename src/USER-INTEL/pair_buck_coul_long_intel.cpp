@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,7 +17,7 @@
 
 #include <cmath>
 #include <cstdio>
-#include <cstdlib>
+
 #include <cstring>
 #include "pair_buck_coul_long_intel.h"
 #include "atom.h"
@@ -73,9 +73,9 @@ void PairBuckCoulLongIntel::compute(int eflag, int vflag,
                                     IntelBuffers<flt_t,acc_t> *buffers,
                                     const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) {
-    ev_setup(eflag,vflag);
-  } else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
@@ -90,7 +90,7 @@ void PairBuckCoulLongIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -200,7 +200,7 @@ void PairBuckCoulLongIntel::eval(const int offload, const int vflag,
   #endif
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload)                 \
+  #pragma offload target(mic:_cop) if (offload)                 \
     in(special_lj,special_coul:length(0) alloc_if(0) free_if(0)) \
     in(c_force, c_energy:length(0) alloc_if(0) free_if(0)) \
     in(rho_inv:length(0) alloc_if(0) free_if(0)) \
@@ -604,7 +604,7 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            const int ntable,
                                                            Memory *memory,
                                                            const int cop) {
-  if ( (ntypes != _ntypes || ntable != _ntable) ) {
+  if ((ntypes != _ntypes || ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -617,10 +617,10 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * odetable = detable;
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
-      if (ospecial_lj != NULL && oc_force != NULL && orho_inv != NULL &&
-          oc_energy != NULL && otable != NULL && oetable != NULL &&
-          odetable != NULL && octable != NULL && odctable != NULL &&
-          ospecial_coul != NULL && _cop >= 0) {
+      if (ospecial_lj != nullptr && oc_force != nullptr && orho_inv != nullptr &&
+          oc_energy != nullptr && otable != nullptr && oetable != nullptr &&
+          odetable != nullptr && octable != nullptr && odctable != nullptr &&
+          ospecial_coul != nullptr && _cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj, ospecial_coul: alloc_if(0) free_if(1)) \
           nocopy(oc_force, oc_energy: alloc_if(0) free_if(1)) \
@@ -662,10 +662,10 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       flt_t * octable = ctable;
       flt_t * odctable = dctable;
       int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != NULL && oc_force != NULL && orho_inv != NULL &&
-          oc_energy != NULL && otable !=NULL && oetable != NULL &&
-          odetable != NULL && octable != NULL && odctable != NULL &&
-          ospecial_coul != NULL && cop >= 0) {
+      if (ospecial_lj != nullptr && oc_force != nullptr && orho_inv != nullptr &&
+          oc_energy != nullptr && otable !=nullptr && oetable != nullptr &&
+          odetable != nullptr && octable != nullptr && odctable != nullptr &&
+          ospecial_coul != nullptr && cop >= 0) {
         #pragma offload_transfer target(mic:cop) \
           nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
           nocopy(ospecial_coul: length(4) alloc_if(1) free_if(0)) \

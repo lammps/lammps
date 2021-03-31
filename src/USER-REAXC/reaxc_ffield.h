@@ -28,6 +28,7 @@
 #define __FFIELD_H_
 
 #include "reaxc_types.h"
+#include <cstdio>
 
 char Read_Force_Field( FILE*, reax_interaction*, control_params* );
 

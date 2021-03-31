@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,26 +16,25 @@
                         Vitaly Dozhdikov (JIHT of RAS) - MOD addition
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_tersoff_mod.h"
-#include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
 
+#include "comm.h"
+#include "error.h"
 #include "math_const.h"
+#include "math_extra.h"
+#include "math_special.h"
+#include "memory.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
+using namespace MathSpecial;
 
-#define MAXLINE 1024
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
@@ -46,145 +45,116 @@ PairTersoffMOD::PairTersoffMOD(LAMMPS *lmp) : PairTersoff(lmp) {}
 
 void PairTersoffMOD::read_file(char *file)
 {
-  int params_per_line = 20;
-  char **words = new char*[params_per_line+1];
-
   memory->sfree(params);
-  params = NULL;
+  params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open Tersoff potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+    PotentialFileReader reader(lmp, file, "tersoff/mod", unit_convert_flag);
+    char * line;
 
-  // read each line out of file, skipping blank lines or leading '#'
-  // store line of params if all 3 element tags are in element list
+    // transparently convert units for supported conversions
 
-  int n,nwords,ielement,jelement,kelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-            eof = 1;
-            fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
-    // strip comment, skip line if blank
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement, kelement;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
-    // concatenate additional lines until have params_per_line words
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-              eof = 1;
-              fclose(fp);
-        } else n = strlen(line) + 1;
+        // load up parameter settings and error check their values
+
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
+
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
+
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].powerm     = values.next_double();
+        params[nparams].lam3       = values.next_double();
+        params[nparams].h          = values.next_double();
+        params[nparams].powern     = values.next_double();
+        params[nparams].beta       = values.next_double();
+        params[nparams].lam2       = values.next_double();
+        params[nparams].bigb       = values.next_double();
+        params[nparams].bigr       = values.next_double();
+        params[nparams].bigd       = values.next_double();
+        params[nparams].lam1       = values.next_double();
+        params[nparams].biga       = values.next_double();
+        params[nparams].powern_del = values.next_double();
+        params[nparams].c1         = values.next_double();
+        params[nparams].c2         = values.next_double();
+        params[nparams].c3         = values.next_double();
+        params[nparams].c4         = values.next_double();
+        params[nparams].c5         = values.next_double();
+        params[nparams].powermint = int(params[nparams].powerm);
+
+        if (unit_convert) {
+          params[nparams].biga *= conversion_factor;
+          params[nparams].bigb *= conversion_factor;
+        }
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
+
+      // currently only allow m exponent of 1 or 3
+      if (params[nparams].powern < 0.0 ||
+          params[nparams].beta < 0.0 ||
+          params[nparams].lam2 < 0.0 ||
+          params[nparams].bigb < 0.0 ||
+          params[nparams].bigr < 0.0 ||
+          params[nparams].bigd < 0.0 ||
+          params[nparams].bigd > params[nparams].bigr ||
+          params[nparams].lam1 < 0.0 ||
+          params[nparams].biga < 0.0 ||
+          params[nparams].powerm - params[nparams].powermint != 0.0 ||
+          (params[nparams].powermint != 3 &&
+          params[nparams].powermint != 1)
+          )
+        error->one(FLERR,"Illegal Tersoff parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in Tersoff potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next line
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].powerm = atof(words[3]);
-    params[nparams].lam3 = atof(words[4]);
-    params[nparams].h = atof(words[5]);
-    params[nparams].powern = atof(words[6]);
-    params[nparams].beta = atof(words[7]);
-    params[nparams].lam2 = atof(words[8]);
-    params[nparams].bigb = atof(words[9]);
-    params[nparams].bigr = atof(words[10]);
-    params[nparams].bigd = atof(words[11]);
-    params[nparams].lam1 = atof(words[12]);
-    params[nparams].biga = atof(words[13]);
-    params[nparams].powern_del = atof(words[14]);
-    params[nparams].c1 = atof(words[15]);
-    params[nparams].c2 = atof(words[16]);
-    params[nparams].c3 = atof(words[17]);
-    params[nparams].c4 = atof(words[18]);
-    params[nparams].c5 = atof(words[19]);
-
-    // currently only allow m exponent of 1 or 3
-
-    params[nparams].powermint = int(params[nparams].powerm);
-
-    if (params[nparams].powern < 0.0 ||
-        params[nparams].beta < 0.0 ||
-        params[nparams].lam2 < 0.0 ||
-        params[nparams].bigb < 0.0 ||
-        params[nparams].bigr < 0.0 ||
-        params[nparams].bigd < 0.0 ||
-        params[nparams].bigd > params[nparams].bigr ||
-        params[nparams].lam1 < 0.0 ||
-        params[nparams].biga < 0.0 ||
-        params[nparams].powerm - params[nparams].powermint != 0.0 ||
-        (params[nparams].powermint != 3 &&
-         params[nparams].powermint != 1)
-        )
-      error->all(FLERR,"Illegal Tersoff parameter");
-
-    nparams++;
   }
 
-  delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -193,12 +163,12 @@ void PairTersoffMOD::setup_params()
 {
   int i,j,k,m,n;
 
-  // set elem2param for all element triplet combinations
+  // set elem3param for all element triplet combinations
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
+  memory->destroy(elem3param);
+  memory->create(elem3param,nelements,nelements,nelements,"pair:elem3param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
@@ -212,7 +182,7 @@ void PairTersoffMOD::setup_params()
           }
         }
         if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-        elem2param[i][j][k] = n;
+        elem3param[i][j][k] = n;
       }
 
 
@@ -222,8 +192,10 @@ void PairTersoffMOD::setup_params()
     params[m].cut = params[m].bigr + params[m].bigd;
     params[m].cutsq = params[m].cut*params[m].cut;
 
-    params[m].ca1 = pow(2.0*params[m].powern_del*1.0e-16,-1.0/params[m].powern);
-    params[m].ca4 = 1.0/params[m].ca1;
+    if (params[m].powern > 0.0) {
+      params[m].ca1 = pow(2.0*params[m].powern_del*1.0e-16,-1.0/params[m].powern);
+      params[m].ca4 = 1.0/params[m].ca1;
+    } else params[m].ca1 = params[m].ca4 = 0.0;
   }
 
   // set cutmax to max of all params
@@ -236,16 +208,15 @@ void PairTersoffMOD::setup_params()
 /* ---------------------------------------------------------------------- */
 
 double PairTersoffMOD::zeta(Param *param, double rsqij, double rsqik,
-                         double *delrij, double *delrik)
+                         double *rij_hat, double *rik_hat)
 {
   double rij,rik,costheta,arg,ex_delr;
 
   rij = sqrt(rsqij);
   rik = sqrt(rsqik);
-  costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] +
-              delrij[2]*delrik[2]) / (rij*rik);
+  costheta = dot3(rij_hat,rik_hat);
 
-  if (param->powermint == 3) arg = pow(param->lam3 * (rij-rik),3.0);
+  if (param->powermint == 3) arg = cube(param->lam3 * (rij-rik));
   else arg = param->lam3 * (rij-rik);
 
   if (arg > 69.0776) ex_delr = 1.e30;
@@ -308,8 +279,8 @@ double PairTersoffMOD::ters_bij_d(double zeta, Param *param)
 /* ---------------------------------------------------------------------- */
 
 void PairTersoffMOD::ters_zetaterm_d(double prefactor,
-                                  double *rij_hat, double rij,
-                                  double *rik_hat, double rik,
+                                  double *rij_hat, double rij, double rijinv,
+                                  double *rik_hat, double rik, double rikinv,
                                   double *dri, double *drj, double *drk,
                                   Param *param)
 {
@@ -318,7 +289,7 @@ void PairTersoffMOD::ters_zetaterm_d(double prefactor,
 
   fc = ters_fc(rik,param);
   dfc = ters_fc_d(rik,param);
-  if (param->powermint == 3) tmp = pow(param->lam3 * (rij-rik),3.0);
+  if (param->powermint == 3) tmp = cube(param->lam3 * (rij-rik));
   else tmp = param->lam3 * (rij-rik);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
@@ -326,40 +297,40 @@ void PairTersoffMOD::ters_zetaterm_d(double prefactor,
   else ex_delr = exp(tmp);
 
   if (param->powermint == 3)
-    ex_delr_d = 3.0*pow(param->lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+    ex_delr_d = 3.0*cube(param->lam3) * square(rij-rik)*ex_delr;
   else ex_delr_d = param->lam3 * ex_delr;
 
-  cos_theta = vec3_dot(rij_hat,rik_hat);
+  cos_theta = dot3(rij_hat,rik_hat);
   gijk = ters_gijk_mod(cos_theta,param);
   gijk_d = ters_gijk_d_mod(cos_theta,param);
-  costheta_d(rij_hat,rij,rik_hat,rik,dcosdri,dcosdrj,dcosdrk);
+  costheta_d(rij_hat,rijinv,rik_hat,rikinv,dcosdri,dcosdrj,dcosdrk);
 
   // compute the derivative wrt Ri
   // dri = -dfc*gijk*ex_delr*rik_hat;
   // dri += fc*gijk_d*ex_delr*dcosdri;
   // dri += fc*gijk*ex_delr_d*(rik_hat - rij_hat);
 
-  vec3_scale(-dfc*gijk*ex_delr,rik_hat,dri);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdri,dri,dri);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rik_hat,dri,dri);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
-  vec3_scale(prefactor,dri,dri);
+  scale3(-dfc*gijk*ex_delr,rik_hat,dri);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdri,dri,dri);
+  scaleadd3(fc*gijk*ex_delr_d,rik_hat,dri,dri);
+  scaleadd3(-fc*gijk*ex_delr_d,rij_hat,dri,dri);
+  scale3(prefactor,dri);
 
   // compute the derivative wrt Rj
   // drj = fc*gijk_d*ex_delr*dcosdrj;
   // drj += fc*gijk*ex_delr_d*rij_hat;
 
-  vec3_scale(fc*gijk_d*ex_delr,dcosdrj,drj);
-  vec3_scaleadd(fc*gijk*ex_delr_d,rij_hat,drj,drj);
-  vec3_scale(prefactor,drj,drj);
+  scale3(fc*gijk_d*ex_delr,dcosdrj,drj);
+  scaleadd3(fc*gijk*ex_delr_d,rij_hat,drj,drj);
+  scale3(prefactor,drj);
 
   // compute the derivative wrt Rk
   // drk = dfc*gijk*ex_delr*rik_hat;
   // drk += fc*gijk_d*ex_delr*dcosdrk;
   // drk += -fc*gijk*ex_delr_d*rik_hat;
 
-  vec3_scale(dfc*gijk*ex_delr,rik_hat,drk);
-  vec3_scaleadd(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
-  vec3_scaleadd(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
-  vec3_scale(prefactor,drk,drk);
+  scale3(dfc*gijk*ex_delr,rik_hat,drk);
+  scaleadd3(fc*gijk_d*ex_delr,dcosdrk,drk,drk);
+  scaleadd3(-fc*gijk*ex_delr_d,rik_hat,drk,drk);
+  scale3(prefactor,drk);
 }

@@ -34,7 +34,7 @@ import math
 class Random(object):
    """Class to interface with the standard pseudo-random number generator.
 
-   Initialises the standard numpy pseudo-random number generator from a seed
+   Initializes the standard numpy pseudo-random number generator from a seed
    at the beginning of the simulation, and keeps track of the state so that
    it can be output to the checkpoint files throughout the simulation.
 
@@ -51,11 +51,11 @@ class Random(object):
    """
 
    def __init__(self, seed=12345, state=None):
-      """Initialises Random.
+      """Initializes Random.
 
       Args:
-         seed: An optional seed giving an integer to initialise the state with.
-         state: An optional state tuple to initialise the state with.
+         seed: An optional seed giving an integer to initialize the state with.
+         state: An optional state tuple to initialize the state with.
       """
 
       self.rng = np.random.mtrand.RandomState(seed=seed)

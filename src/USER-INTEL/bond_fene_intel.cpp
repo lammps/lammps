@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +15,21 @@
    Contributing author: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
+
 #include "bond_fene_intel.h"
+
 #include "atom.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
 #include "suffix.h"
-#include "error.h"
+
+#include <cmath>
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 
@@ -74,8 +77,9 @@ void BondFENEIntel::compute(int eflag, int vflag,
                                 IntelBuffers<flt_t,acc_t> *buffers,
                                 const ForceConst<flt_t> &fc)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
+  if (vflag_atom)
+    error->all(FLERR,"USER-INTEL package does not support per-atom stress");
 
   if (evflag) {
     if (vflag && !eflag) {
@@ -126,7 +130,7 @@ void BondFENEIntel::eval(const int vflag,
   }
 
   #if defined(_OPENMP)
-  #pragma omp parallel default(none) \
+  #pragma omp parallel LMP_DEFAULT_NONE \
     shared(f_start,f_stride,fc)           \
     reduction(+:oebond,ov0,ov1,ov2,ov3,ov4,ov5)
   #endif

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,27 +15,18 @@
    Contributing authors: Stan Moore (Sandia)
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cmath>
-#include "atom.h"
-#include <cstring>
-#include "fix_ave_atom.h"
 #include "fix_reaxc_species_kokkos.h"
-#include "domain.h"
-#include "update.h"
+#include "atom.h"
+#include "fix_ave_atom.h"
+#include "reaxc_defs.h"
 #include "pair_reaxc_kokkos.h"
-#include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "comm.h"
 #include "force.h"
-#include "compute.h"
 #include "input.h"
-#include "variable.h"
 #include "memory_kokkos.h"
 #include "error.h"
-#include "reaxc_list.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
@@ -67,7 +58,7 @@ FixReaxCSpeciesKokkos::~FixReaxCSpeciesKokkos()
 void FixReaxCSpeciesKokkos::init()
 {
   Pair* pair_kk = force->pair_match("reax/c/kk",0);
-  if (pair_kk == NULL) error->all(FLERR,"Cannot use fix reax/c/species/kk without "
+  if (pair_kk == nullptr) error->all(FLERR,"Cannot use fix reax/c/species/kk without "
                   "pair_style reax/c/kk");
 
   FixReaxCSpecies::init();

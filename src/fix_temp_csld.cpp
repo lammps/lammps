@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,22 +15,23 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_temp_csld.h"
+
 #include "atom.h"
-#include "force.h"
-#include "memory.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "group.h"
-#include "update.h"
-#include "modify.h"
 #include "compute.h"
-#include "random_mars.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,33 +43,33 @@ enum{CONSTANT,EQUAL};
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  vhold(NULL), tstr(NULL), id_temp(NULL), random(NULL)
+  vhold(nullptr), tstr(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csld command");
 
   // CSLD thermostat should be applied every step
 
+  restart_global = 1;
   nevery = 1;
   scalar_flag = 1;
+  ecouple_flag = 1;
   global_freq = nevery;
   dynamic_group_allow = 1;
   extscalar = 1;
 
-  tstr = NULL;
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    tstr = new char[n];
-    strcpy(tstr,&arg[3][2]);
+  tstr = nullptr;
+  if (utils::strmatch(arg[3],"^v_")) {
+    tstr = utils::strdup(arg[3]+2);
     tstyle = EQUAL;
   } else {
-    t_start = force->numeric(FLERR,arg[3]);
+    t_start = utils::numeric(FLERR,arg[3],false,lmp);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = force->numeric(FLERR,arg[4]);
-  t_period = force->numeric(FLERR,arg[5]);
-  int seed = force->inumeric(FLERR,arg[6]);
+  t_stop = utils::numeric(FLERR,arg[4],false,lmp);
+  t_period = utils::numeric(FLERR,arg[5],false,lmp);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   // error checks
 
@@ -80,20 +81,11 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   tflag = 1;
 
-  vhold = NULL;
+  vhold = nullptr;
   nmax = -1;
   energy = 0.0;
 }
@@ -111,7 +103,7 @@ FixTempCSLD::~FixTempCSLD()
 
   delete random;
   memory->destroy(vhold);
-  vhold = NULL;
+  vhold = nullptr;
   nmax = -1;
 }
 
@@ -121,7 +113,6 @@ int FixTempCSLD::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -268,9 +259,7 @@ int FixTempCSLD::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -302,6 +291,48 @@ double FixTempCSLD::compute_scalar()
 }
 
 /* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixTempCSLD::write_restart(FILE *fp)
+{
+  const int PRNGSIZE = 98+2+3;
+  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
+  double *list = nullptr;
+  if (comm->me == 0) {
+    list = new double[nsize];
+    list[0] = energy;
+    list[1] = comm->nprocs;
+  }
+  double state[PRNGSIZE];
+  random->get_state(state);
+  MPI_Gather(state,PRNGSIZE,MPI_DOUBLE,list+2,PRNGSIZE,MPI_DOUBLE,0,world);
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),nsize,fp);
+    delete[] list;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixTempCSLD::restart(char *buf)
+{
+  double *list = (double *) buf;
+
+  energy = list[0];
+  int nprocs = (int) list[1];
+  if (nprocs != comm->nprocs) {
+    if (comm->me == 0)
+      error->warning(FLERR,"Different number of procs. Cannot restore RNG state.");
+  } else random->set_state(list+2+comm->me*103);
+}
+
+/* ----------------------------------------------------------------------
    extract thermostat properties
 ------------------------------------------------------------------------- */
 
@@ -311,5 +342,5 @@ void *FixTempCSLD::extract(const char *str, int &dim)
   if (strcmp(str,"t_target") == 0) {
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

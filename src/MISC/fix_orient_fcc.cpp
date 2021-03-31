@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,24 +15,22 @@
    Contributing authors: Koenraad Janssens and David Olmsted (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
-#include <mpi.h>
 #include "fix_orient_fcc.h"
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "math_const.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "comm.h"
-#include "output.h"
-#include "force.h"
-#include "math_const.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -55,8 +53,8 @@ static const char cite_fix_orient_fcc[] =
 
 FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xifilename(NULL), chifilename(NULL), order(NULL), nbr(NULL),
-  sort(NULL), list(NULL)
+  xifilename(nullptr), chifilename(nullptr), order(nullptr), nbr(nullptr),
+  sort(nullptr), list(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_orient_fcc);
 
@@ -67,34 +65,26 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-
+  energy_global_flag = 1;
   peratom_flag = 1;
   size_peratom_cols = 2;
   peratom_freq = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  nstats = force->inumeric(FLERR,arg[3]);
-  direction_of_motion = force->inumeric(FLERR,arg[4]);
-  a = force->numeric(FLERR,arg[5]);
-  Vxi = force->numeric(FLERR,arg[6]);
-  uxif_low = force->numeric(FLERR,arg[7]);
-  uxif_high = force->numeric(FLERR,arg[8]);
+  nstats = utils::inumeric(FLERR,arg[3],false,lmp);
+  direction_of_motion = utils::inumeric(FLERR,arg[4],false,lmp);
+  a = utils::numeric(FLERR,arg[5],false,lmp);
+  Vxi = utils::numeric(FLERR,arg[6],false,lmp);
+  uxif_low = utils::numeric(FLERR,arg[7],false,lmp);
+  uxif_high = utils::numeric(FLERR,arg[8],false,lmp);
 
   if (direction_of_motion == 0) {
-    int n = strlen(arg[9]) + 1;
-    chifilename = new char[n];
-    strcpy(chifilename,arg[9]);
-    n = strlen(arg[10]) + 1;
-    xifilename = new char[n];
-    strcpy(xifilename,arg[10]);
+    chifilename = utils::strdup(arg[9]);
+    xifilename = utils::strdup(arg[10]);
   } else if (direction_of_motion == 1) {
-    int n = strlen(arg[9]) + 1;
-    xifilename = new char[n];
-    strcpy(xifilename,arg[9]);
-    n = strlen(arg[10]) + 1;
-    chifilename = new char[n];
-    strcpy(chifilename,arg[10]);
+    xifilename = utils::strdup(arg[9]);
+    chifilename = utils::strdup(arg[10]);
   } else error->all(FLERR,"Illegal fix orient/fcc command");
 
   // initializations
@@ -113,25 +103,25 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     char *result;
     int count;
 
-    FILE *infile = fopen(xifilename,"r");
-    if (infile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
+    FILE *inpfile = fopen(xifilename,"r");
+    if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
-      result = fgets(line,IMGMAX,infile);
+      result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
     }
-    fclose(infile);
+    fclose(inpfile);
 
-    infile = fopen(chifilename,"r");
-    if (infile == NULL) error->one(FLERR,"Fix orient/fcc file open failed");
+    inpfile = fopen(chifilename,"r");
+    if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < 6; i++) {
-      result = fgets(line,IMGMAX,infile);
+      result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
     }
-    fclose(infile);
+    fclose(inpfile);
   }
 
   MPI_Bcast(&Rxi[0][0],18,MPI_DOUBLE,0,world);
@@ -202,7 +192,6 @@ int FixOrientFCC::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -449,20 +438,12 @@ void FixOrientFCC::post_force(int /*vflag*/)
     MPI_Allreduce(&maxcount,&max,1,MPI_INT,MPI_MAX,world);
 
     if (me == 0) {
-      if (screen) fprintf(screen,
-                          "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
-                          " atoms have %d neighbors\n",
-                          update->ntimestep,atom->natoms,total);
-      if (logfile) fprintf(logfile,
-                           "orient step " BIGINT_FORMAT ": " BIGINT_FORMAT
-                           " atoms have %d neighbors\n",
-                           update->ntimestep,atom->natoms,total);
-      if (screen)
-        fprintf(screen,"  neighs: min = %d, max = %d, ave = %g\n",
-                min,max,ave);
-      if (logfile)
-        fprintf(logfile,"  neighs: min = %d, max = %d, ave = %g\n",
-                min,max,ave);
+      std::string mesg = fmt::format("orient step {}: {} atoms have {} "
+                                     "neighbors\n", update->ntimestep,
+                                     atom->natoms,total);
+      mesg += fmt::format("  neighs: min = {}, max ={}, ave = {}\n",
+                          min,max,ave);
+      utils::logmesg(lmp,mesg);
     }
   }
 }
@@ -604,7 +585,7 @@ int FixOrientFCC::compare(const void *pi, const void *pj)
 
 double FixOrientFCC::memory_usage()
 {
-  double bytes = nmax * sizeof(Nbr);
-  bytes += 2*nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(Nbr);
+  bytes += (double)2*nmax * sizeof(double);
   return bytes;
 }

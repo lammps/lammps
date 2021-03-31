@@ -33,7 +33,7 @@ class PairTersoffMODOMP : public PairTersoffMOD, public ThrOMP {
   virtual double memory_usage();
 
  private:
-  template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
+  template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>
   void eval(int ifrom, int ito, ThrData * const thr);
 };
 

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,40 +12,32 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Ray Shan (SNL), Stan Moore (SNL)
+   Contributing authors: Ray Shan (SNL), Stan Moore (SNL),
+                          Kamesh Arumugam (NVIDIA)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_qeq_reax_kokkos.h"
-#include "kokkos.h"
+
 #include "atom.h"
-#include "atom_masks.h"
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "group.h"
-#include "modify.h"
-#include "neighbor.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "math_const.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "pair_reaxc_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define SMALL 0.0001
 #define EV_TO_KCAL_PER_MOL 14.4
-
-#define TEAMSIZE 128
 
 /* ---------------------------------------------------------------------- */
 
@@ -55,19 +47,22 @@ FixQEqReaxKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReax(lmp, narg, arg)
 {
   kokkosable = 1;
+  forward_comm_device = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | Q_MASK | TYPE_MASK;
-  datamask_modify = Q_MASK | X_MASK;
+  datamask_read = X_MASK | V_MASK | F_MASK | Q_MASK | MASK_MASK | TYPE_MASK | TAG_MASK;
+  datamask_modify = X_MASK;
 
-  nmax = nmax = m_cap = 0;
+  nmax = m_cap = 0;
   allocated_flag = 0;
   nprev = 4;
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
   grow_arrays(atom->nmax);
+
+  d_mfill_offset = typename AT::t_int_scalar("qeq/kk:mfill_offset");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,8 +81,7 @@ FixQEqReaxKokkos<DeviceType>::~FixQEqReaxKokkos()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::init()
 {
-  atomKK->k_q.modify<LMPHostType>();
-  atomKK->k_q.sync<DeviceType>();
+  atomKK->sync(execution_space,Q_MASK);
 
   FixQEqReax::init();
 
@@ -95,10 +89,10 @@ void FixQEqReaxKokkos<DeviceType>::init()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->fix = 1;
@@ -118,7 +112,7 @@ void FixQEqReaxKokkos<DeviceType>::init()
     ("FixQEqReax::params",ntypes+1);
   params = k_params.template view<DeviceType>();
 
-  for (n = 1; n <= ntypes; n++) {
+  for (int n = 1; n <= ntypes; n++) {
     k_params.h_view(n).chi = chi[n];
     k_params.h_view(n).eta = eta[n];
     k_params.h_view(n).gamma = gamma[n];
@@ -129,6 +123,8 @@ void FixQEqReaxKokkos<DeviceType>::init()
 
   init_shielding_k();
   init_hist();
+
+  last_allocate = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -142,8 +138,8 @@ void FixQEqReaxKokkos<DeviceType>::init_shielding_k()
   k_shield = DAT::tdual_ffloat_2d("qeq/kk:shield",ntypes+1,ntypes+1);
   d_shield = k_shield.template view<DeviceType>();
 
-  for( i = 1; i <= ntypes; ++i )
-    for( j = 1; j <= ntypes; ++j )
+  for (i = 1; i <= ntypes; ++i)
+    for (j = 1; j <= ntypes; ++j)
       k_shield.h_view(i,j) = pow( gamma[i] * gamma[j], -1.5 );
 
   k_shield.template modify<LMPHostType>();
@@ -164,6 +160,9 @@ void FixQEqReaxKokkos<DeviceType>::init_shielding_k()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::init_hist()
 {
+  k_s_hist.clear_sync_state();
+  k_t_hist.clear_sync_state();
+
   Kokkos::deep_copy(d_s_hist,0.0);
   Kokkos::deep_copy(d_t_hist,0.0);
 
@@ -184,12 +183,11 @@ void FixQEqReaxKokkos<DeviceType>::setup_pre_force(int vflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
+void FixQEqReaxKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
   if (update->ntimestep % nevery) return;
 
   atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
 
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
@@ -199,7 +197,6 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
   nlocal = atomKK->nlocal;
-  nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
 
   k_params.template sync<DeviceType>();
@@ -211,21 +208,53 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
   inum = list->inum;
+  ignum = inum + list->gnum;
 
   copymode = 1;
 
   // allocate
+
   allocate_array();
 
   // get max number of neighbor
-  if (!allocated_flag || update->ntimestep == neighbor->lastcall)
+
+  if (!allocated_flag || last_allocate < neighbor->lastcall) {
     allocate_matrix();
+    last_allocate = update->ntimestep;
+  }
 
   // compute_H
-  FixQEqReaxKokkosComputeHFunctor<DeviceType> computeH_functor(this);
-  Kokkos::parallel_scan(inum,computeH_functor);
+
+  if (execution_space == Host) { // CPU
+    if (neighflag == FULL) {
+      FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(this);
+      Kokkos::parallel_scan(inum,computeH_functor);
+    } else { // HALF and HALFTHREAD are the same
+      FixQEqReaxKokkosComputeHFunctor<DeviceType, HALF> computeH_functor(this);
+      Kokkos::parallel_scan(inum,computeH_functor);
+    }
+  } else { // GPU, use teams
+    Kokkos::deep_copy(d_mfill_offset,0);
+
+    int vector_length = 32;
+    int atoms_per_team = 4;
+    int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
+
+    Kokkos::TeamPolicy<DeviceType> policy(num_teams, atoms_per_team,
+                                          vector_length);
+    if (neighflag == FULL) {
+      FixQEqReaxKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(
+          this, atoms_per_team, vector_length);
+      Kokkos::parallel_for(policy, computeH_functor);
+    } else { // HALF and HALFTHREAD are the same
+      FixQEqReaxKokkosComputeHFunctor<DeviceType, HALF> computeH_functor(
+          this, atoms_per_team, vector_length);
+      Kokkos::parallel_for(policy, computeH_functor);
+    }
+  }
 
   // init_matvec
+
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
   FixQEqReaxKokkosMatVecFunctor<DeviceType> matvec_functor(this);
@@ -234,17 +263,13 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
   // comm->forward_comm_fix(this); //Dist_vector( s );
   pack_flag = 2;
   k_s.template modify<DeviceType>();
-  k_s.template sync<LMPHostType>();
   comm->forward_comm_fix(this);
-  k_s.template modify<LMPHostType>();
   k_s.template sync<DeviceType>();
 
   // comm->forward_comm_fix(this); //Dist_vector( t );
   pack_flag = 3;
   k_t.template modify<DeviceType>();
-  k_t.template sync<LMPHostType>();
   comm->forward_comm_fix(this);
-  k_t.template modify<LMPHostType>();
   k_t.template sync<DeviceType>();
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
@@ -255,12 +280,17 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
     ndup_o = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> (d_o);
 
   // 1st cg solve over b_s, s
+
   cg_solve1();
 
   // 2nd cg solve over b_t, t
+
   cg_solve2();
 
   // calculate_Q();
+
+  k_s_hist.template sync<DeviceType>();
+  k_t_hist.template sync<DeviceType>();
   calculate_q();
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
@@ -271,8 +301,11 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int vflag)
     allocated_flag = 1;
 
   // free duplicated memory
+
   if (need_dup)
     dup_o = decltype(dup_o)();
+
+  atomKK->modified(execution_space,datamask_modify);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -314,35 +347,35 @@ void FixQEqReaxKokkos<DeviceType>::allocate_array()
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
 
-    k_o = DAT::tdual_ffloat_1d("qeq/kk:h_o",nmax);
+    k_o = DAT::tdual_ffloat_1d("qeq/kk:o",nmax);
     d_o = k_o.template view<DeviceType>();
     h_o = k_o.h_view;
 
-    d_Hdia_inv = typename AT::t_ffloat_1d("qeq/kk:h_Hdia_inv",nmax);
+    d_Hdia_inv = typename AT::t_ffloat_1d("qeq/kk:Hdia_inv",nmax);
 
-    d_b_s = typename AT::t_ffloat_1d("qeq/kk:h_b_s",nmax);
+    d_b_s = typename AT::t_ffloat_1d("qeq/kk:b_s",nmax);
 
-    d_b_t = typename AT::t_ffloat_1d("qeq/kk:h_b_t",nmax);
+    d_b_t = typename AT::t_ffloat_1d("qeq/kk:b_t",nmax);
 
-    k_s = DAT::tdual_ffloat_1d("qeq/kk:h_s",nmax);
+    k_s = DAT::tdual_ffloat_1d("qeq/kk:s",nmax);
     d_s = k_s.template view<DeviceType>();
     h_s = k_s.h_view;
 
-    k_t = DAT::tdual_ffloat_1d("qeq/kk:h_t",nmax);
+    k_t = DAT::tdual_ffloat_1d("qeq/kk:t",nmax);
     d_t = k_t.template view<DeviceType>();
     h_t = k_t.h_view;
 
-    d_p = typename AT::t_ffloat_1d("qeq/kk:h_p",nmax);
+    d_p = typename AT::t_ffloat_1d("qeq/kk:p",nmax);
 
-    d_r = typename AT::t_ffloat_1d("qeq/kk:h_r",nmax);
+    d_r = typename AT::t_ffloat_1d("qeq/kk:r",nmax);
 
-    k_d = DAT::tdual_ffloat_1d("qeq/kk:h_d",nmax);
+    k_d = DAT::tdual_ffloat_1d("qeq/kk:d",nmax);
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
   }
 
   // init_storage
-  const int ignum = atom->nlocal + atom->nghost;
+
   FixQEqReaxKokkosZeroFunctor<DeviceType> zero_functor(this);
   Kokkos::parallel_for(ignum,zero_functor);
 
@@ -373,6 +406,7 @@ void FixQEqReaxKokkos<DeviceType>::zero_item(int ii) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+template <int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const bool &final) const
 {
@@ -399,7 +433,7 @@ void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const boo
       const X_FLOAT dely = x(j,1) - ytmp;
       const X_FLOAT delz = x(j,2) - ztmp;
 
-      if (neighflag != FULL) {
+      if (NEIGHFLAG != FULL) {
         // skip half of the interactions
         const tagint jtag = tag(j);
         if (j >= nlocal) {
@@ -429,6 +463,218 @@ void FixQEqReaxKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const boo
     if (final)
       d_numnbrs[i] = m_fill - d_firstnbr[i];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+// Calculate Qeq matrix H where H is a sparse matrix and H[i][j] represents the electrostatic interaction coefficients on atom-i with atom-j
+// d_val     - contains the non-zero entries of sparse matrix H
+// d_numnbrs - d_numnbrs[i] contains the # of non-zero entries in the i-th row of H (which also represents the # of neighbor atoms with electrostatic interaction coefficients with atom-i)
+// d_firstnbr- d_firstnbr[i] contains the beginning index from where the H matrix entries corresponding to row-i is stored in d_val
+// d_jlist   - contains the column index corresponding to each entry in d_val
+
+template <class DeviceType>
+template <int NEIGHFLAG>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxKokkos<DeviceType>::compute_h_team(
+    const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
+    int atoms_per_team, int vector_length) const {
+
+  // scratch space setup
+  Kokkos::View<int *, Kokkos::ScratchMemorySpace<DeviceType>,
+               Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      s_ilist(team.team_shmem(), atoms_per_team);
+  Kokkos::View<int *, Kokkos::ScratchMemorySpace<DeviceType>,
+               Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      s_numnbrs(team.team_shmem(), atoms_per_team);
+  Kokkos::View<int *, Kokkos::ScratchMemorySpace<DeviceType>,
+               Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      s_firstnbr(team.team_shmem(), atoms_per_team);
+
+  Kokkos::View<int **, Kokkos::ScratchMemorySpace<DeviceType>,
+               Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      s_jtype(team.team_shmem(), atoms_per_team, vector_length);
+  Kokkos::View<int **, Kokkos::ScratchMemorySpace<DeviceType>,
+               Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      s_jlist(team.team_shmem(), atoms_per_team, vector_length);
+  Kokkos::View<F_FLOAT **, Kokkos::ScratchMemorySpace<DeviceType>,
+               Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      s_r(team.team_shmem(), atoms_per_team, vector_length);
+
+  // team of threads work on atoms with index in [firstatom, lastatom)
+  int firstatom = team.league_rank() * atoms_per_team;
+  int lastatom =
+      (firstatom + atoms_per_team < inum) ? (firstatom + atoms_per_team) : inum;
+
+  // kokkos-thread-0 is used to load info from global memory into scratch space
+  if (team.team_rank() == 0) {
+
+    // copy atom indices from d_ilist[firstatom:lastatom] to scratch space s_ilist[0:atoms_per_team]
+    // copy # of neighbor atoms for all the atoms with indices in d_ilist[firstatom:lastatom] from d_numneigh to scratch space s_numneigh[0:atoms_per_team]
+    // calculate total number of neighbor atoms for all atoms assigned to the current team of threads (Note - Total # of neighbor atoms here provides the
+    // upper bound space requirement to store the H matrix values corresponding to the atoms with indices in d_ilist[firstatom:lastatom])
+
+    Kokkos::parallel_scan(Kokkos::ThreadVectorRange(team, atoms_per_team),
+                          [&](const int &idx, int &totalnbrs, bool final) {
+                            int ii = firstatom + idx;
+
+                            if (ii < inum) {
+                              const int i = d_ilist[ii];
+                              int jnum = d_numneigh[i];
+
+                              if (final) {
+                                s_ilist[idx] = i;
+                                s_numnbrs[idx] = jnum;
+                                s_firstnbr[idx] = totalnbrs;
+                              }
+                              totalnbrs += jnum;
+                            } else {
+                              s_numnbrs[idx] = 0;
+                            }
+                          });
+  }
+
+  // barrier ensures that the data moved to scratch space is visible to all the
+  // threads of the corresponding team
+  team.team_barrier();
+
+  // calculate the global memory offset from where the H matrix values to be
+  // calculated by the current team will be stored in d_val
+  int team_firstnbr_idx = 0;
+  Kokkos::single(Kokkos::PerTeam(team),
+                 [=](int &val) {
+                   int totalnbrs = s_firstnbr[lastatom - firstatom - 1] +
+                                   s_numnbrs[lastatom - firstatom - 1];
+                   val = Kokkos::atomic_fetch_add(&d_mfill_offset(), totalnbrs);
+                 },
+                 team_firstnbr_idx);
+
+  // map the H matrix computation of each atom to kokkos-thread (one atom per
+  // kokkos-thread) neighbor computation for each atom is assigned to vector
+  // lanes of the corresponding thread
+  Kokkos::parallel_for(
+      Kokkos::TeamThreadRange(team, atoms_per_team), [&](const int &idx) {
+        int ii = firstatom + idx;
+
+        if (ii < inum) {
+          const int i = s_ilist[idx];
+
+          if (mask[i] & groupbit) {
+            const X_FLOAT xtmp = x(i, 0);
+            const X_FLOAT ytmp = x(i, 1);
+            const X_FLOAT ztmp = x(i, 2);
+            const int itype = type(i);
+            tagint itag = tag(i); // removed "const" to work around GCC 7 bug
+            int jnum = s_numnbrs[idx]; // removed "const" to work around GCC 7 bug
+
+            // calculate the write-offset for atom-i's first neighbor
+            int atomi_firstnbr_idx = team_firstnbr_idx + s_firstnbr[idx];
+            Kokkos::single(Kokkos::PerThread(team),
+                           [&]() { d_firstnbr[i] = atomi_firstnbr_idx; });
+
+            // current # of neighbor atoms with non-zero electrostatic
+            // interaction coefficients with atom-i which represents the # of
+            // non-zero elements in row-i of H matrix
+            int atomi_nbrs_inH = 0;
+
+            // calculate H matrix values corresponding to atom-i where neighbors
+            // are processed in batches and the batch size is vector_length
+            for (int jj_start = 0; jj_start < jnum; jj_start += vector_length) {
+
+              int atomi_nbr_writeIdx = atomi_firstnbr_idx + atomi_nbrs_inH;
+
+              // count the # of neighbor atoms with non-zero electrostatic
+              // interaction coefficients with atom-i in the current batch
+              int atomi_nbrs_curbatch = 0;
+
+              // compute rsq, jtype, j and store in scratch space which is
+              // reused later
+              Kokkos::parallel_reduce(
+                  Kokkos::ThreadVectorRange(team, vector_length),
+                  [&](const int &idx, int &m_fill) {
+                    const int jj = jj_start + idx;
+
+                    // initialize: -1 represents no interaction with atom-j
+                    // where j = d_neighbors(i,jj)
+                    s_jlist(team.team_rank(), idx) = -1;
+
+                    if (jj < jnum) {
+                      int j = d_neighbors(i, jj);
+                      j &= NEIGHMASK;
+                      const int jtype = type(j);
+
+                      const X_FLOAT delx = x(j, 0) - xtmp;
+                      const X_FLOAT dely = x(j, 1) - ytmp;
+                      const X_FLOAT delz = x(j, 2) - ztmp;
+
+                      // valid nbr interaction
+                      bool valid = true;
+                      if (NEIGHFLAG != FULL) {
+                        // skip half of the interactions
+                        const tagint jtag = tag(j);
+                        if (j >= nlocal) {
+                          if (itag > jtag) {
+                            if ((itag + jtag) % 2 == 0)
+                              valid = false;
+                          } else if (itag < jtag) {
+                            if ((itag + jtag) % 2 == 1)
+                              valid = false;
+                          } else {
+                            if (x(j, 2) < ztmp)
+                              valid = false;
+                            if (x(j, 2) == ztmp && x(j, 1) < ytmp)
+                              valid = false;
+                            if (x(j, 2) == ztmp && x(j, 1) == ytmp &&
+                                x(j, 0) < xtmp)
+                              valid = false;
+                          }
+                        }
+                      }
+
+                      const F_FLOAT rsq =
+                          delx * delx + dely * dely + delz * delz;
+                      if (rsq > cutsq)
+                        valid = false;
+
+                      if (valid) {
+                        s_jlist(team.team_rank(), idx) = j;
+                        s_jtype(team.team_rank(), idx) = jtype;
+                        s_r(team.team_rank(), idx) = sqrt(rsq);
+                        m_fill++;
+                      }
+                    }
+                  },
+                  atomi_nbrs_curbatch);
+
+              // write non-zero entries of H to global memory
+              Kokkos::parallel_scan(
+                  Kokkos::ThreadVectorRange(team, vector_length),
+                  [&](const int &idx, int &m_fill, bool final) {
+                    int j = s_jlist(team.team_rank(), idx);
+                    if (final) {
+                      if (j != -1) {
+                        const int jtype = s_jtype(team.team_rank(), idx);
+                        const F_FLOAT r = s_r(team.team_rank(), idx);
+                        const F_FLOAT shldij = d_shield(itype, jtype);
+
+                        d_jlist[atomi_nbr_writeIdx + m_fill] = j;
+                        d_val[atomi_nbr_writeIdx + m_fill] =
+                            calculate_H_k(r, shldij);
+                      }
+                    }
+
+                    if (j != -1) {
+                      m_fill++;
+                    }
+                  });
+              atomi_nbrs_inH += atomi_nbrs_curbatch;
+            }
+
+            Kokkos::single(Kokkos::PerThread(team),
+                           [&]() { d_numnbrs[i] = atomi_nbrs_inH; });
+          }
+        }
+      });
 }
 
 /* ---------------------------------------------------------------------- */
@@ -481,13 +727,15 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
 
-  const int teamsize = TEAMSIZE;
+  int teamsize;
+  if (execution_space == Host) teamsize = 1;
+  else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse12Functor<DeviceType> sparse12_functor(this);
   Kokkos::parallel_for(inum,sparse12_functor);
   if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
     if (neighflag == HALF) {
       FixQEqReaxKokkosSparse13Functor<DeviceType,HALF> sparse13_functor(this);
       Kokkos::parallel_for(inum,sparse13_functor);
@@ -503,9 +751,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
-    k_o.template sync<LMPHostType>();
     comm->reverse_comm_fix(this); //Coll_vector( q );
-    k_o.template modify<LMPHostType>();
     k_o.template sync<DeviceType>();
   }
 
@@ -528,22 +774,19 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   F_FLOAT sig_new = dot_sqr;
 
   int loop;
-  const int loopmax = 200;
-  for (loop = 1; loop < loopmax & sqrt(sig_new)/b_norm > tolerance; loop++) {
+  for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
     k_d.template modify<DeviceType>();
-    k_d.template sync<LMPHostType>();
     comm->forward_comm_fix(this);
-    k_d.template modify<LMPHostType>();
     k_d.template sync<DeviceType>();
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
     if (neighflag != FULL) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
       if (need_dup)
         dup_o.reset_except(d_o);
       if (neighflag == HALF) {
@@ -561,9 +804,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
-      k_o.template sync<LMPHostType>();
       comm->reverse_comm_fix(this); //Coll_vector( q );
-      k_o.template modify<LMPHostType>();
       k_o.template sync<DeviceType>();
     }
 
@@ -597,7 +838,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     Kokkos::parallel_for(inum,vecsum2_functor);
   }
 
-  if (loop >= loopmax && comm->me == 0) {
+  if (loop >= imax && comm->me == 0) {
     char str[128];
     sprintf(str,"Fix qeq/reax cg_solve1 convergence failed after %d iterations "
             "at " BIGINT_FORMAT " step: %f",loop,update->ntimestep,sqrt(sig_new)/b_norm);
@@ -616,13 +857,15 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
 
-  const int teamsize = TEAMSIZE;
+  int teamsize;
+  if (execution_space == Host) teamsize = 1;
+  else teamsize = 128;
 
   // sparse_matvec( &H, x, q );
   FixQEqReaxKokkosSparse32Functor<DeviceType> sparse32_functor(this);
   Kokkos::parallel_for(inum,sparse32_functor);
   if (neighflag != FULL) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
     if (need_dup)
       dup_o.reset_except(d_o);
     if (neighflag == HALF) {
@@ -640,9 +883,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
-    k_o.template sync<LMPHostType>();
     comm->reverse_comm_fix(this); //Coll_vector( q );
-    k_o.template modify<LMPHostType>();
     k_o.template sync<DeviceType>();
   }
 
@@ -665,22 +906,19 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   F_FLOAT sig_new = dot_sqr;
 
   int loop;
-  const int loopmax = 200;
-  for (loop = 1; loop < loopmax & sqrt(sig_new)/b_norm > tolerance; loop++) {
+  for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
     k_d.template modify<DeviceType>();
-    k_d.template sync<LMPHostType>();
     comm->forward_comm_fix(this);
-    k_d.template modify<LMPHostType>();
     k_d.template sync<DeviceType>();
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxKokkosSparse22Functor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
     if (neighflag != FULL) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(nlocal,nlocal+atom->nghost),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagZeroQGhosts>(inum,ignum),*this);
       if (need_dup)
         dup_o.reset_except(d_o);
       if (neighflag == HALF) {
@@ -698,9 +936,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
-      k_o.template sync<LMPHostType>();
       comm->reverse_comm_fix(this); //Coll_vector( q );
-      k_o.template modify<LMPHostType>();
       k_o.template sync<DeviceType>();
     }
 
@@ -734,7 +970,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     Kokkos::parallel_for(inum,vecsum2_functor);
   }
 
-  if (loop >= loopmax && comm->me == 0) {
+  if (loop >= imax && comm->me == 0) {
     char str[128];
     sprintf(str,"Fix qeq/reax cg_solve2 convergence failed after %d iterations "
             "at " BIGINT_FORMAT " step: %f",loop,update->ntimestep,sqrt(sig_new)/b_norm);
@@ -772,15 +1008,11 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q()
   // q[i] = s[i] - u * t[i];
   FixQEqReaxKokkosCalculateQFunctor<DeviceType> calculateQ_functor(this);
   Kokkos::parallel_for(inum,calculateQ_functor);
+  atomKK->modified(execution_space,Q_MASK);
 
   pack_flag = 4;
   //comm->forward_comm_fix( this ); //Dist_vector( atom->q );
-  atomKK->k_q.modify<DeviceType>();
-  atomKK->k_q.sync<LMPHostType>();
   comm->forward_comm_fix(this);
-  atomKK->k_q.modify<LMPHostType>();
-  atomKK->k_q.sync<DeviceType>();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -804,13 +1036,13 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse13_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_o = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
-  auto a_o = v_o.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_o = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
+  auto a_o = v_o.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_s[j];
       a_o[j] += d_val(jj) * d_s[i];
@@ -857,13 +1089,13 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_o = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
-  auto a_o = v_o.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_o = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
+  auto a_o = v_o.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_d[j];
       a_o[j] += d_val(jj) * d_d[i];
@@ -917,13 +1149,13 @@ KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_o = ScatterViewHelper<NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
-  auto a_o = v_o.template access<AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_o = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
+  auto a_o = v_o.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT tmp = 0.0;
-    for(int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
       tmp += d_val(jj) * d_t[j];
       a_o[j] += d_val(jj) * d_t[i];
@@ -1110,19 +1342,80 @@ void FixQEqReaxKokkos<DeviceType>::calculate_q_item(int ii) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+int FixQEqReaxKokkos<DeviceType>::pack_forward_comm_fix_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+                                                        int iswap_in, DAT::tdual_xfloat_1d &k_buf,
+                                                        int /*pbc_flag*/, int * /*pbc*/)
+{
+  d_sendlist = k_sendlist.view<DeviceType>();
+  iswap = iswap_in;
+  d_buf = k_buf.view<DeviceType>();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEqReaxPackForwardComm>(0,n),*this);
+  return n;
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxPackForwardComm, const int &i) const {
+  int j = d_sendlist(iswap, i);
+
+  if (pack_flag == 1)
+    d_buf[i] = d_d[j];
+  else if (pack_flag == 2)
+    d_buf[i] = d_s[j];
+  else if (pack_flag == 3)
+    d_buf[i] = d_t[j];
+  else if (pack_flag == 4)
+    d_buf[i] = q[j];
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm_fix_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+{
+  first = first_in;
+  d_buf = buf.view<DeviceType>();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixQEqReaxUnpackForwardComm>(0,n),*this);
+
+  if (pack_flag == 4)
+    atomKK->modified(execution_space,Q_MASK); // needed for auto_sync
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxKokkos<DeviceType>::operator()(TagFixQEqReaxUnpackForwardComm, const int &i) const {
+  if (pack_flag == 1)
+    d_d[i + first] = d_buf[i];
+  else if ( pack_flag == 2)
+    d_s[i + first] = d_buf[i];
+  else if ( pack_flag == 3)
+    d_t[i + first] = d_buf[i];
+  else if ( pack_flag == 4)
+    q[i + first] = d_buf[i];
+
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
 int FixQEqReaxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
-                               int pbc_flag, int *pbc)
+                                                    int /*pbc_flag*/, int * /*pbc*/)
 {
   int m;
 
-  if( pack_flag == 1)
-    for(m = 0; m < n; m++) buf[m] = h_d[list[m]];
-  else if( pack_flag == 2 )
-    for(m = 0; m < n; m++) buf[m] = h_s[list[m]];
-  else if( pack_flag == 3 )
-    for(m = 0; m < n; m++) buf[m] = h_t[list[m]];
-  else if( pack_flag == 4 )
-    for(m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  if (pack_flag == 1) {
+    k_d.sync_host();
+    for (m = 0; m < n; m++) buf[m] = h_d[list[m]];
+  } else if (pack_flag == 2) {
+    k_s.sync_host();
+    for (m = 0; m < n; m++) buf[m] = h_s[list[m]];
+  } else if (pack_flag == 3) {
+    k_t.sync_host();
+    for (m = 0; m < n; m++) buf[m] = h_t[list[m]];
+  } else if (pack_flag == 4) {
+    atomKK->sync(Host,Q_MASK);
+    for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  }
 
   return n;
 }
@@ -1134,14 +1427,23 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double 
 {
   int i, m;
 
-  if( pack_flag == 1)
-    for(m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
-  else if( pack_flag == 2)
-    for(m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
-  else if( pack_flag == 3)
-    for(m = 0, i = first; m < n; m++, i++) h_t[i] = buf[m];
-  else if( pack_flag == 4)
-    for(m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  if (pack_flag == 1) {
+    k_d.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
+    k_d.modify_host();
+  } else if (pack_flag == 2) {
+    k_s.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];
+    k_s.modify_host();
+  } else if (pack_flag == 3) {
+    k_t.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) h_t[i] = buf[m];
+    k_t.modify_host();
+  } else if (pack_flag == 4) {
+    atomKK->sync(Host,Q_MASK);
+    for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+    atomKK->modified(Host,Q_MASK);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1149,8 +1451,10 @@ void FixQEqReaxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double 
 template<class DeviceType>
 int FixQEqReaxKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
 {
+  k_o.sync_host();
+
   int i, m;
-  for(m = 0, i = first; m < n; m++, i++) {
+  for (m = 0, i = first; m < n; m++, i++) {
     buf[m] = h_o[i];
   }
   return n;
@@ -1161,9 +1465,13 @@ int FixQEqReaxKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *bu
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
 {
+  k_o.sync_host();
+
   for(int m = 0; m < n; m++) {
     h_o[list[m]] += buf[m];
   }
+
+  k_o.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1171,7 +1479,7 @@ void FixQEqReaxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double 
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::cleanup_copy()
 {
-  id = style = NULL;
+  id = style = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1184,10 +1492,10 @@ double FixQEqReaxKokkos<DeviceType>::memory_usage()
   double bytes;
 
   bytes = atom->nmax*nprev*2 * sizeof(F_FLOAT); // s_hist & t_hist
-  bytes += atom->nmax*8 * sizeof(F_FLOAT); // storage
-  bytes += n_cap*2 * sizeof(int); // matrix...
-  bytes += m_cap * sizeof(int);
-  bytes += m_cap * sizeof(F_FLOAT);
+  bytes += (double)atom->nmax*8 * sizeof(F_FLOAT); // storage
+  bytes += (double)n_cap*2 * sizeof(int); // matrix...
+  bytes += (double)m_cap * sizeof(int);
+  bytes += (double)m_cap * sizeof(F_FLOAT);
 
   return bytes;
 }
@@ -1199,8 +1507,11 @@ double FixQEqReaxKokkos<DeviceType>::memory_usage()
 template<class DeviceType>
 void FixQEqReaxKokkos<DeviceType>::grow_arrays(int nmax)
 {
-  k_s_hist.template sync<LMPHostType>(); // force reallocation on host
+  k_s_hist.template sync<LMPHostType>();
   k_t_hist.template sync<LMPHostType>();
+
+  k_s_hist.template modify<LMPHostType>(); // force reallocation on host
+  k_t_hist.template modify<LMPHostType>();
 
   memoryKK->grow_kokkos(k_s_hist,s_hist,nmax,nprev,"qeq:s_hist");
   memoryKK->grow_kokkos(k_t_hist,t_hist,nmax,nprev,"qeq:t_hist");
@@ -1217,7 +1528,7 @@ void FixQEqReaxKokkos<DeviceType>::grow_arrays(int nmax)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+void FixQEqReaxKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 {
   k_s_hist.template sync<LMPHostType>();
   k_t_hist.template sync<LMPHostType>();
@@ -1253,6 +1564,9 @@ int FixQEqReaxKokkos<DeviceType>::pack_exchange(int i, double *buf)
 template<class DeviceType>
 int FixQEqReaxKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
+  k_s_hist.template sync<LMPHostType>();
+  k_t_hist.template sync<LMPHostType>();
+
   for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[m];
   for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[nprev+m];
 
@@ -1266,7 +1580,7 @@ int FixQEqReaxKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 
 namespace LAMMPS_NS {
 template class FixQEqReaxKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixQEqReaxKokkos<LMPHostType>;
 #endif
 }

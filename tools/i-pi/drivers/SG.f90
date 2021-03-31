@@ -250,7 +250,7 @@
             start = 1
 
             DO i = 1, natoms - 1
-               ! Only loops over the neigbour list, not all the atoms.
+               ! Only loops over the neighbour list, not all the atoms.
                DO j = start, index_list(i)
                   CALL vector_separation(cell_h, cell_ih, atoms(i,:), atoms(n_list(j),:), rij, r2)
                   IF (r2 < rc*rc) THEN ! Only calculates contributions between neighbouring particles.

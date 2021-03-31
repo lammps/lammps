@@ -11,7 +11,7 @@
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
- http://lammps.sandia.gov, Sandia National Laboratories
+ https://lammps.sandia.gov/, Sandia National Laboratories
  Steve Plimpton, sjplimp@sandia.gov
 
  Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,7 +49,7 @@ ComputeSMDULSPHStrainRate::ComputeSMDULSPHStrainRate(LAMMPS *lmp, int narg, char
         size_peratom_cols = 6;
 
         nmax = 0;
-        strain_rate_array = NULL;
+        strain_rate_array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,7 +87,7 @@ void ComputeSMDULSPHStrainRate::compute_peratom() {
 
         int itmp = 0;
         Matrix3d *L = (Matrix3d *) force->pair->extract("smd/ulsph/velocityGradient_ptr", itmp);
-        if (L == NULL) {
+        if (L == nullptr) {
                 error->all(FLERR,
                                 "compute smd/ulsph_strain_rate could not access any velocity gradients. Are the matching pair styles present?");
         }
@@ -119,6 +119,6 @@ void ComputeSMDULSPHStrainRate::compute_peratom() {
  ------------------------------------------------------------------------- */
 
 double ComputeSMDULSPHStrainRate::memory_usage() {
-        double bytes = size_peratom_cols * nmax * sizeof(double);
+        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
         return bytes;
 }

@@ -28,12 +28,11 @@ class PairOxdnaExcv : public Pair {
  public:
   PairOxdnaExcv(class LAMMPS *);
   virtual ~PairOxdnaExcv();
-  virtual void compute_interaction_sites(double *, double *,
+  virtual void compute_interaction_sites(double *, double *, double *,
     double *, double *);
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
   void init_list(int, class NeighList *);
   double init_one(int, int);
   void write_restart(FILE *);

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,19 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
-#include <cstdlib>
 #include "compute_pressure_grem.h"
-#include "atom.h"
+
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
 #include "fix.h"
 #include "force.h"
-#include "pair.h"
 #include "kspace.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -34,9 +32,7 @@ using namespace LAMMPS_NS;
 ComputePressureGrem::ComputePressureGrem(LAMMPS *lmp, int narg, char **arg) :
   ComputePressure(lmp, narg-1, arg)
 {
-  int len = strlen(arg[narg-1])+1;
-  fix_grem = new char[len];
-  strcpy(fix_grem,arg[narg-1]);
+  fix_grem = utils::strdup(arg[narg-1]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -59,7 +55,7 @@ void ComputePressureGrem::init()
   int dim;
   scale_grem = (double *)modify->fix[ifix]->extract("scale_grem",dim);
 
-  if (scale_grem == NULL || dim != 0)
+  if (scale_grem == nullptr || dim != 0)
     error->all(FLERR,"Cannot extract gREM scale factor from fix grem");
 }
 

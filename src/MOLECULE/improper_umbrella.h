@@ -20,7 +20,6 @@ ImproperStyle(umbrella,ImproperUmbrella)
 #ifndef LMP_IMPROPER_UMBRELLA_H
 #define LMP_IMPROPER_UMBRELLA_H
 
-#include <cstdio>
 #include "improper.h"
 
 namespace LAMMPS_NS {

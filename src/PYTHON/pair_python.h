@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 
    Pair zero is a dummy pair interaction useful for requiring a
-   force cutoff distance in the absense of pair-interactions or
+   force cutoff distance in the absence of pair-interactions or
    with hybrid/overlay if a larger force cutoff distance is required.
 
    This can be used in conjunction with bond/create to create bonds

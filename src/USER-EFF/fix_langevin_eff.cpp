@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,21 +15,14 @@
    Contributing author: Andres Jaramillo-Botero
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
 #include <cmath>
-#include <cstring>
-#include <cstdlib>
+
 #include "fix_langevin_eff.h"
-#include "math_extra.h"
 #include "atom.h"
-#include "force.h"
 #include "update.h"
 #include "modify.h"
 #include "compute.h"
 #include "domain.h"
-#include "region.h"
-#include "respa.h"
-#include "comm.h"
 #include "input.h"
 #include "variable.h"
 #include "random_mars.h"
@@ -51,7 +44,7 @@ enum{CONSTANT,EQUAL,ATOM};
 FixLangevinEff::FixLangevinEff(LAMMPS *lmp, int narg, char **arg) :
   FixLangevin(lmp, narg, arg)
 {
-  erforcelangevin = NULL;
+  erforcelangevin = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -405,7 +398,7 @@ void FixLangevinEff::end_of_step()
 
 double FixLangevinEff::compute_scalar()
 {
-  if (!tallyflag || flangevin == NULL || erforcelangevin == NULL) return 0.0;
+  if (!tallyflag || flangevin == nullptr || erforcelangevin == nullptr) return 0.0;
 
   // capture the very first energy transfer to thermal reservoir
 

@@ -11,17 +11,17 @@
 //
 //    begin                : 8/15/2012
 //    email                : nguyentd@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 
 #include "lal_aux_fun1.h"
 #ifndef _DOUBLE_DOUBLE
-texture<float4> pos_tex;
-texture<float> q_tex;
+_texture( pos_tex,float4);
+_texture( q_tex,float);
 #else
-texture<int4,1> pos_tex;
-texture<int2> q_tex;
+_texture_2d( pos_tex,int4);
+_texture( q_tex,int2);
 #endif
 
 #else
@@ -48,30 +48,33 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_charge();
+
   sp_lj[0]=sp_lj_in[0];
   sp_lj[1]=sp_lj_in[1];
   sp_lj[2]=sp_lj_in[2];
   sp_lj[3]=sp_lj_in[3];
 
-  acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
 
-    if (eflag>0) {
+    if (EVFLAG && eflag) {
       acctyp e_self = -((acctyp)0.5*e_shift + alpha/MY_PIS) *
         qtmp*qtmp*qqrd2e/(acctyp)t_per_atom;
       e_coul += (acctyp)2.0*e_self;
@@ -111,11 +114,11 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift-factor_coul);
           e_coul += e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -126,9 +129,9 @@ __kernel void k_coul_dsf(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
 }
 
 __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
@@ -147,30 +150,33 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_charge();
+
   if (tid<4)
     sp_lj[tid]=sp_lj_in[tid];
 
-  acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   __syncthreads();
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     numtyp qtmp; fetch(qtmp,i,q_tex);
 
-    if (eflag>0) {
+    if (EVFLAG && eflag) {
       acctyp e_self = -((acctyp)0.5*e_shift + alpha/MY_PIS) *
         qtmp*qtmp*qqrd2e/(acctyp)t_per_atom;
       e_coul += (acctyp)2.0*e_self;
@@ -210,11 +216,11 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e=prefactor*(erfcc-r*e_shift-rsq*f_shift-factor_coul);
           e_coul += e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -225,8 +231,7 @@ __kernel void k_coul_dsf_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
 }
-

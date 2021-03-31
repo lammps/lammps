@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "omp_compat.h"
 #include "npair_full_nsq_ghost_omp.h"
 #include "npair_omp.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -23,7 +23,6 @@
 #include "error.h"
 
 using namespace LAMMPS_NS;
-using namespace NeighConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,11 +39,11 @@ void NPairFullNsqGhostOmp::build(NeighList *list)
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
   const int molecular = atom->molecular;
-  const int moltemplate = (molecular == 2) ? 1 : 0;
+  const int moltemplate = (molecular == Atom::TEMPLATE) ? 1 : 0;
 
   NPAIR_OMP_INIT;
 #if defined(_OPENMP)
-#pragma omp parallel default(none) shared(list)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list)
 #endif
   NPAIR_OMP_SETUP(nall);
 
@@ -105,7 +104,7 @@ void NPairFullNsqGhostOmp::build(NeighList *list)
         delz = ztmp - x[j][2];
         rsq = delx*delx + dely*dely + delz*delz;
         if (rsq <= cutneighsq[itype][jtype]) {
-          if (molecular) {
+          if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
               which = find_special(special[i],nspecial[i],tag[j]);
             else if (imol >=0)

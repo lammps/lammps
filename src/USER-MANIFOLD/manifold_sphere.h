@@ -12,9 +12,9 @@ namespace user_manifold {
   class manifold_sphere : public manifold {
    public:
     enum { NPARAMS = 1 };
-    manifold_sphere( LAMMPS *lmp, int, char ** ) : manifold(lmp){}
+    manifold_sphere( LAMMPS *lmp, int, char ** ) : manifold(lmp) {}
 
-    virtual ~manifold_sphere(){}
+    virtual ~manifold_sphere() {}
     virtual double g( const double *x )
     {
       double R = params[0];
@@ -46,10 +46,10 @@ namespace user_manifold {
       h[0][0] = h[1][1] = h[2][2] = 2.0;
     }
 
-    static const char* type(){ return "sphere"; }
-    virtual const char *id(){ return type(); }
-    static int expected_argc(){ return NPARAMS; }
-    virtual int nparams(){ return NPARAMS; }
+    static const char* type() { return "sphere"; }
+    virtual const char *id() { return type(); }
+    static int expected_argc() { return NPARAMS; }
+    virtual int nparams() { return NPARAMS; }
   };
 }
 

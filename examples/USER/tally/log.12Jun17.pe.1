@@ -89,7 +89,7 @@ group		hyd type 2
 compute		epa oxy group/group hyd pair yes kspace no boundary no
 # tally pairwise energy between all oygen and all hydrogen
 compute		c1 oxy pe/tally hyd
-# tally pairwise energy beween all atoms to compare with globals
+# tally pairwise energy between all atoms to compare with globals
 compute		c2 all pe/tally all
 # collect per atom energies
 compute		c3 all pe/atom pair

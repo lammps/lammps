@@ -8,16 +8,7 @@
 // in the root directory of this source distribution.
 // ------------------------------------------------------------- 
 #include "cudpp_maximal_launch.h"
- 
-inline size_t min(size_t x, size_t y)
-{
-    return (x <= y) ? x : y;
-}
-
-inline size_t max(size_t x, size_t y)
-{
-    return (x >= y) ? x : y;
-}
+#include <algorithm>
 
 // computes next highest multiple of f from x
 inline size_t multiple(size_t x, size_t f)
@@ -65,7 +56,7 @@ size_t maxBlocks(cudaFuncAttributes &attribs,
     size_t ctaLimitSMem    = smemPerCTA > 0 ? devprop.sharedMemPerBlock / smemPerCTA : maxBlocksPerSM;
     size_t ctaLimitThreads =                  maxThreadsPerSM           / threadsPerBlock;
 
-    return devprop.multiProcessorCount * min(ctaLimitRegs, min(ctaLimitSMem, min(ctaLimitThreads, maxBlocksPerSM)));
+    return devprop.multiProcessorCount * std::min(ctaLimitRegs, std::min(ctaLimitSMem, std::min(ctaLimitThreads, (size_t)maxBlocksPerSM)));
 }
 
 extern "C"
@@ -80,15 +71,15 @@ size_t maxBlocksFromPointer(void*  kernel,
     {
         err = cudaGetDeviceProperties(&devprop, deviceID);
         if (err != cudaSuccess)
-            return -1;
+            return (size_t)-1;
 
         cudaFuncAttributes attr;
         err = cudaFuncGetAttributes(&attr, (const char*)kernel);
         if (err != cudaSuccess)
-            return -1;
+            return (size_t)-1;
 
         return maxBlocks(attr, devprop, bytesDynamicSharedMem, threadsPerBlock);
     }
 
-    return -1;    
+    return (size_t)-1;
 }

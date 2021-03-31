@@ -52,7 +52,7 @@ void Workspace::allocateNewSystem() {
 Workspace::Workspace(){
 	currentIndex = -1; 
 	maxAlloc = 0;		
-	system = NULL;		
+	system = nullptr;		
 }
 
 Workspace::~Workspace(){
@@ -133,7 +133,7 @@ if(njoint){
 	int ttk = 0;
 	
 		
-	while(NodeValue != NULL) {
+	while(NodeValue != nullptr) {
 		array = new int[NodeValue->value->listOfNodes.GetNumElements()];
 		arrayFromChain = NodeValue->value->listOfNodes.CreateArray();
 		numElementsInSystem = NodeValue->value->listOfNodes.GetNumElements();								
@@ -200,7 +200,7 @@ System* Workspace::GetSystem(int index){
 		}
 	}
 	else{
-		return NULL;
+		return nullptr;
 	}
 }
 

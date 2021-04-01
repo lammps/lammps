@@ -17,21 +17,20 @@
 
 #include "pair_lj_switch3_coulgauss_long.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -49,7 +48,6 @@ using namespace MathConst;
 PairLJSwitch3CoulGaussLong::PairLJSwitch3CoulGaussLong(LAMMPS *lmp) : Pair(lmp)
 {
   ewaldflag = pppmflag = 1;
-  respa_enable = 1;
   writedata = 1;
   ftable = nullptr;
   qdist = 0.0;
@@ -170,8 +168,8 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
             expn2 = 0.0;
             erfc2 = 0.0;
             forcecoul2 = 0.0;
-          }
-          else {
+            prefactor2 = 0.0;
+          } else {
             rrij = lj2[itype][jtype]*r;
             expn2 = exp(-rrij*rrij);
             erfc2 = erfc(rrij);
@@ -333,32 +331,7 @@ void PairLJSwitch3CoulGaussLong::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/switch3/coulgauss/long requires atom attribute q");
 
-  // request regular or rRESPA neighbor list
-
-  int irequest;
-  int respa = 0;
-
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
-    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
-    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-  }
-
-  irequest = neighbor->request(this,instance_me);
-
-  if (respa >= 1) {
-    neighbor->requests[irequest]->respaouter = 1;
-    neighbor->requests[irequest]->respainner = 1;
-  }
-  if (respa == 2) neighbor->requests[irequest]->respamiddle = 1;
-
   cut_coulsq = cut_coul * cut_coul;
-
-  // set rRESPA cutoffs
-
-  if (strstr(update->integrate_style,"respa") &&
-      ((Respa *) update->integrate)->level_inner >= 0)
-    cut_respa = ((Respa *) update->integrate)->cutoff;
-  else cut_respa = nullptr;
 
   // insure use of KSpace long-range solver, set g_ewald
 
@@ -366,9 +339,11 @@ void PairLJSwitch3CoulGaussLong::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
+  neighbor->request(this,instance_me);
+
   // setup force tables
 
-  if (ncoultablebits) init_tables(cut_coul,cut_respa);
+  if (ncoultablebits) init_tables(cut_coul,nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -412,11 +387,6 @@ double PairLJSwitch3CoulGaussLong::init_one(int i, int j)
   lj3[j][i] = lj3[i][j];
   lj4[j][i] = lj4[i][j];
   offset[j][i] = offset[i][j];
-
-  // check interior rRESPA cutoff
-
-  if (cut_respa && MIN(cut_lj[i][j],cut_coul) < cut_respa[3])
-    error->all(FLERR,"Pair cutoff < Respa interior cutoff");
 
   // compute I,J contribution to long-range tail correction
   // count total # of atoms of type I and J via Allreduce

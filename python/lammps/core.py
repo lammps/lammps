@@ -729,12 +729,11 @@ class lammps(object):
   def extract_global(self, name, dtype=LAMMPS_AUTODETECT):
     """Query LAMMPS about global settings of different types.
 
-    This is a wrapper around the :cpp:func:`lammps_extract_global`
-    function of the C-library interface.  Unlike the C function
-    this method returns the value and not a pointer and thus can
-    only return the first value for keywords representing a list
-    of values.  The :cpp:func:`lammps_extract_global` documentation
-    includes a list of the supported keywords and their data types.
+    This is a wrapper around the :cpp:func:`lammps_extract_global` function
+    of the C-library interface.  Since there are no pointers in Python, this
+    method will - unlike the C function - return the value or a list of
+    values.  The :cpp:func:`lammps_extract_global` documentation includes a
+    list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
     the result, by default, this function will try to auto-detect the data type
     by asking the library. You can also force a specific data type.  For that
@@ -746,11 +745,22 @@ class lammps(object):
     :type name:  string
     :param dtype: data type of the returned data (see :ref:`py_datatype_constants`)
     :type dtype:  int, optional
-    :return: value of the property or None
-    :rtype: int, float, or NoneType
+    :return: value of the property or list of values or None
+    :rtype: int, float, list, or NoneType
     """
+
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.extract_global_datatype(name)
+
+    # set length of vector for items that are not a scalar
+    vec_dict = { 'boxlo':3, 'boxhi':3, 'sublo':3, 'subhi':3,
+                 'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3 }
+    if name in vec_dict:
+      veclen = vec_dict[name]
+    elif name == 'respa_dt':
+      veclen = self.extract_global('respa_levels',LAMMPS_INT)
+    else:
+      veclen = 1
 
     if name: name = name.encode()
     else: return None
@@ -766,13 +776,18 @@ class lammps(object):
       target_type = float
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
-      target_type = lambda x: str(x, 'ascii')
 
     ptr = self.lib.lammps_extract_global(self.lmp, name)
     if ptr:
-      return target_type(ptr[0])
+      if dtype == LAMMPS_STRING:
+        return ptr.decode('utf-8')
+      if veclen > 1:
+        result = []
+        for i in range(0,veclen):
+          result.append(target_type(ptr[i]))
+        return result
+      else: return target_type(ptr[0])
     return None
-
 
   # -------------------------------------------------------------------------
   # extract per-atom info datatype

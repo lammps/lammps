@@ -113,7 +113,7 @@ TEST(Utils, count_words_with_extra_spaces)
 
 TEST(Utils, split_words_simple)
 {
-    std::vector<std::string> list = utils::split_words("one two three");
+    auto list = utils::split_words("one two three");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two"));
@@ -122,7 +122,7 @@ TEST(Utils, split_words_simple)
 
 TEST(Utils, split_words_quoted)
 {
-    std::vector<std::string> list = utils::split_words("one 'two' \"three\"");
+    auto list = utils::split_words("one 'two' \"three\"");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two"));
@@ -131,7 +131,7 @@ TEST(Utils, split_words_quoted)
 
 TEST(Utils, split_words_escaped)
 {
-    std::vector<std::string> list = utils::split_words("1\\' '\"two\"' 3\\\"");
+    auto list = utils::split_words("1\\' '\"two\"' 3\\\"");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("1\\'"));
     ASSERT_THAT(list[1], StrEq("\"two\""));
@@ -140,11 +140,20 @@ TEST(Utils, split_words_escaped)
 
 TEST(Utils, split_words_quote_in_quoted)
 {
-    std::vector<std::string> list = utils::split_words("one 't\\'wo' \"th\\\"ree\"");
+    auto list = utils::split_words("one 't\\'wo' \"th\\\"ree\"");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("t\\'wo"));
     ASSERT_THAT(list[2], StrEq("th\\\"ree"));
+}
+
+TEST(Utils, split_lines)
+{
+    auto list = utils::split_lines(" line 1\nline 2 \n line 3 \n");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq(" line 1"));
+    ASSERT_THAT(list[1], StrEq("line 2 "));
+    ASSERT_THAT(list[2], StrEq(" line 3 "));
 }
 
 TEST(Utils, valid_integer1)

@@ -611,7 +611,7 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2;
   double fraction,table,forcecoul,forcecoul2,forcelj,phicoul;
-  double rrij,expn2,erfc2,expb,ecoul,evdwl,trx,tr,ftr;
+  double rrij,expn2,erfc2,expb,evdwl,trx,tr,ftr;
 
   int itable;
 
@@ -657,7 +657,7 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
     prefactor2 = -force->qqrd2e * atom->q[i]*atom->q[j]/r;
     forcecoul2 = prefactor2 * (erfc2 + EWALD_F*rrij*expn2);
     forcelj = expb*lj1[itype][jtype]*r-6.0*lj4[itype][jtype]*r6inv;
-  } else forcelj = 0.0;
+  } else forcelj = forcecoul2 = 0.0;
 
   double eng = 0.0;
   if (rsq < cut_coulsq) {
@@ -672,7 +672,6 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
   }
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    ecoul += prefactor2*erfc2*factor_coul;
     evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
         offset[itype][jtype];
   } else evdwl = 0.0;

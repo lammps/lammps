@@ -171,8 +171,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
             expn2 = 0.0;
             erfc2 = 0.0;
             forcecoul2 = 0.0;
-          }
-          else {
+          } else {
             rrij = lj2[itype][jtype]*r;
             expn2 = exp(-rrij*rrij);
             erfc2 = erfc(rrij);
@@ -341,7 +340,7 @@ void PairMM3Switch3CoulGaussLong::init_style()
     error->all(FLERR,"Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
-  irequest = neighbor->request(this,instance_me);
+  neighbor->request(this,instance_me);
 
   // setup force tables
 
@@ -580,8 +579,8 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
                                  double &fforce)
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2;
-  double fraction,table,forcecoul,forcecoul2,forcelj,phicoul;
-  double expb,rrij,expn2,erfc2,evdwl,trx,tr,ftr;
+  double fraction,table,forcecoul,forcecoul2,forcelj;
+  double expb,rrij,expn2,erfc2,evdwl,ecoul,trx,tr,ftr;
 
   int itable;
 
@@ -614,40 +613,43 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq[itype][jtype]) {
     r = sqrt(rsq);
-    r6inv = r2inv*r2inv*r2inv;
     expb = lj3[itype][jtype]*exp(-lj1[itype][jtype]*r);
-    rrij = lj2[itype][jtype] * r;
-    if (rrij==0.0) {
+    forcelj = expb*lj1[itype][jtype]*r;
+    r6inv = r2inv*r2inv*r2inv;
+    forcelj -= 6.0*lj4[itype][jtype]*r6inv;
+
+    if (lj2[itype][jtype] == 0.0) {
       expn2 = 0.0;
       erfc2 = 0.0;
-    }
-    else {
+      forcecoul2 = 0.0;
+      prefactor2 = 0.0;
+    } else {
+      rrij = lj2[itype][jtype]*r;
       expn2 = exp(-rrij*rrij);
       erfc2 = erfc(rrij);
+      prefactor2 = -force->qqrd2e * atom->q[i]*atom->q[j]/r;
+      forcecoul2 = prefactor2 * (erfc2 + EWALD_F*rrij*expn2);
     }
-    prefactor2 = -force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    forcecoul2 = prefactor2 * (erfc2 + EWALD_F*rrij*expn2);
-    forcelj = expb*lj1[itype][jtype]*r-6.0*lj4[itype][jtype]*r6inv;
-  } else forcelj = forcecoul2 = 0.0;
+  } else expb = forcelj = 0.0;
 
-  double eng = 0.0;
+  evdwl = ecoul = 0.0;
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor*erfc1;
+      ecoul = prefactor*erfc1;
     else {
       table = etable[itable] + fraction*detable[itable];
-      phicoul = atom->q[i]*atom->q[j] * table;
+      ecoul = atom->q[i]*atom->q[j] * table;
     }
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    eng += phicoul;
+    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
   }
 
   if (rsq < cut_ljsq[itype][jtype]) {
+    ecoul += prefactor2*erfc2*factor_coul;
     evdwl = expb-lj4[itype][jtype]*r6inv-offset[itype][jtype];
   } else evdwl = 0.0;
 
   // Truncation, see Yaff Switch3
-  if (truncw>0) {
+  if (truncw > 0) {
     if (rsq < cut_ljsq[itype][jtype]) {
       if (r>cut_lj[itype][jtype]-truncw) {
         trx = (cut_lj[itype][jtype]-r)*truncwi;
@@ -658,10 +660,10 @@ double PairMM3Switch3CoulGaussLong::single(int i, int j, int itype, int jtype,
       }
     }
   }
-  eng += evdwl*factor_lj;
   fforce = (forcecoul + factor_coul*forcecoul2 + factor_lj*forcelj) * r2inv;
 
-  return eng;
+  return ecoul + evdwl*factor_lj;
+;
 }
 
 /* ---------------------------------------------------------------------- */

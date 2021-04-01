@@ -580,8 +580,8 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
                                           double &fforce)
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2;
-  double fraction,table,forcecoul,forcecoul2,forcelj,phicoul;
-  double rrij,expn2,erfc2,expb,evdwl,trx,tr,ftr;
+  double fraction,table,forcecoul,forcecoul2,forcelj;
+  double rrij,expn2,erfc2,expb,ecoul,evdwl,trx,tr,ftr;
 
   int itable;
 
@@ -613,41 +613,41 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
   } else forcecoul = 0.0;
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    r = sqrt(rsq);
     r6inv = r2inv*r2inv*r2inv;
-    rrij = lj2[itype][jtype] * r;
-    if (rrij==0.0) {
+    forcelj = r6inv*(12.0*lj3[itype][jtype]*r6inv-6.0*lj4[itype][jtype]);
+    if (lj2[itype][jtype] == 0.0) {
       expn2 = 0.0;
       erfc2 = 0.0;
-    }
-    else {
+      forcecoul2 = 0.0;
+    } else {
+      r = sqrt(rsq);
+      rrij = lj2[itype][jtype]*r;
       expn2 = exp(-rrij*rrij);
       erfc2 = erfc(rrij);
+      prefactor2 = -force->qqrd2e*atom->q[i]*atom->q[j]/r;
+      forcecoul2 = prefactor2*(erfc2+EWALD_F*rrij*expn2);
     }
-    prefactor2 = -force->qqrd2e * atom->q[i]*atom->q[j]/r;
-    forcecoul2 = prefactor2 * (erfc2 + EWALD_F*rrij*expn2);
-    forcelj = expb*lj1[itype][jtype]*r-6.0*lj4[itype][jtype]*r6inv;
-  } else forcelj = forcecoul2 = 0.0;
+  } else forcelj = 0.0;
 
-  double eng = 0.0;
+  evdwl = ecoul = 0.0;
   if (rsq < cut_coulsq) {
     if (!ncoultablebits || rsq <= tabinnersq)
-      phicoul = prefactor*erfc1;
+      ecoul = prefactor*erfc1;
     else {
       table = etable[itable] + fraction*detable[itable];
-      phicoul = atom->q[i]*atom->q[j] * table;
+      ecoul = atom->q[i]*atom->q[j] * table;
     }
-    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
-    eng += phicoul;
+    if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
   }
 
   if (rsq < cut_ljsq[itype][jtype]) {
+    ecoul += prefactor2*erfc2*factor_coul;
     evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
         offset[itype][jtype];
   } else evdwl = 0.0;
 
   // Truncation, see Yaff Switch3
-  if (truncw>0) {
+  if (truncw > 0) {
     if (rsq < cut_ljsq[itype][jtype]) {
       if (r>cut_lj[itype][jtype]-truncw) {
         trx = (cut_lj[itype][jtype]-r)*truncwi;
@@ -658,10 +658,9 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
       }
     }
   }
-  eng += evdwl*factor_lj;
   fforce = (forcecoul + factor_coul*forcecoul2 + factor_lj*forcelj) * r2inv;
 
-  return eng;
+  return evdwl*factor_lj + ecoul;
 }
 
 /* ---------------------------------------------------------------------- */

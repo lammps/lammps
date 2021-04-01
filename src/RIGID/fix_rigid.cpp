@@ -725,7 +725,7 @@ void FixRigid::init()
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->box_change) break;
   if (i < modify->nfix) {
-    for (int j = i; j < modify->nfix; j++)
+    for (int j = i+1; j < modify->nfix; j++)
       if (utils::strmatch(modify->fix[j]->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
   }
@@ -736,7 +736,7 @@ void FixRigid::init()
     int ifix = modify->find_fix(id_gravity);
     if (ifix < 0) error->all(FLERR,"Fix rigid cannot find fix gravity ID");
     if (!utils::strmatch(modify->fix[ifix]->style,"^gravity"))
-      error->all(FLERR,"Fix rigid gravity fix is invalid");
+      error->all(FLERR,"Fix rigid gravity fix ID is not a gravity fix style");
     int tmp;
     gvec = (double *) modify->fix[ifix]->extract("gvec",tmp);
   }

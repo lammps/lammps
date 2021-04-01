@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Axel Kohlmeyer (Temple U),
-                         Ryan S. Elliott (UMN)
-                         Ellad B. Tadmor (UMN)
-                         Ronald Miller   (Carleton U)
-                         Yaser Afshar (UMN)
+   Contributing authors: Axel Kohlmeyer  (Temple U),
+                         Ryan S. Elliott (UMN),
+                         Ellad B. Tadmor (UMN),
+                         Ronald Miller   (Carleton U),
+                         Yaser Afshar    (UMN)
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
@@ -200,8 +200,8 @@ void KimInteractions::do_setup(int narg, char **arg)
 
       const std::string sim_field_str(sim_field);
       if (sim_field_str == "model-defn") {
-	if (first_visit<0) input->one("variable kim_update equal 0");
-	else  input->one("variable kim_update equal 1");
+        if (first_visit < 0) input->one("variable kim_update equal 0");
+        else  input->one("variable kim_update equal 1");
         if (domain->periodicity[0] &&
             domain->periodicity[1] &&
             domain->periodicity[2])

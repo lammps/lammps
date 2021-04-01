@@ -1,8 +1,8 @@
 #LAMMPS in.run 
  
 units           metal
-# atom_style      spin
-atom_style      spin/kk
+atom_style      spin
+# atom_style      spin/kk
 atom_modify     map array
 boundary        f f f 
 shell           echo "test1"

@@ -4,12 +4,12 @@
 rm res_*.dat
 
 # test standard Lammps 
-# ./../../../../src/lmp_serial \
-#   -in test-spin-precession.in 
+./../../../../src/lmp_serial \
+  -in test-spin-precession.in 
 
 # test spin/kk with Kokkos Lammps
-mpirun -np 1 ../../../../src/lmp_kokkos_mpi_only \
-  -k on -sf kk -in test-spin-precession.in
+# mpirun -np 1 ../../../../src/lmp_kokkos_mpi_only \
+#   -k on -sf kk -in test-spin-precession.in
 
 # extract data from Lammps run
 in="$(grep -n Step log.lammps | awk -F ':' '{print $1}')"

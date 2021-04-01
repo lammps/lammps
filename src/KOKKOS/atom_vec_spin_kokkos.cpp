@@ -1303,9 +1303,9 @@ void AtomVecSpinKokkos::sync_overlapping_device(ExecutionSpace space, unsigned i
    clear all forces (mech and mag)
 ------------------------------------------------------------------------- */
 
-void AtomVecSpinKokkos::force_clear(int /*n*/, size_t nbytes)
+void AtomVecSpinKokkos::force_clear(int n, size_t nbytes)
 {
-  memset(&atom->f[0][0],0,3*nbytes);
-  memset(&atom->fm[0][0],0,3*nbytes);
-  memset(&atom->fm_long[0][0],0,3*nbytes);
+  memset(&f[n][0],0,3*nbytes);
+  memset(&fm[n][0],0,3*nbytes);
+  memset(&fm_long[n][0],0,3*nbytes);
 }

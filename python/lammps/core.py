@@ -729,12 +729,11 @@ class lammps(object):
   def extract_global(self, name, dtype=LAMMPS_AUTODETECT):
     """Query LAMMPS about global settings of different types.
 
-    This is a wrapper around the :cpp:func:`lammps_extract_global`
-    function of the C-library interface.  Unlike the C function
-    this method returns the value and not a pointer and thus can
-    only return the first value for keywords representing a list
-    of values.  The :cpp:func:`lammps_extract_global` documentation
-    includes a list of the supported keywords and their data types.
+    This is a wrapper around the :cpp:func:`lammps_extract_global` function
+    of the C-library interface.  Since there are no pointers in Python, this
+    method will - unlike the C function - return the value or a list of
+    values.  The :cpp:func:`lammps_extract_global` documentation includes a
+    list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
     the result, by default, this function will try to auto-detect the data type
     by asking the library. You can also force a specific data type.  For that

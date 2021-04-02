@@ -37,6 +37,10 @@ add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME Groups COMMAND test_groups WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+add_executable(test_variables test_variables.cpp)
+target_link_libraries(test_variables PRIVATE lammps GTest::GMock GTest::GTest)
+add_test(NAME Variables COMMAND test_variables WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(test_kim_commands test_kim_commands.cpp)
 if(KIM_EXTRA_UNITTESTS)
   if(CURL_FOUND)

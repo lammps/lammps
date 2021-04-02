@@ -60,7 +60,7 @@ public:
     }
 
     void BEGIN_CAPTURE_OUTPUT() {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        ::testing::internal::CaptureStdout();
     }
 
     std::string END_CAPTURE_OUTPUT() {

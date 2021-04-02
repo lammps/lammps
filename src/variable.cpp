@@ -39,6 +39,7 @@
 #include <cmath>
 #include <cstring>
 #include <unistd.h>
+#include <unordered_map>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -53,8 +54,6 @@ using namespace MathConst;
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
 
-enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
 enum{ARG,OP};
 
 // customize by adding a function
@@ -66,7 +65,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
      LOGFREQ3,STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
-     GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,
+     GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,IS_FILE,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
 // customize by adding a special function
@@ -75,6 +74,20 @@ enum{SUM,XMIN,XMAX,AVE,TRAP,SLOPE};
 
 
 #define BIG 1.0e20
+
+// constants for variable expressions. customize by adding new items.
+// if needed (cf. 'version') initialize in Variable class constructor.
+
+static std::unordered_map<std::string, double> constants = {
+  {"PI", MY_PI },
+  {"version", -1 },
+  {"yes", 1 },
+  {"no", 0 },
+  {"on", 1 },
+  {"off", 0 },
+  {"true", 1 },
+  {"false", 0 }
+};
 
 /* ---------------------------------------------------------------------- */
 
@@ -97,6 +110,10 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
 
   randomequal = nullptr;
   randomatom = nullptr;
+
+  // override initializer since LAMMPS class needs to be instantiated
+
+  constants["version"] = lmp->num_ver;
 
   // customize by assigning a precedence level
 
@@ -517,12 +534,10 @@ void Variable::set(int narg, char **arg)
 
   if (replaceflag) return;
 
+  if (!utils::is_id(arg[0]))
+    error->all(FLERR,fmt::format("Variable name '{}' must have only alphanu"
+                                 "meric characters or underscores",arg[0]));
   names[nvar] = utils::strdup(arg[0]);
-  for (auto c : std::string(arg[0]))
-         if (!isalnum(c) && (c != '_'))
-      error->all(FLERR,fmt::format("Variable name '{}' must have only "
-                                   "alphanumeric characters or underscores",
-                                   names[nvar]));
   nvar++;
 }
 
@@ -966,9 +981,12 @@ double Variable::compute_equal(int ivar)
    don't need to flag eval_in_progress since is an immediate variable
 ------------------------------------------------------------------------- */
 
-double Variable::compute_equal(char *str)
+double Variable::compute_equal(const std::string &str)
 {
-  return evaluate(str,nullptr,-1);
+  char *ptr = utils::strdup(str);
+  double val = evaluate(ptr,nullptr,-1);
+  delete[] ptr;
+  return val;
 }
 
 /* ----------------------------------------------------------------------
@@ -1214,6 +1232,9 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
   int i = 0;
   int expect = ARG;
+
+  if (str == nullptr)
+    print_var_error(FLERR,"Invalid syntax in variable formula",ivar);
 
   while (1) {
     onechar = str[i];
@@ -2093,8 +2114,8 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         // constant
         // ----------------
 
-        } else if (is_constant(word)) {
-          value1 = constant(word);
+        } else if (constants.find(word) != constants.end()) {
+          value1 = constants[word];
           if (tree) {
             Tree *newtree = new Tree();
             newtree->type = VALUE;
@@ -4058,7 +4079,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       strcmp(word,"gmask") && strcmp(word,"rmask") &&
       strcmp(word,"grmask") && strcmp(word,"next") &&
       strcmp(word,"is_active") && strcmp(word,"is_defined") &&
-      strcmp(word,"is_available"))
+      strcmp(word,"is_available") && strcmp(word,"is_file"))
     return 0;
 
   // parse contents for comma-separated args
@@ -4475,6 +4496,26 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       newtree->nextra = 0;
       treestack[ntreestack++] = newtree;
     } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_file") == 0) {
+    if (narg != 1)
+      print_var_error(FLERR,"Invalid is_file() function in "
+                      "variable formula",ivar);
+
+    FILE *fp = fopen(args[0],"r");
+    value = (fp == nullptr) ? 0.0 : 1.0;
+    if (fp) fclose(fp);
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = nullptr;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
   }
 
   // delete stored args
@@ -4664,43 +4705,6 @@ void Variable::atom_vector(char *word, Tree **tree,
 }
 
 /* ----------------------------------------------------------------------
-   check if word matches a constant
-   return 1 if yes, else 0
-   customize by adding a constant: PI, version
-------------------------------------------------------------------------- */
-
-int Variable::is_constant(char *word)
-{
-  if (strcmp(word,"PI") == 0) return 1;
-  if (strcmp(word,"version") == 0) return 1;
-  if (strcmp(word,"yes") == 0) return 1;
-  if (strcmp(word,"no") == 0) return 1;
-  if (strcmp(word,"on") == 0) return 1;
-  if (strcmp(word,"off") == 0) return 1;
-  if (strcmp(word,"true") == 0) return 1;
-  if (strcmp(word,"false") == 0) return 1;
-  return 0;
-}
-
-/* ----------------------------------------------------------------------
-   process a constant in formula
-   customize by adding a constant: PI, version
-------------------------------------------------------------------------- */
-
-double Variable::constant(char *word)
-{
-  if (strcmp(word,"PI") == 0) return MY_PI;
-  if (strcmp(word,"version") == 0) return lmp->num_ver;
-  if (strcmp(word,"yes") == 0) return 1.0;
-  if (strcmp(word,"no") == 0) return 0.0;
-  if (strcmp(word,"on") == 0) return 1.0;
-  if (strcmp(word,"off") == 0) return 0.0;
-  if (strcmp(word,"true") == 0) return 1.0;
-  if (strcmp(word,"false") == 0) return 0.0;
-  return 0.0;
-}
-
-/* ----------------------------------------------------------------------
    parse string for comma-separated args
    store copy of each arg in args array
    max allowed # of args = MAXFUNCARG
@@ -4724,7 +4728,6 @@ int Variable::parse_args(char *str, char **args)
   if (ptr) error->all(FLERR,"Too many args in variable function");
   return narg;
 }
-
 
 /* ----------------------------------------------------------------------
    find next comma in str
@@ -5059,7 +5062,7 @@ VarReader::VarReader(LAMMPS *lmp, char *name, char *file, int flag) :
   id_fix = nullptr;
   buffer = nullptr;
 
-  if (style == ATOMFILE) {
+  if (style == Variable::ATOMFILE) {
     if (atom->map_style == Atom::MAP_NONE)
       error->all(FLERR,"Cannot use atomfile-style "
                  "variable unless an atom map exists");

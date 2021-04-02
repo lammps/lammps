@@ -52,7 +52,7 @@ class NeighList:
 
     def get(self, element):
         """
-        :return: tuple with atom local index, numpy array of neighbor local atom indices
+        :return: tuple with atom local index, number of neighbors and ctypes pointer to neighbor's local atom indices
         :rtype:  (int, int, ctypes.POINTER(c_int))
         """
         iatom, numneigh, neighbors = self.lmp.get_neighlist_element_neighbors(self.idx, element)

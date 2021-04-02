@@ -65,7 +65,7 @@ enum{DONE,ADD,SUBTRACT,MULTIPLY,DIVIDE,CARAT,MODULO,UNARY,
      SQRT,EXP,LN,LOG,ABS,SIN,COS,TAN,ASIN,ACOS,ATAN,ATAN2,
      RANDOM,NORMAL,CEIL,FLOOR,ROUND,RAMP,STAGGER,LOGFREQ,LOGFREQ2,
      LOGFREQ3,STRIDE,STRIDE2,VDISPLACE,SWIGGLE,CWIGGLE,GMASK,RMASK,
-     GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,
+     GRMASK,IS_ACTIVE,IS_DEFINED,IS_AVAILABLE,IS_FILE,
      VALUE,ATOMARRAY,TYPEARRAY,INTARRAY,BIGINTARRAY,VECTORARRAY};
 
 // customize by adding a special function
@@ -4079,7 +4079,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
       strcmp(word,"gmask") && strcmp(word,"rmask") &&
       strcmp(word,"grmask") && strcmp(word,"next") &&
       strcmp(word,"is_active") && strcmp(word,"is_defined") &&
-      strcmp(word,"is_available"))
+      strcmp(word,"is_available") && strcmp(word,"is_file"))
     return 0;
 
   // parse contents for comma-separated args
@@ -4485,6 +4485,26 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     Info info(lmp);
     value = (info.is_defined(args[0],args[1])) ? 1.0 : 0.0;
+
+    // save value in tree or on argstack
+
+    if (tree) {
+      Tree *newtree = new Tree();
+      newtree->type = VALUE;
+      newtree->value = value;
+      newtree->first = newtree->second = nullptr;
+      newtree->nextra = 0;
+      treestack[ntreestack++] = newtree;
+    } else argstack[nargstack++] = value;
+
+  } else if (strcmp(word,"is_file") == 0) {
+    if (narg != 1)
+      print_var_error(FLERR,"Invalid is_file() function in "
+                      "variable formula",ivar);
+
+    FILE *fp = fopen(args[0],"r");
+    value = (fp == nullptr) ? 0.0 : 1.0;
+    if (fp) fclose(fp);
 
     // save value in tree or on argstack
 

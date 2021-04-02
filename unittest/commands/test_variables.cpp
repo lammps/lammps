@@ -142,12 +142,13 @@ TEST_F(VariableTest, CreateDelete)
     command("variable ten2   uloop     4");
     command("variable ten3   uloop     4 pad");
     command("variable dummy  index     0");
+    command("variable file   equal     is_file(MYFILE)");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 17);
+    ASSERT_EQ(variable->nvar, 18);
     BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 16);
+    ASSERT_EQ(variable->nvar, 17);
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
@@ -158,6 +159,13 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("eight"), StrEq(""));
     variable->internal_set(variable->find("ten"), 2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("2.5"));
+    ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
+    FILE *fp = fopen("MYFILE","w");
+    fputs(" ",fp);
+    fclose(fp);
+    ASSERT_THAT(variable->retrieve("file"), StrEq("1"));
+    unlink("MYFILE");
+    ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
 
     ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);
@@ -200,7 +208,7 @@ TEST_F(VariableTest, CreateDelete)
 
 TEST_F(VariableTest, AtomicSystem)
 {
-    command("atom_modify map array");
+    HIDE_OUTPUT([&] { command("atom_modify map array"); });
     atomic_system();
     file_vars();
 

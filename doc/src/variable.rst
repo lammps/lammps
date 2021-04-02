@@ -65,8 +65,8 @@ Syntax
                            bound(group,dir,region), gyration(group,region), ke(group,reigon),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
-         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
-         feature functions = is_active(category,feature,exact), is_defined(category,id,exact)
+         special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x), is_file(name)
+         feature functions = is_available(category,feature), is_active(category,feature), is_defined(category,id)
          atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
          atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
          compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
@@ -820,6 +820,10 @@ Special Functions
 
 Special functions take specific kinds of arguments, meaning their
 arguments cannot be formulas themselves.
+
+The is_file(x) function is a test whether 'x' is a (readable) file
+and returns 1 in this case, otherwise it returns 0.  For that 'x'
+is taken as a literal string and must not have any blanks in it.
 
 The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
 each take 1 argument which is of the form "c_ID" or "c_ID[N]" or

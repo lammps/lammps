@@ -40,8 +40,8 @@ Syntax
 
   .. parsed-literal::
 
-      *no_attraction* value = none
-         turn off possibility for attractive interactions
+      *limit_damping* value = none
+         limit damping to prevent attractive interaction
 
 .. note::
 
@@ -217,7 +217,7 @@ potential.
 
 If two particles are moving away from each other while in contact, there 
 is a possibility that the particles could experience an effective attractive 
-force due to damping. If the *no_attraction* keyword is used, this fix 
+force due to damping. If the *limit_damping* keyword is used, this fix 
 will zero out the normal component of the force if there is an effective
 attractive force. 
 

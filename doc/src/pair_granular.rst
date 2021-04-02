@@ -623,6 +623,14 @@ Finally, the twisting torque on each particle is given by:
 
 ----------
 
+If two particles are moving away from each other while in contact, there 
+is a possibility that the particles could experience an effective attractive 
+force due to damping. If the optional *limit_damping* keyword is used, this fix 
+will zero out the normal component of the force if there is an effective
+attractive force. This keyword cannot be used with the JKR or DMT models.
+
+----------
+
 The *granular* pair style can reproduce the behavior of the
 *pair gran/\** styles with the appropriate settings (some very
 minor differences can be expected due to corrections in

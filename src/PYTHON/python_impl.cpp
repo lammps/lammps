@@ -56,6 +56,8 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   nfunc = 0;
   pfuncs = nullptr;
 
+#if PY_MAJOR_VERSION >= 3
+#ifndef Py_LIMITED_API
   // check for PYTHONUNBUFFERED environment variable
   const char * PYTHONUNBUFFERED = getenv("PYTHONUNBUFFERED");
 
@@ -64,6 +66,8 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
     // Force the stdout and stderr streams to be unbuffered.
     Py_UnbufferedStdioFlag = 1;
   }
+#endif
+#endif
 
   // one-time initialization of Python interpreter
   // pyMain stores pointer to main module

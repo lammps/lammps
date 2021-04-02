@@ -113,7 +113,7 @@ option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 
 set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
   GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MLIAP MOLECULE PERI POEMS
-  QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
+  PLUGIN QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
   USER-ADIOS USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK
   USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD
   USER-LB USER-MANIFOLD USER-MEAMC USER-MESONT USER-MGPT USER-MISC USER-MOFFF
@@ -532,6 +532,18 @@ foreach(PKG_WITH_INCL CORESHELL QEQ USER-OMP USER-SDPD KOKKOS OPT USER-INTEL GPU
     include(Packages/${PKG_WITH_INCL})
   endif()
 endforeach()
+
+if(PKG_PLUGIN)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+  else()
+    message(WARNING "Plugin loading will not work unless BUILD_SHARED_LIBS is enabled")
+  endif()
+  # link with -ldl or equivalent for plugin loading; except on Windows
+  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
+  endif()
+endif()
 
 ######################################################################
 # the windows version of LAMMPS requires a couple extra libraries

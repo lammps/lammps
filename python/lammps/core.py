@@ -278,6 +278,9 @@ class lammps(object):
 
     self.lib.lammps_id_name.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_int]
 
+    self.lib.lammps_plugin_count.argtypes = [ ]
+    self.lib.lammps_plugin_name.argtypes = [c_int, c_char_p, c_char_p, c_int]
+
     self.lib.lammps_version.argtypes = [c_void_p]
 
     self.lib.lammps_get_os_info.argtypes = [c_char_p, c_int]
@@ -1652,6 +1655,29 @@ class lammps(object):
         self.lib.lammps_id_name(self.lmp, category.encode(), idx, sb, 100)
         available_ids.append(sb.value.decode())
     return available_ids
+
+  # -------------------------------------------------------------------------
+
+  def available_plugins(self, category):
+    """Returns a list of plugins available for a given category
+
+    This is a wrapper around the functions :cpp:func:`lammps_plugin_count()`
+    and :cpp:func:`lammps_plugin_name()` of the library interface.
+
+    .. versionadded:: 10Mar2021
+
+    :return: list of style/name pairs of loaded plugins
+    :rtype:  list
+    """
+
+    available_plugins = []
+    num = self.lib.lammps_plugin_count(self.lmp)
+    sty = create_string_buffer(100)
+    nam = create_string_buffer(100)
+    for idx in range(num):
+      self.lib.lammps_plugin_name(idx, sty, nam, 100)
+      available_plugins.append([sty.value.decode(), nam.value.decode()])
+    return available_plugins
 
   # -------------------------------------------------------------------------
 

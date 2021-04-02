@@ -367,6 +367,79 @@ TEST_F(SimpleCommandsTest, Units)
     TEST_FAILURE(".*ERROR: Illegal units command.*", lmp->input->one("units unknown"););
 }
 
+#if defined(LMP_PLUGIN)
+TEST_F(SimpleCommandsTest, Plugin)
+{
+#if defined(__APPLE__)
+    std::string loadfmt("plugin load {}plugin.dylib");
+#else
+    std::string loadfmt("plugin load {}plugin.so");
+#endif
+    ::testing::internal::CaptureStdout();
+    lmp->input->one(fmt::format(loadfmt, "hello"));
+    auto text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Loading plugin: Hello world command.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one(fmt::format(loadfmt, "xxx"));
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Open of file xxx.* failed.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one(fmt::format(loadfmt, "nve2"));
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Loading plugin: NVE2 variant fix style.*"));
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("plugin list");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*1: command style plugin hello"
+                                   ".*2: fix style plugin nve2.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one(fmt::format(loadfmt, "hello"));
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Ignoring load of command style hello: "
+                                   "must unload existing hello plugin.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("plugin unload command hello");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Unloading command style hello.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("plugin unload pair nve2");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of pair style nve2: "
+                                   "not loaded from a plugin.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("plugin unload fix nve2");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Unloading fix style nve2.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("plugin unload fix nve");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of fix style nve: "
+                                   "not loaded from a plugin.*"));
+
+    ::testing::internal::CaptureStdout();
+    lmp->input->one("plugin list");
+    text = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << text;
+    ASSERT_THAT(text, MatchesRegex(".*Currently loaded plugins.*"));
+}
+#endif
+
 TEST_F(SimpleCommandsTest, Shell)
 {
     if (!verbose) ::testing::internal::CaptureStdout();

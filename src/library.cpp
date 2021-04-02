@@ -40,6 +40,9 @@
 #include "region.h"
 #include "respa.h"
 #include "output.h"
+#if defined(LMP_PLUGIN)
+#include "plugin.h"
+#endif
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -981,7 +984,7 @@ to then decide how to cast the (void*) pointer and access the data.
 
 \endverbatim
  *
- * \param  handle   pointer to a previously created LAMMPS instance
+ * \param  handle   pointer to a previously created LAMMPS instance (unused)
  * \param  name     string with the name of the extracted property
  * \return          integer constant encoding the data type of the property
  *                  or -1 if not found. */
@@ -4592,6 +4595,65 @@ int lammps_id_name(void *handle, const char *category, int idx,
     }
   }
   buffer[0] = '\0';
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Count the number of loaded plugins
+ *
+\verbatim embed:rst
+This function counts how many plugins are currently loaded.
+
+.. versionadded:: 10Mar2021
+
+\endverbatim
+ *
+ * \return number of loaded plugins
+ */
+int lammps_plugin_count()
+{
+#if defined(LMP_PLUGIN)
+  return plugin_get_num_plugins();
+#else
+  return 0;
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Look up the info of a loaded plugin by its index in the list of plugins
+ *
+\verbatim embed:rst
+This function copies the name of the *style* plugin with the index
+*idx* into the provided C-style string buffer.  The length of the buffer
+must be provided as *buf_size* argument.  If the name of the style
+exceeds the length of the buffer, it will be truncated accordingly.
+If the index is out of range, the function returns 0 and *buffer* is
+set to an empty string, otherwise 1.
+
+.. versionadded:: 10Mar2021
+
+\endverbatim
+ *
+ * \param  idx       index of the plugin in the list all or *style* plugins
+ * \param  stylebuf  string buffer to copy the style of the plugin to
+ * \param  namebuf   string buffer to copy the name of the plugin to
+ * \param  buf_size  size of the provided string buffers
+ * \return 1 if successful, otherwise 0
+ */
+int lammps_plugin_name(int idx, char *stylebuf, char *namebuf, int buf_size)
+{
+#if defined(LMP_PLUGIN)
+  stylebuf[0] = namebuf[0] = '\0';
+
+  const lammpsplugin_t *plugin = plugin_get_info(idx);
+  if (plugin) {
+    strncpy(stylebuf,plugin->style,buf_size);
+    strncpy(namebuf,plugin->name,buf_size);
+    return 1;
+  }
+#endif
   return 0;
 }
 

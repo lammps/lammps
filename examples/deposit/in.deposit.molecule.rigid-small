@@ -21,6 +21,9 @@ bond_coeff      1 5.0 1.0
 
 neigh_modify	delay 0
 
+molecule        dimer molecule.dimer
+region          slab block 0 5 0 5 8 9
+
 group		addatoms empty
 region          mobile block 0 5 0 5 2 INF
 group		mobile region mobile
@@ -28,16 +31,13 @@ group		mobile region mobile
 compute	add addatoms temp
 compute_modify	add dynamic/dof yes extra/dof 0
 
-fix		1 addatoms nve
+fix		1 addatoms rigid/small molecule mol dimer
 fix		2 mobile langevin 0.1 0.1 0.1 587283
 fix		3 mobile nve
 
-molecule        dimer molecule.dimer.shake
-region          slab block 0 5 0 5 8 9
 fix		4 addatoms deposit 100 0 100 12345 region slab near 1.0 &
-                mol dimer vz -1.0 -1.0 shake 6
+                mol dimer vz -1.0 -1.0 rigid 1
 fix		5 addatoms wall/reflect zhi EDGE
-fix             6 all shake 0.0001 20 1000 b 1 mol dimer
 
 thermo_style	custom step atoms temp epair etotal press
 thermo          100

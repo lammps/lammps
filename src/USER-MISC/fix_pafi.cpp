@@ -180,7 +180,7 @@ void FixPAFI::init()
     error->all(FLERR,"Compute for fix pafi must have 9 fields per atom");
 
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     step_respa = ((Respa *) update->integrate)->step; // nve
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,nlevels_respa-1);
@@ -191,7 +191,7 @@ void FixPAFI::init()
 
 void FixPAFI::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else
     for (int ilevel = 0; ilevel < nlevels_respa; ilevel++) {

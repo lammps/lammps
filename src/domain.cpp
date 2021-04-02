@@ -1826,7 +1826,7 @@ void Domain::delete_region(int iregion)
   // delete and move other Regions down in list one slot
 
   delete regions[iregion];
-  for (int i = iregion+1; iregion < nregion; ++i)
+  for (int i = iregion+1; i < nregion; ++i)
     regions[i-1] = regions[i];
   nregion--;
 }

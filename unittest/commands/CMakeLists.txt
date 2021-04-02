@@ -11,13 +11,13 @@ if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows" AND PKG_PLUGIN)
                                       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                                       -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                                       -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                     BUILD_BYPRODUCTS <BINARY_DIR>/morse2plugin${CMAKE_SHARED_LIBRARY_SUFFIX}
-                                      <BINARY_DIR>/nve2plugin${CMAKE_SHARED_LIBRARY_SUFFIX}
-                                      <BINARY_DIR>/helloplugin${CMAKE_SHARED_LIBRARY_SUFFIX}
+                     BUILD_BYPRODUCTS <BINARY_DIR>/morse2plugin${CMAKE_SHARED_MODULE_SUFFIX}
+                                      <BINARY_DIR>/nve2plugin${CMAKE_SHARED_MODULE_SUFFIX}
+                                      <BINARY_DIR>/helloplugin${CMAKE_SHARED_MODULE_SUFFIX}
                      INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                                      <BINARY_DIR>/morse2plugin${CMAKE_SHARED_LIBRARY_SUFFIX}
-                                      <BINARY_DIR>/nve2plugin${CMAKE_SHARED_LIBRARY_SUFFIX}
-                                      <BINARY_DIR>/helloplugin${CMAKE_SHARED_LIBRARY_SUFFIX}
+                                      <BINARY_DIR>/morse2plugin${CMAKE_SHARED_MODULE_SUFFIX}
+                                      <BINARY_DIR>/nve2plugin${CMAKE_SHARED_MODULE_SUFFIX}
+                                      <BINARY_DIR>/helloplugin${CMAKE_SHARED_MODULE_SUFFIX}
                                       ${CMAKE_CURRENT_BINARY_DIR}
                      TEST_COMMAND    "")
 endif()

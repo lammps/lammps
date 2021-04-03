@@ -1615,7 +1615,7 @@ lists the available options.
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
-void *lammps_extract_compute(void *handle, char *id, int style, int type)
+void *lammps_extract_compute(void *handle, const char *id, int style, int type)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
 
@@ -1801,7 +1801,7 @@ The following table lists the available options.
  * \return         pointer (cast to ``void *``) to the location of the
  *                 requested data or ``NULL`` if not found. */
 
-void *lammps_extract_fix(void *handle, char *id, int style, int type,
+void *lammps_extract_fix(void *handle, const char *id, int style, int type,
                          int nrow, int ncol)
 {
   LAMMPS *lmp = (LAMMPS *) handle;

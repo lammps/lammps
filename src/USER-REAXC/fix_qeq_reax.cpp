@@ -370,7 +370,7 @@ void FixQEqReax::init()
   init_shielding();
   init_taper();
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

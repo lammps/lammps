@@ -230,9 +230,9 @@ TEST_F(DumpCfgCompressTest, compressed_modify_bad_param)
     if (compression_style != "cfg/gz") GTEST_SKIP();
 
     auto fields            = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.cfg"), fields));
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
         command("dump_modify id1 compression_level 12");
@@ -244,9 +244,9 @@ TEST_F(DumpCfgCompressTest, compressed_modify_multi_bad_param)
     if (compression_style != "cfg/gz") GTEST_SKIP();
 
     auto fields            = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.cfg"), fields));
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
         command("dump_modify id1 pad 3 compression_level 12");

@@ -174,6 +174,12 @@ void Fix::modify_params(int narg, char **arg)
   }
 }
 
+void::Fix::set_molecule(int, tagint, int, double *, double *, double *)
+{
+  error->all(FLERR,fmt::format("Molecule update not implemented for "
+                               "fix {}", style));
+}
+
 /* ----------------------------------------------------------------------
    setup for peratom energy and global/peratom virial computation
    see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)

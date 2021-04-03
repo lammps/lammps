@@ -138,7 +138,7 @@ void FixQEQComb::init()
 void FixQEQComb::setup(int vflag)
 {
   firstflag = 1;
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

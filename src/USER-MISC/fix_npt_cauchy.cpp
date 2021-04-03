@@ -765,7 +765,7 @@ void FixNPTCauchy::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
     dto = 0.5*step_respa[0];
@@ -1752,7 +1752,7 @@ void FixNPTCauchy::reset_dt()
 
   // If using respa, then remap is performed in innermost level
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dto = 0.5*step_respa[0];
 
   if (pstat_flag)

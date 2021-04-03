@@ -237,7 +237,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;
-        if(limit_damping and ccel < 0.0) ccel = 0.0;
+        if (limit_damping and ccel < 0.0) ccel = 0.0;
 
         // relative velocities
 
@@ -372,8 +372,8 @@ void PairGranHookeHistory::settings(int narg, char **arg)
   if (dampflag == 0) gammat = 0.0;
   
   limit_damping = 0;
-  if(narg == 7) {
-    if(strcmp(arg[6], "limit_damping") == 0) limit_damping = 1;
+  if (narg == 7) {
+    if (strcmp(arg[6], "limit_damping") == 0) limit_damping = 1;
     else error->all(FLERR,"Illegal pair_style command");
   }
 

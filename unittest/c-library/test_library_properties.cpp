@@ -367,6 +367,62 @@ TEST_F(LibraryProperties, neighlist)
     EXPECT_NE(lammps_find_compute_neighlist(lmp, "dist", 0),-1);
     EXPECT_EQ(lammps_find_fix_neighlist(lmp, "dist", 0),-1);
     EXPECT_EQ(lammps_find_compute_neighlist(lmp, "xxx", 0),-1);
+
+    // full neighbor list for 4 type 1 atoms
+    // all have 3 type 1 atom neighbors
+    int idx = lammps_find_pair_neighlist(lmp, "sw", 1, 0, 0);
+    int num = lammps_neighlist_num_elements(lmp, idx);
+    EXPECT_EQ(num, 4);
+    int iatom, inum, *neighbors;
+    for (int i=0; i < num; ++i) {
+        lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
+        EXPECT_EQ(iatom,i);
+        EXPECT_EQ(inum,3);
+        EXPECT_NE(neighbors,nullptr);
+    }
+
+    // half neighbor list for all pairs between type 1 and type 2
+    // 4 type 1 atoms with 3 type 2 neighbors and 3 type 2 atoms without neighbors
+    idx = lammps_find_pair_neighlist(lmp, "morse", 0, 0, 0);
+    num = lammps_neighlist_num_elements(lmp, idx);
+    EXPECT_EQ(num, nlocal);
+    for (int i=0; i < num; ++i) {
+        lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
+        if (i < 4) EXPECT_EQ(inum, 3);
+        else EXPECT_EQ(inum,0);
+        EXPECT_NE(neighbors,nullptr);
+    }
+
+    // half neighbor list between type 2 atoms only
+    // 3 pairs with 2, 1, 0 neighbors
+    idx = lammps_find_pair_neighlist(lmp, "lj/cut", 1, 1, 0);
+    num = lammps_neighlist_num_elements(lmp, idx);
+    EXPECT_EQ(num, 3);
+    for (int i=0; i < num; ++i) {
+        lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
+        EXPECT_EQ(inum,2-i);
+        EXPECT_NE(neighbors,nullptr);
+    }
+
+    // half neighbor list between all pairs. same as simple lj/cut case
+    idx = lammps_find_pair_neighlist(lmp, "lj/cut", 1, 2, 0);
+    num = lammps_neighlist_num_elements(lmp, idx);
+    EXPECT_EQ(num, nlocal);
+    for (int i=0; i < num; ++i) {
+        lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
+        EXPECT_EQ(inum,nlocal-1-i);
+        EXPECT_NE(neighbors,nullptr);
+    }
+
+    //  the compute has a half neighbor list
+    idx = lammps_find_compute_neighlist(lmp, "dist", 0);
+    num = lammps_neighlist_num_elements(lmp, idx);
+    EXPECT_EQ(num, nlocal);
+    for (int i=0; i < num; ++i) {
+        lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
+        EXPECT_EQ(inum,nlocal-1-i);
+        EXPECT_NE(neighbors,nullptr);
+    }
 };
 
 class AtomProperties : public ::testing::Test {

@@ -52,6 +52,8 @@ class NeighList:
 
     def get(self, element):
         """
+        Access a specific neighbor list entry. "element" must be a number from 0 to the size-1 of the list
+
         :return: tuple with atom local index, number of neighbors and ctypes pointer to neighbor's local atom indices
         :rtype:  (int, int, ctypes.POINTER(c_int))
         """
@@ -71,3 +73,20 @@ class NeighList:
 
         for ii in range(inum):
             yield self.get(ii)
+
+    def find(self, iatom):
+        """
+        Find the neighbor list for a specific (local) atom iatom.
+        If there is no list for iatom, (-1, None) is returned.
+
+        :return: tuple with number of neighbors and ctypes pointer to neighbor's local atom indices
+        :rtype:  (int, ctypes.POINTER(c_int))
+        """
+
+        inum = self.size
+        for ii in range(inum):
+            idx, numneigh, neighbors = self.get(ii)
+            if idx == iatom:
+                return numneigh, neighbors
+
+        return -1, None

@@ -122,9 +122,9 @@ create_atoms 1 single &
         run 0 post no""")
 
         idx = self.lmp.find_pair_neighlist("lj/cut")
-        self.assertEqual(0, 0)
+        self.assertNotEqual(idx, -1)
         self.assertEqual(self.lmp.find_pair_neighlist("morse"), -1)
-        nlist = self.lmp.get_neighlist(0)
+        nlist = self.lmp.get_neighlist(idx)
         self.assertEqual(len(nlist), 2)
         atom_i, numneigh_i, neighbors_i = nlist[0]
         atom_j, numneigh_j, _ = nlist[1]
@@ -166,6 +166,15 @@ create_atoms 1 single &
             idx, num, neighs = nlist.get(i)
             self.assertEqual(idx,i)
             self.assertEqual(num,nlocal-1-i)
+
+        # look up neighbor list by atom index
+        num, neighs = nlist.find(2)
+        self.assertEqual(num,4)
+        self.assertIsNotNone(neighs,None)
+        # this one will fail
+        num, neighs = nlist.find(10)
+        self.assertEqual(num,-1)
+        self.assertIsNone(neighs,None)
 
     @unittest.skipIf(not has_manybody,"Full neighbor list test for manybody potential")
     def testNeighborListFull(self):

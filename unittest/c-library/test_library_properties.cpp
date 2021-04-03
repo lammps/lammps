@@ -160,7 +160,9 @@ TEST_F(LibraryProperties, box)
     boxlo[0] = -6.1;
     boxhi[1] = 7.3;
     xy       = 0.1;
+    if (!verbose) ::testing::internal::CaptureStdout();
     lammps_reset_box(lmp, boxlo, boxhi, xy, yz, xz);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
     lammps_extract_box(lmp, boxlo, boxhi, &xy, &yz, &xz, pflags, &boxflag);
     EXPECT_DOUBLE_EQ(boxlo[0], -6.1);
     EXPECT_DOUBLE_EQ(boxlo[1], -7.692866);

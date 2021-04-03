@@ -3926,7 +3926,7 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
  * This function determines which of the available neighbor lists for
  * pair styles matches the given conditions.  It first matches the style
  * name. If exact is 1 the name must match exactly, if exact is 0, a
- * regular expression or substring match is done.  If the pair style is
+ * regular expression or sub-string match is done.  If the pair style is
  * hybrid or hybrid/overlay the style is matched against the sub styles
  * instead.
  * If a the same pair style is used multiple times as a sub-style, the
@@ -3941,7 +3941,7 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
  * \param  handle   pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param  style    String used to search for pair style instance
  * \param  exact    Flag to control whether style should match exactly or only
- *                  a regular expression / substring match is applied.
+ *                  a regular expression / sub-string match is applied.
  * \param  nsub     match nsub-th hybrid sub-style instance of the same style
  * \param  reqid    request id to identify neighbor list in case there are
  *                  multiple requests from the same pair style instance

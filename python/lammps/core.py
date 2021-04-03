@@ -1753,9 +1753,9 @@ class lammps(object):
     Search for a neighbor list requested by a pair style instance that
     matches "style".  If exact is True, the pair style name must match
     exactly. If exact is False, the pair style name is matched against
-    "style" as regular expression or substring. If the pair style is a
+    "style" as regular expression or sub-string. If the pair style is a
     hybrid pair style, the style is instead matched against the hybrid
-    sub-styles. If the same pair style is used as substyle multiple
+    sub-styles. If the same pair style is used as sub-style multiple
     types, you must set nsub to a value n > 0 which indicates the nth
     instance of that sub-style to be used (same as for the pair_coeff
     command). The default value of 0 will fail to match in that case.

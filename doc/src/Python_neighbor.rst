@@ -5,7 +5,7 @@ Access to neighbor lists is handled through a couple of wrapper classes
 that allows to treat it like either a python list or a NumPy array.  The
 access procedure is similar to that of the C-library interface: use one
 of the "find" functions to look up the index of the neighbor list in the
-global table of neighbor lists and then get access to the neigbor list
+global table of neighbor lists and then get access to the neighbor list
 data. The code sample below demonstrates reading the neighbor list data
 using the NumPy access method.
 

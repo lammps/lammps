@@ -3822,8 +3822,8 @@ X(1),Y(1),Z(1),X(2),Y(2),Z(2),...,X(N),Y(N),Z(N).
  * \return          number of atoms created on success;
                     -1 on failure (no box, no atom IDs, etc.) */
 
-int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
-                        double *x, double *v, imageint *image,
+int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
+                        const double *x, const double *v, const imageint *image,
                         int bexpand)
 {
   LAMMPS *lmp = (LAMMPS *) handle;
@@ -3859,13 +3859,17 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
 
     int nlocal_prev = nlocal;
     double xdata[3];
+    imageint idata, *img;
 
     for (int i = 0; i < n; i++) {
       xdata[0] = x[3*i];
       xdata[1] = x[3*i+1];
       xdata[2] = x[3*i+2];
-      imageint * img = image ? image + i : nullptr;
-      tagint     tag = id    ? id[i]     : 0;
+      if (image) {
+        idata = image[i];
+        img = &idata;
+      } else img = nullptr;
+      const tagint tag = id ? id[i] : 0;
 
       // create atom only on MPI rank that would own it
 
@@ -3943,7 +3947,7 @@ int lammps_create_atoms(void *handle, int n, tagint *id, int *type,
  *                  multiple requests from the same pair style instance
  * \return          return neighbor list index if found, otherwise -1 */
 
-int lammps_find_pair_neighlist(void *handle, char *style, int exact, int nsub, int reqid) {
+int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int nsub, int reqid) {
   LAMMPS *lmp = (LAMMPS *) handle;
   Pair *pair = lmp->force->pair_match(style, exact, nsub);
 
@@ -3973,7 +3977,7 @@ int lammps_find_pair_neighlist(void *handle, char *style, int exact, int nsub, i
  *                 multiple requests from the same fix
  * \return         return neighbor list index if found, otherwise -1  */
 
-int lammps_find_fix_neighlist(void *handle, char *id, int reqid) {
+int lammps_find_fix_neighlist(void *handle, const char *id, int reqid) {
   LAMMPS *lmp = (LAMMPS *) handle;
   const int ifix = lmp->modify->find_fix(id);
   if (ifix < 0) return -1;
@@ -4003,7 +4007,7 @@ int lammps_find_fix_neighlist(void *handle, char *id, int reqid) {
  *                 multiple requests from the same compute
  * \return         return neighbor list index if found, otherwise -1 */
 
-int lammps_find_compute_neighlist(void* handle, char *id, int reqid) {
+int lammps_find_compute_neighlist(void* handle, const char *id, int reqid) {
   LAMMPS *lmp = (LAMMPS *) handle;
   const int icompute = lmp->modify->find_compute(id);
   if (icompute < 0) return -1;

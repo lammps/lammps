@@ -364,6 +364,8 @@ class PythonNumpy(unittest.TestCase):
 
         self.assertNotEqual(self.lmp.find_pair_neighlist("lj/cut"),-1)
         self.assertNotEqual(self.lmp.find_compute_neighlist("dist"),-1)
+        self.assertEqual(self.lmp.find_compute_neighlist("xxx"),-1)
+        self.assertEqual(self.lmp.find_fix_neighlist("dist"),-1)
 
         # the compute has a half neighbor list
         nlist = self.lmp.numpy.get_neighlist(self.lmp.find_compute_neighlist("dist"))

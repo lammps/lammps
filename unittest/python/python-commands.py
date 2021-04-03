@@ -313,6 +313,8 @@ create_atoms 1 single &
 
         self.assertNotEqual(self.lmp.find_pair_neighlist("lj/cut"),-1)
         self.assertNotEqual(self.lmp.find_compute_neighlist("dist"),-1)
+        self.assertEqual(self.lmp.find_compute_neighlist("xxx"),-1)
+        self.assertEqual(self.lmp.find_fix_neighlist("dist"),-1)
 
         # the compute has a half neighbor list
         nlist = self.lmp.get_neighlist(self.lmp.find_compute_neighlist("dist"))

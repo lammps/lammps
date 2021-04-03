@@ -346,15 +346,18 @@ TEST_F(LibraryProperties, neighlist)
     lammps_command(lmp, "run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int nhisto = *(double *)lammps_extract_fix(lmp,"dist",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,0,0);
-    int nskip = *(double *)lammps_extract_fix(lmp,"dist",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,1,0);
-    double minval = *(double *)lammps_extract_fix(lmp,"dist",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,2,0);
-    double maxval = *(double *)lammps_extract_fix(lmp,"dist",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,3,0);
+    int nhisto =
+        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 0, 0);
+    int nskip = *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 1, 0);
+    double minval =
+        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 2, 0);
+    double maxval =
+        *(double *)lammps_extract_fix(lmp, "dist", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR, 3, 0);
     // 21 pair distances counted, none skipped, smallest 1.0, largest 2.1
-    EXPECT_EQ(nhisto,21);
-    EXPECT_EQ(nskip,0);
-    EXPECT_DOUBLE_EQ(minval,1.0);
-    EXPECT_DOUBLE_EQ(maxval,2.1);
+    EXPECT_EQ(nhisto, 21);
+    EXPECT_EQ(nskip, 0);
+    EXPECT_DOUBLE_EQ(minval, 1.0);
+    EXPECT_DOUBLE_EQ(maxval, 2.1);
 
     const int nlocal = lammps_extract_setting(lmp, "nlocal");
     EXPECT_EQ(nlocal, numatoms);
@@ -364,9 +367,9 @@ TEST_F(LibraryProperties, neighlist)
     EXPECT_NE(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 2, 0), -1);
     EXPECT_EQ(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 0, 0), -1);
     EXPECT_EQ(lammps_find_pair_neighlist(lmp, "hybrid/overlay", 1, 0, 0), -1);
-    EXPECT_NE(lammps_find_compute_neighlist(lmp, "dist", 0),-1);
-    EXPECT_EQ(lammps_find_fix_neighlist(lmp, "dist", 0),-1);
-    EXPECT_EQ(lammps_find_compute_neighlist(lmp, "xxx", 0),-1);
+    EXPECT_NE(lammps_find_compute_neighlist(lmp, "dist", 0), -1);
+    EXPECT_EQ(lammps_find_fix_neighlist(lmp, "dist", 0), -1);
+    EXPECT_EQ(lammps_find_compute_neighlist(lmp, "xxx", 0), -1);
 
     // full neighbor list for 4 type 1 atoms
     // all have 3 type 1 atom neighbors
@@ -374,11 +377,11 @@ TEST_F(LibraryProperties, neighlist)
     int num = lammps_neighlist_num_elements(lmp, idx);
     EXPECT_EQ(num, 4);
     int iatom, inum, *neighbors;
-    for (int i=0; i < num; ++i) {
+    for (int i = 0; i < num; ++i) {
         lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
-        EXPECT_EQ(iatom,i);
-        EXPECT_EQ(inum,3);
-        EXPECT_NE(neighbors,nullptr);
+        EXPECT_EQ(iatom, i);
+        EXPECT_EQ(inum, 3);
+        EXPECT_NE(neighbors, nullptr);
     }
 
     // half neighbor list for all pairs between type 1 and type 2
@@ -386,11 +389,13 @@ TEST_F(LibraryProperties, neighlist)
     idx = lammps_find_pair_neighlist(lmp, "morse", 0, 0, 0);
     num = lammps_neighlist_num_elements(lmp, idx);
     EXPECT_EQ(num, nlocal);
-    for (int i=0; i < num; ++i) {
+    for (int i = 0; i < num; ++i) {
         lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
-        if (i < 4) EXPECT_EQ(inum, 3);
-        else EXPECT_EQ(inum,0);
-        EXPECT_NE(neighbors,nullptr);
+        if (i < 4)
+            EXPECT_EQ(inum, 3);
+        else
+            EXPECT_EQ(inum, 0);
+        EXPECT_NE(neighbors, nullptr);
     }
 
     // half neighbor list between type 2 atoms only
@@ -398,30 +403,30 @@ TEST_F(LibraryProperties, neighlist)
     idx = lammps_find_pair_neighlist(lmp, "lj/cut", 1, 1, 0);
     num = lammps_neighlist_num_elements(lmp, idx);
     EXPECT_EQ(num, 3);
-    for (int i=0; i < num; ++i) {
+    for (int i = 0; i < num; ++i) {
         lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
-        EXPECT_EQ(inum,2-i);
-        EXPECT_NE(neighbors,nullptr);
+        EXPECT_EQ(inum, 2 - i);
+        EXPECT_NE(neighbors, nullptr);
     }
 
     // half neighbor list between all pairs. same as simple lj/cut case
     idx = lammps_find_pair_neighlist(lmp, "lj/cut", 1, 2, 0);
     num = lammps_neighlist_num_elements(lmp, idx);
     EXPECT_EQ(num, nlocal);
-    for (int i=0; i < num; ++i) {
+    for (int i = 0; i < num; ++i) {
         lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
-        EXPECT_EQ(inum,nlocal-1-i);
-        EXPECT_NE(neighbors,nullptr);
+        EXPECT_EQ(inum, nlocal - 1 - i);
+        EXPECT_NE(neighbors, nullptr);
     }
 
     //  the compute has a half neighbor list
     idx = lammps_find_compute_neighlist(lmp, "dist", 0);
     num = lammps_neighlist_num_elements(lmp, idx);
     EXPECT_EQ(num, nlocal);
-    for (int i=0; i < num; ++i) {
+    for (int i = 0; i < num; ++i) {
         lammps_neighlist_element_neighbors(lmp, idx, i, &iatom, &inum, &neighbors);
-        EXPECT_EQ(inum,nlocal-1-i);
-        EXPECT_NE(neighbors,nullptr);
+        EXPECT_EQ(inum, nlocal - 1 - i);
+        EXPECT_NE(neighbors, nullptr);
     }
 };
 

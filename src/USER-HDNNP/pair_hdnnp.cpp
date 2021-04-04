@@ -19,7 +19,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_hdnnp.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
@@ -29,7 +29,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "update.h"
-#include "utils.h"
+
 #include "InterfaceLammps.h" // n2p2 interface header
 
 using namespace LAMMPS_NS;
@@ -54,6 +54,13 @@ PairHDNNP::PairHDNNP(LAMMPS *lmp) : Pair(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_user_hdnnp_package);
 
+  single_enable = 0;           // 1 if single() routine exists
+  restartinfo = 0;             // 1 if pair style writes restart info
+  one_coeff = 1;               // 1 if allows only one coeff * * call
+  manybody_flag = 1;           // 1 if a manybody potential
+  unit_convert_flag = 0;       // TODO: Check possible values. value != 0 indicates support for unit conversion.
+  reinitflag = 0;              // 1 if compatible with fix adapt and alike
+
   interface = new nnp::InterfaceLammps();
 }
 
@@ -68,8 +75,7 @@ PairHDNNP::~PairHDNNP()
 
 void PairHDNNP::compute(int eflag, int vflag)
 {
-  if(eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // Set number of local atoms and add element.
   interface->setLocalAtoms(atom->nlocal,atom->type);
@@ -111,35 +117,19 @@ void PairHDNNP::compute(int eflag, int vflag)
 
 void PairHDNNP::settings(int narg, char **arg)
 {
-  single_enable = 0;           // 1 if single() routine exists
-  single_hessian_enable = 0;   // 1 if single_hessian() routine exists
-  restartinfo = 0;             // 1 if pair style writes restart info
-  respa_enable = 0;            // 1 if inner/middle/outer rRESPA routines
-  one_coeff = 1;               // 1 if allows only one coeff * * call
-  manybody_flag = 1;           // 1 if a manybody potential
-  unit_convert_flag = 0;       // value != 0 indicates support for unit conversion.
-  no_virial_fdotr_compute = 0; // 1 if does not invoke virial_fdotr_compute()
-  writedata = 0;               // 1 if writes coeffs to data file
-  ghostneigh = 0;              // 1 if pair style needs neighbors of ghosts
-  reinitflag = 0;              // 1 if compatible with fix adapt and alike
-
   int iarg = 0;
 
   if (narg == 0) error->all(FLERR,"Illegal pair_style command");
 
   // default settings
-  int len = strlen("hdnnp/") + 1;
-  directory = new char[len];
-  strcpy(directory,"hdnnp/");
+  directory = utils::strdup("hdnnp/");
   showew = true;
   showewsum = 0;
   maxew = 0;
   resetew = false;
   cflength = 1.0;
   cfenergy = 1.0;
-  len = strlen("") + 1;
-  emap = new char[len];
-  strcpy(emap,"");
+  emap = utils::strdup("");
   numExtrapolationWarningsTotal = 0;
   numExtrapolationWarningsSummary = 0;
 

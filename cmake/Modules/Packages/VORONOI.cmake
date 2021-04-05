@@ -7,6 +7,11 @@ endif()
 option(DOWNLOAD_VORO "Download and compile the Voro++ library instead of using an already installed one" ${DOWNLOAD_VORO_DEFAULT})
 if(DOWNLOAD_VORO)
   message(STATUS "Voro++ download requested - we will build our own")
+  set(VORO_URL "${LAMMPS_THIRDPARTY_URL}/voro++-0.4.6.tar.gz" CACHE STRING "URL for Voro++ tarball")
+  set(VORO_MD5 "2338b824c3b7b25590e18e8df5d68af9" CACHE STRING "MD5 checksum for Voro++ tarball")
+  mark_as_advanced(VORO_URL)
+  mark_as_advanced(VORO_MD5)
+
   include(ExternalProject)
 
   if(BUILD_SHARED_LIBS)
@@ -22,8 +27,8 @@ if(DOWNLOAD_VORO)
   endif()
 
   ExternalProject_Add(voro_build
-    URL https://download.lammps.org/thirdparty/voro++-0.4.6.tar.gz
-    URL_MD5 2338b824c3b7b25590e18e8df5d68af9
+    URL     ${VORO_URL}
+    URL_MD5 ${VORO_MD5}
     PATCH_COMMAND patch -b -p0 < ${LAMMPS_LIB_SOURCE_DIR}/voronoi/voro-make.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make ${VORO_BUILD_OPTIONS}

@@ -625,7 +625,7 @@ Finally, the twisting torque on each particle is given by:
 
 If two particles are moving away from each other while in contact, there 
 is a possibility that the particles could experience an effective attractive 
-force due to damping. If the optional *limit_damping* keyword is used, this fix 
+force due to damping. If the optional *limit_damping* keyword is used, this option 
 will zero out the normal component of the force if there is an effective
 attractive force. This keyword cannot be used with the JKR or DMT models.
 
@@ -667,7 +667,7 @@ atom types.
 
 If two particles are moving away from each other while in contact, there 
 is a possibility that the particles could experience an effective attractive 
-force due to damping. If the *no_attraction* keyword is used, this fix 
+force due to damping. If the *limit_damping* keyword is used, this option 
 will zero out the normal component of the force if there is an effective
 attractive force. This keyword cannot be used with the JKR or DMT models.
 

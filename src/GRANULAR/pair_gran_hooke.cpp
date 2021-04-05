@@ -158,7 +158,7 @@ void PairGranHooke::compute(int eflag, int vflag)
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;
-        if(limit_damping and ccel < 0.0) ccel = 0.0;
+        if (limit_damping and ccel < 0.0) ccel = 0.0;
 
         // relative velocities
 
@@ -300,7 +300,7 @@ double PairGranHooke::single(int i, int j, int /*itype*/, int /*jtype*/, double 
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radsum-r)*rinv - damp;
-  if(limit_damping and ccel < 0.0) ccel = 0.0;
+  if (limit_damping and ccel < 0.0) ccel = 0.0;
 
   // relative velocities
 

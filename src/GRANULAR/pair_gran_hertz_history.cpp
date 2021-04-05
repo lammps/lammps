@@ -181,7 +181,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
         ccel = kn*(radsum-r)*rinv - damp;
         polyhertz = sqrt((radsum-r)*radi*radj / radsum);
         ccel *= polyhertz;
-        if(limit_damping and ccel < 0.0) ccel = 0.0;
+        if (limit_damping and ccel < 0.0) ccel = 0.0;
 
         // relative velocities
 
@@ -389,7 +389,7 @@ double PairGranHertzHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
   ccel = kn*(radsum-r)*rinv - damp;
   polyhertz = sqrt((radsum-r)*radi*radj / radsum);
   ccel *= polyhertz;
-  if(limit_damping and ccel < 0.0) ccel = 0.0;
+  if (limit_damping and ccel < 0.0) ccel = 0.0;
 
   // relative velocities
 

@@ -1547,7 +1547,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
-  if(limit_damping[itype][jtype] and Fntot < 0.0) Fntot = 0.0;
+  if (limit_damping[itype][jtype] and Fntot < 0.0) Fntot = 0.0;
 
   jnum = list->numneigh[i];
   jlist = list->firstneigh[i];

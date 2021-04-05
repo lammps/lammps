@@ -376,7 +376,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   wiggle = 0;
   wshear = 0;
   peratom_flag = 0;
-  limit_damping = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
@@ -792,7 +791,7 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
-  if(limit_damping and ccel < 0.0) ccel = 0.0;
+  if (limit_damping and ccel < 0.0) ccel = 0.0;
 
   // relative velocities
 
@@ -885,7 +884,7 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
-  if(limit_damping and ccel < 0.0) ccel = 0.0;
+  if (limit_damping and ccel < 0.0) ccel = 0.0;
 
   // relative velocities
 
@@ -1017,7 +1016,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   if (rwall == 0.0) polyhertz = sqrt((radius-r)*radius);
   else polyhertz = sqrt((radius-r)*radius*rwall/(rwall+radius));
   ccel *= polyhertz;
-  if(limit_damping and ccel < 0.0) ccel = 0.0;
+  if (limit_damping and ccel < 0.0) ccel = 0.0;
   
   // relative velocities
 
@@ -1303,8 +1302,8 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
         history[thist2] -= rsht*nz;
 
         // also rescale to preserve magnitude
-        prjmag = sqrt(history[0]*history[0] + history[1]*history[1] +
-            history[2]*history[2]);
+        prjmag = sqrt(history[thist0]*history[thist0] + 
+            history[thist1]*history[thist1] + history[thist2]*history[thist2]);
         if (prjmag > 0) scalefac = shrmag/prjmag;
         else scalefac = 0;
         history[thist0] *= scalefac;

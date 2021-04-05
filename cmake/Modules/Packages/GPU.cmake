@@ -338,11 +338,16 @@ elseif(GPU_API STREQUAL "HIP")
 
       if(DOWNLOAD_CUB)
         message(STATUS "CUB download requested")
+        set(CUB_URL "https://github.com/NVlabs/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
+        set(CUB_MD5 "1cf595beacafff104700921bac8519f3" CACHE STRING "MD5 checksum of CUB tarball")
+        mark_as_advanced(CUB_URL)
+        mark_as_advanced(CUB_MD5)
+
         include(ExternalProject)
 
         ExternalProject_Add(CUB
-          GIT_REPOSITORY https://github.com/NVlabs/cub
-          TIMEOUT 5
+          URL     ${CUB_URL}
+          URL_MD5 ${CUB_MD5}
           PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
           CONFIGURE_COMMAND ""
           BUILD_COMMAND ""
@@ -354,7 +359,7 @@ elseif(GPU_API STREQUAL "HIP")
       else()
         find_package(CUB)
         if(NOT CUB_FOUND)
-          message(FATAL_ERROR "CUB library not found. Help CMake to find it by setting CUB_INCLUDE_DIR, or set DOWNLOAD_VORO=ON to download it")
+          message(FATAL_ERROR "CUB library not found. Help CMake to find it by setting CUB_INCLUDE_DIR, or set DOWNLOAD_CUB=ON to download it")
         endif()
       endif()
 

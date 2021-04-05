@@ -36,14 +36,12 @@ Syntax
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)
 * region-ID = region whose boundary will act as wall
-* keyword = *contacts* or *no_attraction*
+* keyword = *contacts*
 
   .. parsed-literal::
 
       *contacts* value = none
          generate contact information for each particle
-      *no_attraction* value = none
-         turn off possibility of attractive interactions
 
 Examples
 """"""""

@@ -37,9 +37,13 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.3.01.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_MD5 "08201d1c7cf5bc458ce0f5b44a629d5a" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  mark_as_advanced(KOKKOS_URL)
+  mark_as_advanced(KOKKOS_MD5)
   ExternalProject_Add(kokkos_build
-    URL https://github.com/kokkos/kokkos/archive/3.3.01.tar.gz
-    URL_MD5 08201d1c7cf5bc458ce0f5b44a629d5a
+    URL     ${KOKKOS_URL}
+    URL_MD5 ${KOKKOS_MD5}
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a
   )

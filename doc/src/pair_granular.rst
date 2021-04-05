@@ -24,7 +24,7 @@ Examples
    pair_coeff * * hooke 1000.0 50.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity
 
    pair_style granular
-   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 limit_damping
 
    pair_style granular
    pair_coeff * * hertz/material 1e8 0.3 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping tsuji

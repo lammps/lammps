@@ -36,7 +36,7 @@ Syntax
 * xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
 * dampflag = 0 or 1 if tangential damping force is excluded or included
 
-* keyword = *no_attraction*
+* keyword = *limit_damping*
 
   .. parsed-literal::
 
@@ -61,6 +61,8 @@ Examples
 
    pair_style gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 1
    pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0
+   pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0 limit_damping
+
 
 Description
 """""""""""

@@ -7,10 +7,14 @@ endif()
 option(DOWNLOAD_EIGEN3 "Download Eigen3 instead of using an already installed one)" ${DOWNLOAD_EIGEN3_DEFAULT})
 if(DOWNLOAD_EIGEN3)
   message(STATUS "Eigen3 download requested - we will build our own")
+  set(EIGEN3_URL "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz" CACHE STRING "URL for Eigen3 tarball")
+  set(EIGEN3_MD5 "9e30f67e8531477de4117506fe44669b" CACHE STRING "MD5 checksum of Eigen3 tarball")
+  mark_as_advanced(EIGEN3_URL)
+  mark_as_advanced(EIGEN3_MD5)
   include(ExternalProject)
   ExternalProject_Add(Eigen3_build
-    URL https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.gz
-    URL_MD5 9e30f67e8531477de4117506fe44669b
+    URL     ${EIGEN3_URL}
+    URL_MD5 ${EIGEN3_MD5}
     CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
   )
   ExternalProject_get_property(Eigen3_build SOURCE_DIR)

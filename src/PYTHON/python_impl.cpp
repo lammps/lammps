@@ -117,7 +117,7 @@ PythonImpl::~PythonImpl()
 
   // shutdown Python interpreter
   if (!external_interpreter) {
-    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyGILState_Ensure();
     Py_Finalize();
   }
 

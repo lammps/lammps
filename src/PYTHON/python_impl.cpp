@@ -21,6 +21,7 @@
 #include "input.h"
 #include "memory.h"
 #include "python_compat.h"
+#include "python_utils.h"
 #include "variable.h"
 
 #include <cstring>
@@ -91,13 +92,12 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   }
 #endif
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
 
   PyObject *pModule = PyImport_AddModule("__main__");
   if (!pModule) error->all(FLERR,"Could not initialize embedded Python");
 
   pyMain = (void *) pModule;
-  PyGILState_Release(gstate);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,23 +106,19 @@ PythonImpl::~PythonImpl()
 {
   if (pyMain) {
     // clean up
-    PyGILState_STATE gstate = PyGILState_Ensure();
+    PyUtils::GIL lock;
 
     for (int i = 0; i < nfunc; i++) {
       delete [] pfuncs[i].name;
       deallocate(i);
-      PyObject *pFunc = (PyObject *) pfuncs[i].pFunc;
-      Py_XDECREF(pFunc);
+      Py_CLEAR(pfuncs[i].pFunc);
     }
+  }
 
-    // shutdown Python interpreter
-
-    if (!external_interpreter) {
-      Py_Finalize();
-    }
-    else {
-      PyGILState_Release(gstate);
-    }
+  // shutdown Python interpreter
+  if (!external_interpreter) {
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    Py_Finalize();
   }
 
   memory->sfree(pfuncs);
@@ -228,7 +224,7 @@ void PythonImpl::command(int narg, char **arg)
 
   int ifunc = create_entry(arg[0]);
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
 
   // send Python code to Python interpreter
   // file: read the file via PyRun_SimpleFile()
@@ -239,14 +235,14 @@ void PythonImpl::command(int narg, char **arg)
     FILE *fp = fopen(pyfile,"r");
 
     if (fp == nullptr) {
-      PyGILState_Release(gstate);
+      PyUtils::Print_Errors();
       error->all(FLERR,"Could not open Python file");
     }
 
     int err = PyRun_SimpleFile(fp,pyfile);
 
     if (err) {
-      PyGILState_Release(gstate);
+      PyUtils::Print_Errors();
       error->all(FLERR,"Could not process Python file");
     }
 
@@ -255,7 +251,7 @@ void PythonImpl::command(int narg, char **arg)
     int err = PyRun_SimpleString(herestr);
 
     if (err) {
-      PyGILState_Release(gstate);
+      PyUtils::Print_Errors();
       error->all(FLERR,"Could not process Python string");
     }
   }
@@ -266,13 +262,13 @@ void PythonImpl::command(int narg, char **arg)
   PyObject *pFunc = PyObject_GetAttrString(pModule,pfuncs[ifunc].name);
 
   if (!pFunc) {
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,fmt::format("Could not find Python function {}",
                                  pfuncs[ifunc].name));
   }
 
   if (!PyCallable_Check(pFunc)) {
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,fmt::format("Python function {} is not callable",
                                  pfuncs[ifunc].name));
   }
@@ -284,14 +280,13 @@ void PythonImpl::command(int narg, char **arg)
   delete [] istr;
   delete [] format;
   delete [] pyfile;
-  PyGILState_Release(gstate);
 }
 
 /* ------------------------------------------------------------------ */
 
 void PythonImpl::invoke_function(int ifunc, char *result)
 {
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
   PyObject *pValue;
   char *str;
 
@@ -303,7 +298,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
   PyObject *pArgs = PyTuple_New(ninput);
 
   if (!pArgs) {
-    PyGILState_Release(gstate);
     error->all(FLERR,"Could not create Python function arguments");
   }
 
@@ -314,7 +308,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
 
         if (!str) {
-          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
         }
 
@@ -327,7 +320,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
 
         if (!str) {
-          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
         }
 
@@ -339,7 +331,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
       if (pfuncs[ifunc].ivarflag[i]) {
         str = input->variable->retrieve(pfuncs[ifunc].svalue[i]);
         if (!str) {
-          PyGILState_Release(gstate);
           error->all(FLERR,"Could not evaluate Python function input variable");
         }
 
@@ -350,7 +341,6 @@ void PythonImpl::invoke_function(int ifunc, char *result)
     } else if (itype == PTR) {
       pValue = PY_VOID_POINTER(lmp);
     } else {
-      PyGILState_Release(gstate);
       error->all(FLERR,"Unsupported variable type");
     }
     PyTuple_SetItem(pArgs,i,pValue);
@@ -360,14 +350,12 @@ void PythonImpl::invoke_function(int ifunc, char *result)
   // error check with one() since only some procs may fail
 
   pValue = PyObject_CallObject(pFunc,pArgs);
+  Py_CLEAR(pArgs);
 
   if (!pValue) {
-    PyErr_Print();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->one(FLERR,"Python function evaluation failed");
   }
-
-  Py_DECREF(pArgs);
 
   // function returned a value
   // assign it to result string stored by python-style variable
@@ -385,10 +373,8 @@ void PythonImpl::invoke_function(int ifunc, char *result)
         strncpy(pfuncs[ifunc].longstr,pystr,pfuncs[ifunc].length_longstr);
       else strncpy(result,pystr,VALUELENGTH-1);
     }
-    Py_DECREF(pValue);
   }
-
-  PyGILState_Release(gstate);
+  Py_CLEAR(pValue);
 }
 
 /* ------------------------------------------------------------------ */
@@ -523,11 +509,8 @@ int PythonImpl::create_entry(char *name)
 
 int PythonImpl::execute_string(char *cmd)
 {
-  PyGILState_STATE gstate = PyGILState_Ensure();
-  int err = PyRun_SimpleString(cmd);
-  PyGILState_Release(gstate);
-
-  return err;
+  PyUtils::GIL lock;
+  return PyRun_SimpleString(cmd);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -537,9 +520,8 @@ int PythonImpl::execute_file(char *fname)
   FILE *fp = fopen(fname,"r");
   if (fp == nullptr) return -1;
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
   int err = PyRun_SimpleFile(fp,fname);
-  PyGILState_Release(gstate);
 
   if (fp) fclose(fp);
   return err;

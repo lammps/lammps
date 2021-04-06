@@ -26,6 +26,10 @@ namespace LAMMPS_NS {
 
 class FixWallGran : public Fix {
  public:
+
+  enum {HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,GRANULAR};
+  enum {NORMAL_NONE, NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
+
   FixWallGran(class LAMMPS *, int, char **);
   virtual ~FixWallGran();
   int setmask();

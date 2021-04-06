@@ -80,6 +80,7 @@ class FixRigidNHSmall : public FixRigidSmall {
   void nh_epsilon_dot();
   void compute_dof();
 
+  void set_molecule(int, tagint, int, double *, double *, double *);
   void allocate_chain();
   void allocate_order();
   void deallocate_chain();

@@ -30,15 +30,15 @@ class DumpCustomTest : public MeltTest {
 public:
     void enable_triclinic()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("change_box all triclinic");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void generate_dump(std::string dump_file, std::string fields, std::string dump_modify_options,
                        int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, fields));
 
         if (!dump_modify_options.empty()) {
@@ -46,14 +46,14 @@ public:
         }
 
         command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
                                        std::string fields, std::string dump_modify_options,
                                        int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {} {}", dump_style, text_file, fields));
         command(fmt::format("dump id1 all {} 1 {} {}", dump_style, binary_file, fields));
 
@@ -63,15 +63,15 @@ public:
         }
 
         command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     std::string convert_binary_to_text(std::string binary_file)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
         system(cmdline.c_str());
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
     }
 };
@@ -113,9 +113,9 @@ TEST_F(DumpCustomTest, thresh_run0)
 
 TEST_F(DumpCustomTest, compute_run0)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("compute comp all property/atom x y z");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto dump_file = "dump_custom_compute_run0.melt";
     auto fields    = "id type x y z c_comp[1] c_comp[2] c_comp[3]";
@@ -134,9 +134,9 @@ TEST_F(DumpCustomTest, compute_run0)
 
 TEST_F(DumpCustomTest, fix_run0)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("fix numdiff all numdiff 1 0.0001");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto dump_file = "dump_custom_compute_run0.melt";
     auto fields    = "id x y z f_numdiff[1] f_numdiff[2] f_numdiff[3]";
@@ -155,10 +155,10 @@ TEST_F(DumpCustomTest, fix_run0)
 
 TEST_F(DumpCustomTest, custom_run0)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("fix prop all property/atom i_flag1 d_flag2");
     command("compute 1 all property/atom i_flag1 d_flag2");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto dump_file = "dump_custom_custom_run0.melt";
     auto fields    = "id x y z i_flag1 d_flag2";
@@ -242,10 +242,10 @@ TEST_F(DumpCustomTest, binary_triclinic_run1)
 
 TEST_F(DumpCustomTest, with_variable_run1)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("compute         1 all property/atom proc");
     command("variable        p atom (c_1%10)+1");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     auto dump_file = "dump_custom_with_variable_run1.melt";
     auto fields    = "id type x y z v_p";

@@ -217,7 +217,7 @@ This pair style can only be used via the *pair* keyword of the
 Restrictions
 """"""""""""
 
-These pair style are part of the MANYBODY package.  They is only
+These pair styles are part of the MANYBODY package.  They are only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 These pair styles requires the :doc:`newton <newton>` setting to be "on"

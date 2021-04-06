@@ -852,6 +852,14 @@ std::vector<std::string> utils::split_words(const std::string &text)
 }
 
 /* ----------------------------------------------------------------------
+   Convert multi-line string into lines
+------------------------------------------------------------------------- */
+std::vector<std::string> utils::split_lines(const std::string &text)
+{
+  return Tokenizer(text, "\n").as_vector();
+}
+
+/* ----------------------------------------------------------------------
    Return whether string is a valid integer number
 ------------------------------------------------------------------------- */
 

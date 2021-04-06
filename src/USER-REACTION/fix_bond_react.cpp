@@ -682,7 +682,6 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 
 void FixBondReact::post_constructor()
 {
-  int len;
   // let's add the limit_tags per-atom property fix
   std::string cmd = std::string("bond_react_props_internal");
   id_fix2 = new char[cmd.size()+1];

@@ -30,7 +30,7 @@ public:
     void generate_dump(std::string dump_file, std::string fields, std::string dump_modify_options,
                        int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {} {}", dump_style, dump_file, fields));
 
         if (!dump_modify_options.empty()) {
@@ -38,7 +38,7 @@ public:
         }
 
         command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 };
 
@@ -54,9 +54,9 @@ TEST_F(DumpCfgTest, require_multifile)
     auto fields =
         "mass type xs ys zs id proc procp1 x y z ix iy iz xu yu zu xsu ysu zsu vx vy vz fx fy fz";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id all cfg 1 {} {}", dump_file, fields));
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*Dump cfg requires one snapshot per file.*", command("run 0"););
 }

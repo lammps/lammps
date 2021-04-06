@@ -17,28 +17,24 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_gran.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
-#include "modify.h"
-#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-// XYZ PLANE need to be 0,1,2
-
-enum{XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
-enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,GRANULAR};
-enum{NONE,CONSTANT,EQUAL};
 
 #define PI27SQ 266.47931882941264802866    // 27*PI**2
 #define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
@@ -48,18 +44,20 @@ enum{NONE,CONSTANT,EQUAL};
 #define THREEQUARTERS 0.75                 // 3/4
 #define TWOPI 6.28318530717959             // 2*PI
 
-#define EPSILON 1e-10
-
-enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
-enum {VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
-enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
-      TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE,
-      TANGENTIAL_MINDLIN_FORCE, TANGENTIAL_MINDLIN_RESCALE_FORCE};
-enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
-enum {ROLL_NONE, ROLL_SDS};
-
 #define BIG 1.0e20
 #define EPSILON 1e-10
+
+// XYZ PLANE need to be 0,1,2
+
+enum {XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
+
+enum {NONE,CONSTANT,EQUAL};
+enum {DAMPING_NONE, VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
+enum {TANGENTIAL_NONE, TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
+  TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE,
+  TANGENTIAL_MINDLIN_FORCE, TANGENTIAL_MINDLIN_RESCALE_FORCE};
+enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
+enum {ROLL_NONE, ROLL_SDS};
 
 /* ---------------------------------------------------------------------- */
 
@@ -85,6 +83,10 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   use_history = restart_peratom = 1;
   if (pairstyle == HOOKE) use_history = restart_peratom = 0;
+  tangential_history = roll_history = twist_history = 0;
+  normal_model = NORMAL_NONE;
+  tangential_model = TANGENTIAL_NONE;
+  damping_model = DAMPING_NONE;
 
   // wall/particle coefficients
 
@@ -127,7 +129,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     iarg = 4;
     damping_model = VISCOELASTIC;
     roll_model = twist_model = NONE;
-    tangential_history = roll_history = twist_history = 0;
     while (iarg < narg) {
       if (strcmp(arg[iarg], "hooke") == 0) {
         if (iarg + 2 >= narg)
@@ -493,7 +494,7 @@ void FixWallGran::init()
 
   dt = update->dt;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // check for FixRigid so can extract rigid body masses
@@ -541,7 +542,7 @@ void FixWallGran::init()
 
 void FixWallGran::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

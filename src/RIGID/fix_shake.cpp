@@ -456,7 +456,7 @@ void FixShake::setup(int vflag)
 
   // set respa to 0 if verlet is used and to 1 otherwise
 
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     respa = 0;
   else
     respa = 1;
@@ -2956,7 +2956,7 @@ void FixShake::unpack_forward_comm(int n, int first, double *buf)
 
 void FixShake::reset_dt()
 {
-  if (strstr(update->integrate_style,"verlet")) {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     dtv = update->dt;
     if (rattle) dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     else dtfsq = update->dt * update->dt * force->ftm2v;

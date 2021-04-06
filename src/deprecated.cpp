@@ -47,6 +47,7 @@ void Deprecated::command(int narg, char **arg)
        newcmd.append(arg[i]);
     }
     input->one(newcmd);
+    return;
   }
   error->all(FLERR,"This command is no longer available");
 }

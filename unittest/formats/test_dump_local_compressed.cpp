@@ -31,9 +31,9 @@ public:
     void SetUp() override {
         CompressedDumpTest::SetUp();
 
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("compute comp all pair/local dist eng");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 };
 
@@ -205,9 +205,9 @@ TEST_F(DumpLocalCompressTest, compressed_modify_bad_param)
 
     auto fields            = "index c_comp[1]";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.local"), fields));
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
         command("dump_modify id1 compression_level 12");
@@ -220,9 +220,9 @@ TEST_F(DumpLocalCompressTest, compressed_modify_multi_bad_param)
 
     auto fields            = "index c_comp[1]";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.local"), fields));
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
         command("dump_modify id1 pad 3 compression_level 12");

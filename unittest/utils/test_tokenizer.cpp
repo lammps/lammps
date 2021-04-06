@@ -112,7 +112,7 @@ TEST(Tokenizer, as_vector1)
 
 TEST(Tokenizer, as_vector2)
 {
-    auto list = Tokenizer("a\\b\\c","\\").as_vector();
+    auto list = Tokenizer("a\\b\\c", "\\").as_vector();
     ASSERT_THAT(list[0], Eq("a"));
     ASSERT_THAT(list[1], Eq("b"));
     ASSERT_THAT(list[2], Eq("c"));
@@ -121,14 +121,14 @@ TEST(Tokenizer, as_vector2)
 
 TEST(Tokenizer, as_vector3)
 {
-    auto list = Tokenizer ("a\\","\\").as_vector();
+    auto list = Tokenizer("a\\", "\\").as_vector();
     ASSERT_THAT(list[0], Eq("a"));
     ASSERT_EQ(list.size(), 1);
 }
 
 TEST(Tokenizer, as_vector4)
 {
-    auto list = Tokenizer ("\\a","\\").as_vector();
+    auto list = Tokenizer("\\a", "\\").as_vector();
     ASSERT_THAT(list[0], Eq("a"));
     ASSERT_EQ(list.size(), 1);
 }

@@ -24,7 +24,9 @@ jobs:
       shell: bash
       working-directory: ${{github.workspace}}/build
       run: |
-        cmake -C $GITHUB_WORKSPACE/cmake/presets/most.cmake $GITHUB_WORKSPACE/cmake \
+        cmake -C $GITHUB_WORKSPACE/cmake/presets/clang.cmake \
+              -C $GITHUB_WORKSPACE/cmake/presets/most.cmake \
+                 $GITHUB_WORKSPACE/cmake \
               -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON -DLAMMPS_EXCEPTIONS=ON
         cmake --build . --parallel 2
 

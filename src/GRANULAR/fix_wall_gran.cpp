@@ -71,6 +71,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix wall/gran requires atom style sphere");
 
   create_attribute = 1;
+  limit_damping = 0;
 
   // set interaction style
   // disable bonded/history option for now
@@ -91,7 +92,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // wall/particle coefficients
 
   int iarg;
-
   if (pairstyle != GRANULAR) {
     size_history = 3;
     if (narg < 11) error->all(FLERR,"Illegal fix wall/gran command");
@@ -322,14 +322,14 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     if (normal_model == JKR) size_history += 1;
     if (tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
         tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE) size_history += 1;
-  }
 
-  if (limit_damping and normal_model == JKR)
-    error->all(FLERR,"Illegal pair_coeff command, "
-        "cannot limit damping with JRK model");
-  if (limit_damping and normal_model == DMT)
-    error->all(FLERR,"Illegal pair_coeff command, "
-        "Cannot limit damping with DMT model");
+    if (limit_damping and normal_model == JKR)
+      error->all(FLERR,"Illegal pair_coeff command, "
+          "cannot limit damping with JRK model");
+    if (limit_damping and normal_model == DMT)
+      error->all(FLERR,"Illegal pair_coeff command, "
+          "Cannot limit damping with DMT model");
+  }
 
   // wallstyle args
 
@@ -504,37 +504,39 @@ void FixWallGran::init()
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
 
-  tangential_history_index = 0;
-  if (roll_history) {
-    if (tangential_history) roll_history_index = 3;
-    else roll_history_index = 0;
-  }
-  if (twist_history) {
-    if (tangential_history) {
-      if (roll_history) twist_history_index = 6;
-      else twist_history_index = 3;
+  if(pairstyle == GRANULAR) {
+    tangential_history_index = 0;
+    if (roll_history) {
+      if (tangential_history) roll_history_index = 3;
+      else roll_history_index = 0;
     }
-    else{
-      if (roll_history) twist_history_index = 3;
-      else twist_history_index = 0;
+    if (twist_history) {
+      if (tangential_history) {
+        if (roll_history) twist_history_index = 6;
+        else twist_history_index = 3;
+      }
+      else{
+        if (roll_history) twist_history_index = 3;
+        else twist_history_index = 0;
+      }
     }
-  }
-  if (normal_model == JKR) {
-    tangential_history_index += 1;
-    roll_history_index += 1;
-    twist_history_index += 1;
-  }
-  if (tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
-      tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE) {
-    roll_history_index += 1;
-    twist_history_index += 1;
-  }
-
-  if (damping_model == TSUJI) {
-    double cor = normal_coeffs[1];
-    normal_coeffs[1] = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
-        27.467*pow(cor,4)-18.022*pow(cor,5)+
-        4.8218*pow(cor,6);
+    if (normal_model == JKR) {
+      tangential_history_index += 1;
+      roll_history_index += 1;
+      twist_history_index += 1;
+    }
+    if (tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
+        tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE) {
+      roll_history_index += 1;
+      twist_history_index += 1;
+    }
+    
+    if (damping_model == TSUJI) {
+      double cor = normal_coeffs[1];
+      normal_coeffs[1] = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
+          27.467*pow(cor,4)-18.022*pow(cor,5)+
+          4.8218*pow(cor,6);
+    }
   }
 }
 

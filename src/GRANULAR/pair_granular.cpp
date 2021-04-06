@@ -1038,7 +1038,7 @@ void PairGranular::coeff(int narg, char **arg)
 
       cutoff_type[i][j] = cutoff_type[j][i] = cutoff_one;
 
-      limit_damping[i][j] = ld_flag;
+      limit_damping[i][j] = limit_damping[j][i] = ld_flag;
 
       setflag[i][j] = 1;
       count++;

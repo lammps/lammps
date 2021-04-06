@@ -177,6 +177,8 @@ the clockwise direction for *vshear* > 0 or counter-clockwise for
 *vshear* < 0.  In this case, *vshear* is the tangential velocity of
 the wall at whatever *radius* has been defined.
 
+
+Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the shear friction state of atoms interacting with the

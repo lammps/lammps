@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Mar 2021
 date_generated: Thu Mar 25 14:07:45 202
-epsilon: 7.5e-14
+epsilon: 5e-13
 prerequisites: ! |
   atom full
   fix adapt

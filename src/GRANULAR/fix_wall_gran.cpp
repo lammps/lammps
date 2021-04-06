@@ -794,7 +794,7 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
-  if (limit_damping && ccel < 0.0) ccel = 0.0;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 
@@ -887,7 +887,7 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
-  if (limit_damping && ccel < 0.0) ccel = 0.0;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 
@@ -1019,7 +1019,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   if (rwall == 0.0) polyhertz = sqrt((radius-r)*radius);
   else polyhertz = sqrt((radius-r)*radius*rwall/(rwall+radius));
   ccel *= polyhertz;
-  if (limit_damping && ccel < 0.0) ccel = 0.0;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
   
   // relative velocities
 
@@ -1214,7 +1214,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
-  if (limit_damping && Fntot < 0.0) Fntot = 0.0;
+  if (limit_damping && (Fntot < 0.0)) Fntot = 0.0;
 
   //****************************************
   // tangential force, including history effects

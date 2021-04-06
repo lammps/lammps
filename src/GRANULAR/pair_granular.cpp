@@ -371,7 +371,7 @@ void PairGranular::compute(int eflag, int vflag)
         Fdamp = -damp_normal_prefactor*vnnr;
 
         Fntot = Fne + Fdamp;
-        if (limit_damping[itype][jtype] && Fntot < 0.0) Fntot = 0.0;
+        if (limit_damping[itype][jtype] && (Fntot < 0.0)) Fntot = 0.0;
 
         //****************************************
         // tangential force, including history effects
@@ -1547,7 +1547,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
-  if (limit_damping[itype][jtype] && Fntot < 0.0) Fntot = 0.0;
+  if (limit_damping[itype][jtype] && (Fntot < 0.0)) Fntot = 0.0;
 
   jnum = list->numneigh[i];
   jlist = list->firstneigh[i];

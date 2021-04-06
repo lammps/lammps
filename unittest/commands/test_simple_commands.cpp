@@ -328,11 +328,7 @@ TEST_F(SimpleCommandsTest, Units)
 #if defined(LMP_PLUGIN)
 TEST_F(SimpleCommandsTest, Plugin)
 {
-#if defined(__APPLE__)
-    std::string loadfmt("plugin load {}plugin.dylib");
-#else
     std::string loadfmt("plugin load {}plugin.so");
-#endif
     ::testing::internal::CaptureStdout();
     lmp->input->one(fmt::format(loadfmt, "hello"));
     auto text = ::testing::internal::GetCapturedStdout();

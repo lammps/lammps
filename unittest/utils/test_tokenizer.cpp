@@ -43,6 +43,18 @@ TEST(Tokenizer, two_words)
     ASSERT_EQ(t.count(), 2);
 }
 
+TEST(Tokenizer, skip)
+{
+    Tokenizer t("test word", " ");
+    ASSERT_TRUE(t.has_next());
+    t.skip();
+    ASSERT_TRUE(t.has_next());
+    t.skip(1);
+    ASSERT_FALSE(t.has_next());
+    ASSERT_EQ(t.count(), 2);
+    ASSERT_THROW(t.skip(), TokenizerException);
+}
+
 TEST(Tokenizer, prefix_separators)
 {
     Tokenizer t("  test word", " ");
@@ -61,6 +73,18 @@ TEST(Tokenizer, iterate_words)
     ASSERT_THAT(t.next(), Eq("test"));
     ASSERT_THAT(t.next(), Eq("word"));
     ASSERT_EQ(t.count(), 2);
+}
+
+TEST(Tokenizer, copy_constructor)
+{
+    Tokenizer t("  test word   ", " ");
+    ASSERT_THAT(t.next(), Eq("test"));
+    ASSERT_THAT(t.next(), Eq("word"));
+    ASSERT_EQ(t.count(), 2);
+    Tokenizer u(t);
+    ASSERT_THAT(u.next(), Eq("test"));
+    ASSERT_THAT(u.next(), Eq("word"));
+    ASSERT_EQ(u.count(), 2);
 }
 
 TEST(Tokenizer, no_separator_path)
@@ -137,6 +161,26 @@ TEST(ValueTokenizer, empty_string)
 {
     ValueTokenizer values("");
     ASSERT_FALSE(values.has_next());
+}
+
+TEST(ValueTokenizer, two_words)
+{
+    ValueTokenizer t("test word", " ");
+    ASSERT_THAT(t.next_string(), Eq("test"));
+    ASSERT_THAT(t.next_string(), Eq("word"));
+    ASSERT_THROW(t.next_string(), TokenizerException);
+}
+
+TEST(ValueTokenizer, skip)
+{
+    ValueTokenizer t("test word", " ");
+    ASSERT_TRUE(t.has_next());
+    t.skip();
+    ASSERT_TRUE(t.has_next());
+    t.skip(1);
+    ASSERT_FALSE(t.has_next());
+    ASSERT_EQ(t.count(), 2);
+    ASSERT_THROW(t.skip(), TokenizerException);
 }
 
 TEST(ValueTokenizer, bad_integer)

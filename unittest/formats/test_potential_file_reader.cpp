@@ -28,6 +28,7 @@
 #include "potential_file_reader.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
 #include "../testing/core.h"
 
 #include <cstring>
@@ -255,6 +256,67 @@ TEST_F(PotentialFileReaderTest, UnitConvert)
     unit_convert = reader->get_unit_convert();
     ASSERT_EQ(unit_convert, utils::METAL2REAL);
     delete reader;
+}
+
+class OpenPotentialTest : public LAMMPSTest {
+};
+
+// open for native units
+TEST_F(OpenPotentialTest, Sw_native)
+{
+    int convert_flag = utils::get_supported_conversions(utils::ENERGY);
+    BEGIN_CAPTURE_OUTPUT();
+    command("units metal");
+    FILE *fp    = utils::open_potential("Si.sw", lmp, &convert_flag);
+    auto text   = END_CAPTURE_OUTPUT();
+    double conv = utils::get_conversion_factor(utils::ENERGY, convert_flag);
+
+    ASSERT_NE(fp, nullptr);
+    ASSERT_DOUBLE_EQ(conv, 1.0);
+    fclose(fp);
+}
+
+// open with supported conversion enabled
+TEST_F(OpenPotentialTest, Sw_conv)
+{
+    int convert_flag = utils::get_supported_conversions(utils::ENERGY);
+    ASSERT_EQ(convert_flag, utils::METAL2REAL | utils::REAL2METAL);
+    BEGIN_HIDE_OUTPUT();
+    command("units real");
+    FILE *fp    = utils::open_potential("Si.sw", lmp, &convert_flag);
+    auto text   = END_CAPTURE_OUTPUT();
+    double conv = utils::get_conversion_factor(utils::ENERGY, convert_flag);
+
+    ASSERT_NE(fp, nullptr);
+    ASSERT_EQ(convert_flag, utils::METAL2REAL);
+    ASSERT_DOUBLE_EQ(conv, 23.060549);
+    fclose(fp);
+}
+
+// open with conversion disabled
+TEST_F(OpenPotentialTest, Sw_noconv)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("units real");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*potential.*requires metal units but real.*",
+                 utils::open_potential("Si.sw", lmp, nullptr););
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    END_HIDE_OUTPUT();
+    int convert_flag = utils::get_supported_conversions(utils::UNKNOWN);
+    ASSERT_EQ(convert_flag, utils::NOCONVERT);
+}
+
+// open non-existing potential
+TEST_F(OpenPotentialTest, No_file)
+{
+    int convert_flag = utils::get_supported_conversions(utils::ENERGY);
+    BEGIN_HIDE_OUTPUT();
+    command("units metal");
+    FILE *fp = utils::open_potential("Unknown.sw", lmp, &convert_flag);
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(fp,nullptr);
 }
 
 int main(int argc, char **argv)

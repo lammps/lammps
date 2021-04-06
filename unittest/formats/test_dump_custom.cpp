@@ -15,6 +15,8 @@
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
+#include "output.h"
+#include "thermo.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -22,7 +24,7 @@
 using ::testing::Eq;
 
 char *BINARY2TXT_BINARY = nullptr;
-bool verbose = false;
+bool verbose            = false;
 
 class DumpCustomTest : public MeltTest {
     std::string dump_style = "custom";
@@ -45,7 +47,14 @@ public:
             command(fmt::format("dump_modify id {}", dump_modify_options));
         }
 
-        command(fmt::format("run {}", ntimesteps));
+        command(fmt::format("run {} post no", ntimesteps));
+        END_HIDE_OUTPUT();
+    }
+
+    void continue_dump(int ntimesteps)
+    {
+        BEGIN_HIDE_OUTPUT();
+        command(fmt::format("run {} pre no post no", ntimesteps));
         END_HIDE_OUTPUT();
     }
 
@@ -62,7 +71,7 @@ public:
             command(fmt::format("dump_modify id1 {}", dump_modify_options));
         }
 
-        command(fmt::format("run {}", ntimesteps));
+        command(fmt::format("run {} post no", ntimesteps));
         END_HIDE_OUTPUT();
     }
 
@@ -259,6 +268,64 @@ TEST_F(DumpCustomTest, with_variable_run1)
     ASSERT_EQ(utils::split_words(lines[7]).size(), 2);
     ASSERT_THAT(lines[10], Eq("ITEM: ATOMS id type x y z v_p"));
     ASSERT_EQ(utils::split_words(lines[11]).size(), 6);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpCustomTest, run1plus1)
+{
+    auto dump_file = "dump_custom_run1plus1.melt";
+    auto fields    = "id type x y z";
+
+    generate_dump(dump_file, fields, "units yes", 1);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    auto lines = read_lines(dump_file);
+    ASSERT_EQ(lines.size(), 84);
+    continue_dump(1);
+    ASSERT_FILE_EXISTS(dump_file);
+    lines = read_lines(dump_file);
+    ASSERT_EQ(lines.size(), 125);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpCustomTest, run2)
+{
+    auto dump_file = "dump_custom_run2.melt";
+    auto fields    = "id type x y z";
+    generate_dump(dump_file, fields, "", 2);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 123);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpCustomTest, rerun)
+{
+    auto dump_file = "dump_rerun.melt";
+    auto fields    = "id type xs ys zs";
+
+    HIDE_OUTPUT([&] {
+        command("fix 1 all nve");
+    });
+    generate_dump(dump_file, fields, "format float %20.15g", 1);
+    double pe_1, pe_2, pe_rerun;
+    lmp->output->thermo->evaluate_keyword("pe", &pe_1);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 82);
+    continue_dump(1);
+    lmp->output->thermo->evaluate_keyword("pe", &pe_2);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 123);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
     delete_file(dump_file);
 }
 

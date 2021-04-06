@@ -15,6 +15,8 @@
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
+#include "output.h"
+#include "thermo.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -24,7 +26,7 @@
 using ::testing::Eq;
 
 char *BINARY2TXT_BINARY = nullptr;
-bool verbose = false;
+bool verbose            = false;
 
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";
@@ -46,7 +48,14 @@ public:
             command(fmt::format("dump_modify id {}", dump_modify_options));
         }
 
-        command(fmt::format("run {}", ntimesteps));
+        command(fmt::format("run {} post no", ntimesteps));
+        END_HIDE_OUTPUT();
+    }
+
+    void continue_dump(int ntimesteps)
+    {
+        BEGIN_HIDE_OUTPUT();
+        command(fmt::format("run {} pre no post no", ntimesteps));
         END_HIDE_OUTPUT();
     }
 
@@ -62,7 +71,7 @@ public:
             command(fmt::format("dump_modify id1 {}", dump_modify_options));
         }
 
-        command(fmt::format("run {}", ntimesteps));
+        command(fmt::format("run {} post no", ntimesteps));
         END_HIDE_OUTPUT();
     }
 
@@ -446,13 +455,16 @@ TEST_F(DumpAtomTest, binary_triclinic_with_image_run0)
     delete_file(converted_file);
 }
 
-TEST_F(DumpAtomTest, run1)
+TEST_F(DumpAtomTest, run1plus1)
 {
-    auto dump_file = "dump_run1.melt";
+    auto dump_file = "dump_run1plus1.melt";
     generate_dump(dump_file, "", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 82);
+    continue_dump(1);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 123);
     delete_file(dump_file);
 }
 
@@ -463,6 +475,34 @@ TEST_F(DumpAtomTest, run2)
 
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 123);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, rerun)
+{
+    auto dump_file = "dump_rerun.melt";
+    HIDE_OUTPUT([&] {
+        command("fix 1 all nve");
+    });
+    generate_dump(dump_file, "format line \"%d %d %20.15g %20.15g %20.15g\"", 1);
+    double pe_1, pe_2, pe_rerun;
+    lmp->output->thermo->evaluate_keyword("pe", &pe_1);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 82);
+    continue_dump(1);
+    lmp->output->thermo->evaluate_keyword("pe", &pe_2);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 123);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
     delete_file(dump_file);
 }
 

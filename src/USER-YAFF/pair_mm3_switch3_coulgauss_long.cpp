@@ -106,6 +106,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     qtmp = q[i];
@@ -170,6 +171,7 @@ void PairMM3Switch3CoulGaussLong::compute(int eflag, int vflag)
             expn2 = 0.0;
             erfc2 = 0.0;
             forcecoul2 = 0.0;
+            prefactor2 = 0.0;
           } else {
             rrij = lj2[itype][jtype]*r;
             expn2 = exp(-rrij*rrij);
@@ -263,19 +265,18 @@ void PairMM3Switch3CoulGaussLong::allocate()
 
 void PairMM3Switch3CoulGaussLong::settings(int narg, char **arg)
 {
- if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
+
   if (narg == 2) {
     cut_coul = cut_lj_global;
     truncw = utils::numeric(FLERR,arg[1],false,lmp);
-  }
-  else {
+  } else {
     cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
     truncw = utils::numeric(FLERR,arg[2],false,lmp);
   }
-  if (truncw>0.0) truncwi = 1.0/truncw;
-  else truncwi = 0.0;
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -333,6 +334,9 @@ void PairMM3Switch3CoulGaussLong::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
+  if (truncw>0.0) truncwi = 1.0/truncw;
+  else truncwi = 0.0;
+
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr)
@@ -375,8 +379,7 @@ double PairMM3Switch3CoulGaussLong::init_one(int i, int j)
       double r6inv = r2inv*r2inv*r2inv;
       double expb = lj3[i][j]*exp(-lj1[i][j]*r);
       offset[i][j] = expb-lj4[i][j]*r6inv;
-    }
-    else {offset[i][j] = 0.0;}
+    } else {offset[i][j] = 0.0;}
   } else offset[i][j] = 0.0;
 
   cut_ljsq[j][i] = cut_ljsq[i][j];
@@ -426,8 +429,7 @@ double PairMM3Switch3CoulGaussLong::init_one(int i, int j)
         double t64 = cg * (0.6388888889e3 * ((-t3 + (0.7e1 / 0.36e2 * cg5 - t5) * t1 - 0.2e1 / 0.3e1 * t8 * (cg5 - cg1 / 0.4e1) * cg3 + cg5 * t14) * t20 + t3 + (cg5 / 0.12e2 + t5) * t1 + (cg5 + cg1 / 0.3e1) * cg1 * cg3 / 0.2e1 + t30 * cg5) * t2 * t36 * t39 - 0.225e1 * (0.2e1 * t43 * t44 - 0.2e1 * t43 * t47 + cg5 * (cg5 - 0.2e1 * cg1)) * t54 * t1 / cg1 / t8 * t39);
         etail_ij = 2.0*MY_PI*all[0]*all[1]*t64;
         ptail_ij = 2.0*MY_PI*all[0]*all[1]*t64;
-    }
-    else {
+    } else {
         double t2 = pow(cg3, 0.2e1);
         double t3 = t2 * t2;
         double t7 = 0.12e2 / cg3 * cg1;

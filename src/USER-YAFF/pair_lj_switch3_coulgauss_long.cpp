@@ -106,6 +106,7 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
   firstneigh = list->firstneigh;
 
   // loop over neighbors of my atoms
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     qtmp = q[i];
@@ -193,7 +194,7 @@ void PairLJSwitch3CoulGaussLong::compute(int eflag, int vflag)
               offset[itype][jtype];
         } else evdwl = 0.0;
 
-        // Truncation, see Yaff Switch33
+        // Truncation, see Yaff Switch3
         if (truncw>0) {
           if (rsq < cut_ljsq[itype][jtype]) {
             if (r>cut_lj[itype][jtype]-truncw) {
@@ -262,19 +263,18 @@ void PairLJSwitch3CoulGaussLong::allocate()
 
 void PairLJSwitch3CoulGaussLong::settings(int narg, char **arg)
 {
- if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 2 || narg > 3) error->all(FLERR,"Illegal pair_style command");
 
   cut_lj_global = utils::numeric(FLERR,arg[0],false,lmp);
+
   if (narg == 2) {
     cut_coul = cut_lj_global;
     truncw = utils::numeric(FLERR,arg[1],false,lmp);
-  }
-  else {
+  } else {
     cut_coul = utils::numeric(FLERR,arg[1],false,lmp);
     truncw = utils::numeric(FLERR,arg[2],false,lmp);
   }
-  if (truncw>0.0) truncwi = 1.0/truncw;
-  else truncwi = 0.0;
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {
@@ -332,6 +332,9 @@ void PairLJSwitch3CoulGaussLong::init_style()
 
   cut_coulsq = cut_coul * cut_coul;
 
+  if (truncw>0.0) truncwi = 1.0/truncw;
+  else truncwi = 0.0;
+
   // insure use of KSpace long-range solver, set g_ewald
 
   if (force->kspace == nullptr)
@@ -375,8 +378,7 @@ double PairLJSwitch3CoulGaussLong::init_one(int i, int j)
       double r6inv = r2inv*r2inv*r2inv;
       double r12inv = r6inv*r6inv;
       offset[i][j] = lj3[i][j]*r12inv-lj4[i][j]*r6inv;
-    }
-    else {offset[i][j] = 0.0;}
+    } else {offset[i][j] = 0.0;}
   } else offset[i][j] = 0.0;
 
   cut_ljsq[j][i] = cut_ljsq[i][j];
@@ -431,8 +433,7 @@ double PairLJSwitch3CoulGaussLong::init_one(int i, int j)
       double t71 = -0.4e1 * cg * (0.2e1 * t10 * t11 - 0.2e1 * t10 * t14 + (cg5 - 0.2e1 * cg1) * t58 * cg5) * t26 / t4 / t41 / t9;
       etail_ij = 2.0*MY_PI*all[0]*all[1]*t71;
       ptail_ij = 2.0*MY_PI*all[0]*all[1]*t71;
-    }
-    else {
+    } else {
       double t1 = pow(cg3, 0.2e1);
       double t2 = t1 * t1;
       double t3 = t2 * t1;
@@ -618,6 +619,7 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
       expn2 = 0.0;
       erfc2 = 0.0;
       forcecoul2 = 0.0;
+      prefactor2 = 0.0;
     } else {
       r = sqrt(rsq);
       rrij = lj2[itype][jtype]*r;

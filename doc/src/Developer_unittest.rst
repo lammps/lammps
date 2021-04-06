@@ -4,10 +4,10 @@ Adding tests for unit testing
 This section discusses adding or expanding tests for the unit test
 infrastructure included into the LAMMPS source code distribution.
 Unlike example inputs, unit tests focus on testing the "local" behavior
-of individual features, tend to run very fast, and should be set up to
-cover as much of the added code as possible.  When contributing code to
-the distribution, the LAMMPS developers will appreciate if additions
-to the integrated unit test facility are included.
+of individual features, tend to run fast, and should be set up to cover
+as much of the added code as possible.  When contributing code to the
+distribution, the LAMMPS developers will appreciate if additions to the
+integrated unit test facility are included.
 
 Given the complex nature of MD simulations where many operations can
 only be performed when suitable "real" simulation environment has been
@@ -50,6 +50,9 @@ available:
    * - File name:
      - Test name:
      - Description:
+   * - ``test_argutils.cpp``
+     - ArgInfo
+     - Tests for ``ArgInfo`` class used by LAMMPS
    * - ``test_fmtlib.cpp``
      - FmtLib
      - Tests for ``fmtlib::`` functions used by LAMMPS
@@ -155,23 +158,27 @@ have the desired effect:
    {
        ASSERT_EQ(lmp->update->ntimestep, 0);
 
-       if (!verbose) ::testing::internal::CaptureStdout();
-       lmp->input->one("reset_timestep 10");
-       if (!verbose) ::testing::internal::GetCapturedStdout();
+       BEGIN_HIDE_OUTPUT();
+       command("reset_timestep 10");
+       END_HIDE_OUTPUT();
        ASSERT_EQ(lmp->update->ntimestep, 10);
 
-       if (!verbose) ::testing::internal::CaptureStdout();
-       lmp->input->one("reset_timestep 0");
-       if (!verbose) ::testing::internal::GetCapturedStdout();
+       BEGIN_HIDE_OUTPUT();
+       command("reset_timestep 0");
+       END_HIDE_OUTPUT();
        ASSERT_EQ(lmp->update->ntimestep, 0);
+
+       TEST_FAILURE(".*ERROR: Timestep must be >= 0.*", command("reset_timestep -10"););
+       TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep"););
+       TEST_FAILURE(".*ERROR: Illegal reset_timestep .*", command("reset_timestep 10 10"););
+       TEST_FAILURE(".*ERROR: Expected integer .*", command("reset_timestep xxx"););
    }
 
-Please note the use of the (global) verbose variable to control whether
-the LAMMPS command will be silent by capturing the output or not.  In
-the default case, verbose == false, the test output will be compact and
-not mixed with LAMMPS output. However setting the verbose flag (via
-setting the ``TEST_ARGS`` environment variable, ``TEST_ARGS=-v``) can be
-helpful to understand why tests fail unexpectedly.
+Please note the use of the ``BEGIN_HIDE_OUTPUT`` and ``END_HIDE_OUTPUT``
+functions that will capture output from running LAMMPS.  This is normally
+discarded but by setting the verbose flag (via setting the ``TEST_ARGS``
+environment variable, ``TEST_ARGS=-v``) it can be printed and used to
+understand why tests fail unexpectedly.
 
 Another complexity of these tests stems from the need to capture
 situations where LAMMPS will stop with an error, i.e. handle so-called
@@ -210,6 +217,12 @@ The following test programs are currently available:
    * - ``test_lattice_region.cpp``
      - LatticeRegion
      - Tests to validate the :doc:`lattice <lattice>` and :doc:`region <region>` commands
+   * - ``test_groups.cpp``
+     - GroupTest
+     - Tests to validate the :doc:`group <group>` command
+   * - ``test_variables.cpp``
+     - VariableTest
+     - Tests to validate the :doc:`variable <variable>` command
    * - ``test_kim_commands.cpp``
      - KimCommands
      - Tests for several commands from the :ref:`KIM package <PKG-KIM>`

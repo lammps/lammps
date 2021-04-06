@@ -331,6 +331,11 @@ TEST(Utils, valid_id7)
     ASSERT_TRUE(utils::is_id("___"));
 }
 
+TEST(Utils, empty_id)
+{
+    ASSERT_FALSE(utils::is_id(""));
+}
+
 TEST(Utils, invalid_id1)
 {
     ASSERT_FALSE(utils::is_id("+abc"));
@@ -780,6 +785,11 @@ TEST(Utils, unit_conversion)
     ASSERT_DOUBLE_EQ(factor, 1.0 / 23.060549);
 }
 
+TEST(Utils, timespec2seconds_off)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("off"), -1.0);
+}
+
 TEST(Utils, timespec2seconds_ss)
 {
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("45"), 45.0);
@@ -793,6 +803,11 @@ TEST(Utils, timespec2seconds_mmss)
 TEST(Utils, timespec2seconds_hhmmss)
 {
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
+}
+
+TEST(Utils, timespec2seconds_invalid)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:aa:45"), -1.0);
 }
 
 TEST(Utils, date2num)
@@ -809,4 +824,33 @@ TEST(Utils, date2num)
     ASSERT_EQ(utils::date2num("10October22 "), 20221010);
     ASSERT_EQ(utils::date2num("30November 02"), 20021130);
     ASSERT_EQ(utils::date2num("31December100"), 1001231);
+}
+
+static int compare(int a, int b, void *)
+{
+    if (a < b)
+        return -1;
+    else if (a > b)
+        return 1;
+    else
+        return 0;
+}
+
+TEST(Utils, merge_sort)
+{
+    int data[] = {773, 405, 490, 830, 632, 96,  428, 728, 912, 840, 878, 745, 213, 219, 249, 380,
+                  894, 758, 575, 690, 61,  849, 19,  577, 338, 569, 898, 873, 448, 940, 431, 780,
+                  472, 289, 65,  491, 641, 37,  367, 33,  407, 854, 594, 611, 845, 136, 107, 592,
+                  275, 865, 158, 626, 399, 703, 686, 734, 188, 559, 781, 558, 737, 281, 638, 664,
+                  533, 529, 62,  969, 595, 661, 837, 463, 624, 568, 615, 936, 206, 637, 91,  694,
+                  214, 872, 468, 66,  775, 949, 486, 576, 255, 961, 480, 138, 177, 509, 333, 705,
+                  10,  375, 321, 952, 210, 111, 475, 268, 708, 864, 244, 121, 988, 540, 942, 682,
+                  750, 473, 478, 714, 955, 911, 482, 384, 144, 757, 697, 791, 420, 605, 447, 320};
+
+    const int num = sizeof(data) / sizeof(int);
+    utils::merge_sort(data, num, nullptr, &compare);
+    bool sorted = true;
+    for (int i = 1; i < num; ++i)
+        if (data[i - 1] > data[i]) sorted = false;
+    ASSERT_TRUE(sorted);
 }

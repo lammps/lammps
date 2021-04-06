@@ -371,7 +371,7 @@ void PairGranular::compute(int eflag, int vflag)
         Fdamp = -damp_normal_prefactor*vnnr;
 
         Fntot = Fne + Fdamp;
-        if (limit_damping[itype][jtype] and Fntot < 0.0) Fntot = 0.0;
+        if (limit_damping[itype][jtype] && Fntot < 0.0) Fntot = 0.0;
 
         //****************************************
         // tangential force, including history effects
@@ -988,11 +988,11 @@ void PairGranular::coeff(int narg, char **arg)
         27.467*powint(cor,4)-18.022*powint(cor,5)+4.8218*powint(cor,6);
   } else damp = normal_coeffs_one[1];
 
-  if (ld_flag and normal_model_one == JKR)
+  if (ld_flag && normal_model_one == JKR)
     error->all(FLERR,"Illegal pair_coeff command, "
         "Cannot limit damping with JKR model");
 
-  if (ld_flag and normal_model_one == DMT)
+  if (ld_flag && normal_model_one == DMT)
     error->all(FLERR,"Illegal pair_coeff command, "
         "Cannot limit damping with DMT model");
 
@@ -1547,7 +1547,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
-  if (limit_damping[itype][jtype] and Fntot < 0.0) Fntot = 0.0;
+  if (limit_damping[itype][jtype] && Fntot < 0.0) Fntot = 0.0;
 
   jnum = list->numneigh[i];
   jlist = list->firstneigh[i];

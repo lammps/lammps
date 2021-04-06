@@ -55,7 +55,7 @@ PairMEAMC::PairMEAMC(LAMMPS *lmp) : Pair(lmp)
 
   allocated = 0;
 
-  nelements = 0;
+  nlibelements = 0;
   meam_inst = new MEAM(memory);
   scale = nullptr;
 
@@ -78,7 +78,6 @@ PairMEAMC::~PairMEAMC()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(scale);
-    delete [] map;
   }
 }
 
@@ -239,23 +238,23 @@ void PairMEAMC::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // MEAM element names between 2 filenames
-  // nelements = # of MEAM elements
+  // nlibelements = # of MEAM elements
   // elements = list of unique element names
 
-  if (nelements) {
-    elements.clear();
+  if (nlibelements) {
+    libelements.clear();
     mass.clear();
   }
 
-  nelements = paridx - 3;
-  if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
-  if (nelements > maxelt)
+  nlibelements = paridx - 3;
+  if (nlibelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (nlibelements > maxelt)
     error->all(FLERR,fmt::format("Too many elements extracted from MEAM "
                                  "library (current limit: {}). Increase "
                                  "'maxelt' in meam.h and recompile.", maxelt));
 
-  for (int i = 0; i < nelements; i++) {
-    elements.push_back(arg[i+3]);
+  for (int i = 0; i < nlibelements; i++) {
+    libelements.push_back(arg[i+3]);
     mass.push_back(0.0);
   }
 
@@ -269,12 +268,12 @@ void PairMEAMC::coeff(int narg, char **arg)
   // read args that map atom types to MEAM elements
   // map[i] = which element the Ith atom type is, -1 if not mapped
 
-  for (int i = 4 + nelements; i < narg; i++) {
-    m = i - (4+nelements) + 1;
+  for (int i = 4 + nlibelements; i < narg; i++) {
+    m = i - (4+nlibelements) + 1;
     int j;
-    for (j = 0; j < nelements; j++)
-      if (elements[j] == arg[i]) break;
-    if (j < nelements) map[m] = j;
+    for (j = 0; j < nlibelements; j++)
+      if (libelements[j] == arg[i]) break;
+    if (j < nlibelements) map[m] = j;
     else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
     else error->all(FLERR,"Incorrect args for pair coefficients");
   }
@@ -359,25 +358,25 @@ void PairMEAMC::read_files(const std::string &globalfile,
 void PairMEAMC::read_global_meamc_file(const std::string &globalfile)
 {
   // allocate parameter arrays
-  std::vector<lattice_t> lat(nelements);
-  std::vector<int> ielement(nelements);
-  std::vector<int> ibar(nelements);
-  std::vector<double> z(nelements);
-  std::vector<double> atwt(nelements);
-  std::vector<double> alpha(nelements);
-  std::vector<double> b0(nelements);
-  std::vector<double> b1(nelements);
-  std::vector<double> b2(nelements);
-  std::vector<double> b3(nelements);
-  std::vector<double> alat(nelements);
-  std::vector<double> esub(nelements);
-  std::vector<double> asub(nelements);
-  std::vector<double> t0(nelements);
-  std::vector<double> t1(nelements);
-  std::vector<double> t2(nelements);
-  std::vector<double> t3(nelements);
-  std::vector<double> rozero(nelements);
-  std::vector<bool> found(nelements, false);
+  std::vector<lattice_t> lat(nlibelements);
+  std::vector<int> ielement(nlibelements);
+  std::vector<int> ibar(nlibelements);
+  std::vector<double> z(nlibelements);
+  std::vector<double> atwt(nlibelements);
+  std::vector<double> alpha(nlibelements);
+  std::vector<double> b0(nlibelements);
+  std::vector<double> b1(nlibelements);
+  std::vector<double> b2(nlibelements);
+  std::vector<double> b3(nlibelements);
+  std::vector<double> alat(nlibelements);
+  std::vector<double> esub(nlibelements);
+  std::vector<double> asub(nlibelements);
+  std::vector<double> t0(nlibelements);
+  std::vector<double> t1(nlibelements);
+  std::vector<double> t2(nlibelements);
+  std::vector<double> t3(nlibelements);
+  std::vector<double> rozero(nlibelements);
+  std::vector<bool> found(nlibelements, false);
 
   // open global meamf file on proc 0
 
@@ -401,9 +400,9 @@ void PairMEAMC::read_global_meamc_file(const std::string &globalfile)
         // skip if element name isn't in element list
 
         int index;
-        for (index = 0; index < nelements; index++)
-          if (elements[index] == element) break;
-        if (index == nelements) continue;
+        for (index = 0; index < nlibelements; index++)
+          if (libelements[index] == element) break;
+        if (index == nlibelements) continue;
 
         // skip if element already appeared (technically error in library file, but always ignored)
 
@@ -452,47 +451,47 @@ void PairMEAMC::read_global_meamc_file(const std::string &globalfile)
 
     // error if didn't find all elements in file
 
-    if (nset != nelements) {
+    if (nset != nlibelements) {
       std::string msg = "Did not find all elements in MEAM library file, missing:";
-      for (int i = 0; i < nelements; i++)
+      for (int i = 0; i < nlibelements; i++)
         if (!found[i]) {
           msg += " ";
-          msg += elements[i];
+          msg += libelements[i];
         }
       error->one(FLERR,msg);
     }
   }
 
   // distribute complete parameter sets
-  MPI_Bcast(lat.data(), nelements, MPI_INT, 0, world);
-  MPI_Bcast(ielement.data(), nelements, MPI_INT, 0, world);
-  MPI_Bcast(ibar.data(), nelements, MPI_INT, 0, world);
-  MPI_Bcast(z.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(atwt.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(alpha.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(b0.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(b1.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(b2.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(b3.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(alat.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(esub.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(asub.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(t0.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(t1.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(t2.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(t3.data(), nelements, MPI_DOUBLE, 0, world);
-  MPI_Bcast(rozero.data(), nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(lat.data(), nlibelements, MPI_INT, 0, world);
+  MPI_Bcast(ielement.data(), nlibelements, MPI_INT, 0, world);
+  MPI_Bcast(ibar.data(), nlibelements, MPI_INT, 0, world);
+  MPI_Bcast(z.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(atwt.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(alpha.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b0.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b1.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b2.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(b3.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(alat.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(esub.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(asub.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t0.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t1.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t2.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(t3.data(), nlibelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(rozero.data(), nlibelements, MPI_DOUBLE, 0, world);
 
   // pass element parameters to MEAM package
 
-  meam_inst->meam_setup_global(nelements, lat.data(), ielement.data(), atwt.data(),
+  meam_inst->meam_setup_global(nlibelements, lat.data(), ielement.data(), atwt.data(),
                                alpha.data(), b0.data(), b1.data(), b2.data(), b3.data(),
                                alat.data(), esub.data(), asub.data(), t0.data(), t1.data(),
                                t2.data(), t3.data(), rozero.data(), ibar.data());
 
   // set element masses
 
-  for (int i = 0; i < nelements; i++) mass[i] = atwt[i];
+  for (int i = 0; i < nlibelements; i++) mass[i] = atwt[i];
 }
 
 /* ---------------------------------------------------------------------- */

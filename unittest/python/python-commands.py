@@ -240,17 +240,9 @@ create_atoms 1 single &
 
         state = {
             "step": 0,
-            "elapsed" : 0.0,
-            "elaplong": 0,
             "dt" : 0.005,
             "time" : 0.0,
             "atoms" : 2.0,
-            "temp" : 0,
-            "press" : 0,
-            "pe" : 0.0,
-            "ke" : 0.0,
-            "etotal" : 0.0,
-            "enthalpy" : 0.0,
             "vol" : 8.0,
             "lx" : 2.0,
             "ly" : 2.0,
@@ -267,15 +259,43 @@ create_atoms 1 single &
             result = self.lmp.get_thermo(key)
             self.assertEqual(value, result, key)
 
-    def test_extract_global_double(self):
+    def test_extract_global(self):
         self.lmp.command("region box block -1 1 -2 2 -3 3")
         self.lmp.command("create_box 1 box")
+        self.assertEqual(self.lmp.extract_global("units"), "lj")
+        self.assertEqual(self.lmp.extract_global("ntimestep"), 0)
+        self.assertEqual(self.lmp.extract_global("dt"), 0.005)
+
         self.assertEqual(self.lmp.extract_global("boxxlo"), -1.0)
         self.assertEqual(self.lmp.extract_global("boxxhi"), 1.0)
         self.assertEqual(self.lmp.extract_global("boxylo"), -2.0)
         self.assertEqual(self.lmp.extract_global("boxyhi"), 2.0)
         self.assertEqual(self.lmp.extract_global("boxzlo"), -3.0)
         self.assertEqual(self.lmp.extract_global("boxzhi"), 3.0)
+        self.assertEqual(self.lmp.extract_global("boxlo"), [-1.0, -2.0, -3.0])
+        self.assertEqual(self.lmp.extract_global("boxhi"), [1.0, 2.0, 3.0])
+        self.assertEqual(self.lmp.extract_global("sublo"), [-1.0, -2.0, -3.0])
+        self.assertEqual(self.lmp.extract_global("subhi"), [1.0, 2.0, 3.0])
+        self.assertEqual(self.lmp.extract_global("periodicity"), [1,1,1])
+        self.assertEqual(self.lmp.extract_global("triclinic"), 0)
+        self.assertEqual(self.lmp.extract_global("sublo_lambda"), None)
+        self.assertEqual(self.lmp.extract_global("subhi_lambda"), None)
+        self.assertEqual(self.lmp.extract_global("respa_levels"), None)
+        self.assertEqual(self.lmp.extract_global("respa_dt"), None)
+
+        # set and initialize r-RESPA
+        self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")
+        self.lmp.command("mass * 1.0")
+        self.lmp.command("run 1 post no")
+        self.assertEqual(self.lmp.extract_global("ntimestep"), 1)
+        self.assertEqual(self.lmp.extract_global("respa_levels"), 3)
+        self.assertEqual(self.lmp.extract_global("respa_dt"), [0.0005, 0.0025, 0.005])
+
+        # checks only for triclinic boxes
+        self.lmp.command("change_box all triclinic")
+        self.assertEqual(self.lmp.extract_global("triclinic"), 1)
+        self.assertEqual(self.lmp.extract_global("sublo_lambda"), [0.0, 0.0, 0.0])
+        self.assertEqual(self.lmp.extract_global("subhi_lambda"), [1.0, 1.0, 1.0])
 
 ##############################
 if __name__ == "__main__":

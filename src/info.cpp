@@ -64,9 +64,6 @@
 #endif
 
 namespace LAMMPS_NS {
-// same as in variable.cpp
-enum {INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
-      SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
 
 enum {COMPUTES=1<<0,
       DUMPS=1<<1,
@@ -106,9 +103,11 @@ static const int STYLES = ATOM_STYLES | INTEGRATE_STYLES | MINIMIZE_STYLES
 
 using namespace LAMMPS_NS;
 
+// must match enumerator in variable.h
 static const char *varstyles[] = {
   "index", "loop", "world", "universe", "uloop", "string", "getenv",
-  "file", "atomfile", "format", "equal", "atom", "vector", "python", "internal", "(unknown)"};
+  "file", "atomfile", "format", "equal", "atom", "vector", "python",
+  "internal", "(unknown)"};
 
 static const char *mapstyles[] = { "none", "array", "hash", "yes" };
 
@@ -337,6 +336,7 @@ void Info::command(int narg, char **arg)
       mesg = "KOKKOS package API:";
       if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
       if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
+      if (has_accelerator_feature("KOKKOS","api","sycl"))     mesg += " SYCL";
       if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
       if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
       if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
@@ -648,11 +648,11 @@ void Info::command(int narg, char **arg)
       fmt::print(out,"Variable[{:3d}]: {:16}  style = {:16}  def =",
                  i,std::string(names[i])+',',
                  std::string(varstyles[style[i]])+',');
-      if (style[i] == INTERNAL) {
+      if (style[i] == Variable::INTERNAL) {
         fmt::print(out,"{:.8}\n",input->variable->dvalue[i]);
         continue;
       }
-      if ((style[i] != LOOP) && (style[i] != ULOOP))
+      if ((style[i] != Variable::LOOP) && (style[i] != Variable::ULOOP))
         ndata = input->variable->num[i];
       for (int j=0; j < ndata; ++j)
         if (data[i][j]) fmt::print(out," {}",data[i][j]);
@@ -1219,6 +1219,9 @@ bool Info::has_accelerator_feature(const std::string &package,
 #endif
 #if defined(KOKKOS_ENABLE_HIP)
       if (setting == "hip") return true;
+#endif
+#if defined(KOKKOS_ENABLE_SYCL)
+      if (setting == "sycl") return true;
 #endif
       return false;
     }

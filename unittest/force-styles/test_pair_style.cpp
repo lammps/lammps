@@ -108,6 +108,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     } else {
         command("variable newton_pair index off");
     }
+
     command("variable input_dir index " + INPUT_FOLDER);
 
     for (auto &pre_command : cfg.pre_commands) {
@@ -279,8 +280,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // init_forces
     block.clear();
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
+    auto f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -303,8 +303,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("run_stress", block);
 
     block.clear();
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
+    f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);

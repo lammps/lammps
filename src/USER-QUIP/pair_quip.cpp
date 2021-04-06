@@ -16,21 +16,21 @@
                          Aidan Thompson (Sandia, athomps@sandia.gov)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
 #include "pair_quip.h"
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
-#include "domain.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -252,24 +252,17 @@ void PairQUIP::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int n = atom->ntypes;
-  if (narg != (4+n)) {
-    char str[1024];
-    sprintf(str,"Number of arguments %d is not correct, it should be %d", narg, 4+n);
-    error->all(FLERR,str);
-  }
+  if (narg != (4+n))
+    error->all(FLERR,fmt::format("Number of arguments {} is not correct, "
+                                 "it should be {}", narg, 4+n));
 
   // ensure I,J args are * *
 
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  n_quip_file = strlen(arg[2]);
-  quip_file = new char[n_quip_file+1];
-  strcpy(quip_file,arg[2]);
-
-  n_quip_string = strlen(arg[3]);
-  quip_string = new char[n_quip_string+1];
-  strcpy(quip_string,arg[3]);
+  quip_file = utils::strdup(arg[2]);
+  quip_string = utils::strdup(arg[3]);
 
   for (int i = 4; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0)

@@ -57,9 +57,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
   nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
-  int n = strlen(arg[6]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[6]);
+  idchunk = utils::strdup(arg[6]);
 
   global_freq = nfreq;
   no_change_box = 1;
@@ -190,9 +188,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/chunk command");
       biasflag = 1;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_bias = new char[n];
-      strcpy(id_bias,arg[iarg+1]);
+      id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"adof") == 0) {
       if (iarg+2 > narg)
@@ -220,31 +216,23 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] format_user;
-      int n = strlen(arg[iarg+1]) + 2;
-      format_user = new char[n];
-      sprintf(format_user," %s",arg[iarg+1]);
+      format_user = utils::strdup(arg[iarg+1]);
       format = format_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] title1;
-      int n = strlen(arg[iarg+1]) + 1;
-      title1 = new char[n];
-      strcpy(title1,arg[iarg+1]);
+      title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] title2;
-      int n = strlen(arg[iarg+1]) + 1;
-      title2 = new char[n];
-      strcpy(title2,arg[iarg+1]);
+      title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] title3;
-      int n = strlen(arg[iarg+1]) + 1;
-      title3 = new char[n];
-      strcpy(title3,arg[iarg+1]);
+      title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/chunk command");
   }
@@ -881,7 +869,7 @@ void FixAveChunk::end_of_step()
       if (count_sum[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == ArgInfo::TEMPERATURE) {
-            values_sum[m][j] *= mvv2e / ((cdof + adof*count_sum[m]) * boltz);
+            values_sum[m][j] *= mvv2e/((repeat*cdof + adof*count_sum[m])*boltz);
           } else if (which[j] == ArgInfo::DENSITY_NUMBER) {
             if (volflag == SCALAR) values_sum[m][j] /= chunk_volume_scalar;
             else values_sum[m][j] /= chunk_volume_vec[m];

@@ -49,13 +49,8 @@ FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
 
   k_spring = utils::numeric(FLERR,arg[3],false,lmp);
 
-  int n = strlen(arg[4]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[4]);
-
-  n = strlen(arg[5]) + 1;
-  idcom = new char[n];
-  strcpy(idcom,arg[5]);
+  idchunk = utils::strdup(arg[4]);
+  idcom = utils::strdup(arg[5]);
 
   esprings = 0.0;
   nchunk = 0;
@@ -117,7 +112,7 @@ void FixSpringChunk::init()
   if (strcmp(idchunk,ccom->idchunk) != 0)
     error->all(FLERR,"Fix spring chunk chunkID not same as comID chunkID");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -127,7 +122,7 @@ void FixSpringChunk::init()
 
 void FixSpringChunk::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

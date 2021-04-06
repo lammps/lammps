@@ -67,7 +67,7 @@ void FixSetForceKokkos<DeviceType>::init()
 {
   FixSetForce::init();
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot (yet) use respa with Kokkos");
 }
 

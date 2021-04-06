@@ -224,9 +224,7 @@ void FixWidom::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix widom does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"charge") == 0) {
@@ -1057,7 +1055,9 @@ double FixWidom::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c Widom does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
+  // but Modify::pre_reverse() is needed for USER-INTEL
 
+  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_pre_force) modify->pre_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
 

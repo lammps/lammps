@@ -205,6 +205,9 @@ int lammps_has_id(void *, const char *, const char *);
 int lammps_id_count(void *, const char *);
 int lammps_id_name(void *, const char *, int, char *, int);
 
+int lammps_plugin_count();
+int lammps_plugin_name(int, char *, char *, int);
+
 /* ----------------------------------------------------------------------
  * Utility functions
  * ---------------------------------------------------------------------- */

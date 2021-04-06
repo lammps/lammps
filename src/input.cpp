@@ -1013,9 +1013,7 @@ void Input::jump()
   if (narg == 2) {
     label_active = 1;
     if (labelstr) delete [] labelstr;
-    int n = strlen(arg[1]) + 1;
-    labelstr = new char[n];
-    strcpy(labelstr,arg[1]);
+    labelstr = utils::strdup(arg[1]);
   }
 }
 
@@ -1699,6 +1697,9 @@ void Input::pair_coeff()
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
   if (force->pair == nullptr)
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
+  if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
+                                               || (strcmp(arg[1],"*") != 0))))
+    error->all(FLERR,"Incorrect args for pair coefficients");
   force->pair->coeff(narg,arg);
 }
 
@@ -1840,17 +1841,11 @@ void Input::suffix()
 
     if (strcmp(arg[0],"hybrid") == 0) {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
-      int n = strlen(arg[1]) + 1;
-      lmp->suffix = new char[n];
-      strcpy(lmp->suffix,arg[1]);
-      n = strlen(arg[2]) + 1;
-      lmp->suffix2 = new char[n];
-      strcpy(lmp->suffix2,arg[2]);
+      lmp->suffix = utils::strdup(arg[1]);
+      lmp->suffix2 = utils::strdup(arg[2]);
     } else {
       if (narg != 1) error->all(FLERR,"Illegal suffix command");
-      int n = strlen(arg[0]) + 1;
-      lmp->suffix = new char[n];
-      strcpy(lmp->suffix,arg[0]);
+      lmp->suffix = utils::strdup(arg[0]);
     }
   }
 }

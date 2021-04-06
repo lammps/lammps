@@ -113,7 +113,7 @@ TEST(Utils, count_words_with_extra_spaces)
 
 TEST(Utils, split_words_simple)
 {
-    std::vector<std::string> list = utils::split_words("one two three");
+    auto list = utils::split_words("one two three");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two"));
@@ -122,7 +122,7 @@ TEST(Utils, split_words_simple)
 
 TEST(Utils, split_words_quoted)
 {
-    std::vector<std::string> list = utils::split_words("one 'two' \"three\"");
+    auto list = utils::split_words("one 'two' \"three\"");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two"));
@@ -131,7 +131,7 @@ TEST(Utils, split_words_quoted)
 
 TEST(Utils, split_words_escaped)
 {
-    std::vector<std::string> list = utils::split_words("1\\' '\"two\"' 3\\\"");
+    auto list = utils::split_words("1\\' '\"two\"' 3\\\"");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("1\\'"));
     ASSERT_THAT(list[1], StrEq("\"two\""));
@@ -140,11 +140,20 @@ TEST(Utils, split_words_escaped)
 
 TEST(Utils, split_words_quote_in_quoted)
 {
-    std::vector<std::string> list = utils::split_words("one 't\\'wo' \"th\\\"ree\"");
+    auto list = utils::split_words("one 't\\'wo' \"th\\\"ree\"");
     ASSERT_EQ(list.size(), 3);
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("t\\'wo"));
     ASSERT_THAT(list[2], StrEq("th\\\"ree"));
+}
+
+TEST(Utils, split_lines)
+{
+    auto list = utils::split_lines(" line 1\nline 2 \n line 3 \n");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq(" line 1"));
+    ASSERT_THAT(list[1], StrEq("line 2 "));
+    ASSERT_THAT(list[2], StrEq(" line 3 "));
 }
 
 TEST(Utils, valid_integer1)
@@ -320,6 +329,11 @@ TEST(Utils, valid_id6)
 TEST(Utils, valid_id7)
 {
     ASSERT_TRUE(utils::is_id("___"));
+}
+
+TEST(Utils, empty_id)
+{
+    ASSERT_FALSE(utils::is_id(""));
 }
 
 TEST(Utils, invalid_id1)
@@ -533,10 +547,12 @@ TEST(Utils, strfind_dot)
 
 TEST(Utils, strfind_kim)
 {
-    ASSERT_THAT(utils::strfind("n3409jfse MO_004835508849_000 aslfjiaf",
-                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"), StrEq("MO_004835508849_000"));
+    ASSERT_THAT(
+        utils::strfind("n3409jfse MO_004835508849_000 aslfjiaf", "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"),
+        StrEq("MO_004835508849_000"));
     ASSERT_THAT(utils::strfind("VanDuinChakraborty_2003_CHNO__SM_107643900657_000",
-                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"), StrEq("SM_107643900657_000"));
+                               "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"),
+                StrEq("SM_107643900657_000"));
 }
 
 TEST(Utils, bounds_case1)
@@ -769,6 +785,11 @@ TEST(Utils, unit_conversion)
     ASSERT_DOUBLE_EQ(factor, 1.0 / 23.060549);
 }
 
+TEST(Utils, timespec2seconds_off)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("off"), -1.0);
+}
+
 TEST(Utils, timespec2seconds_ss)
 {
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("45"), 45.0);
@@ -782,6 +803,11 @@ TEST(Utils, timespec2seconds_mmss)
 TEST(Utils, timespec2seconds_hhmmss)
 {
     ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:10:45"), 7845.0);
+}
+
+TEST(Utils, timespec2seconds_invalid)
+{
+    ASSERT_DOUBLE_EQ(utils::timespec2seconds("2:aa:45"), -1.0);
 }
 
 TEST(Utils, date2num)
@@ -798,4 +824,33 @@ TEST(Utils, date2num)
     ASSERT_EQ(utils::date2num("10October22 "), 20221010);
     ASSERT_EQ(utils::date2num("30November 02"), 20021130);
     ASSERT_EQ(utils::date2num("31December100"), 1001231);
+}
+
+static int compare(int a, int b, void *)
+{
+    if (a < b)
+        return -1;
+    else if (a > b)
+        return 1;
+    else
+        return 0;
+}
+
+TEST(Utils, merge_sort)
+{
+    int data[] = {773, 405, 490, 830, 632, 96,  428, 728, 912, 840, 878, 745, 213, 219, 249, 380,
+                  894, 758, 575, 690, 61,  849, 19,  577, 338, 569, 898, 873, 448, 940, 431, 780,
+                  472, 289, 65,  491, 641, 37,  367, 33,  407, 854, 594, 611, 845, 136, 107, 592,
+                  275, 865, 158, 626, 399, 703, 686, 734, 188, 559, 781, 558, 737, 281, 638, 664,
+                  533, 529, 62,  969, 595, 661, 837, 463, 624, 568, 615, 936, 206, 637, 91,  694,
+                  214, 872, 468, 66,  775, 949, 486, 576, 255, 961, 480, 138, 177, 509, 333, 705,
+                  10,  375, 321, 952, 210, 111, 475, 268, 708, 864, 244, 121, 988, 540, 942, 682,
+                  750, 473, 478, 714, 955, 911, 482, 384, 144, 757, 697, 791, 420, 605, 447, 320};
+
+    const int num = sizeof(data) / sizeof(int);
+    utils::merge_sort(data, num, nullptr, &compare);
+    bool sorted = true;
+    for (int i = 1; i < num; ++i)
+        if (data[i - 1] > data[i]) sorted = false;
+    ASSERT_TRUE(sorted);
 }

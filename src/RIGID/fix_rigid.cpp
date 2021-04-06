@@ -720,17 +720,14 @@ void FixRigid::init()
     }
   }
 
-  // error if npt,nph fix comes before rigid fix
+  //  error if a fix changing the box comes before rigid fix
 
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"npt") == 0) break;
-    if (strcmp(modify->fix[i]->style,"nph") == 0) break;
-  }
-
+  for (i = 0; i < modify->nfix; i++)
+    if (modify->fix[i]->box_change) break;
   if (i < modify->nfix) {
-    for (int j = i; j < modify->nfix; j++)
-      if (strcmp(modify->fix[j]->style,"rigid") == 0)
-        error->all(FLERR,"Rigid fix must come before NPT/NPH fix");
+    for (int j = i+1; j < modify->nfix; j++)
+      if (utils::strmatch(modify->fix[j]->style,"^rigid"))
+        error->all(FLERR,"Rigid fixes must come before any box changing fix");
   }
 
   // add gravity forces based on gravity vector from fix
@@ -738,8 +735,8 @@ void FixRigid::init()
   if (id_gravity) {
     int ifix = modify->find_fix(id_gravity);
     if (ifix < 0) error->all(FLERR,"Fix rigid cannot find fix gravity ID");
-    if (strcmp(modify->fix[ifix]->style,"gravity") != 0)
-      error->all(FLERR,"Fix rigid gravity fix is invalid");
+    if (!utils::strmatch(modify->fix[ifix]->style,"^gravity"))
+      error->all(FLERR,"Fix rigid gravity fix ID is not a gravity fix style");
     int tmp;
     gvec = (double *) modify->fix[ifix]->extract("gvec",tmp);
   }
@@ -750,7 +747,7 @@ void FixRigid::init()
   dtf = 0.5 * update->dt * force->ftm2v;
   dtq = 0.5 * update->dt;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
   // setup rigid bodies, using current atom info. if reinitflag is not set,

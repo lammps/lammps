@@ -881,6 +881,59 @@ void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi(int iatom_mod, 
 }
 
 /* ----------------------------------------------------------------------
+   compute Yi from Ui without storing Zi, looping over zlist indices.
+   AoSoA data layout to take advantage of coalescing, avoiding warp
+   divergence. GPU version.
+------------------------------------------------------------------------- */
+
+template<class DeviceType, typename real_type, int vector_length>
+KOKKOS_INLINE_FUNCTION
+void SNAKokkos<DeviceType, real_type, vector_length>::compute_yi_with_zlist(int iatom_mod, int jjz, int iatom_div,
+ const Kokkos::View<real_type***, Kokkos::LayoutLeft, DeviceType> &beta_pack)
+{
+  real_type betaj;
+  const int j1 = idxz(jjz, 0);
+  const int j2 = idxz(jjz, 1);
+  const int j = idxz(jjz, 2);
+  const int jju_half = idxz(jjz, 9);
+  int idouble = 0;
+  for (int elem1 = 0; elem1 < nelements; elem1++) {
+    for (int elem2 = 0; elem2 < nelements; elem2++) {
+      auto ztmp = zlist_pack(iatom_mod,jjz,idouble,iatom_div);
+      // apply to z(j1,j2,j,ma,mb) to unique element of y(j)
+      // find right y_list[jju] and beta(iatom,jjb) entries
+      // multiply and divide by j+1 factors
+      // account for multiplicity of 1, 2, or 3
+      // pick out right beta value
+      for (int elem3 = 0; elem3 < nelements; elem3++) {
+        if (j >= j1) {
+          const int jjb = idxb_block(j1, j2, j);
+          const auto itriple = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
+          if (j1 == j) {
+            if (j2 == j) betaj = 3 * beta_pack(iatom_mod, itriple, iatom_div);
+            else betaj = 2 * beta_pack(iatom_mod, itriple, iatom_div);
+          } else betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        } else if (j >= j2) {
+          const int jjb = idxb_block(j, j2, j1);
+          const auto itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+          if (j2 == j) betaj = 2 * beta_pack(iatom_mod, itriple, iatom_div);
+          else betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        } else {
+          const int jjb = idxb_block(j2, j, j1);
+          const auto itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
+          betaj = beta_pack(iatom_mod, itriple, iatom_div);
+        }
+        if (!bnorm_flag && j1 > j)
+          betaj *= (j1 + 1) / (j + 1.0);
+        Kokkos::atomic_add(&(ylist_pack_re(iatom_mod, jju_half, elem3, iatom_div)), betaj*ztmp.re);
+        Kokkos::atomic_add(&(ylist_pack_im(iatom_mod, jju_half, elem3, iatom_div)), betaj*ztmp.im);
+      } // end loop over elem3
+      idouble++;
+    } // end loop over elem2
+  } // end loop over elem1
+}
+
+/* ----------------------------------------------------------------------
    Fused calculation of the derivative of Ui w.r.t. atom j
    and accumulation into dEidRj. GPU only.
 ------------------------------------------------------------------------- */

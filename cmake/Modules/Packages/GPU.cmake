@@ -218,7 +218,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(NOT DEFINED HIP_PLATFORM)
       if(NOT DEFINED ENV{HIP_PLATFORM})
-          set(HIP_PLATFORM "hcc" CACHE PATH "HIP Platform to be used during compilation")
+          set(HIP_PLATFORM "amd" CACHE PATH "HIP Platform to be used during compilation")
       else()
           set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE PATH "HIP Platform used during compilation")
       endif()
@@ -226,7 +226,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
 
-  if(HIP_PLATFORM STREQUAL "hcc")
+  if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
     set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
     find_package(CUDA REQUIRED)
@@ -284,7 +284,7 @@ elseif(GPU_API STREQUAL "HIP")
     set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
     set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
 
-    if(HIP_PLATFORM STREQUAL "hcc")
+    if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
         configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
 
         if(HIP_COMPILER STREQUAL "clang")
@@ -338,11 +338,16 @@ elseif(GPU_API STREQUAL "HIP")
 
       if(DOWNLOAD_CUB)
         message(STATUS "CUB download requested")
+        set(CUB_URL "https://github.com/NVlabs/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
+        set(CUB_MD5 "1cf595beacafff104700921bac8519f3" CACHE STRING "MD5 checksum of CUB tarball")
+        mark_as_advanced(CUB_URL)
+        mark_as_advanced(CUB_MD5)
+
         include(ExternalProject)
 
         ExternalProject_Add(CUB
-          GIT_REPOSITORY https://github.com/NVlabs/cub
-          TIMEOUT 5
+          URL     ${CUB_URL}
+          URL_MD5 ${CUB_MD5}
           PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
           CONFIGURE_COMMAND ""
           BUILD_COMMAND ""
@@ -354,7 +359,7 @@ elseif(GPU_API STREQUAL "HIP")
       else()
         find_package(CUB)
         if(NOT CUB_FOUND)
-          message(FATAL_ERROR "CUB library not found. Help CMake to find it by setting CUB_INCLUDE_DIR, or set DOWNLOAD_VORO=ON to download it")
+          message(FATAL_ERROR "CUB library not found. Help CMake to find it by setting CUB_INCLUDE_DIR, or set DOWNLOAD_CUB=ON to download it")
         endif()
       endif()
 
@@ -380,6 +385,12 @@ elseif(GPU_API STREQUAL "HIP")
     target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
 
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_HCC__)
+    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
+  elseif(HIP_PLATFORM STREQUAL "amd")
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_AMD__)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_AMD__)
     target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   endif()
 

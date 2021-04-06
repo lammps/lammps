@@ -42,8 +42,6 @@ PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
-  nelements = 0;
-  elements = nullptr;
   radelem = nullptr;
   wjelem = nullptr;
   coeffelem = nullptr;
@@ -60,14 +58,9 @@ PairSNAP::~PairSNAP()
 {
   if (copymode) return;
 
-  if (nelements) {
-    for (int i = 0; i < nelements; i++)
-      delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-    memory->destroy(coeffelem);
-  }
+  memory->destroy(radelem);
+  memory->destroy(wjelem);
+  memory->destroy(coeffelem);
 
   memory->destroy(beta);
   memory->destroy(bispectrum);
@@ -77,7 +70,6 @@ PairSNAP::~PairSNAP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(map);
   }
 
 }
@@ -362,7 +354,7 @@ void PairSNAP::allocate()
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-  memory->create(map,n+1,"pair:map");
+  map = new int[n+1];
 }
 
 /* ----------------------------------------------------------------------
@@ -384,61 +376,11 @@ void PairSNAP::coeff(int narg, char **arg)
   if (!allocated) allocate();
   if (narg != 4 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  char* type1 = arg[0];
-  char* type2 = arg[1];
-  char* coefffilename = arg[2];
-  char* paramfilename = arg[3];
-  char** elemtypes = &arg[4];
-
-  // insure I,J args are * *
-
-  if (strcmp(type1,"*") != 0 || strcmp(type2,"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // clean out old arrays
-
-  if (elements) {
-    for (int i = 0; i < nelements; i++)
-      delete[] elements[i];
-    delete[] elements;
-    memory->destroy(radelem);
-    memory->destroy(wjelem);
-    memory->destroy(coeffelem);
-  }
-
-  // nelements = # of unique elements declared
-  // elements = list of unique element names
-  //            allocate as ntypes >= nelements
-
-  elements = new char*[atom->ntypes];
-  for (int i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  // read args that map atom types to SNAP elements
-  // map[i] = which element the Ith atom type is, -1 if not mapped
-  // map[0] is not used
-
-  nelements = 0;
-  for (int i = 1; i <= atom->ntypes; i++) {
-    char* elemstring = elemtypes[i-1];
-    if (strcmp(elemstring,"NULL") == 0) {
-      map[i] = -1;
-      continue;
-    }
-    int j;
-    for (j = 0; j < nelements; j++)
-      if (strcmp(elemstring,elements[j]) == 0) break;
-    map[i] = j;
-    if (j == nelements) {
-      int n = strlen(elemstring) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],elemstring);
-      nelements++;
-    }
-  }
+  map_element2type(narg-4,arg+4);
 
   // read snapcoeff and snapparam files
 
-  read_files(coefffilename,paramfilename);
+  read_files(arg[2],arg[3]);
 
   if (!quadraticflag)
     ncoeff = ncoeffall - 1;
@@ -454,25 +396,6 @@ void PairSNAP::coeff(int narg, char **arg)
       error->all(FLERR,"Incorrect SNAP coeff file");
     }
   }
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
@@ -571,8 +494,11 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
                                  "file: {}", e.what()));
   }
 
-  // set up element lists
+  // clean out old arrays and set up element lists
 
+  memory->destroy(radelem);
+  memory->destroy(wjelem);
+  memory->destroy(coeffelem);
   memory->create(radelem,nelements,"pair:radelem");
   memory->create(wjelem,nelements,"pair:wjelem");
   memory->create(coeffelem,nelements,ncoeffall,"pair:coeffelem");

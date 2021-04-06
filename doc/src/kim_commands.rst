@@ -1205,7 +1205,7 @@ coordinates of atoms in the unit cell of the cubic crystal.  In the case of,
 e.g. a conventional fcc unit cell, the "source-value" key in the map associated
 with this key should be assigned the following value:
 
-.. code-block:: LAMMPS
+.. code-block:: text
 
    [[0.0, 0.0, 0.0],
     [0.5, 0.5, 0.0],

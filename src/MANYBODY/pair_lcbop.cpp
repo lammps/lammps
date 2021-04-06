@@ -74,8 +74,6 @@ PairLCBOP::~PairLCBOP()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cutghost);
-
-    delete [] map;
   }
 }
 
@@ -128,48 +126,17 @@ void PairLCBOP::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  map_element2type(narg-3,arg+3);
 
-  // insure I,J args are * *
+  // only element "C" is allowed
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to C and "NULL"
-  // map[i] = which element (0 for C) the Ith atom type is, -1 if "NULL"
-
-  for (int i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-    } else if (strcmp(arg[i],"C") == 0) {
-      map[i-2] = 0;
-    } else error->all(FLERR,"Incorrect args for pair coefficients");
-  }
+  if ((nelements != 1) || (strcmp(elements[0],"C") != 0))
+      error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read potential file and initialize fitting splines
 
   read_file(arg[2]);
   spline_init();
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -965,11 +932,9 @@ void PairLCBOP::read_file(char *filename)
   int i,k,l;
   char s[MAXLINE];
 
-  MPI_Comm_rank(world,&me);
-
   // read file on proc 0
 
-  if (me == 0) {
+  if (comm->me == 0) {
     FILE *fp = utils::open_potential(filename,lmp,nullptr);
     if (fp == nullptr) {
       char str[128];

@@ -356,7 +356,7 @@ void FixAdaptFEP::init()
     fix_chg = (FixStore *) modify->fix[ifix];
   }
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

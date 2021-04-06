@@ -19,22 +19,24 @@
 
 #include "fix_rigid_nh_small.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "group.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
 #include "rigid_const.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1319,9 +1321,7 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1353,9 +1353,7 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
@@ -1367,6 +1365,19 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
   }
 
   return FixRigidSmall::modify_param(narg,arg);
+}
+
+/* ----------------------------------------------------------------------
+   disallow using fix rigid/n??/small fixes with fix deposit
+   we would need custom functionality to update data structures
+   used by all fixes derived from this class but not fix rigid/small
+------------------------------------------------------------------------- */
+
+void FixRigidNHSmall::set_molecule(int, tagint, int,
+                                   double *, double *, double *)
+{
+   error->all(FLERR,fmt::format("Molecule update not (yet) implemented for "
+                               "fix {}", style));
 }
 
 /* ---------------------------------------------------------------------- */

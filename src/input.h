@@ -82,6 +82,7 @@ class Input : protected Pointers {
   void log();
   void next_command();
   void partition();
+  void plugin();
   void print();
   void python();
   void quit();

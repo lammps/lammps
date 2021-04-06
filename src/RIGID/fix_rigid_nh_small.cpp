@@ -754,6 +754,8 @@ void FixRigidNHSmall::final_integrate()
 
 void FixRigidNHSmall::nhc_temp_integrate()
 {
+  if (g_f == 0) return;
+
   int i,j,k;
   double kt,gfkt_t,gfkt_r,tmp,ms,s,s2;
 
@@ -1148,6 +1150,8 @@ void FixRigidNHSmall::compute_press_target()
 
 void FixRigidNHSmall::nh_epsilon_dot()
 {
+  if (g_f == 0) return;
+
   int i;
   double volume,scale,f_epsilon;
 
@@ -1204,8 +1208,6 @@ void FixRigidNHSmall::compute_dof()
   nf_r = nfall[1];
 
   g_f = nf_t + nf_r;
-  onednft = 1.0 + (double)(dimension) / (double)g_f;
-  onednfr = (double) (dimension) / (double)g_f;
 }
 
 /* ----------------------------------------------------------------------
@@ -1365,19 +1367,6 @@ int FixRigidNHSmall::modify_param(int narg, char **arg)
   }
 
   return FixRigidSmall::modify_param(narg,arg);
-}
-
-/* ----------------------------------------------------------------------
-   disallow using fix rigid/n??/small fixes with fix deposit
-   we would need custom functionality to update data structures
-   used by all fixes derived from this class but not fix rigid/small
-------------------------------------------------------------------------- */
-
-void FixRigidNHSmall::set_molecule(int, tagint, int,
-                                   double *, double *, double *)
-{
-   error->all(FLERR,fmt::format("Molecule update not (yet) implemented for "
-                               "fix {}", style));
 }
 
 /* ---------------------------------------------------------------------- */

@@ -234,8 +234,6 @@ void FixRigidNH::init()
   }
 
   g_f = nf_t + nf_r;
-  onednft = 1.0 + (double)(dimension) / (double)g_f;
-  onednfr = (double) (dimension) / (double)g_f;
 
   // see Table 1 in Kamberaj et al
 
@@ -719,6 +717,8 @@ void FixRigidNH::final_integrate()
 
 void FixRigidNH::nhc_temp_integrate()
 {
+  if (g_f == 0) return;
+
   int i,j,k;
   double kt,gfkt_t,gfkt_r,tmp,ms,s,s2;
 
@@ -1063,6 +1063,8 @@ void FixRigidNH::compute_press_target()
 
 void FixRigidNH::nh_epsilon_dot()
 {
+  if (g_f == 0) return;
+
   int i;
   double volume,scale,f_epsilon;
 

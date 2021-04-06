@@ -2,10 +2,13 @@ message(STATUS "Downloading and building YAML library")
 
 include(ExternalProject)
 set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
+set(YAML_MD5 "bb15429d8fb787e7d3f1c83ae129a999" CACHE STRING "MD5 checksum of libyaml tarball")
 mark_as_advanced(YAML_URL)
+mark_as_advanced(YAML_MD5)
+
 ExternalProject_Add(libyaml
                     URL               ${YAML_URL}
-                    URL_MD5           bb15429d8fb787e7d3f1c83ae129a999
+                    URL_MD5           ${YAML_MD5}
                     SOURCE_DIR        "${CMAKE_BINARY_DIR}/yaml-src"
                     BINARY_DIR        "${CMAKE_BINARY_DIR}/yaml-build"
                     CONFIGURE_COMMAND <SOURCE_DIR>/configure ${CONFIGURE_REQUEST_PIC}

@@ -218,7 +218,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(NOT DEFINED HIP_PLATFORM)
       if(NOT DEFINED ENV{HIP_PLATFORM})
-          set(HIP_PLATFORM "hcc" CACHE PATH "HIP Platform to be used during compilation")
+          set(HIP_PLATFORM "amd" CACHE PATH "HIP Platform to be used during compilation")
       else()
           set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE PATH "HIP Platform used during compilation")
       endif()
@@ -226,7 +226,7 @@ elseif(GPU_API STREQUAL "HIP")
 
   set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
 
-  if(HIP_PLATFORM STREQUAL "hcc")
+  if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
     set(HIP_ARCH "gfx906" CACHE STRING "HIP target architecture")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
     find_package(CUDA REQUIRED)
@@ -284,7 +284,7 @@ elseif(GPU_API STREQUAL "HIP")
     set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
     set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
 
-    if(HIP_PLATFORM STREQUAL "hcc")
+    if(HIP_PLATFORM STREQUAL "hcc" OR HIP_PLATFORM STREQUAL "amd")
         configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
 
         if(HIP_COMPILER STREQUAL "clang")
@@ -385,6 +385,12 @@ elseif(GPU_API STREQUAL "HIP")
     target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
 
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_HCC__)
+    target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
+  elseif(HIP_PLATFORM STREQUAL "amd")
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_AMD__)
+    target_include_directories(gpu PRIVATE ${HIP_ROOT_DIR}/../include)
+
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_AMD__)
     target_include_directories(hip_get_devices PRIVATE ${HIP_ROOT_DIR}/../include)
   endif()
 

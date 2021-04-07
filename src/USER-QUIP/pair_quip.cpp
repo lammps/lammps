@@ -318,7 +318,6 @@ void PairQUIP::init_style()
 
   // Initialise neighbor list
   int irequest_full = neighbor->request(this);
-  neighbor->requests[irequest_full]->id = 1;
   neighbor->requests[irequest_full]->half = 0;
   neighbor->requests[irequest_full]->full = 1;
 }

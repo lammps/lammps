@@ -1747,17 +1747,23 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def find_pair_neighlist(self, style, exact=True, nsub=0, request=0):
+  def find_pair_neighlist(self, style, exact=True, nsub=0, reqid=0):
     """Find neighbor list index of pair style neighbor list
 
-    Try finding pair instance that matches style. If exact is set, the pair must
-    match style exactly. If exact is 0, style must only be contained. If pair is
-    of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.
+    Search for a neighbor list requested by a pair style instance that
+    matches "style".  If exact is True, the pair style name must match
+    exactly. If exact is False, the pair style name is matched against
+    "style" as regular expression or sub-string. If the pair style is a
+    hybrid pair style, the style is instead matched against the hybrid
+    sub-styles. If the same pair style is used as sub-style multiple
+    types, you must set nsub to a value n > 0 which indicates the nth
+    instance of that sub-style to be used (same as for the pair_coeff
+    command). The default value of 0 will fail to match in that case.
 
-    Once the pair instance has been identified, multiple neighbor list requests
-    may be found. Every neighbor list is uniquely identified by its request
-    index. Thus, providing this request index ensures that the correct neighbor
-    list index is returned.
+    Once the pair style instance has been identified, it may have
+    requested multiple neighbor lists. Those are uniquely identified by
+    a request ID > 0 as set by the pair style. Otherwise the request
+    ID is 0.
 
     :param style: name of pair style that should be searched for
     :type  style: string
@@ -1765,44 +1771,58 @@ class lammps(object):
     :type  exact: bool, optional
     :param nsub:  match nsub-th hybrid sub-style, defaults to 0
     :type  nsub:  int, optional
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid: list request id, > 0 in case there are more than one, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     style = style.encode()
     exact = int(exact)
-    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, request)
+    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, reqid)
     return idx
 
   # -------------------------------------------------------------------------
 
-  def find_fix_neighlist(self, fixid, request=0):
+  def find_fix_neighlist(self, fixid, reqid=0):
     """Find neighbor list index of fix neighbor list
+
+    The fix instance requesting the neighbor list is uniquely identified
+    by the fix ID.  In case the fix has requested multiple neighbor
+    lists, those are uniquely identified by a request ID > 0 as set by
+    the fix.  Otherwise the request ID is 0 (the default).
 
     :param fixid: name of fix
     :type  fixid: string
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid:   id of neighbor list request, in case there are more than one request, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     fixid = fixid.encode()
-    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
+    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, reqid)
     return idx
 
   # -------------------------------------------------------------------------
 
-  def find_compute_neighlist(self, computeid, request=0):
+  def find_compute_neighlist(self, computeid, reqid=0):
     """Find neighbor list index of compute neighbor list
+
+    The compute instance requesting the neighbor list is uniquely
+    identified by the compute ID.  In case the compute has requested
+    multiple neighbor lists, those are uniquely identified by a request
+    ID > 0 as set by the compute.  Otherwise the request ID is 0 (the
+    default).
 
     :param computeid: name of compute
     :type  computeid: string
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid:   index of neighbor list request, in case there are more than one request, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     computeid = computeid.encode()
-    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
+    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, reqid)
     return idx

@@ -138,8 +138,8 @@ void  *lammps_extract_atom(void *handle, const char *name);
  * Library functions to access data from computes, fixes, variables in LAMMPS
  * ---------------------------------------------------------------------- */
 
-void *lammps_extract_compute(void *handle, char *id, int, int);
-void *lammps_extract_fix(void *handle, char *, int, int, int, int);
+void *lammps_extract_compute(void *handle, const char *, int, int);
+void *lammps_extract_fix(void *handle, const char *, int, int, int, int);
 void *lammps_extract_variable(void *handle, const char *, const char *);
 int   lammps_set_variable(void *, char *, char *);
 
@@ -160,20 +160,20 @@ void lammps_scatter(void *handle, char *name, int type, int count, void *data);
 void lammps_scatter_subset(void *handle, char *name, int type, int count, int ndata, int *ids, void *data);
 
 #if !defined(LAMMPS_BIGBIG)
-int    lammps_create_atoms(void *handle, int n, int *id, int *type,
-                           double *x, double *v, int *image, int bexpand);
+int    lammps_create_atoms(void *handle, int n, const int *id, const int *type,
+                           const double *x, const double *v, const int *image, int bexpand);
 #else
-int    lammps_create_atoms(void *handle, int n, int64_t *id, int *type,
-                           double *x, double *v, int64_t* image, int bexpand);
+int    lammps_create_atoms(void *handle, int n, const int64_t *id, const int *type,
+                           const double *x, const double *v, const int64_t* image, int bexpand);
 #endif
 
 /* ----------------------------------------------------------------------
  * Library functions for accessing neighbor lists
  * ---------------------------------------------------------------------- */
 
-int lammps_find_pair_neighlist(void *handle, char *style, int exact, int nsub, int request);
-int lammps_find_fix_neighlist(void *handle, char *id, int request);
-int lammps_find_compute_neighlist(void *handle, char *id, int request);
+int lammps_find_pair_neighlist(void *handle, const char *style, int exact, int nsub, int request);
+int lammps_find_fix_neighlist(void *handle, const char *id, int request);
+int lammps_find_compute_neighlist(void *handle, const char *id, int request);
 int lammps_neighlist_num_elements(void *handle, int idx);
 void lammps_neighlist_element_neighbors(void *handle, int idx, int element, int *iatom, int *numneigh, int **neighbors);
 

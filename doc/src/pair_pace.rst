@@ -59,9 +59,9 @@ Note that unlike for other potentials, cutoffs are
 not set in the pair_style or pair_coeff command; they are specified in
 the ACE file.
 
-The pair_style *mliap* may be followed by an optional keyword
+The pair_style *pace* command may be followed by an optional keyword
 *product* or *recursive*, which determines which of two algorithms
- is used for the calculation of basis functions and derivatives.
+is used for the calculation of basis functions and derivatives. 
 The default is *recursive*.
 
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways

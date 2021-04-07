@@ -27,19 +27,27 @@
 
 #include "pair_tersoffHG.h"
 #include "atom.h"
-#include "update.h"
-#include "neighbor.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "math_special.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
+#include "suffix.h"
+#include "tokenizer.h"
 
-#include "math_const.h"
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathSpecial;
+using namespace MathExtra;
 
 #define MAXLINE 1024
 #define DELTA 4
@@ -68,152 +76,196 @@ PairTERSOFFHG::PairTERSOFFHG(LAMMPS *lmp) : PairTersoff(lmp)
 
 void PairTERSOFFHG::read_file(char *file)
 {
-  int params_per_line = 28;
-  char **words = new char*[params_per_line+1];
+//  int params_per_line = 28;
+//  char **words = new char*[params_per_line+1];
 
-  memory->sfree(params);
-  params = NULL;
-  nparams = maxparam = 0;
+  // memory->sfree(params);
+  // params = NULL;
+  // nparams = maxparam = 0;
 
-  // open file on proc 0
+  // // open file on proc 0
 
-  FILE *fp;
-  if (comm->me == 0) {
-    fp = force->open_potential(file);
-    if (fp == NULL) {
-      char str[128];
-      sprintf(str,"Cannot open TersoffHG potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
+  // FILE *fp;
+  // if (comm->me == 0) {
+  //   fp = force->open_potential(file);
+  //   if (fp == NULL) {
+  //     char str[128];
+  //     sprintf(str,"Cannot open TersoffHG potential file %s",file);
+  //     error->one(FLERR,str);
+  //   }
+  // }
 
   // read each line out of file, skipping blank lines or leading '#'
   // store line of params if all 3 element tags are in element list
 
-  int n,nwords,ielement,jelement,kelement;
-  char line[MAXLINE],*ptr;
-  int eof = 0;
+  // int n,nwords,ielement,jelement,kelement;
+  // char line[MAXLINE],*ptr;
+  // int eof = 0;
 
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == NULL) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
+  // while (1) {
+  //   if (comm->me == 0) {
+  //     ptr = fgets(line,MAXLINE,fp);
+  //     if (ptr == NULL) {
+  //       eof = 1;
+  //       fclose(fp);
+  //     } else n = strlen(line) + 1;
+  //   }
+  //   MPI_Bcast(&eof,1,MPI_INT,0,world);
+  //   if (eof) break;
+  //   MPI_Bcast(&n,1,MPI_INT,0,world);
+  //   MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    // strip comment, skip line if blank
+  //   // strip comment, skip line if blank
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = atom->count_words(line);
-    if (nwords == 0) continue;
+  //   if ((ptr = strchr(line,'#'))) *ptr = '\0';
+  //   nwords = atom->count_words(line);
+  //   if (nwords == 0) continue;
 
-    // concatenate additional lines until have params_per_line words
+  //   // concatenate additional lines until have params_per_line words
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == NULL) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
-      }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = atom->count_words(line);
-    }
+  //   while (nwords < params_per_line) {
+  //     n = strlen(line);
+  //     if (comm->me == 0) {
+  //       ptr = fgets(&line[n],MAXLINE-n,fp);
+  //       if (ptr == NULL) {
+  //         eof = 1;
+  //         fclose(fp);
+  //       } else n = strlen(line) + 1;
+  //     }
+  //     MPI_Bcast(&eof,1,MPI_INT,0,world);
+  //     if (eof) break;
+  //     MPI_Bcast(&n,1,MPI_INT,0,world);
+  //     MPI_Bcast(line,n,MPI_CHAR,0,world);
+  //     if ((ptr = strchr(line,'#'))) *ptr = '\0';
+  //     nwords = atom->count_words(line);
+  //   }
 
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in TERSOFFHG potential file");
+  //   if (nwords != params_per_line)
+  //     error->all(FLERR,"Incorrect format in TERSOFFHG potential file");
 
-    // words = ptrs to all words in line
+  //   // words = ptrs to all words in line
 
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
+  //   nwords = 0;
+  //   words[nwords++] = strtok(line," \t\n\r\f");
+  //   while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
 
     // ielement,jelement,kelement = 1st args
     // if all 3 args are in element list, then parse this line
     // else skip to next line
+  memory->sfree(params);
+  params = nullptr;
+  nparams = maxparam = 0;
 
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0],elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1],elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2],elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
+  // open file on proc 0
+
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp, file, "tersoffHG", unit_convert_flag);
+    char *line;
+
+    // transparently convert units for supported conversions
+
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
+
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
+
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement, kelement;
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
     // load up parameter settings and error check their values
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
+          memset(params + nparams, 0, DELTA*sizeof(Param));
 
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
-                                          "pair:params");
-    }
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].powerm = atof(words[3]);    // beta (A13)
-    params[nparams].gamma = atof(words[4]);     // not used
-    params[nparams].lam3 = atof(words[5]);      // alpha (A13)
-    params[nparams].c = atof(words[6]);         // c (A14)
-    params[nparams].d = atof(words[7]);         // d (A14)
-    params[nparams].h = atof(words[8]);         // h (A14)
-    params[nparams].powern = atof(words[9]);    // delta (A12)
-    params[nparams].beta = atof(words[10]);     // not used
-    params[nparams].lam2 = atof(words[11]);     // mu (A4)
-    params[nparams].bigb = atof(words[12]);     // B (A4)
-    params[nparams].bigr = atof(words[13]);     // rmin (A5)
-    params[nparams].bigd = atof(words[14]);     // rmax - rmin (A5)
-    params[nparams].lam1 = atof(words[15]);     // lambda (A3)
-    params[nparams].biga = atof(words[16]);     // A (A3)
-    params[nparams].powereta = atof(words[17]); // eta (A12)
-    params[nparams].Z_i = atof(words[18]);      // Z_i (A7)
-    params[nparams].Z_j = atof(words[19]);      // Z_j (A7)
-    params[nparams].spl_ra = atof(words[20]);   // spl_ra (A10)
-    params[nparams].spl_rb = atof(words[21]);   // spl_rb (A10)
-    params[nparams].spl_a = atof(words[22]);    // spl_a (A10)
-    params[nparams].spl_b = atof(words[23]);    // spl_b (A10)
-    params[nparams].spl_c = atof(words[24]);    // spl_c (A10)
-    params[nparams].spl_s = atof(words[25]);    // spl_s (A10)
-    params[nparams].Re = atof(words[26]);       // Re (A13)
-    params[nparams].PxyFile = words[27];       // File contaning P nodes
+        }
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].powerm    = values.next_double(); // beta (A13)
+        params[nparams].gamma = values.next_double(); //atof(words[4]);     // not used
+        params[nparams].lam3 = values.next_double(); //atof(words[5]);      // alpha (A13)
+        params[nparams].c = values.next_double(); //atof(words[6]);         // c (A14)
+        params[nparams].d = values.next_double(); //atof(words[7]);         // d (A14)
+        params[nparams].h = values.next_double(); //atof(words[8]);         // h (A14)
+        params[nparams].powern = values.next_double(); //atof(words[9]);    // delta (A12)
+        params[nparams].beta = values.next_double(); //atof(words[10]);     // not used
+        params[nparams].lam2 = values.next_double(); //atof(words[11]);     // mu (A4)
+        params[nparams].bigb = values.next_double(); //atof(words[12]);     // B (A4)
+        params[nparams].bigr = values.next_double(); //atof(words[13]);     // rmin (A5)
+        params[nparams].bigd = values.next_double(); //atof(words[14]);     // rmax - rmin (A5)
+        params[nparams].lam1 = values.next_double(); //atof(words[15]);     // lambda (A3)
+        params[nparams].biga = values.next_double(); //atof(words[16]);     // A (A3)
+        params[nparams].powereta = values.next_double(); //atof(words[17]); // eta (A12)
+        params[nparams].Z_i = values.next_double(); //atof(words[18]);      // Z_i (A7)
+        params[nparams].Z_j = values.next_double(); //atof(words[19]);      // Z_j (A7)
+        params[nparams].spl_ra = values.next_double(); //atof(words[20]);   // spl_ra (A10)
+        params[nparams].spl_rb = values.next_double(); //atof(words[21]);   // spl_rb (A10)
+        params[nparams].spl_a = values.next_double(); //atof(words[22]);    // spl_a (A10)
+        params[nparams].spl_b = values.next_double(); //atof(words[23]);    // spl_b (A10)
+        params[nparams].spl_c = values.next_double(); //atof(words[24]);    // spl_c (A10)
+        params[nparams].spl_s = values.next_double(); //atof(words[25]);    // spl_s (A10)
+        params[nparams].Re = values.next_double(); //atof(words[26]);       // Re (A13)
+        std::string pfile=values.next_string();
+        params[nparams].PxyFile = pfile; //words[27];       // File contaning P nodes
+        params[nparams].powermint = int(params[nparams].powerm);
 
-    // currently only allow m exponent of 1 or 3
+        if (unit_convert) {
+          params[nparams].biga *= conversion_factor;
+          params[nparams].bigb *= conversion_factor;
+        }
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
+      }
+        // currently only allow m exponent of 1 or 3
 
-    params[nparams].powermint = int(params[nparams].powerm);
 
       //add a check to make sure the spline file exists
-    if (
-        params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 ||
-        params[nparams].d < 0.0 || params[nparams].powern < 0.0 ||
-        params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 ||
-        params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
-        params[nparams].bigd < 0.0 ||
-        params[nparams].bigd > params[nparams].bigr ||
-        params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
-        params[nparams].powerm - params[nparams].powermint != 0.0 ||
-        params[nparams].gamma < 0.0 ||
-        params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
-        params[nparams].spl_ra < 0.0 || params[nparams].spl_rb < 0.0)
-      error->all(FLERR,"Illegal REBO1 parameter");
-
-    read_lib(&params[nparams]);
-    nparams++;
+      if (
+          params[nparams].lam3 < 0.0 || params[nparams].c < 0.0 ||
+          params[nparams].d < 0.0 || params[nparams].powern < 0.0 ||
+          params[nparams].beta < 0.0 || params[nparams].lam2 < 0.0 ||
+          params[nparams].bigb < 0.0 || params[nparams].bigr < 0.0 ||
+          params[nparams].bigd < 0.0 ||
+          params[nparams].bigd > params[nparams].bigr ||
+          params[nparams].lam3 < 0.0 || params[nparams].biga < 0.0 ||
+          params[nparams].powerm - params[nparams].powermint != 0.0 ||
+          params[nparams].gamma < 0.0 ||
+          params[nparams].Z_i < 1.0 || params[nparams].Z_j < 1.0 ||
+          params[nparams].spl_ra < 0.0 || params[nparams].spl_rb < 0.0)
+        error->one(FLERR,"Illegal REBO1 parameter");
+      read_lib(&params[nparams]);
+      nparams++;
+    }
   }
-  delete [] words;
+
+  //delete [] words;
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 //******************************************************
@@ -329,7 +381,7 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
       j = jlist[jj];
       j &= NEIGHMASK;
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -389,7 +441,7 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
 
       Rij1 = Rij/rij;
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       double ij_f, ij_fprime;
       double B = params[iparam_ij].bigb;
@@ -425,9 +477,10 @@ void PairTERSOFFHG::compute(int eflag, int vflag)
         VR_ij = ij_f * aa;
         dVR_ij = aa * (ij_fprime - ij_f*MORSE_LAM);
       }
-      //std::cerr<<tag[i]<<" "<<tag[j]<<" "<<VR_ij<<"\n";
+//      std::cerr<<tag[i]<<" "<<tag[j]<<" "<<VA_ij<<"\n";
 
       double b_ij=BondOrder(i, j, ij_f, VA_ij, eflag, vflag);
+//      std::cerr<<tag[i]<<" "<<tag[j]<<" "<<VA_ij<<"\n";
 
       evdwl = VR_ij - b_ij*VA_ij;
       fpair = (-dVR_ij+b_ij*dVA_ij)/rij;
@@ -474,8 +527,8 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
   int itype,jtype,ktype,iparam_ij,iparam_ji,iparam_ijk,iparam_ik,iparam_jk;
   itype = map[type[i]];
   jtype = map[type[j]];
-  iparam_ij = elem2param[itype][jtype][jtype];
-  iparam_ji = elem2param[jtype][itype][itype];
+  iparam_ij = elem3param[itype][jtype][jtype];
+  iparam_ji = elem3param[jtype][itype][itype];
     
   Rij.set(x[i][0]-x[j][0], x[i][1]-x[j][1], x[i][2]-x[j][2]);
   rij=Rij.mag();
@@ -499,18 +552,19 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
   // Nt_ji = NF_ji + NC_ji + NSi_ji + NCl_ji;
 
   P_ij=P_ji=dFP_ij=dFP_ji=dCP_ij=dCP_ji=0;
+  //std::cerr<<"BONDORDER"<<std::endl;
 
   //these only work if 0 is Si, 1 is F/Cl. Later, find a way to virtualize
   bicubicint (Nmap[i][1]-(jtype==1)*ij_f, Nmap[i][0]-(jtype==0)*ij_f, 
               &P_ij, &dFP_ij, &dCP_ij, &params[iparam_ij]);
+  //std::cerr<<" "<<Nmap[i][1]-(jtype==1)*ij_f<<" "<<Nmap[i][0]-(jtype==0)*ij_f<<" "<<
+  //            P_ij<<" "<<dFP_ij<<" "<<dCP_ij<<std::endl;
 
   bicubicint (Nmap[j][1]-(itype==1)*ij_f, Nmap[j][0]-(itype==0)*ij_f,
               &P_ji, &dFP_ji, &dCP_ji, &params[iparam_ji]);
   
-//  std::cerr<<" "<<Nmap[i][1]-(jtype==1)*ij_f<<" "<<Nmap[i][0]-(jtype==0)*ij_f<<" "<<
-//              P_ij<<" "<<dFP_ij<<" "<<dCP_ij<<std::endl;
-//  std::cerr<<" "<<Nmap[j][1]-(itype==1)*ij_f<<" "<<Nmap[j][0]-(itype==0)*ij_f<<" "<<
-//              P_ji<<" "<<dFP_ij<<" "<<dCP_ij<<std::endl;  
+  //std::cerr<<" "<<Nmap[j][1]-(itype==1)*ij_f<<" "<<Nmap[j][0]-(itype==0)*ij_f<<" "<<
+  //            P_ji<<" "<<dFP_ij<<" "<<dCP_ij<<std::endl;  
   // if (bond_ij->type==12)
   // {
   //   Pcc_bicubicint(NF_ij, NC_ij+NSi_ij, &P_ij, &dFP_ij,&dCP_ij);
@@ -541,8 +595,8 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
     k &= NEIGHMASK;
     ktag = tag[k];
     ktype = map[type[k]];
-    iparam_ik = elem2param[itype][ktype][ktype];
-    iparam_ijk = elem2param[itype][jtype][ktype];
+    iparam_ik = elem3param[itype][ktype][ktype];
+    iparam_ijk = elem3param[itype][jtype][ktype];
     Rik.set(x[i][0]-x[k][0], x[i][1]-x[k][1], x[i][2]-x[k][2]);
     rik=Rik.mag();
     Rik1=Rik/rik;
@@ -593,8 +647,8 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
     k &= NEIGHMASK;
     ktag = tag[k];
     ktype = map[type[k]];
-    iparam_jk = elem2param[jtype][ktype][ktype];
-    iparam_ijk = elem2param[jtype][itype][ktype];
+    iparam_jk = elem3param[jtype][ktype][ktype];
+    iparam_ijk = elem3param[jtype][itype][ktype];
     Rjk.set(x[j][0]-x[k][0], x[j][1]-x[k][1], x[j][2]-x[k][2]);
     rjk=Rjk.mag();
     Rjk1=Rjk/rjk;
@@ -696,8 +750,8 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
     k &= NEIGHMASK;
     ktag = tag[k];
     ktype = map[type[k]];
-    iparam_ik = elem2param[itype][ktype][ktype];
-    iparam_ijk = elem2param[itype][jtype][ktype];
+    iparam_ik = elem3param[itype][ktype][ktype];
+    iparam_ijk = elem3param[itype][jtype][ktype];
     Rik.set(x[i][0]-x[k][0], x[i][1]-x[k][1], x[i][2]-x[k][2]);
     rik=Rik.mag();
     Rik1=Rik/rik;
@@ -745,8 +799,8 @@ double PairTERSOFFHG::BondOrder(int i, int j, double ij_f, double Pre, int eflag
     k &= NEIGHMASK;
     ktag = tag[k];
     ktype = map[type[k]];
-    iparam_jk = elem2param[jtype][ktype][ktype];
-    iparam_ijk = elem2param[jtype][itype][ktype];
+    iparam_jk = elem3param[jtype][ktype][ktype];
+    iparam_ijk = elem3param[jtype][itype][ktype];
     Rjk.set(x[j][0]-x[k][0], x[j][1]-x[k][1], x[j][2]-x[k][2]);
     rjk=Rjk.mag();
     Rjk1=Rjk/rjk;
@@ -881,21 +935,22 @@ void PairTERSOFFHG::read_lib(Param *param)
   unsigned int maxlib = 1024;
   int i,j,k,l,nwords,m;
   double p[X1_NGRIDPOINTS][X2_NGRIDPOINTS]; 
-  char *splfile = param->PxyFile;
+  std::string splfile = param->PxyFile;
   double pp;
 
   for (i = 0; i < X1_NGRIDPOINTS; i++)
     for (j = 0; j < X2_NGRIDPOINTS; j++)
       p[i][j] = 0;
 
-  if (strcmp(splfile, "NULL")!=0 && comm->me == 0) 
+  if (splfile.compare("NULL")!=0 && comm->me == 0) 
   {
+//    std::cerr<<splfile<<std::endl;
     std::ifstream fp(splfile, std::ios::in);
     if (!fp)
     {
-      char str[128];
-      sprintf(str,"Cannot open specified spline file");
-      error->one(FLERR,str);
+//      char str[128];
+//      sprintf(str,"Cannot open specified spline file");
+      error->one(FLERR,"Cannot open specified spline file");
     }
     while (!fp.eof())
     {
@@ -1036,7 +1091,7 @@ void PairTERSOFFHG::bicubicint (double x1, double x2,
   x2 = (x2 > x2max ? x2max : x2);
   i = (int)x1;
   j = (int)x2;
-  
+//  std::cerr<<param->PxyInterp[i][j]<<std::endl;
   bcuint(0.0, 1.0, 0.0, 1.0, x1-i, x2-j, y, y1, y2, *(param->PxyInterp[i][j]));
 }
 
@@ -1110,7 +1165,7 @@ void PairTERSOFFHG::bcuint(double x1l, double x1u, double x2l, double x2u,
 //       delrij[1] = x[i][1] - x[j][1];
 //       delrij[2] = x[i][2] - x[j][2];
 //       rsq = vec3_dot(delrij,delrij);
-//       param = elem2param[itype][jtype][jtype];
+//       param = elem3param[itype][jtype][jtype];
 
 //       if (rsq > cutshortsq) continue;
 
@@ -1222,7 +1277,7 @@ void PairTERSOFFHG::bcuint(double x1l, double x1u, double x2l, double x2u,
 //       }
 
 //       jtype = map[type[j]];
-//       iparam_ij = elem2param[itype][jtype][jtype];
+//       iparam_ij = elem3param[itype][jtype][jtype];
 //       if (rsq >= params[iparam_ij].cutsq) continue;
 
 //       repulsive(&params[iparam_ij],rsq,fpair,eflag,evdwl);
@@ -1253,7 +1308,7 @@ void PairTERSOFFHG::bcuint(double x1l, double x1u, double x2l, double x2u,
 //     {
 //       j = neighshort[jj];
 //       jtype = map[type[j]];
-//       iparam_ij = elem2param[itype][jtype][jtype];
+//       iparam_ij = elem3param[itype][jtype][jtype];
   
 //       delr1[0] = x[j][0] - xtmp;
 //       delr1[1] = x[j][1] - ytmp;
@@ -1271,8 +1326,8 @@ void PairTERSOFFHG::bcuint(double x1l, double x1u, double x2l, double x2u,
 //         if (jj == kk) continue;
 //         k = neighshort[kk];
 //         ktype = map[type[k]];
-//         iparam_ijk = elem2param[itype][jtype][ktype];
-//        iparam_ik  = elem2param[itype][ktype][ktype];
+//         iparam_ijk = elem3param[itype][jtype][ktype];
+//        iparam_ik  = elem3param[itype][ktype][ktype];
 
 //         delr2[0] = x[k][0] - xtmp;
 //         delr2[1] = x[k][1] - ytmp;
@@ -1303,8 +1358,8 @@ void PairTERSOFFHG::bcuint(double x1l, double x1u, double x2l, double x2u,
 //         if (jj == kk) continue;
 //         k = neighshort[kk];
 //         ktype = map[type[k]];
-//         iparam_ijk = elem2param[itype][jtype][ktype];
-//        iparam_ik  = elem2param[itype][ktype][ktype];
+//         iparam_ijk = elem3param[itype][jtype][ktype];
+//        iparam_ik  = elem3param[itype][ktype][ktype];
 
 //         delr2[0] = x[k][0] - xtmp;
 //         delr2[1] = x[k][1] - ytmp;

@@ -58,7 +58,7 @@ class PairTersoff : public Pair {
     double c0;                   // added for TersoffMODC
     double powereta, Re;         //added for REBO1
     double spl_a,spl_b,spl_c,spl_s,spl_ra,spl_rb;
-    char *PxyFile;              // added for TersoffHG
+    std::string PxyFile;              // added for TersoffHG
     double (***PxyInterp)[4][4];
 
   };

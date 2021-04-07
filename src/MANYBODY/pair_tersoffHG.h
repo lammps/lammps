@@ -37,6 +37,7 @@ namespace LAMMPS_NS {
 
 class PairTERSOFFHG : public PairTersoff {
 
+static constexpr int NPARAMS_PER_LINE = 28;
 
 private:
   HGvector Fij;

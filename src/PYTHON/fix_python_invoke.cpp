@@ -21,6 +21,7 @@
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"
+#include "python_utils.h"
 #include "update.h"
 
 #include <cstring>
@@ -51,12 +52,12 @@ FixPythonInvoke::FixPythonInvoke(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // get Python function
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
 
   PyObject *pyMain = PyImport_AddModule("__main__");
 
   if (!pyMain) {
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not initialize embedded Python");
   }
 
@@ -64,11 +65,19 @@ FixPythonInvoke::FixPythonInvoke(LAMMPS *lmp, int narg, char **arg) :
   pFunc = PyObject_GetAttrString(pyMain, fname);
 
   if (!pFunc) {
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not find Python function");
   }
 
-  PyGILState_Release(gstate);
+  lmpPtr = PY_VOID_POINTER(lmp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixPythonInvoke::~FixPythonInvoke()
+{
+  PyUtils::GIL lock;
+  Py_CLEAR(lmpPtr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,18 +91,16 @@ int FixPythonInvoke::setmask()
 
 void FixPythonInvoke::end_of_step()
 {
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
 
-  PyObject *ptr = PY_VOID_POINTER(lmp);
-  PyObject *arglist = Py_BuildValue("(O)", ptr);
+  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, "O", (PyObject*)lmpPtr);
 
-  PyObject *result = PyEval_CallObject((PyObject*)pFunc, arglist);
-  Py_DECREF(arglist);
-  if (!result && (comm->me == 0)) PyErr_Print();
-
-  PyGILState_Release(gstate);
-  if (!result)
+  if (!result) {
+    PyUtils::Print_Errors();
     error->all(FLERR,"Fix python/invoke end_of_step() method failed");
+  }
+
+  Py_CLEAR(result);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,16 +109,14 @@ void FixPythonInvoke::post_force(int vflag)
 {
   if (update->ntimestep % nevery != 0) return;
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
 
-  PyObject *ptr = PY_VOID_POINTER(lmp);
-  PyObject *arglist = Py_BuildValue("(Oi)", ptr, vflag);
+  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, "Oi", (PyObject*)lmpPtr, vflag);
 
-  PyObject *result = PyEval_CallObject((PyObject*)pFunc, arglist);
-  Py_DECREF(arglist);
-  if (!result && (comm->me == 0)) PyErr_Print();
-
-  PyGILState_Release(gstate);
-  if (!result)
+  if (!result) {
+    PyUtils::Print_Errors();
     error->all(FLERR,"Fix python/invoke post_force() method failed");
+  }
+
+  Py_CLEAR(result);
 }

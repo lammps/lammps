@@ -40,11 +40,7 @@
 #elif defined(__GNUC__)
 #if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))
 #pragma GCC optimize("no-var-tracking-assignments", "O0")
-#else
-#pragma GCC optimize("no-var-tracking-assignments")
 #endif
-#else
-#define _do_nothing
 #endif
 #endif
 

@@ -80,6 +80,8 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   onerad_frozen = nullptr;
   maxrad_dynamic = nullptr;
   maxrad_frozen = nullptr;
+   
+  limit_damping = nullptr;
 
   history_transfer_factors = nullptr;
 

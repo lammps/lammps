@@ -51,9 +51,7 @@ ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char
 
   if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
-    int n = strlen(arg[3]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
+    id_temp = utils::strdup(arg[3]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)

@@ -551,7 +551,7 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 21) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/coaxstk");
+  if (narg != 21) error->all(FLERR,"Incorrect args for pair coefficients in oxdna2/coaxstk");
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
@@ -673,7 +673,7 @@ void PairOxdna2Coaxstk::coeff(int narg, char **arg)
     }
   }
 
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna/coaxstk");
+  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna2/coaxstk");
 
 }
 

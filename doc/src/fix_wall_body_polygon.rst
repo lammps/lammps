@@ -15,7 +15,7 @@ Syntax
 * k_n = normal repulsion strength (force/distance or pressure units)
 * c_n = normal damping coefficient (force/distance or pressure units)
 * c_t = tangential damping coefficient (force/distance or pressure units)
-* wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
+* wallstyle = *xplane* or *yplane* or *zcylinder*
 * args = list of arguments for a particular style
 
   .. parsed-literal::

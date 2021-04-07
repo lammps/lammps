@@ -15,6 +15,7 @@
 
 #include "arg_info.h"
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
@@ -52,18 +53,16 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/chunk command");
 
-  MPI_Comm_rank(world,&me);
-
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
   nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
-  int n = strlen(arg[6]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[6]);
+  idchunk = utils::strdup(arg[6]);
 
   global_freq = nfreq;
   no_change_box = 1;
+
+  char * group = arg[1];
 
   // expand args if any have wildcard character "*"
 
@@ -189,9 +188,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal fix ave/chunk command");
       biasflag = 1;
-      int n = strlen(arg[iarg+1]) + 1;
-      id_bias = new char[n];
-      strcpy(id_bias,arg[iarg+1]);
+      id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"adof") == 0) {
       if (iarg+2 > narg)
@@ -206,7 +203,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
-      if (me == 0) {
+      if (comm->me == 0) {
         fp = fopen(arg[iarg+1],"w");
         if (fp == nullptr)
           error->one(FLERR,fmt::format("Cannot open fix ave/chunk file {}: {}",
@@ -219,31 +216,23 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] format_user;
-      int n = strlen(arg[iarg+1]) + 2;
-      format_user = new char[n];
-      sprintf(format_user," %s",arg[iarg+1]);
+      format_user = utils::strdup(arg[iarg+1]);
       format = format_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] title1;
-      int n = strlen(arg[iarg+1]) + 1;
-      title1 = new char[n];
-      strcpy(title1,arg[iarg+1]);
+      title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] title2;
-      int n = strlen(arg[iarg+1]) + 1;
-      title2 = new char[n];
-      strcpy(title2,arg[iarg+1]);
+      title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/chunk command");
       delete [] title3;
-      int n = strlen(arg[iarg+1]) + 1;
-      title3 = new char[n];
-      strcpy(title3,arg[iarg+1]);
+      title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/chunk command");
   }
@@ -328,11 +317,11 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   // print file comment lines
 
-  if (fp && me == 0) {
+  if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
     else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n",
-                 id,arg[1]);
+                 id, group);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# Timestep Number-of-chunks Total-count\n");
     if (title3) fprintf(fp,"%s\n",title3);
@@ -423,7 +412,7 @@ FixAveChunk::~FixAveChunk()
   delete [] ids;
   delete [] value2index;
 
-  if (fp && me == 0) fclose(fp);
+  if (fp && comm->me == 0) fclose(fp);
 
   memory->destroy(varatom);
   memory->destroy(count_one);
@@ -880,7 +869,7 @@ void FixAveChunk::end_of_step()
       if (count_sum[m] > 0.0)
         for (j = 0; j < nvalues; j++) {
           if (which[j] == ArgInfo::TEMPERATURE) {
-            values_sum[m][j] *= mvv2e / ((cdof + adof*count_sum[m]) * boltz);
+            values_sum[m][j] *= mvv2e/((repeat*cdof + adof*count_sum[m])*boltz);
           } else if (which[j] == ArgInfo::DENSITY_NUMBER) {
             if (volflag == SCALAR) values_sum[m][j] /= chunk_volume_scalar;
             else values_sum[m][j] /= chunk_volume_vec[m];
@@ -949,7 +938,7 @@ void FixAveChunk::end_of_step()
 
   // output result to file
 
-  if (fp && me == 0) {
+  if (fp && comm->me == 0) {
     clearerr(fp);
     if (overwrite) fseek(fp,filepos,SEEK_SET);
     double count = 0.0;

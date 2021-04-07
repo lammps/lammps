@@ -74,13 +74,10 @@ DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
                  |ArgInfo::DNAME|ArgInfo::INAME);
 
     if (argi.get_dim() == 1) {
-      std::string newarg(std::to_string(earg[iarg][0]));
-      newarg += '_' + argi.get_name() + '_' + std::to_string(argi.get_index1());
-      auxname[i] = new char[newarg.size()+1];
-      strcpy(auxname[i],newarg.c_str());
+      std::string newarg = fmt::format("{}_{}_{}", earg[iarg][0], argi.get_name(), argi.get_index1());
+      auxname[i] = utils::strdup(newarg);
     } else {
-      auxname[i] = new char[strlen(earg[iarg]) + 1];
-      strcpy(auxname[i],earg[iarg]);
+      auxname[i] = utils::strdup(earg[iarg]);
     }
   }
 }

@@ -24,6 +24,10 @@ _texture_2d( pos_tex,int4);
 _texture( rad_tex,int2);
 #endif
 
+#if (__CUDACC_VER_MAJOR__ >= 11)
+#define rad_tex rad_
+#endif
+
 #else
 #define pos_tex x_
 #define rad_tex rad_
@@ -45,22 +49,25 @@ __kernel void k_yukawa_colloid(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_pair();
+
   sp_lj[0]=sp_lj_in[0];
   sp_lj[1]=sp_lj_in[1];
   sp_lj[2]=sp_lj_in[2];
   sp_lj[3]=sp_lj_in[3];
 
-  acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -98,11 +105,11 @@ __kernel void k_yukawa_colloid(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e=coeff[mtype].x/kappa * screening;
           energy+=factor_lj*(e-coeff[mtype].y);
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -113,9 +120,9 @@ __kernel void k_yukawa_colloid(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 
 __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
@@ -134,25 +141,28 @@ __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
 
   __local numtyp4 coeff[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_pair();
+
   if (tid<4)
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     coeff[tid]=coeff_in[tid];
   }
 
-  acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   __syncthreads();
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -190,11 +200,11 @@ __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e=coeff[mtype].x/kappa * screening;
           energy+=factor_lj*(e-coeff[mtype].y);
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -205,8 +215,7 @@ __kernel void k_yukawa_colloid_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
-

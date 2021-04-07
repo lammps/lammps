@@ -36,9 +36,7 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for compute temp/region does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
+  idregion = utils::strdup(arg[3]);
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;

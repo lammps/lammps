@@ -47,9 +47,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     iregion = domain->find_region(arg[3]);
     if (iregion == -1)
       error->all(FLERR,"Region ID for compute reduce/region does not exist");
-    int n = strlen(arg[3]) + 1;
-    idregion = new char[n];
-    strcpy(idregion,arg[3]);
+    idregion = utils::strdup(arg[3]);
     iarg = 4;
   }
 
@@ -148,8 +146,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal compute reduce command");
       if (mode != MINN && mode != MAXX)
         error->all(FLERR,"Compute reduce replace requires min or max mode");
-      int col1 = atoi(arg[iarg+1]) - 1;
-      int col2 = atoi(arg[iarg+2]) - 1;
+      int col1 = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+      int col2 = utils::inumeric(FLERR,arg[iarg+2],false,lmp) - 1;
       if (col1 < 0 || col1 >= nvalues || col2 < 0 || col2 >= nvalues)
         error->all(FLERR,"Illegal compute reduce command");
       if (col1 == col2) error->all(FLERR,"Illegal compute reduce command");

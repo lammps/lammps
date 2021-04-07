@@ -42,21 +42,15 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   // fix ID, group, and style
   // ID must be all alphanumeric chars or underscores
 
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
-
-  for (int i = 0; i < n-1; i++)
-    if (!isalnum(id[i]) && id[i] != '_')
-      error->all(FLERR,"Fix ID must be alphanumeric or underscore characters");
+  id = utils::strdup(arg[0]);
+  if (!utils::is_id(id))
+    error->all(FLERR,"Fix ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
   groupbit = group->bitmask[igroup];
 
-  n = strlen(arg[2]) + 1;
-  style = new char[n];
-  strcpy(style,arg[2]);
+  style = utils::strdup(arg[2]);
 
   restart_global = restart_peratom = restart_file = 0;
   force_reneighbor = 0;
@@ -178,6 +172,12 @@ void Fix::modify_params(int narg, char **arg)
       iarg += n;
     }
   }
+}
+
+void::Fix::set_molecule(int, tagint, int, double *, double *, double *)
+{
+  error->all(FLERR,fmt::format("Molecule update not implemented for "
+                               "fix {}", style));
 }
 
 /* ----------------------------------------------------------------------

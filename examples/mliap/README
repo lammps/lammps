@@ -101,3 +101,12 @@ pickle data that will execute arbitrary code during unpickling. Never
 load data that could have come from an untrusted source, or that 
 could have been tampered with. Only load data you trust.
 
+in.mliap.nn.Ta06A
+-------------------
+Run linear SNAP using the "nn" model style, equivalent to examples/snap/in.snap.Ta06A
+
+in.mliap.nn.cu
+-------------------------
+Run a neural network potential for Cu, a combination of SNAP descriptors and the "nn" model style
+
+

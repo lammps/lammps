@@ -74,7 +74,7 @@ fbi(NeighList *list, IntelBuffers<flt_t,acc_t> *buffers) {
                      _fix->nbor_pack_width());
 
   int need_ic = 0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     dminimum_image_check(need_ic, neighbor->cutneighmax, neighbor->cutneighmax,
                          neighbor->cutneighmax);
 

@@ -1,0 +1,16 @@
+# This file contains the hooks to build and link LAMMPS so it can load plugins
+#
+# The plugin_SYSINC and plugin_SYSPATH variables do not typically need
+# to be set.  If the dl library is not in a place the linker can find
+# it, specify its directory via the plugin_SYSPATH variable, e.g.
+# -Ldir.
+
+# -----------------------------------------------------------
+
+# Settings that the LAMMPS build will import when this package is installed
+
+ifeq ($(mode),shared)
+plugin_SYSINC = -DLMP_PLUGIN
+endif
+plugin_SYSLIB = -ldl
+plugin_SYSPATH =

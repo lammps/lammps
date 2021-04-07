@@ -15,16 +15,17 @@
  *    Contributing author:  Evangelos Voyiatzis (Royal DSM)
  * ------------------------------------------------------------------------- */
 
-
 #include "compute_gyration_shape.h"
-#include <cmath>
-#include <cstring>
+
 #include "error.h"
-#include "math_extra.h"
 #include "math_eigen.h"
+#include "math_extra.h"
 #include "math_special.h"
 #include "modify.h"
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -41,9 +42,7 @@ ComputeGyrationShape::ComputeGyrationShape(LAMMPS *lmp, int narg, char **arg) :
   extvector = 0;
 
   // ID of compute gyration
-  int n = strlen(arg[3]) + 1;
-  id_gyration = new char[n];
-  strcpy(id_gyration,arg[3]);
+  id_gyration = utils::strdup(arg[3]);
 
   init();
 

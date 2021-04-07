@@ -172,6 +172,10 @@
 /pair_lj_charmmfsw_coul_long.cpp
 /pair_lj_charmmfsw_coul_long.h
 
+/plugin.cpp
+/plugin.h
+/lammpsplugin.h
+
 /atom_vec_spin.cpp
 /atom_vec_spin.h
 /compute_spin.cpp

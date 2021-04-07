@@ -185,9 +185,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       int iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for compute chunk/atom does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"nchunk") == 0) {
@@ -386,7 +384,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   // apply scaling factors and cylinder dims orthogonal to axis
 
   if (binflag) {
-    double scale;
+    double scale = 1.0;
     if (which == ArgInfo::BIN1D || which == ArgInfo::BIN2D
         || which == ArgInfo::BIN3D || which == ArgInfo::BINCYLINDER) {
       if (which == ArgInfo::BIN1D || which == ArgInfo::BINCYLINDER) ndim = 1;

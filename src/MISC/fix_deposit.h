@@ -30,6 +30,7 @@ class FixDeposit : public Fix {
   ~FixDeposit();
   int setmask();
   void init();
+  void setup_pre_exchange();
   void pre_exchange();
   void write_restart(FILE *);
   void restart(char *);
@@ -54,7 +55,8 @@ class FixDeposit : public Fix {
   class Fix *fixrigid,*fixshake;
   double oneradius;
 
-  int nfirst,ninserted;
+  int ninserted;
+  bigint nfirst;
   tagint maxtag_all,maxmol_all;
   class RanPark *random;
 

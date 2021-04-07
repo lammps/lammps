@@ -67,9 +67,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
       bstyle[nvalues++] = ENG;
     } else if (strncmp(arg[iarg],"v_",2) == 0) {
       bstyle[nvalues++] = VARIABLE;
-      int n = strlen(arg[iarg]);
-      vstr[nvar] = new char[n];
-      strcpy(vstr[nvar],&arg[iarg][2]);
+      vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
     } else break;
   }
@@ -85,9 +83,7 @@ ComputeAngleLocal::ComputeAngleLocal(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal compute angle/local command");
       if (strcmp(arg[iarg+1],"theta") == 0) {
         delete [] tstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        tstr = new char[n];
-        strcpy(tstr,arg[iarg+2]);
+        tstr = utils::strdup(arg[iarg+2]);
         tflag = 1;
       } else error->all(FLERR,"Illegal compute angle/local command");
       iarg += 3;

@@ -1,0 +1,223 @@
+LAMMPS (10 Feb 2021)
+# 3d Lennard-Jones melt
+#
+# This example requires that the KIM Simulator Model (PM)
+# `Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000`
+# is installed. This can be done with the command
+#   kim-api-collections-management install user Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000
+# If this command does not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
+# See `https://openkim.org/doc/obtaining-models` for alternative options.
+#
+
+variable     x index 1
+variable     y index 1
+variable     z index 1
+
+variable     xx equal 20*$x
+variable     xx equal 20*1
+variable     yy equal 20*$y
+variable     yy equal 20*1
+variable     zz equal 20*$z
+variable     zz equal 20*1
+
+kim          init Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000 real
+#=== BEGIN kim init ==========================================
+# Using KIM Simulator Model : Sim_LAMMPS_ReaxFF_StrachanVanDuinChakraborty_2003_CHNO__SM_107643900657_000
+# For Simulator             : LAMMPS 28 Feb 2019
+# Running on                : LAMMPS 10 Feb 2021
+#
+units real
+neighbor 2.0 bin   # Angstroms
+timestep 1.0       # femtoseconds
+atom_style charge
+neigh_modify one 4000
+#=== END kim init ============================================
+
+
+lattice      fcc 4.4300
+Lattice spacing in x,y,z = 4.4300000 4.4300000 4.4300000
+region       box block 0 ${xx} 0 ${yy} 0 ${zz}
+region       box block 0 20 0 ${yy} 0 ${zz}
+region       box block 0 20 0 20 0 ${zz}
+region       box block 0 20 0 20 0 20
+create_box   1 box
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (88.600000 88.600000 88.600000)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 box
+Created 32000 atoms
+  create_atoms CPU = 0.003 seconds
+
+kim          interactions O
+#=== BEGIN kim interactions ==================================
+variable kim_periodic equal 1
+pair_style reax/c /var/tmp/kim-shared-library-parameter-file-directory-SLT21lwwgINS/lmp_control safezone 2.0 mincap 100
+pair_coeff * * /var/tmp/kim-shared-library-parameter-file-directory-SLT21lwwgINS/ffield.reax.rdx O
+Reading potential file /var/tmp/kim-shared-library-parameter-file-directory-SLT21lwwgINS/ffield.reax.rdx with DATE: 2010-02-19
+fix reaxqeq all qeq/reax 1 0.0 10.0 1.0e-6 /var/tmp/kim-shared-library-parameter-file-directory-SLT21lwwgINS/param.qeq
+#=== END kim interactions ====================================
+
+
+mass         1 39.95
+velocity     all create 200.0 232345 loop geom
+
+neighbor     0.3 bin
+neigh_modify delay 0 every 1 check yes
+
+fix          1 all nve
+#fix         1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
+
+run          100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/SM_107643900657_000#item-citation
+
+@Comment
+{
+\documentclass{article}
+\usepackage{url}
+\begin{document}
+This Simulator Model originally published in \cite{SM_107643900657_000a} is archived in OpenKIM~\cite{SM_107643900657_000, tadmor:elliott:2011, elliott:tadmor:2011}.
+\bibliographystyle{vancouver}
+\bibliography{kimcite-SM_107643900657_000.bib}
+\end{document}
+}
+
+@Misc{SM_107643900657_000,
+  author       = {Ellad Tadmor},
+  title        = {{LAMMPS} {R}eax{FF} potential for {RDX} ({C}-{H}-{N}-{O}) systems developed by {S}trachan et al. (2003) v000},
+  doi          = {10.25950/acd3fc89},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/acd3fc89}},
+  keywords     = {OpenKIM, Simulator Model, SM_107643900657_000},
+  publisher    = {OpenKIM},
+  year         = 2019,
+}
+
+@Article{tadmor:elliott:2011,
+  author    = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+  title     = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+  journal   = {{JOM}},
+  year      = {2011},
+  volume    = {63},
+  number    = {7},
+  pages     = {17},
+  doi       = {10.1007/s11837-011-0102-6},
+}
+
+@Misc{elliott:tadmor:2011,
+  author       = {Ryan S. Elliott and Ellad B. Tadmor},
+  title        = {{K}nowledgebase of {I}nteratomic {M}odels ({KIM}) Application Programming Interface ({API})},
+  howpublished = {\url{https://openkim.org/kim-api}},
+  publisher    = {OpenKIM},
+  year         = 2011,
+  doi          = {10.25950/ff8f563a},
+}
+
+@Article{SM_107643900657_000a,
+  author = {Strachan, Alejandro and van Duin, Adri C. T. and Chakraborty, Debashis and Dasgupta, Siddharth and Goddard, William A.},
+  doi = {10.1103/PhysRevLett.91.098301},
+  issue = {9},
+  journal = {Physical Review Letters},
+  month = {Aug},
+  numpages = {4},
+  pages = {098301},
+  publisher = {American Physical Society},
+  title = {Shock Waves in High-Energy Materials: {T}he Initial Chemical Events in Nitramine {RDX}},
+  volume = {91},
+  year = {2003},
+}
+- pair reax/c command:
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},
+ title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+- fix qeq/reax command:
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama},
+ title = {Parallel reactive molecular dynamics: Numerical methods and algorithmic techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 4000, page size: 100000
+  master list distance cutoff = 10.3
+  ghost atom cutoff = 10.3
+  binsize = 5.15, bins = 18 18 18
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 1803.0 | 1803.0 | 1803.0 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          200   -39091.147            0   -20014.559    19501.107 
+     100    63.198252   -26042.062            0   -20014.027    21497.661 
+Loop time of 38.6526 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 0.224 ns/day, 107.368 hours/ns, 2.587 timesteps/s
+99.1% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 23.493     | 23.493     | 23.493     |   0.0 | 60.78
+Neigh   | 0.4498     | 0.4498     | 0.4498     |   0.0 |  1.16
+Comm    | 0.020568   | 0.020568   | 0.020568   |   0.0 |  0.05
+Output  | 6.8e-05    | 6.8e-05    | 6.8e-05    |   0.0 |  0.00
+Modify  | 14.677     | 14.677     | 14.677     |   0.0 | 37.97
+Other   |            | 0.01223    |            |       |  0.03
+
+Nlocal:        32000.0 ave       32000 max       32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        26825.0 ave       26825 max       26825 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3.73924e+06 ave 3.73924e+06 max 3.73924e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3739236
+Ave neighs/atom = 116.85112
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:39

@@ -160,6 +160,7 @@ atwt
 augt
 AuO
 automagically
+Auvergne
 Avalos
 avalue
 aveforce
@@ -384,6 +385,7 @@ CGDNA
 cgs
 cgsdk
 CGSDK
+Chaimovich
 Chalopin
 Champaign
 charmm
@@ -1586,6 +1588,7 @@ lammps
 Lammps
 LAMMPS
 lammpsplot
+lammpsplugin
 Lampis
 Lamoureux
 Lanczos
@@ -1739,6 +1742,7 @@ lwsock
 lx
 ly
 Lybrand
+lyon
 Lyulin
 lz
 Maaravi
@@ -1953,6 +1957,7 @@ Monaghan
 Monaghans
 monodisperse
 monodispersity
+monopole
 monovalent
 Montalenti
 Montero
@@ -2096,6 +2101,7 @@ ncol
 ncorr
 ncount
 nd
+ndescriptors
 ndihedrals
 ndihedraltypes
 Ndihedraltype
@@ -2156,6 +2162,7 @@ niu
 Nk
 nktv
 nl
+nlayers
 nlen
 Nlines
 nlo
@@ -2171,6 +2178,7 @@ Nmin
 nmin
 Nmols
 nn
+nnodes
 Nocedal
 nocite
 nocoeff
@@ -2297,6 +2305,7 @@ omegaz
 Omelyan
 omp
 OMP
+oneAPI
 onelevel
 oneway
 onn
@@ -2366,6 +2375,7 @@ parmin
 Parrinello
 Partay
 Particuology
+Pascuet
 pastewka
 Pastewka
 pathangle
@@ -2528,6 +2538,7 @@ ptm
 PTM
 ptol
 ptr
+PTX
 pu
 purdue
 Purohit
@@ -2620,10 +2631,12 @@ Rappe
 Ravelo
 rc
 Rc
+Rci
 Rcm
 rcmax
 Rcmx
 Rcmy
+Rco
 Rcut
 rcutfac
 rdc
@@ -2650,7 +2663,9 @@ Reinders
 reinit
 relaxbox
 relink
+relres
 relTol
+relu
 remappings
 remd
 Ren
@@ -2762,6 +2777,8 @@ rozero
 Rperp
 Rr
 rRESPA
+Rsi
+Rso
 Rspace
 rsq
 rst
@@ -2878,6 +2895,7 @@ si
 SiC
 Siepmann
 Sievers
+sigmoid
 Sij
 Sikandar
 Silbert
@@ -3241,6 +3259,7 @@ Tz
 Tzou
 ub
 Uberuaga
+uca
 uChem
 uCond
 uef

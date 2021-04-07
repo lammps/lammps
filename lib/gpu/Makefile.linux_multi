@@ -77,7 +77,8 @@ LIB_DIR = ./
 AR = ar
 BSH = /bin/sh
 
-CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+# GPU binning not recommended with modern GPUs
+CUDPP_OPT = #-DUSE_CUDPP -Icudpp_mini
 
 include Nvidia.makefile_multi
 

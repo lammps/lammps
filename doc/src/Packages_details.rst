@@ -50,6 +50,7 @@ page gives those details.
    * :ref:`MSCG <PKG-MSCG>`
    * :ref:`OPT <PKG-OPT>`
    * :ref:`PERI <PKG-PERI>`
+   * :ref:`PLUGIN <PKG-PLUGIN>`
    * :ref:`POEMS <PKG-POEMS>`
    * :ref:`PYTHON <PKG-PYTHON>`
    * :ref:`QEQ <PKG-QEQ>`
@@ -367,17 +368,19 @@ KIM package
 
 **Contents:**
 
-This package contains a set of commands that serve as a wrapper on the
+This package contains a command with a set of sub-commands that serve as a
+wrapper on the
 `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
 repository of interatomic models (IMs) enabling compatible ones to be used in
 LAMMPS simulations.
 
-This includes :doc:`kim_init <kim_commands>`, and
-:doc:`kim_interactions <kim_commands>` commands to select, initialize and
-instantiate the IM, a :doc:`kim_query <kim_commands>` command to perform web
+
+This includes :doc:`kim init <kim_commands>`, and
+:doc:`kim interactions <kim_commands>` commands to select, initialize and
+instantiate the IM, a :doc:`kim query <kim_commands>` command to perform web
 queries for material property predictions of OpenKIM IMs, a
-:doc:`kim_param <kim_commands>` command to access KIM Model Parameters from
-LAMMPS, and a :doc:`kim_property <kim_commands>` command to write material
+:doc:`kim param <kim_commands>` command to access KIM Model Parameters from
+LAMMPS, and a :doc:`kim property <kim_commands>` command to write material
 properties computed in LAMMPS to standard KIM property instance format.
 
 Support for KIM IMs that conform to the
@@ -386,8 +389,8 @@ is provided by the :doc:`pair_style kim <pair_kim>` command.
 
 .. note::
 
-   The command *pair_style kim* is called by *kim_interactions* and
-   is not recommended to be directly used in input scripts.
+   The command *pair_style kim* is called by *kim interactions* and is not
+   recommended to be directly used in input scripts.
 
 To use this package you must have the KIM API library available on your
 system. The KIM API is available for download on the
@@ -404,7 +407,7 @@ and is funded by the `National Science Foundation <https://www.nsf.gov/>`_.
 API and the *pair_style kim* command. Yaser Afshar (U Minnesota),
 Axel Kohlmeyer (Temple U), Ellad Tadmor (U Minnesota), and
 Daniel Karls (U Minnesota) contributed to the
-:doc:`kim_commands <kim_commands>` interface in close collaboration with
+:doc:`kim command <kim_commands>` interface in close collaboration with
 Ryan Elliott.
 
 **Install:**
@@ -414,7 +417,7 @@ This package has :ref:`specific installation instructions <kim>` on the
 
 **Supporting info:**
 
-* :doc:`kim_commands <kim_commands>`
+* :doc:`kim command <kim_commands>`
 * :doc:`pair_style kim <pair_kim>`
 * src/KIM: filenames -> commands
 * src/KIM/README
@@ -838,6 +841,28 @@ Foster (UTSA).
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * examples/peri
 * https://lammps.sandia.gov/movies.html#peri
+
+----------
+
+.. _PKG-PLUGIN:
+
+PLUGIN package
+--------------
+
+**Contents:**
+
+A :doc:`plugin <plugin>` command that can load and unload several
+kind of styles in LAMMPS from shared object files at runtime without
+having to recompile and relink LAMMPS.
+
+**Authors:** Axel Kohlmeyer (Temple U)
+
+**Supporting info:**
+
+* src/PLUGIN: filenames -> commands
+* :doc:`plugin command <plugin>`
+* :doc:`Information on writing plugins <Developer_plugins>`
+* examples/plugin
 
 ----------
 
@@ -1430,8 +1455,8 @@ oscillators as a model of polarization.  See the :doc:`Howto drude <Howto_drude>
 for an overview of how to use the package.  There are auxiliary tools
 for using this package in tools/drude.
 
-**Authors:** Alain Dequidt (U Blaise Pascal Clermont-Ferrand), Julien
-Devemy (CNRS), and Agilio Padua (U Blaise Pascal).
+**Authors:** Alain Dequidt (U Clermont Auvergne), Julien
+Devemy (CNRS), and Agilio Padua (ENS de Lyon).
 
 **Supporting info:**
 
@@ -1498,7 +1523,7 @@ methods for performing FEP simulations by using a :doc:`fix adapt/fep <fix_adapt
 which have a "soft" in their style name.  There are auxiliary tools
 for using this package in tools/fep; see its README file.
 
-**Author:** Agilio Padua (Universite Blaise Pascal Clermont-Ferrand)
+**Author:** Agilio Padua (ENS de Lyon)
 
 **Supporting info:**
 
@@ -2454,6 +2479,6 @@ which discuss the `QuickFF <quickff_>`_ methodology.
 * :doc:`bond_style mm3 <bond_mm3>`
 * :doc:`improper_style distharm <improper_distharm>`
 * :doc:`improper_style sqdistharm <improper_sqdistharm>`
-* :doc:`pair_style mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+* :doc:`pair_style mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * :doc:`pair_style lj/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
 * examples/USER/yaff

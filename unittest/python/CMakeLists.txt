@@ -8,7 +8,7 @@ add_executable(test_python_package test_python_package.cpp)
 target_link_libraries(test_python_package PRIVATE lammps GTest::GMock GTest::GTest)
 target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH}")
+set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH};PYTHONUNBUFFERED=1")
 
 # we must have shared libraries enabled for testing the python module
 if(NOT BUILD_SHARED_LIBS)
@@ -79,6 +79,11 @@ if(Python_EXECUTABLE)
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-pylammps.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonPyLammps PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
+  add_test(NAME PythonFormats
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-formats.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonFormats PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 else()
   message(STATUS "Skipping Tests for the LAMMPS Python Module: no suitable Python interpreter")
 endif()

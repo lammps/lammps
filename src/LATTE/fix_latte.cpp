@@ -84,10 +84,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix latte does not yet support a LAMMPS calculation "
                "of a Coulomb potential");
 
-    int n = strlen(arg[3]) + 1;
-    id_pe = new char[n];
-    strcpy(id_pe,arg[3]);
-
+    id_pe = utils::strdup(arg[3]);
     int ipe = modify->find_compute(id_pe);
     if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
     if (modify->compute[ipe]->peatomflag == 0)

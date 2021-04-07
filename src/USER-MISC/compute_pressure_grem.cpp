@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pressure_grem.h"
-#include <cstring>
+
 #include "update.h"
 #include "domain.h"
 #include "modify.h"
@@ -20,6 +20,8 @@
 #include "force.h"
 #include "kspace.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -30,9 +32,7 @@ using namespace LAMMPS_NS;
 ComputePressureGrem::ComputePressureGrem(LAMMPS *lmp, int narg, char **arg) :
   ComputePressure(lmp, narg-1, arg)
 {
-  int len = strlen(arg[narg-1])+1;
-  fix_grem = new char[len];
-  strcpy(fix_grem,arg[narg-1]);
+  fix_grem = utils::strdup(arg[narg-1]);
 }
 
 /* ---------------------------------------------------------------------- */

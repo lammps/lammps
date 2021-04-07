@@ -766,12 +766,8 @@ void Output::create_restart(int narg, char **arg)
     delete [] restart2a;
     delete [] restart2b;
     restart_toggle = 0;
-    int n = strlen(arg[1]) + 3;
-    restart2a = new char[n];
-    strcpy(restart2a,arg[1]);
-    n = strlen(arg[2]) + 1;
-    restart2b = new char[n];
-    strcpy(restart2b,arg[2]);
+    restart2a = utils::strdup(arg[1]);
+    restart2b = utils::strdup(arg[2]);
   }
 
   // check for multiproc output and an MPI-IO filename

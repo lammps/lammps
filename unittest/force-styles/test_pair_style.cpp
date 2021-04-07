@@ -307,8 +307,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // init_forces
     block.clear();
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
+    auto f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -331,8 +330,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("run_stress", block);
 
     block.clear();
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
+    f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -831,9 +829,8 @@ TEST(PairStyle, intel)
         GTEST_SKIP();
     }
 
-    if ((test_config.pair_style == "rebo")
-        || utils::strmatch(test_config.pair_style, "^dpd")
-        || utils::strmatch(test_config.pair_style, "^tersoff.* shift ")) {
+    if ((test_config.pair_style == "rebo") || utils::strmatch(test_config.pair_style, "^dpd") ||
+        utils::strmatch(test_config.pair_style, "^tersoff.* shift ")) {
         std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
         if (!verbose) ::testing::internal::CaptureStdout();
         cleanup_lammps(lmp, test_config);

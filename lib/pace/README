@@ -1,0 +1,9 @@
+This directory contains files required to use the USER-PACE package.
+
+You can type "make lib-pace" from the src directory to see help on
+how to download and build this library via make commands, or you can
+do the same thing by typing "python Install.py" from within this
+directory.
+
+
+

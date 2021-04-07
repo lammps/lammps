@@ -1,68 +1,64 @@
-# Install.sh file that integrates the settings from the lib folder into the conventional build process (make build?)
+# Install/unInstall package files in LAMMPS
+# mode = 0/1/2 for uninstall/install/update
 
-# COPIED FROM src/KIM/Install.sh:
+mode=$1
 
-# # Install/unInstall package files in LAMMPS
-# # mode = 0/1/2 for uninstall/install/update
+# enforce using portable C locale
+LC_ALL=C
+export LC_ALL
 
-# mode=$1
+# arg1 = file, arg2 = file it depends on
 
-# # enforce using portable C locale
-# LC_ALL=C
-# export LC_ALL
+action () {
+  if (test $mode = 0) then
+    rm -f ../$1
+  elif (! cmp -s $1 ../$1) then
+    if (test -z "$2" || test -e ../$2) then
+      cp $1 ..
+      if (test $mode = 2) then
+        echo "  updating src/$1"
+      fi
+    fi
+  elif (test -n "$2") then
+    if (test ! -e ../$2) then
+      rm -f ../$1
+    fi
+  fi
+}
 
-# # arg1 = file, arg2 = file it depends on
+# all package files with no dependencies
 
-# action () {
-#   if (test $mode = 0) then
-#     rm -f ../$1
-#   elif (! cmp -s $1 ../$1) then
-#     if (test -z "$2" || test -e ../$2) then
-#       cp $1 ..
-#       if (test $mode = 2) then
-#         echo "  updating src/$1"
-#       fi
-#     fi
-#   elif (test -n "$2") then
-#     if (test ! -e ../$2) then
-#       rm -f ../$1
-#     fi
-#   fi
-# }
+for file in *.cpp *.h; do
+  test -f ${file} && action $file
+done
 
-# # all package files with no dependencies
+# edit 2 Makefile.package files to include/exclude package info
 
-# for file in *.cpp *.h; do
-#   test -f ${file} && action $file
-# done
+if (test $1 = 1) then
 
-# # edit 2 Makefile.package files to include/exclude package info
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*pace[^ \t]* //' ../Makefile.package
+    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(pace_SYSINC) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(pace_SYSLIB) |' ../Makefile.package
+    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(pace_SYSPATH) |' ../Makefile.package
+  fi
 
-# if (test $1 = 1) then
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*pace.*$/d' ../Makefile.package.settings
+    # multiline form needed for BSD sed on Macs
+    sed -i -e '4 i \
+include ..\/..\/lib\/pace\/Makefile.lammps
+' ../Makefile.package.settings
+  fi
 
-#   if (test -e ../Makefile.package) then
-#     sed -i -e 's/[^ \t]*kim[^ \t]* //' ../Makefile.package
-#     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(kim_SYSINC) |' ../Makefile.package
-#     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(kim_SYSLIB) |' ../Makefile.package
-#     sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(kim_SYSPATH) |' ../Makefile.package
-#   fi
+elif (test $1 = 0) then
 
-#   if (test -e ../Makefile.package.settings) then
-#     sed -i -e '/^include.*kim.*$/d' ../Makefile.package.settings
-#     # multiline form needed for BSD sed on Macs
-#     sed -i -e '4 i \
-# include ..\/..\/lib\/kim\/Makefile.lammps
-# ' ../Makefile.package.settings
-#   fi
+  if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*pace[^ \t]* //' ../Makefile.package
+  fi
 
-# elif (test $1 = 0) then
+  if (test -e ../Makefile.package.settings) then
+    sed -i -e '/^include.*pace.*$/d' ../Makefile.package.settings
+  fi
 
-#   if (test -e ../Makefile.package) then
-#     sed -i -e 's/[^ \t]*kim[^ \t]* //' ../Makefile.package
-#   fi
-
-#   if (test -e ../Makefile.package.settings) then
-#     sed -i -e '/^include.*kim.*$/d' ../Makefile.package.settings
-#   fi
-
-# fi
+fi

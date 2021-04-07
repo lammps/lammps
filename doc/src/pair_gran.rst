@@ -217,11 +217,11 @@ potential is used as a sub-style of :doc:`pair_style hybrid <pair_hybrid>`, then
 pair_coeff command to determine which atoms interact via a granular
 potential.
 
-If two particles are moving away from each other while in contact, there 
-is a possibility that the particles could experience an effective attractive 
-force due to damping. If the *limit_damping* keyword is used, this option 
+If two particles are moving away from each other while in contact, there
+is a possibility that the particles could experience an effective attractive
+force due to damping. If the *limit_damping* keyword is used, this option
 will zero out the normal component of the force if there is an effective
-attractive force. 
+attractive force.
 
 ----------
 

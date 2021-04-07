@@ -119,12 +119,12 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       kt /= force->nktv2p;
     }
     iarg = 10;
-    
+
     if (strcmp(arg[iarg],"limit_damping") == 0) {
       limit_damping = 1;
-      iarg += 1;    
+      iarg += 1;
     }
-    
+
   } else {
     iarg = 4;
     damping_model = VISCOELASTIC;
@@ -310,7 +310,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
         break;
       } else if (strcmp(arg[iarg],"limit_damping") == 0) {
         limit_damping = 1;
-        iarg += 1;        
+        iarg += 1;
       } else {
         error->all(FLERR, "Illegal fix wall/gran command");
       }
@@ -530,7 +530,7 @@ void FixWallGran::init()
       roll_history_index += 1;
       twist_history_index += 1;
     }
-    
+
     if (damping_model == TSUJI) {
       double cor = normal_coeffs[1];
       normal_coeffs[1] = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
@@ -1020,7 +1020,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   else polyhertz = sqrt((radius-r)*radius*rwall/(rwall+radius));
   ccel *= polyhertz;
   if (limit_damping && (ccel < 0.0)) ccel = 0.0;
-  
+
   // relative velocities
 
   vtr1 = vt1 - (dz*wr2-dy*wr3);
@@ -1305,7 +1305,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
         history[thist2] -= rsht*nz;
 
         // also rescale to preserve magnitude
-        prjmag = sqrt(history[thist0]*history[thist0] + 
+        prjmag = sqrt(history[thist0]*history[thist0] +
             history[thist1]*history[thist1] + history[thist2]*history[thist2]);
         if (prjmag > 0) scalefac = shrmag/prjmag;
         else scalefac = 0;

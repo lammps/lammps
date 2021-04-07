@@ -370,7 +370,7 @@ void PairGranHookeHistory::settings(int narg, char **arg)
   xmu = utils::numeric(FLERR,arg[4],false,lmp);
   dampflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if (dampflag == 0) gammat = 0.0;
-  
+
   limit_damping = 0;
   if (narg == 7) {
     if (strcmp(arg[6], "limit_damping") == 0) limit_damping = 1;

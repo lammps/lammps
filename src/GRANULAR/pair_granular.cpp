@@ -80,7 +80,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   onerad_frozen = nullptr;
   maxrad_dynamic = nullptr;
   maxrad_frozen = nullptr;
-   
+
   limit_damping = nullptr;
 
   history_transfer_factors = nullptr;
@@ -796,7 +796,7 @@ void PairGranular::coeff(int narg, char **arg)
   twist_model_one = TWIST_NONE;
   damping_model_one = VISCOELASTIC;
   int ld_flag = 0;
-  
+
   int iarg = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "hooke") == 0) {
@@ -971,7 +971,7 @@ void PairGranular::coeff(int narg, char **arg)
       cutoff_one = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "limit_damping") == 0) {
-      ld_flag = 1;        
+      ld_flag = 1;
       iarg += 1;
     } else error->all(FLERR, "Illegal pair_coeff command");
   }
@@ -1047,7 +1047,7 @@ void PairGranular::coeff(int narg, char **arg)
     }
   }
 
-  
+
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
@@ -1320,7 +1320,7 @@ void PairGranular::write_restart(FILE *fp)
         fwrite(&tangential_model[i][j],sizeof(int),1,fp);
         fwrite(&roll_model[i][j],sizeof(int),1,fp);
         fwrite(&twist_model[i][j],sizeof(int),1,fp);
-        fwrite(&limit_damping[i][j],sizeof(int),1,fp);        
+        fwrite(&limit_damping[i][j],sizeof(int),1,fp);
         fwrite(normal_coeffs[i][j],sizeof(double),4,fp);
         fwrite(tangential_coeffs[i][j],sizeof(double),3,fp);
         fwrite(roll_coeffs[i][j],sizeof(double),3,fp);

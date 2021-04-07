@@ -40,7 +40,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <mpi.h>
 
 #include <map>
@@ -124,6 +123,13 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
     for (auto &pair_coeff : cfg.pair_coeff) {
         command("pair_coeff " + pair_coeff);
     }
+
+    // set this here explicitly to a setting different
+    // from the default, so we can spot YAML files for
+    // long-range interactions that do not include these
+    // settings. they will fail after restart or read data.
+    command("pair_modify table 0");
+    command("pair_modify table/disp 0");
 
     for (auto &post_command : cfg.post_commands) {
         command(post_command);
@@ -238,41 +244,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     YamlWriter writer(outfile);
 
-    // lammps_version
-    writer.emit("lammps_version", lmp->version);
-
-    // date_generated
-    std::time_t now = time(NULL);
-    block           = ctime(&now);
-    block           = block.substr(0, block.find("\n") - 1);
-    writer.emit("date_generated", block);
-
-    // epsilon
-    writer.emit("epsilon", config.epsilon);
-
-    // prerequisites
-    block.clear();
-    for (auto &prerequisite : config.prerequisites) {
-        block += prerequisite.first + " " + prerequisite.second + "\n";
-    }
-    writer.emit_block("prerequisites", block);
-
-    // pre_commands
-    block.clear();
-    for (auto &command : config.pre_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("pre_commands", block);
-
-    // post_commands
-    block.clear();
-    for (auto &command : config.post_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("post_commands", block);
-
-    // input_file
-    writer.emit("input_file", config.input_file);
+    // write yaml header
+    write_yaml_header(&writer, &test_config, lmp->version);
 
     // pair_style
     writer.emit("pair_style", config.pair_style);
@@ -343,6 +316,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
 TEST(PairStyle, plain)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
@@ -625,8 +600,13 @@ TEST(PairStyle, plain)
 TEST(PairStyle, omp)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",       "omp",  "4",    "-sf",   "omp"};
+
+    // cannot run dpd styles with more than 1 thread due to using multiple pRNGs
+    if (utils::strmatch(test_config.pair_style, "^dpd")) args[8] = "1";
 
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);
@@ -648,14 +628,6 @@ TEST(PairStyle, omp)
 
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
     EXPECT_THAT(output, HasSubstr("Loop time"));
-
-    if (utils::strmatch(test_config.pair_style, "^dpd")) {
-        std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        GTEST_SKIP();
-    }
 
     // abort if running in parallel and not all atoms are local
     const int nlocal = lmp->atom->nlocal;
@@ -804,12 +776,135 @@ TEST(PairStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
+TEST(PairStyle, gpu)
+{
+    if (!LAMMPS::is_installed_pkg("GPU")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    const char *args_neigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu"};
+    const char *args_noneigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "gpu", "-pk", "gpu", "0", "neigh", "no"};
+
+    char **argv = (char **)args_neigh;
+    int argc    = sizeof(args_neigh) / sizeof(char *);
+
+    // cannot use GPU neighbor list with hybrid pair style (yet)
+    if (test_config.pair_style.substr(0, 6) == "hybrid") {
+        argv = (char **)args_noneigh;
+        argc    = sizeof(args_noneigh) / sizeof(char *);
+    }
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = init_lammps(argc, argv, test_config, false);
+
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles with /gpu suffix\n"
+                     "are not available in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    // relax error for GPU package depending on precision setting
+    double epsilon = test_config.epsilon;
+    if (Info::has_accelerator_feature("GPU","precision","double"))
+        epsilon *= 7.5;
+    else if (Info::has_accelerator_feature("GPU","precision","mixed"))
+        epsilon *= 5.0e8;
+    else epsilon *= 1.0e10;
+    // relax test precision when using pppm and single precision FFTs, but only when also running with double precision
+#if defined(FFT_SINGLE)
+    if (lmp->force->kspace && lmp->force->kspace->compute_flag && Info::has_accelerator_feature("GPU","precision","double"))
+        if (utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;
+#endif
+    const std::vector<coord_t> &f_ref = test_config.init_forces;
+    const std::vector<coord_t> &f_run = test_config.run_forces;
+    ErrorStats stats;
+
+    auto f   = lmp->atom->f;
+    auto tag = lmp->atom->tag;
+    stats.reset();
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
+
+    auto pair   = lmp->force->pair;
+    auto stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
+    if (print_stats) std::cerr << "init_stress stats, newton off:" << stats << std::endl;
+
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
+    if (print_stats) std::cerr << "init_energy stats, newton off:" << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    run_lammps(lmp);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    f   = lmp->atom->f;
+    tag = lmp->atom->tag;
+    stats.reset();
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 5 * epsilon);
+    }
+    if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
+
+    stress = pair->virial;
+    stats.reset();
+    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.run_stress.xx, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.run_stress.yy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.run_stress.zz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.run_stress.xy, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.run_stress.xz, 10 * epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.run_stress.yz, 10 * epsilon);
+    if (print_stats) std::cerr << "run_stress  stats, newton off:" << stats << std::endl;
+
+    stats.reset();
+    auto id     = lmp->modify->find_compute("sum");
+    auto energy = lmp->modify->compute[id]->compute_scalar();
+    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
+    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
+    EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
+    if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+};
+
 TEST(PairStyle, intel)
 {
     if (!LAMMPS::is_installed_pkg("USER-INTEL")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"PairStyle", "-log",  "none", "-echo", "screen", "-nocite",
                           "-pk",       "intel", "0",    "mode",  "double", "omp",
                           "4",         "lrt",   "no",   "-sf",   "intel"};
+
+    // cannot use more than 1 thread for dpd styles due to pRNG
+    if (utils::strmatch(test_config.pair_style, "^dpd")) args[12] = "1";
 
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);
@@ -826,23 +921,6 @@ TEST(PairStyle, intel)
         for (auto prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
-        GTEST_SKIP();
-    }
-
-    if ((test_config.pair_style == "rebo") || utils::strmatch(test_config.pair_style, "^dpd") ||
-        utils::strmatch(test_config.pair_style, "^tersoff.* shift ")) {
-        std::cerr << "Skipping pair style " << lmp->force->pair_style << "\n";
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        GTEST_SKIP();
-    }
-
-    if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm/disp/intel")) {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        std::cerr << "Skipping kspace style pppm/disp/intel\n";
         GTEST_SKIP();
     }
 
@@ -946,6 +1024,8 @@ TEST(PairStyle, intel)
 TEST(PairStyle, opt)
 {
     if (!LAMMPS::is_installed_pkg("OPT")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf", "opt"};
 
     char **argv = (char **)args;
@@ -1051,6 +1131,8 @@ TEST(PairStyle, opt)
 
 TEST(PairStyle, single)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
@@ -1308,6 +1390,8 @@ TEST(PairStyle, single)
 
 TEST(PairStyle, extract)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;

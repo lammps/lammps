@@ -1,6 +1,6 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:22 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:00 2021
 epsilon: 7.5e-12
 prerequisites: ! |
   pair eam/alloy

@@ -38,22 +38,21 @@ FixWallRegionEES::FixWallRegionEES(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix wall/region/ees command");
+
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
 
   // parse args
 
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/region/ees does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
-
+  idregion = utils::strdup(arg[3]);
   epsilon = utils::numeric(FLERR,arg[4],false,lmp);
   sigma = utils::numeric(FLERR,arg[5],false,lmp);
   cutoff = utils::numeric(FLERR,arg[6],false,lmp);
@@ -77,7 +76,6 @@ int FixWallRegionEES::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -120,7 +118,7 @@ void FixWallRegionEES::init()
   offset = 0;
 
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -128,7 +126,7 @@ void FixWallRegionEES::init()
 
 void FixWallRegionEES::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

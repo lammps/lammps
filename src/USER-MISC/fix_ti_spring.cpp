@@ -64,6 +64,7 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
 
   // disallow resetting the time step, while this fix is defined
   time_depend = 1;
@@ -133,7 +134,6 @@ int FixTISpring::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -141,7 +141,7 @@ int FixTISpring::setmask()
 
 void FixTISpring::init()
 {
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -149,7 +149,7 @@ void FixTISpring::init()
 
 void FixTISpring::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

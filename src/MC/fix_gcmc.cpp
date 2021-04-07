@@ -17,32 +17,33 @@
 
 #include "fix_gcmc.h"
 
-#include <cmath>
-#include <cstring>
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "update.h"
-#include "modify.h"
-#include "fix.h"
+#include "bond.h"
 #include "comm.h"
 #include "compute.h"
-#include "group.h"
-#include "domain.h"
-#include "region.h"
-#include "random_park.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
-#include "angle.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
 #include "improper.h"
 #include "kspace.h"
-#include "math_extra.h"
 #include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "molecule.h"
 #include "neighbor.h"
+#include "pair.h"
+#include "random_park.h"
+#include "region.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -301,9 +302,7 @@ void FixGCMC::options(int narg, char **arg)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix gcmc does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       regionflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"maxangle") == 0) {
@@ -327,18 +326,14 @@ void FixGCMC::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"full_energy") == 0) {
@@ -353,9 +348,7 @@ void FixGCMC::options(int narg, char **arg)
                            ngroupsmax*sizeof(char *),
                            "fix_gcmc:groupstrings");
       }
-      int n = strlen(arg[iarg+1]) + 1;
-      groupstrings[ngroups] = new char[n];
-      strcpy(groupstrings[ngroups],arg[iarg+1]);
+      groupstrings[ngroups] = utils::strdup(arg[iarg+1]);
       ngroups++;
       iarg += 2;
     } else if (strcmp(arg[iarg],"grouptype") == 0) {
@@ -370,9 +363,7 @@ void FixGCMC::options(int narg, char **arg)
                            "fix_gcmc:grouptypestrings");
       }
       grouptypes[ngrouptypes] = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      int n = strlen(arg[iarg+2]) + 1;
-      grouptypestrings[ngrouptypes] = new char[n];
-      strcpy(grouptypestrings[ngrouptypes],arg[iarg+2]);
+      grouptypestrings[ngrouptypes] = utils::strdup(arg[iarg+2]);
       ngrouptypes++;
       iarg += 3;
     } else if (strcmp(arg[iarg],"intra_energy") == 0) {
@@ -2318,7 +2309,7 @@ double FixGCMC::energy_full()
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -2330,13 +2321,15 @@ double FixGCMC::energy_full()
   // unlike Verlet, not performing a reverse_comm() or forces here
   // b/c GCMC does not care about forces
   // don't think it will mess up energy due to any post_force() fixes
+  // but Modify::pre_reverse() is needed for USER-INTEL
 
+  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_post_force) modify->post_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
 
-  // NOTE: all fixes with THERMO_ENERGY mask set and which
+  // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force() or end_of_step()
-  //   and which user has enable via fix_modify thermo yes,
+  //   and which user has enabled via fix_modify energy yes,
   //   will contribute to total MC energy via pe->compute_scalar()
 
   update->eflag_global = update->ntimestep;

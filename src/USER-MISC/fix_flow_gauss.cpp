@@ -46,6 +46,8 @@ static const char cite_flow_gauss[] =
   "pages = {189--207}\n"
   "}\n\n";
 
+/* ---------------------------------------------------------------------- */
+
 FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
@@ -61,6 +63,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
   size_vector = 3;
+  energy_global_flag = 1;
   global_freq = 1;    //data available every timestep
   respa_level_support = 1;
   //default respa level=outermost level is set in init()
@@ -79,6 +82,7 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // by default, do not compute work done
+
   workflag=0;
 
   // process optional keyword
@@ -109,7 +113,6 @@ int FixFlowGauss::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -120,7 +123,7 @@ void FixFlowGauss::init()
 {
   //if respa level specified by fix_modify, then override default (outermost)
   //if specified level too high, set to max level
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0)
       ilevel_respa = MIN(respa_level,ilevel_respa);
@@ -133,16 +136,17 @@ void FixFlowGauss::init()
    ------------------------------------------------------------------------- */
 void FixFlowGauss::setup(int vflag)
 {
-  //need to compute work done if set fix_modify energy yes
-  if (thermo_energy)
-    workflag=1;
+  // need to compute work done if fix_modify energy yes is set
 
-  //get total mass of group
+  if (thermo_energy) workflag = 1;
+
+  // get total mass of group
+
   mTot=group->mass(igroup);
   if (mTot <= 0.0)
     error->all(FLERR,"Invalid group mass in fix flow/gauss");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag,ilevel_respa,0);
     ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
@@ -154,6 +158,7 @@ void FixFlowGauss::setup(int vflag)
 /* ----------------------------------------------------------------------
    this is where Gaussian dynamics constraint is applied
    ------------------------------------------------------------------------- */
+
 void FixFlowGauss::post_force(int /*vflag*/)
 {
   double **f   = atom->f;
@@ -218,8 +223,9 @@ void FixFlowGauss::post_force(int /*vflag*/)
     MPI_Allreduce(&peAdded,&pe_tmp,1,MPI_DOUBLE,MPI_SUM,world);
     pe_tot += pe_tmp;
   }
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixFlowGauss::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
@@ -230,6 +236,7 @@ void FixFlowGauss::post_force_respa(int vflag, int ilevel, int /*iloop*/)
    negative of work done by this fix
    This is only computed if requested, either with fix_modify energy yes, or with the energy keyword. Otherwise returns 0.
    ------------------------------------------------------------------------- */
+
 double FixFlowGauss::compute_scalar()
 {
   return -pe_tot*dt;

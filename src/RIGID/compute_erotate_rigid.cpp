@@ -12,14 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_erotate_rigid.h"
-#include <cstring>
-#include "update.h"
-#include "force.h"
-#include "modify.h"
+
+#include "error.h"
 #include "fix.h"
 #include "fix_rigid.h"
 #include "fix_rigid_small.h"
-#include "error.h"
+#include "force.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -33,9 +35,7 @@ ComputeERotateRigid::ComputeERotateRigid(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   extscalar = 1;
 
-  int n = strlen(arg[3]) + 1;
-  rfix = new char[n];
-  strcpy(rfix,arg[3]);
+  rfix = utils::strdup(arg[3]);
 }
 
 /* ---------------------------------------------------------------------- */

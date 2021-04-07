@@ -44,7 +44,8 @@ enum{CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
 
-FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), emag(nullptr)
+FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
+  Fix(lmp, narg, arg), emag(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal precession/spin command");
 
@@ -56,6 +57,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  energy_global_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 
@@ -165,11 +167,9 @@ int FixPrecessionSpin::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -186,7 +186,7 @@ void FixPrecessionSpin::init()
   k1ch = k1c/hbar;
   k2ch = k2c/hbar;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -225,7 +225,7 @@ void FixPrecessionSpin::init()
 
 void FixPrecessionSpin::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -245,7 +245,6 @@ void FixPrecessionSpin::min_setup(int vflag)
 
 void FixPrecessionSpin::post_force(int /* vflag */)
 {
-
   // update mag field with time (potential improvement)
 
   if (varflag != CONSTANT) {

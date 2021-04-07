@@ -100,6 +100,9 @@ meam.spline   modified EAM (MEAM) spline potential
 meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
 mesocnt       mesoscopic carbon nanotube (CNT) potential
 mgpt          model generalized pseudopotential theory (MGPT) potential
+mliap         MLIAP potential
+mliap.descriptor MLIAP potential descriptor
+mliap.model   MLIAP potential model
 nb3b.harmonic nonbonded 3-body harmonic potential
 poly          polymorphic 3-body potential
 reax	      ReaxFF potential (see README.reax for more info)

@@ -36,7 +36,7 @@ class FixAveChunk : public Fix {
   double memory_usage();
 
  private:
-  int me,nvalues;
+  int nvalues;
   int nrepeat,nfreq,irepeat;
   int normflag,scaleflag,overwrite,biasflag,colextra;
   bigint nvalid,nvalid_last;

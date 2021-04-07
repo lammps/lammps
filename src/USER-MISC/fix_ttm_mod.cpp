@@ -136,7 +136,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   gfactor1 = new double[atom->ntypes+1];
   gfactor2 = new double[atom->ntypes+1];
   // allocate 3d grid variables
-  total_nnodes = nxnodes*nynodes*nznodes;
+  total_nnodes = (bigint)nxnodes*nynodes*nznodes;
   memory->create(nsum,nxnodes,nynodes,nznodes,"ttm/mod:nsum");
   memory->create(nsum_all,nxnodes,nynodes,nznodes,"ttm/mod:nsum_all");
   memory->create(sum_vsq,nxnodes,nynodes,nznodes,"ttm/mod:sum_vsq");
@@ -230,7 +230,7 @@ void FixTTMMod::init()
       for (int iznode = 0; iznode < nznodes; iznode++)
         net_energy_transfer_all[ixnode][iynode][iznode] = 0;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

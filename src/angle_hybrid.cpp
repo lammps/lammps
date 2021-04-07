@@ -113,7 +113,7 @@ void AngleHybrid::compute(int eflag, int vflag)
 
   const int nthreads = comm->nthreads;
   if (comm->nthreads > 1) {
-    const int nall = atom->nlocal + atom->nghost;
+    const bigint nall = atom->nlocal + atom->nghost;
     if (eflag_atom)
       memset(&eatom[0],0,nall*nthreads*sizeof(double));
     if (vflag_atom)

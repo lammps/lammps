@@ -24,7 +24,7 @@ Examples
    pair_coeff * * hooke 1000.0 50.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity
 
    pair_style granular
-   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 limit_damping
 
    pair_style granular
    pair_coeff * * hertz/material 1e8 0.3 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping tsuji
@@ -623,6 +623,14 @@ Finally, the twisting torque on each particle is given by:
 
 ----------
 
+If two particles are moving away from each other while in contact, there
+is a possibility that the particles could experience an effective attractive
+force due to damping. If the optional *limit_damping* keyword is used, this option
+will zero out the normal component of the force if there is an effective
+attractive force. This keyword cannot be used with the JKR or DMT models.
+
+----------
+
 The *granular* pair style can reproduce the behavior of the
 *pair gran/\** styles with the appropriate settings (some very
 minor differences can be expected due to corrections in
@@ -656,6 +664,12 @@ and no global cutoff is appended to the *pair_style granular* command,
 then LAMMPS will use that cutoff for the specified atom type
 combination, and automatically set pairwise cutoffs for the remaining
 atom types.
+
+If two particles are moving away from each other while in contact, there
+is a possibility that the particles could experience an effective attractive
+force due to damping. If the *limit_damping* keyword is used, this option
+will zero out the normal component of the force if there is an effective
+attractive force. This keyword cannot be used with the JKR or DMT models.
 
 ----------
 

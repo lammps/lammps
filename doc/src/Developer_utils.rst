@@ -101,7 +101,13 @@ and parsing files or arguments.
 .. doxygenfunction:: split_words
    :project: progguide
 
+.. doxygenfunction:: split_lines
+   :project: progguide
+
 .. doxygenfunction:: strmatch
+   :project: progguide
+
+.. doxygenfunction:: strfind
    :project: progguide
 
 .. doxygenfunction:: is_integer

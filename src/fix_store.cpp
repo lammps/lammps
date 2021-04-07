@@ -167,8 +167,8 @@ void FixStore::write_restart(FILE *fp)
 
   rbuf[0] = nrow;
   rbuf[1] = ncol;
-  if (vecflag) memcpy(&rbuf[2],vstore,nrow*sizeof(double));
-  else memcpy(&rbuf[2],&astore[0][0],nrow*ncol*sizeof(double));
+  if (vecflag) memcpy(&rbuf[2],vstore,sizeof(double)*nrow);
+  else memcpy(&rbuf[2],&astore[0][0],sizeof(double)*nrow*ncol);
 
   int n = nrow*ncol + 2;
   if (comm->me == 0) {

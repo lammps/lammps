@@ -930,11 +930,11 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 
   // post all receives, starting after self copies
 
-  bigint offset = num_self*(bigint)nbytes;
+  bigint offset = (bigint)num_self*(bigint)nbytes;
   for (int irecv = 0; irecv < nrecv_proc; irecv++) {
     MPI_Irecv(&recvbuf[offset],num_recv[irecv]*nbytes,MPI_CHAR,
               proc_recv[irecv],0,world,&request[irecv]);
-    offset += num_recv[irecv]*nbytes;
+    offset += (bigint)num_recv[irecv]*nbytes;
   }
 
   // reallocate buf for largest send if necessary

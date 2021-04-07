@@ -54,7 +54,8 @@ enum{CONSTANT,EQUAL,ATOM};
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   gjfflag(0), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), tstr(nullptr),
-  flangevin(nullptr), tforce(nullptr), franprev(nullptr), lv(nullptr), id_temp(nullptr), random(nullptr)
+  flangevin(nullptr), tforce(nullptr), franprev(nullptr),
+  lv(nullptr), id_temp(nullptr), random(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix langevin command");
 
@@ -62,6 +63,7 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  ecouple_flag = 1;
   nevery = 1;
 
   if (utils::strmatch(arg[3],"^v_")) {
@@ -190,7 +192,6 @@ FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
       lv[i][2] = 0.0;
     }
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -222,7 +223,6 @@ int FixLangevin::setmask()
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -310,7 +310,7 @@ void FixLangevin::init()
   if (temperature && temperature->tempbias) tbiasflag = BIAS;
   else tbiasflag = NOBIAS;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   if (utils::strmatch(update->integrate_style,"^respa") && gjfflag)
@@ -367,7 +367,7 @@ void FixLangevin::setup(int vflag)
         }
     }
   }
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

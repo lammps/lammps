@@ -61,20 +61,12 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   improper = nullptr;
   kspace = nullptr;
 
-  char *str = (char *) "none";
-  int n = strlen(str) + 1;
-  pair_style = new char[n];
-  strcpy(pair_style,str);
-  bond_style = new char[n];
-  strcpy(bond_style,str);
-  angle_style = new char[n];
-  strcpy(angle_style,str);
-  dihedral_style = new char[n];
-  strcpy(dihedral_style,str);
-  improper_style = new char[n];
-  strcpy(improper_style,str);
-  kspace_style = new char[n];
-  strcpy(kspace_style,str);
+  pair_style = utils::strdup("none");
+  bond_style = utils::strdup("none");
+  angle_style = utils::strdup("none");
+  dihedral_style = utils::strdup("none");
+  improper_style = utils::strdup("none");
+  kspace_style = utils::strdup("none");
 
   pair_restart = nullptr;
   create_factories();

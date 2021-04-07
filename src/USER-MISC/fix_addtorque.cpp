@@ -48,6 +48,7 @@ FixAddTorque::FixAddTorque(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
   dynamic_group_allow = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
@@ -92,7 +93,6 @@ int FixAddTorque::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -130,7 +130,7 @@ void FixAddTorque::init()
     varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -140,7 +140,7 @@ void FixAddTorque::init()
 
 void FixAddTorque::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

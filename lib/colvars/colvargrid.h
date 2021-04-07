@@ -59,7 +59,7 @@ protected:
   {
     size_t addr = 0;
     for (size_t i = 0; i < nd; i++) {
-      addr += ix[i]*nxc[i];
+      addr += ix[i]*static_cast<size_t>(nxc[i]);
       if (cvm::debug()) {
         if (ix[i] >= nx[i]) {
           cvm::error("Error: exceeding bounds in colvar_grid.\n", BUG_ERROR);

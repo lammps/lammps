@@ -72,7 +72,7 @@ static inline void costheta_d(const double *dr_ij, const double r_ij,
 
 /* ---------------------------------------------------------------------- */
 
-PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp)
+PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp), preForceCoord(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edip);
 
@@ -82,11 +82,7 @@ PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp)
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
-  nelements = 0;
-  elements = nullptr;
-  nparams = maxparam = 0;
   params = nullptr;
-  elem2param = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -95,19 +91,14 @@ PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp)
 
 PairEDIPMulti::~PairEDIPMulti()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
   memory->destroy(params);
-  memory->destroy(elem2param);
+  memory->destroy(elem3param);
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
-
-    deallocatePreLoops();
   }
+  deallocatePreLoops();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -174,7 +165,7 @@ void PairEDIPMulti::compute(int eflag, int vflag)
         r_ij = delx * delx + dely * dely + delz * delz;
 
         jtype = map[type[j]];
-        ijparam = elem2param[itype][jtype][jtype];
+        ijparam = elem3param[itype][jtype][jtype];
         if (r_ij > params[ijparam].cutsq) continue;
 
         r_ij = sqrt(r_ij);
@@ -215,7 +206,7 @@ void PairEDIPMulti::compute(int eflag, int vflag)
       r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       if (r_ij > params[ijparam].cutsq) continue;
 
       r_ij = sqrt(r_ij);
@@ -247,8 +238,8 @@ void PairEDIPMulti::compute(int eflag, int vflag)
           k = jlist[kk];
           k &= NEIGHMASK;
           ktype = map[type[k]];
-          ikparam = elem2param[itype][ktype][ktype];
-          ijkparam = elem2param[itype][jtype][ktype];
+          ikparam = elem3param[itype][ktype][ktype];
+          ijkparam = elem3param[itype][jtype][ktype];
 
           dr_ik[0] = x[k][0] - xtmp;
           dr_ik[1] = x[k][1] - ytmp;
@@ -538,73 +529,18 @@ void PairEDIPMulti::settings(int narg, char **/*arg*/)
 
 void PairEDIPMulti::coeff(int narg, char **arg)
 {
-  int i,j,n;
-
   if (!allocated) allocate();
 
-  if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
-  // nelements = # of unique elements
-  // elements = list of element names
-
-  if (elements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) elements[i] = nullptr;
-
-  nelements = 0;
-  for (i = 3; i < narg; i++) {
-    if (strcmp(arg[i],"NULL") == 0) {
-      map[i-2] = -1;
-      continue;
-    }
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    map[i-2] = j;
-    if (j == nelements) {
-      n = strlen(arg[i]) + 1;
-      elements[j] = new char[n];
-      strcpy(elements[j],arg[i]);
-      nelements++;
-    }
-  }
+  map_element2type(narg-3,arg+3);
 
   // read potential file and initialize potential parameters
 
   read_file(arg[2]);
   setup();
 
-  // clear setflag since coeff() called once with I,J = * *
+  // (re-)allocate tables and internal structures
 
-  n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-
-  int count = 0;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // allocate tables and internal structures
-
+  deallocatePreLoops();
   allocatePreLoops();
 }
 
@@ -784,12 +720,12 @@ void PairEDIPMulti::setup()
   int i,j,k,m,n;
   double rtmp;
 
-  // set elem2param for all triplet combinations
+  // set elem3param for all triplet combinations
   // must be a single exact match to lines read from file
   // do not allow for ACB in place of ABC
 
-  memory->destroy(elem2param);
-  memory->create(elem2param,nelements,nelements,nelements,"pair:elem2param");
+  memory->destroy(elem3param);
+  memory->create(elem3param,nelements,nelements,nelements,"pair:elem3param");
 
   for (i = 0; i < nelements; i++)
     for (j = 0; j < nelements; j++)
@@ -803,7 +739,7 @@ void PairEDIPMulti::setup()
           }
         }
         if (n < 0) error->all(FLERR,"Potential file is missing an entry");
-        elem2param[i][j][k] = n;
+        elem3param[i][j][k] = n;
       }
 
   // set cutoff square

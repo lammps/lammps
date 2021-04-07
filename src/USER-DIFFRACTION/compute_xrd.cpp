@@ -31,6 +31,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <strings.h>    // for strcasecmp()
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
@@ -524,7 +525,7 @@ void ComputeXRD::compute_array()
 
 double ComputeXRD::memory_usage()
 {
-  double bytes = size_array_rows * size_array_cols * sizeof(double); //array
+  double bytes = (double)size_array_rows * size_array_cols * sizeof(double); //array
   bytes += (double) 4.0 * size_array_rows * sizeof(double); //Fvec1 & 2, scratch1 & 2
   bytes += (double)3.0 * nlocalgroup * sizeof(double); // xlocal
   bytes += (double)nlocalgroup * sizeof(int); // typelocal

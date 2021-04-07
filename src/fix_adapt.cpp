@@ -328,7 +328,7 @@ void FixAdapt::init()
       //   strip it for pstyle arg to pair_match() and set nsub = N
       // this should work for appended suffixes as well
 
-      char *pstyle = strdup(ad->pstyle);
+      char *pstyle = utils::strdup(ad->pstyle);
       char *cptr;
       int nsub = 0;
       if ((cptr = strchr(pstyle,':'))) {
@@ -462,7 +462,7 @@ void FixAdapt::init()
     fix_chg = (FixStore *) modify->fix[ifix];
   }
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

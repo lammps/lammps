@@ -52,7 +52,7 @@ enum{NONE,RATIO,SUBSET};
 
 /* ---------------------------------------------------------------------- */
 
-CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
+CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp), basistype(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -573,7 +573,7 @@ void CreateAtoms::command(int narg, char **arg)
   delete ranmol;
   delete ranlatt;
 
-  if (domain->lattice) delete [] basistype;
+  delete [] basistype;
   delete [] vstr;
   delete [] xstr;
   delete [] ystr;

@@ -115,6 +115,18 @@ The version with "bondmax" will just run somewhat faster, due to less
 overhead in computing bond lengths and not storing them in a separate
 compute.
 
+A variable can be used to implement a large variety of conditions,
+including to stop when a specific file exists.  Example:
+
+.. code-block:: LAMMPS
+
+   variable exit equal is_file(EXIT)
+   fix 10 all halt 100 v_exit != 0 error soft
+
+Will stop the current run command when a file ``EXIT`` is created
+in the current working directory.  The condition can be cleared
+by removing the file through the :doc:`shell <shell>` command.
+
 The choice of operators listed above are the usual comparison
 operators.  The XOR operation (exclusive or) is also included as "\|\^".
 In this context, XOR means that if either the attribute or avalue is

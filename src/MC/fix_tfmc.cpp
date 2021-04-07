@@ -56,6 +56,7 @@ FixTFMC::FixTFMC(LAMMPS *lmp, int narg, char **arg) :
 
   comflag = 0;
   rotflag = 0;
+  xflag = yflag = zflag = 0;
 
   int iarg = 6;
   while (iarg < narg) {

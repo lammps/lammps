@@ -79,7 +79,6 @@ FixRattle::~FixRattle()
 {
   memory->destroy(vp);
 
-
   if (RATTLE_DEBUG) {
 
     // communicate maximum distance error

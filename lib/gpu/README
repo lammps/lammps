@@ -1,21 +1,112 @@
                   --------------------------------
                      LAMMPS ACCELERATOR LIBRARY
                   --------------------------------
-                     
+
                        W. Michael Brown (ORNL)
                         Trung Dac Nguyen (ORNL/Northwestern)
-                          Peng Wang (NVIDIA)
+                        Nitin Dhamankar (Intel)
                        Axel Kohlmeyer (Temple)
+                          Peng Wang (NVIDIA)
+                        Anders Hafreager (UiO)
+                          V. Nikolskiy (HSE)
+                   Maurice de Koning (Unicamp/Brazil)
+                  Rodolfo Paula Leite (Unicamp/Brazil)
                          Steve Plimpton (SNL)
                         Inderaj Bains (NVIDIA)
 
--------------------------------------------------------------------
 
-This directory has source files to build a library that LAMMPS
-links against when using the GPU package.
+------------------------------------------------------------------------------
 
-This library must be built with a C++ compiler, before LAMMPS is
-built, so LAMMPS can link against it.
+This directory has source files to build a library that LAMMPS links against
+when using the GPU package.
+
+This library must be built with a C++ compiler along with CUDA, HIP, or OpenCL
+before LAMMPS is built, so LAMMPS can link against it.
+
+This library, libgpu.a, provides routines for acceleration of certain
+LAMMPS styles and neighbor list builds using CUDA, OpenCL, or ROCm HIP.
+
+Pair styles supported by this library are marked in the list of Pair style
+potentials with a "g". See the online version at:
+
+https://lammps.sandia.gov/doc/Commands_pair.html
+
+In addition the (plain) pppm kspace style is supported as well.
+
+------------------------------------------------------------------------------
+                              DEVICE QUERY
+------------------------------------------------------------------------------
+The gpu library includes binaries to check for available GPUs and their
+properties. It is a good idea to run this on first use to make sure the
+system and build is setup properly. Additionally, the GPU numbering for
+specific selection of devices should be taking from this output. The GPU
+library may split some accelerators into separate virtual accelerators for
+efficient use with MPI.
+
+After building the GPU library, for OpenCL:
+  ./ocl_get_devices
+for CUDA:
+  ./nvc_get_devices
+and for ROCm HIP:
+  ./hip_get_devices
+
+------------------------------------------------------------------------------
+                              QUICK START
+------------------------------------------------------------------------------
+OpenCL: Mac without MPI:
+  make -f Makefile.mac_opencl -j; cd ../../src/; make mpi-stubs
+  make g++_serial -j
+  ./lmp_g++_serial -in ../bench/in.lj -log none -sf gpu
+
+OpenCL: Mac with MPI:
+  make -f Makefile.mac_opencl_mpi -j; cd ../../src/; make g++_openmpi -j
+  mpirun -np $NUM_MPI ./lmp_g++_openmpi -in ../bench/in.lj -log none -sf gpu
+
+OpenCL: Linux with Intel oneAPI:
+  make -f Makefile.oneapi -j; cd ../../src; make oneapi -j
+  export OMP_NUM_THREADS=$NUM_THREADS
+  mpirun -np $NUM_MPI ./lmp_oneapi -in ../bench/in.lj -log none -sf gpu
+
+OpenCL: Linux with MPI:
+  make -f Makefile.linux_opencl -j; cd ../../src; make omp -j
+  export OMP_NUM_THREADS=$NUM_THREADS
+  mpirun -np $NUM_MPI ./lmp_omp -in ../bench/in.lj -log none -sf gpu
+
+NVIDIA CUDA:
+  make -f Makefile.cuda_mps -j; cd ../../src; make omp -j
+  export CUDA_MPS_LOG_DIRECTORY=/tmp; export CUDA_MPS_PIPE_DIRECTORY=/tmp
+  nvidia-smi -i 0 -c EXCLUSIVE_PROCESS
+  export OMP_NUM_THREADS=$NUM_THREADS
+  mpirun -np $NUM_MPI ./lmp_omp -in ../bench/in.lj -log none -sf gpu
+  echo quit | /usr/bin/nvidia-cuda-mps-control
+
+AMD HIP:
+  make -f Makefile.hip -j; cd ../../src; make omp -j
+  export OMP_NUM_THREADS=$NUM_THREADS
+  mpirun -np $NUM_MPI ./lmp_omp -in ../bench/in.lj -log none -sf gpu
+
+------------------------------------------------------------------------------
+                 Installing oneAPI, OpenCl, CUDA, or ROCm
+------------------------------------------------------------------------------
+The easiest approach is to use the linux package manger to perform the
+installation from Intel, NVIDIA, etc. repositories. All are available for
+free. The oneAPI installation includes Intel optimized MPI and C++ compilers,
+along with many libraries. Alternatively, Intel OpenCL can also be installed
+separately from the Intel repository.
+
+NOTE: Installation of the CUDA SDK is not required, only the CUDA toolkit.
+
+See:
+
+https://software.intel.com/content/www/us/en/develop/tools/oneapi/hpc-toolkit.html
+
+https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
+
+https://github.com/RadeonOpenCompute/ROCm
+
+------------------------------------------------------------------------------
+                              Build Intro
+------------------------------------------------------------------------------
 
 You can type "make lib-gpu" from the src directory to see help on how
 to build this library via make commands, or you can do the same thing
@@ -25,13 +116,13 @@ do it manually by following the instructions below.
 Build the library using one of the provided Makefile.* files or create
 your own, specific to your compiler and system.  For example:
 
-make -f Makefile.linux
+make -f Makefile.linux_opencl
 
 When you are done building this library, two files should
 exist in this directory:
 
-libgpu.a		the library LAMMPS will link against
-Makefile.lammps		settings the LAMMPS Makefile will import
+libgpu.a                the library LAMMPS will link against
+Makefile.lammps         settings the LAMMPS Makefile will import
 
 Makefile.lammps is created by the make command, by copying one of the
 Makefile.lammps.* files.  See the EXTRAMAKE setting at the top of the
@@ -45,77 +136,52 @@ IMPORTANT: If you re-build the library, e.g. for a different precision
 Makefile.linux clean, to insure all previous derived files are removed
 before the new build is done.
 
-Makefile.lammps has settings for 3 variables:
-
-user-gpu_SYSINC = leave blank for this package
-user-gpu_SYSLIB = CUDA libraries needed by this package
-user-gpu_SYSPATH = path(s) to where those libraries are
-
-Because you have the CUDA compilers on your system, you should have
-the needed libraries.  If the CUDA development tools were installed
-in the standard manner, the settings in the Makefile.lammps.standard
-file should work.
-
--------------------------------------------------------------------
-
-                          GENERAL NOTES
-                  --------------------------------
-                          
-This library, libgpu.a, provides routines for GPU acceleration
-of certain LAMMPS styles and neighbor list builds. Compilation of this 
-library requires installing the CUDA GPU driver and CUDA toolkit for
-your operating system. Installation of the CUDA SDK is not necessary.
-In addition to the LAMMPS library, the binary nvc_get_devices will also
-be built. This can be used to query the names and properties of GPU 
-devices on your system. A Makefile for OpenCL and ROCm HIP compilation
-is provided, but support for it is not currently provided by the developers.
-Details of the implementation are provided in:
-
-----
-
-Brown, W.M., Wang, P. Plimpton, S.J., Tharrington, A.N. Implementing 
-Molecular Dynamics on Hybrid High Performance Computers - Short Range 
-Forces. Computer Physics Communications. 2011. 182: p. 898-911. 
-
-and
-
-Brown, W.M., Kohlmeyer, A. Plimpton, S.J., Tharrington, A.N. Implementing 
-Molecular Dynamics on Hybrid High Performance Computers - Particle-Particle 
-Particle-Mesh. Computer Physics Communications. 2012. 183: p. 449-459. 
-
-and
-
-Brown, W.M., Masako, Y. Implementing Molecular Dynamics on Hybrid High 
-Performance Computers - Three-Body Potentials. Computer Physics Communications. 
-2013. 184: p. 2785–2793.
-
-----
-
-NOTE: Installation of the CUDA SDK is not required, only the CUDA
-toolkit itself or an OpenCL 1.2 compatible header and library.
-
-Pair styles supporting GPU acceleration this this library
-are marked in the list of Pair style potentials with a "g".
-See the online version at: https://lammps.sandia.gov/doc/Commands_pair.html
-
-In addition the (plain) pppm kspace style is supported as well.
+NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG,
+      or LAMMPS_SMALLSMALL if specified when building LAMMPS (i.e. in
+      src/MAKE/Makefile.foo) should be consistent with that specified
+      when building libgpu.a (i.e. by LMP_INC in the lib/gpu/Makefile.bar).
 
 
-                     MULTIPLE LAMMPS PROCESSES
-                  --------------------------------
-                     
-Multiple LAMMPS MPI processes can share GPUs on the system, but multiple
-GPUs cannot be utilized by a single MPI process. In many cases, the
-best performance will be obtained by running as many MPI processes as
-CPU cores available with the condition that the number of MPI processes
-is an integer multiple of the number of GPUs being used. See the 
-LAMMPS user manual for details on running with GPU acceleration.
+------------------------------------------------------------------------------
+                             PRECISION MODES
+------------------------------------------------------------------------------
+The GPU library supports 3 precision modes: single, double, and mixed, with
+the latter being the default for most Makefiles aside from Mac specific
+Makefiles due to the more restrictive nature of the Apple OpenCL for some
+devices.
+
+To specify the precision mode (output to the screen before LAMMPS runs for
+verification), set either CUDA_PRECISION, OCL_PREC, or HIP_PRECISION to one
+of -D_SINGLE_SINGLE, -D_DOUBLE_DOUBLE, or -D_SINGLE_DOUBLE.
+
+Some accelerators or OpenCL implementations only support single precision.
+This mode should be used with care and appropriate validation as the errors
+can scale with system size in this implementation. This can be useful for
+accelerating test runs when setting up a simulation for production runs on
+another machine. In the case where only single precision is supported, either
+LAMMPS must be compiled with -DFFT_SINGLE to use PPPM with GPU acceleration
+or GPU acceleration should be disabled for PPPM (e.g. suffix off or pair/only
+as described in the LAMMPS documentation).
 
 
-                    BUILDING AND PRECISION MODES
-                  --------------------------------
+------------------------------------------------------------------------------
+                             CUDA BUILD NOTES
+------------------------------------------------------------------------------
+NOTE: when compiling with CMake, all of the considerations listed below
+are considered within the CMake configuration process, so no separate
+compilation of the gpu library is required. Also this will build in support
+for all compute architecture that are supported by the CUDA toolkit version
+used to build the gpu library.
 
-To build, edit the CUDA_ARCH, CUDA_PRECISION, CUDA_HOME variables in one of 
+If you do not want to use a fat binary, that supports multiple CUDA
+architectures, the CUDA_ARCH must be set to match the GPU architecture. This
+is reported by nvc_get_devices executable created by the build process and
+a detailed list of GPU architectures and CUDA compatible GPUs can be found
+e.g. here: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
+
+The CUDA_HOME variable should be set to the location of the CUDA toolkit.
+
+To build, edit the CUDA_ARCH, CUDA_PRECISION, CUDA_HOME variables in one of
 the Makefiles. CUDA_ARCH should be set based on the compute capability of
 your GPU. This can be verified by running the nvc_get_devices executable after
 the build is complete. Additionally, the GPU package must be installed and
@@ -123,82 +189,92 @@ compiled for LAMMPS. This may require editing the gpu_SYSPATH variable in the
 LAMMPS makefile.
 
 Please note that the GPU library accesses the CUDA driver library directly,
-so it needs to be linked not only to the CUDA runtime library (libcudart.so)
-that ships with the CUDA toolkit, but also with the CUDA driver library
-(libcuda.so) that ships with the Nvidia driver. If you are compiling LAMMPS
-on the head node of a GPU cluster, this library may not be installed,
-so you may need to copy it over from one of the compute nodes (best into
-this directory). Recent CUDA toolkits starting from CUDA 9 provide a dummy
-libcuda.so library (typically under $(CUDA_HOME)/lib64/stubs), that can be used for
-linking.
+so it needs to be linked with the CUDA driver library (libcuda.so) that ships
+with the Nvidia driver. If you are compiling LAMMPS on the head node of a GPU
+cluster, this library may not be installed, so you may need to copy it over
+from one of the compute nodes (best into this directory). Recent CUDA toolkits
+starting from CUDA 9 provide a dummy libcuda.so library (typically under
+$(CUDA_HOME)/lib64/stubs), that can be used for linking.
 
-The gpu library supports 3 precision modes as determined by 
-the CUDA_PRECISION variable:
+Best performance with the GPU library is typically with multiple MPI processes
+sharing the same GPU cards. For NVIDIA, this is most efficient with CUDA
+MPS enabled. To prevent runtime errors for GPUs configured in exclusive process
+mode with MPS, the GPU library should be build with either of the equivalent
+-DCUDA_MPS_SUPPORT or -DCUDA_PROXY flags.
 
-  CUDA_PRECISION = -D_SINGLE_SINGLE  # Single precision for all calculations
-  CUDA_PRECISION = -D_DOUBLE_DOUBLE  # Double precision for all calculations
-  CUDA_PRECISION = -D_SINGLE_DOUBLE  # Accumulation of forces, etc. in double
+------------------------------------------------------------------------------
+                             HIP BUILD NOTES
+------------------------------------------------------------------------------
 
-As of CUDA 7.5 only GPUs with compute capability 2.0 (Fermi) or newer are
-supported and as of CUDA 9.0 only compute capability 3.0 (Kepler) or newer
-are supported. There are some limitations of this library for GPUs older
-than that, which require additional preprocessor flag, and limit features,
-but they are kept for historical reasons. There is no value in trying to
-use those GPUs for production calculations.
-
-You have to make sure that you set a CUDA_ARCH line suitable for your
-hardware and CUDA toolkit version: e.g. -arch=sm_35 for Tesla K20 or K40
-or -arch=sm_52 GeForce GTX Titan X. A detailed list of GPU architectures
-and CUDA compatible GPUs can be found e.g. here: 
-https://en.wikipedia.org/wiki/CUDA#GPUs_supported
-
-NOTE: when compiling with CMake, all of the considerations listed below
-are considered within the CMake configuration process, so no separate 
-compilation of the gpu library is required. Also this will build in support
-for all compute architecture that are supported by the CUDA toolkit version
-used to build the gpu library.
-
-Please note the CUDA_CODE settings in Makefile.linux_multi, which allows
-to compile this library with support for multiple GPUs. This list can be
-extended for newer GPUs with newer CUDA toolkits and should allow to build
-a single GPU library compatible with all GPUs that are worth using for
-GPU acceleration and supported by the current CUDA toolkits and drivers.
-
-NOTE: The system-specific setting LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG, 
-      or LAMMPS_SMALLSMALL if specified when building LAMMPS (i.e. in 
-      src/MAKE/Makefile.foo) should be consistent with that specified 
-      when building libgpu.a (i.e. by LMP_INC in the lib/gpu/Makefile.bar).
-
-                      BUILDING FOR HIP FRAMEWORK
-                   --------------------------------
-1. Install the latest ROCm framework (https://github.com/RadeonOpenCompute/ROCm).
-2. GPU sorting requires installing hipcub 
+1. GPU sorting requires installing hipcub
 (https://github.com/ROCmSoftwarePlatform/hipCUB). The HIP CUDA-backend
 additionally requires cub (https://nvlabs.github.io/cub). Download and
 extract the cub directory to lammps/lib/gpu/ or specify an appropriate
 path in lammps/lib/gpu/Makefile.hip.
-3. In Makefile.hip it is possible to specify the target platform via 
-export HIP_PLATFORM=hcc or HIP_PLATFORM=nvcc as well as the target 
-architecture (gfx803, gfx900, gfx906 etc.)
-4. If your MPI implementation does not support `mpicxx --showme` command,
+2. In Makefile.hip it is possible to specify the target platform via
+export HIP_PLATFORM=amd (ROCm >= 4.1), HIP_PLATFORM=hcc (ROCm <= 4.0)
+or HIP_PLATFORM=nvcc as well as the target architecture (gfx803, gfx900, gfx906 etc.)
+3. If your MPI implementation does not support `mpicxx --showme` command,
 it is required to specify the corresponding MPI compiler and linker flags
 in lammps/lib/gpu/Makefile.hip and in lammps/src/MAKE/OPTIONS/Makefile.hip.
-5. Building the GPU library (libgpu.a): 
-    cd lammps/lib/gpu; make -f Makefile.hip -j
-6. Building the LAMMPS executable (lmp_hip):
-    cd ../../src; make hip -j
 
-                      EXAMPLE CONVENTIONAL BUILD PROCESS
-                  --------------------------------
-                    
-cd ~/lammps/lib/gpu
-emacs Makefile.linux
-make -f Makefile.linux
-./nvc_get_devices
-cd ../../src
-emacs ./MAKE/Makefile.linux
-make yes-asphere
-make yes-kspace
-make yes-gpu
-make linux
+------------------------------------------------------------------------------
+                             OPENCL BUILD NOTES
+------------------------------------------------------------------------------
+If GERYON_NUMA_FISSION is defined at build time, LAMMPS will consider separate
+NUMA nodes on GPUs or accelerators as separate devices. For example, a 2-socket
+CPU would appear as two separate devices for OpenCL (and LAMMPS would require
+two MPI processes to use both sockets with the GPU library - each with its
+own device ID as output by ocl_get_devices).
 
+For a debug build, use "-DUCL_DEBUG -DGERYON_KERNEL_DUMP" and remove
+"-DUCL_NO_EXIT" and "-DMPI_GERYON" from the build options.
+
+------------------------------------------------------------------------------
+                   ALL PREPROCESSOR OPTIONS (For Advanced Users)
+------------------------------------------------------------------------------
+_SINGLE_SINGLE          Build library for single precision mode
+_SINGLE_DOUBLE          Build library for mixed precision mode
+_DOUBLE_DOUBLE          Build library for double precision mode
+CUDA_MPS_SUPPORT        Do not generate errors for exclusive mode for CUDA
+CUDA_PROXY              Same as above
+MPI_GERYON              Library should use MPI_Abort for unhandled errors
+GERYON_NUMA_FISSION     Accelerators with main memory NUMA are split into
+                        multiple virtual accelerators for each NUMA node
+LAL_USE_OMP=0           Disable OpenMP in lib, regardless of compiler setting
+LAL_USE_OMP_SIMD=0      Disable OpenMP SIMD in lib, regardless of compiler set
+GERYON_OCL_FLUSH        For OpenCL, flush queue after every enqueue
+LAL_NO_OCL_EV_JIT       Turn off JIT specialization for kernels in OpenCL
+LAL_USE_OLD_NEIGHBOR    Use old neighbor list algorithm
+USE_CUDPP               Enable GPU binning in neighbor builds (not recommended)
+USE_HIP_DEVICE_SORT     Enable GPU binning for HIP builds
+                        (only w/ LAL_USE_OLD_NEIGHBOR)
+LAL_NO_BLOCK_REDUCE     Use host for energy/virial accumulation
+LAL_OCL_EXTRA_ARGS      Supply extra args for OpenCL compiler delimited with :
+UCL_NO_EXIT             LAMMPS should handle errors instead of Geryon lib
+UCL_DEBUG               Debug build for Geryon
+GERYON_KERNEL_DUMP      Dump all compiled OpenCL programs with compiler
+                        flags and build logs
+GPU_CAST                Casting performed on GPU, untested recently
+THREE_CONCURRENT        Concurrent 3-body calcs in separate queues, untested
+
+
+------------------------------------------------------------------------------
+                           References for Details
+------------------------------------------------------------------------------
+
+Brown, W.M., Wang, P. Plimpton, S.J., Tharrington, A.N. Implementing
+Molecular Dynamics on Hybrid High Performance Computers - Short Range
+Forces. Computer Physics Communications. 2011. 182: p. 898-911.
+
+and
+
+Brown, W.M., Kohlmeyer, A. Plimpton, S.J., Tharrington, A.N. Implementing
+Molecular Dynamics on Hybrid High Performance Computers - Particle-Particle
+Particle-Mesh. Computer Physics Communications. 2012. 183: p. 449-459.
+
+and
+
+Brown, W.M., Masako, Y. Implementing Molecular Dynamics on Hybrid High
+Performance Computers - Three-Body Potentials. Computer Physics Communications.
+2013. 184: p. 2785–2793.

@@ -173,7 +173,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
       if (rsq >= params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
@@ -200,7 +200,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
     for (jj = 0; jj < numshort; jj++) {
       j = neighshort_thr[jj];
       jtype = map[type[j]];
-      iparam_ij = elem2param[itype][jtype][jtype];
+      iparam_ij = elem3param[itype][jtype][jtype];
 
       delr1[0] = x[j].x - xtmp;
       delr1[1] = x[j].y - ytmp;
@@ -224,7 +224,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (jj == kk) continue;
         k = neighshort_thr[kk];
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k].x - xtmp;
         delr2[1] = x[k].y - ytmp;
@@ -264,7 +264,7 @@ void PairTersoffOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (jj == kk) continue;
         k = neighshort_thr[kk];
         ktype = map[type[k]];
-        iparam_ijk = elem2param[itype][jtype][ktype];
+        iparam_ijk = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k].x - xtmp;
         delr2[1] = x[k].y - ytmp;

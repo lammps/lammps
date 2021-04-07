@@ -53,9 +53,9 @@ velocity 	all create $t 5287287 loop geom
 pair_style      sw
 pair_coeff 	* * Si.sw Si Si Si Si Si Si Si Si
 
+thermo_style    custom step temp epair etotal econserve press
 thermo          10
 fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
 timestep        1.0e-3
 neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
@@ -71,9 +71,9 @@ read_restart	restart.equil
 pair_style      sw
 pair_coeff 	* * CdTeZnSeHgS0.sw Cd Zn Hg Cd Te S Se Te
 
+thermo_style    custom step temp epair etotal econserve press
 thermo          10
 fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
 timestep        1.0e-3
 neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
@@ -87,9 +87,9 @@ read_restart	restart.equil
 pair_style      vashishta
 pair_coeff 	* * InP.vashishta In In In In P P P P
 
+thermo_style    custom step temp epair etotal econserve press
 thermo          10
 fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
 timestep        1.0e-3
 neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes
@@ -106,9 +106,9 @@ change_box 	all x scale ${fac} y scale ${fac} z scale ${fac} remap
 pair_style      tersoff
 pair_coeff 	* * BNC.tersoff N N N C B B C B
 
+thermo_style    custom step temp epair etotal econserve press
 thermo          10
 fix             1 all nvt temp $t $t 0.1
-fix_modify 	1 energy yes
 timestep        1.0e-3
 neighbor        1.0 bin
 neigh_modify    every 1 delay 10 check yes

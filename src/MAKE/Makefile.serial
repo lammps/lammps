@@ -13,12 +13,12 @@ DEPFLAGS =	-M
 
 LINK =		g++
 LINKFLAGS =	-g -O
-LIB = 
+LIB =
 SIZE =		size
 
 ARCHIVE =	ar
 ARFLAGS =	-rc
-SHLIBFLAGS =	-shared
+SHLIBFLAGS =	-shared -rdynamic
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL

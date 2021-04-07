@@ -26,6 +26,23 @@ There are multiple Python interface classes in the :py:mod:`lammps` module:
 
 .. _mpi4py_url: https://mpi4py.readthedocs.io
 
+.. admonition:: Version check
+   :class: note
+
+   The :py:mod:`lammps` module stores the version number of the LAMMPS
+   version it is installed from.  When initializing the
+   :py:class:`lammps <lammps.lammps>` class, this version is checked to
+   be the same as the result from :py:func:`lammps.version`, the version
+   of the LAMMPS shared library that the module interfaces to.  If the
+   they are not the same an AttributeError exception is raised since a
+   mismatch of versions (e.g.  due to incorrect use of the
+   ``LD_LIBRARY_PATH`` or ``PYTHONPATH`` environment variables can lead
+   to crashes or data corruption and otherwise incorrect behavior.
+
+.. automodule:: lammps
+   :members:
+   :noindex:
+
 ----------
 
 The ``lammps`` class API
@@ -44,7 +61,7 @@ functions. Below is a detailed documentation of the API.
 .. autoclass:: lammps.lammps
    :members:
 
-.. autoclass:: lammps.numpy::numpy_wrapper
+.. autoclass:: lammps.numpy_wrapper::numpy_wrapper
    :members:
 
 ----------
@@ -117,23 +134,23 @@ Style Constants
    to request from computes or fixes. See :cpp:enum:`_LMP_STYLE_CONST`
    for the equivalent constants in the C library interface. Used in
    :py:func:`lammps.extract_compute`, :py:func:`lammps.extract_fix`, and their NumPy variants
-   :py:func:`lammps.numpy.extract_compute() <lammps.numpy.numpy_wrapper.extract_compute>` and
-   :py:func:`lammps.numpy.extract_fix() <lammps.numpy.numpy_wrapper.extract_fix>`.
+   :py:func:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.numpy_wrapper.extract_compute>` and
+   :py:func:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.numpy_wrapper.extract_fix>`.
 
 .. _py_type_constants:
 
 Type Constants
 --------------
 
-.. py:data:: LMP_TYPE_SCALAR, LMP_TYLE_VECTOR, LMP_TYPE_ARRAY, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
+.. py:data:: LMP_TYPE_SCALAR, LMP_TYPE_VECTOR, LMP_TYPE_ARRAY, LMP_SIZE_VECTOR, LMP_SIZE_ROWS, LMP_SIZE_COLS
    :type: int
 
    Constants in the :py:mod:`lammps` module to select what type of data
    to request  from computes  or fixes.  See :cpp:enum:`_LMP_TYPE_CONST`
    for the equivalent constants in the C library interface. Used in
    :py:func:`lammps.extract_compute`, :py:func:`lammps.extract_fix`, and their NumPy variants
-   :py:func:`lammps.numpy.extract_compute() <lammps.numpy.numpy_wrapper.extract_compute>` and
-   :py:func:`lammps.numpy.extract_fix() <lammps.numpy.numpy_wrapper.extract_fix>`.
+   :py:func:`lammps.numpy.extract_compute() <lammps.numpy_wrapper.numpy_wrapper.extract_compute>` and
+   :py:func:`lammps.numpy.extract_fix() <lammps.numpy_wrapper.numpy_wrapper.extract_fix>`.
 
 .. _py_vartype_constants:
 
@@ -153,6 +170,6 @@ Classes representing internal objects
    :members:
    :no-undoc-members:
 
-.. autoclass:: lammps.numpy::NumPyNeighList
+.. autoclass:: lammps.numpy_wrapper::NumPyNeighList
    :members:
    :no-undoc-members:

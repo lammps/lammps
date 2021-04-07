@@ -50,6 +50,7 @@ FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   hyperflag = 1;
   scalar_flag = 1;
+  energy_global_flag = 1;
   vector_flag = 1;
   size_vector = 12;
   global_freq = 1;
@@ -104,7 +105,6 @@ int FixHyperGlobal::setmask()
   int mask = 0;
   mask |= PRE_NEIGHBOR;
   mask |= PRE_REVERSE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 

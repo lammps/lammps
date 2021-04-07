@@ -20,22 +20,24 @@
 
 #include "fix_qeq_reax.h"
 
-#include <cmath>
-#include <cstring>
-#include "pair_reaxc.h"
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
-#include "pair.h"
-#include "respa.h"
 #include "memory.h"
-#include "citeme.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "pair_reaxc.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
 
@@ -70,9 +72,7 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   swa = utils::numeric(FLERR,arg[4],false,lmp);
   swb = utils::numeric(FLERR,arg[5],false,lmp);
   tolerance = utils::numeric(FLERR,arg[6],false,lmp);
-  int len = strlen(arg[7]) + 1;
-  pertype_option = new char[len];
-  strcpy(pertype_option,arg[7]);
+  pertype_option = utils::strdup(arg[7]);
 
   // dual CG support only available for USER-OMP variant
   // check for compatibility is in Fix::post_constructor()
@@ -370,7 +370,7 @@ void FixQEqReax::init()
   init_shielding();
   init_taper();
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -899,7 +899,7 @@ double FixQEqReax::memory_usage()
 {
   double bytes;
 
-  bytes = atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
+  bytes = (double)atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
   bytes += (double)atom->nmax*11 * sizeof(double); // storage
   bytes += (double)n_cap*2 * sizeof(int); // matrix...
   bytes += (double)m_cap * sizeof(int);

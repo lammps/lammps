@@ -54,6 +54,7 @@ Update::Update(LAMMPS *lmp) : Pointers(lmp)
   eflag_atom = vflag_atom = 0;
 
   dt_default = 1;
+  dt = 0.0;
   unit_style = nullptr;
   set_units("lj");
 
@@ -300,9 +301,7 @@ void Update::set_units(const char *style)
   } else error->all(FLERR,"Illegal units command");
 
   delete [] unit_style;
-  int n = strlen(style) + 1;
-  unit_style = new char[n];
-  strcpy(unit_style,style);
+  unit_style = utils::strdup(style);
 
   // check if timestep was changed from default value
   if (!dt_default && (comm->me == 0)) {

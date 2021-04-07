@@ -174,9 +174,9 @@ template <class T>
 void MyPoolChunk<T>::allocate(int ibin) {
   int oldpage = npage;
   npage += pagedelta;
-  freelist = (int *) realloc(freelist,npage*chunkperpage*sizeof(int));
-  pages = (T **) realloc(pages,npage*sizeof(T *));
-  whichbin = (int *) realloc(whichbin,npage*sizeof(int));
+  freelist = (int *) realloc(freelist,sizeof(int)*npage*chunkperpage);
+  pages = (T **) realloc(pages,sizeof(T *)*npage);
+  whichbin = (int *) realloc(whichbin,sizeof(int)*npage);
   if (!freelist || !pages) {
     errorflag = 2;
     return;
@@ -189,11 +189,11 @@ void MyPoolChunk<T>::allocate(int ibin) {
 #if defined(LAMMPS_MEMALIGN)
     void *ptr;
     if (posix_memalign(&ptr, LAMMPS_MEMALIGN,
-                       chunkperpage*chunksize[ibin]*sizeof(T)))
+                       sizeof(T)*chunkperpage*chunksize[ibin]))
       errorflag = 2;
     pages[i] = (T *) ptr;
 #else
-    pages[i] = (T *) malloc(chunkperpage*chunksize[ibin]*sizeof(T));
+    pages[i] = (T *) malloc(sizeof(T)*chunkperpage*chunksize[ibin]);
     if (!pages[i]) errorflag = 2;
 #endif
   }

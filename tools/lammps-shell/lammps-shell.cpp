@@ -128,6 +128,7 @@ const char *cmdlist[] = {"clear",
                          "pair_modify",
                          "pair_style",
                          "pair_write",
+                         "plugin",
                          "processors",
                          "region",
                          "reset_timestep",
@@ -347,6 +348,59 @@ static char *variable_expand_generator(const char *text, int state)
     return nullptr;
 }
 
+static char *plugin_generator(const char *text, int state)
+{
+    const char *subcmd[] = {"load", "unload", "list", "clear", NULL};
+    const char *sub;
+    static std::size_t idx, len;
+    if (!state) idx = 0;
+    len = strlen(text);
+
+    while ((sub = subcmd[idx]) != NULL) {
+        ++idx;
+        if (strncmp(text,sub,len) == 0)
+            return dupstring(sub);
+    }
+    return nullptr;
+}
+
+static char *plugin_style_generator(const char *text, int state)
+{
+    const char *styles[] = {"pair", "fix", "command", NULL};
+    const char *s;
+    static std::size_t idx, len;
+    if (!state) idx = 0;
+    len = strlen(text);
+    while ((s = styles[idx]) != NULL) {
+        ++idx;
+        if (strncmp(text,s,len) == 0)
+            return dupstring(s);
+    }
+    return nullptr;
+}
+
+static char *plugin_name_generator(const char *text, int state)
+{
+    auto words = utils::split_words(text);
+    if (words.size() < 4) return nullptr;
+
+    static std::size_t idx, len;
+    if (!state) idx = 0;
+    len = words[3].size();
+    int nmax = lammps_plugin_count();
+
+    while (idx < nmax) {
+        char style[buflen], name[buflen];
+        lammps_plugin_name(idx, style, name, buflen);
+        ++idx;
+        if (words[2] == style) {
+            if (strncmp(name, words[3].c_str(), len) == 0)
+                return dupstring(name);
+        }
+    }
+    return nullptr;
+}
+
 static char *atom_generator(const char *text, int state)
 {
     return style_generator<ATOM_STYLE>(text, state);
@@ -477,14 +531,21 @@ static char **cmd_completion(const char *text, int start, int)
                 matches = rl_completion_matches(text, dump_id_generator);
             } else if (words[0] == "fix_modify") {
                 matches = rl_completion_matches(text, fix_id_generator);
+            } else if (words[0] == "plugin") {
+                matches = rl_completion_matches(text, plugin_generator);
             }
         } else if (words.size() == 2) { // expand third word
 
             // these commands have a group name as 3rd word
-            if ((words[0] == "fix") || (words[0] == "compute") || (words[0] == "dump")) {
+            if ((words[0] == "fix")
+                || (words[0] == "compute")
+                || (words[0] == "dump")) {
                 matches = rl_completion_matches(text, group_generator);
             } else if (words[0] == "region") {
                 matches = rl_completion_matches(text, region_generator);
+            // plugin style is the third word
+            } else if ((words[0] == "plugin") && (words[1] == "unload")) {
+                matches = rl_completion_matches(text, plugin_style_generator);
             }
         } else if (words.size() == 3) { // expand fourth word
 
@@ -495,6 +556,9 @@ static char **cmd_completion(const char *text, int start, int)
                 matches = rl_completion_matches(text, compute_generator);
             } else if (words[0] == "dump") {
                 matches = rl_completion_matches(text, dump_generator);
+            // plugin name is the fourth word
+            } else if ((words[0] == "plugin") && (words[1] == "unload")) {
+                matches = rl_completion_matches(rl_line_buffer, plugin_name_generator);
             }
         }
     }

@@ -456,7 +456,7 @@ void Neighbor::init()
   // rRESPA cutoffs
 
   int respa = 0;
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
   }
@@ -1616,7 +1616,8 @@ void Neighbor::print_pairwise_info()
     rq = requests[i];
     if (rq->pair) {
       char *pname = force->pair_match_ptr((Pair *) rq->requestor);
-      out += fmt::format("  ({}) pair {}",i+1,pname);
+      if (pname) out += fmt::format("  ({}) pair {}",i+1,pname);
+      else out += fmt::format("  ({}) pair (none)",i+1);
     } else if (rq->fix) {
       out += fmt::format("  ({}) fix {}",i+1,((Fix *) rq->requestor)->style);
     } else if (rq->compute) {

@@ -38,34 +38,34 @@ using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
-int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
-                const double cell_size, int &gpu_mode, FILE *screen,
-                int* host_map, const int nelements, int*** host_elem2param, const int nparams,
-                const double* cutsq, const double* r0,
-                const double* gamma, const double* eta,
-                const double* lam1inv, const double* lam4inv,
-                const double* zizj, const double* mbigd,
-                const double* dvrc, const double* big6w,
-                const double* heta, const double* bigh,
-                const double* bigw, const double* c0,
-                const double* costheta, const double* bigb,
-                const double* big2b, const double* bigc);
+int vashishta_gpu_init(const int ntypes, const int inum, const int nall,
+                       const int max_nbors, const double cell_size,
+                       int &gpu_mode, FILE *screen, int* host_map,
+                       const int nelements, int*** host_elem3param,
+                       const int nparams, const double* cutsq, const double* r0,
+                       const double* gamma, const double* eta,
+                       const double* lam1inv, const double* lam4inv,
+                       const double* zizj, const double* mbigd,
+                       const double* dvrc, const double* big6w,
+                       const double* heta, const double* bigh,
+                       const double* bigw, const double* c0,
+                       const double* costheta, const double* bigb,
+                       const double* big2b, const double* bigc);
 void vashishta_gpu_clear();
-int ** vashishta_gpu_compute_n(const int ago, const int inum,
-                        const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** vashishta_gpu_compute_n(const int ago, const int inum, const int nall,
+                        double **host_x, int *host_type, double *sublo,
+                        double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag,
                         const bool eatom, const bool vatom, int &host_start,
                         int **ilist, int **jnum,
                         const double cpu_time, bool &success);
-void vashishta_gpu_compute(const int ago, const int nloc, const int nall, const int ln,
-                    double **host_x, int *host_type, int *ilist, int *numj,
-                    int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start,
-                    const double cpu_time, bool &success);
+void vashishta_gpu_compute(const int ago, const int nloc, const int nall,
+                           const int ln, double **host_x, int *host_type,
+                           int *ilist, int *numj, int **firstneigh,
+                           const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int &host_start,
+                           const double cpu_time, bool &success);
 double vashishta_gpu_bytes();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                             double **vatom, double *virial, double &ecoul);
 
 /* ---------------------------------------------------------------------- */
 
@@ -214,9 +214,10 @@ void PairVashishtaGPU::init_style()
     big2b[i] = params[i].big2b;
     bigc[i] = params[i].bigc;
   }
-  int success = vashishta_gpu_init(atom->ntypes+1, atom->nlocal, atom->nlocal+atom->nghost, 500,
+  int mnf = 5e-2 * neighbor->oneatom;
+  int success = vashishta_gpu_init(atom->ntypes+1, atom->nlocal, atom->nlocal+atom->nghost, mnf,
                             cell_size, gpu_mode, screen, map, nelements,
-                            elem2param, nparams, cutsq, r0, gamma, eta, lam1inv,
+                            elem3param, nparams, cutsq, r0, gamma, eta, lam1inv,
                             lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw,
                             c0, costheta, bigb, big2b, bigc);
   memory->destroy(cutsq);
@@ -246,7 +247,6 @@ void PairVashishtaGPU::init_style()
     neighbor->requests[irequest]->full = 1;
     neighbor->requests[irequest]->ghost = 1;
   }
-
   if (comm->cutghostuser < (2.0*cutmax + neighbor->skin)) {
     comm->cutghostuser=2.0*cutmax + neighbor->skin;
     if (comm->me == 0)

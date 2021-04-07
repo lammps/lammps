@@ -107,6 +107,13 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   num_tally_compute = 0;
   list_tally_compute = nullptr;
 
+  nelements = nparams = maxparam = 0;
+  elements = nullptr;
+  elem1param = nullptr;
+  elem2param = nullptr;
+  elem3param = nullptr;
+  map = nullptr;
+
   nondefault_history_transfer = 0;
   beyond_contact = 0;
 
@@ -130,6 +137,11 @@ Pair::~Pair()
 
   if (copymode) return;
 
+  if (elements)
+    for (int i = 0; i < nelements; i++) delete[] elements[i];
+  delete[] elements;
+
+  delete[] map;
   memory->destroy(eatom);
   memory->destroy(vatom);
   memory->destroy(cvatom);
@@ -222,7 +234,7 @@ void Pair::init()
   // for manybody potentials
   // check if bonded exclusions could invalidate the neighbor list
 
-  if (manybody_flag && atom->molecular) {
+  if (manybody_flag && (atom->molecular != Atom::ATOMIC)) {
     int flag = 0;
     if (atom->nbonds > 0 && force->special_lj[1] == 0.0 &&
         force->special_coul[1] == 0.0) flag = 1;
@@ -774,6 +786,68 @@ void Pair::del_tally_callback(Compute *ptr)
   --num_tally_compute;
   for (i=found; i < num_tally_compute; ++i) {
     list_tally_compute[i] = list_tally_compute[i+1];
+  }
+}
+
+/* -------------------------------------------------------------------
+   build element to atom type mapping for manybody potentials
+   also clear and reset setflag[][] array and check missing entries
+---------------------------------------------------------------------- */
+
+void Pair::map_element2type(int narg, char **arg, bool update_setflag)
+{
+  int i,j;
+  const int ntypes = atom->ntypes;
+
+  // read args that map atom types to elements in potential file
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
+  // nelements = # of unique elements
+  // elements = list of element names
+
+  if (narg != ntypes)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  if (elements) {
+    for (i = 0; i < nelements; i++) delete[] elements[i];
+    delete[] elements;
+  }
+  elements = new char*[ntypes];
+  for (i = 0; i < ntypes; i++) elements[i] = nullptr;
+
+  nelements = 0;
+  map[0] = -1;
+  for (i = 1; i <= narg; i++) {
+    std::string entry = arg[i-1];
+    if (entry == "NULL") {
+      map[i] = -1;
+      continue;
+    }
+    for (j = 0; j < nelements; j++)
+      if (entry == elements[j]) break;
+    map[i] = j;
+    if (j == nelements) {
+      elements[j] = utils::strdup(entry);
+      nelements++;
+    }
+  }
+
+  // if requested, clear setflag[i][j] and set it for type pairs
+  // where both are mapped to elements in map.
+
+  if (update_setflag) {
+
+    int count = 0;
+    for (i = 1; i <= ntypes; i++) {
+      for (j = i; j <= ntypes; j++) {
+        setflag[i][j] = 0;
+        if ((map[i] >= 0) && (map[j] >= 0)) {
+          setflag[i][j] = 1;
+          count++;
+        }
+      }
+    }
+
+    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
   }
 }
 

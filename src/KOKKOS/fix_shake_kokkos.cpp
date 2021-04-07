@@ -156,7 +156,7 @@ void FixShakeKokkos<DeviceType>::init()
 {
   FixShake::init();
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
 
   if (rattle)
@@ -332,8 +332,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
 
   // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // reallocate per-atom arrays if necessary
 

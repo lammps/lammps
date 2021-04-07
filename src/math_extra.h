@@ -95,7 +95,7 @@ namespace MathExtra {
                         double dt);
 
   // shape matrix operations
-  // upper-triangular 3x3 matrix stored in Voigt notation as 6-vector
+  // upper-triangular 3x3 matrix stored in Voigt ordering as 6-vector
 
   inline void multiply_shape_shape(const double *one, const double *two,
                                    double *ans);
@@ -593,7 +593,7 @@ inline void MathExtra::scalar_times3(const double f, double m[3][3])
 
 /* ----------------------------------------------------------------------
    multiply 2 shape matrices
-   upper-triangular 3x3, stored as 6-vector in Voigt notation
+   upper-triangular 3x3, stored as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 inline void MathExtra::multiply_shape_shape(const double *one,

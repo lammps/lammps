@@ -48,7 +48,7 @@ endif
 
 PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
 	  granular kim kokkos kspace latte manybody mc message misc \
-	  mliap molecule mpiio mscg opt peri poems \
+	  mliap molecule mpiio mscg opt peri plugin poems \
 	  python qeq replica rigid shock snap spin srd voronoi
 
 PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
@@ -272,11 +272,13 @@ mpi-stubs:
 	@cd STUBS; $(MAKE) clean; $(MAKE)
 
 # install LAMMPS shared lib and Python wrapper for Python usage
-# include python package settings to
-#   automatically adapt name of python interpreter
+# include python package settings to automatically adapt name of
+# the python interpreter. must purge build folder to not install
+# unwanted outdated files.
 
 sinclude ../lib/python/Makefile.lammps
 install-python:
+	@rm -rf ../python/build
 	@$(PYTHON) ../python/install.py -v ../src/version.h \
 		-p ../python/lammps -l ../src/liblammps.so
 

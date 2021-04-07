@@ -47,6 +47,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   vector_flag = 1;
   size_vector = 3;
+  energy_global_flag = 1;
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
@@ -107,7 +108,6 @@ int FixIndent::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -153,7 +153,7 @@ void FixIndent::init()
       error->all(FLERR,"Variable for fix indent is not equal style");
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -163,7 +163,7 @@ void FixIndent::init()
 
 void FixIndent::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

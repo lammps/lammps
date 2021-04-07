@@ -54,7 +54,8 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
 
   qe2f = force->qe2f;
   xstr = ystr = zstr = nullptr;
@@ -128,7 +129,6 @@ FixEfield::~FixEfield()
 int FixEfield::setmask()
 {
   int mask = 0;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
@@ -209,7 +209,7 @@ void FixEfield::init()
       update->whichflag == 2 && estyle == NONE)
     error->all(FLERR,"Must use variable energy with fix efield");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -219,7 +219,7 @@ void FixEfield::init()
 
 void FixEfield::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -247,10 +247,9 @@ void FixEfield::post_force(int vflag)
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  // energy and virial setup
+  // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // reallocate efield array if necessary
 
@@ -309,7 +308,7 @@ void FixEfield::post_force(int vflag)
             v[3] = fx*unwrap[1];
             v[4] = fx*unwrap[2];
             v[5] = fy*unwrap[2];
-            v_tally(i, v);
+            v_tally(i,v);
           }
         }
     }

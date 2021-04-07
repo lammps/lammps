@@ -33,13 +33,8 @@ Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   id(nullptr), style(nullptr), contact(nullptr), list(nullptr),
   xstr(nullptr), ystr(nullptr), zstr(nullptr), tstr(nullptr)
 {
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
-
-  n = strlen(arg[1]) + 1;
-  style = new char[n];
-  strcpy(style,arg[1]);
+  id = utils::strdup(arg[0]);
+  style = utils::strdup(arg[1]);
 
   varshape = 0;
   xstr = ystr = zstr = tstr = nullptr;
@@ -338,23 +333,17 @@ void Region::options(int narg, char **arg)
       if (strcmp(arg[iarg+1],"NULL") != 0) {
         if (strstr(arg[iarg+1],"v_") != arg[iarg+1])
           error->all(FLERR,"Illegal region command");
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        xstr = new char[n];
-        strcpy(xstr,&arg[iarg+1][2]);
+        xstr = utils::strdup(&arg[iarg+1][2]);
       }
       if (strcmp(arg[iarg+2],"NULL") != 0) {
         if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
           error->all(FLERR,"Illegal region command");
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        ystr = new char[n];
-        strcpy(ystr,&arg[iarg+2][2]);
+        ystr = utils::strdup(&arg[iarg+2][2]);
       }
       if (strcmp(arg[iarg+3],"NULL") != 0) {
         if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
           error->all(FLERR,"Illegal region command");
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        zstr = new char[n];
-        strcpy(zstr,&arg[iarg+3][2]);
+        zstr = utils::strdup(&arg[iarg+3][2]);
       }
       moveflag = 1;
       iarg += 4;
@@ -363,9 +352,7 @@ void Region::options(int narg, char **arg)
       if (iarg+8 > narg) error->all(FLERR,"Illegal region command");
       if (strstr(arg[iarg+1],"v_") != arg[iarg+1])
         error->all(FLERR,"Illegal region command");
-      int n = strlen(&arg[iarg+1][2]) + 1;
-      tstr = new char[n];
-      strcpy(tstr,&arg[iarg+1][2]);
+      tstr = utils::strdup(&arg[iarg+1][2]);
       point[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       point[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       point[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);

@@ -23,20 +23,18 @@
 
 #include "pair_mgpt.h"
 
-#include <cmath>
-
-#include <cstring>
-#include <cassert>
-
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cassert>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

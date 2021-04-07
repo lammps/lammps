@@ -32,7 +32,6 @@
 #include "error.h"
 #include "fix_lb_fluid.h"
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -48,7 +47,7 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
   time_integrate = 1;
   rigid_flag = 1;
   create_attribute = 1;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_virial = 1;
 
   // perform initial allocation of atom-based arrays
@@ -737,8 +736,7 @@ void FixLbRigidPCSphere::setup(int vflag)
 
   // virial setup before call to set_v
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // Set the velocities
   set_v();
@@ -938,13 +936,10 @@ void FixLbRigidPCSphere::initial_integrate(int vflag)
   }
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   set_xv();
-
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -1188,8 +1183,6 @@ void FixLbRigidPCSphere::set_v()
 
       v_tally(1,&i,1.0,vr);
     }
-
-
   }
 
 }
@@ -1310,11 +1303,9 @@ void FixLbRigidPCSphere::set_xv()
 
       v_tally(1,&i,1.0,vr);
     }
-
   }
-
-
 }
+
 /* ----------------------------------------------------------------------
    remap xcm of each rigid body back into periodic simulation box
    done during pre_neighbor so will be after call to pbc()

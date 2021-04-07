@@ -139,10 +139,8 @@ void PairLocalDensity::compute(int eflag, int vflag)
   double p, *coeff;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
+  ev_init(eflag,vflag);
   phi = uLD = evdwl = fpair = rsqinv = 0.0;
-
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
 
   /* localrho = LD at each atom
      fp = derivative of embedding energy at each atom for each LD potential

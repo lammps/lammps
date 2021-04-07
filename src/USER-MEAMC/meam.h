@@ -17,7 +17,7 @@
 #include "math_const.h"         // IWYU pragma: export
 
 #include <cmath>
-#include <cstring>
+#include <string>
 
 #define maxelt 5
 
@@ -242,29 +242,29 @@ public:
   // only use single-element lattices if single=true
   // return false on failure
   // return true and set lat on success
-  static bool str_to_lat(const char* str, bool single, lattice_t& lat)
+  static bool str_to_lat(const std::string & str, bool single, lattice_t& lat)
   {
-    if (strcmp(str,"fcc") == 0) lat = FCC;
-    else if (strcmp(str,"bcc") == 0) lat = BCC;
-    else if (strcmp(str,"hcp") == 0) lat = HCP;
-    else if (strcmp(str,"dim") == 0) lat = DIM;
-    else if (strcmp(str,"dia") == 0) lat = DIA;
-    else if (strcmp(str,"dia3") == 0) lat = DIA3;
-    else if (strcmp(str,"lin") == 0) lat = LIN;
-    else if (strcmp(str,"zig") == 0) lat = ZIG;
-    else if (strcmp(str,"tri") == 0) lat = TRI;
+    if (str == "fcc") lat = FCC;
+    else if (str == "bcc") lat = BCC;
+    else if (str == "hcp") lat = HCP;
+    else if (str == "dim") lat = DIM;
+    else if (str == "dia") lat = DIA;
+    else if (str == "dia3") lat = DIA3;
+    else if (str == "lin") lat = LIN;
+    else if (str == "zig") lat = ZIG;
+    else if (str == "tri") lat = TRI;
     else {
       if (single)
         return false;
 
-      if (strcmp(str,"b1")  == 0) lat = B1;
-      else if (strcmp(str,"c11") == 0) lat = C11;
-      else if (strcmp(str,"l12") == 0) lat = L12;
-      else if (strcmp(str,"b2")  == 0) lat = B2;
-      else if (strcmp(str,"ch4")  == 0) lat = CH4;
-      else if (strcmp(str,"lin")  == 0) lat =LIN;
-      else if (strcmp(str,"zig")  == 0) lat = ZIG;
-      else if (strcmp(str,"tri")  == 0) lat = TRI;
+      if (str == "b1") lat = B1;
+      else if (str == "c11") lat = C11;
+      else if (str == "l12") lat = L12;
+      else if (str == "b2") lat = B2;
+      else if (str == "ch4") lat = CH4;
+      else if (str == "lin") lat =LIN;
+      else if (str == "zig") lat = ZIG;
+      else if (str == "tri") lat = TRI;
       else return false;
     }
     return true;

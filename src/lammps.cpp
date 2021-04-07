@@ -171,6 +171,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int restart2dump = 0;
   int restartremap = 0;
   int citeflag = 1;
+  int citescreen = CiteMe::TERSE;
+  int citelogfile = CiteMe::VERBOSE;
+  char *citefile = nullptr;
   int helpflag = 0;
 
   suffix = suffix2 = suffixp = nullptr;
@@ -190,7 +193,35 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   iarg = 1;
   while (iarg < narg) {
 
-    if (strcmp(arg[iarg],"-echo") == 0 ||
+    if (strcmp(arg[iarg],"-cite") == 0 ||
+               strcmp(arg[iarg],"-c") == 0) {
+      if (iarg+2 > narg)
+        error->universe_all(FLERR,"Invalid command-line argument");
+
+      if (strcmp(arg[iarg+1],"both") == 0) {
+        citescreen = CiteMe::VERBOSE;
+        citelogfile = CiteMe::VERBOSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"none") == 0) {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"screen") == 0) {
+        citescreen = CiteMe::VERBOSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = nullptr;
+      } else if (strcmp(arg[iarg+1],"log") == 0) {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::VERBOSE;
+        citefile = nullptr;
+      } else {
+        citescreen = CiteMe::TERSE;
+        citelogfile = CiteMe::TERSE;
+        citefile = arg[iarg+1];
+      }
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"-echo") == 0 ||
                strcmp(arg[iarg],"-e") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
@@ -605,7 +636,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   // allocate CiteMe class if enabled
 
-  if (citeflag) citeme = new CiteMe(this);
+  if (citeflag) citeme = new CiteMe(this,citescreen,citelogfile,citefile);
   else citeme = nullptr;
 
   // allocate input class now that MPI is fully setup
@@ -669,8 +700,8 @@ LAMMPS::~LAMMPS()
 {
   const int me = comm->me;
 
-  destroy();
   delete citeme;
+  destroy();
 
   if (num_package) {
     for (int i = 0; i < num_package; i++) {
@@ -811,12 +842,12 @@ void LAMMPS::post_create()
     if (strcmp(suffix,"omp") == 0 && !modify->check_package("OMP"))
       error->all(FLERR,"Using suffix omp without USER-OMP package installed");
 
-    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 1");
+    if (strcmp(suffix,"gpu") == 0) input->one("package gpu 0");
     if (strcmp(suffix,"intel") == 0) input->one("package intel 1");
     if (strcmp(suffix,"omp") == 0) input->one("package omp 0");
 
     if (suffix2) {
-      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 1");
+      if (strcmp(suffix2,"gpu") == 0) input->one("package gpu 0");
       if (strcmp(suffix2,"intel") == 0) input->one("package intel 1");
       if (strcmp(suffix2,"omp") == 0) input->one("package omp 0");
     }
@@ -1111,7 +1142,8 @@ void _noopt LAMMPS::help()
           "-kokkos on/off ...          : turn KOKKOS mode on or off (-k)\n"
           "-log none/filename          : where to send log output (-l)\n"
           "-mpicolor color             : which exe in a multi-exe mpirun cmd (-m)\n"
-          "-nocite                     : disable writing log.cite file (-nc)\n"
+          "-cite                       : select citation reminder style (-c)\n"
+          "-nocite                     : disable citation reminder (-nc)\n"
           "-package style ...          : invoke package command (-pk)\n"
           "-partition size1 size2 ...  : assign partition sizes (-p)\n"
           "-plog basename              : basename for partition logs (-pl)\n"

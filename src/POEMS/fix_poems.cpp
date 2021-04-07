@@ -73,7 +73,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   time_integrate = 1;
   rigid_flag = 1;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   dof_flag = 1;
@@ -389,7 +389,7 @@ void FixPOEMS::init()
 
   // rRESPA info
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     step_respa = ((Respa *) update->integrate)->step;
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   }
@@ -684,8 +684,7 @@ void FixPOEMS::setup(int vflag)
 
   // virial setup before call to set_v
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set velocities from angmom & omega
 
@@ -732,8 +731,7 @@ void FixPOEMS::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set coords and velocities of atoms in rigid bodies
 

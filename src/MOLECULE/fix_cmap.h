@@ -67,7 +67,7 @@ class FixCMAP : public Fix {
  private:
   int nprocs,me;
   int newton_bond,eflag_caller;
-  int ctype,nlevels_respa;
+  int ctype,ilevel_respa;
   int ncrosstermtypes,crossterm_per_atom,maxcrossterm;
   int ncrosstermlist;
   bigint ncmap;

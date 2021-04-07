@@ -11,20 +11,20 @@
 
 #include "pair_lj_class2.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -36,6 +36,7 @@ PairLJClass2::PairLJClass2(LAMMPS *lmp) : Pair(lmp)
   respa_enable = 1;
   writedata = 1;
   centroidstressflag = CENTROID_SAME;
+  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

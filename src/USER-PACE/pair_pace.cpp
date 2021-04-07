@@ -293,7 +293,7 @@ void PairPACE::coeff(int narg, char **arg) {
 
   map_element2type(narg-3,arg+3);
 
-  char *potential_file_name = arg[2];
+  auto potential_file_name = utils::get_potential_file_path(arg[2]);
   char **elemtypes = &arg[3];
 
   //load potential file

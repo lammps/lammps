@@ -138,8 +138,8 @@ vector or columns of the array had been listed one by one.  E.g. these
 .. code-block:: LAMMPS
 
    compute myCOM all com/chunk
-   fix 1 all ave/histo 100 1 100 c_myCOM[*] file tmp1.com mode vector
-   fix 2 all ave/histo 100 1 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
+   fix 1 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[*] file tmp1.com mode vector
+   fix 2 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
 
 If the fix ave/histo/weight command is used, exactly two values must
 be specified.  If the values are vectors, they must be the same

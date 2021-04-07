@@ -23,6 +23,7 @@ class TestConfigReader : public YamlReader<TestConfigReader> {
 public:
     TestConfigReader(TestConfig &config);
 
+    void skip_tests(const yaml_event_t &event);
     void prerequisites(const yaml_event_t &event);
     void pre_commands(const yaml_event_t &event);
     void post_commands(const yaml_event_t &event);

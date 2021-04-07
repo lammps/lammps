@@ -1,11 +1,13 @@
 message(STATUS "Downloading and building OpenCL loader library")
+set(OPENCL_LOADER_URL "${LAMMPS_THIRDPARTY_URL}/opencl-loader-2020.12.18.tar.gz" CACHE STRING "URL for OpenCL loader tarball")
+set(OPENCL_LOADER_MD5 "011cdcbd41030be94f3fced6d763a52a" CACHE STRING "MD5 checksum of OpenCL loader tarball")
+mark_as_advanced(OPENCL_LOADER_URL)
+mark_as_advanced(OPENCL_LOADER_MD5)
 
 include(ExternalProject)
-set(OPENCL_LOADER_URL "https://download.lammps.org/thirdparty/opencl-loader-2020.12.18.tar.gz" CACHE STRING "URL for OpenCL loader tarball")
-mark_as_advanced(OPENCL_LOADER_URL)
 ExternalProject_Add(opencl_loader
-                    URL ${OPENCL_LOADER_URL}
-                    URL_MD5         011cdcbd41030be94f3fced6d763a52a
+                    URL             ${OPENCL_LOADER_URL}
+                    URL_MD5         ${OPENCL_LOADER_MD5}
                     SOURCE_DIR      "${CMAKE_BINARY_DIR}/opencl_loader-src"
                     BINARY_DIR      "${CMAKE_BINARY_DIR}/opencl_loader-build"
                     CMAKE_ARGS      ${CMAKE_REQUEST_PIC} ${CMAKE_EXTRA_OPENCL_LOADER_OPTS}

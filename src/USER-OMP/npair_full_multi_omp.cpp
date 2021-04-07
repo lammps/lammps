@@ -98,7 +98,7 @@ void NPairFullMultiOmp::build(NeighList *list)
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
       // if same collection use own bin
-      if(icollection == jcollection) jbin = ibin;
+      if (icollection == jcollection) jbin = ibin;
 	  else jbin = coord2bin(x[i], jcollection);
 
       // loop over all atoms in surrounding bins in stencil including self

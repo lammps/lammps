@@ -272,10 +272,10 @@ void NStencil::create_setup()
     double stencil_range;
     int n = ncollections;
     
-    if(nb) copy_bin_info_multi();
+    if (nb) copy_bin_info_multi();
 
     // Deallocate arrays if previously allocated
-    if(n > maxcollections and stencil_multi){  
+    if((n > maxcollections) && stencil_multi){  
       memory->destroy(nstencil_multi);
       for (i = 0; i < maxcollections; i++) {
         for (j = 0; j < maxcollections; j++)
@@ -299,7 +299,7 @@ void NStencil::create_setup()
     }      
       
     // Allocate arrays 
-    if(!maxstencil_multi) {   
+    if (!maxstencil_multi) {   
       memory->create(flag_half_multi, n, n, 
                      "neighstencil:flag_half_multi");
       memory->create(flag_skip_multi, n, n, 

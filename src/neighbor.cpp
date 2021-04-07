@@ -359,16 +359,16 @@ void Neighbor::init()
   cutneighmaxsq = cutneighmax * cutneighmax;
 
   // Define cutoffs for multi
-  if(style == Neighbor::MULTI){
+  if (style == Neighbor::MULTI) {
     int icollection, jcollection;
     
     // If collections not yet defined, create default map using types
-    if(not custom_collection_flag) {
+    if (not custom_collection_flag) {
       ncollections = n;
       interval_collection_flag = 0;
-      if(not type2collection)
+      if (not type2collection)
         memory->create(type2collection,n+1,"neigh:type2collection");  
-      for(i = 1; i <= n; i++)
+      for (i = 1; i <= n; i++)
         type2collection[i] = i-1;
     }  
 
@@ -384,30 +384,30 @@ void Neighbor::init()
     //    
     
     // Define collection cutoffs 
-    for(i = 0; i < ncollections; i++)
-      for(j = 0; j < ncollections; j++)
+    for (i = 0; i < ncollections; i++)
+      for (j = 0; j < ncollections; j++)
         cutcollectionsq[i][j] = 0.0;    
     
-    if(not interval_collection_flag){    
+    if (not interval_collection_flag) {    
       finite_cut_flag = 0;
-      for(i = 1; i <= n; i++){
+      for (i = 1; i <= n; i++){
         icollection = type2collection[i];
-        for(j = 1; j <= n; j++){
+        for (j = 1; j <= n; j++){
           jcollection = type2collection[j];
-          if(cutneighsq[i][j] > cutcollectionsq[icollection][jcollection]) {
+          if (cutneighsq[i][j] > cutcollectionsq[icollection][jcollection]) {
             cutcollectionsq[icollection][jcollection] = cutneighsq[i][j];
             cutcollectionsq[jcollection][icollection] = cutneighsq[i][j];
           }
         }
       }
     } else {
-      if(force->pair->finitecutflag){
+      if (force->pair->finitecutflag) {
         finite_cut_flag = 1;
         // If cutoffs depend on finite atom sizes, use radii of intervals to find cutoffs  
         double ri, rj, tmp;
-        for(i = 0; i < ncollections; i++){
+        for (i = 0; i < ncollections; i++){
           ri = collection2cut[i]*0.5;
-          for(j = 0; j < ncollections; j++){
+          for (j = 0; j < ncollections; j++){
             rj = collection2cut[j]*0.5;
             tmp = force->pair->radii2cut(ri, rj) + skin;
             cutcollectionsq[i][j] = tmp*tmp;                                            
@@ -417,33 +417,33 @@ void Neighbor::init()
         finite_cut_flag = 0;
         
         // Map types to collections
-        if(not type2collection)
+        if (not type2collection)
           memory->create(type2collection,n+1,"neigh:type2collection");  
         
-        for(i = 1; i <= n; i++)
+        for (i = 1; i <= n; i++)
           type2collection[i] = -1;
         
         double cuttmp;
-        for(i = 1; i <= n; i++){
+        for (i = 1; i <= n; i++){
           // Remove skin added to cutneighsq
           cuttmp = sqrt(cutneighsq[i][i]) - skin;
-          for(icollection = 0; icollection < ncollections; icollection ++){
-            if(collection2cut[icollection] >= cuttmp) {
+          for (icollection = 0; icollection < ncollections; icollection ++){
+            if (collection2cut[icollection] >= cuttmp) {
               type2collection[i] = icollection;
               break;
             }
           }
           
-          if(type2collection[i] == -1)
+          if (type2collection[i] == -1)
             error->all(FLERR, "Pair cutoff exceeds interval cutoffs for multi");
         }          
         
         // Define cutoffs
-        for(i = 1; i <= n; i++){
+        for (i = 1; i <= n; i++){
           icollection = type2collection[i];
-          for(j = 1; j <= n; j++){
+          for (j = 1; j <= n; j++){
             jcollection = type2collection[j];
-            if(cutneighsq[i][j] > cutcollectionsq[icollection][jcollection]) {
+            if (cutneighsq[i][j] > cutcollectionsq[icollection][jcollection]) {
               cutcollectionsq[icollection][jcollection] = cutneighsq[i][j];
               cutcollectionsq[jcollection][icollection] = cutneighsq[i][j];
             }
@@ -2175,7 +2175,7 @@ void Neighbor::build(int topoflag)
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   // rebuild collection array from scratch
-  if(style == Neighbor::MULTI) build_collection(0);
+  if (style == Neighbor::MULTI) build_collection(0);
 
   // check that using special bond flags will not overflow neigh lists
 
@@ -2500,15 +2500,15 @@ void Neighbor::modify_params(int narg, char **arg)
         
       } else error->all(FLERR,"Illegal neigh_modify command");
     } else if (strcmp(arg[iarg],"collection/interval") == 0) {
-      if(style != Neighbor::MULTI)
+      if (style != Neighbor::MULTI)
         error->all(FLERR,"Cannot use collection/interval command without multi setting");
         
-      if(iarg+2 > narg)
+      if (iarg+2 > narg)
         error->all(FLERR,"Invalid collection/interval command");
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if(ncollections < 1)
+      if (ncollections < 1)
         error->all(FLERR,"Invalid collection/interval command");
-      if(iarg+1+ncollections > narg)
+      if (iarg+1+ncollections > narg)
         error->all(FLERR,"Invalid collection/interval command");
 
       int ntypes = atom->ntypes;
@@ -2521,26 +2521,26 @@ void Neighbor::modify_params(int narg, char **arg)
       // Set upper cutoff for each collection
       char *id;
       double cut_interval;
-      for(i = 0; i < ncollections; i++){
+      for (i = 0; i < ncollections; i++){
         cut_interval = utils::numeric(FLERR,arg[iarg+2+i],false,lmp);
         collection2cut[i] = cut_interval;
         
-        if(i != 0)
-          if(collection2cut[i-1] >= collection2cut[i])
+        if (i != 0)
+          if (collection2cut[i-1] >= collection2cut[i])
             error->all(FLERR,"Nonsequential interval cutoffs in collection/interval setting");
       }   
       
       iarg += 2 + ncollections;
     } else if (strcmp(arg[iarg],"collection/type") == 0) {
-      if(style != Neighbor::MULTI)
+      if (style != Neighbor::MULTI)
         error->all(FLERR,"Cannot use collection/type command without multi setting");
         
-      if(iarg+2 > narg)
+      if (iarg+2 > narg)
         error->all(FLERR,"Invalid collection/type command");
       ncollections = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if(ncollections < 1)
+      if (ncollections < 1)
         error->all(FLERR,"Invalid collection/interval command");      
-      if(iarg+1+ncollections > narg)
+      if (iarg+1+ncollections > narg)
         error->all(FLERR,"Invalid collection/type command");
 
       int ntypes = atom->ntypes;
@@ -2548,17 +2548,17 @@ void Neighbor::modify_params(int narg, char **arg)
       
       interval_collection_flag = 0;
       custom_collection_flag = 1;
-      if(not type2collection)
+      if (not type2collection)
         memory->create(type2collection,ntypes+1,"neigh:type2collection");  
 
       // Erase previous mapping
-      for(i = 1; i <= ntypes; i++)
+      for (i = 1; i <= ntypes; i++)
         type2collection[i] = -1;
 
       // For each custom range, define mapping for types in interval
       int nfield;
       char *str;
-      for(i = 0; i < ncollections; i++){
+      for (i = 0; i < ncollections; i++){
         n = strlen(arg[iarg+2+i]) + 1;
         str = new char[n];
         strcpy(str,arg[iarg+2+i]);
@@ -2570,7 +2570,7 @@ void Neighbor::modify_params(int narg, char **arg)
           utils::bounds(FLERR,field,1,ntypes,nlo,nhi,error);
 
           for (k = nlo; k <= nhi; k++) {
-            if(type2collection[k] != -1)
+            if (type2collection[k] != -1)
               error->all(FLERR,"Type specified more than once in collection/type commnd");
             type2collection[k] = i;
           }          
@@ -2580,8 +2580,8 @@ void Neighbor::modify_params(int narg, char **arg)
       }   
 
       // Check for undefined atom type 
-      for(i = 1; i <= ntypes; i++){
-        if(type2collection[i] == -1){
+      for (i = 1; i <= ntypes; i++){
+        if (type2collection[i] == -1) {
           error->all(FLERR,"Type missing in collection/type commnd");
         }
       }
@@ -2632,8 +2632,8 @@ int Neighbor::exclude_setting()
 int Neighbor::any_full()
 {
   int any_full = 0;
-  for(int i = 0; i < old_nrequest; i++) {
-    if(old_requests[i]->full) any_full = 1;
+  for (int i = 0; i < old_nrequest; i++) {
+    if (old_requests[i]->full) any_full = 1;
   }
   return any_full;
 }
@@ -2648,31 +2648,31 @@ void Neighbor::build_collection(int istart)
     error->all(FLERR, "Cannot define atom collections without neighbor style multi");
 
   int nmax = atom->nlocal+atom->nghost;
-  if(nmax > nmax_collection){
+  if (nmax > nmax_collection) {
     nmax_collection = nmax+DELTA_PERATOM;
     memory->grow(collection, nmax_collection, "neigh:collection");
   }
   
-  if(finite_cut_flag){
+  if (finite_cut_flag) {
     double cut;
     int icollection;
-    for(int i = istart; i < nmax; i++){
+    for (int i = istart; i < nmax; i++){
       cut = force->pair->atom2cut(i);
       collection[i] = -1;
       
-      for(icollection = 0; icollection < ncollections; icollection++){
-        if(collection2cut[icollection] >= cut) {
+      for (icollection = 0; icollection < ncollections; icollection++){
+        if (collection2cut[icollection] >= cut) {
           collection[i] = icollection;
           break;
         }
       }
   
-      if(collection[i] == -1)
+      if (collection[i] == -1)
         error->one(FLERR, "Atom cutoff exceeds interval cutoffs for multi");
     }
   } else {
     int *type = atom->type;
-    for(int i = istart; i < nmax; i++){
+    for (int i = istart; i < nmax; i++){
       collection[i] = type2collection[type[i]];
     }          
   }

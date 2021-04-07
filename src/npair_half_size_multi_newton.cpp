@@ -76,13 +76,13 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
         
       // if same collection use own bin
-      if(icollection == jcollection) jbin = ibin;
+      if (icollection == jcollection) jbin = ibin;
 	  else jbin = coord2bin(x[i], jcollection);
 
       // if same size: uses half stencil so check central bin
-      if(cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
+      if (cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
 
-        if(icollection == jcollection) js = bins[i];
+        if (icollection == jcollection) js = bins[i];
         else js = binhead_multi[jcollection][jbin];
         
         // if same collection, 
@@ -94,7 +94,7 @@ void NPairHalfSizeMultiNewton::build(NeighList *list)
         //   if j is ghost, only store if j coords are "above and to the right" of i          
           
 	    for (j = js; j >= 0; j = bins[j]) {
-          if(icollection != jcollection and j < i) continue;	        
+          if ((icollection != jcollection) && (j < i)) continue;	        
             
 	      if (j >= nlocal) {
 	        if (x[j][2] < ztmp) continue;

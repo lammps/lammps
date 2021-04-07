@@ -191,16 +191,16 @@ void CommTiled::setup()
     ncollections = neighbor->ncollections;
 
     // allocate memory for multi-style communication at setup as ncollections can change
-    if(ncollections_prior != ncollections){
+    if (ncollections_prior != ncollections) {
       memory->destroy(cutghostmulti);
       if (mode == Comm::MULTI)
         memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
         
-      for(i = 0; i < maxswap; i ++)
+      for (i = 0; i < maxswap; i ++)
         grow_swap_send_multi(i,DELTA_PROCS);
-      if(cutusermultiflag){
+      if (cutusermultiflag) {
         memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
-        for(i = ncollections_prior; i < ncollections; i++)
+        for (i = ncollections_prior; i < ncollections; i++)
           cutusermulti[i] = -1.0;    
       } 
       
@@ -209,12 +209,12 @@ void CommTiled::setup()
 
     // parse any cutoff/multi commands
     int nhi, nlo;
-    for(auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
+    for (auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
       utils::bounds(FLERR,it->first,0,ncollections,nlo,nhi,error);
-      if(nhi >= ncollections)
+      if (nhi >= ncollections)
         error->all(FLERR, "Unused collection id in comm_modify cutoff/multi command");
         
-      for (j=nlo; j<=nhi; ++j)
+      for (j = nlo; j <= nhi; ++j)
         cutusermulti[j] = it->second;
     }
     usermultiargs.clear();
@@ -236,7 +236,7 @@ void CommTiled::setup()
       }
       
       for (j = 0; j < ncollections; j++){
-        if(multi_reduce and cutcollectionsq[j][j] > cutcollectionsq[i][i]) continue;
+        if (multi_reduce && (cutcollectionsq[j][j] > cutcollectionsq[i][i])) continue;
         cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutcollectionsq[i][j]));
         cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutcollectionsq[i][j]));
         cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutcollectionsq[i][j]));
@@ -1066,7 +1066,7 @@ void CommTiled::borders()
   AtomVec *avec = atom->avec;
   
   // After exchanging, need to reconstruct collection array for border communication
-  if(mode == Comm::MULTI) neighbor->build_collection(0);  
+  if (mode == Comm::MULTI) neighbor->build_collection(0);  
 
   // send/recv max one = max # of atoms in single send/recv for any swap
   // send/recv max all = max # of atoms in all sends/recvs within any swap
@@ -1357,7 +1357,7 @@ void CommTiled::borders()
     if (n) {
       nprior = atom->nghost + atom->nlocal;
       atom->nghost += forward_recv_offset[iswap][n-1] + recvnum[iswap][n-1];
-      if(neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
+      if (neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
     }
   }
 
@@ -2405,7 +2405,7 @@ void CommTiled::grow_swap_send_multi(int i, int n)
 {
   memory->destroy(sendbox_multi[i]);
   
-  if(ncollections > 0)
+  if (ncollections > 0)
     memory->create(sendbox_multi[i],n,ncollections,6,"comm:sendbox_multi");
 }
 

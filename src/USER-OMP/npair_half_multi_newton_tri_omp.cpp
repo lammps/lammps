@@ -100,7 +100,7 @@ void NPairHalfMultiNewtonTriOmp::build(NeighList *list)
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
 
       // if same collection use own bin
-      if(icollection == jcollection) jbin = ibin;
+      if (icollection == jcollection) jbin = ibin;
 	  else jbin = coord2bin(x[i], jcollection);
       
       // loop over all atoms in bins in stencil
@@ -120,7 +120,7 @@ void NPairHalfMultiNewtonTriOmp::build(NeighList *list)
 	    for (j = js; j >= 0; j = bins[j]) {
                   
           // if same size (same collection), use half stencil            
-          if(cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
+          if (cutcollectionsq[icollection][icollection] == cutcollectionsq[jcollection][jcollection]){
             if (x[j][2] < ztmp) continue;
             if (x[j][2] == ztmp) {
               if (x[j][1] < ytmp) continue;

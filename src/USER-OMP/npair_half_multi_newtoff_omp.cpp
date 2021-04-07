@@ -100,7 +100,7 @@ void NPairHalfMultiNewtoffOmp::build(NeighList *list)
     for (jcollection = 0; jcollection < ncollections; jcollection++) {
         
       // if same collection use own bin
-      if(icollection == jcollection) jbin = ibin;
+      if (icollection == jcollection) jbin = ibin;
 	  else jbin = coord2bin(x[i], jcollection);
       
       // loop over all atoms in other bins in stencil including self
@@ -114,7 +114,7 @@ void NPairHalfMultiNewtoffOmp::build(NeighList *list)
       
       for (k = 0; k < ns; k++) {
 	    js = binhead_multi[jcollection][jbin + s[k]];
-	    for (j = js; j >=0; j = bins[j]) {
+	    for (j = js; j >= 0; j = bins[j]) {
 	      if (j <= i) continue;
            
           jtype = type[j];

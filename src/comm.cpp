@@ -246,15 +246,15 @@ void Comm::init()
   for (int i = 0; i < nfix; i++)
     if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
-  if(mode == Comm::MULTI and neighbor->style != Neighbor::MULTI)
+  if ((mode == Comm::MULTI) && (neighbor->style != Neighbor::MULTI))
     error->all(FLERR,"Cannot use comm mode multi without multi-style neighbor lists");
 
-  if(multi_reduce){
+  if (multi_reduce) {
     if (force->newton == 0)
       error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
     if (neighbor->any_full())
       error->all(FLERR,"Cannot use multi/reduce communication with a full neighbor list");
-    if(mode != Comm::MULTI)
+    if (mode != Comm::MULTI)
       error->all(FLERR,"Cannot use multi/reduce communication without mode multi");
   }
 }
@@ -293,11 +293,11 @@ void Comm::modify_params(int narg, char **arg)
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::MULTI) cutghostuser = 0.0;
         if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
-        if(cutusermulti){
+        if (cutusermulti) {
           memory->destroy(cutusermulti);
           cutusermulti = nullptr;
         }
-        if(cutusermultiold){
+        if (cutusermultiold) {
           memory->destroy(cutusermultiold);
           cutusermultiold = nullptr;
         }
@@ -306,7 +306,7 @@ void Comm::modify_params(int narg, char **arg)
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
         if (mode == Comm::MULTIOLD) cutghostuser = 0.0;
-        if(cutusermultiold){
+        if (cutusermultiold) {
           memory->destroy(cutusermultiold);
           cutusermultiold = nullptr;
         }
@@ -315,7 +315,7 @@ void Comm::modify_params(int narg, char **arg)
         // need to reset cutghostuser when switching comm mode
         if (mode == Comm::SINGLE) cutghostuser = 0.0;
         if (mode == Comm::MULTI) cutghostuser = 0.0;
-        if(cutusermulti){
+        if (cutusermulti) {
           memory->destroy(cutusermulti);
           cutusermulti = nullptr;
         }
@@ -743,8 +743,8 @@ double Comm::get_comm_cutoff()
   }
 
   // Check maximum interval size for neighbor multi
-  if(neighbor->interval_collection_flag){
-    for(int i = 0; i < neighbor->ncollections; i++){
+  if (neighbor->interval_collection_flag) {
+    for (int i = 0; i < neighbor->ncollections; i++){
       maxcommcutoff = MAX(maxcommcutoff, neighbor->collection2cut[i]);
     }        
   }

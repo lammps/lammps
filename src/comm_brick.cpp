@@ -145,9 +145,9 @@ void CommBrick::init()
     ncollections = neighbor->ncollections;
     allocate_multi(maxswap);
     memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
-    if(cutusermultiflag) {
+    if (cutusermultiflag) {
       memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
-      for(int i = ncollections_prior; i < ncollections; i++)
+      for (int i = ncollections_prior; i < ncollections; i++)
         cutusermulti[i] = -1.0;
     }    
     
@@ -206,15 +206,15 @@ void CommBrick::setup()
     ncollections = neighbor->ncollections;
 
     // reallocate memory for multi-style communication at setup if ncollections change
-    if(ncollections_prior != ncollections){
-      if(multilo) free_multi();
-      if(cutghostmulti) memory->destroy(cutghostmulti);
+    if (ncollections_prior != ncollections) {
+      if (multilo) free_multi();
+      if (cutghostmulti) memory->destroy(cutghostmulti);
     
       allocate_multi(maxswap);
       memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");  
-      if(cutusermultiflag) {
+      if (cutusermultiflag) {
         memory->grow(cutusermulti,ncollections,"comm:cutusermulti");
-        for(i = ncollections_prior; i < ncollections; i++)
+        for (i = ncollections_prior; i < ncollections; i++)
           cutusermulti[i] = -1.0;
       }
       
@@ -223,11 +223,11 @@ void CommBrick::setup()
   
     // parse any cutoff/multi commands
     int nhi, nlo;
-    for(auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
+    for (auto it = usermultiargs.begin(); it != usermultiargs.end(); it ++) {
       utils::bounds(FLERR,it->first,0,ncollections,nlo,nhi,error);
-      if(nhi >= ncollections)
+      if (nhi >= ncollections)
         error->all(FLERR, "Unused collection id in comm_modify cutoff/multi command");
-      for (j=nlo; j<=nhi; ++j)
+      for (j = nlo; j<=nhi; ++j)
         cutusermulti[j] = it->second;
     }
     usermultiargs.clear();
@@ -249,7 +249,7 @@ void CommBrick::setup()
       }
       
       for (j = 0; j < ncollections; j++){
-        if(multi_reduce and cutcollectionsq[j][j] > cutcollectionsq[i][i]) continue;
+        if (multi_reduce && (cutcollectionsq[j][j] > cutcollectionsq[i][i])) continue;
         cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutcollectionsq[i][j]));
         cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutcollectionsq[i][j]));
         cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutcollectionsq[i][j]));
@@ -815,7 +815,7 @@ void CommBrick::borders()
   AtomVec *avec = atom->avec;
 
   // After exchanging/sorting, need to reconstruct collection array for border communication
-  if(mode == Comm::MULTI) neighbor->build_collection(0);
+  if (mode == Comm::MULTI) neighbor->build_collection(0);
 
   // do swaps over all 3 dimensions
 
@@ -989,7 +989,7 @@ void CommBrick::borders()
       firstrecv[iswap] = atom->nlocal + atom->nghost;
       nprior = atom->nlocal + atom->nghost;
       atom->nghost += nrecv;
-      if(neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
+      if (neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
       
       iswap++;
     }

@@ -446,7 +446,7 @@ double PairPACE::init_one(int i, int j) {
     return basis_set->radial_functions->cut(map[i], map[j]);
 }
 
-/* ---------------------------------------------------------------------- 
+/* ----------------------------------------------------------------------
     extract method for extracting value of scale variable
  ---------------------------------------------------------------------- */
 void *PairPACE::extract(const char *str, int &dim)

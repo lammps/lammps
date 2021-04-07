@@ -15,8 +15,8 @@ Syntax
 
   .. parsed-literal::
 
-       *product* = use product algorithm for basis functions 
-       *recursive* = use recursive algorithm for basis functions 
+       *product* = use product algorithm for basis functions
+       *recursive* = use recursive algorithm for basis functions
 
 Examples
 """"""""
@@ -30,24 +30,24 @@ Examples
 Description
 """""""""""
 
-Pair style *pace* computes interactions using the Atomic Cluster 
-Expansion (ACE), which is a general expansion of the atomic energy in 
-multi-body basis functions. :ref:`(Drautz) <Drautz20191>`. 
-The *pace* pair style 
-provides an efficient implementation that 
+Pair style *pace* computes interactions using the Atomic Cluster
+Expansion (ACE), which is a general expansion of the atomic energy in
+multi-body basis functions. :ref:`(Drautz) <Drautz20191>`.
+The *pace* pair style
+provides an efficient implementation that
 is described in this paper :ref:`(Lysogorskiy) <Lysogorskiy20211>`.
 
 In ACE, the total energy is decomposed into a sum over
-atomic energies. The energy of atom *i* is expressed as a 
-linear or non-linear function of one or more density functions. 
+atomic energies. The energy of atom *i* is expressed as a
+linear or non-linear function of one or more density functions.
 By projecting the
 density onto a local atomic base, the lowest order contributions
 to the energy can be expressed as a set of scalar polynomials in
 basis function contributions summed over neighbor atoms.
 
 Only a single pair_coeff command is used with the *pace* style which
-specifies an ACE coefficient file followed by N additional arguments 
-specifying the mapping of ACE elements to LAMMPS atom types, 
+specifies an ACE coefficient file followed by N additional arguments
+specifying the mapping of ACE elements to LAMMPS atom types,
 where N is the number of LAMMPS atom types:
 
 * ACE coefficient file
@@ -61,7 +61,7 @@ the ACE file.
 
 The pair_style *pace* command may be followed by an optional keyword
 *product* or *recursive*, which determines which of two algorithms
-is used for the calculation of basis functions and derivatives. 
+is used for the calculation of basis functions and derivatives.
 The default is *recursive*.
 
 See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
@@ -92,7 +92,7 @@ Restrictions
 """"""""""""
 
 This pair style is part of the USER-PACE package.  It is only enabled if LAMMPS
-was built with that package. 
+was built with that package.
 See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands

@@ -1363,9 +1363,9 @@ fit to a large archive of quantum mechanical (DFT) data. The USER-PACE
 package provides an efficient implementation for running simulations
 with ACE potentials.
 
-**Authors:** 
+**Authors:**
 
-This package was written by Yury Lysogorskiy^1, 
+This package was written by Yury Lysogorskiy^1,
 Cas van der Oord^2, Anton Bochkarev^1,
 Sarath Menon^1, Matteo Rinaldi^1, Thomas Hammerschmidt^1, Matous Mrovec^1,
 Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.

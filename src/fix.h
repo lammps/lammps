@@ -155,7 +155,7 @@ class Fix : protected Pointers {
   virtual void copy_arrays(int, int, int) {}
   virtual void set_arrays(int) {}
   virtual void update_arrays(int, int) {}
-  virtual void set_molecule(int, tagint, int, double *, double *, double *) {}
+  virtual void set_molecule(int, tagint, int, double *, double *, double *);
   virtual void clear_bonus() {}
 
   virtual int pack_border(int, int *, double *) {return 0;}

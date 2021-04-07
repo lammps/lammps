@@ -793,7 +793,7 @@ void ReadData::command(int narg, char **arg)
     special.build();
   }
 
-  // for atom style template systems, count total bonds,angles,etc
+  // for atom style template just count total bonds, etc. from template(s)
 
   if (atom->molecular == Atom::TEMPLATE) {
     Molecule **onemols = atom->avec->onemols;
@@ -820,13 +820,6 @@ void ReadData::command(int narg, char **arg)
     MPI_Allreduce(&nangles,&atom->nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
     MPI_Allreduce(&ndihedrals,&atom->ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
     MPI_Allreduce(&nimpropers,&atom->nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
-
-    if (!force->newton_bond) {
-      atom->nbonds /= 2;
-      atom->nangles /= 3;
-      atom->ndihedrals /= 4;
-      atom->nimpropers /= 4;
-    }
 
     if (me == 0) {
       std::string mesg;

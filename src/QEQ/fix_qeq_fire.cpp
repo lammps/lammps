@@ -91,7 +91,7 @@ void FixQEqFire::init()
       error->warning(FLERR,"Fix qeq/fire tolerance may be too small"
                     " for damped fires");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   comb = (PairComb *) force->pair_match("comb",1);

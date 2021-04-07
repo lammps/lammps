@@ -250,7 +250,7 @@ accelerated styles exist.
 * :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`mie/cut <pair_mie>` - Mie potential
-* :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
+* :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field
 * :doc:`morse <pair_morse>` - Morse potential
 * :doc:`morse/smooth/linear <pair_morse>` - linear smoothed Morse potential

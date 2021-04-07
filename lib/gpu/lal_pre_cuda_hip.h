@@ -30,7 +30,7 @@
 // -------------------------------------------------------------------------
 
 
-#ifdef __HIP_PLATFORM_HCC__
+#if defined(__HIP_PLATFORM_HCC__) || defined(__HIP_PLATFORM_AMD__)
 #define CONFIG_ID 303
 #define SIMD_SIZE 64
 #else
@@ -161,7 +161,7 @@
 //                         KERNEL MACROS - TEXTURES
 // -------------------------------------------------------------------------
 
-#ifdef __HIP_PLATFORM_HCC__
+#if defined(__HIP_PLATFORM_HCC__) || defined(__HIP_PLATFORM_AMD__)
 #define _texture(name, type)  __device__ type* name
 #define _texture_2d(name, type)  __device__ type* name
 #else
@@ -201,7 +201,7 @@
   #define mu_tex mu_
 #endif
 
-#ifdef __HIP_PLATFORM_HCC__
+#if defined(__HIP_PLATFORM_HCC__) || defined(__HIP_PLATFORM_AMD__)
 
 #undef fetch4
 #undef fetch
@@ -266,7 +266,7 @@ typedef struct _double4 double4;
 #endif
 #endif
 
-#if defined(CUDA_PRE_NINE) || defined(__HIP_PLATFORM_HCC__)
+#if defined(CUDA_PRE_NINE) || defined(__HIP_PLATFORM_HCC__) || defined(__HIP_PLATFORM_AMD__)
 
   #ifdef _SINGLE_SINGLE
     #define shfl_down __shfl_down

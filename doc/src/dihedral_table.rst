@@ -15,10 +15,10 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   dihedral_style style interp Ntable
+   dihedral_style style interpolation Ntable
 
 * style = *table* or *table/cut*
-* interp = *linear* or *spline* = method of interpolation
+* interpolation = *linear* or *spline* = method of interpolation
 * Ntable = size of the internal lookup table
 
 Examples

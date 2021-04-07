@@ -55,6 +55,20 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
 
   nfunc = 0;
   pfuncs = nullptr;
+
+#if PY_MAJOR_VERSION >= 3
+#ifndef Py_LIMITED_API
+  // check for PYTHONUNBUFFERED environment variable
+  const char * PYTHONUNBUFFERED = getenv("PYTHONUNBUFFERED");
+
+  if (PYTHONUNBUFFERED != nullptr && strcmp(PYTHONUNBUFFERED, "1") == 0) {
+    // Python Global configuration variable
+    // Force the stdout and stderr streams to be unbuffered.
+    Py_UnbufferedStdioFlag = 1;
+  }
+#endif
+#endif
+
   // one-time initialization of Python interpreter
   // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();
@@ -496,6 +510,7 @@ int PythonImpl::create_entry(char *name)
                  "cannot be used unless output is a string");
     pfuncs[ifunc].length_longstr = length_longstr;
     pfuncs[ifunc].longstr = new char[length_longstr+1];
+    pfuncs[ifunc].longstr[length_longstr] = '\0';
   }
 
   if (strstr(ostr,"v_") != ostr) error->all(FLERR,"Invalid python command");

@@ -125,7 +125,7 @@ CMake build
                                 # default is sm_50
    -D HIP_ARCH=value            # primary GPU hardware choice for GPU_API=hip
                                 # value depends on selected HIP_PLATFORM
-                                # default is 'gfx906' for HIP_PLATFORM=hcc and 'sm_50' for HIP_PLATFORM=nvcc
+                                # default is 'gfx906' for HIP_PLATFORM=amd and 'sm_50' for HIP_PLATFORM=nvcc
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
                                 # value = yes (default) or no
    -D CUDPP_OPT=value           # use GPU binning on with CUDA (should be off for modern GPUs)
@@ -169,14 +169,21 @@ desired, you can set :code:`USE_STATIC_OPENCL_LOADER` to :code:`no`.
 
 If you are compiling with HIP, note that before running CMake you will have to
 set appropriate environment variables. Some variables such as
-:code:`HCC_AMDGPU_TARGET` or :code:`CUDA_PATH` are necessary for :code:`hipcc`
+:code:`HCC_AMDGPU_TARGET` (for ROCm <= 4.0) or :code:`CUDA_PATH` are necessary for :code:`hipcc`
 and the linker to work correctly.
 
 .. code:: bash
 
-   # AMDGPU target
+   # AMDGPU target (ROCm <= 4.0)
    export HIP_PLATFORM=hcc
    export HCC_AMDGPU_TARGET=gfx906
+   cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
+   make -j 4
+
+.. code:: bash
+
+   # AMDGPU target (ROCm >= 4.1)
+   export HIP_PLATFORM=amd
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
    make -j 4
 

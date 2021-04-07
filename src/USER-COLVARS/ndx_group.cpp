@@ -78,7 +78,6 @@ void Ndx2Group::command(int narg, char **arg)
   int len;
   bigint num;
   FILE *fp;
-  tagint *tagbuf;
   std::string name = "", next;
 
   if (narg < 1) error->all(FLERR,"Illegal ndx2group command");
@@ -191,11 +190,10 @@ void Ndx2Group::create(const std::string &name, const std::vector<tagint> &tags)
   // map from global to local
   const int nlocal = atom->nlocal;
   int *flags = (int *)calloc(nlocal,sizeof(int));
-  for (bigint i=0; i < tags.size(); ++i) {
+  for (bigint i=0; i < (int)tags.size(); ++i) {
     const int id = atom->map(tags[i]);
     if (id < nlocal && id >= 0) flags[id] = 1;
   }
   group->create(name,flags);
   free(flags);
 }
-

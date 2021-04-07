@@ -15,6 +15,8 @@
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
+#include "output.h"
+#include "thermo.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -24,7 +26,7 @@
 using ::testing::Eq;
 
 char *BINARY2TXT_BINARY = nullptr;
-bool verbose = false;
+bool verbose            = false;
 
 class DumpAtomTest : public MeltTest {
     std::string dump_style = "atom";
@@ -32,28 +34,35 @@ class DumpAtomTest : public MeltTest {
 public:
     void enable_triclinic()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("change_box all triclinic");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void generate_dump(std::string dump_file, std::string dump_modify_options, int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {}", dump_style, dump_file));
 
         if (!dump_modify_options.empty()) {
             command(fmt::format("dump_modify id {}", dump_modify_options));
         }
 
-        command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        command(fmt::format("run {} post no", ntimesteps));
+        END_HIDE_OUTPUT();
+    }
+
+    void continue_dump(int ntimesteps)
+    {
+        BEGIN_HIDE_OUTPUT();
+        command(fmt::format("run {} pre no post no", ntimesteps));
+        END_HIDE_OUTPUT();
     }
 
     void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
                                        std::string dump_modify_options, int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {}", dump_style, text_file));
         command(fmt::format("dump id1 all {} 1 {}", dump_style, binary_file));
 
@@ -62,16 +71,16 @@ public:
             command(fmt::format("dump_modify id1 {}", dump_modify_options));
         }
 
-        command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        command(fmt::format("run {} post no", ntimesteps));
+        END_HIDE_OUTPUT();
     }
 
     std::string convert_binary_to_text(std::string binary_file)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         std::string cmdline = fmt::format("{} {}", BINARY2TXT_BINARY, binary_file);
         system(cmdline.c_str());
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
         return fmt::format("{}.txt", binary_file);
     }
 };
@@ -446,13 +455,16 @@ TEST_F(DumpAtomTest, binary_triclinic_with_image_run0)
     delete_file(converted_file);
 }
 
-TEST_F(DumpAtomTest, run1)
+TEST_F(DumpAtomTest, run1plus1)
 {
-    auto dump_file = "dump_run1.melt";
+    auto dump_file = "dump_run1plus1.melt";
     generate_dump(dump_file, "", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 82);
+    continue_dump(1);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 123);
     delete_file(dump_file);
 }
 
@@ -463,6 +475,34 @@ TEST_F(DumpAtomTest, run2)
 
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 123);
+    delete_file(dump_file);
+}
+
+TEST_F(DumpAtomTest, rerun)
+{
+    auto dump_file = "dump_rerun.melt";
+    HIDE_OUTPUT([&] {
+        command("fix 1 all nve");
+    });
+    generate_dump(dump_file, "format line \"%d %d %20.15g %20.15g %20.15g\"", 1);
+    double pe_1, pe_2, pe_rerun;
+    lmp->output->thermo->evaluate_keyword("pe", &pe_1);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 82);
+    continue_dump(1);
+    lmp->output->thermo->evaluate_keyword("pe", &pe_2);
+    ASSERT_FILE_EXISTS(dump_file);
+    ASSERT_EQ(count_lines(dump_file), 123);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
     delete_file(dump_file);
 }
 
@@ -504,27 +544,27 @@ TEST_F(DumpAtomTest, per_processor_multi_file_run1)
 
 TEST_F(DumpAtomTest, dump_modify_scale_invalid)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("dump id all atom 1 dump.txt");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id scale true"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_image_invalid)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("dump id all atom 1 dump.txt");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id image true"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_invalid)
 {
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("dump id all atom 1 dump.txt");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id true"););
 }
@@ -534,12 +574,12 @@ TEST_F(DumpAtomTest, write_dump)
     auto reference = "dump_ref_run0.melt";
     auto dump_file = "write_dump_atom_run0.melt";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id all atom 1 {}", reference));
     command("dump_modify id scale no units yes");
     command("run 0");
     command("write_dump all atom write_dump_atom_run*.melt modify scale no units yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     ASSERT_FILE_EXISTS(reference);
     ASSERT_FILE_EXISTS(dump_file);
@@ -556,12 +596,12 @@ TEST_F(DumpAtomTest, binary_write_dump)
     auto reference = "dump_run0.melt.bin";
     auto dump_file = "write_dump_atom_run0_p0.melt.bin";
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command(fmt::format("dump id all atom 1 {}", reference));
     command("dump_modify id scale no units yes");
     command("run 0");
     command("write_dump all atom write_dump_atom_run*_p%.melt.bin modify scale no units yes");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     ASSERT_FILE_EXISTS(reference);
     ASSERT_FILE_EXISTS(dump_file);

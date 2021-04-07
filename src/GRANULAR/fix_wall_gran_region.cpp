@@ -16,25 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_gran_region.h"
-#include <cstring>
-#include "region.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "update.h"
-#include "memory.h"
-#include "error.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
 #include "neighbor.h"
+#include "region.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-// same as FixWallGran
-
-enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,GRANULAR};
-enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
-
-#define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
 
@@ -186,7 +181,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     if (mask[i] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) continue;
 
-      if (pairstyle == GRANULAR && normal_model == JKR) {
+      if (pairstyle == FixWallGran::GRANULAR && normal_model == FixWallGran::JKR) {
         nc = region->surface(x[i][0],x[i][1],x[i][2],
                              radius[i]+pulloff_distance(radius[i]));
       }
@@ -228,7 +223,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
         rsq = region->contact[ic].r*region->contact[ic].r;
 
-        if (pairstyle == GRANULAR && normal_model == JKR) {
+        if (pairstyle == FixWallGran::GRANULAR && normal_model == FixWallGran::JKR) {
           if (history_many[i][c2r[ic]][0] == 0.0 && rsq > radius[i]*radius[i]) {
             for (m = 0; m < size_history; m++)
               history_many[i][0][m] = 0.0;
@@ -264,18 +259,18 @@ void FixWallGranRegion::post_force(int /*vflag*/)
         else
           contact = nullptr;
 
-        if (pairstyle == HOOKE)
+        if (pairstyle == FixWallGran::HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
               omega[i],torque[i],radius[i],meff, contact);
-        else if (pairstyle == HOOKE_HISTORY)
+        else if (pairstyle == FixWallGran::HOOKE_HISTORY)
           hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],
               omega[i],torque[i],radius[i],meff,
               history_many[i][c2r[ic]], contact);
-        else if (pairstyle == HERTZ_HISTORY)
+        else if (pairstyle == FixWallGran::HERTZ_HISTORY)
           hertz_history(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
               v[i],f[i],omega[i],torque[i],
               radius[i],meff,history_many[i][c2r[ic]], contact);
-        else if (pairstyle == GRANULAR)
+        else if (pairstyle == FixWallGran::GRANULAR)
           granular(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
                    v[i],f[i],omega[i],torque[i],
                    radius[i],meff,history_many[i][c2r[ic]],contact);

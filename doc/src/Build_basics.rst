@@ -1,7 +1,7 @@
 Basic build options
 ===================
 
-The following topics are covered on this page, for building both with
+The following topics are covered on this page, for building with both
 CMake and make:
 
 * :ref:`Serial vs parallel build <serial>`

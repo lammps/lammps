@@ -188,7 +188,7 @@ Restrictions
 The *gayberne* style is part of the ASPHERE package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
-These pair style require that atoms store torque and a quaternion to
+These pair styles require that atoms store torque and a quaternion to
 represent their orientation, as defined by the
 :doc:`atom_style <atom_style>`.  It also require they store a per-type
 :doc:`shape <set>`.  The particles cannot store a per-particle

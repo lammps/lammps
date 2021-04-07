@@ -19,22 +19,24 @@
 
 #include "fix_rigid_nh_small.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "group.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
 #include "rigid_const.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -752,6 +754,8 @@ void FixRigidNHSmall::final_integrate()
 
 void FixRigidNHSmall::nhc_temp_integrate()
 {
+  if (g_f == 0) return;
+
   int i,j,k;
   double kt,gfkt_t,gfkt_r,tmp,ms,s,s2;
 
@@ -1146,6 +1150,8 @@ void FixRigidNHSmall::compute_press_target()
 
 void FixRigidNHSmall::nh_epsilon_dot()
 {
+  if (g_f == 0) return;
+
   int i;
   double volume,scale,f_epsilon;
 
@@ -1202,8 +1208,6 @@ void FixRigidNHSmall::compute_dof()
   nf_r = nfall[1];
 
   g_f = nf_t + nf_r;
-  onednft = 1.0 + (double)(dimension) / (double)g_f;
-  onednfr = (double) (dimension) / (double)g_f;
 }
 
 /* ----------------------------------------------------------------------

@@ -59,7 +59,7 @@ void FixNVK::init()
   dtv = update->dt;
   dtf = 0.5 * update->dt;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     error->all(FLERR,"Fix nvk not yet enabled for RESPA");
     step_respa = ((Respa *) update->integrate)->step;
   }

@@ -1588,6 +1588,7 @@ lammps
 Lammps
 LAMMPS
 lammpsplot
+lammpsplugin
 Lampis
 Lamoureux
 Lanczos

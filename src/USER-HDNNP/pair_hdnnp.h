@@ -63,7 +63,7 @@ class PairHDNNP : public Pair {
   double cfenergy;
   double maxCutoffRadius;
   char *directory;
-  char *emap;
+  std::string emap;
   nnp::InterfaceLammps *interface;
 };
 

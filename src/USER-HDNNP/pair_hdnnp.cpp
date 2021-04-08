@@ -119,7 +119,10 @@ void PairHDNNP::settings(int narg, char **arg)
 {
   int iarg = 0;
 
-  if (narg == 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 1) error->all(FLERR,"Illegal pair_style command");
+
+  maxCutoffRadius = utils::numeric(FLERR,arg[0],false,lmp);
+  iarg++;
 
   // default settings
   directory = utils::strdup("hdnnp/");
@@ -129,7 +132,6 @@ void PairHDNNP::settings(int narg, char **arg)
   resetew = false;
   cflength = 1.0;
   cfenergy = 1.0;
-  emap = utils::strdup("");
   numExtrapolationWarningsTotal = 0;
   numExtrapolationWarningsSummary = 0;
 
@@ -139,18 +141,7 @@ void PairHDNNP::settings(int narg, char **arg)
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal pair_style command");
       delete[] directory;
-      len = strlen(arg[iarg+1]) + 2;
-      directory = new char[len];
-      sprintf(directory, "%s/", arg[iarg+1]);
-      iarg += 2;
-    // element mapping
-    } else if (strcmp(arg[iarg],"emap") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal pair_style command");
-      delete[] emap;
-      len = strlen(arg[iarg+1]) + 1;
-      emap = new char[len];
-      sprintf(emap, "%s", arg[iarg+1]);
+      directory = utils::strdup(arg[iarg+1]);
       iarg += 2;
     // show extrapolation warnings
     } else if (strcmp(arg[iarg],"showew") == 0) {
@@ -208,26 +199,39 @@ void PairHDNNP::settings(int narg, char **arg)
 
 void PairHDNNP::coeff(int narg, char **arg)
 {
+  int n = atom->ntypes;
+
   if (!allocated) allocate();
 
-  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 2 + n)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
-  int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
+    error->all(FLERR,"Incorrect args for pair coefficients");
 
-  maxCutoffRadius = utils::numeric(FLERR,arg[2],false,lmp);
+  int *map = new int[n+1];
+  for (int i = 0; i < n; i++) map[i] = 0;
 
-  // TODO: Check how this flag is set.
-  int count = 0;
-  for(int i=ilo; i<=ihi; i++) {
-    for(int j=MAX(jlo,i); j<=jhi; j++) {
-      setflag[i][j] = 1;
-      count++;
+  emap = "";
+  for (int i = 2; i < narg; i++) {
+    if (strcmp(arg[i],"NULL") != 0) {
+      if (i != 2) emap += ",";
+      emap += std::to_string(i-1) + ":" + arg[i];
+      map[i-1] = 1;
     }
   }
 
+  int count = 0;
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      if (map[i] > 0 && map[j] > 0) {
+        setflag[i][j] = 1;
+        count++;
+      }
+
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+
+  delete[] map;
 }
 
 /* ----------------------------------------------------------------------
@@ -237,7 +241,6 @@ void PairHDNNP::coeff(int narg, char **arg)
 void PairHDNNP::init_style()
 {
   int irequest = neighbor->request((void *) this);
-  neighbor->requests[irequest]->pair = 1;
   neighbor->requests[irequest]->half = 0;
   neighbor->requests[irequest]->full = 1;
 
@@ -254,7 +257,7 @@ void PairHDNNP::init_style()
 
   // Initialize interface on all processors.
   interface->initialize(directory,
-                        emap,
+                        emap.c_str(),
                         showew,
                         resetew,
                         showewsum,
@@ -294,7 +297,7 @@ void PairHDNNP::allocate()
     for (int j = i; j <= n; j++)
       setflag[i][j] = 0;
 
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(cutsq,n+1,n+1,"pair:cutsq"); // TODO: Is this required?
 }
 
 void PairHDNNP::transferNeighborList()

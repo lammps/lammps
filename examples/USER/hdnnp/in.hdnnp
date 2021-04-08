@@ -28,8 +28,8 @@ thermo 1
 ###############################################################################
 # HDNNP
 ###############################################################################
-pair_style hdnnp dir ${hdnnpDir} showew no showewsum 5 resetew no maxew 100 cflength 1.8897261328 cfenergy 0.0367493254 emap "1:H,2:O"
-pair_coeff * * ${hdnnpCutoff}
+pair_style hdnnp ${hdnnpCutoff} dir ${hdnnpDir} showew no showewsum 5 resetew no maxew 100 cflength 1.8897261328 cfenergy 0.0367493254
+pair_coeff * * H O
 
 ###############################################################################
 # INTEGRATOR

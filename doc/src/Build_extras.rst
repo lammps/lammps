@@ -52,6 +52,7 @@ This is the list of packages that may require additional steps.
    * :ref:`USER-MESONT <user-mesont>`
    * :ref:`USER-MOLFILE <user-molfile>`
    * :ref:`USER-NETCDF <user-netcdf>`
+   * :ref:`USER-PACE <user-pace>`
    * :ref:`USER-PLUMED <user-plumed>`
    * :ref:`USER-OMP <user-omp>`
    * :ref:`USER-QMMM <user-qmmm>`
@@ -1244,6 +1245,37 @@ be built for the most part with all major versions of the C++ language.
       (which also includes Lepton objects if enabled) and the specification file
       ``lib/colvars/Makefile.lammps``.  The latter is auto-generated, and normally does
       not need to be edited.
+
+----------
+
+.. _user-pace:
+
+USER-PACE package
+-----------------------------
+
+This package requires a library that can be downloaded and built 
+in lib/pace or somewhere else, which must be done before building 
+LAMMPS with this package. 
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      The library download and build will happen automatically when USER-PACE
+      is requested.
+
+   .. tab:: Traditional make
+
+      You can download and build the USER-PACE library
+      in one step from the ``lammps/src`` dir, using these commands, 
+      which invoke the ``lib/pace/Install.py`` script. 
+
+      .. code-block:: bash
+
+         $ make lib-pace                          # print help message
+         $ make lib-pace args="-b"                # download and build the default version in lib/pace
+
+      You should not need to edit the ``lib/pace/Makefile.lammps`` file.
 
 ----------
 

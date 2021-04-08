@@ -1378,6 +1378,10 @@ Aidan Thompson^3, Gabor Csanyi^2, Christoph Ortner^4, Ralf Drautz^1.
 
  ^4: University of British Columbia, Vancouver, BC, Canada
 
+**Install:**
+
+This package has :ref:`specific installation instructions <user-pace>` on the :doc:`Build extras <Build_extras>` page.
+
 **Supporting info:**
 
 * src/USER-PACE: filenames -> commands

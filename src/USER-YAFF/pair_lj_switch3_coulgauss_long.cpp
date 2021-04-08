@@ -581,7 +581,7 @@ double PairLJSwitch3CoulGaussLong::single(int i, int j, int itype, int jtype,
 {
   double r2inv,r6inv,r,grij,expm2,t,erfc1,prefactor,prefactor2;
   double fraction,table,forcecoul,forcecoul2,forcelj;
-  double rrij,expn2,erfc2,expb,ecoul,evdwl,trx,tr,ftr;
+  double rrij,expn2,erfc2,ecoul,evdwl,trx,tr,ftr;
 
   int itable;
 

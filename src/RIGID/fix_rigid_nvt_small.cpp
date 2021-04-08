@@ -18,6 +18,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nvt_small.h"
+
 #include "error.h"
 
 using namespace LAMMPS_NS;

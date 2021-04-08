@@ -12,11 +12,10 @@ OBJ =   $(SRC:.cpp=.o)
 
 
 # ------ SETTINGS ------
-CXXFLAGS = -O2 -fPIC -Isrc/USER-PACE
+CXXFLAGS = -O3 -fPIC -Isrc/USER-PACE
 
 ARCHIVE =	ar
 ARCHFLAG =	-rc
-DEPFLAGS =  -M
 USRLIB =
 SYSLIB =
 

@@ -18,11 +18,11 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "v.2021.2.3.upd"
+version = "v.2021.2.3.upd2"
 
 # known checksums for different PACE versions. used to validate the download.
 checksums = { \
-        'v.2021.2.3.upd' : '8041e3de7254815eb3ff0a11e2cc84ea', \
+        'v.2021.2.3.upd2' : '8fd1162724d349b930e474927197f20d', \
         }
 
 

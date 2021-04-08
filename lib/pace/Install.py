@@ -18,11 +18,11 @@ parser = ArgumentParser(prog='Install.py',
 # settings
 
 thisdir = fullpath('.')
-version = "v.2021.2.3"
+version = "v.2021.2.3.upd"
 
 # known checksums for different PACE versions. used to validate the download.
 checksums = { \
-        'v.2021.2.3' : '9ebb087cba7e4ca041fde52f7e9e640c', \
+        'v.2021.2.3.upd' : '8041e3de7254815eb3ff0a11e2cc84ea', \
         }
 
 
@@ -89,17 +89,9 @@ if buildflag:
   cmd = 'cd "%s"; rm -rf "%s"; tar -xvf %s; mv %s %s' % (thisdir, src_folder, archive_filename, unarchived_folder_name, src_folder)
   subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
 
-  # configure
-
-  build_folder = "%s/build"%(thisdir)
-  print("Configuring libpace ...")
-  cmd = 'cd %s && mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release' % (thisdir)
-  txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
-  if verboseflag: print(txt.decode("UTF-8"))
-
   # build
   print("Building libpace ...")
-  cmd = 'cd "%s" && make -j2 && cp libpace.a %s/' % (build_folder, thisdir)
+  cmd = 'make lib -j2'
   txt = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
   if verboseflag:
     print(txt.decode("UTF-8"))
@@ -107,5 +99,5 @@ if buildflag:
 #   remove source files
 
   print("Removing pace build files and archive ...")
-  cmd = 'rm %s; rm -rf %s' % (download_filename, build_folder)
+  cmd = 'rm %s; make clean-build' % (download_filename)
   subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)

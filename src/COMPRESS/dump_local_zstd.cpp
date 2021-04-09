@@ -155,6 +155,10 @@ void DumpLocalZstd::write_data(int n, double *mybuf)
         int written = 0;
         if (vtype[j] == Dump::INT) {
           written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int> (mybuf[m]));
+        } else if (vtype[j] == Dump::DOUBLE) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+        } else if (vtype[j] == Dump::BIGINT) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint> (mybuf[m]));
         } else {
           written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
         }

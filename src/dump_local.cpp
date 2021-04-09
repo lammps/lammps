@@ -179,6 +179,8 @@ void DumpLocal::init_style()
       vformat[i] = utils::strdup(std::string(format_int_user) + " ");
     else if (vtype[i] == Dump::DOUBLE && format_float_user)
       vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+    else if (vtype[i] == Dump::BIGINT && format_bigint_user)
+      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
     else vformat[i] = utils::strdup(word + " ");
     ++i;
   }
@@ -375,6 +377,10 @@ int DumpLocal::convert_string(int n, double *mybuf)
     for (j = 0; j < size_one; j++) {
       if (vtype[j] == Dump::INT)
         offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+      else if (vtype[j] == Dump::DOUBLE)
+        offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
+      else if (vtype[j] == Dump::BIGINT)
+        offset += sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
       else
         offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
       m++;
@@ -409,6 +415,8 @@ void DumpLocal::write_lines(int n, double *mybuf)
   for (i = 0; i < n; i++) {
     for (j = 0; j < size_one; j++) {
       if (vtype[j] == Dump::INT) fprintf(fp,vformat[j],static_cast<int> (mybuf[m]));
+      else if (vtype[j] == Dump::DOUBLE) fprintf(fp,vformat[j],mybuf[m]);
+      else if (vtype[j] == Dump::BIGINT) fprintf(fp,vformat[j],static_cast<bigint>(mybuf[m]));
       else fprintf(fp,vformat[j],mybuf[m]);
       m++;
     }

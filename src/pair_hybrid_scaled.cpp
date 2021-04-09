@@ -31,7 +31,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairHybridScaled::PairHybridScaled(LAMMPS *lmp)
-  : PairHybrid(lmp), fsum(nullptr), scaleval(nullptr), scaleidx(nullptr)
+  : PairHybrid(lmp), fsum(nullptr), tsum(nullptr),
+    scaleval(nullptr), scaleidx(nullptr)
 {
   nmaxfsum = -1;
 }
@@ -92,15 +93,23 @@ void PairHybridScaled::compute(int eflag, int vflag)
 
   if (atom->nmax > nmaxfsum) {
     memory->destroy(fsum);
+    if (atom->torque_flag) memory->destroy(tsum);
     nmaxfsum = atom->nmax;
     memory->create(fsum,nmaxfsum,3,"pair:fsum");
+    if (atom->torque_flag) memory->create(tsum,nmaxfsum,3,"pair:tsum");
   }
   const int nall = atom->nlocal + atom->nghost;
   auto f = atom->f;
+  auto t = atom->torque;
   for (i = 0; i < nall; ++i) {
     fsum[i][0] = f[i][0];
     fsum[i][1] = f[i][1];
     fsum[i][2] = f[i][2];
+    if (atom->torque_flag) {
+      tsum[i][0] = t[i][0];
+      tsum[i][1] = t[i][1];
+      tsum[i][2] = t[i][2];
+    }
   }
 
   // check if global component of incoming vflag = VIRIAL_FDOTR
@@ -147,6 +156,11 @@ void PairHybridScaled::compute(int eflag, int vflag)
       fsum[i][0] += scale*f[i][0];
       fsum[i][1] += scale*f[i][1];
       fsum[i][2] += scale*f[i][2];
+      if (atom->torque_flag) {
+        tsum[i][0] += scale*t[i][0];
+        tsum[i][1] += scale*t[i][1];
+        tsum[i][2] += scale*t[i][2];
+      }
     }
 
     restore_special(saved_special);
@@ -207,6 +221,11 @@ void PairHybridScaled::compute(int eflag, int vflag)
     f[i][0] = fsum[i][0];
     f[i][1] = fsum[i][1];
     f[i][2] = fsum[i][2];
+    if (atom->torque_flag) {
+      t[i][0] = tsum[i][0];
+      t[i][1] = tsum[i][1];
+      t[i][2] = tsum[i][2];
+    }
   }
   delete [] saved_special;
 

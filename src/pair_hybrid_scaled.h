@@ -43,7 +43,7 @@ class PairHybridScaled : public PairHybrid {
   void copy_svector(int,int);
 
  protected:
-  double **fsum;
+  double **fsum, **tsum;
   double *scaleval;
   int *scaleidx;
   std::vector<std::string> scalevars;

@@ -86,6 +86,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`pair_style <pair_style>`
    * :doc:`pair_write <pair_write>`
    * :doc:`partition <partition>`
+   * :doc:`plugin <plugin>`
    * :doc:`prd <prd>`
    * :doc:`print <print>`
    * :doc:`processors <processors>`

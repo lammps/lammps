@@ -134,11 +134,6 @@ static double cyc_splintD(double const *xa,
 
 } // cyc_splintD()
 
-// --------------------------------------------
-// ------- Calculate the dihedral angle -------
-// --------------------------------------------
-static const int g_dim=3;
-
 /* ---------------------------------------------------------------------- */
 
 DihedralTableCut::DihedralTableCut(LAMMPS *lmp) : DihedralTable(lmp)

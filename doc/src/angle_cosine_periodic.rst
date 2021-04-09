@@ -71,9 +71,3 @@ Default
 
 none
 
-----------
-
-.. _cosine-Mayo:
-
-**(Mayo)** Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
-(1990).

@@ -202,7 +202,7 @@ void FixWallBodyPolyhedron::init()
 
 void FixWallBodyPolyhedron::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
 }
 

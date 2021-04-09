@@ -109,20 +109,23 @@ class Modify : protected Pointers {
   void delete_fix(int);
   int find_fix(const std::string &);
   int find_fix_by_style(const char *);
-  int check_package(const char *);
-  int check_rigid_group_overlap(int);
-  int check_rigid_region_overlap(int, class Region *);
-  int check_rigid_list_overlap(int *);
 
   void add_compute(int, char **, int trysuffix=1);
   void add_compute(const std::string &, int trysuffix=1);
   void modify_compute(int, char **);
   void delete_compute(const std::string &);
+  void delete_compute(int);
   int find_compute(const std::string &);
+  int find_compute_by_style(const char *);
 
   void clearstep_compute();
   void addstep_compute(bigint);
   void addstep_compute_all(bigint);
+
+  int check_package(const char *);
+  int check_rigid_group_overlap(int);
+  int check_rigid_region_overlap(int, class Region *);
+  int check_rigid_list_overlap(int *);
 
   void write_restart(FILE *);
   int read_restart(FILE *);

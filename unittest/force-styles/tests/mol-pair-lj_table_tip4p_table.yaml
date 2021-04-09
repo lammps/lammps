@@ -1,6 +1,6 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:19 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:08:54 2021
 epsilon: 2.5e-09
 prerequisites: ! |
   atom full
@@ -8,7 +8,7 @@ prerequisites: ! |
   kspace pppm/disp/tip4p
 pre_commands: ! |
   variable newton_pair delete
-  variable newton_pair index on
+  if "$(is_active(package,gpu)) > 0.0" then "variable newton_pair index off" else "variable newton_pair index on"
 post_commands: ! |
   pair_modify mix arithmetic
   pair_modify table 16

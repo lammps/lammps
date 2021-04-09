@@ -223,6 +223,7 @@ void PairGranHookeHistoryOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         damp = meff*gamman*vnnr*rsqinv;
         ccel = kn*(radsum-r)*rinv - damp;
+        if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
         // relative velocities
 

@@ -21,7 +21,6 @@
 #include "domain.h"
 #include "dump_cfg_zstd.h"
 #include "error.h"
-#include "file_writer.h"
 #include "update.h"
 
 #include <cstring>
@@ -46,7 +45,7 @@ DumpCFGZstd::~DumpCFGZstd()
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or zstdipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 

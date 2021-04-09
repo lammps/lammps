@@ -25,6 +25,7 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -251,6 +252,10 @@ void PairPACE::allocate() {
 void PairPACE::settings(int narg, char **arg) {
   if (narg > 1)
     error->all(FLERR,"Illegal pair_style command.");
+
+  // ACE potentials are parameterized in metal units
+  if (strcmp("metal",update->unit_style) != 0)
+    error->all(FLERR,"ACE potentials require 'metal' units");
 
   recursive = true; // default evaluator style: RECURSIVE
   if (narg > 0) {

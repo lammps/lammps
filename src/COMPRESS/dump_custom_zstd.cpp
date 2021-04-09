@@ -20,7 +20,6 @@
 #include "domain.h"
 #include "dump_custom_zstd.h"
 #include "error.h"
-#include "file_writer.h"
 #include "update.h"
 
 #include <cstring>
@@ -79,7 +78,9 @@ void DumpCustomZstd::openfile()
         nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
-        remove(nameslist[fileidx]);
+        if (remove(nameslist[fileidx]) != 0) {
+          error->warning(FLERR, fmt::format("Could not delete {}", nameslist[fileidx]));
+        }
         delete[] nameslist[fileidx];
         nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
@@ -184,7 +185,7 @@ int DumpCustomZstd::modify_param(int narg, char **arg)
         return 2;
       }
     } catch (FileWriterException &e) {
-      error->one(FLERR, e.what());
+      error->one(FLERR, fmt::format("Illegal dump_modify command: {}", e.what()));
     }
   }
   return consumed;

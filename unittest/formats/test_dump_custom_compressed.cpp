@@ -58,6 +58,35 @@ TEST_F(DumpCustomCompressTest, compressed_run1)
     delete_file(converted_file);
 }
 
+TEST_F(DumpCustomCompressTest, compressed_with_time_run1)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+
+    auto base_name       = "with_time_custom_run1.melt";
+    auto text_file       = text_dump_filename(base_name);
+    auto compressed_file = compressed_dump_filename(base_name);
+    auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
+
+    if(compression_style == "custom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "time yes", "time yes checksum yes", 1);
+    } else {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, "time yes", 1);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
+
 TEST_F(DumpCustomCompressTest, compressed_triclinic_run1)
 {
     if (!COMPRESS_BINARY) GTEST_SKIP();
@@ -222,7 +251,7 @@ TEST_F(DumpCustomCompressTest, compressed_modify_bad_param)
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_bad_param_run0_*.melt.custom"), fields));
 
-    TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
+    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
         command("dump_modify id1 compression_level 12");
     );
 }
@@ -234,7 +263,7 @@ TEST_F(DumpCustomCompressTest, compressed_modify_multi_bad_param)
     auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
     command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_dump_filename("modify_multi_bad_param_run0_*.melt.custom"), fields));
 
-    TEST_FAILURE(".*ERROR: Illegal dump_modify command: compression level must in the range of.*",
+    TEST_FAILURE(".*ERROR on proc 0: Illegal dump_modify command: Compression level must in the range of.*",
         command("dump_modify id1 pad 3 compression_level 12");
     );
 }

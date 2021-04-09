@@ -27,7 +27,6 @@ DumpLocalGZ::DumpLocalGZ(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Dump local/gz only writes compressed files");
 }
 
-
 /* ---------------------------------------------------------------------- */
 
 DumpLocalGZ::~DumpLocalGZ()
@@ -72,7 +71,9 @@ void DumpLocalGZ::openfile()
         nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
-        remove(nameslist[fileidx]);
+        if (remove(nameslist[fileidx]) != 0) {
+          error->warning(FLERR, fmt::format("Could not delete {}", nameslist[fileidx]));
+        }
         delete[] nameslist[fileidx];
         nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;

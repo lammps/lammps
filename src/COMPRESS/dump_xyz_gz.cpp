@@ -71,7 +71,9 @@ void DumpXYZGZ::openfile()
         nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
-        remove(nameslist[fileidx]);
+        if (remove(nameslist[fileidx]) != 0) {
+          error->warning(FLERR, fmt::format("Could not delete {}", nameslist[fileidx]));
+        }
         delete[] nameslist[fileidx];
         nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;

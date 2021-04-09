@@ -26,9 +26,9 @@ OPT.
    * :doc:`zero <pair_zero>`
    * :doc:`hybrid (k) <pair_hybrid>`
    * :doc:`hybrid/overlay (k) <pair_hybrid>`
+   * :doc:`hybrid/scaled <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
-   *
    *
    *
    *

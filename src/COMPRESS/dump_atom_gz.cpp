@@ -11,15 +11,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "dump_atom_gz.h"
 #include "domain.h"
+#include "dump_atom_gz.h"
 #include "error.h"
-#include "file_writer.h"
 #include "update.h"
 
-
 #include <cstring>
-
 
 using namespace LAMMPS_NS;
 

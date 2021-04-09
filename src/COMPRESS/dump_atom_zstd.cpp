@@ -43,7 +43,7 @@ DumpAtomZstd::~DumpAtomZstd()
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or zstdipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -180,7 +180,7 @@ int DumpAtomZstd::modify_param(int narg, char **arg)
         return 2;
       }
     } catch (FileWriterException &e) {
-      error->one(FLERR, e.what());
+      error->one(FLERR, fmt::format("Illegal dump_modify command: {}", e.what()));
     }
   }
   return consumed;

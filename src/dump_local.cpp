@@ -225,6 +225,46 @@ int DumpLocal::modify_param(int narg, char **arg)
     delete [] label;
     label = utils::strdup(arg[1]);
     return 2;
+  } else if (strcmp(arg[0],"format") == 0) {
+    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+
+    if (strcmp(arg[1],"none") == 0) {
+      // just clear format_column_user allocated by this dump child class
+      for (int i = 0; i < nfield; i++) {
+        delete [] format_column_user[i];
+        format_column_user[i] = nullptr;
+      }
+      return 2;
+    } else if (strcmp(arg[1],"int") == 0) {
+      delete [] format_int_user;
+      format_int_user = utils::strdup(arg[2]);
+      delete [] format_bigint_user;
+      int n = strlen(format_int_user) + 8;
+      format_bigint_user = new char[n];
+      // replace "d" in format_int_user with bigint format specifier
+      // use of &str[1] removes leading '%' from BIGINT_FORMAT string
+      char *ptr = strchr(format_int_user,'d');
+      if (ptr == nullptr)
+        error->all(FLERR,
+                   "Dump_modify int format does not contain d character");
+      char str[8];
+      sprintf(str,"%s",BIGINT_FORMAT);
+      *ptr = '\0';
+      sprintf(format_bigint_user,"%s%s%s",format_int_user,&str[1],ptr+1);
+      *ptr = 'd';
+
+    } else if (strcmp(arg[1],"float") == 0) {
+      delete [] format_float_user;
+      format_float_user = utils::strdup(arg[2]);
+
+    } else {
+      int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
+      if (i < 0 || i >= nfield)
+        error->all(FLERR,"Illegal dump_modify command");
+      if (format_column_user[i]) delete [] format_column_user[i];
+      format_column_user[i] = utils::strdup(arg[2]);
+    }
+    return 3;
   }
   return 0;
 }

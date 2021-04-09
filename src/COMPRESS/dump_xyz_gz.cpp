@@ -15,19 +15,13 @@
 #include "error.h"
 #include "update.h"
 
-
 #include <cstring>
-
 
 using namespace LAMMPS_NS;
 
 DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) :
   DumpXYZ(lmp, narg, arg)
 {
-  gzFp = nullptr;
-
-  compression_level = Z_BEST_COMPRESSION;
-
   if (!compressed)
     error->all(FLERR,"Dump xyz/gz only writes compressed files");
 }
@@ -37,11 +31,7 @@ DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) :
 
 DumpXYZGZ::~DumpXYZGZ()
 {
-  if (gzFp) gzclose(gzFp);
-  gzFp = nullptr;
-  fp = nullptr;
 }
-
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
@@ -92,17 +82,12 @@ void DumpXYZGZ::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
-    std::string mode;
-    if (append_flag) {
-      mode = fmt::format("ab{}", compression_level);
-    } else {
-      mode = fmt::format("wb{}", compression_level);
+    try {
+      writer.open(filecurrent, append_flag);
+    } catch (FileWriterException &e) {
+      error->one(FLERR, e.what());
     }
-
-    gzFp = gzopen(filecurrent, mode.c_str());
-
-    if (gzFp == nullptr) error->one(FLERR,"Cannot open dump file");
-  } else gzFp = nullptr;
+  }
 
   // delete string with timestep replaced
 
@@ -112,8 +97,9 @@ void DumpXYZGZ::openfile()
 void DumpXYZGZ::write_header(bigint ndump)
 {
   if (me == 0) {
-    gzprintf(gzFp,BIGINT_FORMAT "\n",ndump);
-    gzprintf(gzFp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    std::string header = fmt::format("{}\n", ndump);
+    header += fmt::format("Atoms. Timestep: {}\n", update->ntimestep);
+    writer.write(header.c_str(), header.length());
   }
 }
 
@@ -121,7 +107,7 @@ void DumpXYZGZ::write_header(bigint ndump)
 
 void DumpXYZGZ::write_data(int n, double *mybuf)
 {
-  gzwrite(gzFp,mybuf,sizeof(char)*n);
+  writer.write(mybuf, n);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -131,11 +117,11 @@ void DumpXYZGZ::write()
   DumpXYZ::write();
   if (filewriter) {
     if (multifile) {
-      gzclose(gzFp);
-      gzFp = nullptr;
+      writer.close();
     } else {
-      if (flush_flag)
-        gzflush(gzFp,Z_SYNC_FLUSH);
+      if (flush_flag && writer.isopen()) {
+        writer.flush();
+      }
     }
   }
 }
@@ -146,14 +132,15 @@ int DumpXYZGZ::modify_param(int narg, char **arg)
 {
   int consumed = DumpXYZ::modify_param(narg, arg);
   if (consumed == 0) {
-    if (strcmp(arg[0],"compression_level") == 0) {
-      if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-      int min_level = Z_DEFAULT_COMPRESSION;
-      int max_level = Z_BEST_COMPRESSION;
-      compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
-      if (compression_level < min_level || compression_level > max_level)
-        error->all(FLERR, fmt::format("Illegal dump_modify command: compression level must in the range of [{}, {}]", min_level, max_level));
-      return 2;
+    try {
+      if (strcmp(arg[0],"compression_level") == 0) {
+        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
+        writer.setCompressionLevel(compression_level);
+        return 2;
+      }
+    } catch (FileWriterException &e) {
+      error->one(FLERR, fmt::format("Illegal dump_modify command: {}", e.what()));
     }
   }
   return consumed;

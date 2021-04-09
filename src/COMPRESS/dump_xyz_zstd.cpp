@@ -19,7 +19,6 @@
 
 #include "dump_xyz_zstd.h"
 #include "error.h"
-#include "file_writer.h"
 #include "update.h"
 
 #include <cstring>
@@ -158,7 +157,7 @@ int DumpXYZZstd::modify_param(int narg, char **arg)
         return 2;
       }
     } catch (FileWriterException &e) {
-      error->one(FLERR, e.what());
+      error->one(FLERR, fmt::format("Illegal dump_modify command: {}", e.what()));
     }
   }
   return consumed;

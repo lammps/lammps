@@ -308,9 +308,9 @@ performed with dump style *xtc*\ .
 
 ----------
 
-The *format* keyword can be used to change the default numeric format
-output by the text-based dump styles: *atom*\ , *custom*\ , *cfg*\ , and
-*xyz* styles, and their MPIIO variants.  Only the *line* or *none*
+The *format* keyword can be used to change the default numeric format output
+by the text-based dump styles: *atom*\ , *local*\ , *custom*\ , *cfg*\ , and
+*xyz* styles, and their MPIIO variants. Only the *line* or *none*
 options can be used with the *atom* and *xyz* styles.
 
 All the specified format strings are C-style formats, e.g. as used by

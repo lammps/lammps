@@ -14,6 +14,7 @@
 #include "pair_hybrid_scaled.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -242,6 +243,9 @@ void PairHybridScaled::settings(int narg, char **arg)
   if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
     error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
                                  force->pair_style));
+
+  if (atom->avec->forceclearflag)
+    error->all(FLERR,"Atom style is not compatible with pair_style hybrid/scaled");
 
   // delete old lists, since cannot just change settings
 

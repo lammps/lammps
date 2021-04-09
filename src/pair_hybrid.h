@@ -37,7 +37,7 @@ class PairHybrid : public Pair {
   PairHybrid(class LAMMPS *);
   virtual ~PairHybrid();
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   virtual void coeff(int, char **);
   void init_style();
   double init_one(int, int);

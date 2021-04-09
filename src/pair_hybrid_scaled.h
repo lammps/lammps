@@ -22,27 +22,28 @@ PairStyle(hybrid/scaled,PairHybridScaled)
 
 #include "pair_hybrid.h"
 
+#include <string>
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class PairHybridScaled : public PairHybrid {
  public:
   PairHybridScaled(class LAMMPS *);
   virtual ~PairHybridScaled();
-  void coeff(int, char **);
-  //void compute(int, int);
+  virtual void compute(int, int);
+  virtual void settings(int, char**);
+  virtual void coeff(int, char **);
 
   void init_svector();
   void copy_svector(int,int);
 
  protected:
   double **fsum;
-  double **scaleval;
-  int **scaleidx;
-  char **scalevar;
-  int nscalevar;
+  double *scaleval;
+  int *scaleidx;
+  std::vector<std::string> scalevars;
   int nmaxfsum;
-
-  void allocate();
 };
 
 }

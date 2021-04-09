@@ -2,6 +2,7 @@
 .. index:: pair_style hybrid/kk
 .. index:: pair_style hybrid/overlay
 .. index:: pair_style hybrid/overlay/kk
+.. index:: pair_style hybrid/scaled
 
 pair_style hybrid command
 =========================
@@ -13,6 +14,8 @@ pair_style hybrid/overlay command
 
 Accelerator Variants: *hybrid/overlay/kk*
 
+pair_style hybrid/scale command
+
 Syntax
 """"""
 
@@ -20,8 +23,10 @@ Syntax
 
    pair_style hybrid style1 args style2 args ...
    pair_style hybrid/overlay style1 args style2 args ...
+   pair_style hybrid/scaled factor1 style1 args factor2 style 2 args ...
 
 * style1,style2 = list of one or more pair styles and their arguments
+* factor1,factor2 = scale factors for pair styles, may be a variable
 
 Examples
 """"""""
@@ -37,15 +42,24 @@ Examples
    pair_coeff * * lj/cut 1.0 1.0
    pair_coeff * * coul/long
 
+   variable one equal ramp(1.0,0.0)
+   variable two equal 1.0-v_one
+   pair_style hybrid/scaled v_one lj/cut 2.5 v_two morse 2.5
+   pair_coeff 1 1 lj/cut 1.0 1.0 2.5
+   pair_coeff 1 1 morse 1.0 1.0 1.0 2.5
+
 Description
 """""""""""
 
-The *hybrid* and *hybrid/overlay* styles enable the use of multiple
-pair styles in one simulation.  With the *hybrid* style, exactly one
-pair style is assigned to each pair of atom types.  With the
-*hybrid/overlay* style, one or more pair styles can be assigned to
-each pair of atom types.  The assignment of pair styles to type pairs
-is made via the :doc:`pair_coeff <pair_coeff>` command.
+The *hybrid*, *hybrid/overlay*, and *hybrid/scaled* styles enable the
+use of multiple pair styles in one simulation.  With the *hybrid* style,
+exactly one pair style is assigned to each pair of atom types.  With the
+*hybrid/overlay* and *hybrid/scaled* styles, one or more pair styles can
+be assigned to each pair of atom types.  The assignment of pair styles
+to type pairs is made via the :doc:`pair_coeff <pair_coeff>` command.
+The *hybrid/scaled* style differs from the *hybrid/overlay* style by
+requiring a factor for each pair style that is used to scale all
+forces and energies computed by the pair style.
 
 Here are two examples of hybrid simulations.  The *hybrid* style could
 be used for a simulation of a metal droplet on a LJ surface.  The
@@ -61,12 +75,19 @@ it would be more efficient to use the single combined potential, but
 in general any combination of pair potentials can be used together in
 to produce an interaction that is not encoded in any single pair_style
 file, e.g. adding Coulombic forces between granular particles.
+The *hybrid/scaled* style enables more complex combinations of pair
+styles than a simple sum as *hybrid/overlay* does.  Furthermore, since
+the scale factors can be variables, they can change during a simulation
+which would allow to smoothly switch between two different pair styles
+or two different parameter sets.
 
 All pair styles that will be used are listed as "sub-styles" following
-the *hybrid* or *hybrid/overlay* keyword, in any order.  Each
-sub-style's name is followed by its usual arguments, as illustrated in
-the example above.  See the doc pages of individual pair styles for a
-listing and explanation of the appropriate arguments.
+the *hybrid* or *hybrid/overlay* keyword, in any order.  In case of the
+*hybrid/scaled* pair style each sub-style is prefixed with its scale
+factor.  The scale factor may be an equal style (or equivalent)
+variable.  Each sub-style's name is followed by its usual arguments, as
+illustrated in the example above.  See the doc pages of individual pair
+styles for a listing and explanation of the appropriate arguments.
 
 Note that an individual pair style can be used multiple times as a
 sub-style.  For efficiency this should only be done if your model
@@ -143,16 +164,16 @@ one sub-style.  Just as with a simulation using a single pair style,
 if you specify the same atom type pair in a second pair_coeff command,
 the previous assignment will be overwritten.
 
-For the *hybrid/overlay* style, each atom type pair I,J can be
-assigned to one or more sub-styles.  If you specify the same atom type
-pair in a second pair_coeff command with a new sub-style, then the
-second sub-style is added to the list of potentials that will be
-calculated for two interacting atoms of those types.  If you specify
-the same atom type pair in a second pair_coeff command with a
-sub-style that has already been defined for that pair of atoms, then
-the new pair coefficients simply override the previous ones, as in the
-normal usage of the pair_coeff command.  E.g. these two sets of
-commands are the same:
+For the *hybrid/overlay* and *hybrid/scaled* style, each atom type pair
+I,J can be assigned to one or more sub-styles.  If you specify the same
+atom type pair in a second pair_coeff command with a new sub-style, then
+the second sub-style is added to the list of potentials that will be
+calculated for two interacting atoms of those types.  If you specify the
+same atom type pair in a second pair_coeff command with a sub-style that
+has already been defined for that pair of atoms, then the new pair
+coefficients simply override the previous ones, as in the normal usage
+of the pair_coeff command.  E.g. these two sets of commands are the
+same:
 
 .. code-block:: LAMMPS
 
@@ -170,19 +191,20 @@ data file or restart files read by the :doc:`read_data <read_data>` or
 :doc:`read_restart <read_restart>` commands, or by mixing as described
 below.
 
-For both the *hybrid* and *hybrid/overlay* styles, every atom type
-pair I,J (where I <= J) must be assigned to at least one sub-style via
-the :doc:`pair_coeff <pair_coeff>` command as in the examples above, or
-in the data file read by the :doc:`read_data <read_data>`, or by mixing
-as described below.
+For all of the *hybrid*, *hybrid/overlay*, and *hybrid/scaled* styles,
+every atom type pair I,J (where I <= J) must be assigned to at least one
+sub-style via the :doc:`pair_coeff <pair_coeff>` command as in the
+examples above, or in the data file read by the :doc:`read_data
+<read_data>`, or by mixing as described below.
 
 If you want there to be no interactions between a particular pair of
 atom types, you have 3 choices.  You can assign the type pair to some
 sub-style and use the :doc:`neigh_modify exclude type <neigh_modify>`
 command.  You can assign it to some sub-style and set the coefficients
-so that there is effectively no interaction (e.g. epsilon = 0.0 in a
-LJ potential).  Or, for *hybrid* and *hybrid/overlay* simulations, you
-can use this form of the pair_coeff command in your input script:
+so that there is effectively no interaction (e.g. epsilon = 0.0 in a LJ
+potential).  Or, for *hybrid*, *hybrid/overlay*, or *hybrid/scaled*
+simulations, you can use this form of the pair_coeff command in your
+input script:
 
 .. code-block:: LAMMPS
 
@@ -260,7 +282,10 @@ the specific syntax, requirements and restrictions.
 ----------
 
 The potential energy contribution to the overall system due to an
-individual sub-style can be accessed and output via the :doc:`compute pair <compute_pair>` command.
+individual sub-style can be accessed and output via the :doc:`compute
+pair <compute_pair>` command.  Note that in the case of pair style
+*hybrid/scaled* this is the **unscaled** potential energy of the
+selected sub-style.
 
 ----------
 
@@ -388,12 +413,12 @@ The hybrid pair styles supports the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options for an I,J pair interaction, if the
 associated sub-style supports it.
 
-For the hybrid pair styles, the list of sub-styles and their
-respective settings are written to :doc:`binary restart files <restart>`, so a :doc:`pair_style <pair_style>` command does
-not need to specified in an input script that reads a restart file.
-However, the coefficient information is not stored in the restart
-file.  Thus, pair_coeff commands need to be re-specified in the
-restart input script.
+For the hybrid pair styles, the list of sub-styles and their respective
+settings are written to :doc:`binary restart files <restart>`, so a
+:doc:`pair_style <pair_style>` command does not need to specified in an
+input script that reads a restart file.  However, the coefficient
+information is not stored in the restart file.  Thus, pair_coeff
+commands need to be re-specified in the restart input script.
 
 These pair styles support the use of the *inner*\ , *middle*\ , and
 *outer* keywords of the :doc:`run_style respa <run_style>` command, if
@@ -408,6 +433,9 @@ one or more sub-styles will be of the "long" variety,
 e.g. *lj/cut/coul/long* or *buck/coul/long*\ .  You must insure that the
 short-range Coulombic cutoff used by each of these long pair styles is
 the same or else LAMMPS will generate an error.
+
+Pair style *hybrid/scaled* currently only works for non-accelerated
+pair styles.
 
 Related commands
 """"""""""""""""

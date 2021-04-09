@@ -42,9 +42,9 @@ class PairHybrid : public Pair {
   void init_style();
   double init_one(int, int);
   void setup();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
+  virtual double single(int, int, int, int, double, double, double, double &);
   void modify_params(int narg, char **arg);
   double memory_usage();
 

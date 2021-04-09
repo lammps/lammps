@@ -14,11 +14,13 @@
 #include "pair_hybrid_scaled.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "input.h"
 #include "memory.h"
 #include "respa.h"
+#include "suffix.h"
 #include "update.h"
 #include "variable.h"
 
@@ -39,7 +41,9 @@ PairHybridScaled::PairHybridScaled(LAMMPS *lmp)
 PairHybridScaled::~PairHybridScaled()
 {
   memory->destroy(fsum);
-  memory->destroy(scaleval);
+  memory->destroy(tsum);
+  delete[] scaleval;
+  delete[] scaleidx;
 }
 
 /* ----------------------------------------------------------------------
@@ -299,14 +303,19 @@ void PairHybridScaled::settings(int narg, char **arg)
     ++iarg;
 
     if (utils::strmatch(arg[iarg],"^hybrid"))
-      error->all(FLERR,"Pair style hybrid cannot have hybrid as an argument");
+      error->all(FLERR,"Pair style hybrid/scaled cannot have hybrid as an argument");
     if (strcmp(arg[iarg],"none") == 0)
-      error->all(FLERR,"Pair style hybrid cannot have none as an argument");
+      error->all(FLERR,"Pair style hybrid/scaled cannot have none as an argument");
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
     force->store_style(keywords[nstyles],arg[iarg],0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
+
+    if ((((PairHybridScaled *)styles[nstyles])->suffix_flag
+         & (Suffix::INTEL|Suffix::GPU|Suffix::OMP)) != 0)
+      error->all(FLERR,"Pair style hybrid/scaled does not support "
+                 "accelerator styles");
 
     // determine list of arguments for pair style settings
     // by looking for the next known pair style name.
@@ -339,6 +348,60 @@ void PairHybridScaled::settings(int narg, char **arg)
   // set pair flags from sub-style flags
 
   flags();
+}
+
+/* ----------------------------------------------------------------------
+   call sub-style to compute single interaction
+   error if sub-style does not support single() call
+   since overlay could have multiple sub-styles, sum results explicitly
+------------------------------------------------------------------------- */
+
+double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq,
+                                double factor_coul, double factor_lj, double &fforce)
+{
+  if (nmap[itype][jtype] == 0)
+    error->one(FLERR,"Invoked pair single on pair style none");
+
+  // update scale values from variables where needed
+
+  const int nvars = scalevars.size();
+  if (nvars > 0) {
+    double *vals = new double[nvars];
+    for (i = 0; i < nvars; ++i) {
+      j = input->variable->find(scalevars[i].c_str());
+      vals[i] = input->variable->compute_equal(j);
+    }
+    for (i = 0; i < nstyles; ++i) {
+      if (scaleidx[i] >= 0)
+        scaleval[i] = vals[scaleidx[i]];
+    }
+    delete[] vals;
+  }
+
+  double fone;
+  fforce = 0.0;
+  double esum = 0.0;
+  double scale;
+
+  for (int m = 0; m < nmap[itype][jtype]; m++) {
+    if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
+      if (styles[map[itype][jtype][m]]->single_enable == 0)
+        error->one(FLERR,"Pair hybrid sub-style does not support single call");
+
+      if ((special_lj[map[itype][jtype][m]] != nullptr) ||
+          (special_coul[map[itype][jtype][m]] != nullptr))
+        error->one(FLERR,"Pair hybrid single calls do not support"
+                   " per sub-style special bond values");
+
+      scale = scaleval[map[itype][jtype][m]];
+      esum += scale * styles[map[itype][jtype][m]]->single(i,j,itype,jtype,rsq,
+                                                           factor_coul,factor_lj,fone);
+      fforce += scale * fone;
+    }
+  }
+
+  if (single_extra) copy_svector(itype,jtype);
+  return esum;
 }
 
 /* ----------------------------------------------------------------------
@@ -418,6 +481,63 @@ void PairHybridScaled::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairHybridScaled::write_restart(FILE *fp)
+{
+  PairHybrid::write_restart(fp);
+
+  fwrite(scaleval,sizeof(double),nstyles,fp);
+  fwrite(scaleidx,sizeof(int),nstyles,fp);
+
+  int n = scalevars.size();
+  fwrite(&n,sizeof(int),1,fp);
+  for (auto var : scalevars) {
+    n = var.size() + 1;
+    fwrite(&n,sizeof(int),1,fp);
+    fwrite(var.c_str(),sizeof(char),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairHybridScaled::read_restart(FILE *fp)
+{
+  PairHybrid::read_restart(fp);
+
+  delete[] scaleval;
+  delete[] scaleidx;
+  scalevars.clear();
+  scaleval = new double[nstyles];
+  scaleidx = new int[nstyles];
+
+  int n, me = comm->me;
+  if (me == 0) {
+    utils::sfread(FLERR,scaleval,sizeof(double),nstyles,fp,nullptr,error);
+    utils::sfread(FLERR,scaleidx,sizeof(int),nstyles,fp,nullptr,error);
+  }
+  MPI_Bcast(scaleval,nstyles,MPI_DOUBLE,0,world);
+  MPI_Bcast(scaleidx,nstyles,MPI_INT,0,world);
+
+  char *tmp;
+  if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
+  MPI_Bcast(&n,1,MPI_INT,0,world);
+  scalevars.resize(n);
+  for (size_t j=0; j < scalevars.size(); ++j) {
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
+    MPI_Bcast(&n,1,MPI_INT,0,world);
+    tmp = new char[n];
+    if (me == 0) utils::sfread(FLERR,tmp,sizeof(char),n,fp,nullptr,error);
+    MPI_Bcast(tmp,n,MPI_CHAR,0,world);
+    scalevars[j] = tmp;
+    delete[] tmp;
+  }
 }
 
 /* ----------------------------------------------------------------------

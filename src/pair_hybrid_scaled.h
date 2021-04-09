@@ -35,6 +35,10 @@ class PairHybridScaled : public PairHybrid {
   virtual void settings(int, char**);
   virtual void coeff(int, char **);
 
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
+  virtual double single(int, int, int, int, double, double, double, double &);
+
   void init_svector();
   void copy_svector(int,int);
 

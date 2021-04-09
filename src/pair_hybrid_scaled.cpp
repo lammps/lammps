@@ -134,9 +134,10 @@ void PairHybridScaled::compute(int eflag, int vflag)
 
   for (m = 0; m < nstyles; m++) {
 
-    // clear forces
+    // clear forces and torques
 
     memset(&f[0][0],0,nall*3*sizeof(double));
+    if (atom->torque_flag) memset(&t[0][0],0,nall*3*sizeof(double));
 
     set_special(m);
 
@@ -171,17 +172,17 @@ void PairHybridScaled::compute(int eflag, int vflag)
     if (respaflag && !respa->tally_global) continue;
 
     if (eflag_global) {
-      eng_vdwl += scale * styles[m]->eng_vdwl;
-      eng_coul += scale * styles[m]->eng_coul;
+      eng_vdwl += scale*styles[m]->eng_vdwl;
+      eng_coul += scale*styles[m]->eng_coul;
     }
     if (vflag_global) {
-      for (n = 0; n < 6; n++) virial[n] += scale * styles[m]->virial[n];
+      for (n = 0; n < 6; n++) virial[n] += scale*styles[m]->virial[n];
     }
     if (eflag_atom) {
       n = atom->nlocal;
       if (force->newton_pair) n += atom->nghost;
       double *eatom_substyle = styles[m]->eatom;
-      for (i = 0; i < n; i++) eatom[i] += scale * eatom_substyle[i];
+      for (i = 0; i < n; i++) eatom[i] += scale*eatom_substyle[i];
     }
     if (vflag_atom) {
       n = atom->nlocal;
@@ -189,7 +190,7 @@ void PairHybridScaled::compute(int eflag, int vflag)
       double **vatom_substyle = styles[m]->vatom;
       for (i = 0; i < n; i++)
         for (j = 0; j < 6; j++)
-          vatom[i][j] += scale * vatom_substyle[i][j];
+          vatom[i][j] += scale*vatom_substyle[i][j];
     }
 
     // substyles may be CENTROID_SAME or CENTROID_AVAIL
@@ -201,22 +202,22 @@ void PairHybridScaled::compute(int eflag, int vflag)
         double **cvatom_substyle = styles[m]->cvatom;
         for (i = 0; i < n; i++)
           for (j = 0; j < 9; j++)
-            cvatom[i][j] += scale * cvatom_substyle[i][j];
+            cvatom[i][j] += scale*cvatom_substyle[i][j];
       } else {
         double **vatom_substyle = styles[m]->vatom;
         for (i = 0; i < n; i++) {
           for (j = 0; j < 6; j++) {
-            cvatom[i][j] += scale * vatom_substyle[i][j];
+            cvatom[i][j] += scale*vatom_substyle[i][j];
           }
           for (j = 6; j < 9; j++) {
-            cvatom[i][j] += scale * vatom_substyle[i][j-3];
+            cvatom[i][j] += scale*vatom_substyle[i][j-3];
           }
         }
       }
     }
   }
 
-  // copy accumulated forces to original force array
+  // copy accumulated scaled forces to original force array
 
   for (i = 0; i < nall; ++i) {
     f[i][0] = fsum[i][0];

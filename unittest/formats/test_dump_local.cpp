@@ -93,6 +93,18 @@ TEST_F(DumpLocalTest, run0)
     delete_file(dump_file);
 }
 
+TEST_F(DumpLocalTest, label_run0)
+{
+    auto dump_file = "dump_local_label_run0.melt";
+    generate_dump(dump_file, "index c_comp[1]", "label ELEMENTS", 0);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    auto lines = read_lines(dump_file);
+    ASSERT_THAT(lines[2], Eq("ITEM: NUMBER OF ELEMENTS"));
+    ASSERT_THAT(lines[8], Eq("ITEM: ELEMENTS index c_comp[1] "));
+    delete_file(dump_file);
+}
+
 TEST_F(DumpLocalTest, format_line_run0)
 {
     auto dump_file = "dump_local_format_line_run0.melt";
@@ -167,6 +179,60 @@ TEST_F(DumpLocalTest, no_buffer_run0)
     ASSERT_THAT(lines[8], Eq("ITEM: ENTRIES index c_comp[1] "));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 2);
     ASSERT_THAT(lines[9], Eq("1 1.18765 "));
+    delete_file(dump_file);
+}
+
+TEST_F(DumpLocalTest, with_units_run0)
+{
+    auto dump_file = "dump_with_units_run0.melt";
+    generate_dump(dump_file, "index c_comp[1]", "units yes", 0);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    auto lines = read_lines(dump_file);
+    ASSERT_EQ(lines.size(), 875);
+
+    ASSERT_THAT(lines[0], Eq("ITEM: UNITS"));
+    ASSERT_THAT(lines[1], Eq("lj"));
+
+    ASSERT_THAT(lines[2], Eq("ITEM: TIMESTEP"));
+    ASSERT_EQ(std::stoi(lines[3]), 0);
+
+    ASSERT_THAT(lines[4], Eq("ITEM: NUMBER OF ENTRIES"));
+    ASSERT_EQ(std::stoi(lines[5]), 864);
+}
+
+TEST_F(DumpLocalTest, with_time_run0)
+{
+    auto dump_file = "dump_with_time_run0.melt";
+    generate_dump(dump_file, "index c_comp[1]", "time yes", 0);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    auto lines = read_lines(dump_file);
+    ASSERT_EQ(lines.size(), 875);
+
+    ASSERT_THAT(lines[0], Eq("ITEM: TIME"));
+    ASSERT_THAT(std::stof(lines[1]), 0.0);
+
+    ASSERT_THAT(lines[2], Eq("ITEM: TIMESTEP"));
+    ASSERT_EQ(std::stoi(lines[3]), 0);
+
+    ASSERT_THAT(lines[4], Eq("ITEM: NUMBER OF ENTRIES"));
+    ASSERT_EQ(std::stoi(lines[5]), 864);
+}
+
+TEST_F(DumpLocalTest, triclinic_run0)
+{
+    auto dump_file = "dump_local_triclinic_run0.melt";
+    enable_triclinic();
+    generate_dump(dump_file, "index c_comp[1]", "", 0);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    auto lines = read_lines(dump_file);
+
+    ASSERT_THAT(lines[4], Eq("ITEM: BOX BOUNDS xy xz yz pp pp pp"));
+    ASSERT_EQ(utils::split_words(lines[5]).size(), 3);
+    ASSERT_EQ(utils::split_words(lines[6]).size(), 3);
+    ASSERT_EQ(utils::split_words(lines[7]).size(), 3);
     delete_file(dump_file);
 }
 

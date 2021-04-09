@@ -61,6 +61,34 @@ TEST_F(DumpAtomCompressTest, compressed_run0)
     delete_file(converted_file);
 }
 
+TEST_F(DumpAtomCompressTest, compressed_no_buffer_run0)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+
+    auto text_file       = text_dump_filename("no_buffer_run0.melt");
+    auto compressed_file = compressed_dump_filename("no_buffer_run0.melt");
+
+    if(compression_style == "atom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, "", "", "buffer no", "buffer no checksum yes", 0);
+    } else {
+        generate_text_and_compressed_dump(text_file, compressed_file, "", "buffer no", 0);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_THAT(converted_file, Eq(converted_dump_filename("no_buffer_run0.melt")));
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
+
 TEST_F(DumpAtomCompressTest, compressed_multi_file_run1)
 {
     if (!COMPRESS_BINARY) GTEST_SKIP();

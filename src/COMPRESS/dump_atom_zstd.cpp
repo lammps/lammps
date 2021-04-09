@@ -143,7 +143,33 @@ void DumpAtomZstd::write_header(bigint ndump)
 
 void DumpAtomZstd::write_data(int n, double *mybuf)
 {
-  writer.write(mybuf, n);
+  if (buffer_flag == 1) {
+    writer.write(mybuf, n);
+  } else {
+    constexpr size_t VBUFFER_SIZE = 256;
+    char vbuffer[VBUFFER_SIZE];
+    int m = 0;
+    for (int i = 0; i < n; i++) {
+      int written = 0;
+      if (image_flag == 1) {
+        written = snprintf(vbuffer, VBUFFER_SIZE, format,
+              static_cast<tagint> (mybuf[m]), static_cast<int> (mybuf[m+1]),
+              mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int> (mybuf[m+5]),
+              static_cast<int> (mybuf[m+6]), static_cast<int> (mybuf[m+7]));
+      } else {
+        written = snprintf(vbuffer, VBUFFER_SIZE, format,
+              static_cast<tagint> (mybuf[m]), static_cast<int> (mybuf[m+1]),
+              mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+      }
+      if (written > 0) {
+        writer.write(vbuffer, written);
+      } else if (written < 0) {
+        error->one(FLERR, "Error while writing dump atom/gz output");
+      }
+
+      m += size_one;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

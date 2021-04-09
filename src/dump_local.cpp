@@ -112,7 +112,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
   label = utils::strdup("ENTRIES");
 
-  // if wildcard expansion occurred, free earg memory from exapnd_args()
+  // if wildcard expansion occurred, free earg memory from expand_args()
 
   if (expand) {
     for (int i = 0; i < nfield; i++) delete [] earg[i];

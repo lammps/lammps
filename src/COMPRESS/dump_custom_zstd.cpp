@@ -146,7 +146,35 @@ void DumpCustomZstd::write_header(bigint ndump)
 
 void DumpCustomZstd::write_data(int n, double *mybuf)
 {
-  writer.write(mybuf, n);
+  if (buffer_flag == 1) {
+    writer.write(mybuf, n);
+  } else {
+    constexpr size_t VBUFFER_SIZE = 256;
+    char vbuffer[VBUFFER_SIZE];
+    int m = 0;
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < nfield; j++) {
+        int written = 0;
+        if (vtype[j] == Dump::INT) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int> (mybuf[m]));
+        } else if (vtype[j] == Dump::DOUBLE) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+        } else if (vtype[j] == Dump::STRING) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
+        } else if (vtype[j] == Dump::BIGINT) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint> (mybuf[m]));
+        }
+
+        if (written > 0) {
+          writer.write(vbuffer, written);
+        } else if (written < 0) {
+          error->one(FLERR, "Error while writing dump custom/gz output");
+        }
+        m++;
+      }
+      writer.write("\n", 1);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

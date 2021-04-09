@@ -87,6 +87,35 @@ TEST_F(DumpCustomCompressTest, compressed_with_time_run1)
     delete_file(converted_file);
 }
 
+TEST_F(DumpCustomCompressTest, compressed_no_buffer_run1)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+
+    auto base_name       = "no_buffer_custom_run1.melt";
+    auto text_file       = text_dump_filename(base_name);
+    auto compressed_file = compressed_dump_filename(base_name);
+    auto fields = "id type proc x y z ix iy iz xs ys zs xu yu zu xsu ysu zsu vx vy vz fx fy fz";
+
+    if(compression_style == "custom/zstd") {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, fields, "buffer no", "buffer no checksum yes", 1);
+    } else {
+        generate_text_and_compressed_dump(text_file, compressed_file, fields, "buffer no", 1);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file);
+    ASSERT_FILE_EXISTS(compressed_file);
+
+    auto converted_file = convert_compressed_to_text(compressed_file);
+
+    ASSERT_FILE_EXISTS(converted_file);
+    ASSERT_FILE_EQUAL(text_file, converted_file);
+    delete_file(text_file);
+    delete_file(compressed_file);
+    delete_file(converted_file);
+}
+
 TEST_F(DumpCustomCompressTest, compressed_triclinic_run1)
 {
     if (!COMPRESS_BINARY) GTEST_SKIP();

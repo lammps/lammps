@@ -20,8 +20,8 @@
 #include "output.h"
 #include "update.h"
 #include "utils.h"
+#include "variable.h"
 
-#include "fmt/format.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "../testing/core.h"
@@ -398,6 +398,7 @@ TEST_F(SimpleCommandsTest, Shell)
 {
     BEGIN_HIDE_OUTPUT();
     command("shell putenv TEST_VARIABLE=simpletest");
+    command("variable simple1 getenv TEST_VARIABLE");
     END_HIDE_OUTPUT();
 
     char *test_var = getenv("TEST_VARIABLE");
@@ -405,18 +406,22 @@ TEST_F(SimpleCommandsTest, Shell)
     ASSERT_THAT(test_var, StrEq("simpletest"));
 
     BEGIN_HIDE_OUTPUT();
-    command("shell putenv TEST_VARIABLE=simpletest");
-    command("shell putenv TEST_VARIABLE2=simpletest2 OTHER_VARIABLE=2");
+    command("shell putenv TEST_VARIABLE=simpletest2");
+    command("shell putenv TEST_VARIABLE2=simpletest OTHER_VARIABLE=2");
     END_HIDE_OUTPUT();
 
     char *test_var2 = getenv("TEST_VARIABLE2");
     char *other_var = getenv("OTHER_VARIABLE");
 
     ASSERT_NE(test_var2, nullptr);
-    ASSERT_THAT(test_var2, StrEq("simpletest2"));
+    ASSERT_THAT(test_var2, StrEq("simpletest"));
 
     ASSERT_NE(other_var, nullptr);
     ASSERT_THAT(other_var, StrEq("2"));
+
+    test_var = getenv("TEST_VARIABLE");
+    ASSERT_NE(test_var, nullptr);
+    ASSERT_THAT(test_var, StrEq("simpletest2"));
 }
 
 TEST_F(SimpleCommandsTest, CiteMe)

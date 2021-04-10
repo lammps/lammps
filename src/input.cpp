@@ -1250,9 +1250,9 @@ void Input::shell()
     for (int i = 1; i < narg; i++) {
       rv = 0;
 #ifdef _WIN32
-      if (arg[i]) rv = _putenv(arg[i]);
+      if (arg[i]) rv = _putenv(utils::strdup(arg[i]));
 #else
-      if (arg[i]) rv = putenv(arg[i]);
+      if (arg[i]) rv = putenv(utils::strdup(arg[i]));
 #endif
       rv = (rv < 0) ? errno : 0;
       MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);

@@ -341,8 +341,7 @@ void Variable::set(int narg, char **arg)
     which[nvar] = 0;
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
-    copy(1,&arg[2],data[nvar]);
-    data[nvar][1] = utils::strdup("(undefined)");
+    data[nvar][0] = utils::strdup(arg[2]);
 
   // SCALARFILE for strings or numbers
   // which = 1st value

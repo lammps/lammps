@@ -59,35 +59,40 @@ be assigned to each pair of atom types.  The assignment of pair styles
 to type pairs is made via the :doc:`pair_coeff <pair_coeff>` command.
 The *hybrid/scaled* style differs from the *hybrid/overlay* style by
 requiring a factor for each pair style that is used to scale all
-forces and energies computed by the pair style.
+forces, energies and stresses computed by each sub-style.  Because of
+the additional complexity, the *hybrid/scaled* style will have more
+overhead and thus will be a bit slower than *hybrid/overlay*.
 
 Here are two examples of hybrid simulations.  The *hybrid* style could
-be used for a simulation of a metal droplet on a LJ surface.  The
-metal atoms interact with each other via an *eam* potential, the
-surface atoms interact with each other via a *lj/cut* potential, and
-the metal/surface interaction is also computed via a *lj/cut*
-potential.  The *hybrid/overlay* style could be used as in the second
-example above, where multiple potentials are superposed in an additive
-fashion to compute the interaction between atoms.  In this example,
-using *lj/cut* and *coul/long* together gives the same result as if
-the *lj/cut/coul/long* potential were used by itself.  In this case,
-it would be more efficient to use the single combined potential, but
-in general any combination of pair potentials can be used together in
-to produce an interaction that is not encoded in any single pair_style
-file, e.g. adding Coulombic forces between granular particles.
-The *hybrid/scaled* style enables more complex combinations of pair
-styles than a simple sum as *hybrid/overlay* does.  Furthermore, since
-the scale factors can be variables, they can change during a simulation
-which would allow to smoothly switch between two different pair styles
-or two different parameter sets.
+be used for a simulation of a metal droplet on a LJ surface.  The metal
+atoms interact with each other via an *eam* potential, the surface atoms
+interact with each other via a *lj/cut* potential, and the metal/surface
+interaction is also computed via a *lj/cut* potential.  The
+*hybrid/overlay* style could be used as in the second example above,
+where multiple potentials are superposed in an additive fashion to
+compute the interaction between atoms.  In this example, using *lj/cut*
+and *coul/long* together gives the same result as if the
+*lj/cut/coul/long* potential were used by itself.  In this case, it
+would be more efficient to use the single combined potential, but in
+general any combination of pair potentials can be used together in to
+produce an interaction that is not encoded in any single pair_style
+file, e.g. adding Coulombic forces between granular particles.  The
+*hybrid/scaled* style enables more complex combinations of pair styles
+than a simple sum as *hybrid/overlay* does; there may be fractional
+contributions from sub-styles or contributions may be subtracted with a
+negative scale factor.  Furthermore, since the scale factors can be
+variables that may change during a simulation, which would allow, for
+instance, to smoothly switch between two different pair styles or two
+different parameter sets.
 
 All pair styles that will be used are listed as "sub-styles" following
 the *hybrid* or *hybrid/overlay* keyword, in any order.  In case of the
-*hybrid/scaled* pair style each sub-style is prefixed with its scale
-factor.  The scale factor may be an equal style (or equivalent)
-variable.  Each sub-style's name is followed by its usual arguments, as
-illustrated in the example above.  See the doc pages of individual pair
-styles for a listing and explanation of the appropriate arguments.
+*hybrid/scaled* pair style, each sub-style is prefixed with a scale
+factor.  The scale factor is either a floating point number or an equal
+style (or equivalent) variable.  Each sub-style's name is followed by its
+usual arguments, as illustrated in the examples above.  See the doc
+pages of individual pair styles for a listing and explanation of the
+appropriate arguments.
 
 Note that an individual pair style can be used multiple times as a
 sub-style.  For efficiency this should only be done if your model
@@ -164,7 +169,7 @@ one sub-style.  Just as with a simulation using a single pair style,
 if you specify the same atom type pair in a second pair_coeff command,
 the previous assignment will be overwritten.
 
-For the *hybrid/overlay* and *hybrid/scaled* style, each atom type pair
+For the *hybrid/overlay* and *hybrid/scaled* styles, each atom type pair
 I,J can be assigned to one or more sub-styles.  If you specify the same
 atom type pair in a second pair_coeff command with a new sub-style, then
 the second sub-style is added to the list of potentials that will be
@@ -187,15 +192,15 @@ same:
 
 Coefficients must be defined for each pair of atoms types via the
 :doc:`pair_coeff <pair_coeff>` command as described above, or in the
-data file or restart files read by the :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` commands, or by mixing as described
-below.
+data file read by the :doc:`read_data <read_data>` commands, or by
+mixing as described below.
 
 For all of the *hybrid*, *hybrid/overlay*, and *hybrid/scaled* styles,
 every atom type pair I,J (where I <= J) must be assigned to at least one
 sub-style via the :doc:`pair_coeff <pair_coeff>` command as in the
 examples above, or in the data file read by the :doc:`read_data
-<read_data>`, or by mixing as described below.
+<read_data>`, or by mixing as described below.  Also all sub-styles
+must be used at least once in a :doc:`pair_coeff <pair_coeff>` command.
 
 If you want there to be no interactions between a particular pair of
 atom types, you have 3 choices.  You can assign the type pair to some
@@ -208,22 +213,22 @@ input script:
 
 .. code-block:: LAMMPS
 
-   pair_coeff        2 3 none
+   pair_coeff  2 3  none
 
 or this form in the "Pair Coeffs" section of the data file:
 
 .. parsed-literal::
 
-   3 none
+   3  none
 
 If an assignment to *none* is made in a simulation with the
-*hybrid/overlay* pair style, it wipes out all previous assignments of
-that atom type pair to sub-styles.
+*hybrid/overlay* or *hybrid/scaled* pair style, it wipes out all
+previous assignments of that pair of atom types to sub-styles.
 
 Note that you may need to use an :doc:`atom_style <atom_style>` hybrid
 command in your input script, if atoms in the simulation will need
 attributes from several atom styles, due to using multiple pair
-potentials.
+styles with different requirements.
 
 ----------
 
@@ -232,8 +237,9 @@ for applying weightings that change the strength of pairwise
 interactions between pairs of atoms that are also 1-2, 1-3, and 1-4
 neighbors in the molecular bond topology, as normally set by the
 :doc:`special_bonds <special_bonds>` command.  Different weights can be
-assigned to different pair hybrid sub-styles via the :doc:`pair_modify special <pair_modify>` command. This allows multiple force fields
-to be used in a model of a hybrid system, however, there is no consistent
+assigned to different pair hybrid sub-styles via the :doc:`pair_modify
+special <pair_modify>` command. This allows multiple force fields to be
+used in a model of a hybrid system, however, there is no consistent
 approach to determine parameters automatically for the interactions
 between the two force fields, this is only recommended when particles
 described by the different force fields do not mix.
@@ -307,28 +313,27 @@ Pair_style hybrid allows interactions between type pairs 2-2, 1-2,
 could even add a second interaction for 1-1 to be computed by another
 pair style, assuming pair_style hybrid/overlay is used.
 
-But you should not, as a general rule, attempt to exclude the
-many-body interactions for some subset of the type pairs within the
-set of 1,3,4 interactions, e.g. exclude 1-1 or 1-3 interactions.  That
-is not conceptually well-defined for many-body interactions, since the
+But you should not, as a general rule, attempt to exclude the many-body
+interactions for some subset of the type pairs within the set of 1,3,4
+interactions, e.g. exclude 1-1 or 1-3 interactions.  That is not
+conceptually well-defined for many-body interactions, since the
 potential will typically calculate energies and foces for small groups
 of atoms, e.g. 3 or 4 atoms, using the neighbor lists of the atoms to
-find the additional atoms in the group.  It is typically non-physical
-to think of excluding an interaction between a particular pair of
-atoms when the potential computes 3-body or 4-body interactions.
+find the additional atoms in the group.
 
 However, you can still use the pair_coeff none setting or the
 :doc:`neigh_modify exclude <neigh_modify>` command to exclude certain
 type pairs from the neighbor list that will be passed to a many-body
 sub-style.  This will alter the calculations made by a many-body
-potential, since it builds its list of 3-body, 4-body, etc
-interactions from the pair list.  You will need to think carefully as
-to whether it produces a physically meaningful result for your model.
+potential beyond the specific pairs, since it builds its list of 3-body,
+4-body, etc interactions from the pair lists.  You will need to think
+**carefully** as to whether excluding such pairs produces a physically
+meaningful result for your model.
 
 For example, imagine you have two atom types in your model, type 1 for
 atoms in one surface, and type 2 for atoms in the other, and you wish
 to use a Tersoff potential to compute interactions within each
-surface, but not between surfaces.  Then either of these two command
+surface, but not between the surfaces.  Then either of these two command
 sequences would implement that model:
 
 .. code-block:: LAMMPS
@@ -345,9 +350,9 @@ Either way, only neighbor lists with 1-1 or 2-2 interactions would be
 passed to the Tersoff potential, which means it would compute no
 3-body interactions containing both type 1 and 2 atoms.
 
-Here is another example, using hybrid/overlay, to use 2 many-body
-potentials together, in an overlapping manner.  Imagine you have CNT
-(C atoms) on a Si surface.  You want to use Tersoff for Si/Si and Si/C
+Here is another example to use 2 many-body potentials together in an
+overlapping manner using hybrid/overlay.  Imagine you have CNT (C atoms)
+on a Si surface.  You want to use Tersoff for Si/Si and Si/C
 interactions, and AIREBO for C/C interactions.  Si atoms are type 1; C
 atoms are type 2.  Something like this will work:
 
@@ -358,9 +363,9 @@ atoms are type 2.  Something like this will work:
    pair_coeff * * airebo CH.airebo NULL C
 
 Note that to prevent the Tersoff potential from computing C/C
-interactions, you would need to modify the SiC.tersoff file to turn
-off C/C interaction, i.e. by setting the appropriate coefficients to
-0.0.
+interactions, you would need to **modify** the SiC.tersoff potential
+file to turn off C/C interaction, i.e. by setting the appropriate
+coefficients to 0.0.
 
 ----------
 
@@ -368,18 +373,19 @@ Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.
+page.  Pair style *hybrid/scaled* does (currently) not support the
+*gpu*, *omp*, *kk*, or *intel* suffix.
 
-Since the *hybrid* and *hybrid/overlay* styles delegate computation to
-the individual sub-styles, the suffix versions of the *hybrid* and
-*hybrid/overlay* styles are used to propagate the corresponding suffix
-to all sub-styles, if those versions exist. Otherwise the
-non-accelerated version will be used.
+Since the *hybrid*, *hybrid/overlay*, *hybrid/scaled* styles delegate
+computation to the individual sub-styles, the suffix versions of the
+*hybrid* and *hybrid/overlay* styles are used to propagate the
+corresponding suffix to all sub-styles, if those versions
+exist. Otherwise the non-accelerated version will be used.
 
-The individual accelerated sub-styles are part of the GPU, USER-OMP
-and OPT packages, respectively.  They are only enabled if LAMMPS was
-built with those packages.  See the :doc:`Build package <Build_package>`
-doc page for more info.
+The individual accelerated sub-styles are part of the GPU, KOKKOS,
+USER-INTEL, USER-OMP, and OPT packages, respectively.  They are only
+enabled if LAMMPS was built with those packages.  See the :doc:`Build
+package <Build_package>` doc page for more info.
 
 You can specify the accelerated styles explicitly in your input script
 by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
@@ -397,17 +403,17 @@ Any pair potential settings made via the
 :doc:`pair_modify <pair_modify>` command are passed along to all
 sub-styles of the hybrid potential.
 
-For atom type pairs I,J and I != J, if the sub-style assigned to I,I
-and J,J is the same, and if the sub-style allows for mixing, then the
+For atom type pairs I,J and I != J, if the sub-style assigned to I,I and
+J,J is the same, and if the sub-style allows for mixing, then the
 coefficients for I,J can be mixed.  This means you do not have to
 specify a pair_coeff command for I,J since the I,J type pair will be
-assigned automatically to the sub-style defined for both I,I and J,J
-and its coefficients generated by the mixing rule used by that
-sub-style.  For the *hybrid/overlay* style, there is an additional
-requirement that both the I,I and J,J pairs are assigned to a single
-sub-style.  See the "pair_modify" command for details of mixing rules.
-See the See the doc page for the sub-style to see if allows for
-mixing.
+assigned automatically to the sub-style defined for both I,I and J,J and
+its coefficients generated by the mixing rule used by that sub-style.
+For the *hybrid/overlay* and *hybrid/scaled* style, there is an
+additional requirement that both the I,I and J,J pairs are assigned to a
+single sub-style.  See the :doc:`pair_modify <pair_modify>` command for
+details of mixing rules.  See the See the doc page for the sub-style to
+see if allows for mixing.
 
 The hybrid pair styles supports the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options for an I,J pair interaction, if the
@@ -418,7 +424,10 @@ settings are written to :doc:`binary restart files <restart>`, so a
 :doc:`pair_style <pair_style>` command does not need to specified in an
 input script that reads a restart file.  However, the coefficient
 information is not stored in the restart file.  Thus, pair_coeff
-commands need to be re-specified in the restart input script.
+commands need to be re-specified in the restart input script.  For pair
+style *hybrid/scaled* also the names of any variables used as scale
+factors are restored, but not the variables themselves, so those may
+need to be redefined when continuing from a restart.
 
 These pair styles support the use of the *inner*\ , *middle*\ , and
 *outer* keywords of the :doc:`run_style respa <run_style>` command, if
@@ -435,7 +444,7 @@ short-range Coulombic cutoff used by each of these long pair styles is
 the same or else LAMMPS will generate an error.
 
 Pair style *hybrid/scaled* currently only works for non-accelerated
-pair styles.
+pair styles and pair styles from the OPT package.
 
 Related commands
 """"""""""""""""

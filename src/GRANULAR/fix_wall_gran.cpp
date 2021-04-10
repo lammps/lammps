@@ -1261,6 +1261,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
 
   k_tangential = tangential_coeffs[0];
   damp_tangential = tangential_coeffs[1]*damp_normal_prefactor;
+  Fscrit = tangential_coeffs[2] * Fncrit;
 
   int thist0 = tangential_history_index;
   int thist1 = thist0 + 1;
@@ -1346,7 +1347,6 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     }
 
     // rescale frictional displacements and forces if needed
-    Fscrit = tangential_coeffs[2] * Fncrit;
     fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
     if (fs > Fscrit) {
       shrmag = sqrt(history[thist0]*history[thist0] +

@@ -4734,19 +4734,14 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
   BEGIN_CAPTURE
   {
     int ifix = lmp->modify->find_fix(id);
-    if (ifix < 0) {
-      char str[128];
-      snprintf(str, 128, "Can not find fix with ID '%s'!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (ifix < 0)
+      lmp->error->all(FLERR,fmt::format("Cannot find fix with ID '{}'!", id));
 
     Fix *fix = lmp->modify->fix[ifix];
 
-    if (strcmp("external",fix->style) != 0) {
-      char str[128];
-      snprintf(str, 128, "Fix '%s' is not of style external!", id);
-      lmp->error->all(FLERR,str);
-    }
+    if (strcmp("external",fix->style) != 0)
+      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style "
+                                        "external!", id));
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_callback(callback, caller);

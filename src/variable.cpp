@@ -337,11 +337,11 @@ void Variable::set(int narg, char **arg)
     }
     if (nvar == maxvar) grow();
     style[nvar] = GETENV;
-    num[nvar] = 1;
+    num[nvar] = 2;
     which[nvar] = 0;
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
-    copy(1,&arg[2],data[nvar]);
+    data[nvar][0] = utils::strdup(arg[2]);
     data[nvar][1] = utils::strdup("(undefined)");
 
   // SCALARFILE for strings or numbers
@@ -1252,7 +1252,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         print_var_error(FLERR,"Invalid syntax in variable formula",ivar);
       expect = OP;
 
-      char *contents;
+      char *contents = nullptr;
       i = find_matching_paren(str,i,contents,ivar);
       i++;
 
@@ -2068,7 +2068,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         // ----------------
 
         if (str[i] == '(') {
-          char *contents;
+          char *contents = nullptr;
           i = find_matching_paren(str,i,contents,ivar);
           i++;
 
@@ -3286,6 +3286,7 @@ int Variable::find_matching_paren(char *str, int i, char *&contents, int ivar)
   int istop = i;
 
   int n = istop - istart - 1;
+  delete[] contents;
   contents = new char[n+1];
   strncpy(contents,&str[istart+1],n);
   contents[n] = '\0';
@@ -4827,7 +4828,7 @@ double Variable::evaluate_boolean(char *str)
         error->all(FLERR,"Invalid Boolean syntax in if command");
       expect = OP;
 
-      char *contents;
+      char *contents = nullptr;
       i = find_matching_paren(str,i,contents,-1);
       i++;
 

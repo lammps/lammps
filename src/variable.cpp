@@ -337,11 +337,12 @@ void Variable::set(int narg, char **arg)
     }
     if (nvar == maxvar) grow();
     style[nvar] = GETENV;
-    num[nvar] = 1;
+    num[nvar] = 2;
     which[nvar] = 0;
     pad[nvar] = 0;
     data[nvar] = new char*[num[nvar]];
     data[nvar][0] = utils::strdup(arg[2]);
+    data[nvar][1] = utils::strdup("(undefined)");
 
   // SCALARFILE for strings or numbers
   // which = 1st value

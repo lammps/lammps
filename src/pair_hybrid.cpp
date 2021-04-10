@@ -14,20 +14,19 @@
 
 #include "pair_hybrid.h"
 
-#include <cstring>
-#include <cctype>
 #include "atom.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "update.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
 #include "respa.h"
-
 #include "suffix.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

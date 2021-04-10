@@ -25,7 +25,6 @@
 
 #include "atom.h"
 #include "compute.h"
-#include "fmt/format.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"

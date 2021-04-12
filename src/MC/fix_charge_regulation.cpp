@@ -130,7 +130,7 @@ FixChargeRegulation::~FixChargeRegulation() {
 
   delete random_equal;
   delete random_unequal;
-  delete idftemp;
+  delete[] idftemp;
 
   if (group) {
     int igroupall = group->find("all");

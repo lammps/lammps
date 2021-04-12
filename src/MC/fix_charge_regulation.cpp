@@ -14,6 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: Tine Curk (tcurk5@gmail.com) and Jiaxing Yuan (yuanjiaxing123@hotmail.com)
 ------------------------------------------------------------------------- */
+
 #include "fix_charge_regulation.h"
 
 #include "angle.h"
@@ -652,7 +653,7 @@ void FixChargeRegulation::backward_ions() {
 
   double energy_before = energy_stored;
   double factor;
-  int mask1_tmp, mask2_tmp;
+  int mask1_tmp = 0, mask2_tmp = 0;
   double *dummyp = nullptr;
   int m1 = -1, m2 = -1;
 
@@ -724,12 +725,6 @@ void FixChargeRegulation::backward_ions() {
           atom->mask[m2] = mask2_tmp;
         }
       }
-    } else {
-      // reassign original charge and mask
-      if (m1 >= 0) {
-        atom->q[m1] = 1;
-        atom->mask[m1] = mask1_tmp;
-      }
     }
   }
 }
@@ -738,7 +733,7 @@ void FixChargeRegulation::forward_ions_multival() {
 
   double energy_before = energy_stored;
   double factor = 1;
-  double *dummyp;
+  double *dummyp = nullptr;
   int mm[salt_charge_ratio + 1];// particle ID array for all ions to be inserted
 
   if (salt_charge[0] <= -salt_charge[1]) {
@@ -792,7 +787,7 @@ void FixChargeRegulation::backward_ions_multival() {
 
   double energy_before = energy_stored;
   double factor = 1;
-  double *dummyp;  // dummy pointer
+  double *dummyp = nullptr;  // dummy pointer
   int mm[salt_charge_ratio + 1];  // particle ID array for all deleted ions
   double qq[salt_charge_ratio + 1];  // charge array for all deleted ions
   int mask_tmp[salt_charge_ratio + 1];  // temporary mask array

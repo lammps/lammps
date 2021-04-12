@@ -14,7 +14,8 @@ pair_style hybrid/overlay command
 
 Accelerator Variants: *hybrid/overlay/kk*
 
-pair_style hybrid/scale command
+pair_style hybrid/scaled command
+==================================
 
 Syntax
 """"""
@@ -42,6 +43,10 @@ Examples
    pair_coeff * * lj/cut 1.0 1.0
    pair_coeff * * coul/long
 
+   pair_style hybrid/scaled 0.5 tersoff 0.5 sw
+   pair_coeff * * tersoff Si.tersoff Si
+   pair_coeff * * sw Si.sw Si
+
    variable one equal ramp(1.0,0.0)
    variable two equal 1.0-v_one
    pair_style hybrid/scaled v_one lj/cut 2.5 v_two morse 2.5
@@ -57,11 +62,11 @@ exactly one pair style is assigned to each pair of atom types.  With the
 *hybrid/overlay* and *hybrid/scaled* styles, one or more pair styles can
 be assigned to each pair of atom types.  The assignment of pair styles
 to type pairs is made via the :doc:`pair_coeff <pair_coeff>` command.
-The *hybrid/scaled* style differs from the *hybrid/overlay* style by
-requiring a factor for each pair style that is used to scale all
-forces, energies and stresses computed by each sub-style.  Because of
-the additional complexity, the *hybrid/scaled* style will have more
-overhead and thus will be a bit slower than *hybrid/overlay*.
+The major difference between the *hybrid/overlay* and *hybrid/scaled*
+styles is that the *hybrid/scaled* adds a scale factor for each
+sub-style contribution to forces, energies and stresses.  Because of the
+added complexity, the *hybrid/scaled* style has more overhead and thus
+may be slower than *hybrid/overlay*.
 
 Here are two examples of hybrid simulations.  The *hybrid* style could
 be used for a simulation of a metal droplet on a LJ surface.  The metal
@@ -76,34 +81,35 @@ and *coul/long* together gives the same result as if the
 would be more efficient to use the single combined potential, but in
 general any combination of pair potentials can be used together in to
 produce an interaction that is not encoded in any single pair_style
-file, e.g. adding Coulombic forces between granular particles.  The
-*hybrid/scaled* style enables more complex combinations of pair styles
-than a simple sum as *hybrid/overlay* does; there may be fractional
-contributions from sub-styles or contributions may be subtracted with a
-negative scale factor.  Furthermore, since the scale factors can be
-variables that may change during a simulation, which would allow, for
-instance, to smoothly switch between two different pair styles or two
-different parameter sets.
+file, e.g. adding Coulombic forces between granular particles.
+
+If the *hybrid/scaled* style is used instead of *hybrid/overlay*\ ,
+contributions from sub-styles are weighted by their scale factors, which
+may be fractional or even negative.  Furthermore the scale factors may
+be variables that may change during a simulation.  This enables
+switching smoothly between two different pair styles or two different
+parameter sets during a run.
 
 All pair styles that will be used are listed as "sub-styles" following
 the *hybrid* or *hybrid/overlay* keyword, in any order.  In case of the
 *hybrid/scaled* pair style, each sub-style is prefixed with a scale
 factor.  The scale factor is either a floating point number or an equal
-style (or equivalent) variable.  Each sub-style's name is followed by its
-usual arguments, as illustrated in the examples above.  See the doc
-pages of individual pair styles for a listing and explanation of the
-appropriate arguments.
+style (or equivalent) variable.  Each sub-style's name is followed by
+its usual arguments, as illustrated in the examples above.  See the doc
+pages of the individual pair styles for a listing and explanation of the
+appropriate arguments for them.
 
 Note that an individual pair style can be used multiple times as a
-sub-style.  For efficiency this should only be done if your model
-requires it.  E.g. if you have different regions of Si and C atoms and
-wish to use a Tersoff potential for pure Si for one set of atoms, and
-a Tersoff potential for pure C for the other set (presumably with some
-third potential for Si-C interactions), then the sub-style *tersoff*
-could be listed twice.  But if you just want to use a Lennard-Jones or
-other pairwise potential for several different atom type pairs in your
-model, then you should just list the sub-style once and use the
-pair_coeff command to assign parameters for the different type pairs.
+sub-style.  For efficiency reasons this should only be done if your
+model requires it.  E.g. if you have different regions of Si and C atoms
+and wish to use a Tersoff potential for pure Si for one set of atoms,
+and a Tersoff potential for pure C for the other set (presumably with
+some third potential for Si-C interactions), then the sub-style
+*tersoff* could be listed twice.  But if you just want to use a
+Lennard-Jones or other pairwise potential for several different atom
+type pairs in your model, then you should just list the sub-style once
+and use the pair_coeff command to assign parameters for the different
+type pairs.
 
 .. note::
 

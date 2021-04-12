@@ -38,7 +38,7 @@ def get_version_number():
     if not vstring:
         return 0
 
-    t = time.strptime(vstring, "%d%b%Y")
+    t = time.strptime(vstring, "%Y.%m.%d")
     return t.tm_year*10000 + t.tm_mon*100 + t.tm_mday
 
 __version__ = get_version_number()

@@ -585,7 +585,7 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand-canonical MC
-(GCMC) in conjunction with dynamics.
+(GCMC) or similar processes in conjunction with dynamics.
 
 **Supporting info:**
 
@@ -593,8 +593,12 @@ bonds, for performing atomic swaps, and performing grand-canonical MC
 * :doc:`fix atom/swap <fix_atom_swap>`
 * :doc:`fix bond/break <fix_bond_break>`
 * :doc:`fix bond/create <fix_bond_create>`
+* :doc:`fix bond/create/angle <fix_bond_create>`
 * :doc:`fix bond/swap <fix_bond_swap>`
+* :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix tfmc <fix_tfmc>`
+* :doc:`fix widom <fix_widom>`
 * :doc:`pair_style dsmc <pair_dsmc>`
 * https://lammps.sandia.gov/movies.html#gcmc
 

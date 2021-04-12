@@ -45,7 +45,6 @@
 #include <cmath>
 #include <cstring>
 
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
@@ -1082,6 +1081,7 @@ double FixChargeRegulation::energy_full() {
 
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
+  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
   if (modify->n_post_force) modify->post_force(vflag);
   if (modify->n_end_of_step) modify->end_of_step();
   update->eflag_global = update->ntimestep;

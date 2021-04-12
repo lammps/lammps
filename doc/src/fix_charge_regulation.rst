@@ -225,7 +225,7 @@ quantities:
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package. It is only enabled if LAMMPS
+This fix is part of the MC package. It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 
@@ -243,7 +243,9 @@ the LJ potential must be shifted so that it vanishes at the cutoff. This
 can be easily achieved using the :doc:`pair_modify <pair_modify>`
 command, i.e., by using: *pair_modify shift yes*.
 
-Note: Region restrictions are not yet implemented.
+.. note::
+
+   Region restrictions are not yet implemented.
 
 Related commands
 """"""""""""""""
@@ -253,7 +255,11 @@ Related commands
 
 Default
 """""""
-pH = 7.0; pKa = 100.0; pKb = 100.0; pIp = 5.0; pIm = 5.0; pKs = 14.0; acid_type = -1; base_type = -1; lunit_nm = 0.71; temp = 1.0; nevery = 100; nmc = 100; xrd = 0; seed = 0; tag = no; onlysalt = no, pmcmoves = [1/3, 1/3, 1/3], group-ID = all
+
+pH = 7.0; pKa = 100.0; pKb = 100.0; pIp = 5.0; pIm = 5.0; pKs = 14.0;
+acid_type = -1; base_type = -1; lunit_nm = 0.71; temp = 1.0; nevery =
+100; nmc = 100; xrd = 0; seed = 0; tag = no; onlysalt = no, pmcmoves =
+[1/3, 1/3, 1/3], group-ID = all
 
 ----------
 
@@ -267,4 +273,4 @@ pH = 7.0; pKa = 100.0; pKb = 100.0; pIp = 5.0; pIm = 5.0; pKs = 14.0; acid_type 
 
 .. _Landsgesell:
 
-**(Landsgesell)** J. Landsgesell, P. Hebbeker, O. Rud, R. Lunkad, P. Kosovan, and C. Holm, "Grand-reaction method for simulations of ionization equilibria coupled to ion partitioning", Macromolecules 53, 3007–3020 (2020).
+**(Landsgesell)** J. Landsgesell, P. Hebbeker, O. Rud, R. Lunkad, P. Kosovan, and C. Holm, "Grand-reaction method for simulations of ionization equilibria coupled to ion partitioning", Macromolecules 53, 3007-3020 (2020).

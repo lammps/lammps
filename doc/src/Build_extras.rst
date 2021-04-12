@@ -1255,14 +1255,23 @@ USER-PACE package
 
 This package requires a library that can be downloaded and built 
 in lib/pace or somewhere else, which must be done before building 
-LAMMPS with this package. 
+LAMMPS with this package. The code for the library can be found
+at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps-user-pace/>`_
 
 .. tabs::
 
    .. tab:: CMake build
 
-      The library download and build will happen automatically when USER-PACE
-      is requested.
+      By default the library will be downloaded from the git repository
+      and built automatically when the USER-PACE package is enabled with
+      ``-D PKG_USER-PACE=yes``.  The location for the sources may be
+      customized by setting the variable ``PACELIB_URL`` when
+      configuring with CMake (e.g. to use a local archive on machines
+      without internet access).  Since CMake checks the validity of the
+      archive with ``md5sum`` you may also need to set ``PACELIB_MD5``
+      if you provide a different library version than what is downloaded
+      automatically.
+
 
    .. tab:: Traditional make
 

@@ -13,40 +13,22 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(coul/cut,PairCoulCut)
+PairStyle(coul/cut/global,PairCoulCutGlobal)
 
 #else
 
-#ifndef LMP_PAIR_COUL_CUT_H
-#define LMP_PAIR_COUL_CUT_H
+#ifndef LMP_PAIR_COUL_CUT_GLOBAL_H
+#define LMP_PAIR_COUL_CUT_GLOBAL_H
 
-#include "pair.h"
+#include "pair_coul_cut.h"
 
 namespace LAMMPS_NS {
 
-class PairCoulCut : public Pair {
+class PairCoulCutGlobal : public PairCoulCut {
  public:
-  PairCoulCut(class LAMMPS *);
-  virtual ~PairCoulCut();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  virtual void write_data(FILE *);
-  virtual void write_data_all(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
-
- protected:
-  double cut_global;
-  double **cut,**scale;
-
-  virtual void allocate();
+  PairCoulCutGlobal(class LAMMPS *lmp) : PairCoulCut(lmp) {}
+  void coeff(int, char **);
+  void *extract(const char *, int &);
 };
 
 }

@@ -30,8 +30,8 @@ neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
 fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
-fix             2 all langevin 200.0 200.0 1.0 48279
-fix 		3 all langevin/spin 0.0 0.00001 321
+fix             2 all langevin 200.0 200.0 0.1 48279
+fix 		3 all langevin/spin 0.0 0.0 321
 fix 		4 all nve/spin lattice moving
 timestep	0.001
 

@@ -61,11 +61,15 @@ friend class PairSpin;
   int tdamp_flag, temp_flag;
   int setforce_spin_flag;
 
-  // pointers to magnetic fixes
+  // pointers to fix langevin/spin styles
 
-  // class FixPrecessionSpin *lockprecessionspin;
-  class FixLangevinSpin *locklangevinspin;
-  class FixSetForceSpin *locksetforcespin;
+  int nlangspin;
+  class FixLangevinSpin **locklangevinspin;
+  
+  // pointers to fix setforce/spin styles
+  
+  int nsetspin;
+  class FixSetForceSpin *locksetforcespin; // to be done
   
   // pointers to fix precession/spin styles
 

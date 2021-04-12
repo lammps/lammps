@@ -433,7 +433,6 @@ void FixPrecessionSpin::compute_anisotropy(double spi[3], double fmi[3])
   fmi[0] += scalar*Kax;
   fmi[1] += scalar*Kay;
   fmi[2] += scalar*Kaz;
-  // printf("fm pres1: %g %g %g \n",fmi[0],fmi[1],fmi[2]);
 }
 
 /* ---------------------------------------------------------------------- */

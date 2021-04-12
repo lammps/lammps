@@ -24,6 +24,7 @@
 #include "fix_langevin_spin.h"
 #include <cmath>
 #include <cstring>
+#include "atom.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -162,4 +163,15 @@ void FixLangevinSpin::add_temperature(double fmi[3])
   fmi[0] *= gil_factor;
   fmi[1] *= gil_factor;
   fmi[2] *= gil_factor;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixLangevinSpin::compute_single_langevin(int i, double spi[3], double fmi[3])
+{
+  int *mask = atom->mask;
+  if (mask[i] & groupbit) {
+    if (tdamp_flag) add_tdamping(spi,fmi);
+    if (temp_flag) add_temperature(fmi);
+  }
 }

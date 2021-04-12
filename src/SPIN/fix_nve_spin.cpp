@@ -60,7 +60,8 @@ enum{NONE};
 
 FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pair(nullptr), spin_pairs(nullptr),
+  pair(nullptr), spin_pairs(nullptr), locklangevinspin(nullptr), 
+  locksetforcespin(nullptr), lockprecessionspin(nullptr),
   rsec(nullptr), stack_head(nullptr), stack_foot(nullptr),
   backward_stacks(nullptr), forward_stacks(nullptr)
 {
@@ -76,7 +77,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   npairspin = 0;
   
   // test nprec
-  nprecspin = 0;
+  nprecspin = nlangspin = nsetspin = 0;
 
   // checking if map array or hash is defined
 
@@ -128,7 +129,6 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   maglangevin_flag = 0;
   tdamp_flag = temp_flag = 0;
   setforce_spin_flag = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,6 +141,8 @@ FixNVESpin::~FixNVESpin()
   memory->destroy(forward_stacks);
   memory->destroy(backward_stacks);
   delete [] spin_pairs;
+  delete [] locklangevinspin;
+  delete [] lockprecessionspin;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,19 +263,51 @@ void FixNVESpin::init()
   if (count2 != nprecspin)
     error->all(FLERR,"Incorrect number of fix precession/spin");
 
-  // ptrs on the FixLangevinSpin class
-
+  // set ptrs for fix langevin/spin styles
+  
+  // loop 1: obtain # of fix langevin/spin styles
+  
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
-      maglangevin_flag = 1;
-      locklangevinspin = (FixLangevinSpin *) modify->fix[iforce];
+      nlangspin++;
     }
   }
+  
+  // init length of vector of ptrs to precession/spin styles
 
-  if (maglangevin_flag) {
-   if (locklangevinspin->tdamp_flag == 1) tdamp_flag = 1;
-   if (locklangevinspin->temp_flag == 1) temp_flag = 1;
+  if (nlangspin > 0) {
+    locklangevinspin = new FixLangevinSpin*[nprecspin];
   }
+  
+  // loop 2: fill vector with ptrs to precession/spin styles
+
+  count2 = 0;
+  if (nlangspin > 0) {
+    for (iforce = 0; iforce < modify->nfix; iforce++) {
+      if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
+        maglangevin_flag = 1;
+        locklangevinspin[count2] = (FixLangevinSpin *) modify->fix[iforce];
+        count2++;
+      }
+    }
+  }
+  
+  if (count2 != nlangspin)
+    error->all(FLERR,"Incorrect number of fix precession/spin");
+  
+  // // ptrs on the FixLangevinSpin class
+
+  // for (iforce = 0; iforce < modify->nfix; iforce++) {
+  //   if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
+  //     maglangevin_flag = 1;
+  //     locklangevinspin = (FixLangevinSpin *) modify->fix[iforce];
+  //   }
+  // }
+
+  // if (maglangevin_flag) {
+  //  if (locklangevinspin->tdamp_flag == 1) tdamp_flag = 1;
+  //  if (locklangevinspin->temp_flag == 1) temp_flag = 1;
+  // }
 
   // ptrs FixSetForceSpin classes
 
@@ -515,12 +549,15 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
   // update langevin damping and random force
 
   if (maglangevin_flag) {               // mag. langevin
-    if (tdamp_flag) {                   // transverse damping
-      locklangevinspin->add_tdamping(spi,fmi);
+    for (int k = 0; k < nlangspin; k++) {
+      locklangevinspin[k]->compute_single_langevin(i,spi,fmi);
     }
-    if (temp_flag) {                    // spin temperature
-      locklangevinspin->add_temperature(fmi);
-    }
+    // if (tdamp_flag) {                   // transverse damping
+    //   locklangevinspin->add_tdamping(spi,fmi);
+    // }
+    // if (temp_flag) {                    // spin temperature
+    //   locklangevinspin->add_temperature(fmi);
+    // }
   }
 
   // update setforce of magnetic interactions

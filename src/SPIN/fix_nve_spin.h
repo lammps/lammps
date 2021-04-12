@@ -63,9 +63,14 @@ friend class PairSpin;
 
   // pointers to magnetic fixes
 
-  class FixPrecessionSpin *lockprecessionspin;
+  // class FixPrecessionSpin *lockprecessionspin;
   class FixLangevinSpin *locklangevinspin;
   class FixSetForceSpin *locksetforcespin;
+  
+  // pointers to fix precession/spin styles
+
+  int nprecspin; 
+  class FixPrecessionSpin **lockprecessionspin;
 
   // pointers to magnetic pair styles
 

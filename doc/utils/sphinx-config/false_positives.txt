@@ -268,6 +268,7 @@ blueviolet
 bn
 bni
 bo
+Bochkarev
 Bochum
 bocs
 bodyflag
@@ -343,6 +344,7 @@ Cao
 Capolungo
 Caro
 cartesian
+Cas
 CasP
 Caswell
 Cates
@@ -1069,6 +1071,7 @@ fuer
 fx
 fy
 fz
+Gabor
 Gahler
 gainsboro
 Galindo
@@ -1193,6 +1196,7 @@ Halperin
 Halver
 Hamaker
 Hamel
+Hammerschmidt
 haptic
 Hara
 Harpertown
@@ -1743,6 +1747,7 @@ lx
 ly
 Lybrand
 lyon
+Lysogorskiy
 Lyulin
 lz
 Maaravi
@@ -1801,8 +1806,10 @@ Materias
 mathbf
 mathjax
 matlab
+Matous
 matplotlib
 Matsubara
+Matteo
 Mattice
 Mattox
 Mattson
@@ -1863,6 +1870,7 @@ MEMALIGN
 membered
 memcheck
 Mendelev
+Menon
 mer
 Meremianin
 Mersenne
@@ -1986,6 +1994,7 @@ mpiio
 mpirun
 mplayer
 mps
+Mrovec
 Mryglod
 mscg
 MSCG
@@ -2311,6 +2320,7 @@ oneway
 onn
 ons
 OO
+Oord
 opencl
 openKIM
 openmp
@@ -2331,6 +2341,7 @@ Orsi
 ortho
 orthonormal
 orthorhombic
+Ortner
 oso
 Otype
 Ouldridge
@@ -2620,6 +2631,7 @@ radians
 Rafferty
 rahman
 Rahman
+Ralf
 Raman
 ramped
 ramping
@@ -2727,6 +2739,7 @@ Rij
 RIj
 Rik
 Rin
+Rinaldi
 Rino
 RiRj
 Risi
@@ -2815,6 +2828,7 @@ Sandia
 sandybrown
 sanitizer
 Sanyal
+Sarath
 sc
 scafacos
 SCAFACOS

@@ -95,6 +95,7 @@ accelerated styles exist.
 * :doc:`none <pair_none>` - turn off pairwise interactions
 * :doc:`hybrid <pair_hybrid>` - multiple styles of pairwise interactions
 * :doc:`hybrid/overlay <pair_hybrid>` - multiple styles of superposed pairwise interactions
+* :doc:`hybrid/scaled <pair_hybrid>` - multiple styles of scaled superposed pairwise interactions
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
@@ -132,6 +133,7 @@ accelerated styles exist.
 * :doc:`comb3 <pair_comb>` - charge-optimized many-body (COMB3) potential
 * :doc:`cosine/squared <pair_cosine_squared>` - Cooke-Kremer-Deserno membrane model potential
 * :doc:`coul/cut <pair_coul>` - cutoff Coulomb potential
+* :doc:`coul/cut/global <pair_coul>` - cutoff Coulomb potential
 * :doc:`coul/cut/soft <pair_fep_soft>` - Coulomb potential with a soft core
 * :doc:`coul/debye <pair_coul>` - cutoff Coulomb potential with Debye screening
 * :doc:`coul/diel <pair_coul_diel>` - Coulomb potential with dielectric permittivity

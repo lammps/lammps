@@ -2,7 +2,7 @@
 
 units           real
 atom_style      charge
-neighbor        3.0 bin
+neighbor        10.0 bin
 read_data       data.chreg-acid-real
 
 #real units

@@ -43,17 +43,9 @@ ComputeHeatFlux::ComputeHeatFlux(LAMMPS *lmp, int narg, char **arg) :
   // store ke/atom, pe/atom, stress/atom IDs used by heat flux computation
   // insure they are valid for these computations
 
-  int n = strlen(arg[3]) + 1;
-  id_ke = new char[n];
-  strcpy(id_ke,arg[3]);
-
-  n = strlen(arg[4]) + 1;
-  id_pe = new char[n];
-  strcpy(id_pe,arg[4]);
-
-  n = strlen(arg[5]) + 1;
-  id_stress = new char[n];
-  strcpy(id_stress,arg[5]);
+  id_ke = utils::strdup(arg[3]);
+  id_pe = utils::strdup(arg[4]);
+  id_stress = utils::strdup(arg[5]);
 
   int ike = modify->find_compute(id_ke);
   int ipe = modify->find_compute(id_pe);

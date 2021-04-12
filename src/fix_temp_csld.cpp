@@ -81,10 +81,8 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp, compute group = fix group
 
-  std::string cmd = id + std::string("_temp");
-  id_temp = utils::strdup(cmd);
-  cmd += fmt::format(" {} temp",group->names[igroup]);
-  modify->add_compute(cmd);
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   tflag = 1;
 
   vhold = nullptr;
@@ -261,9 +259,7 @@ int FixTempCSLD::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)

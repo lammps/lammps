@@ -23,6 +23,7 @@ class TestConfigReader : public YamlReader<TestConfigReader> {
 public:
     TestConfigReader(TestConfig &config);
 
+    void skip_tests(const yaml_event_t &event);
     void prerequisites(const yaml_event_t &event);
     void pre_commands(const yaml_event_t &event);
     void post_commands(const yaml_event_t &event);
@@ -44,6 +45,10 @@ public:
     void bond_coeff(const yaml_event_t &event);
     void angle_style(const yaml_event_t &event);
     void angle_coeff(const yaml_event_t &event);
+    void dihedral_style(const yaml_event_t &event);
+    void dihedral_coeff(const yaml_event_t &event);
+    void improper_style(const yaml_event_t &event);
+    void improper_coeff(const yaml_event_t &event);
     void equilibrium(const yaml_event_t &event);
     void init_vdwl(const yaml_event_t &event);
     void init_coul(const yaml_event_t &event);

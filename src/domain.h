@@ -130,7 +130,9 @@ class Domain : protected Pointers {
   void set_lattice(int, char **);
   void add_region(int, char **);
   void delete_region(int, char **);
-  int find_region(char *);
+  void delete_region(int);
+  int find_region(const std::string &);
+  int find_region_by_style(const std::string &);
   void set_boundary(int, char **, int);
   void set_box(int, char **);
   void print_box(const std::string &);

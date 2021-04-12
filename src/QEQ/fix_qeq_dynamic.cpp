@@ -78,7 +78,7 @@ void FixQEqDynamic::init()
       error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
                     " for damped dynamics");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
 }

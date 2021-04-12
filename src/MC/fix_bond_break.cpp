@@ -80,7 +80,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/break with non-molecular systems");
 
   // initialize Marsaglia RNG with processor-unique seed
@@ -143,7 +143,7 @@ int FixBondBreak::setmask()
 
 void FixBondBreak::init()
 {
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // enable angle/dihedral/improper breaking if any defined

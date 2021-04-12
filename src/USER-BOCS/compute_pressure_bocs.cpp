@@ -59,9 +59,7 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"NULL") == 0) id_temp = nullptr;
   else {
-    int n = strlen(arg[3]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[3]);
+    id_temp = utils::strdup(arg[3]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -446,7 +444,5 @@ void ComputePressureBocs::virial_compute(int n, int ndiag)
 void ComputePressureBocs::reset_extra_compute_fix(const char *id_new)
 {
   delete [] id_temp;
-  int n = strlen(id_new) + 1;
-  id_temp = new char[n];
-  strcpy(id_temp,id_new);
+  id_temp = utils::strdup(id_new);
 }

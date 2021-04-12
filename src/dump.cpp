@@ -14,16 +14,16 @@
 #include "dump.h"
 
 #include "atom.h"
-#include "irregular.h"
-#include "update.h"
-#include "domain.h"
-#include "group.h"
-#include "output.h"
-#include "modify.h"
-#include "fix.h"
 #include "compute.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "fix.h"
+#include "group.h"
+#include "irregular.h"
+#include "memory.h"
+#include "modify.h"
+#include "output.h"
+#include "update.h"
 
 #include <cstring>
 
@@ -46,20 +46,14 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
+  id = utils::strdup(arg[0]);
 
   igroup = group->find(arg[1]);
   groupbit = group->bitmask[igroup];
 
-  n = strlen(arg[2]) + 1;
-  style = new char[n];
-  strcpy(style,arg[2]);
+  style = utils::strdup(arg[2]);
 
-  n = strlen(arg[4]) + 1;
-  filename = new char[n];
-  strcpy(filename,arg[4]);
+  filename = utils::strdup(arg[4]);
 
   comm_forward = comm_reverse = 0;
 
@@ -140,20 +134,16 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
     filewriter = 1;
     fileproc = me;
     MPI_Comm_split(world,me,0,&clustercomm);
-    multiname = new char[strlen(filename) + 16];
     *ptr = '\0';
-    sprintf(multiname,"%s%d%s",filename,me,ptr+1);
+    multiname = utils::strdup(fmt::format("{}{}{}", filename, me, ptr+1));
     *ptr = '%';
   }
 
   if (strchr(filename,'*')) multifile = 1;
 
-  char *suffix = filename + strlen(filename) - strlen(".bin");
-  if (suffix > filename && strcmp(suffix,".bin") == 0) binary = 1;
-  suffix = filename + strlen(filename) - strlen(".gz");
-  if (suffix > filename && strcmp(suffix,".gz") == 0) compressed = 1;
-  suffix = filename + strlen(filename) - strlen(".zst");
-  if (suffix > filename && strcmp(suffix,".zst") == 0) compressed = 1;
+  if (utils::strmatch(filename, "\\.bin$")) binary = 1;
+  if (utils::strmatch(filename, "\\.gz$")
+      || utils::strmatch(filename, "\\.zst$")) compressed = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -573,14 +563,12 @@ void Dump::openfile()
     *ptr = '*';
     if (maxfiles > 0) {
       if (numfiles < maxfiles) {
-        nameslist[numfiles] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[numfiles],filecurrent);
+        nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
         remove(nameslist[fileidx]);
         delete[] nameslist[fileidx];
-        nameslist[fileidx] = new char[strlen(filecurrent)+1];
-        strcpy(nameslist[fileidx],filecurrent);
+        nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
       }
     }
@@ -591,12 +579,11 @@ void Dump::openfile()
   if (filewriter) {
     if (compressed) {
 #ifdef LAMMPS_GZIP
-      char gzip[128];
-      sprintf(gzip,"gzip -6 > %s",filecurrent);
+      auto gzip = fmt::format("gzip -6 > {}",filecurrent);
 #ifdef _WIN32
-      fp = _popen(gzip,"wb");
+      fp = _popen(gzip.c_str(),"wb");
 #else
-      fp = popen(gzip,"w");
+      fp = popen(gzip.c_str(),"w");
 #endif
 #else
       error->one(FLERR,"Cannot open gzipped file");
@@ -952,9 +939,7 @@ void Dump::modify_params(int narg, char **arg)
       int n;
       if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
         delete [] output->var_dump[idump];
-        n = strlen(&arg[iarg+1][2]) + 1;
-        output->var_dump[idump] = new char[n];
-        strcpy(output->var_dump[idump],&arg[iarg+1][2]);
+        output->var_dump[idump] = utils::strdup(&arg[iarg+1][2]);
         n = 0;
       } else {
         n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
@@ -984,10 +969,9 @@ void Dump::modify_params(int narg, char **arg)
       MPI_Comm_split(world,icluster,0,&clustercomm);
 
       delete [] multiname;
-      multiname = new char[strlen(filename) + 16];
       char *ptr = strchr(filename,'%');
       *ptr = '\0';
-      sprintf(multiname,"%s%d%s",filename,icluster,ptr+1);
+      multiname = utils::strdup(fmt::format("{}{}{}", filename, icluster, ptr+1));
       *ptr = '%';
       iarg += 2;
 
@@ -1028,9 +1012,7 @@ void Dump::modify_params(int narg, char **arg)
 
       if (strcmp(arg[iarg+1],"line") == 0) {
         delete [] format_line_user;
-        int n = strlen(arg[iarg+2]) + 1;
-        format_line_user = new char[n];
-        strcpy(format_line_user,arg[iarg+2]);
+        format_line_user = utils::strdup(arg[iarg+2]);
         iarg += 3;
       } else {   // pass other format options to child classes
         int n = modify_param(narg-iarg,&arg[iarg]);
@@ -1085,10 +1067,9 @@ void Dump::modify_params(int narg, char **arg)
       MPI_Comm_split(world,icluster,0,&clustercomm);
 
       delete [] multiname;
-      multiname = new char[strlen(filename) + 16];
       char *ptr = strchr(filename,'%');
       *ptr = '\0';
-      sprintf(multiname,"%s%d%s",filename,icluster,ptr+1);
+      multiname = utils::strdup(fmt::format("{}{}{}", filename, icluster, ptr+1));
       *ptr = '%';
       iarg += 2;
 

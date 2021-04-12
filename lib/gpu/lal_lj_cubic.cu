@@ -26,10 +26,10 @@ _texture_2d( pos_tex,int4);
 
 // LJ quantities scaled by epsilon and rmin = sigma*2^1/6 (see src/pair_lj_cubic.h)
 
-#define _RT6TWO (numtyp)1.1224621
-#define _PHIS (numtyp)-0.7869823  /* energy at s */
-#define _DPHIDS (numtyp)2.6899009 /* gradient at s */
-#define _A3 (numtyp)27.93357 /* cubic coefficient */
+#define _RT6TWO (numtyp)1.1224620483093730  /* 2^1/6 */
+#define _PHIS (numtyp)-0.7869822485207097   /* energy at s */
+#define _DPHIDS (numtyp)2.6899008972047196  /* gradient at s */
+#define _A3 (numtyp)27.9335700460986445     /* cubic coefficient */
 
 __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
                          const __global numtyp4 *restrict lj1,
@@ -46,16 +46,19 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
   int tid, ii, offset;
   atom_info(t_per_atom,ii,tid,offset);
 
-  acctyp energy=(acctyp)0;
+  int n_stride;
+  local_allocate_store_pair();
+
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -98,7 +101,7 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e;
           if (rsq <= lj2[mtype].x)
             e = r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
@@ -106,7 +109,7 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
             e = lj2[mtype].w*(_PHIS + _DPHIDS*t - _A3*t*t*t/6.0);
           energy+=factor_lj*e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -117,9 +120,9 @@ __kernel void k_lj_cubic(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 
 __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
@@ -140,27 +143,30 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
   __local numtyp4 lj2[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp2 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_pair();
+
   if (tid<4)
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
     lj2[tid]=lj2_in[tid];
-    if (eflag>0)
+    if (EVFLAG && eflag)
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp energy=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   __syncthreads();
 
   if (ii<inum) {
     int i, numj, nbor, nbor_end;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -203,7 +209,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           numtyp e;
           if (rsq <= lj2[mtype].x)
             e = r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
@@ -211,7 +217,7 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
             e = lj2[mtype].w*(_PHIS + _DPHIDS*t - _A3*t*t*t/6.0);
           energy+=factor_lj*e;
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -222,8 +228,8 @@ __kernel void k_lj_cubic_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
-                  ans,engv);
   } // if ii
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
 }
 

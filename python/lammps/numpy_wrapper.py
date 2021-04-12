@@ -331,8 +331,25 @@ class NumPyNeighList(NeighList):
 
     def get(self, element):
         """
+        Access a specific neighbor list entry. "element" must be a number from 0 to the size-1 of the list
+
         :return: tuple with atom local index, numpy array of neighbor local atom indices
         :rtype:  (int, numpy.array)
         """
         iatom, neighbors = self.lmp.numpy.get_neighlist_element_neighbors(self.idx, element)
         return iatom, neighbors
+
+    def find(self, iatom):
+        """
+        Find the neighbor list for a specific (local) atom iatom.
+        If there is no list for iatom, None is returned.
+
+        :return: numpy array of neighbor local atom indices
+        :rtype:  numpy.array or None
+        """
+        inum = self.size
+        for ii in range(inum):
+          idx, neighbors = self.get(ii)
+          if idx == iatom:
+            return neighbors
+        return None

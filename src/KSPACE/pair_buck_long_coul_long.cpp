@@ -248,7 +248,7 @@ void PairBuckLongCoulLong::init_style()
 
   // set rRESPA cutoffs
 
-  if (strstr(update->integrate_style,"respa") &&
+  if (utils::strmatch(update->integrate_style,"^respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
   else cut_respa = nullptr;
@@ -264,7 +264,7 @@ void PairBuckLongCoulLong::init_style()
     int irequest;
     int respa = 0;
 
-    if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+    if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
       if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
       if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
     }

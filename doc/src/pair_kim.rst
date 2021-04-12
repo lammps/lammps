@@ -23,29 +23,30 @@ Examples
 Description
 """""""""""
 
-This pair style is a wrapper on the `Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_ repository of interatomic
-potentials to enable their use in LAMMPS scripts.
+This pair style is a wrapper on the
+`Open Knowledgebase of Interatomic Models (OpenKIM) <https://openkim.org>`_
+repository of interatomic potentials to enable their use in LAMMPS scripts.
 
 The preferred interface for using interatomic models archived in
-OpenKIM is the :doc:`kim_commands interface <kim_commands>`. That
+OpenKIM is the :doc:`kim command <kim_commands>` interface. That
 interface supports both "KIM Portable Models" (PMs) that conform to the
 KIM API Portable Model Interface (PMI) and can be used by any
 simulation code that conforms to the KIM API/PMI, and
-"KIM Simulator Models" that are natively implemented within a single
+"KIM Simulator Models" (SMs) that are natively implemented within a single
 simulation code (like LAMMPS) and can only be used with it.
 The *pair_style kim* command is limited to KIM PMs. It is
-used by the :doc:`kim_commands interface <kim_commands>` as needed.
+used by the :doc:`kim command <kim_commands>` interface as needed.
 
 .. note::
 
-   Since *pair_style kim* is called by *kim_interactions* as needed,
-   is not recommended to be directly used in input scripts.
+   Since *pair_style kim* is called by *kim interactions* as needed,
+   it is not recommended to be directly used in input scripts.
 
 ----------
 
 The argument *model* is the name of the KIM PM.
 For potentials archived in OpenKIM
-this is the extended KIM ID (see :doc:`kim_commands <kim_commands>`
+this is the extended KIM ID (see :doc:`kim command <kim_commands>`
 for details). LAMMPS can invoke any KIM PM, however there can
 be incompatibilities (for example due to unit matching issues).
 In the event of an incompatibility, the code will terminate with
@@ -106,7 +107,7 @@ Restrictions
 """"""""""""
 
 This pair style is part of the KIM package. See details on
-restrictions in :doc:`kim_commands <kim_commands>`.
+restrictions in :doc:`kim command <kim_commands>`.
 
 This current version of pair_style kim is compatible with the
 kim-api package version 2.0.0 and higher.
@@ -114,7 +115,7 @@ kim-api package version 2.0.0 and higher.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`, :doc:`kim_commands <kim_commands>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`kim command <kim_commands>`
 
 Default
 """""""

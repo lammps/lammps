@@ -22,11 +22,23 @@ set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
 set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
 set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
 
+set(LAMMPS_DOWNLOADS_URL "https://download.lammps.org" CACHE STRING "Base URL for LAMMPS downloads")
+set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
+set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
+mark_as_advanced(LAMMPS_DOWNLOADS_URL)
+
 find_package(Git)
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "default install path" FORCE )
+  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Default install path" FORCE)
+endif()
+
+# If enabled, no need to use LD_LIBRARY_PATH / DYLD_LIBRARY_PATH when installed
+option(LAMMPS_INSTALL_RPATH "Set runtime path for shared libraries linked to LAMMPS binaries" OFF)
+if(LAMMPS_INSTALL_RPATH)
+  set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
 endif()
 
 # Cmake modules/macros are in a subdirectory to keep this file cleaner
@@ -106,7 +118,7 @@ option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 
 set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
   GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MLIAP MOLECULE PERI POEMS
-  QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
+  PLUGIN QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
   USER-ADIOS USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK
   USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD
   USER-LB USER-MANIFOLD USER-MEAMC USER-MESONT USER-MGPT USER-MISC USER-MOFFF
@@ -156,8 +168,7 @@ if(BUILD_MPI)
     endif()
   endif()
 else()
-  enable_language(C)
-  file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.c)
+  file(GLOB MPI_SOURCES ${LAMMPS_SOURCE_DIR}/STUBS/mpi.cpp)
   add_library(mpi_stubs STATIC ${MPI_SOURCES})
   set_target_properties(mpi_stubs PROPERTIES OUTPUT_NAME lammps_mpi_stubs${LAMMPS_MACHINE})
   target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
@@ -527,6 +538,18 @@ foreach(PKG_WITH_INCL CORESHELL QEQ USER-OMP USER-SDPD KOKKOS OPT USER-INTEL GPU
   endif()
 endforeach()
 
+if(PKG_PLUGIN)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+  else()
+    message(WARNING "Plugin loading will not work unless BUILD_SHARED_LIBS is enabled")
+  endif()
+  # link with -ldl or equivalent for plugin loading; except on Windows
+  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
+  endif()
+endif()
+
 ######################################################################
 # the windows version of LAMMPS requires a couple extra libraries
 # and the MPI library - if use - has to be linked right before those
@@ -778,9 +801,7 @@ if(PKG_GPU)
   message(STATUS "<<< GPU package settings >>>
 -- GPU API:          ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
-    message(STATUS "GPU architecture: ${GPU_ARCH}")
-  elseif(GPU_API STREQUAL "OPENCL")
-    message(STATUS "OpenCL tuning:    ${OCL_TUNE}")
+    message(STATUS "GPU default architecture: ${GPU_ARCH}")
   elseif(GPU_API STREQUAL "HIP")
     message(STATUS "HIP platform:     ${HIP_PLATFORM}")
     message(STATUS "HIP architecture: ${HIP_ARCH}")

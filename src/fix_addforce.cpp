@@ -83,7 +83,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
-      nevery = atoi(arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal fix addforce command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
@@ -193,7 +193,7 @@ void FixAddForce::init()
       update->whichflag == 2 && estyle == NONE)
     error->all(FLERR,"Must use variable energy with fix addforce");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -203,7 +203,7 @@ void FixAddForce::init()
 
 void FixAddForce::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

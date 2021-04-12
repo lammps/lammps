@@ -75,8 +75,6 @@ class PairEAM : public Pair {
 
   // potentials as file data
 
-  int *map;                   // which element each atom type maps to
-
   struct Funcfl {
     char *file;
     int nrho,nr;

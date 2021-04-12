@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Charges by type and after option: Agilio Padua (Univ Blaise Pascal & CNRS)
+   Charges by type and after option: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
 #include "fix_adapt_fep.h"
@@ -356,7 +356,7 @@ void FixAdaptFEP::init()
     fix_chg = (FixStore *) modify->fix[ifix];
   }
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

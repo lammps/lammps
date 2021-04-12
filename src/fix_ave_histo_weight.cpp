@@ -51,7 +51,7 @@ FixAveHistoWeight::FixAveHistoWeight(LAMMPS *lmp, int narg, char **arg) :
 
   // check that length of 2 values is the same
 
-  int size[2];
+  int size[2] = {0,0};
 
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == ArgInfo::X || which[i] == ArgInfo::V || which[i] == ArgInfo::F) {

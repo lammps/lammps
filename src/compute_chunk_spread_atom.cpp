@@ -36,9 +36,7 @@ ComputeChunkSpreadAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // ID of compute chunk/atom
 
-  int n = strlen(arg[3]) + 1;
-  idchunk = new char[n];
-  strcpy(idchunk,arg[3]);
+  idchunk = utils::strdup(arg[3]);
   init_chunk();
 
   // expand args if any have wildcard character "*"

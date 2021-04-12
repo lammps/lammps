@@ -389,7 +389,7 @@ void FixPOEMS::init()
 
   // rRESPA info
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     step_respa = ((Respa *) update->integrate)->step;
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   }

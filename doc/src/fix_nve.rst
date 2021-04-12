@@ -1,4 +1,5 @@
 .. index:: fix nve
+.. index:: fix nve/gpu
 .. index:: fix nve/intel
 .. index:: fix nve/kk
 .. index:: fix nve/omp
@@ -6,7 +7,7 @@
 fix nve command
 ===============
 
-Accelerator Variants: *nve/intel*, *nve/kk*, *nve/omp*
+Accelerator Variants: *nve/gpu*, *nve/intel*, *nve/kk*, *nve/omp*
 
 Syntax
 """"""

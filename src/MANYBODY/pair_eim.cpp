@@ -46,10 +46,6 @@ PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
   nmax = 0;
   rho = nullptr;
   fp = nullptr;
-  map = nullptr;
-
-  nelements = 0;
-  elements = nullptr;
 
   negativity = nullptr;
   q0 = nullptr;
@@ -80,14 +76,10 @@ PairEIM::~PairEIM()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     memory->destroy(type2Fij);
     memory->destroy(type2Gij);
     memory->destroy(type2phiij);
   }
-
-  for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
 
   deallocate_setfl();
 
@@ -353,8 +345,6 @@ void PairEIM::settings(int narg, char **/*arg*/)
 
 void PairEIM::coeff(int narg, char **arg)
 {
-  int i,j,m,n;
-
   if (!allocated) allocate();
 
   if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -364,23 +354,8 @@ void PairEIM::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // read EIM element names before filename
-  // nelements = # of EIM elements to read from file
-  // elements = list of unique element names
-
-  if (nelements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  nelements = narg - 3 - atom->ntypes;
-  if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
-  elements = new char*[nelements];
-
-  for (i = 0; i < nelements; i++) {
-    n = strlen(arg[i+2]) + 1;
-    elements[i] = new char[n];
-    strcpy(elements[i],arg[i+2]);
-  }
+  const int ntypes = atom->ntypes;
+  map_element2type(ntypes,arg+(narg-ntypes));
 
   // read EIM file
 
@@ -388,38 +363,12 @@ void PairEIM::coeff(int narg, char **arg)
   setfl = new Setfl();
   read_file(arg[2+nelements]);
 
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if "NULL"
+  // set per-type atomic masses
 
-  for (i = 3 + nelements; i < narg; i++) {
-    m = i - (3+nelements) + 1;
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    if (j < nelements) map[m] = j;
-    else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
-  }
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-  // set mass of atom type if i = j
-
-  int count = 0;
-  for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
+  for (int i = 1; i <= ntypes; i++)
+    for (int j = i; j <= ntypes; j++)
+      if ((map[i] >= 0) && (map[j] >= 0))
         if (i == j) atom->set_mass(FLERR,i,setfl->mass[map[i]]);
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------

@@ -67,9 +67,7 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
 
   // control variable arg
 
-  int n = strlen(arg[iarg]) + 1;
-  cvID = new char[n];
-  strcpy(cvID,arg[iarg]);
+  cvID = utils::strdup(arg[iarg]);
 
   // error check
 

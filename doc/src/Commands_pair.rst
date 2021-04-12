@@ -122,7 +122,7 @@ OPT.
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf <pair_mdf>`
    * :doc:`line/lj <pair_line_lj>`
-   * :doc:`lj/charmm/coul/charmm (iko) <pair_charmm>`
+   * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
    * :doc:`lj/charmm/coul/long/soft (o) <pair_fep_soft>`
@@ -163,6 +163,7 @@ OPT.
    * :doc:`lj/long/dipole/long <pair_dipole>`
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf <pair_mdf>`
+   * :doc:`lj/relres (o) <pair_lj_relres>`
    * :doc:`lj/sdk (gko) <pair_sdk>`
    * :doc:`lj/sdk/coul/long (go) <pair_sdk>`
    * :doc:`lj/sdk/coul/msm (o) <pair_sdk>`
@@ -186,7 +187,7 @@ OPT.
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
    * :doc:`mliap <pair_mliap>`
-   * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+   * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
    * :doc:`momb <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
    * :doc:`morse/smooth/linear (o) <pair_morse>`

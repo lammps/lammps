@@ -54,9 +54,7 @@ FixWallRegion::FixWallRegion(LAMMPS *lmp, int narg, char **arg) :
   iregion = domain->find_region(arg[3]);
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/region does not exist");
-  int n = strlen(arg[3]) + 1;
-  idregion = new char[n];
-  strcpy(idregion,arg[3]);
+  idregion = utils::strdup(arg[3]);
 
   if (strcmp(arg[4],"lj93") == 0) style = LJ93;
   else if (strcmp(arg[4],"lj126") == 0) style = LJ126;
@@ -189,7 +187,7 @@ void FixWallRegion::init()
     offset = coeff3*r4inv*r4inv*rinv - coeff4*r2inv*rinv;
   }
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -199,7 +197,7 @@ void FixWallRegion::init()
 
 void FixWallRegion::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

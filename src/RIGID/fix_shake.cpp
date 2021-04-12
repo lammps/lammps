@@ -13,25 +13,26 @@
 
 #include "fix_shake.h"
 
+#include "angle.h"
+#include "atom.h"
+#include "atom_vec.h"
+#include "bond.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_respa.h"
+#include "force.h"
+#include "group.h"
+#include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "respa.h"
+#include "update.h"
+
 #include <cmath>
 #include <cctype>
 #include <cstring>
-#include "atom.h"
-#include "atom_vec.h"
-#include "molecule.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
-#include "domain.h"
-#include "force.h"
-#include "bond.h"
-#include "angle.h"
-#include "comm.h"
-#include "group.h"
-#include "fix_respa.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -456,7 +457,7 @@ void FixShake::setup(int vflag)
 
   // set respa to 0 if verlet is used and to 1 otherwise
 
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     respa = 0;
   else
     respa = 1;
@@ -2956,7 +2957,7 @@ void FixShake::unpack_forward_comm(int n, int first, double *buf)
 
 void FixShake::reset_dt()
 {
-  if (strstr(update->integrate_style,"verlet")) {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     dtv = update->dt;
     if (rattle) dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     else dtfsq = update->dt * update->dt * force->ftm2v;

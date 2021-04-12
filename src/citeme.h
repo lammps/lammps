@@ -23,8 +23,8 @@ class CiteMe : protected Pointers {
  public:
   CiteMe(class LAMMPS *, int, int, const char *);
   virtual ~CiteMe();
-  void add(const char *);       // register publication for output
-  void flush();                 // flush buffers to screen and logfile
+  void add(const std::string &); // register publication for output
+  void flush();                  // flush buffers to screen and logfile
   enum {VERBOSE, TERSE};
 
  private:
@@ -34,7 +34,7 @@ class CiteMe : protected Pointers {
   int logfile_flag;            // determine whether verbose or terse output
   std::string scrbuffer;       // output buffer for screen
   std::string logbuffer;       // output buffer for logfile
-  typedef std::set<const char *> citeset;
+  typedef std::set<std::size_t> citeset;
   citeset *cs;                 // registered set of publications
 };
 }

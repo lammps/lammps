@@ -83,7 +83,7 @@ double ComputePE::compute_scalar()
   if (pairflag && force->pair)
     one += force->pair->eng_vdwl + force->pair->eng_coul;
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (bondflag && force->bond) one += force->bond->energy;
     if (angleflag && force->angle) one += force->angle->energy;
     if (dihedralflag && force->dihedral) one += force->dihedral->energy;

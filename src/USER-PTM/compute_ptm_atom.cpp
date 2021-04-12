@@ -17,23 +17,24 @@ under
 ------------------------------------------------------------------------- */
 
 #include "compute_ptm_atom.h"
-#include <algorithm>
-#include <cmath>
-#include <cstring>
-#include <vector>
 
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
-#include "group.h"
+
+#include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <vector>
 
 #include "ptm_functions.h"
 

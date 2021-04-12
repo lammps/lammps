@@ -227,6 +227,7 @@ accelerated styles exist.
 * :doc:`lj/long/dipole/long <pair_dipole>` - long-range LJ and long-range point dipoles
 * :doc:`lj/long/tip4p/long <pair_lj_long>` - long-range LJ and long-range Coulomb for TIP4P water
 * :doc:`lj/mdf <pair_mdf>` - LJ potential with a taper function
+* :doc:`lj/relres <pair_lj_relres>` - LJ using multiscale Relative Resolution (RelRes) methodology :ref:`(Chaimovich) <Chaimovich2>`.
 * :doc:`lj/sdk <pair_sdk>` - LJ for SDK coarse-graining
 * :doc:`lj/sdk/coul/long <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb
 * :doc:`lj/sdk/coul/msm <pair_sdk>` - LJ for SDK coarse-graining with long-range Coulomb via MSM
@@ -249,7 +250,7 @@ accelerated styles exist.
 * :doc:`mgpt <pair_mgpt>` - simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mesont/tpm <pair_mesont_tpm>` - nanotubes mesoscopic force field
 * :doc:`mie/cut <pair_mie>` - Mie potential
-* :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
+* :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>` - smoothed MM3 vdW potential with Gaussian electrostatics
 * :doc:`momb <pair_momb>` - Many-Body Metal-Organic (MOMB) force field
 * :doc:`morse <pair_morse>` - Morse potential
 * :doc:`morse/smooth/linear <pair_morse>` - linear smoothed Morse potential

@@ -66,6 +66,39 @@ TEST_F(DumpCfgCompressTest, compressed_run0)
     delete_file(converted_file_0);
 }
 
+TEST_F(DumpCfgCompressTest, compressed_no_buffer_run0)
+{
+    if (!COMPRESS_BINARY) GTEST_SKIP();
+
+    auto base_name        = "no_buffer_run*.melt.cfg";
+    auto text_files       = text_dump_filename(base_name);
+    auto compressed_files = compressed_dump_filename(base_name);
+
+    auto base_name_0       = "no_buffer_run0.melt.cfg";
+    auto text_file_0       = text_dump_filename(base_name_0);
+    auto compressed_file_0 = compressed_dump_filename(base_name_0);
+    auto fields            = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
+
+    if(compression_style == "cfg/zstd") {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, fields, "buffer no", "buffer no", 0);
+    } else {
+        generate_text_and_compressed_dump(text_files, compressed_files, fields, "buffer no", 0);
+    }
+
+    TearDown();
+
+    ASSERT_FILE_EXISTS(text_file_0);
+    ASSERT_FILE_EXISTS(compressed_file_0);
+
+    auto converted_file_0 = convert_compressed_to_text(compressed_file_0);
+
+    ASSERT_FILE_EXISTS(converted_file_0);
+    ASSERT_FILE_EQUAL(text_file_0, converted_file_0);
+    delete_file(text_file_0);
+    delete_file(compressed_file_0);
+    delete_file(converted_file_0);
+}
+
 TEST_F(DumpCfgCompressTest, compressed_unwrap_run0)
 {
     if (!COMPRESS_BINARY) GTEST_SKIP();

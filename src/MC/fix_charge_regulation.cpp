@@ -1295,10 +1295,7 @@ void FixChargeRegulation::options(int narg, char **arg) {
     } else if (strcmp(arg[iarg], "tempfixid") == 0) {
       if (iarg + 2 > narg)
         error->all(FLERR, "Illegal fix charge/regulation command");
-      int n = strlen(arg[iarg + 1]) + 1;
-      delete[] idftemp;
-      idftemp = new char[n];
-      strcpy(idftemp, arg[iarg + 1]);
+      idftemp = utils::strdup(arg[iarg+1]);
       setThermoTemperaturePointer();
       iarg += 2;
     } else if (strcmp(arg[iarg], "rxd") == 0) {
@@ -1371,9 +1368,7 @@ void FixChargeRegulation::options(int narg, char **arg) {
                            ngroupsmax * sizeof(char *),
                            "fix_charge_regulation:groupstrings");
       }
-      int n = strlen(arg[iarg + 1]) + 1;
-      groupstrings[ngroups] = new char[n];
-      strcpy(groupstrings[ngroups], arg[iarg + 1]);
+      groupstrings[ngroups] = utils::strdup(arg[iarg+1]);
       ngroups++;
       iarg += 2;
     } else error->all(FLERR, "Illegal fix charge/regulation command");

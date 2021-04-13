@@ -12,14 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_enforce2d.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
 #include "modify.h"
 #include "respa.h"
-#include "error.h"
-
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

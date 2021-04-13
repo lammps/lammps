@@ -19,7 +19,6 @@
 #include "utils.h"
 #include "fmt/format.h"
 
-#include <exception>
 #include <utility>
 
 using namespace LAMMPS_NS;

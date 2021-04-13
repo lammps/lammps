@@ -26,7 +26,6 @@
 #include "memory.h"
 
 #include <cmath>
-#include <cstdlib>
 
 using namespace LAMMPS_NS;
 

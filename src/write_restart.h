@@ -20,11 +20,11 @@ CommandStyle(write_restart,WriteRestart)
 #ifndef LMP_WRITE_RESTART_H
 #define LMP_WRITE_RESTART_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class WriteRestart : protected Pointers {
+class WriteRestart : protected Command {
  public:
   WriteRestart(class LAMMPS *);
   void command(int, char **);

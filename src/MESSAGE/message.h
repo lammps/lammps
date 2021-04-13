@@ -20,13 +20,13 @@ CommandStyle(message,Message)
 #ifndef LMP_MESSAGE_H
 #define LMP_MESSAGE_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Message : protected Pointers {
+class Message : protected Command {
  public:
-  Message(class LAMMPS *lmp) : Pointers(lmp) {};
+  Message(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 
  private:

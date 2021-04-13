@@ -32,7 +32,7 @@ enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Pointers(lmp), fp(nullptr)
+DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 {
     external_force_clear = 1;
 }

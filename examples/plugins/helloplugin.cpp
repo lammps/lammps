@@ -2,16 +2,16 @@
 #include "lammpsplugin.h"
 
 #include "comm.h"
+#include "command.h"
 #include "error.h"
-#include "pointers.h"
 #include "version.h"
 
 #include <cstring>
 
 namespace LAMMPS_NS {
-  class Hello : protected Pointers {
+  class Hello : protected Command {
     public:
-      Hello(class LAMMPS *lmp) : Pointers(lmp) {};
+      Hello(class LAMMPS *lmp) : Command(lmp) {};
       void command(int, char **);
   };
 }

@@ -20,11 +20,11 @@ CommandStyle(reset_mol_ids,ResetMolIDs)
 #ifndef LMP_RESET_MOL_IDS_H
 #define LMP_RESET_MOL_IDS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ResetMolIDs : protected Pointers {
+class ResetMolIDs : protected Command {
  public:
   ResetMolIDs(class LAMMPS *);
   ~ResetMolIDs();

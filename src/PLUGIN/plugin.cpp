@@ -41,7 +41,7 @@ namespace LAMMPS_NS
 
 /* ---------------------------------------------------------------------- */
 
-  Plugin::Plugin(LAMMPS *lmp) : Pointers(lmp) {}
+  Plugin::Plugin(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

@@ -21,11 +21,11 @@ CommandStyle(temper/npt,TemperNPT)
 #ifndef LMP_TEMPERNPT_H
 #define LMP_TEMPERNPT_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class TemperNPT : protected Pointers {
+class TemperNPT : protected Command {
  public:
   TemperNPT(class LAMMPS *);
   ~TemperNPT();

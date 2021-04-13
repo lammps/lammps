@@ -20,11 +20,11 @@ CommandStyle(delete_bonds,DeleteBonds)
 #ifndef LMP_DELETE_BONDS_H
 #define LMP_DELETE_BONDS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class DeleteBonds : protected Pointers {
+class DeleteBonds : protected Command {
  public:
   DeleteBonds(class LAMMPS *);
   void command(int, char **);

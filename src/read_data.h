@@ -20,11 +20,11 @@ CommandStyle(read_data,ReadData)
 #ifndef LMP_READ_DATA_H
 #define LMP_READ_DATA_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ReadData : protected Pointers {
+class ReadData : protected Command {
  public:
   ReadData(class LAMMPS *);
   ~ReadData();

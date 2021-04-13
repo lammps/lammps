@@ -41,7 +41,7 @@ enum{ELLIPSOID,LINE,TRIANGLE,BODY};   // also in AtomVecHybrid
 
 /* ---------------------------------------------------------------------- */
 
-WriteData::WriteData(LAMMPS *lmp) : Pointers(lmp)
+WriteData::WriteData(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

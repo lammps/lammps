@@ -62,13 +62,13 @@ CommandStyle(kim,KimCommand)
 #ifndef LMP_KIM_COMMAND_H
 #define LMP_KIM_COMMAND_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class KimCommand : protected Pointers {
+class KimCommand : protected Command {
  public:
-  KimCommand(class LAMMPS *lmp) : Pointers(lmp) {};
+  KimCommand(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 };
 

@@ -20,11 +20,11 @@ CommandStyle(run,Run)
 #ifndef LMP_RUN_H
 #define LMP_RUN_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Run : protected Pointers {
+class Run : protected Command {
  public:
   Run(class LAMMPS *);
   void command(int, char **);

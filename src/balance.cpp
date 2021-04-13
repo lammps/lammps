@@ -51,7 +51,7 @@ enum{X,Y,Z};
 
 /* ---------------------------------------------------------------------- */
 
-Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
+Balance::Balance(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

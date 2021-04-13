@@ -38,7 +38,7 @@ enum{MANY,SBOND,SANGLE,SDIHEDRAL,SIMPROPER};
 
 /* ---------------------------------------------------------------------- */
 
-CreateBonds::CreateBonds(LAMMPS *lmp) : Pointers(lmp) {}
+CreateBonds::CreateBonds(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

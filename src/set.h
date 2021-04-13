@@ -20,13 +20,13 @@ CommandStyle(set,Set)
 #ifndef LMP_SET_H
 #define LMP_SET_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Set : protected Pointers {
+class Set : protected Command {
  public:
-  Set(class LAMMPS *lmp) : Pointers(lmp) {};
+  Set(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 
  private:

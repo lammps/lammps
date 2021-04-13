@@ -20,11 +20,11 @@ CommandStyle(create_atoms,CreateAtoms)
 #ifndef LMP_CREATE_ATOMS_H
 #define LMP_CREATE_ATOMS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class CreateAtoms : protected Pointers {
+class CreateAtoms : protected Command {
  public:
   CreateAtoms(class LAMMPS *);
   void command(int, char **);

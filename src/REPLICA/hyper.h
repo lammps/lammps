@@ -20,11 +20,11 @@ CommandStyle(hyper,Hyper)
 #ifndef LMP_HYPER_H
 #define LMP_HYPER_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Hyper : protected Pointers {
+class Hyper : protected Command {
  public:
   Hyper(class LAMMPS *);
   ~Hyper() {}

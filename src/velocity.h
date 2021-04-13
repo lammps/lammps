@@ -20,11 +20,11 @@ CommandStyle(velocity,Velocity)
 #ifndef LMP_VELOCITY_H
 #define LMP_VELOCITY_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Velocity : protected Pointers {
+class Velocity : protected Command {
  public:
   Velocity(class LAMMPS *);
   void command(int, char **);

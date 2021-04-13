@@ -20,11 +20,11 @@ CommandStyle(write_data,WriteData)
 #ifndef LMP_WRITE_DATA_H
 #define LMP_WRITE_DATA_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class WriteData : protected Pointers {
+class WriteData : protected Command {
  public:
   WriteData(class LAMMPS *);
   void command(int, char **);

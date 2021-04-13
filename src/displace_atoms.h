@@ -20,11 +20,11 @@ CommandStyle(displace_atoms,DisplaceAtoms)
 #ifndef LMP_DISPLACE_ATOMS_H
 #define LMP_DISPLACE_ATOMS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class DisplaceAtoms : protected Pointers {
+class DisplaceAtoms : protected Command {
  public:
   DisplaceAtoms(class LAMMPS *);
   ~DisplaceAtoms();

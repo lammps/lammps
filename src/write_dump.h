@@ -20,13 +20,13 @@ CommandStyle(write_dump,WriteDump)
 #ifndef LMP_WRITE_DUMP_H
 #define LMP_WRITE_DUMP_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class WriteDump : protected Pointers {
+class WriteDump : protected Command {
  public:
-  WriteDump(class LAMMPS *lmp) : Pointers(lmp) {};
+  WriteDump(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 };
 

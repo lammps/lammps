@@ -20,11 +20,11 @@ CommandStyle(create_bonds,CreateBonds)
 #ifndef LMP_CREATE_BONDS_H
 #define LMP_CREATE_BONDS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class CreateBonds : protected Pointers {
+class CreateBonds : protected Command {
  public:
   CreateBonds(class LAMMPS *);
   void command(int, char **);

@@ -147,7 +147,7 @@ int FixChargeRegulation::setmask() {
 
 void FixChargeRegulation::init() {
 
-  triclinic = domain->triclinic; 
+  triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");
   c_pe = modify->compute[ipe];
 

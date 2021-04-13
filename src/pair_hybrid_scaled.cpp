@@ -457,8 +457,6 @@ void PairHybridScaled::coeff(int narg, char **arg)
       if (multiple[m]) {
         multflag = 1;
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-        if (!isdigit(arg[3][0]))
-          error->all(FLERR,"Incorrect args for pair coefficients");
         int index = utils::inumeric(FLERR,arg[3],false,lmp);
         if (index == multiple[m]) break;
         else continue;

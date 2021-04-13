@@ -13,14 +13,15 @@
 
 #include "pair_morse.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

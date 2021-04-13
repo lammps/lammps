@@ -288,7 +288,7 @@ void PairPython::coeff(int narg, char **arg)
 
   py_potential = (void *) py_pair_instance;
 
-  PyObject *py_value = PyObject_CallMethod(py_pair_instance, "check_units", "s", update->unit_style);
+  PyObject *py_value = PyObject_CallMethod(py_pair_instance, (char *)"check_units", (char *)"s", update->unit_style);
   if (!py_value) {
     PyUtils::Print_Errors();
     error->all(FLERR,"Calling 'check_units' function failed");
@@ -306,7 +306,7 @@ void PairPython::coeff(int narg, char **arg)
     } else skip_types[i] = 0;
     const int type = i;
     const char * name = arg[2+i];
-    py_value = PyObject_CallMethod(py_pair_instance, "map_coeff", "si", name, type);
+    py_value = PyObject_CallMethod(py_pair_instance, (char *)"map_coeff", (char *)"si", name, type);
     if (!py_value) {
       PyUtils::Print_Errors();
       error->all(FLERR,"Calling 'map_coeff' function failed");

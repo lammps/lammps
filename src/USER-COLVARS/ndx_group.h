@@ -31,6 +31,7 @@ class Ndx2Group : protected Pointers {
  public:
   Ndx2Group(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
+ private:
   void create(const std::string &, const std::vector<tagint> &);
 };
 

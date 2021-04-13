@@ -92,9 +92,8 @@ int FixPythonInvoke::setmask()
 void FixPythonInvoke::end_of_step()
 {
   PyUtils::GIL lock;
-  char fmt[] = "O";
 
-  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, fmt, (PyObject*)lmpPtr);
+  PyObject * result = PyObject_CallFunction((PyObject*)pFunc, (char *)"O", (PyObject*)lmpPtr);
 
   if (!result) {
     PyUtils::Print_Errors();

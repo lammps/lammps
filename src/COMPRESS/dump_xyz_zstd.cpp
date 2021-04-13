@@ -120,7 +120,24 @@ void DumpXYZZstd::write_header(bigint ndump)
 
 void DumpXYZZstd::write_data(int n, double *mybuf)
 {
-  writer.write(mybuf, n);
+  if (buffer_flag) {
+    writer.write(mybuf, n);
+  } else {
+    constexpr size_t VBUFFER_SIZE = 256;
+    char vbuffer[VBUFFER_SIZE];
+    int m = 0;
+    for (int i = 0; i < n; i++) {
+      int written = snprintf(vbuffer, VBUFFER_SIZE, format,
+              typenames[static_cast<int> (mybuf[m+1])],
+              mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+      if (written > 0) {
+        writer.write(vbuffer, written);
+      } else if (written < 0) {
+        error->one(FLERR, "Error while writing dump xyz/gz output");
+      }
+      m += size_one;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

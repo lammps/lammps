@@ -15,6 +15,7 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
+#include <iostream>
 #include "mliap_model.h"
 
 #include "comm.h"
@@ -24,6 +25,7 @@
 
 #include <cstring>
 
+using namespace std;
 using namespace LAMMPS_NS;
 
 #define MAXLINE 1024
@@ -92,6 +94,7 @@ MLIAPModelSimple::~MLIAPModelSimple()
 void MLIAPModelSimple::read_coeffs(char *coefffilename)
 {
 
+//  cout<<"MLIAPModelSimple::read_coeffs"<< endl;
   // open coefficient file on proc 0
 
   FILE *fpcoeff;
@@ -146,6 +149,7 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
 
   // Loop over nelements blocks in the coefficient file
 
+
   for (int ielem = 0; ielem < nelements; ielem++) {
     for (int icoeff = 0; icoeff < nparams; icoeff++) {
       if (comm->me == 0) {
@@ -167,6 +171,8 @@ void MLIAPModelSimple::read_coeffs(char *coefffilename)
         if (coeffs.count() != 1)
           throw TokenizerException("Wrong number of items","");
         coeffelem[ielem][icoeff] = coeffs.next_double();
+//        cout <<"ielem icoeff coeffelem "<<ielem << " " << icoeff<< " "<< coeffelem[ielem][icoeff]<<endl;
+
       } catch (TokenizerException &e) {
         error->all(FLERR,fmt::format("Incorrect format in MLIAPModel "
                                      "coefficient file: {}",e.what()));

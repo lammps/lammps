@@ -46,7 +46,7 @@ public:
   ~MLIAPModelSimple();
   virtual double memory_usage();
 
-protected:
+//protected:
   double **coeffelem;            // element coefficients
   virtual void read_coeffs(char *);
 

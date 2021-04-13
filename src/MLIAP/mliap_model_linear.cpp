@@ -14,12 +14,12 @@
 /* ----------------------------------------------------------------------
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
-
+#include <iostream>
 #include "mliap_model_linear.h"
 #include "pair_mliap.h"
 #include "mliap_data.h"
 #include "error.h"
-
+using namespace std;
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -55,11 +55,12 @@ int MLIAPModelLinear::get_nparams()
 
 void MLIAPModelLinear::compute_gradients(MLIAPData* data)
 {
+//  cout <<"in MLIAPModelLinear::compute_gradients " << endl;
   data->energy = 0.0;
 
   for (int ii = 0; ii < data->nlistatoms; ii++) {
     const int ielem = data->ielems[ii];
-
+//    cout << "ielem "<< ielem << endl;
     double* coeffi = coeffelem[ielem];
     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
       data->betas[ii][icoeff] = coeffi[icoeff+1];
@@ -73,16 +74,22 @@ void MLIAPModelLinear::compute_gradients(MLIAPData* data)
 
       double* coeffi = coeffelem[ielem];
       double etmp = coeffi[0];
+//      cout << "ii coeffi[0] "<< ii << " "<<etmp<<endl;
 
       // E_i = beta.B_i
 
-      for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++){
         etmp += coeffi[icoeff+1]*data->descriptors[ii][icoeff];
+//        cout <<"icoeff x coeffelem "<< data->descriptors[ii][icoeff] << " "
+//        		<< coeffi[icoeff+1] << endl;
+      }
 
       data->energy += etmp;
       data->eatoms[ii] = etmp;
     }
   }
+//  cout <<"data->energy "<<data->energy <<" data->eatoms[0] "<<data->eatoms[0]
+//	<<" data->eatoms[1] "<<data->eatoms[1]<<" eatom1+2 "<< data->eatoms[0]+data->eatoms[1] << endl;
 }
 
 /* ----------------------------------------------------------------------

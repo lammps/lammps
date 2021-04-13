@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
-
+#include <iostream>
 #include "mliap_data.h"
 
 #include "atom.h"
@@ -24,6 +24,7 @@
 #include "mliap_model.h"
 #include "neigh_list.h"
 
+using namespace std;
 using namespace LAMMPS_NS;
 
 MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in,
@@ -176,12 +177,18 @@ void MLIAPData::generate_neighdata(NeighList* list_in, int eflag_in, int vflag_i
       int jtype = type[j];
       const int jelem = map[jtype];
 
+
+//      cout <<"ii,jj,ij,pos "<<ii<<" "<<jj<<" "<<ij<<" "<<delx<<" "<<dely<<" "<<delz<<endl;
+//      cout <<"rsq, cutsq "<<rsq<< " " << descriptor->cutsq[ielem][jelem] << endl;
+
       if (rsq < descriptor->cutsq[ielem][jelem]) {
         jatoms[ij] = j;
         jelems[ij] = jelem;
         rij[ij][0] = delx;
         rij[ij][1] = dely;
         rij[ij][2] = delz;
+//        cout << "added" << endl;
+//        cout <<"ii,jj,ij,pos "<<ii<<" "<<jj<<" "<<ij<<" "<<delx<<" "<<dely<<" "<<delz<<endl;
         ij++;
         ninside++;
       }

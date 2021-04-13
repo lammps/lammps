@@ -14,7 +14,7 @@
 /* ----------------------------------------------------------------------
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
-
+//#include <iostream>
 #include "pair_mliap.h"
 
 #include "mliap_data.h"
@@ -22,6 +22,8 @@
 #include "mliap_model_quadratic.h"
 #include "mliap_model_nn.h"
 #include "mliap_descriptor_snap.h"
+#include "mliap_descriptor_so3.h"
+
 #ifdef MLIAP_PYTHON
 #include "mliap_model_python.h"
 #endif
@@ -37,6 +39,7 @@
 #include <cstring>
 #include "error.h"
 
+using namespace std;
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -54,18 +57,24 @@ PairMLIAP::PairMLIAP(LAMMPS *lmp) : Pair(lmp)
 
 PairMLIAP::~PairMLIAP()
 {
+//  cout <<"in PairMLIAP::~PairMLIAP" << endl;
+
   if (copymode) return;
 
-  delete model;
-  delete descriptor;
-  delete data;
+//  cout <<"kkk1" << endl;
 
+  delete model;
+//  cout <<"kkk2" << endl;
+  delete descriptor;
+//  cout <<"kkk3" << endl;
+  delete data;
+//  cout <<"kkk4" << endl;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(map);
   }
-
+//  cout <<"kkk5" << endl;
 }
 
 /* ----------------------------------------------------------------------
@@ -75,6 +84,8 @@ PairMLIAP::~PairMLIAP()
 void PairMLIAP::compute(int eflag, int vflag)
 {
 
+
+//  cout << "kkk in PairMLIAP::compute" << endl;
   // consistency checks
 
   if (data->ndescriptors != model->ndescriptors) {
@@ -104,9 +115,32 @@ void PairMLIAP::compute(int eflag, int vflag)
 
   descriptor->compute_forces(data);
 
+//  cout << "kkk in PairMLIAP::compute arter compute_force" << endl;
   // calculate stress
 
   if (vflag_fdotr) virial_fdotr_compute();
+
+//  cout << "kkk in PairMLIAP::compute after virial_fd..." << endl;
+
+  // for print total energy
+/*
+  cout << "for totale"<< endl;
+  	double totale=0.0;
+  	for (int ii = 0; ii < data->natoms; ii++) {
+  		cout <<"ii coeffelem[ii][0] "<< ii<<" " << ((MLIAPModelLinear *)model)->coeffelem[ii][0] << endl;
+  	     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++){
+  	           totale += data->descriptors[ii][icoeff]*((MLIAPModelLinear *)model)->coeffelem[ii][icoeff+1];
+  	           cout <<"icoeff x coeffelem "<< data->descriptors[ii][icoeff] << " " << ((MLIAPModelLinear *)model)->coeffelem[ii][icoeff+1] << endl;
+  	     }
+  	     totale += ((MLIAPModelLinear *)model)->coeffelem[ii][0]*0.5;
+  	}
+
+
+  	cout << "kkk totale "<< totale<< endl;
+*/
+
+  // end for print total energy
+
 }
 
 /* ----------------------------------------------------------------------
@@ -171,6 +205,10 @@ void PairMLIAP::settings(int narg, char ** arg)
         if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
         descriptor = new MLIAPDescriptorSNAP(lmp,arg[iarg+2]);
         iarg += 3;
+      }else if (strcmp(arg[iarg+1],"so3") == 0) {
+          if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style mliap command");
+          descriptor = new MLIAPDescriptorSO3(lmp,arg[iarg+2]);
+          iarg += 3;
       } else error->all(FLERR,"Illegal pair_style mliap command");
       descriptorflag = 1;
     } else
@@ -188,6 +226,9 @@ void PairMLIAP::settings(int narg, char ** arg)
 
 void PairMLIAP::coeff(int narg, char **arg)
 {
+//  cout << "kkk in PairMLIAP::coeff" << endl;
+//	cout << "memory "<< memory << endl;
+
   if (narg < 3) error->all(FLERR,"Incorrect args for pair coefficients");
   if (!allocated) allocate();
 
@@ -237,13 +278,19 @@ void PairMLIAP::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 
   // set up model, descriptor, and mliap data structures
-
+//  cout << "kkk10"<< endl;
+//  cout << "memory "<< memory << endl;
   model->init();
+//  cout << "kkk11"<< endl;
+//  cout << "memory "<< memory << endl;
   descriptor->init();
+ // cout << "kkk12"<< endl;
   int gradgradflag = -1;
   data = new MLIAPData(lmp, gradgradflag, map, model, descriptor, this);
+ // cout << "kkk13"<< endl;
   data->init();
-
+ // cout << "kkk14"<< endl;
+ // cout << "kkk out PairMLIAP::coeff" << endl;
 
 }
 

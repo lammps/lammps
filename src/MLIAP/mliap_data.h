@@ -70,7 +70,7 @@ class MLIAPData : protected Pointers {
   int vflag;                    // indicates if virial is needed
   class PairMLIAP *pairmliap;   // access to pair tally functions
 
- private:
+// private:
   class MLIAPModel *model;
   class MLIAPDescriptor *descriptor;
 

@@ -135,7 +135,7 @@ TEST_F(DumpAtomTest, no_scale_run0)
 TEST_F(DumpAtomTest, no_buffer_no_scale_run0)
 {
     auto dump_file = "dump_no_buffer_no_scale_run0.melt";
-    generate_dump(dump_file, "scale no", 0);
+    generate_dump(dump_file, "buffer no scale no", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);

@@ -34,8 +34,9 @@ class FixLangevinSpin : public Fix {
   void init();
   void setup(int);
   void add_tdamping(double *, double *);                 // add transverse damping
-  void add_temperature(double *);                        // add temperature
+  void add_temperature(int, double *, double *); 
   void compute_single_langevin(int, double *, double *);
+  virtual double compute_scalar();
 
  protected:
   double alpha_t;               // transverse mag. damping
@@ -43,7 +44,9 @@ class FixLangevinSpin : public Fix {
   double temp;                  // spin bath temperature
   double D,sigma;               // bath intensity var.
   double gil_factor;            // gilbert's prefactor
-
+  double energyS;
+  int nlocal_max;
+  int tallyflag;
   char *id_temp;
   class Compute *temperature;
 

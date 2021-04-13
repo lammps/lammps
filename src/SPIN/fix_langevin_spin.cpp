@@ -35,6 +35,8 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
+#include "compute.h"
+#include "group.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -50,6 +52,14 @@ FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
   temp = utils::numeric(FLERR,arg[3],false,lmp);
   alpha_t = utils::numeric(FLERR,arg[4],false,lmp);
   seed = utils::inumeric(FLERR,arg[5],false,lmp);
+
+  dynamic_group_allow = 1;
+  scalar_flag = 1;
+  global_freq = 1;
+  extscalar = 1;
+  ecouple_flag = 1;
+  nevery = 1;
+  tallyflag = 1;
 
   if (alpha_t < 0.0) {
     error->all(FLERR,"Illegal langevin/spin command");
@@ -143,7 +153,7 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinSpin::add_temperature(double fmi[3])
+void FixLangevinSpin::add_temperature(int i, double spi[3], double fmi[3])
 {
   // double rx = sigma*(2.0*random->uniform() - 1.0);
   // double ry = sigma*(2.0*random->uniform() - 1.0);
@@ -151,7 +161,9 @@ void FixLangevinSpin::add_temperature(double fmi[3])
   double rx = sigma*random->gaussian();
   double ry = sigma*random->gaussian();
   double rz = sigma*random->gaussian();
+  double hbar = force->hplanck/MY_2PI;
 
+  energyS += 0.25*hbar*(rx*spi[0]+ry*spi[1]+rz*spi[2])*update->dt;
   // adding the random field
 
   fmi[0] += rx;
@@ -172,6 +184,19 @@ void FixLangevinSpin::compute_single_langevin(int i, double spi[3], double fmi[3
   int *mask = atom->mask;
   if (mask[i] & groupbit) {
     if (tdamp_flag) add_tdamping(spi,fmi);
-    if (temp_flag) add_temperature(fmi);
+    if (temp_flag) add_temperature(i,spi,fmi);
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixLangevinSpin::compute_scalar()
+{
+  if (!tallyflag) return 0.0;
+
+  double energy_all;
+  MPI_Allreduce(&energyS,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
+  return -energy_all;
+}
+
+/* ---------------------------------------------------------------------- */

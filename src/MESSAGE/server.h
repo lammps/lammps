@@ -24,7 +24,7 @@ CommandStyle(server,Server)
 
 namespace LAMMPS_NS {
 
-class Server : protected Command {
+class Server : public Command {
  public:
   Server(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

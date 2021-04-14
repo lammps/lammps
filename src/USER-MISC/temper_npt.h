@@ -25,7 +25,7 @@ CommandStyle(temper/npt,TemperNPT)
 
 namespace LAMMPS_NS {
 
-class TemperNPT : protected Command {
+class TemperNPT : public Command {
  public:
   TemperNPT(class LAMMPS *);
   ~TemperNPT();

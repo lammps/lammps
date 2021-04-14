@@ -24,7 +24,7 @@ CommandStyle(minimize,Minimize)
 
 namespace LAMMPS_NS {
 
-class Minimize : protected Command {
+class Minimize : public Command {
  public:
   Minimize(class LAMMPS *);
   void command(int, char **);

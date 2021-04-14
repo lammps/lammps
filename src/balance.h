@@ -24,7 +24,7 @@ CommandStyle(balance,Balance)
 
 namespace LAMMPS_NS {
 
-class Balance : protected Command {
+class Balance : public Command {
  public:
   class RCB *rcb;
   class FixStore *fixstore;       // per-atom weights stored in FixStore

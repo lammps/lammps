@@ -24,7 +24,7 @@ CommandStyle(run,Run)
 
 namespace LAMMPS_NS {
 
-class Run : protected Command {
+class Run : public Command {
  public:
   Run(class LAMMPS *);
   void command(int, char **);

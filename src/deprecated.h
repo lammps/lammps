@@ -30,7 +30,7 @@ CommandStyle(kim_query,Deprecated)
 
 namespace LAMMPS_NS {
 
-class Deprecated : protected Command {
+class Deprecated : public Command {
  public:
   Deprecated(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

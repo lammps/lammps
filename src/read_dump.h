@@ -26,7 +26,7 @@ CommandStyle(read_dump,ReadDump)
 
 namespace LAMMPS_NS {
 
-class ReadDump : protected Command {
+class ReadDump : public Command {
  public:
   ReadDump(class LAMMPS *);
   ~ReadDump();

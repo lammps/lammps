@@ -24,7 +24,7 @@ CommandStyle(tad,TAD)
 
 namespace LAMMPS_NS {
 
-class TAD : protected Command {
+class TAD : public Command {
  public:
   TAD(class LAMMPS *);
   ~TAD();

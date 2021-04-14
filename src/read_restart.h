@@ -24,7 +24,7 @@ CommandStyle(read_restart,ReadRestart)
 
 namespace LAMMPS_NS {
 
-class ReadRestart : protected Command {
+class ReadRestart : public Command {
  public:
   ReadRestart(class LAMMPS *);
   void command(int, char **);

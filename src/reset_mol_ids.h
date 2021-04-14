@@ -24,7 +24,7 @@ CommandStyle(reset_mol_ids,ResetMolIDs)
 
 namespace LAMMPS_NS {
 
-class ResetMolIDs : protected Command {
+class ResetMolIDs : public Command {
  public:
   ResetMolIDs(class LAMMPS *);
   ~ResetMolIDs();

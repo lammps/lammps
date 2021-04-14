@@ -26,7 +26,7 @@ CommandStyle(plugin,Plugin)
 namespace LAMMPS_NS
 {
 
-  class Plugin : protected Command {
+  class Plugin : public Command {
   public:
     Plugin(class LAMMPS *);
     void command(int, char **);

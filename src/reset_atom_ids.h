@@ -24,7 +24,7 @@ CommandStyle(reset_atom_ids,ResetIDs)
 
 namespace LAMMPS_NS {
 
-class ResetIDs : protected Command {
+class ResetIDs : public Command {
  public:
   struct AtomRvous {
     bigint ibin;

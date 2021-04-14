@@ -26,7 +26,7 @@ CommandStyle(group2ndx,Group2Ndx)
 
 namespace LAMMPS_NS {
 
-class Group2Ndx : protected Command {
+class Group2Ndx : public Command {
  public:
   Group2Ndx(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

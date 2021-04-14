@@ -24,7 +24,7 @@ CommandStyle(temper/grem,TemperGrem)
 
 namespace LAMMPS_NS {
 
-class TemperGrem : protected Command {
+class TemperGrem : public Command {
  public:
   TemperGrem(class LAMMPS *);
   ~TemperGrem();

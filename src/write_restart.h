@@ -24,7 +24,7 @@ CommandStyle(write_restart,WriteRestart)
 
 namespace LAMMPS_NS {
 
-class WriteRestart : protected Command {
+class WriteRestart : public Command {
  public:
   WriteRestart(class LAMMPS *);
   void command(int, char **);

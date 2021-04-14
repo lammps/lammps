@@ -24,7 +24,7 @@ CommandStyle(write_data,WriteData)
 
 namespace LAMMPS_NS {
 
-class WriteData : protected Command {
+class WriteData : public Command {
  public:
   WriteData(class LAMMPS *);
   void command(int, char **);

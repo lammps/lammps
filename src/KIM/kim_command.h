@@ -66,7 +66,7 @@ CommandStyle(kim,KimCommand)
 
 namespace LAMMPS_NS {
 
-class KimCommand : protected Command {
+class KimCommand : public Command {
  public:
   KimCommand(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

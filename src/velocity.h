@@ -24,7 +24,7 @@ CommandStyle(velocity,Velocity)
 
 namespace LAMMPS_NS {
 
-class Velocity : protected Command {
+class Velocity : public Command {
  public:
   Velocity(class LAMMPS *);
   void command(int, char **);

@@ -24,7 +24,7 @@ CommandStyle(delete_bonds,DeleteBonds)
 
 namespace LAMMPS_NS {
 
-class DeleteBonds : protected Command {
+class DeleteBonds : public Command {
  public:
   DeleteBonds(class LAMMPS *);
   void command(int, char **);

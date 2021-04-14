@@ -24,7 +24,7 @@ CommandStyle(prd,PRD)
 
 namespace LAMMPS_NS {
 
-class PRD : protected Command {
+class PRD : public Command {
  public:
   PRD(class LAMMPS *);
   ~PRD() {}

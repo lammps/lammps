@@ -24,7 +24,7 @@ CommandStyle(change_box,ChangeBox)
 
 namespace LAMMPS_NS {
 
-class ChangeBox : protected Command {
+class ChangeBox : public Command {
  public:
   ChangeBox(class LAMMPS *);
   void command(int, char **);

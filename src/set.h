@@ -24,7 +24,7 @@ CommandStyle(set,Set)
 
 namespace LAMMPS_NS {
 
-class Set : protected Command {
+class Set : public Command {
  public:
   Set(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

@@ -24,7 +24,7 @@ CommandStyle(create_atoms,CreateAtoms)
 
 namespace LAMMPS_NS {
 
-class CreateAtoms : protected Command {
+class CreateAtoms : public Command {
  public:
   CreateAtoms(class LAMMPS *);
   void command(int, char **);

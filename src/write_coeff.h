@@ -24,7 +24,7 @@ CommandStyle(write_coeff,WriteCoeff)
 
 namespace LAMMPS_NS {
 
-class WriteCoeff : protected Command {
+class WriteCoeff : public Command {
  public:
   WriteCoeff(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

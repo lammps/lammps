@@ -24,7 +24,7 @@ CommandStyle(hyper,Hyper)
 
 namespace LAMMPS_NS {
 
-class Hyper : protected Command {
+class Hyper : public Command {
  public:
   Hyper(class LAMMPS *);
   ~Hyper() {}

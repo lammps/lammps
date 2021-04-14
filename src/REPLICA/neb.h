@@ -24,7 +24,7 @@ CommandStyle(neb,NEB)
 
 namespace LAMMPS_NS {
 
-class NEB : protected Command {
+class NEB : public Command {
  public:
   NEB(class LAMMPS *);
   NEB(class LAMMPS *, double, double, int, int, int, double *, double *);

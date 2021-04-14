@@ -24,7 +24,7 @@ CommandStyle(rerun,Rerun)
 
 namespace LAMMPS_NS {
 
-class Rerun : protected Command {
+class Rerun : public Command {
  public:
   Rerun(class LAMMPS *);
   void command(int, char **);

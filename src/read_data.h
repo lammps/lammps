@@ -24,7 +24,7 @@ CommandStyle(read_data,ReadData)
 
 namespace LAMMPS_NS {
 
-class ReadData : protected Command {
+class ReadData : public Command {
  public:
   ReadData(class LAMMPS *);
   ~ReadData();

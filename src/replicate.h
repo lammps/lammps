@@ -24,7 +24,7 @@ CommandStyle(replicate,Replicate)
 
 namespace LAMMPS_NS {
 
-class Replicate : protected Command {
+class Replicate : public Command {
  public:
   Replicate(class LAMMPS *);
   void command(int, char **);

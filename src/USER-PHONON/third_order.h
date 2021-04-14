@@ -16,7 +16,7 @@ CommandStyle(third_order,ThirdOrder)
 
 namespace LAMMPS_NS {
 
-  class ThirdOrder : protected Command {
+  class ThirdOrder : public Command {
    public:
     ThirdOrder(class LAMMPS *);
     virtual ~ThirdOrder();

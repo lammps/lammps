@@ -24,7 +24,7 @@ CommandStyle(create_box,CreateBox)
 
 namespace LAMMPS_NS {
 
-class CreateBox : protected Command {
+class CreateBox : public Command {
  public:
   CreateBox(class LAMMPS *);
   void command(int, char **);

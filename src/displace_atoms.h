@@ -24,7 +24,7 @@ CommandStyle(displace_atoms,DisplaceAtoms)
 
 namespace LAMMPS_NS {
 
-class DisplaceAtoms : protected Command {
+class DisplaceAtoms : public Command {
  public:
   DisplaceAtoms(class LAMMPS *);
   ~DisplaceAtoms();

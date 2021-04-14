@@ -24,7 +24,7 @@ CommandStyle(neb/spin,NEBSpin)
 
 namespace LAMMPS_NS {
 
-class NEBSpin : protected Command {
+class NEBSpin : public Command {
  public:
   NEBSpin(class LAMMPS *);
   ~NEBSpin();

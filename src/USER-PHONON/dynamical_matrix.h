@@ -15,7 +15,7 @@ CommandStyle(dynamical_matrix,DynamicalMatrix)
 
 namespace LAMMPS_NS {
 
-class DynamicalMatrix : protected Command {
+class DynamicalMatrix : public Command {
  public:
   DynamicalMatrix(class LAMMPS *);
   virtual ~DynamicalMatrix();

@@ -24,7 +24,7 @@ CommandStyle(message,Message)
 
 namespace LAMMPS_NS {
 
-class Message : protected Command {
+class Message : public Command {
  public:
   Message(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

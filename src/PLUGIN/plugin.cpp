@@ -257,7 +257,7 @@ namespace LAMMPS_NS
                                                 "style {} from plugin",
                                                 plugin->name));
       }
-      (*command_map)[plugin->name] = (Input::CommandCreator)plugin->creator.v3;
+      (*command_map)[plugin->name] = (Input::CommandCreator)plugin->creator.v1;
 
     } else {
       utils::logmesg(lmp,fmt::format("Loading plugin for {} styles not "

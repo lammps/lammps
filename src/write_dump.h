@@ -24,7 +24,7 @@ CommandStyle(write_dump,WriteDump)
 
 namespace LAMMPS_NS {
 
-class WriteDump : protected Command {
+class WriteDump : public Command {
  public:
   WriteDump(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

@@ -26,7 +26,7 @@ CommandStyle(info,Info)
 
 namespace LAMMPS_NS {
 
-class Info : protected Command {
+class Info : public Command {
  public:
   Info(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);

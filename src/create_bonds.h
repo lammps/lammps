@@ -24,7 +24,7 @@ CommandStyle(create_bonds,CreateBonds)
 
 namespace LAMMPS_NS {
 
-class CreateBonds : protected Command {
+class CreateBonds : public Command {
  public:
   CreateBonds(class LAMMPS *);
   void command(int, char **);

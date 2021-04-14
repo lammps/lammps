@@ -25,7 +25,7 @@ CommandStyle(delete_atoms,DeleteAtoms)
 
 namespace LAMMPS_NS {
 
-class DeleteAtoms : protected Command {
+class DeleteAtoms : public Command {
  public:
   DeleteAtoms(class LAMMPS *);
   void command(int, char **);

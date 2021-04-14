@@ -75,8 +75,6 @@ extern int ompTimingCGCount[LASTTIMINGINDEX];
 
 /************* SOME DEFS - crucial for reax_types.h *********/
 
-#define LAMMPS_REAX
-
 //#define DEBUG
 //#define DEBUG_FOCUS
 //#define TEST_ENERGY

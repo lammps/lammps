@@ -38,7 +38,6 @@ inline int  End_Index( int, reax_list* );
 inline void Set_Start_Index(int,int,reax_list*);
 inline void Set_End_Index(int,int,reax_list*);
 
-#if defined(LAMMPS_REAX)
 inline int Num_Entries( int i, reax_list *l )
 {
   return l->end_index[i] - l->index[i];
@@ -63,6 +62,5 @@ inline void Set_End_Index( int i, int val, reax_list *l )
 {
   l->end_index[i] = val;
 }
-#endif // LAMMPS_REAX
 
 #endif

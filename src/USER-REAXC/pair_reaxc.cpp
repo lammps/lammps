@@ -121,6 +121,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   system->pair_ptr = this;
   system->error_ptr = error;
   control->error_ptr = error;
+  control->lmp_ptr = lmp;
 
   system->omp_active = 0;
 
@@ -314,16 +315,7 @@ void PairReaxC::coeff( int nargs, char **args )
 
   // read ffield file
 
-  char *file = args[2];
-  FILE *fp;
-  fp = utils::open_potential(file,lmp,nullptr);
-  if (fp != nullptr)
-    Read_Force_Field(fp, &(system->reax_param), control);
-  else {
-      char str[128];
-      snprintf(str,128,"Cannot open ReaxFF potential file %s",file);
-      error->all(FLERR,str);
-  }
+  Read_Force_Field(args[2], &(system->reax_param), control);
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if "NULL"

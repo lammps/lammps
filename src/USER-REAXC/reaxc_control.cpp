@@ -31,6 +31,9 @@
 #include "reaxc_tool_box.h"
 
 #include "error.h"
+#include "utils.h"
+
+using LAMMPS_NS::utils::getsyserror;
 
 char Read_Control_File( char *control_file, control_params* control,
                         output_controls *out_control )
@@ -42,7 +45,9 @@ char Read_Control_File( char *control_file, control_params* control,
 
   /* open control file */
   if ((fp = fopen( control_file, "r" ) ) == nullptr) {
-    control->error_ptr->all(FLERR, "The control file cannot be opened");
+    control->error_ptr->all(FLERR,fmt::format("The control file {} cannot be "
+                                              "opened: {}",control_file,
+                                              getsyserror()));
   }
 
   /* assign default values */

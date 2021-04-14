@@ -25,16 +25,22 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxc_ffield.h"
+
 #include <mpi.h>
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include "reaxc_defs.h"
 #include "error.h"
 #include "reaxc_tool_box.h"
+#include "utils.h"
 
-char Read_Force_Field( FILE *fp, reax_interaction *reax,
+using LAMMPS_NS::utils::open_potential;
+using LAMMPS_NS::utils::getsyserror;
+
+void Read_Force_Field(const char *filename, reax_interaction *reax,
                        control_params *control )
 {
   char    *s;
@@ -46,6 +52,11 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   double     val;
   int me = control->me;
 
+  FILE *fp = open_potential(filename,control->lmp_ptr,nullptr);
+  if (!fp)
+    control->error_ptr->all(FLERR,fmt::format("Cannot open ReaxFF potential "
+                                              "file {}: {}",filename,
+                                              getsyserror()));
   s = (char*) malloc(sizeof(char)*MAX_LINE);
   tmp = (char**) malloc(sizeof(char*)*MAX_TOKENS);
   for (i=0; i < MAX_TOKENS; i++)
@@ -66,7 +77,7 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
     fclose(fp);
     free(s);
     free(tmp);
-    return 1;
+    return;
   }
 
   reax->gp.n_global = n;
@@ -734,6 +745,4 @@ char Read_Force_Field( FILE *fp, reax_interaction *reax,
   // close file
 
   fclose(fp);
-
-  return SUCCESS;
 }

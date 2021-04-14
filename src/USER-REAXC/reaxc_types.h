@@ -32,7 +32,12 @@
 #include <cstdio>
 #include "accelerator_kokkos.h"
 
-namespace LAMMPS_NS { class Error;}
+// forward declarations
+namespace LAMMPS_NS {
+  class Error;
+  class LAMMPS;
+  class Pair;
+}
 
 #if defined LMP_USER_OMP
 #define OMP_TIMING 0
@@ -406,8 +411,8 @@ struct _reax_system
   boundary_cutoff  bndry_cuts;
   reax_atom       *my_atoms;
 
-  class LAMMPS_NS::Error *error_ptr;
-  class LAMMPS_NS::Pair *pair_ptr;
+  LAMMPS_NS::Error *error_ptr;
+  LAMMPS_NS::Pair  *pair_ptr;
   int my_bonds;
   int mincap,minhbonds;
   double safezone, saferzone;
@@ -486,9 +491,9 @@ typedef struct
 
   int lgflag;
   int enobondsflag;
-  class LAMMPS_NS::Error *error_ptr;
+  LAMMPS_NS::Error  *error_ptr;
+  LAMMPS_NS::LAMMPS *lmp_ptr;
   int me;
-
 } control_params;
 
 

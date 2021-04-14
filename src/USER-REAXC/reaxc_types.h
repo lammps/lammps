@@ -907,23 +907,8 @@ typedef struct _LR_lookup_table
 } LR_lookup_table;
 
 /* function pointer defs */
-typedef void (*evolve_function)(reax_system*, control_params*,
-                                simulation_data*, storage*, reax_list**,
-                                output_controls*, mpi_datatypes* );
 
-typedef void (*interaction_function) (reax_system*, control_params*,
-                                      simulation_data*, storage*,
-                                      reax_list**, output_controls*);
-
-typedef void (*print_interaction)(reax_system*, control_params*,
-                                  simulation_data*, storage*,
-                                  reax_list**, output_controls*);
-
-typedef double (*lookup_function)(double);
-
-typedef void (*message_sorter) (reax_system*, int, int, int, mpi_out_data*);
-typedef void (*unpacker) ( reax_system*, int, void*, int, neighbor_proc*, int );
-
-typedef void (*dist_packer) (void*, mpi_out_data*);
-typedef void (*coll_unpacker) (void*, void*, mpi_out_data*);
+typedef void (*interaction_function) (reax_system *, control_params *,
+                                      simulation_data *, storage *,
+                                      reax_list **, output_controls *);
 #endif

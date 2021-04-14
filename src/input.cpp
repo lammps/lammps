@@ -792,6 +792,7 @@ int Input::execute_command()
     CommandCreator &command_creator = (*command_map)[command];
     Command *cmd = command_creator(lmp);
     cmd->command(narg,arg);
+    delete cmd;
     return 0;
   }
 

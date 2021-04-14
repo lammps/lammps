@@ -35,8 +35,8 @@
 
 using LAMMPS_NS::utils::getsyserror;
 
-char Read_Control_File( char *control_file, control_params* control,
-                        output_controls *out_control )
+void Read_Control_File(const char *control_file, control_params *control,
+                        output_controls *out_control)
 {
   FILE *fp;
   char *s, **tmp;
@@ -44,12 +44,11 @@ char Read_Control_File( char *control_file, control_params* control,
   double  val;
 
   /* open control file */
-  if ((fp = fopen( control_file, "r" ) ) == nullptr) {
-    control->error_ptr->all(FLERR,fmt::format("The control file {} cannot be "
+  fp = fopen(control_file, "r");
+  if (!fp)
+    control->error_ptr->one(FLERR,fmt::format("The control file {} cannot be "
                                               "opened: {}",control_file,
                                               getsyserror()));
-  }
-
   /* assign default values */
   strcpy( control->sim_name, "simulate" );
   control->ensemble        = NVE;
@@ -390,6 +389,4 @@ char Read_Control_File( char *control_file, control_params* control,
   free( s );
 
   fclose(fp);
-
-  return SUCCESS;
 }

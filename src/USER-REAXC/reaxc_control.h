@@ -29,6 +29,6 @@
 
 #include "reaxc_types.h"
 
-char Read_Control_File( char*, control_params*, output_controls* );
+void Read_Control_File(const char *, control_params *, output_controls *);
 
 #endif

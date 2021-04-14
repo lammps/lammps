@@ -754,7 +754,9 @@ void PairEAMKokkos<DeviceType>::operator()(g<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, cons
    for (int i = threadIdx.y; i < m_max*7; i+=blockDim.y){
       int j = i%7;
       int m = i/7;
+#ifdef HIP_PRINTF_WORKAROUND
       if ( d_z2r_spline(0,m,j) < -99955.65 ) printf("C: m=%d, j=%d, i = %d\n",m,j,i);
+#endif
       A[m][j] = d_z2r_spline(0,m,j);
    }
     __syncthreads();

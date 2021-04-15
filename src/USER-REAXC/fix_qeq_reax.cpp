@@ -33,6 +33,8 @@
 #include "pair.h"
 #include "pair_reaxc.h"
 #include "respa.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
@@ -43,6 +45,13 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+
+class parser_error : public std::exception {
+  std::string message;
+public:
+  parser_error(const std::string &mesg) { message = mesg; }
+  const char *what() const noexcept { return message.c_str(); }
+};
 
 #define EV_TO_KCAL_PER_MOL 14.4
 #define SQR(x) ((x)*(x))
@@ -193,8 +202,8 @@ void FixQEqReax::pertype_parameters(char *arg)
 {
   if (strcmp(arg,"reax/c") == 0) {
     reaxflag = 1;
-    Pair *pair = force->pair_match("reax/c",0);
-    if (pair == nullptr) error->all(FLERR,"No pair reax/c for fix qeq/reax");
+    Pair *pair = force->pair_match("^reax/c",0);
+    if (!pair) error->all(FLERR,"No reax/c pair style for fix qeq/reax");
 
     int tmp;
     chi = (double *) pair->extract("chi",tmp);
@@ -206,33 +215,36 @@ void FixQEqReax::pertype_parameters(char *arg)
     return;
   }
 
-  int i,itype,ntypes,rv;
-  double v1,v2,v3;
-  FILE *pf;
-
   reaxflag = 0;
-  ntypes = atom->ntypes;
+  const int ntypes = atom->ntypes;
 
   memory->create(chi,ntypes+1,"qeq/reax:chi");
   memory->create(eta,ntypes+1,"qeq/reax:eta");
   memory->create(gamma,ntypes+1,"qeq/reax:gamma");
 
   if (comm->me == 0) {
-    if ((pf = fopen(arg,"r")) == nullptr)
-      error->one(FLERR,"Fix qeq/reax parameter file could not be found");
+    try {
+      TextFileReader reader(arg,"qeq/reax parameter");
+      for (int i = 1; i <= ntypes; i++) {
+        const char *line = reader.next_line();
+        if (!line)
+          throw parser_error("Invalid param file for fix qeq/reax");
+        ValueTokenizer values(line);
 
-    for (i = 1; i <= ntypes && !feof(pf); i++) {
-      rv = fscanf(pf,"%d %lg %lg %lg",&itype,&v1,&v2,&v3);
-      if (rv != 4)
-        error->one(FLERR,"Fix qeq/reax: Incorrect format of param file");
-      if (itype < 1 || itype > ntypes)
-        error->one(FLERR,"Fix qeq/reax: invalid atom type in param file");
-      chi[itype] = v1;
-      eta[itype] = v2;
-      gamma[itype] = v3;
+        if (values.count() != 4)
+          throw parser_error("Fix qeq/reax: Incorrect format of param file");
+
+        int itype = values.next_int();
+        if ((itype < 1) || (itype > ntypes))
+          throw parser_error("Fix qeq/reax: invalid atom type in param file");
+
+        chi[itype] = values.next_double();
+        eta[itype] = values.next_double();
+        gamma[itype] = values.next_double();
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR,e.what());
     }
-    if (i <= ntypes) error->one(FLERR,"Invalid param file for fix qeq/reax");
-    fclose(pf);
   }
 
   MPI_Bcast(&chi[1],ntypes,MPI_DOUBLE,0,world);

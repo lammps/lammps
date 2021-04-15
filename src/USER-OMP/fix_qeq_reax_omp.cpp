@@ -52,8 +52,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define EV_TO_KCAL_PER_MOL 14.4
-//#define DANGER_ZONE     0.95
-//#define LOOSE_ZONE      0.7
 #define SQR(x) ((x)*(x))
 #define CUBE(x) ((x)*(x)*(x))
 #define MIN_NBRS 100

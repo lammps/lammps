@@ -227,9 +227,8 @@ void Add_dBond_to_ForcesOMP( reax_system *system, int i, int pj,
 
 /* ---------------------------------------------------------------------- */
 
-void Add_dBond_to_Forces_NPTOMP( reax_system *system, int i, int pj,
-                                 simulation_data * /* data */,
-                                 storage *workspace, reax_list **lists) {
+void Add_dBond_to_Forces_NPTOMP(reax_system *system, int i, int pj,
+                                storage *workspace, reax_list **lists) {
   reax_list *bonds = (*lists) + BONDS;
   bond_data *nbr_j, *nbr_k;
   bond_order_data *bo_ij, *bo_ji;

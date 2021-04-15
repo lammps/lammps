@@ -83,7 +83,6 @@ extern int ompTimingCGCount[LASTTIMINGINDEX];
 /********************** TYPE DEFINITIONS ********************/
 typedef int ivec[3];
 typedef double rvec[3];
-typedef double rtensor[3][3];
 typedef double rvec2[2];
 
 // import LAMMPS' definition of tagint and bigint

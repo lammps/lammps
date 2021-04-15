@@ -150,7 +150,6 @@ void Torsion_Angles( reax_system *system, control_params *control,
   rvec dvec_li;
   rvec force;
   ivec rel_box_jl;
-  // rtensor total_rtensor, temp_rtensor;
   four_body_header *fbh;
   four_body_parameters *fbp;
   bond_data *pbond_ij, *pbond_jk, *pbond_kl;

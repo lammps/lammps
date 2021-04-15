@@ -100,35 +100,6 @@ void rvec_MakeZero( rvec v )
 }
 
 
-void rtensor_MatVec( rvec ret, rtensor m, rvec v )
-{
-  int i;
-  rvec temp;
-
-  if (ret == v)
-    {
-      for (i = 0; i < 3; ++i)
-        temp[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
-
-      for (i = 0; i < 3; ++i)
-        ret[i] = temp[i];
-    }
-  else
-    {
-      for (i = 0; i < 3; ++i)
-        ret[i] = m[i][0] * v[0] + m[i][1] * v[1] + m[i][2] * v[2];
-    }
-}
-
-
-void rtensor_MakeZero( rtensor t )
-{
-  t[0][0] = t[0][1] = t[0][2] = 0;
-  t[1][0] = t[1][1] = t[1][2] = 0;
-  t[2][0] = t[2][1] = t[2][2] = 0;
-}
-
-
 void ivec_MakeZero( ivec v )
 {
   v[0] = v[1] = v[2] = 0;

@@ -42,9 +42,6 @@ double rvec_Norm( rvec );
 void rvec_MakeZero( rvec );
 void rvec_Random( rvec );
 
-void rtensor_MakeZero( rtensor );
-void rtensor_MatVec( rvec, rtensor, rvec );
-
 void ivec_MakeZero( ivec );
 void ivec_Copy( ivec, ivec );
 void ivec_Scale( ivec, double, ivec );

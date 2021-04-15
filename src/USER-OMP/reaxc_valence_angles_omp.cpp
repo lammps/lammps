@@ -155,7 +155,6 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
     double Ctheta_0, theta_0, theta_00, theta, cos_theta, sin_theta;
     double BOA_ij, BOA_jk;
     rvec force;
-    // rtensor temp_rtensor, total_rtensor;
 
     // Tallying variables
     double eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];

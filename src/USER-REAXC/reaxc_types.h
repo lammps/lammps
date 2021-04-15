@@ -75,23 +75,10 @@ extern int ompTimingCGCount[LASTTIMINGINDEX];
 
 /************* SOME DEFS - crucial for reax_types.h *********/
 
-//#define DEBUG
-//#define DEBUG_FOCUS
-//#define TEST_ENERGY
-//#define TEST_FORCES
-//#define CG_PERFORMANCE
-//#define LOG_PERFORMANCE
-//#define STANDARD_BOUNDARIES
-//#define OLD_BOUNDARIES
-//#define MIDPOINT_BOUNDARIES
-
 #define REAX_MAX_STR            1024
-#define REAX_MAX_NBRS           6
 #define REAX_MAX_3BODY_PARAM    5
 #define REAX_MAX_4BODY_PARAM    5
 #define REAX_MAX_ATOM_TYPES     25
-#define REAX_MAX_MOLECULE_SIZE  20
-#define MAX_BOND                    20  // same as reaxc_defs.h
 
 /********************** TYPE DEFINITIONS ********************/
 typedef int ivec[3];

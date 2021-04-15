@@ -26,8 +26,8 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#ifndef REAX_DEFS_H
-#define REAX_DEFS_H
+#ifndef LMP_REAXC_DEFS_H
+#define LMP_REAXC_DEFS_H
 
 #if defined(__IBMC__)
 #define inline __inline__
@@ -39,19 +39,11 @@
 #ifndef FAILURE
 #define FAILURE  0
 #endif
-#ifndef TRUE
-#define TRUE  1
-#endif
-#ifndef FALSE
-#define FALSE 0
-#endif
 
 #define SQR(x)        ((x)*(x))
 #define CUBE(x)       ((x)*(x)*(x))
 #define DEG2RAD(a)    ((a)*constPI/180.0)
 #define RAD2DEG(a)    ((a)*180.0/constPI)
-// #define MAX(x,y)      (((x) > (y)) ? (x) : (y))
-// #define MIN(x,y)      (((x) < (y)) ? (x) : (y))
 #define MAX3(x,y,z)   MAX( MAX(x,y), z)
 
 #define constPI        3.14159265
@@ -88,8 +80,6 @@
 #define MIN_BONDS       25
 #define REAX_MIN_HBONDS 25
 #define MIN_3BODIES     1000
-#define MIN_GCELL_POPL  50
-#define MIN_SEND        100
 #define REAX_SAFE_ZONE  1.2
 #define REAX_SAFER_ZONE 1.4
 #define DANGER_ZONE     0.90
@@ -97,19 +87,9 @@
 #define MAX_3BODY_PARAM 5
 #define MAX_4BODY_PARAM 5
 
-#define MAX_dV          1.01
-#define MIN_dV          0.99
-#define MAX_dT          4.00
-#define MIN_dT          0.00
-
 #define MASTER_NODE 0
-#define MAX_NBRS 6 //27
-#define MYSELF   13  // encoding of relative coordinate (0,0,0)
 
-#define MAX_ITR 10
 #define RESTART 30
-
-#define MAX_BOND 20
 
 #define MAXREAXBOND 24 /* used in fix_reaxc_bonds.cpp and pair_reaxc.cpp */
 #define MAXSPECBOND 24 /* used in fix_reaxc_species.cpp and pair_reaxc.cpp */
@@ -120,7 +100,6 @@ enum lists { BONDS, OLD_BONDS, THREE_BODIES,
              HBONDS, FAR_NBRS, DBOS, DDELTAS, LIST_N };
 
 enum message_tags {NONE, INIT_DESCS, ATOM_LINES, BOND_LINES, ANGLE_LINES};
-
 
 enum interactions {TYP_VOID, TYP_BOND, TYP_THREE_BODY,
   TYP_HBOND, TYP_FAR_NEIGHBOR, TYP_DBO, TYP_DDELTA, TYP_N};

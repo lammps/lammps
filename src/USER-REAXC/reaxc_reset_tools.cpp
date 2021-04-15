@@ -79,20 +79,6 @@ void Reset_Simulation_Data( simulation_data* data, int /*virial*/ )
   Reset_Energies( &data->sys_en );
 }
 
-
-void Reset_Timing( reax_timing *rt )
-{
-  rt->total = MPI_Wtime();
-  rt->comm = 0;
-  rt->nbrs = 0;
-  rt->init_forces = 0;
-  rt->bonded = 0;
-  rt->nonb = 0;
-  rt->qEq = 0;
-  rt->s_matvecs = 0;
-  rt->t_matvecs = 0;
-}
-
 void Reset_Workspace( reax_system *system, storage *workspace )
 {
   memset( workspace->total_bond_order, 0, system->total_cap * sizeof( double ) );
@@ -101,7 +87,6 @@ void Reset_Workspace( reax_system *system, storage *workspace )
   memset( workspace->f, 0, system->total_cap * sizeof( rvec ) );
 
 }
-
 
 void Reset_Neighbor_Lists( reax_system *system, control_params *control,
                            storage *workspace, reax_list **lists )

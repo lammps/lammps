@@ -299,23 +299,6 @@ struct control_params
   int me;
 };
 
-struct reax_timing
-{
-  double start;
-  double end;
-  double elapsed;
-
-  double total;
-  double comm;
-  double nbrs;
-  double init_forces;
-  double bonded;
-  double nonb;
-  double qEq;
-  int  s_matvecs;
-  int  t_matvecs;
-};
-
 struct energy_data
 {
   double e_tot;
@@ -369,8 +352,6 @@ struct simulation_data
   rvec my_ext_press;
   rvec ext_press;
   rvec tot_press;
-
-  reax_timing timing;
 };
 
 struct three_body_interaction_data

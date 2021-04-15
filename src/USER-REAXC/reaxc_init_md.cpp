@@ -68,19 +68,10 @@ void Init_System(reax_system *system, control_params *control)
 }
 
 
-int Init_Simulation_Data(reax_system *system, control_params *control,
-                          simulation_data *data, char * /*msg*/)
+void Init_Simulation_Data(control_params *control, simulation_data *data)
 {
   Reset_Simulation_Data(data, control->virial);
-
-  /* initialize the timer(s) */
-  if (system->my_rank == MASTER_NODE) {
-    data->timing.start = MPI_Wtime();
-  }
-
   data->step = 0;
-
-  return SUCCESS;
 }
 
 void Init_Taper(control_params *control,  storage *workspace)
@@ -210,10 +201,7 @@ void Initialize(reax_system *system, control_params *control,
   LAMMPS_NS::Error *error = system->error_ptr;
 
   Init_System(system,control);
-
-  if (Init_Simulation_Data( system,control,data,msg) == FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. Sim_data could not be "
-                                  "initialized! Terminating.",msg));
+  Init_Simulation_Data(control,data);
 
   if (Init_Workspace( system,control,workspace,msg) == FAILURE)
     error->one(FLERR,"init_workspace: not enough memory. "

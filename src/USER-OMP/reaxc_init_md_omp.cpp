@@ -42,7 +42,7 @@
 
 // Functions defined in reaxc_init_md.cpp
 extern void Init_System(reax_system*, control_params*);
-extern int Init_Simulation_Data(reax_system*, control_params*, simulation_data*, char*);
+extern void Init_Simulation_Data(control_params*, simulation_data*);
 extern int Init_Workspace(reax_system*, control_params*, storage*, char*);
 
 /* ---------------------------------------------------------------------- */
@@ -123,10 +123,7 @@ void InitializeOMP(reax_system *system, control_params *control,
   LAMMPS_NS::Error *error = system->error_ptr;
 
   Init_System(system,control);
-
-  if (Init_Simulation_Data(system,control,data,msg) == FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. Sim_data could not be "
-                                  "initialized! Terminating.",msg));
+  Init_Simulation_Data(control,data);
 
   if (Init_Workspace(system,control,workspace,msg) == FAILURE)
     error->one(FLERR,"init_workspace: not enough memory. "

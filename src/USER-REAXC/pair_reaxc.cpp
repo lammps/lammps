@@ -477,7 +477,6 @@ double PairReaxC::init_one(int i, int j)
 void PairReaxC::compute(int eflag, int vflag)
 {
   double evdwl,ecoul;
-  double t_start, t_end;
 
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them
@@ -496,19 +495,12 @@ void PairReaxC::compute(int eflag, int vflag)
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
-  if (comm->me == 0 ) t_start = MPI_Wtime();
-
   // setup data structures
 
   setup();
 
   Reset( system, control, data, workspace, &lists );
   workspace->realloc.num_far = write_reax_lists();
-  // timing for filling in the reax lists
-  if (comm->me == 0) {
-    t_end = MPI_Wtime();
-    data->timing.nbrs = t_end - t_start;
-  }
 
   // forces
 

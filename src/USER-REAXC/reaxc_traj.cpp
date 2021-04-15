@@ -379,16 +379,19 @@ int Write_Frame_Header(reax_system *system, control_params *control,
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     /* energies */
-    sprintf( out_control->line, REAL_LINE, "total_energy:",
-             data->sys_en.e_tot );
+    double epot = data->sys_en.e_bond + data->sys_en.e_ov + data->sys_en.e_un
+      + data->sys_en.e_lp + data->sys_en.e_ang + data->sys_en.e_pen
+      + data->sys_en.e_coa + data->sys_en.e_hb + data->sys_en.e_tor
+      + data->sys_en.e_con + data->sys_en.e_vdW
+      + data->sys_en.e_ele + data->my_en.e_pol;
+
+    sprintf( out_control->line, REAL_LINE, "total_energy:", epot);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL_LINE, "total_kinetic:",
-             data->sys_en.e_kin );
+    sprintf( out_control->line, REAL_LINE, "total_kinetic:", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL_LINE, "total_potential:",
-             data->sys_en.e_pot );
+    sprintf( out_control->line, REAL_LINE, "total_potential:", epot);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     sprintf( out_control->line, REAL_LINE, "bond_energy:",

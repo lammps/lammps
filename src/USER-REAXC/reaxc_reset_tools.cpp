@@ -67,10 +67,6 @@ void Reset_Energies( energy_data *en )
   en->e_vdW = 0;
   en->e_ele = 0;
   en->e_pol = 0;
-
-  en->e_pot = 0;
-  en->e_kin = 0;
-  en->e_tot = 0;
 }
 
 void Reset_Simulation_Data( simulation_data* data, int /*virial*/ )

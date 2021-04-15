@@ -301,10 +301,6 @@ struct control_params
 
 struct energy_data
 {
-  double e_tot;
-  double e_kin;                      // Total kinetic energy
-  double e_pot;
-
   double e_bond;                     // Total bond energy
   double e_ov;                       // Total over coordination
   double e_un;                       // Total under coordination energy
@@ -324,8 +320,8 @@ struct simulation_data
 {
   rc_bigint  step;
 
-  energy_data my_en;
-  energy_data sys_en;
+  energy_data my_en;            // per MPI rank energies
+  energy_data sys_en;           // global energies
 };
 
 struct three_body_interaction_data

@@ -96,8 +96,7 @@ void Compute_NonBonded_Forces(reax_system *system, control_params *control,
 
 
 void Compute_Total_Force(reax_system *system, control_params *control,
-                         simulation_data *data, storage *workspace,
-                         reax_list **lists)
+                         storage *workspace, reax_list **lists)
 {
   int i, pj;
   reax_list *bonds = (*lists) + BONDS;
@@ -434,5 +433,5 @@ void Compute_Forces(reax_system *system, control_params *control,
                            lists, out_control);
 
   /*********** total force ***************/
-  Compute_Total_Force(system, control, data, workspace, lists);
+  Compute_Total_Force(system, control, workspace, lists);
 }

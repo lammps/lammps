@@ -31,7 +31,7 @@
 void Compute_System_Energy( reax_system *system, simulation_data *data,
                             MPI_Comm comm )
 {
-  double my_en[15], sys_en[15];
+  double my_en[13], sys_en[13];
 
   my_en[0] = data->my_en.e_bond;
   my_en[1] = data->my_en.e_ov;
@@ -46,17 +46,7 @@ void Compute_System_Energy( reax_system *system, simulation_data *data,
   my_en[10] = data->my_en.e_vdW;
   my_en[11] = data->my_en.e_ele;
   my_en[12] = data->my_en.e_pol;
-  my_en[13] = data->my_en.e_kin;
-  MPI_Reduce( my_en, sys_en, 14, MPI_DOUBLE, MPI_SUM, MASTER_NODE, comm );
-
-  data->my_en.e_pot = data->my_en.e_bond +
-    data->my_en.e_ov + data->my_en.e_un  + data->my_en.e_lp +
-    data->my_en.e_ang + data->my_en.e_pen + data->my_en.e_coa +
-    data->my_en.e_hb +
-    data->my_en.e_tor + data->my_en.e_con +
-    data->my_en.e_vdW + data->my_en.e_ele + data->my_en.e_pol;
-
-  data->my_en.e_tot = data->my_en.e_pot + E_CONV * data->my_en.e_kin;
+  MPI_Reduce( my_en, sys_en, 13, MPI_DOUBLE, MPI_SUM, MASTER_NODE, comm );
 
   if (system->my_rank == MASTER_NODE) {
     data->sys_en.e_bond = sys_en[0];
@@ -72,15 +62,5 @@ void Compute_System_Energy( reax_system *system, simulation_data *data,
     data->sys_en.e_vdW = sys_en[10];
     data->sys_en.e_ele = sys_en[11];
     data->sys_en.e_pol = sys_en[12];
-    data->sys_en.e_kin = sys_en[13];
-
-    data->sys_en.e_pot = data->sys_en.e_bond +
-      data->sys_en.e_ov + data->sys_en.e_un  + data->sys_en.e_lp +
-      data->sys_en.e_ang + data->sys_en.e_pen + data->sys_en.e_coa +
-      data->sys_en.e_hb +
-      data->sys_en.e_tor + data->sys_en.e_con +
-      data->sys_en.e_vdW + data->sys_en.e_ele + data->sys_en.e_pol;
-
-    data->sys_en.e_tot = data->sys_en.e_pot + E_CONV * data->sys_en.e_kin;
   }
 }

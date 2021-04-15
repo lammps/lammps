@@ -28,6 +28,7 @@
 #define __TRAJ_H__
 
 #include "reaxc_types.h"
+#include <mpi.h>
 
 #define MAX_TRJ_LINE_LEN     120
 #define MAX_TRJ_BUFFER_SIZE  (MAX_TRJ_LINE_LEN * 100)
@@ -94,10 +95,10 @@ enum ANGLE_LINE_OPTS { OPT_NOANGLE, OPT_ANGLE_BASIC, NR_OPT_ANGLE };
 
 
 int  Init_Traj( reax_system*, control_params*, output_controls*,
-                mpi_datatypes*, char* );
+                MPI_Comm , char* );
 int  End_Traj( int, output_controls* );
 
 int  Append_Frame( reax_system*, control_params*, simulation_data*,
-                   reax_list**, output_controls*, mpi_datatypes* );
+                   reax_list**, output_controls*, MPI_Comm);
 
 #endif

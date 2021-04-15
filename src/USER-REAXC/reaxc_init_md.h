@@ -30,6 +30,6 @@
 #include "reaxc_types.h"
 #include <mpi.h>
 
-void Initialize( reax_system*, control_params*, simulation_data*, storage*,
-                 reax_list**, output_controls*, mpi_datatypes*, MPI_Comm );
+void Initialize(reax_system*, control_params*, simulation_data*, storage*,
+                reax_list**, output_controls*, MPI_Comm);
 #endif

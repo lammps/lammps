@@ -81,8 +81,7 @@ void Init_Force_FunctionsOMP( control_params *control )
 // Only difference with MPI-only version is inclusion of OMP_TIMING statements
 void Compute_Bonded_ForcesOMP( reax_system *system, control_params *control,
                             simulation_data *data, storage *workspace,
-                            reax_list **lists, output_controls *out_control,
-                            MPI_Comm /* comm */)
+                            reax_list **lists, output_controls *out_control)
 {
   int i;
 
@@ -107,8 +106,7 @@ void Compute_Bonded_ForcesOMP( reax_system *system, control_params *control,
 // Only difference with MPI-only version is inclusion of OMP_TIMING statements
 void Compute_NonBonded_ForcesOMP( reax_system *system, control_params *control,
                                simulation_data *data, storage *workspace,
-                               reax_list **lists, output_controls *out_control,
-                               MPI_Comm /* comm */)
+                               reax_list **lists, output_controls *out_control)
 {
   /* van der Waals and Coulomb interactions */
 #ifdef OMP_TIMING
@@ -136,7 +134,7 @@ void Compute_NonBonded_ForcesOMP( reax_system *system, control_params *control,
    Saves enormous time & space! */
 void Compute_Total_ForceOMP( reax_system *system, control_params *control,
                           simulation_data *data, storage *workspace,
-                          reax_list **lists, mpi_datatypes * /* mpi_data */)
+                          reax_list **lists)
 {
 #ifdef OMP_TIMING
   double startTimeBase,endTimeBase;
@@ -266,7 +264,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
 /* ---------------------------------------------------------------------- */
 
 void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list **lists,
-                       int step, int n, int N, int numH, MPI_Comm /*comm*/)
+                       int step, int n, int N, int numH)
 {
   int comp, Hindex;
   reax_list *bonds, *hbonds;
@@ -334,8 +332,7 @@ void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list *
 
 void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
                             simulation_data *data, storage *workspace,
-                            reax_list **lists, output_controls * /* out_control */,
-                            MPI_Comm comm) {
+                            reax_list **lists) {
 #ifdef OMP_TIMING
   double startTimeBase, endTimeBase;
   startTimeBase = MPI_Wtime();
@@ -588,7 +585,7 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
   workspace->realloc.num_hbonds = num_hbonds;
 
   Validate_ListsOMP( system, workspace, lists, data->step,
-                  system->n, system->N, system->numH, comm );
+                  system->n, system->N, system->numH);
 
 #ifdef OMP_TIMING
   endTimeBase = MPI_Wtime();
@@ -600,23 +597,19 @@ void Init_Forces_noQEq_OMP( reax_system *system, control_params *control,
 
 void Compute_ForcesOMP( reax_system *system, control_params *control,
                      simulation_data *data, storage *workspace,
-                     reax_list **lists, output_controls *out_control,
-                     mpi_datatypes *mpi_data )
+                     reax_list **lists, output_controls *out_control)
 {
-  MPI_Comm comm = mpi_data->world;
-
   // Init Forces
-  Init_Forces_noQEq_OMP( system, control, data, workspace,
-                      lists, out_control, comm );
+  Init_Forces_noQEq_OMP( system, control, data, workspace, lists);
 
   // Bonded Interactions
   Compute_Bonded_ForcesOMP( system, control, data, workspace,
-                         lists, out_control, mpi_data->world );
+                         lists, out_control );
 
   // Nonbonded Interactions
   Compute_NonBonded_ForcesOMP( system, control, data, workspace,
-                            lists, out_control, mpi_data->world );
+                            lists, out_control);
 
   // Total Force
-  Compute_Total_ForceOMP( system, control, data, workspace, lists, mpi_data );
+  Compute_Total_ForceOMP( system, control, data, workspace, lists);
 }

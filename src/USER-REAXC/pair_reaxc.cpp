@@ -98,8 +98,6 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   out_control = (output_controls *)
     memory->smalloc(sizeof(output_controls),"reax:out_control");
   memset(out_control,0,sizeof(output_controls));
-  mpi_data = (mpi_datatypes *)
-    memory->smalloc(sizeof(mpi_datatypes),"reax:mpi");
 
   control->me = system->my_rank = comm->me;
 
@@ -148,28 +146,27 @@ PairReaxC::~PairReaxC()
   delete[] fix_id;
 
   if (setup_flag) {
-    Close_Output_Files( system, control, out_control, mpi_data );
+    Close_Output_Files(system,out_control);
 
     // deallocate reax data-structures
 
-    if (control->tabulate ) Deallocate_Lookup_Tables( system);
+    if (control->tabulate) Deallocate_Lookup_Tables(system);
 
-    if (control->hbond_cut > 0 )  Delete_List( lists+HBONDS );
-    Delete_List( lists+BONDS );
-    Delete_List( lists+THREE_BODIES );
-    Delete_List( lists+FAR_NBRS );
+    if (control->hbond_cut > 0)  Delete_List(lists+HBONDS);
+    Delete_List(lists+BONDS);
+    Delete_List(lists+THREE_BODIES);
+    Delete_List(lists+FAR_NBRS);
 
-    DeAllocate_Workspace( control, workspace );
-    DeAllocate_System( system );
+    DeAllocate_Workspace(control, workspace);
+    DeAllocate_System(system);
   }
 
-  memory->destroy( system );
-  memory->destroy( control );
+  memory->destroy(system);
+  memory->destroy(control);
   memory->destroy( data );
   memory->destroy( workspace );
   memory->destroy( lists );
   memory->destroy( out_control );
-  memory->destroy( mpi_data );
 
   // deallocate interface storage
   if (allocated) {
@@ -467,8 +464,8 @@ void PairReaxC::setup( )
     (lists+FAR_NBRS)->error_ptr=error;
 
     write_reax_lists();
-    Initialize( system, control, data, workspace, &lists, out_control,
-                mpi_data, world );
+    system->wsize = comm->nprocs;
+    Initialize(system, control, data, workspace, &lists, out_control, world);
     for (int k = 0; k < system->N; ++k) {
       num_bonds[k] = system->my_atoms[k].num_bonds;
       num_hbonds[k] = system->my_atoms[k].num_hbonds;
@@ -491,7 +488,7 @@ void PairReaxC::setup( )
   }
 
   bigint local_ngroup = list->inum;
-  MPI_Allreduce( &local_ngroup, &ngroup, 1, MPI_LMP_BIGINT, MPI_SUM, world );
+  MPI_Allreduce(&local_ngroup, &ngroup, 1, MPI_LMP_BIGINT, MPI_SUM, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -548,7 +545,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   // forces
 
-  Compute_Forces(system,control,data,workspace,&lists,out_control,mpi_data);
+  Compute_Forces(system,control,data,workspace,&lists,out_control);
   read_reax_forces(vflag);
 
   for (int k = 0; k < system->N; ++k) {
@@ -602,7 +599,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   data->step = update->ntimestep;
 
-  Output_Results( system, control, data, &lists, out_control, mpi_data );
+  Output_Results(system, control, data, &lists, out_control, world);
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
   int i, j;

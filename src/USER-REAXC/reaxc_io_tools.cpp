@@ -31,15 +31,14 @@
 #include "reaxc_system_props.h"
 #include "reaxc_traj.h"
 
-int Init_Output_Files( reax_system *system, control_params *control,
-                       output_controls *out_control, mpi_datatypes *mpi_data,
-                       char *msg )
+int Init_Output_Files(reax_system *system, control_params *control,
+                      output_controls *out_control, MPI_Comm world, char *msg)
 {
   char temp[MAX_STR+8];
   int ret;
 
   if (out_control->write_steps > 0) {
-    ret = Init_Traj( system, control, out_control, mpi_data, msg );
+    ret = Init_Traj( system, control, out_control, world, msg );
     if (ret == FAILURE)
       return ret;
   }
@@ -80,10 +79,8 @@ int Init_Output_Files( reax_system *system, control_params *control,
   return SUCCESS;
 }
 
-
 /************************ close output files ************************/
-int Close_Output_Files( reax_system *system, control_params * /* control */,
-                        output_controls *out_control, mpi_datatypes * /*mpi_data*/ )
+int Close_Output_Files(reax_system *system, output_controls *out_control)
 {
   if (out_control->write_steps > 0)
     End_Traj( system->my_rank, out_control );
@@ -104,9 +101,9 @@ int Close_Output_Files( reax_system *system, control_params * /* control */,
 }
 
 
-void Output_Results( reax_system *system, control_params *control,
-                     simulation_data *data, reax_list **lists,
-                     output_controls *out_control, mpi_datatypes *mpi_data )
+void Output_Results(reax_system *system, control_params *control,
+                    simulation_data *data, reax_list **lists,
+                    output_controls *out_control, MPI_Comm world)
 {
 
   if ((out_control->energy_update_freq > 0 &&
@@ -114,7 +111,7 @@ void Output_Results( reax_system *system, control_params *control,
      (out_control->write_steps > 0 &&
       data->step%out_control->write_steps == 0)) {
     /* update system-wide energies */
-    Compute_System_Energy( system, data, mpi_data->world );
+    Compute_System_Energy(system, data, world);
 
     /* output energies */
     if ( system->my_rank == MASTER_NODE &&
@@ -143,7 +140,7 @@ void Output_Results( reax_system *system, control_params *control,
     /* write current frame */
     if ( out_control->write_steps > 0 &&
         (data->step-data->prev_steps) % out_control->write_steps == 0) {
-      Append_Frame( system, control, data, lists, out_control, mpi_data );
+      Append_Frame( system, control, data, lists, out_control, world);
     }
   }
 

@@ -147,8 +147,8 @@ void Complete_Cubic_Spline( LAMMPS_NS::Error* error_ptr, const double *h, const 
 }
 
 
-int Init_Lookup_Tables( reax_system *system, control_params *control,
-                        storage *workspace, mpi_datatypes *mpi_data, char * /*msg*/ )
+int Init_Lookup_Tables(reax_system *system, control_params *control,
+                       storage *workspace, MPI_Comm world, char * /*msg*/)
 {
   int i, j, r;
   int num_atom_types;
@@ -190,8 +190,8 @@ int Init_Lookup_Tables( reax_system *system, control_params *control,
   for (i = 0; i < system->n; ++i)
     existing_types[ system->my_atoms[i].type ] = 1;
 
-  MPI_Allreduce( existing_types, aggregated, REAX_MAX_ATOM_TYPES,
-                 MPI_INT, MPI_SUM, mpi_data->world );
+  MPI_Allreduce(existing_types, aggregated, REAX_MAX_ATOM_TYPES,
+                 MPI_INT, MPI_SUM, world);
 
   for (i = 0; i < num_atom_types; ++i) {
     if (aggregated[i]) {

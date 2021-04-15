@@ -42,14 +42,14 @@
 
 interaction_function Interaction_Functions[NUM_INTRS];
 
-void Dummy_Interaction( reax_system * /*system*/, control_params * /*control*/,
-                        simulation_data * /*data*/, storage * /*workspace*/,
-                        reax_list ** /*lists*/, output_controls * /*out_control*/ )
+void Dummy_Interaction(reax_system * /*system*/, control_params * /*control*/,
+                       simulation_data * /*data*/, storage * /*workspace*/,
+                       reax_list ** /*lists*/, output_controls * /*out_control*/ )
 {
 }
 
 
-void Init_Force_Functions( control_params *control )
+void Init_Force_Functions(control_params *control)
 {
   Interaction_Functions[0] = BO;
   Interaction_Functions[1] = Bonds; //Dummy_Interaction;
@@ -66,10 +66,9 @@ void Init_Force_Functions( control_params *control )
 }
 
 
-void Compute_Bonded_Forces( reax_system *system, control_params *control,
-                            simulation_data *data, storage *workspace,
-                            reax_list **lists, output_controls *out_control,
-                            MPI_Comm /*comm*/ )
+void Compute_Bonded_Forces(reax_system *system, control_params *control,
+                           simulation_data *data, storage *workspace,
+                           reax_list **lists, output_controls *out_control)
 {
   int i;
 
@@ -81,10 +80,9 @@ void Compute_Bonded_Forces( reax_system *system, control_params *control,
 }
 
 
-void Compute_NonBonded_Forces( reax_system *system, control_params *control,
-                               simulation_data *data, storage *workspace,
-                               reax_list **lists, output_controls *out_control,
-                               MPI_Comm /*comm*/ )
+void Compute_NonBonded_Forces(reax_system *system, control_params *control,
+                              simulation_data *data, storage *workspace,
+                              reax_list **lists, output_controls *out_control)
 {
 
   /* van der Waals and Coulomb interactions */
@@ -97,9 +95,9 @@ void Compute_NonBonded_Forces( reax_system *system, control_params *control,
 }
 
 
-void Compute_Total_Force( reax_system *system, control_params *control,
-                          simulation_data *data, storage *workspace,
-                          reax_list **lists, mpi_datatypes * /*mpi_data*/ )
+void Compute_Total_Force(reax_system *system, control_params *control,
+                         simulation_data *data, storage *workspace,
+                         reax_list **lists)
 {
   int i, pj;
   reax_list *bonds = (*lists) + BONDS;
@@ -433,24 +431,22 @@ void Estimate_Storages( reax_system *system, control_params *control,
 }
 
 
-void Compute_Forces( reax_system *system, control_params *control,
-                     simulation_data *data, storage *workspace,
-                     reax_list **lists, output_controls *out_control,
-                     mpi_datatypes *mpi_data )
+void Compute_Forces(reax_system *system, control_params *control,
+                    simulation_data *data, storage *workspace,
+                    reax_list **lists, output_controls *out_control)
 {
 
-  Init_Forces_noQEq( system, control, data, workspace,
-                       lists, out_control);
+  Init_Forces_noQEq(system, control, data, workspace,
+                    lists, out_control);
 
   /********* bonded interactions ************/
-  Compute_Bonded_Forces( system, control, data, workspace,
-                         lists, out_control, mpi_data->world );
+  Compute_Bonded_Forces(system, control, data, workspace,
+                        lists, out_control);
 
   /********* nonbonded interactions ************/
-  Compute_NonBonded_Forces( system, control, data, workspace,
-                            lists, out_control, mpi_data->world );
+  Compute_NonBonded_Forces(system, control, data, workspace,
+                           lists, out_control);
 
   /*********** total force ***************/
-  Compute_Total_Force( system, control, data, workspace, lists, mpi_data );
-
+  Compute_Total_Force(system, control, data, workspace, lists);
 }

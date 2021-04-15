@@ -117,7 +117,7 @@ PairReaxCOMP::~PairReaxCOMP()
 #ifdef OMP_TIMING
   int myrank;
 
-  MPI_Comm_rank(mpi_data->world,&myrank);
+  MPI_Comm_rank(world,&myrank);
 
   // Write screen output
   if (timer->has_full() && myrank == 0 && screen) {
@@ -230,7 +230,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   startTimeBase = MPI_Wtime();
 #endif
 
-  Compute_ForcesOMP(system,control,data,workspace,&lists,out_control,mpi_data);
+  Compute_ForcesOMP(system,control,data,workspace,&lists,out_control);
   read_reax_forces(vflag);
 
 #ifdef OMP_TIMING
@@ -289,7 +289,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   data->step = update->ntimestep;
 
-  Output_Results( system, control, data, &lists, out_control, mpi_data );
+  Output_Results( system, control, data, &lists, out_control, world );
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
 
@@ -430,8 +430,7 @@ void PairReaxCOMP::setup( )
 
     write_reax_lists();
 
-    InitializeOMP( system, control, data, workspace, &lists, out_control,
-                mpi_data, world );
+    InitializeOMP(system, control, data, workspace, &lists, out_control, world);
 
     for (int k = 0; k < system->N; ++k) {
       num_bonds[k] = system->my_atoms[k].num_bonds;

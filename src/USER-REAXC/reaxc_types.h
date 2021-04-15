@@ -104,48 +104,14 @@ typedef double rvec4[4];
 typedef LAMMPS_NS::tagint rc_tagint;
 typedef LAMMPS_NS::bigint rc_bigint;
 
-typedef struct
-{
-  int  cnt;
-  int *index;
-  void *out_atoms;
-} mpi_out_data;
-
-typedef struct
-{
-  MPI_Comm     world;
-  MPI_Comm     comm_mesh3D;
-
-  MPI_Datatype sys_info;
-  MPI_Datatype mpi_atom_type;
-  MPI_Datatype boundary_atom_type;
-  MPI_Datatype mpi_rvec, mpi_rvec2;
-  MPI_Datatype restart_atom_type;
-
-  MPI_Datatype header_line;
-  MPI_Datatype header_view;
-  MPI_Datatype init_desc_line;
-  MPI_Datatype init_desc_view;
-  MPI_Datatype atom_line;
-  MPI_Datatype atom_view;
-  MPI_Datatype bond_line;
-  MPI_Datatype bond_view;
-  MPI_Datatype angle_line;
-  MPI_Datatype angle_view;
-
-  mpi_out_data out_buffers[REAX_MAX_NBRS];
-  void *in1_buffer;
-  void *in2_buffer;
-} mpi_datatypes;
-
-typedef struct
+struct global_parameters
 {
   int n_global;
   double* l;
   int vdw_type;
-} global_parameters;
+};
 
-typedef struct
+struct single_body_parameters
 {
   /* Line one in field file */
   char name[15]; // Two character atom name
@@ -189,10 +155,10 @@ typedef struct
   double lgcij;
   double lgre;
 
-} single_body_parameters;
+};
 
 /* Two Body Parameters */
-typedef struct {
+struct two_body_parameters {
   /* Bond Order parameters */
   double p_bo1,p_bo2,p_bo3,p_bo4,p_bo5,p_bo6;
   double r_s, r_p, r_pp;  // r_o distances in BO formula
@@ -217,10 +183,10 @@ typedef struct {
   double gamma; // note: this parameter is gamma^-3 and not gamma.
 
   double v13cor, ovc;
-} two_body_parameters;
+};
 
 /* 3-body parameters */
-typedef struct {
+struct three_body_parameters {
   /* valence angle */
   double theta_00;
   double p_val1, p_val2, p_val4, p_val7;
@@ -230,21 +196,23 @@ typedef struct {
 
   /* 3-body conjugation */
   double p_coa1;
-} three_body_parameters;
+};
 
-
-typedef struct{
+struct three_body_header
+{
   int cnt;
   three_body_parameters prm[REAX_MAX_3BODY_PARAM];
-} three_body_header;
+};
 
 /* hydrogen-bond parameters */
-typedef struct{
+struct hbond_parameters
+{
   double r0_hb, p_hb1, p_hb2, p_hb3;
-} hbond_parameters;
+};
 
 /* 4-body parameters */
-typedef struct {
+struct four_body_parameters
+{
   double V1, V2, V3;
 
   /* torsion angle */
@@ -252,15 +220,15 @@ typedef struct {
 
   /* 4-body conjugation */
   double p_cot1;
-} four_body_parameters;
+};
 
-typedef struct
+struct four_body_header
 {
   int cnt;
   four_body_parameters prm[REAX_MAX_4BODY_PARAM];
-} four_body_header;
+};
 
-typedef struct
+struct reax_interaction
 {
   int num_atom_types;
   global_parameters gp;
@@ -269,9 +237,9 @@ typedef struct
   three_body_header ***thbp;
   hbond_parameters ***hbp;
   four_body_header ****fbp;
-} reax_interaction;
+};
 
-struct _reax_atom
+struct reax_atom
 {
   rc_tagint  orig_id;
   int  imprt_id;
@@ -297,9 +265,8 @@ struct _reax_atom
   double nbr_bo[MAX_BOND];          // BO values of bond between i and nbr
   double sum_bo, no_lp;           // sum of BO values and no. of lone pairs
 };
-typedef _reax_atom reax_atom;
 
-typedef struct
+struct simulation_box
 {
   double V;
   rvec min, max, box_norms;
@@ -307,29 +274,9 @@ typedef struct
   rtensor box, box_inv;
   rtensor trans, trans_inv;
   rtensor g;
-} simulation_box;
-
-struct grid_cell
-{
-  double cutoff;
-  rvec min, max;
-  ivec rel_box;
-
-  int  mark;
-  int  type;
-  int  str;
-  int  end;
-  int  top;
-  int* atoms;
-  struct grid_cell** nbrs;
-  ivec* nbrs_x;
-  rvec* nbrs_cp;
 };
 
-typedef struct grid_cell grid_cell;
-
-
-typedef struct
+struct grid
 {
   int  total, max_atoms, max_nbrs;
   ivec ncells;
@@ -350,12 +297,10 @@ typedef struct
   ivec ghost_hbond_span;
   ivec ghost_bond_span;
 
-  grid_cell*** cells;
   ivec *order;
-} grid;
+};
 
-
-typedef struct
+struct neighbor_proc
 {
   int  rank;
   int  est_send, est_recv;
@@ -369,30 +314,25 @@ typedef struct
   ivec end_send;
   ivec str_recv;
   ivec end_recv;
-} neighbor_proc;
+};
 
-
-
-typedef struct
+struct bound_estimate
 {
   int N;
   int exc_gcells;
   int exc_atoms;
-} bound_estimate;
+};
 
-
-
-typedef struct
+struct boundary_cutoff
 {
   double ghost_nonb;
   double ghost_hbond;
   double ghost_bond;
   double ghost_cutoff;
-} boundary_cutoff;
+};
 
-
-struct _LR_lookup_table;  // forward declaration
-struct _reax_system
+struct LR_lookup_table;  // forward declaration
+struct reax_system
 {
   reax_interaction reax_param;
 
@@ -415,16 +355,13 @@ struct _reax_system
   int mincap,minhbonds;
   double safezone, saferzone;
 
-  _LR_lookup_table **LR;
+  LR_lookup_table **LR;
 
   int omp_active;
 };
-typedef _reax_system reax_system;
-
-
 
 /* system control parameters */
-typedef struct
+struct control_params
 {
   char sim_name[REAX_MAX_STR];
   int  nprocs;
@@ -492,10 +429,9 @@ typedef struct
   LAMMPS_NS::Error  *error_ptr;
   LAMMPS_NS::LAMMPS *lmp_ptr;
   int me;
-} control_params;
+};
 
-
-typedef struct
+struct thermostat
 {
   double T;
   double xi;
@@ -503,10 +439,9 @@ typedef struct
   double v_xi_old;
   double G_xi;
 
-} thermostat;
+};
 
-
-typedef struct
+struct isotropic_barostat
 {
   double P;
   double eps;
@@ -514,10 +449,9 @@ typedef struct
   double v_eps_old;
   double a_eps;
 
-} isotropic_barostat;
+};
 
-
-typedef struct
+struct flexible_barostat
 {
   rtensor P;
   double P_scalar;
@@ -532,10 +466,9 @@ typedef struct
   rtensor v_g0_old;
   rtensor a_g0;
 
-} flexible_barostat;
+};
 
-
-typedef struct
+struct reax_timing
 {
   double start;
   double end;
@@ -550,10 +483,9 @@ typedef struct
   double qEq;
   int  s_matvecs;
   int  t_matvecs;
-} reax_timing;
+};
 
-
-typedef struct
+struct energy_data
 {
   double e_tot;
   double e_kin;                      // Total kinetic energy
@@ -572,9 +504,9 @@ typedef struct
   double e_vdW;                      // Total van der Waals energy
   double e_ele;                      // Total electrostatics energy
   double e_pol;                      // Polarization energy
-} energy_data;
+};
 
-typedef struct
+struct simulation_data
 {
   int  step;
   int  prev_steps;
@@ -612,44 +544,40 @@ typedef struct
   rvec tot_press;
 
   reax_timing timing;
-} simulation_data;
+};
 
-
-typedef struct{
+struct three_body_interaction_data
+{
   int thb;
   int pthb; // pointer to the third body on the central atom's nbrlist
   double theta, cos_theta;
   rvec dcos_di, dcos_dj, dcos_dk;
-} three_body_interaction_data;
+};
 
-
-typedef struct {
+struct far_neighbor_data {
   int nbr;
   ivec rel_box;
   double d;
   rvec dvec;
-} far_neighbor_data;
+};
 
-
-typedef struct {
+struct hbond_data {
   int nbr;
   int scl;
   far_neighbor_data *ptr;
-} hbond_data;
+};
 
-
-typedef struct{
+struct dDelta_data {
   int wrt;
   rvec dVal;
-} dDelta_data;
+};
 
-
-typedef struct{
+struct dbond_data {
   int wrt;
   rvec dBO, dBOpi, dBOpi2;
-} dbond_data;
+};
 
-typedef struct{
+struct bond_order_data {
   double BO, BO_s, BO_pi, BO_pi2;
   double Cdbo, Cdbopi, Cdbopi2;
   double C1dbo, C2dbo, C3dbo;
@@ -657,9 +585,9 @@ typedef struct{
   double C1dbopi2, C2dbopi2, C3dbopi2, C4dbopi2;
   rvec dBOp, dln_BOp_s, dln_BOp_pi, dln_BOp_pi2;
   double *CdboReduction;
-} bond_order_data;
+};
 
-typedef struct {
+struct bond_data {
   int nbr;
   int sym_index;
   int dbond_index;
@@ -668,32 +596,29 @@ typedef struct {
   double d;
   rvec dvec;
   bond_order_data bo_data;
-} bond_data;
+};
 
-
-typedef struct {
+struct sparse_matrix_entry {
   int j;
   double val;
-} sparse_matrix_entry;
+};
 
-typedef struct {
+struct sparse_matrix {
   int cap, n, m;
   int *start, *end;
   sparse_matrix_entry *entries;
-} sparse_matrix;
+};
 
-
-typedef struct {
+struct reallocate_data {
   int num_far;
   int H, Htop;
   int hbonds, num_hbonds;
   int bonds, num_bonds;
   int num_3body;
   int gcell_atoms;
-} reallocate_data;
+};
 
-
-typedef struct
+struct storage
 {
   int allocated;
 
@@ -750,10 +675,9 @@ typedef struct
   int *valence_angle_atom_myoffset;
 
   reallocate_data realloc;
-} storage;
+};
 
-
-typedef union
+union list_type
 {
   void *v;
   three_body_interaction_data *three_body_list;
@@ -762,10 +686,9 @@ typedef union
   dDelta_data        *dDelta_list;
   far_neighbor_data  *far_nbr_list;
   hbond_data         *hbond_list;
-} list_type;
+};
 
-
-struct _reax_list
+struct reax_list
 {
   int allocated;
 
@@ -779,10 +702,8 @@ struct _reax_list
   list_type select;
   class LAMMPS_NS::Error     *error_ptr;
 };
-typedef _reax_list  reax_list;
 
-
-typedef struct
+struct output_controls
 {
   FILE *strj;
   int   trj_offset;
@@ -818,16 +739,14 @@ typedef struct
   int   debug_level;
   int   energy_update_freq;
 
-} output_controls;
+};
 
-
-typedef struct
+struct molecule
 {
   int atom_count;
   int atom_list[REAX_MAX_MOLECULE_SIZE];
   int mtypes[REAX_MAX_ATOM_TYPES];
-} molecule;
-
+};
 
 struct LR_data
 {
@@ -855,7 +774,6 @@ struct LR_data
     CEclmb = rhs.CEclmb;
   }
 };
-
 
 struct cubic_spline_coef
 {
@@ -889,9 +807,7 @@ struct cubic_spline_coef
   }
 };
 
-
-
-typedef struct _LR_lookup_table
+struct LR_lookup_table
 {
   double xmin, xmax;
   int n;
@@ -904,7 +820,7 @@ typedef struct _LR_lookup_table
   cubic_spline_coef *H;
   cubic_spline_coef *vdW, *CEvd;
   cubic_spline_coef *ele, *CEclmb;
-} LR_lookup_table;
+};
 
 /* function pointer defs */
 

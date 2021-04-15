@@ -31,7 +31,15 @@ PairStyle(reax/c,PairReaxC)
 #define LMP_PAIR_REAXC_H
 
 #include "pair.h"
-#include "reaxc_types.h"
+
+// forward declarations
+struct control_params;
+struct reax_system;
+struct output_controls;
+struct simulation_data;
+struct storage;
+struct reax_list;
+struct far_neighbor_data;
 
 namespace LAMMPS_NS {
 
@@ -55,11 +63,11 @@ class PairReaxC : public Pair {
   simulation_data *data;
   storage *workspace;
   reax_list *lists;
-  mpi_datatypes *mpi_data;
 
   bigint ngroup;
+  typedef double rvec[3];
 
- protected:
+protected:
   char *fix_id;
   double cutmax;
   class FixReaxC *fix_reax;

@@ -41,16 +41,14 @@
 #include <cstdlib>
 
 // Functions defined in reaxc_init_md.cpp
-extern int Init_MPI_Datatypes(reax_system*, storage*, mpi_datatypes*, MPI_Comm, char*);
-extern int Init_System(reax_system*, control_params*, char*);
+extern void Init_System(reax_system*, control_params*);
 extern int Init_Simulation_Data(reax_system*, control_params*, simulation_data*, char*);
 extern int Init_Workspace(reax_system*, control_params*, storage*, char*);
 
 /* ---------------------------------------------------------------------- */
 
 int Init_ListsOMP(reax_system *system, control_params *control,
-                  simulation_data * /* data */, storage * /* workspace */,
-                  reax_list **lists, mpi_datatypes * /* mpi_data */, char * /* msg */)
+                  reax_list **lists)
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
@@ -119,18 +117,12 @@ int Init_ListsOMP(reax_system *system, control_params *control,
 void InitializeOMP(reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace,
                  reax_list **lists, output_controls *out_control,
-                 mpi_datatypes *mpi_data, MPI_Comm comm)
+                 MPI_Comm world)
 {
   char msg[MAX_STR];
   LAMMPS_NS::Error *error = system->error_ptr;
 
-  if (Init_MPI_Datatypes(system,workspace,mpi_data,comm,msg) == FAILURE)
-    error->one(FLERR,"init_mpi_datatypes: could not create datatypes. "
-               "Mpi_data could not be initialized! Terminating.");
-
-  if (Init_System(system,control,msg) == FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. System could not be "
-                                  "initialized! Terminating.",msg));
+  Init_System(system,control);
 
   if (Init_Simulation_Data(system,control,data,msg) == FAILURE)
     error->one(FLERR,fmt::format("Error on: {}. Sim_data could not be "
@@ -140,16 +132,14 @@ void InitializeOMP(reax_system *system, control_params *control,
     error->one(FLERR,"init_workspace: not enough memory. "
                "Workspace could not be initialized. Terminating.");
 
-  if (Init_ListsOMP(system,control,data,workspace,lists,mpi_data,msg) == FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. System could not be "
-                                  "initialized. Terminating.",msg));
+  Init_ListsOMP(system,control,lists);
 
-  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE)
+  if (Init_Output_Files(system,control,out_control,world,msg)== FAILURE)
     error->one(FLERR,fmt::format("Error on: {}. Could not open output files! "
                                   "Terminating.",msg));
 
   if (control->tabulate)
-    if (Init_Lookup_Tables(system,control,workspace,mpi_data,msg) == FAILURE)
+    if (Init_Lookup_Tables(system,control,workspace,world,msg) == FAILURE)
       error->one(FLERR,fmt::format("Error on: {}. Could not create lookup "
                                     "table. Terminating.",msg));
 

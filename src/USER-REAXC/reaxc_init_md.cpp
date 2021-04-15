@@ -41,7 +41,7 @@
 #include "error.h"
 #include "fmt/format.h"
 
-int Init_System(reax_system *system, control_params *control, char * /*msg*/)
+void Init_System(reax_system *system, control_params *control)
 {
   int i;
   reax_atom *atom;
@@ -65,8 +65,6 @@ int Init_System(reax_system *system, control_params *control, char * /*msg*/)
       else atom->Hindex = -1;
     }
   system->Hcap = (int)(MAX(system->numH * saferzone, mincap));
-
-  return SUCCESS;
 }
 
 
@@ -145,22 +143,7 @@ int Init_Workspace(reax_system *system, control_params *control,
   return SUCCESS;
 }
 
-
-/************** setup communication data structures  **************/
-int Init_MPI_Datatypes(reax_system *system, storage * /*workspace*/,
-                        mpi_datatypes *mpi_data, MPI_Comm comm, char * /*msg*/)
-{
-
-  /* setup the world */
-  mpi_data->world = comm;
-  MPI_Comm_size(comm, &(system->wsize));
-
-  return SUCCESS;
-}
-
-int  Init_Lists(reax_system *system, control_params *control,
-                 simulation_data * /*data*/, storage * /*workspace*/, reax_list **lists,
-                 mpi_datatypes * /*mpi_data*/, char * /*msg*/)
+int Init_Lists(reax_system *system, control_params *control, reax_list **lists)
 {
   int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
   int *hb_top, *bond_top;
@@ -221,18 +204,12 @@ int  Init_Lists(reax_system *system, control_params *control,
 void Initialize(reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace,
                  reax_list **lists, output_controls *out_control,
-                 mpi_datatypes *mpi_data, MPI_Comm comm)
+                 MPI_Comm world)
 {
   char msg[MAX_STR];
   LAMMPS_NS::Error *error = system->error_ptr;
 
-  if (Init_MPI_Datatypes(system,workspace,mpi_data,comm,msg) == FAILURE)
-    error->one(FLERR,"init_mpi_datatypes: could not create datatypes. "
-               "Mpi_data could not be initialized! Terminating.");
-
-  if (Init_System(system,control,msg) == FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. System could not be "
-                                  "initialized! Terminating.",msg));
+  Init_System(system,control);
 
   if (Init_Simulation_Data( system,control,data,msg) == FAILURE)
     error->one(FLERR,fmt::format("Error on: {}. Sim_data could not be "
@@ -242,16 +219,16 @@ void Initialize(reax_system *system, control_params *control,
     error->one(FLERR,"init_workspace: not enough memory. "
                "Workspace could not be initialized. Terminating.");
 
-  if (Init_Lists(system, control, data, workspace, lists, mpi_data, msg) ==FAILURE)
+  if (Init_Lists(system, control, lists) ==FAILURE)
     error->one(FLERR,fmt::format("Error on: {}. System could not be "
                                   "initialized. Terminating.",msg));
 
-  if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE)
+  if (Init_Output_Files(system,control,out_control,world,msg)== FAILURE)
     error->one(FLERR,fmt::format("Error on: {}. Could not open output files! "
                                   "Terminating.",msg));
 
   if (control->tabulate)
-    if (Init_Lookup_Tables(system,control,workspace,mpi_data,msg) == FAILURE)
+    if (Init_Lookup_Tables(system,control,workspace,world,msg) == FAILURE)
       error->one(FLERR,fmt::format("Error on: {}. Could not create lookup "
                                     "table. Terminating.",msg));
 

@@ -28,13 +28,13 @@
 
 #include "pair_reaxc_omp.h"
 
-#include "reaxc_defs.h"
 #include "reaxc_types.h"
-
 #include "reaxc_nonbonded.h"
 #include "reaxc_nonbonded_omp.h"
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
+
+#include "reaxc_defs.h"
 
 #include <cmath>
 

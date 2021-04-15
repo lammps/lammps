@@ -360,20 +360,11 @@ void PairReaxCOMP::init_style( )
     lists[i].allocated = 0;
 
   if (fix_reax == nullptr) {
-    char **fixarg = new char*[3];
-    fixarg[0] = (char *) fix_id;
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "REAXC";
-    modify->add_fix(3,fixarg);
-    delete [] fixarg;
+    modify->add_fix(fmt::format("{} all REAXC",fix_id));
     fix_reax = (FixReaxC *) modify->fix[modify->nfix-1];
   }
 
-#if defined(_OPENMP)
-  control->nthreads = omp_get_max_threads();
-#else
-  control->nthreads = 1;
-#endif
+  control->nthreads = comm->nthreads;
 }
 
 /* ---------------------------------------------------------------------- */

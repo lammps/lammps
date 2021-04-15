@@ -79,8 +79,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   centroidstressflag = CENTROID_NOTAVAIL;
   ghostneigh = 1;
 
-  fix_id = new char[24];
-  snprintf(fix_id,24,"REAXC_%d",instance_me);
+  fix_id = utils::strdup("REAXC_" + std::to_string(instance_me));
 
   system = (reax_system *)
     memory->smalloc(sizeof(reax_system),"reax:system");
@@ -400,12 +399,7 @@ void PairReaxC::init_style( )
       lists[i].allocated = 0;
 
   if (fix_reax == nullptr) {
-    char **fixarg = new char*[3];
-    fixarg[0] = (char *) fix_id;
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "REAXC";
-    modify->add_fix(3,fixarg);
-    delete [] fixarg;
+    modify->add_fix(fmt::format("{} all REAXC",fix_id));
     fix_reax = (FixReaxC *) modify->fix[modify->nfix-1];
   }
 }

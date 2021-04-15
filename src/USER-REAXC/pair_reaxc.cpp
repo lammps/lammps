@@ -101,20 +101,12 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 
   control->me = system->my_rank = comm->me;
 
-  system->my_coords[0] = 0;
-  system->my_coords[1] = 0;
-  system->my_coords[2] = 0;
   system->num_nbrs = 0;
   system->n = 0; // my atoms
   system->N = 0; // mine + ghosts
   system->bigN = 0;  // all atoms in the system
   system->local_cap = 0;
   system->total_cap = 0;
-  system->gcell_cap = 0;
-  system->bndry_cuts.ghost_nonb = 0;
-  system->bndry_cuts.ghost_hbond = 0;
-  system->bndry_cuts.ghost_bond = 0;
-  system->bndry_cuts.ghost_cutoff = 0;
   system->my_atoms = nullptr;
   system->pair_ptr = this;
   system->error_ptr = error;
@@ -378,11 +370,6 @@ void PairReaxC::init_style( )
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
   system->wsize = comm->nprocs;
 
-  system->big_box.V = 0;
-  system->big_box.box_norms[0] = 0;
-  system->big_box.box_norms[1] = 0;
-  system->big_box.box_norms[2] = 0;
-
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style reax/c requires atom IDs");
   if (force->newton_pair == 0)
@@ -525,10 +512,6 @@ void PairReaxC::compute(int eflag, int vflag)
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
-  system->big_box.V = 0;
-  system->big_box.box_norms[0] = 0;
-  system->big_box.box_norms[1] = 0;
-  system->big_box.box_norms[2] = 0;
   if (comm->me == 0 ) t_start = MPI_Wtime();
 
   // setup data structures

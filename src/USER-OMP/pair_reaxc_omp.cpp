@@ -201,10 +201,6 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
-  system->big_box.V = 0;
-  system->big_box.box_norms[0] = 0;
-  system->big_box.box_norms[1] = 0;
-  system->big_box.box_norms[2] = 0;
   if (comm->me == 0 ) t_start = MPI_Wtime();
   // setup data structures
 
@@ -333,11 +329,6 @@ void PairReaxCOMP::init_style( )
   system->N = atom->nlocal + atom->nghost; // mine + ghosts
   system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
   system->wsize = comm->nprocs;
-
-  system->big_box.V = 0;
-  system->big_box.box_norms[0] = 0;
-  system->big_box.box_norms[1] = 0;
-  system->big_box.box_norms[2] = 0;
 
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style reax/c/omp requires atom IDs");

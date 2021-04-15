@@ -1,4 +1,4 @@
-/*----------------------------------------------------------------------
+/*- -*- c++ -*- --------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
   Copyright (2010) Purdue University
@@ -24,8 +24,8 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#ifndef __REAX_TYPES_H_
-#define __REAX_TYPES_H_
+#ifndef LMP_REAXC_TYPES_H
+#define LMP_REAXC_TYPES_H
 
 #include "lmptype.h"
 #include <mpi.h>
@@ -98,7 +98,6 @@ typedef int ivec[3];
 typedef double rvec[3];
 typedef double rtensor[3][3];
 typedef double rvec2[2];
-typedef double rvec4[4];
 
 // import LAMMPS' definition of tagint and bigint
 typedef LAMMPS_NS::tagint rc_tagint;
@@ -113,9 +112,7 @@ struct global_parameters
 
 struct single_body_parameters
 {
-  /* Line one in field file */
-  char name[15]; // Two character atom name
-
+  char name[4];    // two character atom name
   double r_s;
   double valency;  // Valency of the atom
   double mass;     // Mass of atom
@@ -242,93 +239,17 @@ struct reax_interaction
 struct reax_atom
 {
   rc_tagint  orig_id;
-  int  imprt_id;
   int  type;
   char name[8];
 
   rvec x; // position
   rvec v; // velocity
   rvec f; // force
-  rvec f_old;
-
   double q; // charge
-  rvec4 s; // they take part in
-  rvec4 t; // computing q
 
   int Hindex;
   int num_bonds;
   int num_hbonds;
-  int renumber;
-
-  int numbonds;                  // true number of bonds around atoms
-  int nbr_id[MAX_BOND];          // ids of neighbors around atoms
-  double nbr_bo[MAX_BOND];          // BO values of bond between i and nbr
-  double sum_bo, no_lp;           // sum of BO values and no. of lone pairs
-};
-
-struct simulation_box
-{
-  double V;
-  rvec min, max, box_norms;
-
-  rtensor box, box_inv;
-  rtensor trans, trans_inv;
-  rtensor g;
-};
-
-struct grid
-{
-  int  total, max_atoms, max_nbrs;
-  ivec ncells;
-  rvec cell_len;
-  rvec inv_len;
-
-  ivec bond_span;
-  ivec nonb_span;
-  ivec vlist_span;
-
-  ivec native_cells;
-  ivec native_str;
-  ivec native_end;
-
-  double ghost_cut;
-  ivec ghost_span;
-  ivec ghost_nonb_span;
-  ivec ghost_hbond_span;
-  ivec ghost_bond_span;
-
-  ivec *order;
-};
-
-struct neighbor_proc
-{
-  int  rank;
-  int  est_send, est_recv;
-  int  atoms_str, atoms_cnt;
-  ivec rltv, prdc;
-  rvec bndry_min, bndry_max;
-
-  int  send_type;
-  int  recv_type;
-  ivec str_send;
-  ivec end_send;
-  ivec str_recv;
-  ivec end_recv;
-};
-
-struct bound_estimate
-{
-  int N;
-  int exc_gcells;
-  int exc_atoms;
-};
-
-struct boundary_cutoff
-{
-  double ghost_nonb;
-  double ghost_hbond;
-  double ghost_bond;
-  double ghost_cutoff;
 };
 
 struct LR_lookup_table;  // forward declaration
@@ -338,15 +259,8 @@ struct reax_system
 
   rc_bigint        bigN;
   int              n, N, numH;
-  int              local_cap, total_cap, gcell_cap, Hcap;
-  int              est_recv, est_trans, max_recved;
+  int              local_cap, total_cap, Hcap;
   int              wsize, my_rank, num_nbrs;
-  ivec             my_coords;
-  neighbor_proc    my_nbrs[REAX_MAX_NBRS];
-  int             *global_offset;
-  simulation_box   big_box, my_box, my_ext_box;
-  grid             my_grid;
-  boundary_cutoff  bndry_cuts;
   reax_atom       *my_atoms;
 
   LAMMPS_NS::Error *error_ptr;
@@ -364,9 +278,7 @@ struct reax_system
 struct control_params
 {
   char sim_name[REAX_MAX_STR];
-  int  nprocs;
   int  nthreads;
-  ivec procs_by_dim;
   /* ensemble values:
      0 : NVE
      1 : bNVT (Berendsen)
@@ -738,7 +650,6 @@ struct output_controls
   int   restart_freq;
   int   debug_level;
   int   energy_update_freq;
-
 };
 
 struct molecule

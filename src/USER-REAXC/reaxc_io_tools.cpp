@@ -126,12 +126,9 @@ void Output_Results(reax_system *system, control_params *control,
                  data->ext_press[0], data->ext_press[1], data->ext_press[2],
                  data->kin_press );
 
-        fprintf( out_control->prs,
-                 "%8s%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n",
-                 "",system->big_box.box_norms[0], system->big_box.box_norms[1],
-                 system->big_box.box_norms[2],
-                 data->tot_press[0], data->tot_press[1], data->tot_press[2],
-                 system->big_box.V );
+        fprintf(out_control->prs,
+                 "%8s%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n", "", 0.0, 0.0, 0.0,
+                 data->tot_press[0], data->tot_press[1], data->tot_press[2], 0.0);
 
         fflush( out_control->prs);
       }

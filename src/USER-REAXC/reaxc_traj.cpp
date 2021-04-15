@@ -389,13 +389,10 @@ int Write_Frame_Header(reax_system *system, control_params *control,
 
 
     /* box info */
-    sprintf( out_control->line, REAL_LINE, "volume:", system->big_box.V );
+    sprintf( out_control->line, REAL_LINE, "volume:", 0.0 );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL3_LINE, "box_dimensions:",
-             system->big_box.box_norms[0],
-             system->big_box.box_norms[1],
-             system->big_box.box_norms[2] );
+    sprintf( out_control->line, REAL3_LINE, "box_dimensions:", 0.0, 0.0, 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     sprintf( out_control->line, REAL3_LINE,

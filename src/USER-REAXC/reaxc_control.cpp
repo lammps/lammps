@@ -53,12 +53,8 @@ void Read_Control_File(const char *control_file, control_params *control,
   strcpy( control->sim_name, "simulate" );
   control->ensemble        = NVE;
   control->nsteps          = 0;
-  control->dt              = 0.25;
-  control->nprocs          = 1;
+  control->dt              = 0.0;
   control->nthreads        = 1;
-  control->procs_by_dim[0] = 1;
-  control->procs_by_dim[1] = 1;
-  control->procs_by_dim[2] = 1;
   control->geo_format = 1;
 
   control->restart          = 0;
@@ -139,19 +135,10 @@ void Read_Control_File(const char *control_file, control_params *control,
       control->nsteps = ival;
     }
     else if ( strcmp(tmp[0], "dt") == 0) {
-      val = atof(tmp[1]);
-      control->dt = val * 1.e-3;  // convert dt from fs to ps!
+      ; // ignore
     }
     else if (strcmp(tmp[0], "proc_by_dim") == 0) {
-      ival = atoi(tmp[1]);
-      control->procs_by_dim[0] = ival;
-      ival = atoi(tmp[2]);
-      control->procs_by_dim[1] = ival;
-      ival = atoi(tmp[3]);
-      control->procs_by_dim[2] = ival;
-
-      control->nprocs = control->procs_by_dim[0]*control->procs_by_dim[1]*
-        control->procs_by_dim[2];
+      ; // ignore
     }
     else if (strcmp(tmp[0], "random_vel") == 0) {
       ival = atoi(tmp[1]);

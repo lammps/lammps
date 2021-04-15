@@ -247,14 +247,6 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
     }
   } // parallel region
 
-  if (control->virial)
-    for (int i=0; i < nthreads; ++i) {
-      rvec_Add(data->my_ext_press, workspace->my_ext_pressReduction[i]);
-      workspace->my_ext_pressReduction[i][0] = 0;
-      workspace->my_ext_pressReduction[i][1] = 0;
-      workspace->my_ext_pressReduction[i][2] = 0;
-    }
-
 #ifdef OMP_TIMING
   endTimeBase = MPI_Wtime();
   ompTimingData[COMPUTETFINDEX] += (endTimeBase-startTimeBase);

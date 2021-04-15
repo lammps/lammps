@@ -102,7 +102,7 @@ void Valence_Angles( reax_system *system, control_params *control,
   double f7_ij, f7_jk, f8_Dj, f9_Dj;
   double Ctheta_0, theta_0, theta_00, theta, cos_theta, sin_theta;
   double BOA_ij, BOA_jk;
-  rvec force, ext_press;
+  rvec force;
 
   // Tallying variables
   double eng_tmp, fi_tmp[3], fj_tmp[3], fk_tmp[3];
@@ -364,15 +364,11 @@ void Valence_Angles( reax_system *system, control_params *control,
                 } else {
                   rvec_Scale( force, CEval8, p_ijk->dcos_di );
                   rvec_Add( workspace->f[i], force );
-                  rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
-                  rvec_Add( data->my_ext_press, ext_press );
 
                   rvec_ScaledAdd( workspace->f[j], CEval8, p_ijk->dcos_dj );
 
                   rvec_Scale( force, CEval8, p_ijk->dcos_dk );
                   rvec_Add( workspace->f[k], force );
-                  rvec_iMultiply( ext_press, pbond_jk->rel_box, force );
-                  rvec_Add( data->my_ext_press, ext_press );
                 }
 
                 /* tally into per-atom virials */

@@ -46,7 +46,7 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   double dr3gamij_1, dr3gamij_3;
   double e_ele, e_vdW, e_core, SMALL = 0.0001;
   double e_lg, de_lg, r_ij5, r_ij6, re6;
-  rvec temp, ext_press;
+  rvec temp;
   two_body_parameters *twbp;
   far_neighbor_data *nbr_pj;
   reax_list *far_nbrs;
@@ -190,9 +190,6 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 
         rvec_ScaledAdd( workspace->f[i], -1., temp );
         rvec_Add( workspace->f[j], temp );
-
-        rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
-        rvec_Add( data->my_ext_press, ext_press );
       }
       }
     }
@@ -217,7 +214,7 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
   double CEvd, CEclmb, SMALL = 0.0001;
   double f_tmp, delij[3];
 
-  rvec temp, ext_press;
+  rvec temp;
   far_neighbor_data *nbr_pj;
   reax_list *far_nbrs;
   LR_lookup_table *t;
@@ -303,9 +300,6 @@ void Tabulated_vdW_Coulomb_Energy( reax_system *system,control_params *control,
 
         rvec_ScaledAdd( workspace->f[i], -1., temp );
         rvec_Add( workspace->f[j], temp );
-
-        rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
-        rvec_Add( data->my_ext_press, ext_press );
       }
       }
     }

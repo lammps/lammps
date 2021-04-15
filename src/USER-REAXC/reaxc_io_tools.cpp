@@ -99,27 +99,6 @@ void Output_Results(reax_system *system, control_params *control,
     /* update system-wide energies */
     Compute_System_Energy(system, data, world);
 
-    /* output energies */
-    if ( system->my_rank == MASTER_NODE &&
-        out_control->energy_update_freq > 0 &&
-        data->step % out_control->energy_update_freq == 0) {
-
-      if (control->virial && out_control->prs) {
-        fprintf( out_control->prs,
-                 "%8d%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n",
-                 data->step,
-                 data->int_press[0], data->int_press[1], data->int_press[2],
-                 data->ext_press[0], data->ext_press[1], data->ext_press[2],
-                 data->kin_press );
-
-        fprintf(out_control->prs,
-                 "%8s%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f%13.6f\n", "", 0.0, 0.0, 0.0,
-                 data->tot_press[0], data->tot_press[1], data->tot_press[2], 0.0);
-
-        fflush( out_control->prs);
-      }
-    }
-
     /* write current frame */
     if ( out_control->write_steps > 0 && data->step % out_control->write_steps == 0) {
       Append_Frame( system, control, data, lists, out_control, world);

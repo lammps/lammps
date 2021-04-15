@@ -148,7 +148,7 @@ void Torsion_Angles( reax_system *system, control_params *control,
   double CEconj4, CEconj5, CEconj6;
   double e_tor, e_con;
   rvec dvec_li;
-  rvec force, ext_press;
+  rvec force;
   ivec rel_box_jl;
   // rtensor total_rtensor, temp_rtensor;
   four_body_header *fbh;
@@ -390,17 +390,12 @@ void Torsion_Angles( reax_system *system, control_params *control,
                     /* dcos_theta_ijk */
                     rvec_Scale( force, CEtors7 + CEconj4, p_ijk->dcos_dk );
                     rvec_Add( workspace->f[i], force );
-                    rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
-                    rvec_Add( data->my_ext_press, ext_press );
 
                     rvec_ScaledAdd( workspace->f[j],
                                     CEtors7 + CEconj4, p_ijk->dcos_dj );
 
                     rvec_Scale( force, CEtors7 + CEconj4, p_ijk->dcos_di );
                     rvec_Add( workspace->f[k], force );
-                    rvec_iMultiply( ext_press, pbond_jk->rel_box, force );
-                    rvec_Add( data->my_ext_press, ext_press );
-
 
                     /* dcos_theta_jkl */
                     rvec_ScaledAdd( workspace->f[j],
@@ -408,33 +403,23 @@ void Torsion_Angles( reax_system *system, control_params *control,
 
                     rvec_Scale( force, CEtors8 + CEconj5, p_jkl->dcos_dj );
                     rvec_Add( workspace->f[k], force );
-                    rvec_iMultiply( ext_press, pbond_jk->rel_box, force );
-                    rvec_Add( data->my_ext_press, ext_press );
 
                     rvec_Scale( force, CEtors8 + CEconj5, p_jkl->dcos_dk );
                     rvec_Add( workspace->f[l], force );
-                    rvec_iMultiply( ext_press, rel_box_jl, force );
-                    rvec_Add( data->my_ext_press, ext_press );
 
 
                     /* dcos_omega */
                     rvec_Scale( force, CEtors9 + CEconj6, dcos_omega_di );
                     rvec_Add( workspace->f[i], force );
-                    rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
-                    rvec_Add( data->my_ext_press, ext_press );
 
                     rvec_ScaledAdd( workspace->f[j],
                                     CEtors9 + CEconj6, dcos_omega_dj );
 
                     rvec_Scale( force, CEtors9 + CEconj6, dcos_omega_dk );
                     rvec_Add( workspace->f[k], force );
-                    rvec_iMultiply( ext_press, pbond_jk->rel_box, force );
-                    rvec_Add( data->my_ext_press, ext_press );
 
                     rvec_Scale( force, CEtors9 + CEconj6, dcos_omega_dl );
                     rvec_Add( workspace->f[l], force );
-                    rvec_iMultiply( ext_press, rel_box_jl, force );
-                    rvec_Add( data->my_ext_press, ext_press );
                   }
 
                   /* tally into per-atom virials */

@@ -32,15 +32,14 @@
 #include "reaxc_list.h"
 #include "reaxc_vector.h"
 
-void Add_dBond_to_Forces_NPT( int i, int pj, simulation_data *data,
+void Add_dBond_to_Forces_NPT( int i, int pj,
                               storage *workspace, reax_list **lists )
 {
   reax_list *bonds = (*lists) + BONDS;
   bond_data *nbr_j, *nbr_k;
   bond_order_data *bo_ij, *bo_ji;
   dbond_coefficients coef;
-  rvec temp, ext_press;
-  ivec rel_box;
+  rvec temp;
   int pk, k, j;
 
   /* Initializations */
@@ -78,10 +77,6 @@ void Add_dBond_to_Forces_NPT( int i, int pj, simulation_data *data,
 
     /* force */
     rvec_Add( workspace->f[k], temp );
-    /* pressure */
-    rvec_iMultiply( ext_press, nbr_k->rel_box, temp );
-    rvec_Add( data->my_ext_press, ext_press );
-
   }
 
   /* then atom i itself  */
@@ -111,13 +106,6 @@ void Add_dBond_to_Forces_NPT( int i, int pj, simulation_data *data,
 
     /* force */
     rvec_Add( workspace->f[k], temp );
-    /* pressure */
-    if (k != i) {
-      ivec_Sum( rel_box, nbr_k->rel_box, nbr_j->rel_box ); //rel_box(k, i)
-      rvec_iMultiply( ext_press, rel_box, temp );
-      rvec_Add( data->my_ext_press, ext_press );
-
-    }
   }
 
   /* then atom j itself */
@@ -136,10 +124,6 @@ void Add_dBond_to_Forces_NPT( int i, int pj, simulation_data *data,
 
   /* force */
   rvec_Add( workspace->f[j], temp );
-  /* pressure */
-  rvec_iMultiply( ext_press, nbr_j->rel_box, temp );
-  rvec_Add( data->my_ext_press, ext_press );
-
 }
 
 void Add_dBond_to_Forces( reax_system *system, int i, int pj,

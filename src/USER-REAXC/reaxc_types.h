@@ -323,35 +323,9 @@ struct energy_data
 struct simulation_data
 {
   rc_bigint  step;
-  double time;
-
-  double M;                           // Total Mass
-  double inv_M;                      // 1 / Total Mass
-
-  rvec xcm;                        // Center of mass
-  rvec vcm;                        // Center of mass velocity
-  rvec fcm;                        // Center of mass force
-  rvec amcm;                       // Angular momentum of CoM
-  rvec avcm;                       // Angular velocity of CoM
-  double etran_cm;                   // Translational kinetic energy of CoM
-  double erot_cm;                    // Rotational kinetic energy of CoM
-
-  rtensor kinetic;                 // Kinetic energy tensor
-  rtensor virial;                  // Hydrodynamic virial
 
   energy_data my_en;
   energy_data sys_en;
-
-  double               N_f;          //Number of degrees of freedom
-  rvec               t_scale;
-  rtensor            p_scale;
-  double               inv_W;
-
-  double kin_press;
-  rvec int_press;
-  rvec my_ext_press;
-  rvec ext_press;
-  rvec tot_press;
 };
 
 struct three_body_interaction_data
@@ -477,7 +451,6 @@ struct storage
 
   /* omp */
   rvec *forceReduction;
-  rvec *my_ext_pressReduction;
   double *CdDeltaReduction;
   int *valence_angle_atom_myoffset;
 

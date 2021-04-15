@@ -75,7 +75,7 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
   double e_ele, e_vdW, e_core;
   const double SMALL = 0.0001;
   double e_lg, de_lg, r_ij5, r_ij6, re6;
-  rvec temp, ext_press;
+  rvec temp;
   two_body_parameters *twbp;
   far_neighbor_data *nbr_pj;
 
@@ -230,10 +230,6 @@ void vdW_Coulomb_Energy_OMP( reax_system *system, control_params *control,
           rvec_Scale( temp, CEvd + CEclmb, nbr_pj->dvec );
           rvec_ScaledAdd( workspace->f[reductionOffset+i], -1., temp );
           rvec_Add( workspace->forceReduction[reductionOffset+j], temp);
-
-          rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
-
-          rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
         }
         }
       }
@@ -273,7 +269,7 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
   double e_vdW, e_ele;
   double CEvd, CEclmb;
   double f_tmp, delij[3];
-  rvec temp, ext_press;
+  rvec temp;
   far_neighbor_data *nbr_pj;
   LR_lookup_table *t;
 #if defined(_OPENMP)
@@ -370,9 +366,6 @@ void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *system,control_params *contro
 
           rvec_ScaledAdd( workspace->f[i], -1., temp );
           rvec_Add( workspace->forceReduction[froffset+j], temp );
-
-          rvec_iMultiply( ext_press, nbr_pj->rel_box, temp );
-          rvec_Add( workspace->my_ext_pressReduction[tid], ext_press );
         }
       }
     }

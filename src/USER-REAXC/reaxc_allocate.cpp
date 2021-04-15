@@ -60,7 +60,6 @@ int PreAllocate_Space( reax_system *system, control_params * /*control*/,
   workspace->CdDeltaReduction = nullptr;
   workspace->forceReduction = nullptr;
   workspace->valence_angle_atom_myoffset = nullptr;
-  workspace->my_ext_pressReduction = nullptr;
 #else
   LMP_UNUSED_PARAM(workspace);
 #endif
@@ -201,7 +200,6 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
   if (workspace->CdDeltaReduction) sfree(control->error_ptr,  workspace->CdDeltaReduction, "cddelta_reduce" );
   if (workspace->forceReduction) sfree(control->error_ptr,  workspace->forceReduction, "f_reduce" );
   if (workspace->valence_angle_atom_myoffset) sfree(control->error_ptr,  workspace->valence_angle_atom_myoffset, "valence_angle_atom_myoffset");
-  if (workspace->my_ext_pressReduction) sfree(control->error_ptr,  workspace->my_ext_pressReduction, "ext_press_reduce");
 #endif
 }
 
@@ -306,7 +304,6 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
                                                "forceReduction");
 
   workspace->valence_angle_atom_myoffset = (int *) scalloc(control->error_ptr, sizeof(int), total_cap, "valence_angle_atom_myoffset");
-  workspace->my_ext_pressReduction = (rvec *) calloc(sizeof(rvec), control->nthreads);
 #else
   LMP_UNUSED_PARAM(control);
 #endif

@@ -46,7 +46,7 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
   double r_jk, theta, cos_theta, sin_xhz4, cos_xhz1, sin_theta2;
   double e_hb, exp_hb2, exp_hb3, CEhb1, CEhb2, CEhb3;
   rvec dcos_theta_di, dcos_theta_dj, dcos_theta_dk;
-  rvec dvec_jk, force, ext_press;
+  rvec dvec_jk, force;
   hbond_parameters *hbp;
   bond_order_data *bo_ij;
   bond_data *pbond_ij;
@@ -146,23 +146,18 @@ void Hydrogen_Bonds( reax_system *system, control_params *control,
             else {
               rvec_Scale( force, +CEhb2, dcos_theta_di ); // dcos terms
               rvec_Add( workspace->f[i], force );
-              rvec_iMultiply( ext_press, pbond_ij->rel_box, force );
-              rvec_ScaledAdd( data->my_ext_press, 1.0, ext_press );
 
               rvec_ScaledAdd( workspace->f[j], +CEhb2, dcos_theta_dj );
 
               ivec_Scale( rel_jk, hbond_list[pk].scl, nbr_jk->rel_box );
               rvec_Scale( force, +CEhb2, dcos_theta_dk );
               rvec_Add( workspace->f[k], force );
-              rvec_iMultiply( ext_press, rel_jk, force );
-              rvec_ScaledAdd( data->my_ext_press, 1.0, ext_press );
+
               // dr terms
               rvec_ScaledAdd( workspace->f[j], -CEhb3/r_jk, dvec_jk );
 
               rvec_Scale( force, CEhb3/r_jk, dvec_jk );
               rvec_Add( workspace->f[k], force );
-              rvec_iMultiply( ext_press, rel_jk, force );
-              rvec_ScaledAdd( data->my_ext_press, 1.0, ext_press );
             }
 
             /* tally into per-atom virials */

@@ -33,9 +33,8 @@ int  PreAllocate_Space( reax_system*, control_params*, storage* );
 int  Allocate_System( reax_system*, int, int, char* );
 void DeAllocate_System( reax_system* );
 
-int  Allocate_Workspace( reax_system*, control_params*, storage*,
-                         int, int, char* );
-void DeAllocate_Workspace( control_params*, storage* );
+void Allocate_Workspace(control_params *, storage *, int);
+void DeAllocate_Workspace(control_params *, storage *);
 
 void ReAllocate( reax_system*, control_params*, simulation_data*, storage*,
                  reax_list** );

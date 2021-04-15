@@ -114,24 +114,15 @@ void Init_Taper(control_params *control,  storage *workspace)
                      7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
 }
 
-
-int Init_Workspace(reax_system *system, control_params *control,
-                    storage *workspace, char *msg)
+void Init_Workspace(reax_system *system, control_params *control, storage *workspace)
 {
-  int ret;
-
-  ret = Allocate_Workspace(system, control, workspace,
-                            system->local_cap, system->total_cap, msg);
-  if (ret != SUCCESS)
-    return ret;
+  Allocate_Workspace(control, workspace,system->total_cap);
 
   memset(&(workspace->realloc), 0, sizeof(reallocate_data));
   Reset_Workspace(system, workspace);
 
   /* Initialize the Taper function */
   Init_Taper(control, workspace);
-
-  return SUCCESS;
 }
 
 int Init_Lists(reax_system *system, control_params *control, reax_list **lists)
@@ -202,10 +193,7 @@ void Initialize(reax_system *system, control_params *control,
 
   Init_System(system,control);
   Init_Simulation_Data(control,data);
-
-  if (Init_Workspace( system,control,workspace,msg) == FAILURE)
-    error->one(FLERR,"init_workspace: not enough memory. "
-               "Workspace could not be initialized. Terminating.");
+  Init_Workspace( system,control,workspace);
 
   if (Init_Lists(system, control, lists) ==FAILURE)
     error->one(FLERR,fmt::format("Error on: {}. System could not be "

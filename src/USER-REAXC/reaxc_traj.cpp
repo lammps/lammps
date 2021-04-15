@@ -64,7 +64,6 @@ int Write_Header(reax_system *system, control_params *control,
 {
   int  num_hdr_lines, my_hdr_lines, buffer_req;
 
-  char traj_methods[TF_N][10] = { "custom", "xyz" };
   char atom_formats[8][40] =  { "none", "invalid", "invalid", "invalid",
                                 "xyz_q",
                                 "xyz_q_fxfyfz",
@@ -200,12 +199,10 @@ int Write_Header(reax_system *system, control_params *control,
              out_control->write_steps );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, STR_LINE, "compress_trajectory_output?:",
-             (out_control->traj_compress ? "yes" : "no") );
+    sprintf( out_control->line, STR_LINE, "compress_trajectory_output?:", "no");
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, STR_LINE, "trajectory_format:",
-             traj_methods[ out_control->traj_method ] );
+    sprintf( out_control->line, STR_LINE, "trajectory_format:", "regular");
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     sprintf( out_control->line, STR_LINE, "atom_info:",
@@ -248,7 +245,7 @@ int Write_Init_Desc(reax_system *system, output_controls *out_control,
   /* skip info */
   Write_Skip_Line(out_control, me, system->bigN*INIT_DESC_LEN, system->bigN);
 
-  if (out_control->traj_method == REG_TRAJ && me == MASTER_NODE)
+  if (me == MASTER_NODE)
     buffer_req = system->bigN * INIT_DESC_LEN + 1;
   else buffer_req = system->n * INIT_DESC_LEN + 1;
 
@@ -315,13 +312,9 @@ int Init_Traj(reax_system *system, control_params *control,
   out_control->buffer = nullptr;
 
   /* write trajectory header and atom info, if applicable */
-  if (out_control->traj_method == REG_TRAJ) {
-    if (system->my_rank == MASTER_NODE)
-      out_control->strj = fopen(fname, "w");
-  } else {
-    strcpy( msg, "init_traj: unknown trajectory option" );
-    return FAILURE;
-  }
+  if (system->my_rank == MASTER_NODE)
+    out_control->strj = fopen(fname, "w");
+
   Write_Header(system, control, out_control);
   Write_Init_Desc(system, out_control, world);
 
@@ -461,7 +454,7 @@ int Write_Atoms(reax_system *system, output_controls *out_control,
 
   Write_Skip_Line(out_control, me, system->bigN*line_len, system->bigN);
 
-  if (out_control->traj_method == REG_TRAJ && me == MASTER_NODE)
+  if (me == MASTER_NODE)
     buffer_req = system->bigN * line_len + 1;
   else buffer_req = system->n * line_len + 1;
 
@@ -551,7 +544,7 @@ int Write_Bonds(reax_system *system, control_params *control, reax_list *bonds,
 
   Write_Skip_Line( out_control, me, num_bonds*line_len, num_bonds );
 
-  if (out_control->traj_method == REG_TRAJ && me == MASTER_NODE)
+  if (me == MASTER_NODE)
     buffer_req = num_bonds * line_len + 1;
   else buffer_req = my_bonds * line_len + 1;
 
@@ -651,7 +644,7 @@ int Write_Angles( reax_system *system, control_params *control,
 
   Write_Skip_Line( out_control, me, num_angles*line_len, num_angles );
 
-  if (out_control->traj_method == REG_TRAJ && me == MASTER_NODE)
+  if (me == MASTER_NODE)
     buffer_req = num_angles * line_len + 1;
   else buffer_req = my_angles * line_len + 1;
 

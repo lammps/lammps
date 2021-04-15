@@ -216,7 +216,6 @@ void PairReaxC::settings(int narg, char **arg)
     control->nthreads = 1;
 
     out_control->write_steps = 0;
-    out_control->traj_method = 0;
     strcpy( out_control->traj_title, "default_title" );
     out_control->atom_info = 0;
     out_control->bond_info = 0;

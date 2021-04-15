@@ -406,7 +406,7 @@ struct storage
   double *dDelta_lp, *dDelta_lp_temp;
   double *nlp, *nlp_temp, *Clp, *vlpex;
   rvec *dDeltap_self;
-  int *bond_mark, *done_after;
+  int *bond_mark;
 
   /* QEq storage */
   sparse_matrix *H, *L, *U;
@@ -422,17 +422,6 @@ struct storage
   rvec2 *r2, *d2, *q2, *p2;
   /* Taper */
   double Tap[8]; //Tap7, Tap6, Tap5, Tap4, Tap3, Tap2, Tap1, Tap0;
-
-  /* storage for analysis */
-  int  *mark, *old_mark;
-  rvec *x_old;
-
-  /* storage space for bond restrictions */
-  int  *restricted;
-  int **restricted_list;
-
-  /* integrator */
-  rvec *v_const;
 
   /* force calculations */
   double *CdDelta;  // coefficient of dDelta
@@ -496,24 +485,12 @@ struct output_controls
   FILE *prs;
 
   int   write_steps;
-  int   traj_compress;
-  int   traj_method;
   char  traj_title[81];
   int   atom_info;
   int   bond_info;
   int   angle_info;
 
-  int   restart_format;
-  int   restart_freq;
-  int   debug_level;
   int   energy_update_freq;
-};
-
-struct molecule
-{
-  int atom_count;
-  int atom_list[REAX_MAX_MOLECULE_SIZE];
-  int mtypes[REAX_MAX_ATOM_TYPES];
 };
 
 struct LR_data

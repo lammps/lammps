@@ -145,7 +145,6 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
   sfree(control->error_ptr,  workspace->Clp, "Clp" );
   sfree(control->error_ptr,  workspace->vlpex, "vlpex" );
   sfree(control->error_ptr,  workspace->bond_mark, "bond_mark" );
-  sfree(control->error_ptr,  workspace->done_after, "done_after" );
 
   /* QEq storage */
   sfree(control->error_ptr,  workspace->Hdia_inv, "Hdia_inv" );
@@ -180,9 +179,6 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
   sfree(control->error_ptr,  workspace->q2, "q2" );
   sfree(control->error_ptr,  workspace->p2, "p2" );
 
-  /* integrator storage */
-  sfree(control->error_ptr,  workspace->v_const, "v_const" );
-
   /* force related storage */
   sfree(control->error_ptr,  workspace->f, "f" );
   sfree(control->error_ptr,  workspace->CdDelta, "CdDelta" );
@@ -196,16 +192,13 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
 }
 
 
-int Allocate_Workspace( reax_system * /*system*/, control_params * control,
-                        storage *workspace, int local_cap, int total_cap,
-                        char * /*msg*/ )
+void Allocate_Workspace( control_params *control, storage *workspace, int total_cap)
 {
-  int i, total_real, total_rvec, local_rvec;
+  int i, total_real, total_rvec;
 
   workspace->allocated = 1;
   total_real = total_cap * sizeof(double);
   total_rvec = total_cap * sizeof(rvec);
-  local_rvec = local_cap * sizeof(rvec);
 
   /* bond order related storage  */
   workspace->total_bond_order = (double*) smalloc(control->error_ptr,  total_real, "total_bo");
@@ -228,8 +221,6 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   workspace->vlpex = (double*) smalloc(control->error_ptr,  total_real, "vlpex");
   workspace->bond_mark = (int*)
     scalloc(control->error_ptr,  total_cap, sizeof(int), "bond_mark");
-  workspace->done_after = (int*)
-    scalloc(control->error_ptr,  total_cap, sizeof(int), "done_after");
 
   /* QEq storage */
   workspace->Hdia_inv = (double*)
@@ -267,9 +258,6 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   workspace->q2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "q2");
   workspace->p2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "p2");
 
-  /* integrator storage */
-  workspace->v_const = (rvec*) smalloc(control->error_ptr,  local_rvec, "v_const");
-
   /* force related storage */
   workspace->f = (rvec*) scalloc(control->error_ptr,  total_cap, sizeof(rvec), "f");
   workspace->CdDelta = (double*)
@@ -287,8 +275,6 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
 #else
   LMP_UNUSED_PARAM(control);
 #endif
-
-  return SUCCESS;
 }
 
 
@@ -407,14 +393,8 @@ void ReAllocate( reax_system *system, control_params *control,
     }
 
     /* workspace */
-    DeAllocate_Workspace( control, workspace );
-    ret = Allocate_Workspace( system, control, workspace, system->local_cap,
-                              system->total_cap, msg );
-    if (ret != SUCCESS) {
-      char errmsg[256];
-      snprintf(errmsg, 256, "Not enough space for workspace: local_cap=%d total_cap=%d", system->local_cap, system->total_cap);
-      error->one(FLERR, errmsg);
-    }
+    DeAllocate_Workspace(control, workspace);
+    Allocate_Workspace(control, workspace, system->total_cap);
   }
 
   /* far neighbors */

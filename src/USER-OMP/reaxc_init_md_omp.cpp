@@ -43,7 +43,7 @@
 // Functions defined in reaxc_init_md.cpp
 extern void Init_System(reax_system*, control_params*);
 extern void Init_Simulation_Data(control_params*, simulation_data*);
-extern int Init_Workspace(reax_system*, control_params*, storage*, char*);
+extern void Init_Workspace(reax_system*, control_params*, storage*);
 
 /* ---------------------------------------------------------------------- */
 
@@ -124,11 +124,7 @@ void InitializeOMP(reax_system *system, control_params *control,
 
   Init_System(system,control);
   Init_Simulation_Data(control,data);
-
-  if (Init_Workspace(system,control,workspace,msg) == FAILURE)
-    error->one(FLERR,"init_workspace: not enough memory. "
-               "Workspace could not be initialized. Terminating.");
-
+  Init_Workspace(system,control,workspace);
   Init_ListsOMP(system,control,lists);
 
   if (Init_Output_Files(system,control,out_control,world,msg)== FAILURE)

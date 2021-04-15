@@ -53,7 +53,6 @@ void Read_Control_File(const char *control_file, control_params *control,
   strcpy( control->sim_name, "simulate" );
   control->nthreads        = 1;
 
-  out_control->debug_level  = 0;
   out_control->energy_update_freq = 0;
 
   control->bond_cut = 5.0;
@@ -67,8 +66,6 @@ void Read_Control_File(const char *control_file, control_params *control,
   control->virial = 0;
 
   out_control->write_steps = 0;
-  out_control->traj_compress = 0;
-  out_control->traj_method = REG_TRAJ;
   strcpy( out_control->traj_title, "default_title" );
   out_control->atom_info = 0;
   out_control->bond_info = 0;
@@ -119,8 +116,7 @@ void Read_Control_File(const char *control_file, control_params *control,
       ; // ignore
     }
     else if (strcmp(tmp[0], "debug_level") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->debug_level = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "energy_update_freq") == 0) {
       ival = atoi(tmp[1]);
@@ -212,12 +208,10 @@ void Read_Control_File(const char *control_file, control_params *control,
       out_control->write_steps = ival;
     }
     else if (strcmp(tmp[0], "traj_compress") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->traj_compress = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "traj_method") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->traj_method = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "traj_title") == 0) {
       strcpy( out_control->traj_title, tmp[1] );

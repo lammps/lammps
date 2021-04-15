@@ -63,11 +63,6 @@ int Write_Header(reax_system *system, control_params *control,
                  output_controls *out_control)
 {
   int  num_hdr_lines, my_hdr_lines, buffer_req;
-  char ensembles[ens_N][25] =  { "NVE", "NVT", "fully flexible NPT",
-                                 "semi isotropic NPT", "isotropic NPT" };
-  char reposition[3][25] = { "fit to periodic box", "CoM to center of box",
-                             "CoM to origin" };
-  char t_regime[3][25] = { "T-coupling only", "step-wise", "constant slope" };
 
   char traj_methods[TF_N][10] = { "custom", "xyz" };
   char atom_formats[8][40] =  { "none", "invalid", "invalid", "invalid",
@@ -106,29 +101,23 @@ int Write_Header(reax_system *system, control_params *control,
     sprintf( out_control->line, BIGINT_LINE, "number_of_atoms:", system->bigN );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, STR_LINE, "ensemble_type:",
-             ensembles[ control->ensemble ] );
+    sprintf( out_control->line, STR_LINE, "ensemble_type:", "(unknown)");
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, INT_LINE, "number_of_steps:",
-             control->nsteps );
+    sprintf( out_control->line, INT_LINE, "number_of_steps:", 0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL_LINE, "timestep_length_(in_fs):",
-             control->dt * 1000 );
+    sprintf( out_control->line, REAL_LINE, "timestep_length_(in_fs):", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     /* restart info */
-    sprintf( out_control->line, STR_LINE, "is_this_a_restart?:",
-             (control->restart ? "yes" : "no") );
+    sprintf( out_control->line, STR_LINE, "is_this_a_restart?:", "no");
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, STR_LINE, "write_restart_files?:",
-             ((out_control->restart_freq > 0) ? "yes" : "no") );
+    sprintf( out_control->line, STR_LINE, "write_restart_files?:", "no");
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, INT_LINE, "frequency_to_write_restarts:",
-             out_control->restart_freq );
+    sprintf( out_control->line, INT_LINE, "frequency_to_write_restarts:", 0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     /* preferences */
@@ -139,22 +128,17 @@ int Write_Header(reax_system *system, control_params *control,
     sprintf( out_control->line, INT_LINE, "table_size:", control->tabulate );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, STR_LINE, "restrict_bonds?:",
-             (control->restrict_bonds ? "yes" : "no") );
+    sprintf( out_control->line, STR_LINE, "restrict_bonds?:", "no");
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, INT_LINE, "bond_restriction_length:",
-             control->restrict_bonds );
+    sprintf( out_control->line, INT_LINE, "bond_restriction_length:", 0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, STR_LINE, "reposition_atoms?:",
-             reposition[control->reposition_atoms] );
+    sprintf( out_control->line, STR_LINE, "reposition_atoms?:", "fit to periodic box");
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, INT_LINE, "remove_CoM_velocity?:",
-             (control->ensemble==NVE) ? 0 : control->remove_CoM_vel);
+    sprintf( out_control->line, INT_LINE, "remove_CoM_velocity?:", 0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
-
 
     /* cut-off values */
     sprintf( out_control->line, REAL_LINE, "bonded_intr_dist_cutoff:",
@@ -181,37 +165,30 @@ int Write_Header(reax_system *system, control_params *control,
              control->thb_cut );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, SCI_LINE, "QEq_tolerance:", control->q_err );
+    sprintf( out_control->line, SCI_LINE, "QEq_tolerance:", 0.0 );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     /* temperature controls */
-    sprintf( out_control->line, REAL_LINE, "initial_temperature:",
-             control->T_init );
+    sprintf( out_control->line, REAL_LINE, "initial_temperature:", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL_LINE, "target_temperature:",
-             control->T_final );
+    sprintf( out_control->line, REAL_LINE, "target_temperature:", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL_LINE, "thermal_inertia:",
-             control->Tau_T );
+    sprintf( out_control->line, REAL_LINE, "thermal_inertia:", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, STR_LINE, "temperature_regime:",
-             t_regime[ control->T_mode ] );
+    sprintf( out_control->line, STR_LINE, "temperature_regime:", "(unknown)");
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL_LINE, "temperature_change_rate_(K/ps):",
-             control->T_rate / control->T_freq );
+    sprintf( out_control->line, REAL_LINE, "temperature_change_rate_(K/ps):", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     /* pressure controls */
-    sprintf( out_control->line, REAL3_LINE, "target_pressure_(GPa):",
-             control->P[0], control->P[1], control->P[2] );
+    sprintf( out_control->line, REAL3_LINE, "target_pressure_(GPa):", 0.0, 0.0, 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL3_LINE, "virial_inertia:",
-             control->Tau_P[0], control->Tau_P[1], control->Tau_P[2] );
+    sprintf( out_control->line, REAL3_LINE, "virial_inertia:", 0.0, 0.0, 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     /* trajectory */
@@ -244,12 +221,9 @@ int Write_Header(reax_system *system, control_params *control,
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
     /* analysis */
-    //sprintf( out_control->line, STR_LINE, "molecular_analysis:",
-    //     (control->molec_anal ? "yes" : "no") );
-    //strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
-
-    sprintf( out_control->line, INT_LINE, "molecular_analysis_frequency:",
-             control->molecular_analysis );
+    sprintf( out_control->line, STR_LINE, "molecular_analysis:", "no");
+    strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
+    sprintf( out_control->line, INT_LINE, "molecular_analysis_frequency:", 0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
   }
 
@@ -383,10 +357,8 @@ int Write_Frame_Header(reax_system *system, control_params *control,
     sprintf( out_control->line, INT_LINE, "step:", data->step );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL_LINE, "time_in_ps:",
-             data->step * control->dt );
+    sprintf( out_control->line, REAL_LINE, "time_in_ps:", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
-
 
     /* box info */
     sprintf( out_control->line, REAL_LINE, "volume:", 0.0 );
@@ -399,16 +371,12 @@ int Write_Frame_Header(reax_system *system, control_params *control,
              "coordinate_angles:", 90.0, 90.0, 90.0 );
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-
     /* system T and P */
-    sprintf( out_control->line, REAL_LINE, "temperature:", data->therm.T );
+    sprintf( out_control->line, REAL_LINE, "temperature:", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
 
-    sprintf( out_control->line, REAL_LINE, "pressure:",
-             (control->ensemble==iNPT) ?
-             data->iso_bar.P : data->flex_bar.P_scalar );
+    sprintf( out_control->line, REAL_LINE, "pressure:", 0.0);
     strncat( out_control->buffer, out_control->line, HEADER_LINE_LEN+1 );
-
 
     /* energies */
     sprintf( out_control->line, REAL_LINE, "total_energy:",

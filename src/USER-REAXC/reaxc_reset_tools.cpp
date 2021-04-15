@@ -73,31 +73,10 @@ void Reset_Energies( energy_data *en )
   en->e_tot = 0;
 }
 
-
-void Reset_Temperatures( simulation_data *data )
-{
-  data->therm.T = 0;
-}
-
-
-void Reset_Pressures( simulation_data *data )
-{
-  data->flex_bar.P_scalar = 0;
-  rtensor_MakeZero( data->flex_bar.P );
-
-  data->iso_bar.P = 0;
-  rvec_MakeZero( data->int_press );
-  rvec_MakeZero( data->my_ext_press );
-  rvec_MakeZero( data->ext_press );
-}
-
-
 void Reset_Simulation_Data( simulation_data* data, int /*virial*/ )
 {
   Reset_Energies( &data->my_en );
   Reset_Energies( &data->sys_en );
-  Reset_Temperatures( data );
-  Reset_Pressures( data );
 }
 
 

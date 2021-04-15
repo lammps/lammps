@@ -115,11 +115,8 @@
 #define MAXSPECBOND 24 /* used in fix_reaxc_species.cpp and pair_reaxc.cpp */
 
 /******************* ENUMERATIONS *************************/
-enum geo_formats { CUSTOM, PDB, ASCII_RESTART, BINARY_RESTART, GF_N };
 
 enum restart_formats { WRITE_ASCII, WRITE_BINARY, RF_N };
-
-enum ensembles { NVE, bNVT, nhNVT, sNPT, iNPT, NPT, ens_N };
 
 enum lists { BONDS, OLD_BONDS, THREE_BODIES,
              HBONDS, FAR_NBRS, DBOS, DDELTAS, LIST_N };

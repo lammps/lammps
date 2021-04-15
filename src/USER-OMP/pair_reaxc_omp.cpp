@@ -393,8 +393,6 @@ void PairReaxCOMP::setup( )
     int *num_bonds = fix_reax->num_bonds;
     int *num_hbonds = fix_reax->num_hbonds;
 
-    control->vlist_cut = neighbor->cutneighmax;
-
     // determine the local and total capacity
 
     system->local_cap = MAX( (int)(system->n * safezone), mincap );

@@ -204,19 +204,15 @@ void PairReaxC::settings(int narg, char **arg)
 
   if (strcmp(arg[0],"NULL") == 0) {
     strcpy( control->sim_name, "simulate" );
-    control->ensemble = 0;
     out_control->energy_update_freq = 0;
     control->tabulate = 0;
 
-    control->reneighbor = 1;
-    control->vlist_cut = control->nonb_cut;
     control->bond_cut = 5.;
     control->hbond_cut = 7.50;
     control->thb_cut = 0.001;
     control->thb_cutsq = 0.00001;
     control->bg_cut = 0.3;
 
-    // Initialize for when omp style included
     control->nthreads = 1;
 
     out_control->write_steps = 0;
@@ -281,10 +277,6 @@ void PairReaxC::settings(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reax/c command");
   }
-
-  // LAMMPS is responsible for generating nbrs
-
-  control->reneighbor = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -423,8 +415,6 @@ void PairReaxC::setup( )
 
     int *num_bonds = fix_reax->num_bonds;
     int *num_hbonds = fix_reax->num_hbonds;
-
-    control->vlist_cut = neighbor->cutneighmax;
 
     // determine the local and total capacity
 

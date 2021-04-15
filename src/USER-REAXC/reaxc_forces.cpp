@@ -180,7 +180,7 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
   int type_i, type_j;
   int btop_i, num_bonds, num_hbonds;
   int ihb, jhb, ihb_top, jhb_top;
-  int local, flag, renbr;
+  int local, flag;
   double cutoff;
   reax_list *far_nbrs, *bonds, *hbonds;
   single_body_parameters *sbp_i, *sbp_j;
@@ -201,7 +201,6 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
   num_bonds = 0;
   num_hbonds = 0;
   btop_i = 0;
-  renbr = (data->step-data->prev_steps) % control->reneighbor == 0;
 
   for (i = 0; i < system->N; ++i) {
     atom_i = &(system->my_atoms[i]);
@@ -235,22 +234,9 @@ void Init_Forces_noQEq( reax_system *system, control_params *control,
       j = nbr_pj->nbr;
       atom_j = &(system->my_atoms[j]);
 
-      if (renbr) {
-        if (nbr_pj->d <= cutoff)
-          flag = 1;
-        else flag = 0;
-      } else {
-        nbr_pj->dvec[0] = atom_j->x[0] - atom_i->x[0];
-        nbr_pj->dvec[1] = atom_j->x[1] - atom_i->x[1];
-        nbr_pj->dvec[2] = atom_j->x[2] - atom_i->x[2];
-        nbr_pj->d = rvec_Norm_Sqr( nbr_pj->dvec );
-        if (nbr_pj->d <= SQR(cutoff)) {
-          nbr_pj->d = sqrt(nbr_pj->d);
-          flag = 1;
-        } else {
-          flag = 0;
-        }
-      }
+      if (nbr_pj->d <= cutoff)
+        flag = 1;
+      else flag = 0;
 
       if (flag) {
         type_j = atom_j->type;

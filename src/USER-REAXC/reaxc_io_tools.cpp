@@ -60,20 +60,6 @@ int Init_Output_Files(reax_system *system, control_params *control,
     }
 
     /* init pressure file */
-    if ( control->ensemble == NPT  ||
-        control->ensemble == iNPT ||
-        control->ensemble == sNPT) {
-      sprintf( temp, "%s.prs", control->sim_name );
-      if ((out_control->prs = fopen( temp, "w" )) != nullptr) {
-        fprintf(out_control->prs,"%8s%13s%13s%13s%13s%13s%13s%13s\n",
-                "step", "Pint/norm[x]", "Pint/norm[y]", "Pint/norm[z]",
-                "Pext/Ptot[x]", "Pext/Ptot[y]", "Pext/Ptot[z]", "Pkin/V" );
-        fflush( out_control->prs );
-      } else {
-        strcpy(msg,"init_out_controls: .prs file couldn't be opened\n");
-        return FAILURE;
-      }
-    }
   }
 
   return SUCCESS;
@@ -135,8 +121,7 @@ void Output_Results(reax_system *system, control_params *control,
     }
 
     /* write current frame */
-    if ( out_control->write_steps > 0 &&
-        (data->step-data->prev_steps) % out_control->write_steps == 0) {
+    if ( out_control->write_steps > 0 && data->step % out_control->write_steps == 0) {
       Append_Frame( system, control, data, lists, out_control, world);
     }
   }

@@ -279,30 +279,10 @@ struct control_params
 {
   char sim_name[REAX_MAX_STR];
   int  nthreads;
-  /* ensemble values:
-     0 : NVE
-     1 : bNVT (Berendsen)
-     2 : nhNVT (Nose-Hoover)
-     3 : sNPT (Parrinello-Rehman-Nose-Hoover) semiisotropic
-     4 : iNPT (Parrinello-Rehman-Nose-Hoover) isotropic
-     5 : NPT  (Parrinello-Rehman-Nose-Hoover) Anisotropic*/
-  int  ensemble;
-  int  nsteps;
-  double dt;
-  int  geo_format;
-  int  restart;
 
-  int  restrict_bonds;
-  int  remove_CoM_vel;
-  int  random_vel;
-  int  reposition_atoms;
-
-  int  reneighbor;
-  double vlist_cut;
   double bond_cut;
   double nonb_cut, nonb_low;
   double hbond_cut;
-  double user_ghost_cut;
 
   double bg_cut;
   double bo_cut;
@@ -310,74 +290,13 @@ struct control_params
   double thb_cutsq;
 
   int tabulate;
-
-  int qeq_freq;
-  double q_err;
-  int refactor;
-  double droptol;
-
-  double T_init, T_final, T;
-  double Tau_T;
-  int  T_mode;
-  double T_rate, T_freq;
-
   int  virial;
-  rvec P, Tau_P, Tau_PT;
-  int  press_mode;
-  double compressibility;
-
-  int  molecular_analysis;
-  int  num_ignored;
-  int  ignore[REAX_MAX_ATOM_TYPES];
-
-  int  dipole_anal;
-  int  freq_dipole_anal;
-  int  diffusion_coef;
-  int  freq_diffusion_coef;
-  int  restrict_type;
 
   int lgflag;
   int enobondsflag;
   LAMMPS_NS::Error  *error_ptr;
   LAMMPS_NS::LAMMPS *lmp_ptr;
   int me;
-};
-
-struct thermostat
-{
-  double T;
-  double xi;
-  double v_xi;
-  double v_xi_old;
-  double G_xi;
-
-};
-
-struct isotropic_barostat
-{
-  double P;
-  double eps;
-  double v_eps;
-  double v_eps_old;
-  double a_eps;
-
-};
-
-struct flexible_barostat
-{
-  rtensor P;
-  double P_scalar;
-
-  double eps;
-  double v_eps;
-  double v_eps_old;
-  double a_eps;
-
-  rtensor h0;
-  rtensor v_g0;
-  rtensor v_g0_old;
-  rtensor a_g0;
-
 };
 
 struct reax_timing
@@ -420,8 +339,7 @@ struct energy_data
 
 struct simulation_data
 {
-  int  step;
-  int  prev_steps;
+  rc_bigint  step;
   double time;
 
   double M;                           // Total Mass
@@ -444,9 +362,6 @@ struct simulation_data
   double               N_f;          //Number of degrees of freedom
   rvec               t_scale;
   rtensor            p_scale;
-  thermostat         therm;        // Used in Nose_Hoover method
-  isotropic_barostat iso_bar;
-  flexible_barostat  flex_bar;
   double               inv_W;
 
   double kin_press;
@@ -552,7 +467,6 @@ struct storage
   /* QEq storage */
   sparse_matrix *H, *L, *U;
   double *Hdia_inv, *b_s, *b_t, *b_prc, *b_prm, *s, *t;
-  double *droptol;
   rvec2 *b, *x;
 
   /* GMRES storage */

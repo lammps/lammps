@@ -164,7 +164,6 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
   sfree(control->error_ptr,  workspace->b_prm, "b_prm" );
   sfree(control->error_ptr,  workspace->s, "s" );
   sfree(control->error_ptr,  workspace->t, "t" );
-  sfree(control->error_ptr,  workspace->droptol, "droptol" );
   sfree(control->error_ptr,  workspace->b, "b" );
   sfree(control->error_ptr,  workspace->x, "x" );
 
@@ -263,8 +262,6 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   workspace->b_prm = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_prm");
   workspace->s = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "s");
   workspace->t = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "t");
-  workspace->droptol = (double*)
-    scalloc(control->error_ptr,  total_cap, sizeof(double), "droptol");
   workspace->b = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "b");
   workspace->x = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "x");
 
@@ -398,8 +395,9 @@ static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
 void ReAllocate( reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace, reax_list **lists )
 {
+  auto error = system->error_ptr;
   int num_bonds, est_3body, Hflag, ret;
-  int renbr, newsize;
+  int newsize;
   reallocate_data *realloc;
   reax_list *far_nbrs;
   char msg[200];
@@ -428,7 +426,7 @@ void ReAllocate( reax_system *system, control_params *control,
     if (ret != SUCCESS) {
       char errmsg[256];
       snprintf(errmsg, 256, "Not enough space for atom_list: total_cap=%d", system->total_cap);
-      system->error_ptr->one(FLERR, errmsg);
+      error->one(FLERR, errmsg);
     }
 
     /* workspace */
@@ -438,29 +436,24 @@ void ReAllocate( reax_system *system, control_params *control,
     if (ret != SUCCESS) {
       char errmsg[256];
       snprintf(errmsg, 256, "Not enough space for workspace: local_cap=%d total_cap=%d", system->local_cap, system->total_cap);
-      system->error_ptr->one(FLERR, errmsg);
+      error->one(FLERR, errmsg);
     }
   }
 
-
-  renbr = (data->step - data->prev_steps) % control->reneighbor == 0;
   /* far neighbors */
-  if (renbr) {
-    far_nbrs = *lists + FAR_NBRS;
 
-    if (Nflag || realloc->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
-      if (realloc->num_far > far_nbrs->num_intrs) {
-        char errmsg[256];
-        snprintf(errmsg, 256, "step%d-ran out of space on far_nbrs: top=%d, max=%d", data->step, realloc->num_far, far_nbrs->num_intrs);
-        system->error_ptr->one(FLERR, errmsg);
-      }
+  far_nbrs = *lists + FAR_NBRS;
 
-      newsize = static_cast<int>
-        (MAX( realloc->num_far*safezone, mincap*REAX_MIN_NBRS));
+  if (Nflag || realloc->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
+    if (realloc->num_far > far_nbrs->num_intrs)
+      error->one(FLERR,fmt::format("step{}: ran out of space on far_nbrs: top={}, max={}",
+                                   data->step, realloc->num_far, far_nbrs->num_intrs));
 
-      Reallocate_Neighbor_List( far_nbrs, system->total_cap, newsize);
-      realloc->num_far = 0;
-    }
+    newsize = static_cast<int>
+      (MAX( realloc->num_far*safezone, mincap*REAX_MIN_NBRS));
+
+    Reallocate_Neighbor_List( far_nbrs, system->total_cap, newsize);
+    realloc->num_far = 0;
   }
 
   /* hydrogen bonds list */
@@ -498,7 +491,7 @@ void ReAllocate( reax_system *system, control_params *control,
 
     if ( !Make_List( num_bonds, realloc->num_3body, TYP_THREE_BODY,
                     (*lists)+THREE_BODIES )) {
-      system->error_ptr->one(FLERR, "Problem in initializing angles list");
+      error->one(FLERR, "Problem in initializing angles list");
     }
     realloc->num_3body = -1;
   }

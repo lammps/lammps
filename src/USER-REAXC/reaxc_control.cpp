@@ -51,23 +51,11 @@ void Read_Control_File(const char *control_file, control_params *control,
                                               getsyserror()));
   /* assign default values */
   strcpy( control->sim_name, "simulate" );
-  control->ensemble        = NVE;
-  control->nsteps          = 0;
-  control->dt              = 0.0;
   control->nthreads        = 1;
-  control->geo_format = 1;
 
-  control->restart          = 0;
-  out_control->restart_format = WRITE_BINARY;
-  out_control->restart_freq = 0;
-  control->reposition_atoms = 0;
-  control->restrict_bonds   = 0;
-  control->remove_CoM_vel   = 25;
   out_control->debug_level  = 0;
   out_control->energy_update_freq = 0;
 
-  control->reneighbor = 1;
-  control->vlist_cut = control->nonb_cut;
   control->bond_cut = 5.0;
   control->bg_cut = 0.3;
   control->thb_cut = 0.001;
@@ -76,23 +64,6 @@ void Read_Control_File(const char *control_file, control_params *control,
 
   control->tabulate = 0;
 
-  control->qeq_freq = 1;
-  control->q_err = 1e-6;
-  control->refactor = 100;
-  control->droptol = 1e-2;;
-
-  control->T_init = 0.;
-  control->T_final = 300.;
-  control->Tau_T = 500.0;
-  control->T_mode = 0;
-  control->T_rate = 1.;
-  control->T_freq = 1.;
-
-  control->P[0] = control->P[1] = control->P[2] = 0.000101325;
-  control->Tau_P[0] = control->Tau_P[1] = control->Tau_P[2] = 500.0;
-  control->Tau_PT[0] = control->Tau_PT[1] = control->Tau_PT[2] = 500.0;
-  control->compressibility = 1.0;
-  control->press_mode = 0;
   control->virial = 0;
 
   out_control->write_steps = 0;
@@ -102,13 +73,6 @@ void Read_Control_File(const char *control_file, control_params *control,
   out_control->atom_info = 0;
   out_control->bond_info = 0;
   out_control->angle_info = 0;
-
-  control->molecular_analysis = 0;
-  control->dipole_anal = 0;
-  control->freq_dipole_anal = 0;
-  control->diffusion_coef = 0;
-  control->freq_diffusion_coef = 0;
-  control->restrict_type = 0;
 
   /* memory allocations */
   s = (char*) malloc(sizeof(char)*MAX_LINE);
@@ -125,14 +89,10 @@ void Read_Control_File(const char *control_file, control_params *control,
       strcpy( control->sim_name, tmp[1] );
     }
     else if (strcmp(tmp[0], "ensemble_type") == 0) {
-      ival = atoi(tmp[1]);
-      control->ensemble = ival;
-      if (ival == iNPT || ival ==sNPT || ival == NPT)
-        control->virial = 1;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "nsteps") == 0) {
-      ival = atoi(tmp[1]);
-      control->nsteps = ival;
+      ; // ignore
     }
     else if ( strcmp(tmp[0], "dt") == 0) {
       ; // ignore
@@ -141,28 +101,22 @@ void Read_Control_File(const char *control_file, control_params *control,
       ; // ignore
     }
     else if (strcmp(tmp[0], "random_vel") == 0) {
-      ival = atoi(tmp[1]);
-      control->random_vel = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "restart_format") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->restart_format = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "restart_freq") == 0) {
-      ival = atoi(tmp[1]);
-      out_control->restart_freq = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "reposition_atoms") == 0) {
-      ival = atoi(tmp[1]);
-      control->reposition_atoms = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "restrict_bonds") == 0) {
-      ival = atoi( tmp[1] );
-      control->restrict_bonds = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "remove_CoM_vel") == 0) {
-      ival = atoi(tmp[1]);
-      control->remove_CoM_vel = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "debug_level") == 0) {
       ival = atoi(tmp[1]);
@@ -173,12 +127,10 @@ void Read_Control_File(const char *control_file, control_params *control,
       out_control->energy_update_freq = ival;
     }
     else if (strcmp(tmp[0], "reneighbor") == 0) {
-      ival = atoi( tmp[1] );
-      control->reneighbor = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "vlist_buffer") == 0) {
-      val = atof(tmp[1]);
-      control->vlist_cut= val + control->nonb_cut;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "nbrhood_cutoff") == 0) {
       val = atof(tmp[1]);
@@ -201,97 +153,59 @@ void Read_Control_File(const char *control_file, control_params *control,
       control->hbond_cut = val;
     }
     else if (strcmp(tmp[0], "ghost_cutoff") == 0) {
-      val = atof(tmp[1]);
-      control->user_ghost_cut = val;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "tabulate_long_range") == 0) {
       ival = atoi( tmp[1] );
       control->tabulate = ival;
     }
     else if (strcmp(tmp[0], "qeq_freq") == 0) {
-      ival = atoi( tmp[1] );
-      control->qeq_freq = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "q_err") == 0) {
-      val = atof( tmp[1] );
-      control->q_err = val;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "ilu_refactor") == 0) {
-      ival = atoi( tmp[1] );
-      control->refactor = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "ilu_droptol") == 0) {
-      val = atof( tmp[1] );
-      control->droptol = val;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "temp_init") == 0) {
-      val = atof(tmp[1]);
-      control->T_init = val;
-
-      if (control->T_init < 0.1)
-        control->T_init = 0.1;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "temp_final") == 0) {
-      val = atof(tmp[1]);
-      control->T_final = val;
-
-      if (control->T_final < 0.1)
-        control->T_final = 0.1;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "t_mass") == 0) {
-      val = atof(tmp[1]);
-      control->Tau_T = val * 1.e-3;    // convert t_mass from fs to ps
+      ; // ignore
     }
     else if (strcmp(tmp[0], "t_mode") == 0) {
-      ival = atoi(tmp[1]);
-      control->T_mode = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "t_rate") == 0) {
-      val = atof(tmp[1]);
-      control->T_rate = val;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "t_freq") == 0) {
-      val = atof(tmp[1]);
-      control->T_freq = val;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "pressure") == 0) {
-      if (control->ensemble == iNPT) {
-        control->P[0] = control->P[1] = control->P[2] = atof(tmp[1]);
-      }
-      else if (control->ensemble == sNPT) {
-        control->P[0] = atof(tmp[1]);
-        control->P[1] = atof(tmp[2]);
-        control->P[2] = atof(tmp[3]);
-      }
+      ; // ignore
     }
     else if (strcmp(tmp[0], "p_mass") == 0) {
-      // convert p_mass from fs to ps
-      if (control->ensemble == iNPT) {
-        control->Tau_P[0] = control->Tau_P[1] = control->Tau_P[2] =
-          atof(tmp[1]) * 1.e-3;
-      }
-      else if (control->ensemble == sNPT) {
-        control->Tau_P[0] = atof(tmp[1]) * 1.e-3;
-        control->Tau_P[1] = atof(tmp[2]) * 1.e-3;
-        control->Tau_P[2] = atof(tmp[3]) * 1.e-3;
-      }
+      ; // ignore
     }
     else if (strcmp(tmp[0], "pt_mass") == 0) {
-      val = atof(tmp[1]);
-      control->Tau_PT[0] = control->Tau_PT[1] = control->Tau_PT[2] =
-        val * 1.e-3;  // convert pt_mass from fs to ps
+      ; // ignore
     }
     else if (strcmp(tmp[0], "compress") == 0) {
-      val = atof(tmp[1]);
-      control->compressibility = val;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "press_mode") == 0) {
-      ival = atoi(tmp[1]);
-      control->press_mode = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "geo_format") == 0) {
-      ival = atoi( tmp[1] );
-      control->geo_format = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "write_freq") == 0) {
       ival = atoi(tmp[1]);
@@ -329,33 +243,25 @@ void Read_Control_File(const char *control_file, control_params *control,
       out_control->angle_info = ival;
     }
     else if (strcmp(tmp[0], "molecular_analysis") == 0) {
-      ival = atoi(tmp[1]);
-      control->molecular_analysis = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "ignore") == 0) {
-      control->num_ignored = atoi(tmp[1]);
-      for (i = 0; i < control->num_ignored; ++i)
-        control->ignore[atoi(tmp[i+2])] = 1;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "dipole_anal") == 0) {
-      ival = atoi(tmp[1]);
-      control->dipole_anal = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "freq_dipole_anal") == 0) {
-      ival = atoi(tmp[1]);
-      control->freq_dipole_anal = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "diffusion_coef") == 0) {
-      ival = atoi(tmp[1]);
-      control->diffusion_coef = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "freq_diffusion_coef") == 0) {
-      ival = atoi(tmp[1]);
-      control->freq_diffusion_coef = ival;
+      ; // ignore
     }
     else if (strcmp(tmp[0], "restrict_type") == 0) {
-      ival = atoi(tmp[1]);
-      control->restrict_type = ival;
+      ; // ignore
     }
     else {
       char errmsg[128];
@@ -363,11 +269,6 @@ void Read_Control_File(const char *control_file, control_params *control,
       control->error_ptr->all(FLERR, errmsg);
     }
   }
-
-  /* determine target T */
-  if (control->T_mode == 0)
-    control->T = control->T_final;
-  else control->T = control->T_init;
 
   /* free memory allocations at the top */
   for (i = 0; i < MAX_TOKENS; i++)

@@ -78,7 +78,7 @@ int Init_Simulation_Data(reax_system *system, control_params *control,
     data->timing.start = MPI_Wtime();
   }
 
-  data->step = data->prev_steps = 0;
+  data->step = 0;
 
   return SUCCESS;
 }

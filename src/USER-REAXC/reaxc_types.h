@@ -450,7 +450,6 @@ struct reax_list
 struct output_controls
 {
   FILE *strj;
-  int   trj_offset;
   int   atom_line_len;
   int   bond_line_len;
   int   angle_line_len;
@@ -460,15 +459,6 @@ struct output_controls
   char *line;
   int   buffer_len;
   char *buffer;
-
-  FILE *out;
-  FILE *pot;
-  FILE *log;
-  FILE *mol, *ign;
-  FILE *dpl;
-  FILE *drft;
-  FILE *pdb;
-  FILE *prs;
 
   int   write_steps;
   char  traj_title[81];

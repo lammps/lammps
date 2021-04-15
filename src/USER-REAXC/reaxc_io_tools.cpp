@@ -34,7 +34,6 @@
 int Init_Output_Files(reax_system *system, control_params *control,
                       output_controls *out_control, MPI_Comm world, char *msg)
 {
-  char temp[MAX_STR+8];
   int ret;
 
   if (out_control->write_steps > 0) {
@@ -42,26 +41,6 @@ int Init_Output_Files(reax_system *system, control_params *control,
     if (ret == FAILURE)
       return ret;
   }
-
-  if (system->my_rank == MASTER_NODE) {
-    /* These files are written only by the master node */
-    if (out_control->energy_update_freq > 0) {
-
-      /* init potentials file */
-      sprintf( temp, "%s.pot", control->sim_name );
-      if ((out_control->pot = fopen( temp, "w" )) != nullptr) {
-        fflush( out_control->pot );
-      } else {
-        strcpy( msg, "init_out_controls: .pot file could not be opened\n" );
-        return FAILURE;
-      }
-
-      /* init log file */
-    }
-
-    /* init pressure file */
-  }
-
   return SUCCESS;
 }
 
@@ -70,18 +49,6 @@ int Close_Output_Files(reax_system *system, output_controls *out_control)
 {
   if (out_control->write_steps > 0)
     End_Traj( system->my_rank, out_control );
-
-  if (system->my_rank == MASTER_NODE) {
-    if (out_control->pot) {
-      fclose( out_control->pot );
-      out_control->pot = nullptr;
-    }
-
-    if (out_control->prs) {
-      fclose(out_control->prs);
-      out_control->prs = nullptr;
-    }
-  }
 
   return SUCCESS;
 }

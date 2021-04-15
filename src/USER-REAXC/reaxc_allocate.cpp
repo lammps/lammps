@@ -127,15 +127,7 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
 
   workspace->allocated = 0;
 
-  /* communication storage */
-  for (i = 0; i < MAX_NBRS; ++i) {
-    sfree(control->error_ptr,  workspace->tmp_dbl[i], "tmp_dbl[i]" );
-    sfree(control->error_ptr,  workspace->tmp_rvec[i], "tmp_rvec[i]" );
-    sfree(control->error_ptr,  workspace->tmp_rvec2[i], "tmp_rvec2[i]" );
-  }
-
   /* bond order storage */
-  sfree(control->error_ptr,  workspace->within_bond_box, "skin" );
   sfree(control->error_ptr,  workspace->total_bond_order, "total_bo" );
   sfree(control->error_ptr,  workspace->Deltap, "Deltap" );
   sfree(control->error_ptr,  workspace->Deltap_boc, "Deltap_boc" );
@@ -215,19 +207,7 @@ int Allocate_Workspace( reax_system * /*system*/, control_params * control,
   total_rvec = total_cap * sizeof(rvec);
   local_rvec = local_cap * sizeof(rvec);
 
-  /* communication storage */
-  for (i = 0; i < MAX_NBRS; ++i) {
-    workspace->tmp_dbl[i] = (double*)
-      scalloc(control->error_ptr,  total_cap, sizeof(double), "tmp_dbl");
-    workspace->tmp_rvec[i] = (rvec*)
-      scalloc(control->error_ptr,  total_cap, sizeof(rvec), "tmp_rvec");
-    workspace->tmp_rvec2[i] = (rvec2*)
-      scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "tmp_rvec2");
-  }
-
   /* bond order related storage  */
-  workspace->within_bond_box = (int*)
-    scalloc(control->error_ptr,  total_cap, sizeof(int), "skin");
   workspace->total_bond_order = (double*) smalloc(control->error_ptr,  total_real, "total_bo");
   workspace->Deltap = (double*) smalloc(control->error_ptr,  total_real, "Deltap");
   workspace->Deltap_boc = (double*) smalloc(control->error_ptr,  total_real, "Deltap_boc");

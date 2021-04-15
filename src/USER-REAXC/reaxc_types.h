@@ -393,18 +393,11 @@ struct reallocate_data {
   int hbonds, num_hbonds;
   int bonds, num_bonds;
   int num_3body;
-  int gcell_atoms;
 };
 
 struct storage
 {
   int allocated;
-
-  /* communication storage */
-  double *tmp_dbl[REAX_MAX_NBRS];
-  rvec *tmp_rvec[REAX_MAX_NBRS];
-  rvec2 *tmp_rvec2[REAX_MAX_NBRS];
-  int  *within_bond_box;
 
   /* bond order related storage */
   double *total_bond_order;

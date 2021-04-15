@@ -74,6 +74,8 @@ class FixBondReact : public Fix {
   int maxnconstraints;
   int *nconstraints;
   char **constraintstr;
+  int nrxnfunction;
+  std::vector<std::string> rxnfunclist;
   int narrhenius;
   int **var_flag,**var_id; // for keyword values with variable inputs
   int status;
@@ -138,6 +140,8 @@ class FixBondReact : public Fix {
   int **delete_atoms; // atoms in pre-reacted templates to delete
   int **create_atoms; // atoms in post-reacted templates to create
   int ***chiral_atoms; // pre-react chiral atoms. 1) flag 2) orientation 3-4) ordered atom types
+  int nvvec;
+  double *vvec; // per-atom vector to store variable constraint atom-style variable values
 
   int **nxspecial,**onemol_nxspecial,**twomol_nxspecial; // full number of 1-4 neighbors
   tagint **xspecial,**onemol_xspecial,**twomol_xspecial; // full 1-4 neighbor list
@@ -175,6 +179,8 @@ class FixBondReact : public Fix {
   int check_constraints();
   void get_IDcoords(int, int, double *);
   double get_temperature(tagint **, int, int);
+  double custom_constraint(std::string);
+  double rxnfunction(std::string, std::string, std::string);
   int get_chirality(double[12]); // get handedness given an ordered set of coordinates
 
   void open(char *);
@@ -209,6 +215,7 @@ class FixBondReact : public Fix {
     int id[MAXCONIDS];
     int idtype[MAXCONIDS];
     double par[MAXCONPAR];
+    std::string str;
   };
   Constraint **constraints;
 

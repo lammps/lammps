@@ -191,13 +191,17 @@ class AtomVec : protected Pointers {
   const char *default_create,*default_data_atom,*default_data_vel;
 
   struct Method {
-    void **pdata;
-    int *datatype;
-    int *cols;
-    int **maxcols;
-    int *collength;
-    void **plength;
-    int *index;
+    void **pdata = nullptr;
+    int *datatype = nullptr;
+    int *cols = nullptr;
+    int **maxcols = nullptr;
+    int *collength = nullptr;
+    void **plength = nullptr;
+    int *index = nullptr;
+
+    Method() = default;
+    ~Method();
+    void resize(int nfield);
   };
 
   Method mgrow,mcopy;
@@ -219,9 +223,7 @@ class AtomVec : protected Pointers {
   int grow_nmax_bonus(int);
   void setup_fields();
   int process_fields(char *, const char *, Method *);
-  void create_method(int, Method *);
-  void init_method(Method *);
-  void destroy_method(Method *);
+  void init_method(int, Method *);
 };
 
 }

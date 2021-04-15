@@ -224,16 +224,11 @@ void FixQEqReaxOMP::compute_H()
         H.numnbrs[i] = mfill - H.firstnbr[i];
       }
     }
-
-    if (mfill >= H.m) {
-      char str[128];
-      sprintf(str,"H matrix size has been exceeded: mfill=%d H.m=%d\n",
-              mfill, H.m);
-      error->warning(FLERR,str);
-      error->all(FLERR,"Fix qeq/reax/omp has insufficient QEq matrix size");
-    }
   } // omp
 
+  if (m_fill >= H.m)
+    error->all(FLERR,fmt::format("Fix qeq/reax: H matrix size has been "
+                                   "exceeded: m_fill={} H.m={}\n", m_fill, H.m));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -528,13 +523,10 @@ int FixQEqReaxOMP::CG( double *b, double *x)
     }
   }
 
-  if (i >= imax && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Fix qeq/reax CG convergence failed after %d iterations "
-            "at " BIGINT_FORMAT " step",i,update->ntimestep);
-    error->warning(FLERR,str);
-  }
-
+  if (i >= imax && comm->me == 0)
+    error->warning(FLERR,fmt::format("Fix qeq/reax/omp CG convergence failed "
+                                     "after {} iterations at step {}",
+                                     i,update->ntimestep));
   return i;
 }
 
@@ -882,13 +874,10 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
   startTimeBase = endTimeBase;
 #endif
 
-  if ( i >= imax && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Fix qeq/reax CG convergence failed after %d iterations "
-            "at " BIGINT_FORMAT " step",i,update->ntimestep);
-    error->warning(FLERR,str);
-  }
-
+  if ( i >= imax && comm->me == 0)
+    error->warning(FLERR,fmt::format("Fix qeq/reax/omp CG convergence failed "
+                                     "after {} iterations at step {}",
+                                     i,update->ntimestep));
   return i;
 }
 

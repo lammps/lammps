@@ -403,12 +403,10 @@ void Valence_Angles( reax_system *system, control_params *control,
 
   if (num_thb_intrs >= thb_intrs->num_intrs * DANGER_ZONE) {
     workspace->realloc.num_3body = num_thb_intrs;
-    if (num_thb_intrs > thb_intrs->num_intrs) {
-      char errmsg[128];
-      snprintf(errmsg, 128, "step%d-ran out of space on angle_list: top=%d, max=%d",
-               data->step, num_thb_intrs, thb_intrs->num_intrs);
-      control->error_ptr->one(FLERR, errmsg);
-    }
+    if (num_thb_intrs > thb_intrs->num_intrs)
+      control->error_ptr->one(FLERR, fmt::format("step {}: ran out of space on "
+                                                 "angle_list: top={}, max={}",
+                                                 data->step, num_thb_intrs,
+                                                 thb_intrs->num_intrs));
   }
-
 }

@@ -838,14 +838,11 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     Kokkos::parallel_for(inum,vecsum2_functor);
   }
 
-  if (loop >= imax && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Fix qeq/reax cg_solve1 convergence failed after %d iterations "
-            "at " BIGINT_FORMAT " step: %f",loop,update->ntimestep,sqrt(sig_new)/b_norm);
-    error->warning(FLERR,str);
-    //error->all(FLERR,str);
-  }
-
+  if (loop >= imax && comm->me == 0)
+    error->warning(FLERR,fmt::format("Fix qeq/reax/kk cg_solve1 convergence "
+                                     "failed after {} iterations at step {}: "
+                                     "{}", loop, update->ntimestep,
+                                     sqrt(sig_new)/b_norm));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -970,14 +967,11 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     Kokkos::parallel_for(inum,vecsum2_functor);
   }
 
-  if (loop >= imax && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Fix qeq/reax cg_solve2 convergence failed after %d iterations "
-            "at " BIGINT_FORMAT " step: %f",loop,update->ntimestep,sqrt(sig_new)/b_norm);
-    error->warning(FLERR,str);
-    //error->all(FLERR,str);
-  }
-
+  if (loop >= imax && comm->me == 0)
+    error->warning(FLERR,fmt::format("Fix qeq/reax/kk cg_solve2 convergence "
+                                     "failed after {} iterations at step {}: "
+                                     "{}", loop, update->ntimestep,
+                                     sqrt(sig_new)/b_norm));
 }
 
 /* ---------------------------------------------------------------------- */

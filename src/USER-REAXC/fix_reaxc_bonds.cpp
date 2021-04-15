@@ -17,17 +17,19 @@
 
 #include "fix_reaxc_bonds.h"
 
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "pair_reaxc.h"
-#include "neigh_list.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "pair_reaxc.h"
+#include "update.h"
+
 #include "reaxc_list.h"
 #include "reaxc_types.h"
 #include "reaxc_defs.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -53,23 +55,20 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
     char *suffix = strrchr(arg[4],'.');
     if (suffix && strcmp(suffix,".gz") == 0) {
 #ifdef LAMMPS_GZIP
-      char gzip[128];
-      snprintf(gzip,128,"gzip -6 > %s",arg[4]);
+      auto gzip = fmt::format("gzip -6 > {}",arg[4]);
 #ifdef _WIN32
-      fp = _popen(gzip,"wb");
+      fp = _popen(gzip.c_str(),"wb");
 #else
-      fp = popen(gzip,"w");
+      fp = popen(gzip.c_str(),"w");
 #endif
 #else
       error->one(FLERR,"Cannot open gzipped file");
 #endif
     } else fp = fopen(arg[4],"w");
 
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix reax/c/bonds file %s",arg[4]);
-      error->one(FLERR,str);
-    }
+    if (!fp)
+      error->one(FLERR,fmt::format("Cannot open fix reax/c/bonds file {}: "
+                                   "{}",arg[4],utils::getsyserror()));
   }
 
   if (atom->tag_consecutive() == 0)

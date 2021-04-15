@@ -70,16 +70,6 @@ int PreAllocate_Space( reax_system *system, control_params * /*control*/,
 
 /*************       system        *************/
 
-int Allocate_System( reax_system *system, int /*local_cap*/, int total_cap,
-                     char * /*msg*/ )
-{
-  system->my_atoms = (reax_atom*)
-    realloc( system->my_atoms, total_cap*sizeof(reax_atom) );
-
-  return SUCCESS;
-}
-
-
 void DeAllocate_System( reax_system *system )
 {
   int i, j, k;
@@ -359,17 +349,16 @@ void ReAllocate( reax_system *system, control_params *control,
                  simulation_data *data, storage *workspace, reax_list **lists )
 {
   auto error = system->error_ptr;
-  int num_bonds, est_3body, Hflag, ret;
+  int num_bonds, est_3body, Hflag;
   int newsize;
-  reallocate_data *realloc;
+  reallocate_data *wsr;
   reax_list *far_nbrs;
-  char msg[200];
 
   int mincap = system->mincap;
   double safezone = system->safezone;
   double saferzone = system->saferzone;
 
-  realloc = &(workspace->realloc);
+  wsr = &(workspace->realloc);
 
   if ( system->n >= DANGER_ZONE * system->local_cap ||
       (0 && system->n <= LOOSE_ZONE * system->local_cap)) {
@@ -385,13 +374,8 @@ void ReAllocate( reax_system *system, control_params *control,
 
   if (Nflag) {
     /* system */
-    ret = Allocate_System( system, system->local_cap, system->total_cap, msg );
-    if (ret != SUCCESS) {
-      char errmsg[256];
-      snprintf(errmsg, 256, "Not enough space for atom_list: total_cap=%d", system->total_cap);
-      error->one(FLERR, errmsg);
-    }
-
+    system->my_atoms = (reax_atom *)::realloc(system->my_atoms,
+                                              system->total_cap*sizeof(reax_atom));
     /* workspace */
     DeAllocate_Workspace(control, workspace);
     Allocate_Workspace(control, workspace, system->total_cap);
@@ -401,16 +385,16 @@ void ReAllocate( reax_system *system, control_params *control,
 
   far_nbrs = *lists + FAR_NBRS;
 
-  if (Nflag || realloc->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
-    if (realloc->num_far > far_nbrs->num_intrs)
+  if (Nflag || wsr->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
+    if (wsr->num_far > far_nbrs->num_intrs)
       error->one(FLERR,fmt::format("step{}: ran out of space on far_nbrs: top={}, max={}",
-                                   data->step, realloc->num_far, far_nbrs->num_intrs));
+                                   data->step, wsr->num_far, far_nbrs->num_intrs));
 
     newsize = static_cast<int>
-      (MAX( realloc->num_far*safezone, mincap*REAX_MIN_NBRS));
+      (MAX( wsr->num_far*safezone, mincap*REAX_MIN_NBRS));
 
     Reallocate_Neighbor_List( far_nbrs, system->total_cap, newsize);
-    realloc->num_far = 0;
+    wsr->num_far = 0;
   }
 
   /* hydrogen bonds list */
@@ -422,35 +406,34 @@ void ReAllocate( reax_system *system, control_params *control,
       system->Hcap = int(MAX( system->numH * saferzone, mincap ));
     }
 
-    if (Hflag || realloc->hbonds) {
-      ret = Reallocate_HBonds_List( system, (*lists)+HBONDS);
-      realloc->hbonds = 0;
+    if (Hflag || wsr->hbonds) {
+      Reallocate_HBonds_List( system, (*lists)+HBONDS);
+      wsr->hbonds = 0;
     }
   }
 
   /* bonds list */
   num_bonds = est_3body = -1;
-  if (Nflag || realloc->bonds) {
+  if (Nflag || wsr->bonds) {
     Reallocate_Bonds_List( system, (*lists)+BONDS, &num_bonds,
                            &est_3body);
-    realloc->bonds = 0;
-    realloc->num_3body = MAX( realloc->num_3body, est_3body ) * 2;
+    wsr->bonds = 0;
+    wsr->num_3body = MAX( wsr->num_3body, est_3body ) * 2;
   }
 
   /* 3-body list */
-  if (realloc->num_3body > 0) {
+  if (wsr->num_3body > 0) {
     Delete_List( (*lists)+THREE_BODIES);
 
     if (num_bonds == -1)
       num_bonds = ((*lists)+BONDS)->num_intrs;
 
-    realloc->num_3body = (int)(MAX(realloc->num_3body*safezone, MIN_3BODIES));
+    wsr->num_3body = (int)(MAX(wsr->num_3body*safezone, MIN_3BODIES));
 
-    if ( !Make_List( num_bonds, realloc->num_3body, TYP_THREE_BODY,
+    if ( !Make_List( num_bonds, wsr->num_3body, TYP_THREE_BODY,
                     (*lists)+THREE_BODIES )) {
       error->one(FLERR, "Problem in initializing angles list");
     }
-    realloc->num_3body = -1;
+    wsr->num_3body = -1;
   }
-
 }

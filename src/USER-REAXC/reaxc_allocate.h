@@ -28,14 +28,14 @@
 #define __ALLOCATE_H_
 
 #include "reaxc_types.h"
-int  PreAllocate_Space( reax_system*, control_params*, storage* );
 
-int  Allocate_System( reax_system*, int, int, char* );
-void DeAllocate_System( reax_system* );
+int  PreAllocate_Space(reax_system *, control_params *, storage *);
+
+void DeAllocate_System(reax_system *);
 
 void Allocate_Workspace(control_params *, storage *, int);
 void DeAllocate_Workspace(control_params *, storage *);
 
-void ReAllocate( reax_system*, control_params*, simulation_data*, storage*,
-                 reax_list** );
+void ReAllocate(reax_system *, control_params *, simulation_data *,
+                storage*, reax_list**);
 #endif

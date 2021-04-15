@@ -239,15 +239,12 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
       } // for (pi)
 
       // Confirm that thb_intrs->num_intrs / nthreads is enough to hold all angles from a single atom
-      if (my_offset >= (tid+1)*per_thread) {
-        char errmsg[512];
-        snprintf( errmsg, 512, "step%d-ran out of space on angle_list for atom %i:\n"
-        " nthreads= %d, tid=%d, my_offset=%d, per_thread=%d\n"
-        " num_intrs= %i  N= %i\n"
-        , data->step, j, nthreads, tid, my_offset, per_thread,thb_intrs->num_intrs , system->N);
-        control->error_ptr->one(FLERR, errmsg);
-      }
-
+      if (my_offset >= (tid+1)*per_thread)
+        control->error_ptr->one(FLERR, fmt::format("step {}: ran out of space on "
+                                                   "angle_list for atom {}:\n"
+                                                   " nthreads={} tid={} my_offset={} per_thread={}\n"
+                                                   " num_intrs={} N={}",data->step,j,nthreads,tid,
+                                                   my_offset,per_thread,thb_intrs->num_intrs,system->N));
       // Number of angles owned by this atom
       _my_offset[j] = my_offset - tid * per_thread;
     } // for (j)
@@ -597,12 +594,11 @@ void Valence_AnglesOMP( reax_system *system, control_params *control,
 
   if (num_thb_intrs >= thb_intrs->num_intrs * DANGER_ZONE) {
     workspace->realloc.num_3body = num_thb_intrs * TWICE;
-    if (num_thb_intrs > thb_intrs->num_intrs) {
-      char errmsg[128];
-      snprintf(errmsg, 128, "step%d-ran out of space on angle_list: top=%d, max=%d",
-               data->step, num_thb_intrs, thb_intrs->num_intrs);
-      control->error_ptr->one(FLERR, errmsg);
-    }
+    if (num_thb_intrs > thb_intrs->num_intrs)
+      control->error_ptr->one(FLERR, fmt::format("step {}: ran out of space on "
+                                                 "angle_list: top={}, max={}",
+                                                 data->step, num_thb_intrs,
+                                                 thb_intrs->num_intrs));
   }
 
 #ifdef OMP_TIMING

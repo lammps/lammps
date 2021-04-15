@@ -349,11 +349,9 @@ void PairReaxCKokkos<DeviceType>::init_md()
 
   if (swb < 0)
     error->one(FLERR,"Negative upper Taper-radius cutoff");
-  else if (swb < 5) {
-    char str[128];
-    sprintf(str,"Warning: very low Taper-radius cutoff: %f\n", swb);
-    error->one(FLERR,str);
-  }
+  else if (swb < 5)
+    error->one(FLERR,fmt::format("Warning: very low Taper-radius cutoff: "
+                                 "{}\n", swb));
 
   d1 = swb - swa;
   d7 = powint(d1,7);

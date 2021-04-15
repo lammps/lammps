@@ -265,10 +265,7 @@ void FixQEqReaxOMP::pre_force(int /* vflag */)
   funcstartTimeBase = MPI_Wtime();
 #endif
 
-  double t_start, t_end;
-
   if (update->ntimestep % nevery) return;
-  if (comm->me == 0) t_start = MPI_Wtime();
 
   int n = atom->nlocal;
 
@@ -340,11 +337,6 @@ void FixQEqReaxOMP::pre_force(int /* vflag */)
   endTimeBase = MPI_Wtime();
   ompTimingData[COMPUTECALCQINDEX] += (endTimeBase-startTimeBase);
 #endif
-
-  if (comm->me == 0) {
-    t_end = MPI_Wtime();
-    qeq_time = t_end - t_start;
-  }
 
 #ifdef OMP_TIMING
   endTimeBase = MPI_Wtime();

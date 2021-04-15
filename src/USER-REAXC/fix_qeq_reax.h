@@ -53,7 +53,6 @@ class FixQEqReax : public Fix {
   void min_pre_force(int);
 
   int matvecs;
-  double qeq_time;
 
  protected:
   int nevery,reaxflag;

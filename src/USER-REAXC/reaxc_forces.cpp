@@ -108,7 +108,7 @@ void Compute_Total_Force(reax_system *system, control_params *control,
         if (control->virial == 0)
           Add_dBond_to_Forces( system, i, pj, workspace, lists );
         else
-          Add_dBond_to_Forces_NPT( i, pj, data, workspace, lists );
+          Add_dBond_to_Forces_NPT( i, pj, workspace, lists );
       }
 
 }

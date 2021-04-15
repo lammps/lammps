@@ -503,10 +503,7 @@ void FixQEqReax::init_storage()
 
 void FixQEqReax::pre_force(int /*vflag*/)
 {
-  double t_start, t_end;
-
   if (update->ntimestep % nevery) return;
-  if (comm->me == 0) t_start = MPI_Wtime();
 
   int n = atom->nlocal;
 
@@ -538,11 +535,6 @@ void FixQEqReax::pre_force(int /*vflag*/)
   matvecs = matvecs_s + matvecs_t;
 
   calculate_Q();
-
-  if (comm->me == 0) {
-    t_end = MPI_Wtime();
-    qeq_time = t_end - t_start;
-  }
 }
 
 /* ---------------------------------------------------------------------- */

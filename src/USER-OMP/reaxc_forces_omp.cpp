@@ -132,9 +132,8 @@ void Compute_NonBonded_ForcesOMP( reax_system *system, control_params *control,
 /* this version of Compute_Total_Force computes forces from
    coefficients accumulated by all interaction functions.
    Saves enormous time & space! */
-void Compute_Total_ForceOMP( reax_system *system, control_params *control,
-                          simulation_data *data, storage *workspace,
-                          reax_list **lists)
+void Compute_Total_ForceOMP(reax_system *system, control_params *control,
+                            storage *workspace, reax_list **lists)
 {
 #ifdef OMP_TIMING
   double startTimeBase,endTimeBase;
@@ -187,16 +186,6 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
       }
     }
 
-// #pragma omp for schedule(guided) //(dynamic,50)
-//     for (i = 0; i < system->N; ++i)
-//       for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
-//      if (i < bonds->select.bond_list[pj].nbr) {
-//        if (control->virial == 0)
-//          Add_dBond_to_ForcesOMP( system, i, pj, workspace, lists );
-//        else
-//          Add_dBond_to_Forces_NPTOMP(system, i, pj, data, workspace, lists );
-//      }
-
     if (control->virial == 0) {
 
 #if defined(_OPENMP)
@@ -220,7 +209,7 @@ void Compute_Total_ForceOMP( reax_system *system, control_params *control,
         const int endj  = End_Index(i, bonds);
         for (pj = startj; pj < endj; ++pj)
           if (i < bonds->select.bond_list[pj].nbr)
-            Add_dBond_to_Forces_NPTOMP(system, i, pj, data, workspace, lists );
+            Add_dBond_to_Forces_NPTOMP(system, i, pj, workspace, lists );
       }
 
     } // if (virial == 0)
@@ -603,5 +592,5 @@ void Compute_ForcesOMP( reax_system *system, control_params *control,
                             lists, out_control);
 
   // Total Force
-  Compute_Total_ForceOMP( system, control, data, workspace, lists);
+  Compute_Total_ForceOMP( system, control, workspace, lists);
 }

@@ -191,16 +191,14 @@ class AtomVec : protected Pointers {
   const char *default_create,*default_data_atom,*default_data_vel;
 
   struct Method {
-    void **pdata = nullptr;
-    int *datatype = nullptr;
-    int *cols = nullptr;
-    int **maxcols = nullptr;
-    int *collength = nullptr;
-    void **plength = nullptr;
-    int *index = nullptr;
+    std::vector<void *> pdata;
+    std::vector<int> datatype;
+    std::vector<int> cols;
+    std::vector<int*> maxcols;
+    std::vector<int> collength;
+    std::vector<void *> plength;
+    std::vector<int> index;
 
-    Method() = default;
-    ~Method();
     void resize(int nfield);
   };
 

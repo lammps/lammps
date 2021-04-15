@@ -2470,7 +2470,7 @@ int AtomVec::process_fields(char *str, const char *default_str, Method *method)
   // allocate memory in method
   method->resize(nfield);
 
-  int *index = method->index;
+  std::vector<int> & index = method->index;
   int match;
 
   for (int i = 0; i < nfield; i++) {
@@ -2523,40 +2523,12 @@ void AtomVec::init_method(int nfield, Method *method)
    Method class members
 ------------------------------------------------------------------------- */
 
-AtomVec::Method::~Method()
-{
-  delete [] pdata;
-  delete [] datatype;
-  delete [] cols;
-  delete [] maxcols;
-  delete [] collength;
-  delete [] plength;
-  delete [] index;
-}
-
 void AtomVec::Method::resize(int nfield) {
-  delete [] pdata;
-  delete [] datatype;
-  delete [] cols;
-  delete [] maxcols;
-  delete [] collength;
-  delete [] plength;
-  delete [] index;
-  pdata = nullptr;
-  datatype = nullptr;
-  cols = nullptr;
-  maxcols = nullptr;
-  collength = nullptr;
-  plength = nullptr;
-  index = nullptr;
-
-  if (nfield > 0) {
-    pdata = new void*[nfield];
-    datatype = new int[nfield];
-    cols = new int[nfield];
-    maxcols = new int*[nfield];
-    collength = new int[nfield];
-    plength = new void*[nfield];
-    index = new int[nfield];
-  }
+  pdata.resize(nfield);
+  datatype.resize(nfield);
+  cols.resize(nfield);
+  maxcols.resize(nfield);
+  collength.resize(nfield);
+  plength.resize(nfield);
+  index.resize(nfield);
 }

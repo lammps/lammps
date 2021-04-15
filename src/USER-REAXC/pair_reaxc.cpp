@@ -101,9 +101,9 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   control->me = system->my_rank = comm->me;
 
   system->num_nbrs = 0;
-  system->n = 0; // my atoms
-  system->N = 0; // mine + ghosts
-  system->bigN = 0;  // all atoms in the system
+  system->n = 0;                // my atoms
+  system->N = 0;                // mine + ghosts
+  system->bigN = 0;             // all atoms in the system
   system->local_cap = 0;
   system->total_cap = 0;
   system->my_atoms = nullptr;
@@ -200,27 +200,36 @@ void PairReaxC::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
 
-  // read name of control file or use default controls
+  if (comm->me == 0) {
+    // read name of control file or use default controls
 
-  if (strcmp(arg[0],"NULL") == 0) {
-    strcpy( control->sim_name, "simulate" );
-    out_control->energy_update_freq = 0;
-    control->tabulate = 0;
+    if (strcmp(arg[0],"NULL") == 0) {
+      strcpy( control->sim_name, "simulate" );
+      out_control->energy_update_freq = 0;
+      control->tabulate = 0;
 
-    control->bond_cut = 5.;
-    control->hbond_cut = 7.50;
-    control->thb_cut = 0.001;
-    control->thb_cutsq = 0.00001;
-    control->bg_cut = 0.3;
+      control->bond_cut = 5.;
+      control->hbond_cut = 7.50;
+      control->thb_cut = 0.001;
+      control->thb_cutsq = 0.00001;
+      control->bg_cut = 0.3;
 
-    control->nthreads = 1;
+      control->nthreads = 1;
 
-    out_control->write_steps = 0;
-    strcpy( out_control->traj_title, "default_title" );
-    out_control->atom_info = 0;
-    out_control->bond_info = 0;
-    out_control->angle_info = 0;
-  } else Read_Control_File(arg[0], control, out_control);
+      out_control->write_steps = 0;
+      strcpy( out_control->traj_title, "default_title" );
+      out_control->atom_info = 0;
+      out_control->bond_info = 0;
+      out_control->angle_info = 0;
+    } else Read_Control_File(arg[0], control, out_control);
+  }
+  MPI_Bcast(control,sizeof(control_params),MPI_CHAR,0,world);
+  MPI_Bcast(out_control,sizeof(output_controls),MPI_CHAR,0,world);
+
+  // must reset these to local values after broadcast
+  control->me = comm->me;
+  control->error_ptr = error;
+  control->lmp_ptr = lmp;
 
   // default values
 

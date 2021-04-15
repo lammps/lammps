@@ -328,8 +328,8 @@ keyword 'ChiralIDs' lists the atom IDs of chiral atoms whose
 handedness should be enforced. The fifth optional section begins with
 the keyword 'Constraints' and lists additional criteria that must be
 satisfied in order for the reaction to occur. Currently, there are
-five types of constraints available, as discussed below: 'distance',
-'angle', 'dihedral', 'arrhenius', and 'rmsd'.
+six types of constraints available, as discussed below: 'distance',
+'angle', 'dihedral', 'arrhenius', 'rmsd', and 'custom'.
 
 A sample map file is given below:
 
@@ -499,6 +499,45 @@ determine the RMSD. A molecule fragment must have been defined in the
 example, the molecule fragment could consist of only the backbone
 atoms of a polymer chain. This constraint can be used to enforce a
 specific relative position and orientation between reacting molecules.
+
+The constraint of type 'custom' has the following syntax:
+
+.. parsed-literal::
+
+   custom *varstring*
+
+where 'custom' is the required keyword, and *varstring* is a
+variable expression. The expression must be a valid equal-style
+variable formula that can be read by the :doc:`variable <variable>` command,
+after any special reaction functions are evaluated. If the resulting
+expression is zero, the reaction is prevented from occurring;
+otherwise, it is permitted to occur. There are two special reaction
+functions available, 'rxnsum' and 'rxnave'. These functions operate
+over the atoms in a given reaction site, and have one mandatory
+argument and one optional argument. The mandatory argument is the
+identifier for an atom-style variable. The second, optional argument
+is the name of a molecule fragment in the pre-reaction template, and
+can be used to operate over a subset of atoms in the reaction site.
+The 'rxnsum' function sums the atom-style variable over the reaction
+site, while the 'rxnave' returns the average value. For example, a
+constraint on the total potential energy of atoms involved in the
+reaction can be imposed as follows:
+
+.. code-block:: LAMMPS
+
+compute 1 all pe/atom # in LAMMPS input script
+variable my_pe atom c_1 # in LAMMPS input script
+
+.. code-block:: LAMMPS
+
+custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
+
+The above example prevents the reaction from occurring unless the
+total potential energy of the reaction site is above 100. The variable
+expression can be interpreted as the probability of the reaction
+occurring by using an inequality and the 'random(x,y,z)' function
+available as an equal-style variable input, similar to the 'arrhenius'
+constraint above.
 
 By default, all constraints must be satisfied for the reaction to
 occur. In other words, constraints are evaluated as a series of

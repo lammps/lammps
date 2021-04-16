@@ -90,12 +90,9 @@ void Init_Taper(control_params *control,  storage *workspace)
   if (swb < 0) {
     error->all(FLERR,"Negative upper Taper-radius cutoff");
   }
-  else if (swb < 5 && control->me == 0) {
-    char errmsg[256];
-    snprintf(errmsg, 256, "Very low Taper-radius cutoff: %f", swb);
-    error->warning(FLERR, errmsg);
-  }
-
+  else if (swb < 5 && control->me == 0)
+    error->warning(FLERR,fmt::format("Warning: very low Taper-radius cutoff: "
+                                     "{}\n", swb));
   d1 = swb - swa;
   d7 = pow(d1, 7.0);
   swa2 = SQR(swa);

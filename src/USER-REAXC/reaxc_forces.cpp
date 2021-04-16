@@ -131,12 +131,10 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
         comp = Start_Index(i+1, bonds);
       else comp = bonds->num_intrs;
 
-      if (End_Index(i, bonds) > comp) {
-        char errmsg[256];
-        snprintf(errmsg, 256, "step%d-bondchk failed: i=%d end(i)=%d str(i+1)=%d\n",
-                 step, i, End_Index(i,bonds), comp );
-        system->error_ptr->one(FLERR,errmsg);
-      }
+      if (End_Index(i, bonds) > comp)
+        system->error_ptr->one(FLERR, fmt::format("step {}: bondchk failed: "
+                                                  "i={} end(i)={} str(i+1)={}\n",
+                                                  step,i,End_Index(i,bonds),comp));
     }
   }
 
@@ -159,12 +157,10 @@ void Validate_Lists( reax_system *system, storage * /*workspace*/, reax_list **l
           comp = Start_Index(Hindex+1, hbonds);
         else comp = hbonds->num_intrs;
 
-        if (End_Index(Hindex, hbonds) > comp) {
-          char errmsg[256];
-          snprintf(errmsg, 256, "step%d-hbondchk failed: H=%d end(H)=%d str(H+1)=%d\n",
-                  step, Hindex, End_Index(Hindex,hbonds), comp );
-          system->error_ptr->one(FLERR, errmsg);
-        }
+        if (End_Index(Hindex, hbonds) > comp)
+          system->error_ptr->one(FLERR, fmt::format("step {}: hbondchk failed: "
+                                                    "H={} end(H)={} str(H+1)={}\n",
+                                                    step, Hindex,End_Index(Hindex,hbonds),comp));
       }
     }
   }

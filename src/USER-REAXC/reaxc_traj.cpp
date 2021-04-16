@@ -41,12 +41,9 @@ int Reallocate_Output_Buffer( LAMMPS_NS::Error *error_ptr, output_controls *out_
 
   out_control->buffer_len = (int)(req_space*REAX_SAFE_ZONE);
   out_control->buffer = (char*) malloc(out_control->buffer_len*sizeof(char));
-  if (out_control->buffer == nullptr) {
-    char errmsg[256];
-    snprintf(errmsg, 256, "Insufficient memory for required buffer size %d", (int) (req_space*REAX_SAFE_ZONE));
-    error_ptr->one(FLERR,errmsg);
-  }
-
+  if (!out_control->buffer)
+    error_ptr->one(FLERR,fmt::format("Insufficient memory for required buffer "
+                                     "size {}", (req_space*REAX_SAFE_ZONE)));
   return SUCCESS;
 }
 
@@ -286,7 +283,6 @@ int Write_Init_Desc(reax_system *system, output_controls *out_control,
 int Init_Traj(reax_system *system, control_params *control,
               output_controls *out_control, MPI_Comm world, char *msg)
 {
-  char fname[MAX_STR+8];
   int  atom_line_len[ NR_OPT_ATOM ] = { 0, 0, 0, 0,
                                         ATOM_BASIC_LEN, ATOM_wV_LEN,
                                         ATOM_wF_LEN, ATOM_FULL_LEN };
@@ -294,7 +290,7 @@ int Init_Traj(reax_system *system, control_params *control,
   int  angle_line_len[ NR_OPT_ANGLE ] = { 0, ANGLE_BASIC_LEN };
 
   /* generate trajectory name */
-  sprintf( fname, "%s.trj", control->sim_name );
+  auto fname = std::string(control->sim_name) + ".trj";
 
   /* how should I write atoms? */
   out_control->atom_line_len = atom_line_len[ out_control->atom_info ];
@@ -313,7 +309,7 @@ int Init_Traj(reax_system *system, control_params *control,
 
   /* write trajectory header and atom info, if applicable */
   if (system->my_rank == MASTER_NODE)
-    out_control->strj = fopen(fname, "w");
+    out_control->strj = fopen(fname.c_str(), "w");
 
   Write_Header(system, control, out_control);
   Write_Init_Desc(system, out_control, world);

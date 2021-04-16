@@ -89,9 +89,7 @@ int Make_List(int n, int num_intrs, int type, reax_list *l )
     break;
 
   default:
-    char errmsg[128];
-    snprintf(errmsg, 128, "No %d list type defined", l->type);
-    l->error_ptr->one(FLERR,errmsg);
+    l->error_ptr->all(FLERR,fmt::format("No list type {} defined", l->type));
   }
 
   return SUCCESS;
@@ -140,9 +138,7 @@ void Delete_List( reax_list *l )
     break;
 
   default:
-    char errmsg[128];
-    snprintf(errmsg, 128, "No %d list type defined", l->type);
-    l->error_ptr->all(FLERR,errmsg);
+    l->error_ptr->all(FLERR,fmt::format("No list type {} defined", l->type));
   }
 }
 

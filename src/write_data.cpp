@@ -29,7 +29,6 @@
 #include "output.h"
 #include "pair.h"
 #include "thermo.h"
-#include "universe.h"
 #include "update.h"
 
 #include <cstring>

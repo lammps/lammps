@@ -1195,7 +1195,7 @@ void ReadRestart::check_eof_magic()
   if (me == 0) {
     long curpos = ftell(fp);
     fseek(fp,(long)-n,SEEK_END);
-    fread(str,sizeof(char),n,fp);
+    utils::sfread(FLERR,str,sizeof(char),n,fp,nullptr,error);
     fseek(fp,curpos,SEEK_SET);
   }
 

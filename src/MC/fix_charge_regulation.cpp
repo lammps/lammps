@@ -147,7 +147,7 @@ int FixChargeRegulation::setmask() {
 
 void FixChargeRegulation::init() {
 
-  triclinic = domain->triclinic; 
+  triclinic = domain->triclinic;
   int ipe = modify->find_compute("thermo_pe");
   c_pe = modify->compute[ipe];
 
@@ -187,14 +187,7 @@ void FixChargeRegulation::init() {
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
 
-    int narg = 4;
-    char **arg = new char*[narg];;
-    arg[0] = (char *) "exclude";
-    arg[1] = (char *) "group";
-    arg[2] = (char *) group_id.c_str();
-    arg[3] = (char *) "all";
-    neighbor->modify_params(narg,arg);
-    delete [] arg;
+    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
   }
 
   // check that no deletable atoms are in atom->firstgroup
@@ -356,7 +349,7 @@ void FixChargeRegulation::forward_acid() {
 
   double energy_before = energy_stored;
   double factor;
-  double *dummyp = nullptr;
+  double dummyp[3];
   double pos[3];
   pos[0] = 0;
   pos[1] = 0;
@@ -415,7 +408,7 @@ void FixChargeRegulation::backward_acid() {
   double energy_before = energy_stored;
   double factor;
   int mask_tmp;
-  double *dummyp = nullptr;
+  double dummyp[3];
   double pos[3];
   pos[0] = 0;
   pos[1] = 0;
@@ -488,7 +481,7 @@ void FixChargeRegulation::forward_base() {
 
   double energy_before = energy_stored;
   double factor;
-  double *dummyp = nullptr;
+  double dummyp[3];
   double pos[3];
   pos[0] = 0;
   pos[1] = 0;
@@ -546,7 +539,7 @@ void FixChargeRegulation::backward_base() {
 
   double energy_before = energy_stored;
   double factor;
-  double *dummyp = nullptr;
+  double dummyp[3];
   int mask_tmp;
   double pos[3];
   pos[0] = 0;
@@ -619,7 +612,7 @@ void FixChargeRegulation::forward_ions() {
 
   double energy_before = energy_stored;
   double factor;
-  double *dummyp = nullptr;
+  double dummyp[3];
   int m1 = -1, m2 = -1;
   factor = volume_rx * volume_rx * c10pI_plus * c10pI_minus /
            ((1 + ncation) * (1 + nanion));
@@ -654,7 +647,7 @@ void FixChargeRegulation::backward_ions() {
   double energy_before = energy_stored;
   double factor;
   int mask1_tmp = 0, mask2_tmp = 0;
-  double *dummyp = nullptr;
+  double dummyp[3];
   int m1 = -1, m2 = -1;
 
   m1 = get_random_particle(cation_type, +1, 0, dummyp);
@@ -733,7 +726,7 @@ void FixChargeRegulation::forward_ions_multival() {
 
   double energy_before = energy_stored;
   double factor = 1;
-  double *dummyp = nullptr;
+  double dummyp[3];
   int mm[salt_charge_ratio + 1];// particle ID array for all ions to be inserted
 
   if (salt_charge[0] <= -salt_charge[1]) {
@@ -787,7 +780,7 @@ void FixChargeRegulation::backward_ions_multival() {
 
   double energy_before = energy_stored;
   double factor = 1;
-  double *dummyp = nullptr;  // dummy pointer
+  double dummyp[3];  // dummy particle
   int mm[salt_charge_ratio + 1];  // particle ID array for all deleted ions
   double qq[salt_charge_ratio + 1];  // charge array for all deleted ions
   int mask_tmp[salt_charge_ratio + 1];  // temporary mask array

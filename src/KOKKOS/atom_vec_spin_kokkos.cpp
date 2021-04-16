@@ -189,7 +189,6 @@ struct AtomVecSpinKokkos_PackComm {
   
   AtomVecSpinKokkos_PackComm(
       const typename DAT::tdual_x_array &x,
-      // const typename DAT::tdual_sp_array &sp,
       const typename DAT::tdual_float_1d_4 &sp,
       const typename DAT::tdual_xfloat_2d &buf,
       const typename DAT::tdual_int_2d &list,
@@ -201,7 +200,6 @@ struct AtomVecSpinKokkos_PackComm {
       _xprd(xprd),_yprd(yprd),_zprd(zprd),
       _xy(xy),_xz(xz),_yz(yz) {
         const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/3;
-        // const size_t elements = 3;
         const size_t elements = 7;
         buffer_view<DeviceType>(_buf,buf,maxsend,elements);
         _pbc[0] = pbc[0]; _pbc[1] = pbc[1]; _pbc[2] = pbc[2];
@@ -1270,16 +1268,10 @@ void AtomVecSpinKokkos::sync_overlapping_device(ExecutionSpace space, unsigned i
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
-    // if ((mask & SP_MASK) && atomKK->k_sp.need_sync<LMPDeviceType>())
-    //   perform_async_copy<DAT::tdual_sp_array>(atomKK->k_sp,space);
     if ((mask & SP_MASK) && atomKK->k_sp.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_float_1d_4>(atomKK->k_sp,space);
-    // if ((mask & FM_MASK) && atomKK->k_sp.need_sync<LMPDeviceType>())
-    //   perform_async_copy<DAT::tdual_fm_array>(atomKK->k_fm,space);
     if ((mask & FM_MASK) && atomKK->k_sp.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_f_array>(atomKK->k_fm,space);
-    // if ((mask & FML_MASK) && atomKK->k_fm_long.need_sync<LMPDeviceType>())
-    //   perform_async_copy<DAT::tdual_fm_long_array>(atomKK->k_fm_long,space);
     if ((mask & FML_MASK) && atomKK->k_fm_long.need_sync<LMPDeviceType>())
       perform_async_copy<DAT::tdual_f_array>(atomKK->k_fm_long,space);
   } else {
@@ -1297,16 +1289,10 @@ void AtomVecSpinKokkos::sync_overlapping_device(ExecutionSpace space, unsigned i
       perform_async_copy<DAT::tdual_int_1d>(atomKK->k_mask,space);
     if ((mask & IMAGE_MASK) && atomKK->k_image.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_imageint_1d>(atomKK->k_image,space);
-    // if ((mask & SP_MASK) && atomKK->k_sp.need_sync<LMPHostType>())
-    //   perform_async_copy<DAT::tdual_sp_array>(atomKK->k_sp,space);
     if ((mask & SP_MASK) && atomKK->k_sp.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_float_1d_4>(atomKK->k_sp,space);
-    // if ((mask & FM_MASK) && atomKK->k_fm.need_sync<LMPHostType>())
-    //   perform_async_copy<DAT::tdual_fm_array>(atomKK->k_fm,space);
     if ((mask & FM_MASK) && atomKK->k_fm.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_f_array>(atomKK->k_fm,space);
-    // if ((mask & FML_MASK) && atomKK->k_fm_long.need_sync<LMPHostType>())
-    //   perform_async_copy<DAT::tdual_fm_long_array>(atomKK->k_fm_long,space);
     if ((mask & FML_MASK) && atomKK->k_fm_long.need_sync<LMPHostType>())
       perform_async_copy<DAT::tdual_f_array>(atomKK->k_fm_long,space);
   }

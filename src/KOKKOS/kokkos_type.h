@@ -773,17 +773,10 @@ typedef tdual_virial_array::t_dev_const_randomread t_virial_array_randomread;
 
 //3d SP_FLOAT array n*4
 #ifdef LMP_KOKKOS_NO_LEGACY
-// typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_sp_array;
 typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
 #else
-// typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_sp_array;
 typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_float_1d_4;
 #endif
-// typedef tdual_sp_array::t_dev t_sp_array;
-// typedef tdual_sp_array::t_dev_const t_sp_array_const;
-// typedef tdual_sp_array::t_dev_um t_sp_array_um;
-// typedef tdual_sp_array::t_dev_const_um t_sp_array_const_um;
-// typedef tdual_sp_array::t_dev_const_randomread t_sp_array_randomread;
 typedef tdual_float_1d_4::t_dev t_sp_array;
 typedef tdual_float_1d_4::t_dev_const t_sp_array_const;
 typedef tdual_float_1d_4::t_dev_um t_sp_array_um;
@@ -792,12 +785,6 @@ typedef tdual_float_1d_4::t_dev_const_randomread t_sp_array_randomread;
 
 //3d FM_FLOAT array n*3
 
-// typedef Kokkos::DualView<F_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_fm_array;
-// typedef tdual_fm_array::t_dev t_fm_array;
-// typedef tdual_fm_array::t_dev_const t_fm_array_const;
-// typedef tdual_fm_array::t_dev_um t_fm_array_um;
-// typedef tdual_fm_array::t_dev_const_um t_fm_array_const_um;
-// typedef tdual_fm_array::t_dev_const_randomread t_fm_array_randomread;
 typedef tdual_f_array::t_dev t_fm_array;
 typedef tdual_f_array::t_dev_const t_fm_array_const;
 typedef tdual_f_array::t_dev_um t_fm_array_um;
@@ -806,12 +793,6 @@ typedef tdual_f_array::t_dev_const_randomread t_fm_array_randomread;
 
 //3d FML_FLOAT array n*3
 
-// typedef Kokkos::DualView<F_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_fm_long_array;
-// typedef tdual_fm_long_array::t_dev t_fm_long_array;
-// typedef tdual_fm_long_array::t_dev_const t_fm_long_array_const;
-// typedef tdual_fm_long_array::t_dev_um t_fm_long_array_um;
-// typedef tdual_fm_long_array::t_dev_const_um t_fm_long_array_const_um;
-// typedef tdual_fm_long_array::t_dev_const_randomread t_fm_long_array_randomread;
 typedef tdual_f_array::t_dev t_fm_long_array;
 typedef tdual_f_array::t_dev_const t_fm_long_array_const;
 typedef tdual_f_array::t_dev_um t_fm_long_array_um;
@@ -1057,12 +1038,6 @@ typedef tdual_virial_array::t_host_const_randomread t_virial_array_randomread;
 // Spin types
 
 //2d X_FLOAT array n*4
-// typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_sp_array;
-// typedef tdual_sp_array::t_host t_sp_array;
-// typedef tdual_sp_array::t_host_const t_sp_array_const;
-// typedef tdual_sp_array::t_host_um t_sp_array_um;
-// typedef tdual_sp_array::t_host_const_um t_sp_array_const_um;
-// typedef tdual_sp_array::t_host_const_randomread t_sp_array_randomread;
 typedef tdual_float_1d_4::t_host t_sp_array;
 typedef tdual_float_1d_4::t_host_const t_sp_array_const;
 typedef tdual_float_1d_4::t_host_um t_sp_array_um;
@@ -1070,12 +1045,6 @@ typedef tdual_float_1d_4::t_host_const_um t_sp_array_const_um;
 typedef tdual_float_1d_4::t_host_const_randomread t_sp_array_randomread;
 
 //2d F_FLOAT array n*3
-// typedef Kokkos::DualView<F_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_fm_array;
-// typedef tdual_fm_array::t_host t_fm_array;
-// typedef tdual_fm_array::t_host_const t_fm_array_const;
-// typedef tdual_fm_array::t_host_um t_fm_array_um;
-// typedef tdual_fm_array::t_host_const_um t_fm_array_const_um;
-// typedef tdual_fm_array::t_host_const_randomread t_fm_array_randomread;
 typedef tdual_f_array::t_host t_fm_array;
 typedef tdual_f_array::t_host_const t_fm_array_const;
 typedef tdual_f_array::t_host_um t_fm_array_um;
@@ -1083,12 +1052,6 @@ typedef tdual_f_array::t_host_const_um t_fm_array_const_um;
 typedef tdual_f_array::t_host_const_randomread t_fm_array_randomread;
 
 //2d F_FLOAT array n*3
-// typedef Kokkos::DualView<F_FLOAT*[3], Kokkos::LayoutRight, LMPDeviceType> tdual_fm_long_array;
-// typedef tdual_fm_long_array::t_host t_fm_long_array;
-// typedef tdual_fm_long_array::t_host_const t_fm_long_array_const;
-// typedef tdual_fm_long_array::t_host_um t_fm_long_array_um;
-// typedef tdual_fm_long_array::t_host_const_um t_fm_long_array_const_um;
-// typedef tdual_fm_long_array::t_host_const_randomread t_fm_long_array_randomread;
 typedef tdual_f_array::t_host t_fm_long_array;
 typedef tdual_f_array::t_host_const t_fm_long_array_const;
 typedef tdual_f_array::t_host_um t_fm_long_array_um;

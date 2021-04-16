@@ -102,7 +102,6 @@ MLIAP_SO3::MLIAP_SO3(LAMMPS *lmp, double vrcut, int vlmax, int vnmax,
 
 MLIAP_SO3::~MLIAP_SO3()
 {
-
   memory->destroy(m_ellpl1);
   memory->destroy(m_ellm1);
   memory->destroy(m_pfac);

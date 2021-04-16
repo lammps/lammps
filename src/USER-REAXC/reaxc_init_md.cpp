@@ -196,9 +196,7 @@ void Initialize(reax_system *system, control_params *control,
     error->one(FLERR,fmt::format("Error on: {}. System could not be "
                                   "initialized. Terminating.",msg));
 
-  if (Init_Output_Files(system,control,out_control,world,msg)== FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. Could not open output files! "
-                                  "Terminating.",msg));
+  Init_Output_Files(system,control,out_control,world);
 
   if (control->tabulate)
     if (Init_Lookup_Tables(system,control,workspace,world,msg) == FAILURE)

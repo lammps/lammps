@@ -127,9 +127,7 @@ void InitializeOMP(reax_system *system, control_params *control,
   Init_Workspace(system,control,workspace);
   Init_ListsOMP(system,control,lists);
 
-  if (Init_Output_Files(system,control,out_control,world,msg)== FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. Could not open output files! "
-                                  "Terminating.",msg));
+  Init_Output_Files(system,control,out_control,world);
 
   if (control->tabulate)
     if (Init_Lookup_Tables(system,control,workspace,world,msg) == FAILURE)

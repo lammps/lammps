@@ -456,7 +456,6 @@ struct output_controls
   int   write_atoms;
   int   write_bonds;
   int   write_angles;
-  char *line;
   int   buffer_len;
   char *buffer;
 

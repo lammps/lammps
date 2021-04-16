@@ -30,9 +30,8 @@
 #include "reaxc_types.h"
 #include <mpi.h>
 
-int Init_Output_Files(reax_system *, control_params *,
-                      output_controls *, MPI_Comm, char *);
-int Close_Output_Files(reax_system *, output_controls *);
+void Init_Output_Files(reax_system *, control_params *, output_controls *, MPI_Comm);
+void Close_Output_Files(reax_system *, output_controls *);
 void Output_Results(reax_system *, control_params *, simulation_data *,
                     reax_list **, output_controls *, MPI_Comm);
 #endif

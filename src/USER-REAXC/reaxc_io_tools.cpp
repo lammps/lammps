@@ -31,28 +31,19 @@
 #include "reaxc_system_props.h"
 #include "reaxc_traj.h"
 
-int Init_Output_Files(reax_system *system, control_params *control,
-                      output_controls *out_control, MPI_Comm world, char *msg)
+void Init_Output_Files(reax_system *system, control_params *control,
+                      output_controls *out_control, MPI_Comm world)
 {
-  int ret;
-
-  if (out_control->write_steps > 0) {
-    ret = Init_Traj( system, control, out_control, world, msg );
-    if (ret == FAILURE)
-      return ret;
-  }
-  return SUCCESS;
+  if (out_control->write_steps > 0)
+    Init_Traj(system, control, out_control, world);
 }
 
 /************************ close output files ************************/
-int Close_Output_Files(reax_system *system, output_controls *out_control)
+void Close_Output_Files(reax_system *system, output_controls *out_control)
 {
   if (out_control->write_steps > 0)
-    End_Traj( system->my_rank, out_control );
-
-  return SUCCESS;
+    End_Traj(system->my_rank, out_control);
 }
-
 
 void Output_Results(reax_system *system, control_params *control,
                     simulation_data *data, reax_list **lists,

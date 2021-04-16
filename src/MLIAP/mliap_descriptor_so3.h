@@ -18,10 +18,13 @@
 
 namespace LAMMPS_NS {
 
-class MLIAPDescriptorSO3 : public MLIAPDescriptor  {
-public:
+class MLIAPDescriptorSO3 : public MLIAPDescriptor {
+
+ public:
+
   MLIAPDescriptorSO3(LAMMPS*, char*);
   ~MLIAPDescriptorSO3();
+
   virtual void compute_descriptors(class MLIAPData*);
   virtual void compute_forces(class MLIAPData*);
   virtual void compute_force_gradients(class MLIAPData*);
@@ -31,7 +34,8 @@ public:
 
   double rcutfac;
 
-protected:
+ protected:
+
   class MLIAP_SO3* so3ptr;
   void read_paramfile(char *);
   inline int equal(double* x,double* y);
@@ -40,8 +44,8 @@ protected:
   int nmax,lmax;
   double alpha;
 
-  double *radelem;              // element radii
-  double *wjelem;               // elements weights
+  double *radelem;
+  double *wjelem;
   int twojmax, switchflag, bzeroflag;
   int chemflag, bnormflag, wselfallflag;
   double rfac0, rmin0;

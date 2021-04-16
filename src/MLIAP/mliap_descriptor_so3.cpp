@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_descriptor_so3.h"
-
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -29,9 +28,9 @@ using namespace LAMMPS_NS;
 #define MAXLINE 1024
 #define MAXWORD 3
 
-/* ---------------------------------------------------------------------- */
 
-MLIAPDescriptorSO3::MLIAPDescriptorSO3(LAMMPS *lmp, char *paramfilename):
+MLIAPDescriptorSO3::MLIAPDescriptorSO3(LAMMPS *lmp,
+                                       char *paramfilename):
   MLIAPDescriptor(lmp)
 {
   nelements = 0;
@@ -46,21 +45,13 @@ MLIAPDescriptorSO3::MLIAPDescriptorSO3(LAMMPS *lmp, char *paramfilename):
   ndescriptors = so3ptr->ncoeff;
 }
 
-/* ---------------------------------------------------------------------- */
-
 MLIAPDescriptorSO3::~MLIAPDescriptorSO3()
 {
-
-
-
   delete so3ptr;
-
 }
 
 void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
 {
-  // set flags for required keywords
-
   int rcutfacflag = 0;
   int nelementsflag = 0;
   int elementsflag = 0;
@@ -70,17 +61,10 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
   int lmaxflag=0;
   int alphaflag=0;
 
-  // Set defaults for optional keywords
+  // set defaults for optional keywords
 
   rfac0 = 0.99363;
   rmin0 = 0.0;
-//  switchflag = 1;
-/*
-  bzeroflag = 1;
-  chemflag = 0;
-  bnormflag = 0;
-  wselfallflag = 0;
-*/
 
   // open SO3 parameter file on proc 0
 
@@ -88,8 +72,9 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == nullptr)
-      error->one(FLERR,fmt::format("Cannot open SO3 parameter file {}: {}",
-                                   paramfilename, utils::getsyserror()));
+      error->one(FLERR,fmt::format
+        ("Cannot open SO3 parameter file {}: {}",
+          paramfilename, utils::getsyserror()));
   }
 
   char line[MAXLINE],*ptr;
@@ -123,23 +108,23 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
     char* keyval = strtok(nullptr,"' \t\n\r\f");
 
     if (comm->me == 0) {
-      utils::logmesg(lmp, fmt::format("SO3 keyword {} {} \n", keywd, keyval));
+      utils::logmesg(lmp, fmt::format("SO3 keyword {} {} \n",
+        keywd, keyval));
     }
 
     // check for keywords with one value per element
 
-    if (strcmp(keywd,"elems") == 0 ||
-        strcmp(keywd,"radelems") == 0 ||
-        strcmp(keywd,"welems") == 0) {
+    if (strcmp(keywd,"elems") == 0 || strcmp(keywd,"radelems")
+      == 0 || strcmp(keywd,"welems") == 0) {
 
       if (nelementsflag == 0 || nwords != nelements+1)
         error->all(FLERR,"Incorrect SO3 parameter file");
 
       if (strcmp(keywd,"elems") == 0) {
-          for (int ielem = 0; ielem < nelements; ielem++) {
-            elements[ielem] = utils::strdup(keyval);
-            keyval = strtok(nullptr,"' \t\n\r\f");
-          }
+        for (int ielem = 0; ielem < nelements; ielem++) {
+          elements[ielem] = utils::strdup(keyval);
+          keyval = strtok(nullptr,"' \t\n\r\f");
+        }
 
         elementsflag = 1;
       } else if (strcmp(keywd,"radelems") == 0) {
@@ -166,43 +151,30 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
       if (strcmp(keywd,"nelems") == 0) {
         nelements = atoi(keyval);
         elements = new char*[nelements];
-        memory->create(radelem,nelements,"mliap_so3_descriptor:radelem");
-        memory->create(wjelem,nelements,"mliap_so3_descriptor:wjelem");
+        memory->create(radelem,nelements,
+          "mliap_so3_descriptor:radelem");
+        memory->create(wjelem,nelements,
+          "mliap_so3_descriptor:wjelem");
         nelementsflag = 1;
       } else if (strcmp(keywd,"rcutfac") == 0) {
         rcutfac = atof(keyval);
         rcutfacflag = 1;
       } else if (strcmp(keywd,"nmax") == 0) {
-          nmax = atoi(keyval);
-          nmaxflag = 1;
+        nmax = atoi(keyval);
+        nmaxflag = 1;
       } else if (strcmp(keywd,"lmax") == 0) {
-            lmax = atoi(keyval);
-            lmaxflag = 1;
+        lmax = atoi(keyval);
+        lmaxflag = 1;
       } else if (strcmp(keywd,"alpha") == 0) {
-          alpha = atof(keyval);
-          alphaflag = 1;
-      }
-/*
-      else if (strcmp(keywd,"switchflag") == 0)
-        switchflag = atoi(keyval);
-      else if (strcmp(keywd,"bzeroflag") == 0)
-        bzeroflag = atoi(keyval);
-      else if (strcmp(keywd,"chemflag") == 0)
-        chemflag = atoi(keyval);
-      else if (strcmp(keywd,"bnormflag") == 0)
-        bnormflag = atoi(keyval);
-      else if (strcmp(keywd,"wselfallflag") == 0)
-        wselfallflag = atoi(keyval);
-*/
-      else
+        alpha = atof(keyval);
+        alphaflag = 1;
+      } else
         error->all(FLERR,"Incorrect SO3 parameter file");
-
     }
   }
 
-
   if (!rcutfacflag || !nelementsflag ||
-      !elementsflag || !radelemflag || !wjelemflag ||
+    !elementsflag || !radelemflag || !wjelemflag ||
 	  !nmaxflag  || !lmaxflag || !alphaflag)
     error->all(FLERR,"Incorrect SO3 parameter file");
 
@@ -210,7 +182,8 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
 
   double cut;
   cutmax = 0.0;
-  memory->create(cutsq,nelements,nelements,"mliap/descriptor/so3:cutsq");
+  memory->create(cutsq,nelements,nelements,
+    "mliap/descriptor/so3:cutsq");
   for (int ielem = 0; ielem < nelements; ielem++) {
 
     cut = 2.0*radelem[ielem]*rcutfac;
@@ -226,106 +199,85 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
 
 }
 
-/* ----------------------------------------------------------------------
-   compute descriptors for each atom
-   ---------------------------------------------------------------------- */
-
 void MLIAPDescriptorSO3::compute_descriptors(class MLIAPData* data)
 {
 
-   so3ptr->spectrum(data->nlistatoms,data->numneighs,data->jelems,wjelem,
-		    data->rij,
-			nmax, lmax, rcutfac,alpha,
-			data->ndescriptors);
+  so3ptr->spectrum(data->nlistatoms,data->numneighs,
+    data->jelems,wjelem,data->rij,nmax, lmax, rcutfac,alpha,
+      data->ndescriptors);
 
-   for (int ii = 0; ii < data->nlistatoms; ii++) {
-     for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
-             data->descriptors[ii][icoeff] = so3ptr->m_plist_r[ii*(data->ndescriptors)+icoeff];
-   }
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
+    for (int icoeff = 0; icoeff < data->ndescriptors; icoeff++)
+      data->descriptors[ii][icoeff] =
+        so3ptr->m_plist_r[ii*(data->ndescriptors)+icoeff];
+  }
 
 }
-
-/* ----------------------------------------------------------------------
-   compute forces for each atom
-   ---------------------------------------------------------------------- */
 
 void MLIAPDescriptorSO3::compute_forces(class MLIAPData* data)
 {
-    int npairs=0;
-    for (int ii = 0; ii < data->nlistatoms; ii++) {
-		npairs+=data->numneighs[ii];
+  int npairs=0;
+  for (int ii = 0; ii < data->nlistatoms; ii++)
+    npairs+=data->numneighs[ii];
+
+  int totali;
+
+  so3ptr->spectrum_dxdr(data->nlistatoms,data->numneighs,
+    data->jelems,wjelem,data->rij,nmax, lmax, rcutfac,alpha,npairs,
+      data->ndescriptors);
+
+  double fij[3];
+  double **f = atom->f;
+
+  int ij = 0;
+
+  for (int ii = 0; ii < data->nlistatoms; ii++) {
+    const int i = data->iatoms[ii];
+    const int ielem = data->ielems[ii];
+
+    // insure rij, inside, wj, and rcutij are of size jnum
+
+    const int jnum = data->numneighs[ii];
+
+    for (int jj = 0; jj < jnum; jj++) {
+      int j = data->jatoms[ij];
+
+      for(int ir=0;ir<3;ir++){
+        fij[ir]=0.0;
+        for(int icoeff=0;icoeff<data->ndescriptors;icoeff++)
+          fij[ir]+=data->betas[ii][icoeff]*so3ptr->m_dplist_r[(ij
+            *(data->ndescriptors)+icoeff)*3+ir];
+      }
+
+      f[i][0] += fij[0];
+      f[i][1] += fij[1];
+      f[i][2] += fij[2];
+      f[j][0] -= fij[0];
+      f[j][1] -= fij[1];
+      f[j][2] -= fij[2];
+
+      // add in global and per-atom virial contributions
+      // this is optional and has no effect on force calculation
+
+      if (data->vflag)
+        data->pairmliap->v_tally(i,j,fij,data->rij[ij]);
+      ij++;
     }
 
-    int totali;
-
-    so3ptr->spectrum_dxdr(data->nlistatoms,data->numneighs,data->jelems,wjelem,
-			data->rij,
-			nmax, lmax, rcutfac,alpha,npairs,
-			data->ndescriptors);
-
-
-    double fij[3];
-    double **f = atom->f;
-
-    int ij = 0;
-
-    for (int ii = 0; ii < data->nlistatoms; ii++) {
-       const int i = data->iatoms[ii];
-       const int ielem = data->ielems[ii];
-
-     // insure rij, inside, wj, and rcutij are of size jnum
-
-       const int jnum = data->numneighs[ii];
-
-       for (int jj = 0; jj < jnum; jj++) {
-		  int j = data->jatoms[ij];
-
-		  for(int ir=0;ir<3;ir++){
-			fij[ir]=0.0;
-			for(int icoeff=0;icoeff<data->ndescriptors;icoeff++){
-			  fij[ir]+=data->betas[ii][icoeff]*so3ptr->m_dplist_r[(ij*(data->ndescriptors)+icoeff)*3+ir];
-			}
-		  }
-
-		  f[i][0] += fij[0];
-		  f[i][1] += fij[1];
-		  f[i][2] += fij[2];
-		  f[j][0] -= fij[0];
-		  f[j][1] -= fij[1];
-		  f[j][2] -= fij[2];
-
-		  // add in global and per-atom virial contributions
-		  // this is optional and has no effect on force calculation
-
-		  if (data->vflag)
-			data->pairmliap->v_tally(i,j,fij,data->rij[ij]);
-		  ij++;
-       }
-
-    }
+  }
 }
 
-/* ----------------------------------------------------------------------
-   calculate gradients of forces w.r.t. parameters
-   ---------------------------------------------------------------------- */
-
-void MLIAPDescriptorSO3::compute_force_gradients(class MLIAPData* data)
+void MLIAPDescriptorSO3::compute_force_gradients
+  (class MLIAPData* data)
 {
 
 }
 
-/* ----------------------------------------------------------------------
-   compute descriptor gradients for each neighbor atom
-   ---------------------------------------------------------------------- */
-
-void MLIAPDescriptorSO3::compute_descriptor_gradients(class MLIAPData* data)
+void MLIAPDescriptorSO3::compute_descriptor_gradients
+  (class MLIAPData* data)
 {
 
 }
-
-/* ----------------------------------------------------------------------
-   set coeffs for one or more type pairs
-------------------------------------------------------------------------- */
 
 void MLIAPDescriptorSO3::init()
 {
@@ -333,18 +285,14 @@ void MLIAPDescriptorSO3::init()
 }
 
 
-/* ----------------------------------------------------------------------
-   memory usage
-------------------------------------------------------------------------- */
-
 double MLIAPDescriptorSO3::memory_usage()
 {
   double bytes = 0;
 
-  bytes += (double)nelements*sizeof(double);            // radelem
-  bytes += (double)nelements*sizeof(double);            // welem
-  bytes += (double)nelements*nelements*sizeof(int);     // cutsq
-//  bytes += so3ptr->memory_usage();              // SO3 object
+  bytes += (double)nelements*sizeof(double);
+  bytes += (double)nelements*sizeof(double);
+  bytes += (double)nelements*nelements*sizeof(int);
+//  bytes += so3ptr->memory_usage();
 
   return bytes;
 }

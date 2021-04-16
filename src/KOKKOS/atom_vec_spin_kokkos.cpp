@@ -56,7 +56,7 @@ AtomVecSpinKokkos::AtomVecSpinKokkos(LAMMPS *lmp) : AtomVecKokkos(lmp)
   xcol_data = 4;
 
   atom->sp_flag = 1;
-  
+
   k_count = DAT::tdual_int_1d("atom::k_count",1);
   atomKK = (AtomKokkos *) atom;
   commKK = (CommKokkos *) comm;
@@ -84,13 +84,13 @@ void AtomVecSpinKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_type,atomKK->type,nmax,"atom:type");
   memoryKK->grow_kokkos(atomKK->k_mask,atomKK->mask,nmax,"atom:mask");
   memoryKK->grow_kokkos(atomKK->k_image,atomKK->image,nmax,"atom:image");
-   
+
   // allocating mech. quantities
 
   memoryKK->grow_kokkos(atomKK->k_x,atomKK->x,nmax,"atom:x");
   memoryKK->grow_kokkos(atomKK->k_v,atomKK->v,nmax,"atom:v");
   memoryKK->grow_kokkos(atomKK->k_f,atomKK->f,nmax,"atom:f");
-  
+
   // allocating mag. quantities
 
   memoryKK->grow_kokkos(atomKK->k_sp,atomKK->sp,nmax,"atom:sp");
@@ -134,11 +134,11 @@ void AtomVecSpinKokkos::grow_pointers()
   f = atomKK->f;
   d_f = atomKK->k_f.d_view;
   h_f = atomKK->k_f.h_view;
-  
-  sp = atomKK->sp; 
+
+  sp = atomKK->sp;
   d_sp = atomKK->k_sp.d_view;
   h_sp = atomKK->k_sp.h_view;
-  fm = atomKK->fm; 
+  fm = atomKK->fm;
   d_fm = atomKK->k_fm.d_view;
   h_fm = atomKK->k_fm.h_view;
   fm_long = atomKK->fm_long;
@@ -163,7 +163,7 @@ void AtomVecSpinKokkos::copy(int i, int j, int delflag)
   h_v(j,1) = h_v(i,1);
   h_v(j,2) = h_v(i,2);
 
-  h_sp(j,0) = h_sp(i,0); 
+  h_sp(j,0) = h_sp(i,0);
   h_sp(j,1) = h_sp(i,1);
   h_sp(j,2) = h_sp(i,2);
   h_sp(j,3) = h_sp(i,3);
@@ -186,7 +186,7 @@ struct AtomVecSpinKokkos_PackComm {
   const int _iswap;
   X_FLOAT _xprd,_yprd,_zprd,_xy,_xz,_yz;
   X_FLOAT _pbc[6];
-  
+
   AtomVecSpinKokkos_PackComm(
       const typename DAT::tdual_x_array &x,
       const typename DAT::tdual_float_1d_4 &sp,
@@ -268,7 +268,7 @@ struct AtomVecSpinKokkos_PackBorder {
   _buf(buf),_list(list),_iswap(iswap),
     _x(x),_tag(tag),_type(type),_mask(mask),_sp(sp),
     _dx(dx),_dy(dy),_dz(dz) {}
-  
+
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
       const int j = _list(_iswap,i);
@@ -741,9 +741,9 @@ struct AtomVecSpinKokkos_PackExchangeFunctor {
     }
   }
 };
-  
+
 /* ---------------------------------------------------------------------- */
-  
+
 int AtomVecSpinKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &k_buf,
                                               DAT::tdual_int_1d k_sendlist,
                                               DAT::tdual_int_1d k_copylist,
@@ -768,7 +768,7 @@ int AtomVecSpinKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2
 }
 
 /* ---------------------------------------------------------------------- */
-  
+
 int AtomVecSpinKokkos::pack_exchange(int i, double *buf)
 {
   int m = 1;

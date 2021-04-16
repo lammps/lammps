@@ -524,7 +524,7 @@ void FixNVESpin::sectoring()
        sublo[dim]=sublotmp[dim];
        subhi[dim]=subhitmp[dim];
      }
-  }  
+  }
 
   const double rsx = subhi[0] - sublo[0];
   const double rsy = subhi[1] - sublo[1];

@@ -594,7 +594,7 @@ void VerletKokkos::force_clear()
       Kokkos::parallel_for(nall, Zero<typename ArrayTypes<LMPDeviceType>::t_f_array>(atomKK->k_torque.view<LMPDeviceType>()));
       atomKK->modified(Device,TORQUE_MASK);
     }
-    
+
     // reset SPIN forces
 
     if (extraflag) {
@@ -616,7 +616,7 @@ void VerletKokkos::force_clear()
       Kokkos::parallel_for(atomKK->nfirst, Zero<typename ArrayTypes<LMPDeviceType>::t_f_array>(atomKK->k_torque.view<LMPDeviceType>()));
       atomKK->modified(Device,TORQUE_MASK);
     }
-    
+
     // reset SPIN forces
 
     if (extraflag) {
@@ -635,7 +635,7 @@ void VerletKokkos::force_clear()
         Kokkos::parallel_for(range, Zero<typename ArrayTypes<LMPDeviceType>::t_f_array>(atomKK->k_torque.view<LMPDeviceType>()));
         atomKK->modified(Device,TORQUE_MASK);
       }
-    
+
       // reset SPIN forces
 
       if (extraflag) {

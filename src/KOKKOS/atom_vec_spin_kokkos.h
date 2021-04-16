@@ -51,7 +51,7 @@ class AtomVecSpinKokkos : public AtomVecKokkos {
   void write_data(FILE *, int, double **);
   int write_data_hybrid(FILE *, double *);
   double memory_usage();
-  
+
   // clear magnetic and mechanic forces
 
   void force_clear(int, size_t);

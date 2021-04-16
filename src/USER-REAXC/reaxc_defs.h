@@ -89,8 +89,6 @@
 
 #define MASTER_NODE 0
 
-#define RESTART 30
-
 #define MAXREAXBOND 24 /* used in fix_reaxc_bonds.cpp and pair_reaxc.cpp */
 #define MAXSPECBOND 24 /* used in fix_reaxc_species.cpp and pair_reaxc.cpp */
 

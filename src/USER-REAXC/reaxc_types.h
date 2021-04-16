@@ -39,40 +39,6 @@ namespace LAMMPS_NS {
   class Pair;
 }
 
-#if defined LMP_USER_OMP
-#define OMP_TIMING 0
-
-#ifdef OMP_TIMING
-// pkcoff timing fields
-enum {
-        COMPUTEINDEX=0,
-        COMPUTEWLINDEX,
-        COMPUTEBFINDEX,
-        COMPUTEQEQINDEX,
-        COMPUTENBFINDEX,
-        COMPUTEIFINDEX,
-        COMPUTETFINDEX,
-        COMPUTEBOINDEX,
-        COMPUTEBONDSINDEX,
-        COMPUTEATOMENERGYINDEX,
-        COMPUTEVALENCEANGLESBOINDEX,
-        COMPUTETORSIONANGLESBOINDEX,
-        COMPUTEHBONDSINDEX,
-        COMPUTECG1INDEX,
-        COMPUTECG2INDEX,
-        COMPUTECGCOMPUTEINDEX,
-        COMPUTECALCQINDEX,
-        COMPUTEINITMVINDEX,
-        COMPUTEMVCOMPINDEX,
-        LASTTIMINGINDEX
-};
-
-extern double ompTimingData[LASTTIMINGINDEX];
-extern int ompTimingCount[LASTTIMINGINDEX];
-extern int ompTimingCGCount[LASTTIMINGINDEX];
-#endif
-#endif
-
 /************* SOME DEFS - crucial for reax_types.h *********/
 
 #define REAX_MAX_STR            1024
@@ -403,18 +369,6 @@ struct storage
   rvec *dDeltap_self;
   int *bond_mark;
 
-  /* QEq storage */
-  sparse_matrix *H, *L, *U;
-  double *Hdia_inv, *b_s, *b_t, *b_prc, *b_prm, *s, *t;
-  rvec2 *b, *x;
-
-  /* GMRES storage */
-  double *y, *z, *g;
-  double *hc, *hs;
-  double **h, **v;
-  /* CG storage */
-  double *r, *d, *q, *p;
-  rvec2 *r2, *d2, *q2, *p2;
   /* Taper */
   double Tap[8]; //Tap7, Tap6, Tap5, Tap4, Tap3, Tap2, Tap1, Tap0;
 

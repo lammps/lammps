@@ -280,15 +280,6 @@ namespace ReaxFF
     rvec dvec;
   };
 
-  namespace ReaxFF {
-    struct far_neighbor_data {
-      int nbr;
-      ivec rel_box;
-      double d;
-      rvec dvec;
-    };
-  }
-
   struct hbond_data {
     int nbr;
     int scl;
@@ -320,7 +311,6 @@ namespace ReaxFF
     int sym_index;
     int dbond_index;
     ivec rel_box;
-    //  rvec ext_factor;
     double d;
     rvec dvec;
     bond_order_data bo_data;
@@ -358,14 +348,6 @@ namespace ReaxFF
     rvec *dDeltap_self;
     int *bond_mark;
 
-    /* QEq storage */
-    sparse_matrix *H, *L, *U;
-    double *Hdia_inv, *b_s, *b_t, *b_prc, *b_prm, *s, *t;
-    rvec2 *b, *x;
-
-    /* CG storage */
-    double *r, *d, *q, *p;
-    rvec2 *r2, *d2, *q2, *p2;
     /* Taper */
     double Tap[8]; //Tap7, Tap6, Tap5, Tap4, Tap3, Tap2, Tap1, Tap0;
 

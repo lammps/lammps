@@ -110,8 +110,6 @@ void DeAllocate_System( reax_system *system )
 /*************       workspace        *************/
 void DeAllocate_Workspace( control_params * control, storage *workspace )
 {
-  int i;
-
   if (!workspace->allocated)
     return;
 
@@ -136,39 +134,6 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
   sfree(control->error_ptr,  workspace->vlpex, "vlpex" );
   sfree(control->error_ptr,  workspace->bond_mark, "bond_mark" );
 
-  /* QEq storage */
-  sfree(control->error_ptr,  workspace->Hdia_inv, "Hdia_inv" );
-  sfree(control->error_ptr,  workspace->b_s, "b_s" );
-  sfree(control->error_ptr,  workspace->b_t, "b_t" );
-  sfree(control->error_ptr,  workspace->b_prc, "b_prc" );
-  sfree(control->error_ptr,  workspace->b_prm, "b_prm" );
-  sfree(control->error_ptr,  workspace->s, "s" );
-  sfree(control->error_ptr,  workspace->t, "t" );
-  sfree(control->error_ptr,  workspace->b, "b" );
-  sfree(control->error_ptr,  workspace->x, "x" );
-
-  /* GMRES storage */
-  for (i = 0; i < RESTART+1; ++i) {
-    sfree(control->error_ptr,  workspace->h[i], "h[i]" );
-    sfree(control->error_ptr,  workspace->v[i], "v[i]" );
-  }
-  sfree(control->error_ptr,  workspace->h, "h" );
-  sfree(control->error_ptr,  workspace->v, "v" );
-  sfree(control->error_ptr,  workspace->y, "y" );
-  sfree(control->error_ptr,  workspace->z, "z" );
-  sfree(control->error_ptr,  workspace->g, "g" );
-  sfree(control->error_ptr,  workspace->hs, "hs" );
-  sfree(control->error_ptr,  workspace->hc, "hc" );
-  /* CG storage */
-  sfree(control->error_ptr,  workspace->r, "r" );
-  sfree(control->error_ptr,  workspace->d, "d" );
-  sfree(control->error_ptr,  workspace->q, "q" );
-  sfree(control->error_ptr,  workspace->p, "p" );
-  sfree(control->error_ptr,  workspace->r2, "r2" );
-  sfree(control->error_ptr,  workspace->d2, "d2" );
-  sfree(control->error_ptr,  workspace->q2, "q2" );
-  sfree(control->error_ptr,  workspace->p2, "p2" );
-
   /* force related storage */
   sfree(control->error_ptr,  workspace->f, "f" );
   sfree(control->error_ptr,  workspace->CdDelta, "CdDelta" );
@@ -181,10 +146,9 @@ void DeAllocate_Workspace( control_params * control, storage *workspace )
 #endif
 }
 
-
 void Allocate_Workspace( control_params *control, storage *workspace, int total_cap)
 {
-  int i, total_real, total_rvec;
+  int total_real, total_rvec;
 
   workspace->allocated = 1;
   total_real = total_cap * sizeof(double);
@@ -211,42 +175,6 @@ void Allocate_Workspace( control_params *control, storage *workspace, int total_
   workspace->vlpex = (double*) smalloc(control->error_ptr,  total_real, "vlpex");
   workspace->bond_mark = (int*)
     scalloc(control->error_ptr,  total_cap, sizeof(int), "bond_mark");
-
-  /* QEq storage */
-  workspace->Hdia_inv = (double*)
-    scalloc(control->error_ptr,  total_cap, sizeof(double), "Hdia_inv");
-  workspace->b_s = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_s");
-  workspace->b_t = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_t");
-  workspace->b_prc = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_prc");
-  workspace->b_prm = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "b_prm");
-  workspace->s = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "s");
-  workspace->t = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "t");
-  workspace->b = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "b");
-  workspace->x = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "x");
-
-  /* GMRES storage */
-  workspace->y = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "y");
-  workspace->z = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "z");
-  workspace->g = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "g");
-  workspace->h = (double**) scalloc(control->error_ptr,  RESTART+1, sizeof(double*), "h");
-  workspace->hs = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "hs");
-  workspace->hc = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "hc");
-  workspace->v = (double**) scalloc(control->error_ptr,  RESTART+1, sizeof(double*), "v");
-
-  for (i = 0; i < RESTART+1; ++i) {
-    workspace->h[i] = (double*) scalloc(control->error_ptr,  RESTART+1, sizeof(double), "h[i]");
-    workspace->v[i] = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "v[i]");
-  }
-
-  /* CG storage */
-  workspace->r = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "r");
-  workspace->d = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "d");
-  workspace->q = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "q");
-  workspace->p = (double*) scalloc(control->error_ptr,  total_cap, sizeof(double), "p");
-  workspace->r2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "r2");
-  workspace->d2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "d2");
-  workspace->q2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "q2");
-  workspace->p2 = (rvec2*) scalloc(control->error_ptr,  total_cap, sizeof(rvec2), "p2");
 
   /* force related storage */
   workspace->f = (rvec*) scalloc(control->error_ptr,  total_cap, sizeof(rvec), "f");

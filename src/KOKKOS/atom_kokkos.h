@@ -54,6 +54,11 @@ class AtomKokkos : public Atom {
 
   DAT::tdual_float_2d k_dvector;
 
+  // SPIN package
+
+  DAT::tdual_float_1d_4 k_sp;
+  DAT::tdual_f_array k_fm;
+  DAT::tdual_f_array k_fm_long;
 
 // USER-DPD package
   DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,

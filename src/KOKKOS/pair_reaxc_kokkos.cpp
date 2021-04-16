@@ -28,18 +28,15 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 
-#include "reaxc_defs.h"
-#include "reaxc_lookup.h"
-#include "reaxc_tool_box.h"
-
 #include "reaxff_api.h"
 
 #include <cmath>
 
-
 #define TEAMSIZE 128
 
 /* ---------------------------------------------------------------------- */
+
+using namespace ReaxFF;
 
 namespace LAMMPS_NS {
 using namespace MathConst;

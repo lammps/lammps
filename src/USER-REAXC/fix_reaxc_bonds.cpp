@@ -22,19 +22,16 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "pair_reaxc.h"
 #include "update.h"
 
-#include "reaxc_list.h"
-#include "reaxc_types.h"
-#include "reaxc_defs.h"
-
+#include "pair_reaxc.h"
 #include "reaxff_api.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace ReaxFF;
 
 /* ---------------------------------------------------------------------- */
 

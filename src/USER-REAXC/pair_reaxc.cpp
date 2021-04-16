@@ -40,22 +40,10 @@
 #include <cstring>
 #include <strings.h>    // for strcasecmp()
 
-#include "reaxc_defs.h"
-#include "reaxc_types.h"
-#include "reaxc_allocate.h"
-#include "reaxc_control.h"
-#include "reaxc_ffield.h"
-#include "reaxc_forces.h"
-#include "reaxc_init_md.h"
-#include "reaxc_io_tools.h"
-#include "reaxc_list.h"
-#include "reaxc_lookup.h"
-#include "reaxc_reset_tools.h"
-#include "reaxc_vector.h"
-
 #include "reaxff_api.h"
 
 using namespace LAMMPS_NS;
+using namespace ReaxFF;
 
 static const char cite_pair_reax_c[] =
   "pair reax/c command:\n\n"
@@ -83,7 +71,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
 
   fix_id = utils::strdup("REAXC_" + std::to_string(instance_me));
 
-  api = new ReaxFF::API;
+  api = new API;
 
   api->system = new reax_system;
   memset(api->system,0,sizeof(reax_system));
@@ -622,7 +610,7 @@ void PairReaxC::get_distance(rvec xj, rvec xi, double *d_sqr, rvec *dvec)
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxC::set_far_nbr(ReaxFF::far_neighbor_data *fdest,
+void PairReaxC::set_far_nbr(far_neighbor_data *fdest,
                             int j, double d, rvec dvec)
 {
   fdest->nbr = j;
@@ -721,7 +709,7 @@ int PairReaxC::write_reax_lists()
 
       if (d_sqr <= (cutoff_sqr)) {
         dist[j] = sqrt(d_sqr);
-        set_far_nbr((ReaxFF::far_neighbor_data *)&far_list[num_nbrs], j, dist[j], dvec);
+        set_far_nbr(&far_list[num_nbrs], j, dist[j], dvec);
         ++num_nbrs;
       }
     }

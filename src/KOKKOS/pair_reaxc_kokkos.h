@@ -26,7 +26,6 @@ PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
 #include "pair_kokkos.h"
 #include "pair_reaxc.h"
 #include "neigh_list_kokkos.h"
-#include "reaxc_types.h"
 
 #define C_ele 332.06371
 #define SMALL 0.0001
@@ -36,12 +35,14 @@ PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
 
 #define SQR(x)        ((x)*(x))
 
+#include "reaxff_inline.h"
+
 namespace LAMMPS_NS {
 
 template<class DeviceType>
 struct LR_lookup_table_kk
 {
-  typedef Kokkos::DualView<cubic_spline_coef*,Kokkos::LayoutRight,DeviceType> tdual_cubic_spline_coef_1d;
+  typedef Kokkos::DualView<ReaxFF::cubic_spline_coef*,Kokkos::LayoutRight,DeviceType> tdual_cubic_spline_coef_1d;
   typedef typename tdual_cubic_spline_coef_1d::t_dev t_cubic_spline_coef_1d;
 
   double dx, inv_dx;
@@ -338,7 +339,7 @@ class PairReaxCKokkos : public PairReaxC {
   void init_md();
   int Init_Lookup_Tables();
   void Deallocate_Lookup_Tables();
-  void LR_vdW_Coulomb( int i, int j, double r_ij, LR_data *lr );
+  void LR_vdW_Coulomb( int i, int j, double r_ij, ReaxFF::LR_data *lr );
 
   typedef Kokkos::DualView<int*,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_sing*,typename DeviceType::array_layout,DeviceType> k_params_sing;

@@ -31,19 +31,16 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "pair_reaxc.h"
 #include "respa.h"
 #include "text_file_reader.h"
 #include "tokenizer.h"
 #include "update.h"
 
+#include "pair_reaxc.h"
+#include "reaxff_api.h"
+
 #include <cmath>
 #include <cstring>
-
-#include "reaxc_defs.h"
-#include "reaxc_types.h"
-
-#include "reaxff_api.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

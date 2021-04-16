@@ -49,18 +49,8 @@
 #include "memory.h"
 #include "error.h"
 
-
-#include "reaxc_defs.h"
-#include "reaxc_types.h"
-#include "reaxc_allocate.h"
-#include "reaxc_forces_omp.h"
-#include "reaxc_init_md_omp.h"
-#include "reaxc_io_tools.h"
-#include "reaxc_list.h"
-#include "reaxc_reset_tools.h"
-#include "reaxc_tool_box.h"
-
 #include "reaxff_api.h"
+#include "reaxff_omp.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -68,6 +58,7 @@
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
+using namespace ReaxFF;
 
 #ifdef OMP_TIMING
 double ompTimingData[LASTTIMINGINDEX];
@@ -547,7 +538,7 @@ int PairReaxCOMP::write_reax_lists()
 
       if (d_sqr <= cutoff_sqr) {
         dist = sqrt( d_sqr );
-        set_far_nbr((ReaxFF::far_neighbor_data *) &far_list[num_nbrs_offset[i] + num_mynbrs], j, dist, dvec );
+        set_far_nbr(&far_list[num_nbrs_offset[i] + num_mynbrs], j, dist, dvec );
         ++num_mynbrs;
       }
     }

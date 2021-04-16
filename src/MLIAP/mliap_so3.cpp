@@ -163,7 +163,7 @@ void MLIAP_SO3::compute_ncoeff()
 
 void MLIAP_SO3::init()
 {
-int i, totali;
+  int i, totali;
 
   totali = m_lmax + 1;
   memory->destroy(m_ellpl1);
@@ -185,7 +185,7 @@ int i, totali;
   for (int l = 0; l < m_lmax + 2; l++)
     for (int m = -l; m < l + 1; m++)
       m_pfac[l * m_pfac_l2 + m] = sqrt((2.0 * l + 1.0) * pfac1)
-                                  * pow(-1, m);
+        * pow(-1, m);
 
   m_dfac_l1 = m_lmax + 1;
   m_dfac_l2 = (m_lmax + 1) * (m_lmax + 1) + 1;
@@ -425,7 +425,7 @@ void MLIAP_SO3::W(int nmax, double *arr)
   int info;
 
   #ifdef MLIAP_SO3_MKL
-//*******************  // for mkl
+  //*******************  // for mkl
 
   dgetrf(&n,&n,arr,&n,IPIV,&info);
   dgetri(&n,arr,&n,IPIV,work,&lwork,&info);
@@ -467,11 +467,11 @@ void MLIAP_SO3::W(int nmax, double *arr)
 
       arr[i*n+j]=dtemp;
     }
-///////////////////////////////// end for mkl
+  ///////////////////////////////// end for mkl
 
   #else
 
-//*********** for internal lib
+  //*********** for internal lib
   Jacobi<double, double*, double**> eigen_calc(n);
 
   info = eigen_calc.invert_matrix(arr, arrinv);
@@ -514,7 +514,7 @@ void MLIAP_SO3::W(int nmax, double *arr)
       arr[i * n + j] = dtemp;
     }
 
-/////////// end for interanl lib.
+  /////////// end for interanl lib.
 
   #endif
 
@@ -1213,7 +1213,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
       compute_uarray_recursive(x, y, z, r, twolmax, m_ulist_r,
         m_ulist_i, m_idxu_block, m_rootpq, m_ldim, m_ldim);
 
-////////////////  compute_carray_wD  ////////
+      /////////  compute_carray_wD  ////////
       {
         rvec[0] = x;
         rvec[1] = y;
@@ -1342,7 +1342,7 @@ void MLIAP_SO3::spectrum_dxdr(int natoms, int *numneighs,
         }
 
       }
-////////////// end compute_carray_wD //////////////////
+      /////// end compute_carray_wD //////////////////
 
       totali = nmax * m_numYlms * 3;
       for (int tn = 0; tn < totali; tn++) {

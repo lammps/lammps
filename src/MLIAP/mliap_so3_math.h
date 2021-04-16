@@ -17,7 +17,7 @@ void Alloc2D(size_t nrows, size_t ncols, Entry ***paaX);
 template<typename Entry>
 void Dealloc2D(Entry ***paaX);
 
-// ---- IMPLEMENTATION ----
+// ---- implementation ----
 
 template<typename Entry>
 void Alloc2D(size_t nrows, size_t ncols, Entry ***paaX)
@@ -143,7 +143,6 @@ template<typename Scalar,typename Vector,typename Matrix,
 int Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
   invert_matrix( double *Am, double *Aminv )
 {
-
   int i,j;
 
   int *permute;

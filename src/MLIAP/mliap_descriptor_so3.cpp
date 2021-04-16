@@ -175,7 +175,7 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
 
   if (!rcutfacflag || !nelementsflag ||
     !elementsflag || !radelemflag || !wjelemflag ||
-	  !nmaxflag  || !lmaxflag || !alphaflag)
+      !nmaxflag  || !lmaxflag || !alphaflag)
     error->all(FLERR,"Incorrect SO3 parameter file");
 
   // construct cutsq

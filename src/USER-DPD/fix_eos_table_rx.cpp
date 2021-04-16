@@ -17,16 +17,15 @@
 
 #include "fix_eos_table_rx.h"
 
-
-#include <cstring>
-#include <cmath>
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "comm.h"
 #include "modify.h"
 
+#include <cmath>
+#include <cstring>
 
 #define MAXLINE 1024
 

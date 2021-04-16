@@ -308,9 +308,9 @@ performed with dump style *xtc*\ .
 
 ----------
 
-The *format* keyword can be used to change the default numeric format
-output by the text-based dump styles: *atom*\ , *custom*\ , *cfg*\ , and
-*xyz* styles, and their MPIIO variants.  Only the *line* or *none*
+The *format* keyword can be used to change the default numeric format output
+by the text-based dump styles: *atom*\ , *local*\ , *custom*\ , *cfg*\ , and
+*xyz* styles, and their MPIIO variants. Only the *line* or *none*
 options can be used with the *atom* and *xyz* styles.
 
 All the specified format strings are C-style formats, e.g. as used by
@@ -362,7 +362,7 @@ settings, reverting all values to their default format.
 
    compute     1 all property/local batom1 batom2
    dump        1 all local 100 tmp.bonds index c_1[1] c_1[2]
-   dump_modify 1 format "%d %0.0f %0.0f"
+   dump_modify 1 format line "%d %0.0f %0.0f"
 
 will output the two atom IDs for atoms in each bond as integers.  If
 the dump_modify command were omitted, they would appear as

@@ -15,18 +15,21 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "fix_nvt_sllod_omp.h"
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
-#include "group.h"
-#include "modify.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_deform.h"
-#include "compute.h"
-#include "error.h"
-#include "domain.h"
+#include "group.h"
+#include "math_extra.h"
+#include "modify.h"
+
+#include <cstring>
+
+#include "omp_compat.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -51,18 +54,9 @@ FixNVTSllodOMP::FixNVTSllodOMP(LAMMPS *lmp, int narg, char **arg) :
   // create a new compute temp style
   // id = fix-ID + temp
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp/deform";
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp/deform",
+                                  id_temp,group->names[igroup]));
   tcomputeflag = 1;
 }
 
@@ -82,7 +76,7 @@ void FixNVTSllodOMP::init()
 
   int i;
   for (i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"deform",6) == 0) {
+    if (utils::strmatch(modify->fix[i]->style,"^deform")) {
       if (((FixDeform *) modify->fix[i])->remapflag != Domain::V_REMAP)
         error->all(FLERR,"Using fix nvt/sllod/omp with inconsistent fix "
                    "deform remap option");

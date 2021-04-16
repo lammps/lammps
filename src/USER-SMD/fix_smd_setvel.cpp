@@ -60,9 +60,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
         xstr = ystr = zstr = nullptr;
 
         if (strstr(arg[3], "v_") == arg[3]) {
-                int n = strlen(&arg[3][2]) + 1;
-                xstr = new char[n];
-                strcpy(xstr, &arg[3][2]);
+          xstr = utils::strdup( &arg[3][2]);
         } else if (strcmp(arg[3], "NULL") == 0) {
                 xstyle = NONE;
         } else {
@@ -70,9 +68,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
                 xstyle = CONSTANT;
         }
         if (strstr(arg[4], "v_") == arg[4]) {
-                int n = strlen(&arg[4][2]) + 1;
-                ystr = new char[n];
-                strcpy(ystr, &arg[4][2]);
+          ystr = utils::strdup( &arg[4][2]);
         } else if (strcmp(arg[4], "NULL") == 0) {
                 ystyle = NONE;
         } else {
@@ -80,9 +76,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
                 ystyle = CONSTANT;
         }
         if (strstr(arg[5], "v_") == arg[5]) {
-                int n = strlen(&arg[5][2]) + 1;
-                zstr = new char[n];
-                strcpy(zstr, &arg[5][2]);
+          zstr = utils::strdup( &arg[5][2]);
         } else if (strcmp(arg[5], "NULL") == 0) {
                 zstyle = NONE;
         } else {
@@ -103,9 +97,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
                         iregion = domain->find_region(arg[iarg + 1]);
                         if (iregion == -1)
                                 error->all(FLERR, "Region ID for fix setvelocity does not exist");
-                        int n = strlen(arg[iarg + 1]) + 1;
-                        idregion = new char[n];
-                        strcpy(idregion, arg[iarg + 1]);
+                        idregion = utils::strdup( arg[iarg + 1]);
                         iarg += 2;
                 } else
                         error->all(FLERR, "Illegal fix setvelocity command");
@@ -216,7 +208,7 @@ void FixSMDSetVel::init() {
 /* ---------------------------------------------------------------------- */
 
 void FixSMDSetVel::setup(int vflag) {
-        if (strstr(update->integrate_style, "verlet"))
+        if (utils::strmatch(update->integrate_style,"^verlet"))
                 post_force(vflag);
         else
       error->all(FLERR,"Fix smd/setvel does not support RESPA");

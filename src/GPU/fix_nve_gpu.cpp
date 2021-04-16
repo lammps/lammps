@@ -52,7 +52,7 @@ FixNVEGPU::~FixNVEGPU()
 void FixNVEGPU::setup(int vflag)
 {
   FixNVE::setup(vflag);
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     _respa_on = 1;
   else
     _respa_on = 0;

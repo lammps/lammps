@@ -26,9 +26,9 @@ OPT.
    * :doc:`zero <pair_zero>`
    * :doc:`hybrid (k) <pair_hybrid>`
    * :doc:`hybrid/overlay (k) <pair_hybrid>`
+   * :doc:`hybrid/scaled <pair_hybrid>`
    * :doc:`kim <pair_kim>`
    * :doc:`list <pair_list>`
-   *
    *
    *
    *
@@ -69,6 +69,7 @@ OPT.
    * :doc:`comb3 <pair_comb>`
    * :doc:`cosine/squared <pair_cosine_squared>`
    * :doc:`coul/cut (gko) <pair_coul>`
+   * :doc:`coul/cut/global (o) <pair_coul>`
    * :doc:`coul/cut/soft (o) <pair_fep_soft>`
    * :doc:`coul/debye (gko) <pair_coul>`
    * :doc:`coul/diel (o) <pair_coul_diel>`
@@ -187,7 +188,7 @@ OPT.
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (g) <pair_mie>`
    * :doc:`mliap <pair_mliap>`
-   * :doc:`mm3/switch3/coulgauss/long <pair_mm3_switch3_coulgauss_long>`
+   * :doc:`mm3/switch3/coulgauss/long <pair_lj_switch3_coulgauss_long>`
    * :doc:`momb <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
    * :doc:`morse/smooth/linear (o) <pair_morse>`
@@ -215,6 +216,7 @@ OPT.
    * :doc:`oxrna2/stk <pair_oxrna2>`
    * :doc:`oxrna2/xstk <pair_oxrna2>`
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
+   * :doc:`pace <pair_pace>`
    * :doc:`peri/eps <pair_peri>`
    * :doc:`peri/lps (o) <pair_peri>`
    * :doc:`peri/pmb (o) <pair_peri>`

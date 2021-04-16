@@ -30,6 +30,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <strings.h>    // for strcasecmp()
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;

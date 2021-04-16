@@ -1,0 +1,3 @@
+pace_SYSINC =-I../../lib/pace/src/USER-PACE
+pace_SYSLIB = -L../../lib/pace/ -lpace
+pace_SYSPATH =

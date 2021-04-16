@@ -793,7 +793,7 @@ void ReadData::command(int narg, char **arg)
     special.build();
   }
 
-  // for atom style template systems, count total bonds,angles,etc
+  // for atom style template just count total bonds, etc. from template(s)
 
   if (atom->molecular == Atom::TEMPLATE) {
     Molecule **onemols = atom->avec->onemols;
@@ -820,13 +820,6 @@ void ReadData::command(int narg, char **arg)
     MPI_Allreduce(&nangles,&atom->nangles,1,MPI_LMP_BIGINT,MPI_SUM,world);
     MPI_Allreduce(&ndihedrals,&atom->ndihedrals,1,MPI_LMP_BIGINT,MPI_SUM,world);
     MPI_Allreduce(&nimpropers,&atom->nimpropers,1,MPI_LMP_BIGINT,MPI_SUM,world);
-
-    if (!force->newton_bond) {
-      atom->nbonds /= 2;
-      atom->nangles /= 3;
-      atom->ndihedrals /= 4;
-      atom->nimpropers /= 4;
-    }
 
     if (me == 0) {
       std::string mesg;
@@ -1961,13 +1954,12 @@ int ReadData::reallocate(int **pcount, int cmax, int amax)
 
 void ReadData::open(char *file)
 {
-  compressed = 0;
-  char *suffix = file + strlen(file) - 3;
-  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-  if (!compressed) fp = fopen(file,"r");
-  else {
+  if (utils::strmatch(file,"\\.gz$")) {
+    compressed = 1;
+
 #ifdef LAMMPS_GZIP
-    std::string gunzip = fmt::format("gzip -c -d {}",file);
+    auto gunzip = fmt::format("gzip -c -d {}",file);
+
 #ifdef _WIN32
     fp = _popen(gunzip.c_str(),"rb");
 #else
@@ -1975,8 +1967,11 @@ void ReadData::open(char *file)
 #endif
 
 #else
-    error->one(FLERR,"Cannot open gzipped file: " + utils::getsyserror());
+    error->one(FLERR,"Cannot open gzipped file without gzip support");
 #endif
+  } else {
+    compressed = 0;
+    fp = fopen(file,"r");
   }
 
   if (fp == nullptr)

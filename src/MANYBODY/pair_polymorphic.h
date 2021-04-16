@@ -302,13 +302,8 @@ class PairPolymorphic : public Pair {
   double *delxV,*delyV,*delzV,*drV;
   double *delxW,*delyW,*delzW,*drW;
 
-  char **elements;              // names of unique elements
-  int **elem2param;             // map: element pairs to parameters
-  int ***elem3param;            // map: element triplets to parameters
-  int *map;                     // mapping from atom types to elements
   double cutmax;                // max cutoff for all elements
   double cutmaxsq;
-  int nelements;                // # of unique elements
   int npair,ntriple;
   int *match;
 

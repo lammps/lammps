@@ -30,6 +30,8 @@ class Group2Ndx : protected Pointers {
  public:
   Group2Ndx(class LAMMPS *lmp) : Pointers(lmp) {};
   void command(int, char **);
+ private:
+  void write_group(FILE *, int);
 };
 
 }

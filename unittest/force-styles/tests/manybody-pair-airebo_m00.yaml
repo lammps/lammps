@@ -1,12 +1,12 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:28 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:09:11 2021
 epsilon: 1e-07
 prerequisites: ! |
   pair airebo/morse
 pre_commands: ! |
   variable newton_pair delete
-  variable newton_pair index on
+  if "$(is_active(package,gpu)) > 0.0" then "variable newton_pair index off" else "variable newton_pair index on"
 post_commands: ! ""
 input_file: in.airebo
 pair_style: airebo/morse 3.0 0 0

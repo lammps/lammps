@@ -21,7 +21,7 @@ DumpStyle(xyz/gz,DumpXYZGZ)
 #define LMP_DUMP_XYZ_GZ_H
 
 #include "dump_xyz.h"
-#include <zlib.h>
+#include "gz_file_writer.h"
 
 namespace LAMMPS_NS {
 
@@ -31,8 +31,7 @@ class DumpXYZGZ : public DumpXYZ {
   virtual ~DumpXYZGZ();
 
  protected:
-  int compression_level;
-  gzFile gzFp;  // file pointer for the compressed output stream
+  GzFileWriter writer;
 
   virtual void openfile();
   virtual void write_header(bigint);

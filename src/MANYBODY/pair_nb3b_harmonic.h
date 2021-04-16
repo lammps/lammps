@@ -44,12 +44,6 @@ class PairNb3bHarmonic : public Pair {
   };
 
   double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
   Param *params;                // parameter set for an I-J-K interaction
 
   void allocate();

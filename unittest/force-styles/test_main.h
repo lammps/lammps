@@ -22,6 +22,10 @@ extern bool print_stats;
 extern bool verbose;
 extern std::string INPUT_FOLDER;
 
+// convenience method to write out common entries
+void write_yaml_header(class YamlWriter *writer, TestConfig *cfg,
+                       const char *version);
+
 #define EXPECT_FP_LE_WITH_EPS(val1, val2, eps)                \
     do {                                                      \
         const double diff = fabs(val1 - val2);                \
@@ -31,10 +35,11 @@ extern std::string INPUT_FOLDER;
         EXPECT_PRED_FORMAT2(::testing::DoubleLE, err, eps);   \
     } while (0);
 
-#endif
-
 #if defined _WIN32
 static const char PATH_SEP = '\\';
 #else
 static const char PATH_SEP = '/';
 #endif
+
+#endif
+

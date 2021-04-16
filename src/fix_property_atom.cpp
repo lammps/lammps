@@ -227,7 +227,7 @@ void FixPropertyAtom::read_data_section(char *keyword, int n, char *buf,
 
     try {
       ValueTokenizer values(buf);
-      if (values.count() != nvalue+1)
+      if ((int)values.count() != nvalue+1)
         error->all(FLERR,fmt::format("Incorrect format in {} section "
                                      "of data file: {}",keyword,buf));
 

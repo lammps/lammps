@@ -40,9 +40,7 @@ ComputeRigidLocal::ComputeRigidLocal(LAMMPS *lmp, int narg, char **arg) :
   local_flag = 1;
   nvalues = narg - 4;
 
-  int n = strlen(arg[3]) + 1;
-  idrigid = new char[n];
-  strcpy(idrigid,arg[3]);
+  idrigid = utils::strdup(arg[3]);
 
   rstyle = new int[nvalues];
 

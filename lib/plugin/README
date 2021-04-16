@@ -1,0 +1,16 @@
+This directory has a Makefile.lammps file with settings that allows
+LAMMPS to dynamically link LAMMPS plugins. More details about this
+are in the manual.
+
+In order to be able to dynamically load and execute the plugins from
+inside LAMMPS, you need to link with a system library containing functions
+like dlopen(), dlsym() and so on for dynamic linking of executable code
+into an executable.  This library is defined by setting the plugin_SYSLIB
+variable in the Makefile.lammps file in this dir.  For this mechanism
+to work, LAMMPS must be built as a shared library (i.e. with mode=shared).
+
+For Linux and most current unix-like operating systems, this can be
+kept at the default setting of "-ldl" (on some platforms this library
+is called "-ldld").  The Windows platform is currently not supported.
+
+See the header of Makefile.lammps for more info.

@@ -16,25 +16,24 @@
                          Pablo Piaggi (EPFL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-
-#include <cstring>
+#include "fix_plumed.h"
 
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "respa.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "group.h"
-#include "fix_plumed.h"
-#include "universe.h"
-#include "compute.h"
 #include "modify.h"
 #include "pair.h"
-
+#include "respa.h"
 #include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 #include "plumed/wrapper/Plumed.h"
 
@@ -542,9 +541,7 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     modify->delete_compute(id_pe);
     delete[] id_pe;
-    int n = strlen(arg[1]) + 1;
-    id_pe = new char[n];
-    strcpy(id_pe,arg[1]);
+    id_pe = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify potential energy ID");
@@ -561,9 +558,7 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     modify->delete_compute(id_press);
     delete[] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

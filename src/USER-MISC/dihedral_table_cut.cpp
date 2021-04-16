@@ -18,28 +18,23 @@
 
 #include "dihedral_table_cut.h"
 
-#include <cctype>
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "update.h"
+
 #include <cmath>
-
 #include <cstring>
-
 #include <fstream>  // IWYU pragma: keep
 #include <sstream>  // IWYU pragma: keep
 
-#include "atom.h"
-#include "neighbor.h"
-#include "update.h"
-#include "comm.h"
-#include "force.h"
-#include "citeme.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-
-
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
 
 static const char cite_dihedral_tablecut[] =
   "dihedral_style  table/cut  command:\n\n"
@@ -87,272 +82,6 @@ enum { //GSL status return codes.
   GSL_EZERODIV = 12,
   GSL_EBADLEN  = 19
 };
-
-
-static int solve_cyc_tridiag( const double diag[], size_t d_stride,
-                              const double offdiag[], size_t o_stride,
-                              const double b[], size_t b_stride,
-                              double x[], size_t x_stride,
-                              size_t N, bool warn)
-{
-  int status = GSL_SUCCESS;
-  double * delta = (double *) malloc (N * sizeof (double));
-  double * gamma = (double *) malloc (N * sizeof (double));
-  double * alpha = (double *) malloc (N * sizeof (double));
-  double * c = (double *) malloc (N * sizeof (double));
-  double * z = (double *) malloc (N * sizeof (double));
-
-  if (delta == 0 || gamma == 0 || alpha == 0 || c == 0 || z == 0) {
-    if (warn)
-      fprintf(stderr,"Internal Cyclic Spline Error: failed to allocate working space\n");
-
-    if (delta) free(delta);
-    if (gamma) free(gamma);
-    if (alpha) free(alpha);
-    if (c) free(c);
-    if (z) free(z);
-    return GSL_ENOMEM;
-  }
-  else
-    {
-      size_t i, j;
-      double sum = 0.0;
-
-      /* factor */
-
-      if (N == 1)
-        {
-          x[0] = b[0] / diag[0];
-          free(delta);
-          free(gamma);
-          free(alpha);
-          free(c);
-          free(z);
-          return GSL_SUCCESS;
-        }
-
-      alpha[0] = diag[0];
-      gamma[0] = offdiag[0] / alpha[0];
-      delta[0] = offdiag[o_stride * (N-1)] / alpha[0];
-
-      if (alpha[0] == 0) {
-        status = GSL_EZERODIV;
-      }
-
-      for (i = 1; i < N - 2; i++)
-        {
-          alpha[i] = diag[d_stride * i] - offdiag[o_stride * (i-1)] * gamma[i - 1];
-          gamma[i] = offdiag[o_stride * i] / alpha[i];
-          delta[i] = -delta[i - 1] * offdiag[o_stride * (i-1)] / alpha[i];
-          if (alpha[i] == 0) {
-            status = GSL_EZERODIV;
-          }
-        }
-
-      for (i = 0; i < N - 2; i++)
-        {
-          sum += alpha[i] * delta[i] * delta[i];
-        }
-
-      alpha[N - 2] = diag[d_stride * (N - 2)] - offdiag[o_stride * (N - 3)] * gamma[N - 3];
-
-      gamma[N - 2] = (offdiag[o_stride * (N - 2)] - offdiag[o_stride * (N - 3)] * delta[N - 3]) / alpha[N - 2];
-
-      alpha[N - 1] = diag[d_stride * (N - 1)] - sum - alpha[(N - 2)] * gamma[N - 2] * gamma[N - 2];
-
-      /* update */
-      z[0] = b[0];
-      for (i = 1; i < N - 1; i++)
-        {
-          z[i] = b[b_stride * i] - z[i - 1] * gamma[i - 1];
-        }
-      sum = 0.0;
-      for (i = 0; i < N - 2; i++)
-        {
-          sum += delta[i] * z[i];
-        }
-      z[N - 1] = b[b_stride * (N - 1)] - sum - gamma[N - 2] * z[N - 2];
-      for (i = 0; i < N; i++)
-        {
-          c[i] = z[i] / alpha[i];
-        }
-
-      /* backsubstitution */
-      x[x_stride * (N - 1)] = c[N - 1];
-      x[x_stride * (N - 2)] = c[N - 2] - gamma[N - 2] * x[x_stride * (N - 1)];
-      if (N >= 3)
-        {
-          for (i = N - 3, j = 0; j <= N - 3; j++, i--)
-            {
-              x[x_stride * i] = c[i] - gamma[i] * x[x_stride * (i + 1)] - delta[i] * x[x_stride * (N - 1)];
-            }
-        }
-    }
-
-  free (z);
-  free (c);
-  free (alpha);
-  free (gamma);
-  free (delta);
-
-  if ((status == GSL_EZERODIV) && warn)
-      fprintf(stderr, "Internal Cyclic Spline Error: Matrix must be positive definite.\n");
-
-  return status;
-} //solve_cyc_tridiag()
-
-/* ----------------------------------------------------------------------
-   spline and splint routines modified from Numerical Recipes
-------------------------------------------------------------------------- */
-
-static int cyc_spline(double const *xa,
-                      double const *ya,
-                      int n,
-                      double period,
-                      double *y2a, bool warn)
-{
-
-  double *diag    = new double[n];
-  double *offdiag = new double[n];
-  double *rhs     = new double[n];
-  double xa_im1, xa_ip1;
-
-  // In the cyclic case, there are n equations with n unknows.
-  // The for loop sets up the equations we need to solve.
-  // Later we invoke the GSL tridiagonal matrix solver to solve them.
-
-  for (int i=0; i < n; i++) {
-
-    // I have to lookup xa[i+1] and xa[i-1].  This gets tricky because of
-    // periodic boundary conditions.  We handle that now.
-    int im1 = i-1;
-    if (im1<0) {
-      im1 += n;
-      xa_im1 = xa[im1] - period;
-    }
-    else
-      xa_im1 = xa[im1];
-
-    int ip1 = i+1;
-    if (ip1>=n) {
-      ip1 -= n;
-      xa_ip1 = xa[ip1] + period;
-    }
-    else
-      xa_ip1 = xa[ip1];
-
-    // Recall that we want to find the y2a[] parameters (there are n of them).
-    // To solve for them, we have a linear equation with n unknowns
-    // (in the cyclic case that is).  For details, the non-cyclic case is
-    // explained in equation 3.3.7 in Numerical Recipes in C, p. 115.
-    diag[i]    = (xa_ip1 - xa_im1) / 3.0;
-    offdiag[i] = (xa_ip1 - xa[i]) / 6.0;
-    rhs[i]     = ((ya[ip1] - ya[i]) / (xa_ip1 - xa[i])) -
-                 ((ya[i] - ya[im1]) / (xa[i] - xa_im1));
-  }
-
-  // Because this matrix is tridiagonal (and cyclic), we can use the following
-  // cheap method to invert it.
-  if (solve_cyc_tridiag(diag, 1,
-                    offdiag, 1,
-                    rhs, 1,
-                    y2a, 1,
-                    n, warn) != GSL_SUCCESS) {
-    if (warn)
-      fprintf(stderr,"Error in inverting matrix for splines.\n");
-
-    delete [] diag;
-    delete [] offdiag;
-    delete [] rhs;
-    return 1;
-  }
-  delete [] diag;
-  delete [] offdiag;
-  delete [] rhs;
-  return 0;
-} // cyc_spline()
-
-/* ---------------------------------------------------------------------- */
-
-// cyc_splint(): Evaluates a spline at position x, with n control
-//           points located at xa[], ya[], and with parameters y2a[]
-//           The xa[] must be monotonically increasing and their
-//           range should not exceed period (ie xa[n-1] < xa[0] + period).
-//           x must lie in the range:  [(xa[n-1]-period), (xa[0]+period)]
-//           "period" is typically 2*PI.
-static double cyc_splint(double const *xa,
-                         double const *ya,
-                         double const *y2a,
-                         int n,
-                         double period,
-                         double x)
-{
-  int klo = -1;
-  int khi = n;
-  int k;
-  double xlo = xa[n-1] - period;
-  double xhi = xa[0] + period;
-  while (khi-klo > 1) {
-    k = (khi+klo) >> 1; //(k=(khi+klo)/2)
-    if (xa[k] > x) {
-      khi = k;
-      xhi = xa[k];
-    }
-    else {
-      klo = k;
-      xlo = xa[k];
-    }
-  }
-
-  if (khi == n) khi = 0;
-  if (klo ==-1) klo = n-1;
-
-  double h = xhi-xlo;
-  double a = (xhi-x) / h;
-  double b = (x-xlo) / h;
-  double y = a*ya[klo] + b*ya[khi] +
-    ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
-
-  return y;
-
-} // cyc_splint()
-
-
-static double cyc_lin(double const *xa,
-                      double const *ya,
-                      int n,
-                      double period,
-                      double x)
-{
-  int klo = -1;
-  int khi = n;
-  int k;
-  double xlo = xa[n-1] - period;
-  double xhi = xa[0] + period;
-  while (khi-klo > 1) {
-    k = (khi+klo) >> 1; //(k=(khi+klo)/2)
-    if (xa[k] > x) {
-      khi = k;
-      xhi = xa[k];
-    }
-    else {
-      klo = k;
-      xlo = xa[k];
-    }
-  }
-
-  if (khi == n) khi = 0;
-  if (klo ==-1) klo = n-1;
-
-  double h = xhi-xlo;
-  double a = (xhi-x) / h;
-  double b = (x-xlo) / h;
-  double y = a*ya[klo] + b*ya[khi];
-
-  return y;
-
-} // cyc_lin()
-
 
 
 
@@ -405,35 +134,21 @@ static double cyc_splintD(double const *xa,
 
 } // cyc_splintD()
 
-
 /* ---------------------------------------------------------------------- */
 
-DihedralTableCut::DihedralTableCut(LAMMPS *lmp) : Dihedral(lmp)
+DihedralTableCut::DihedralTableCut(LAMMPS *lmp) : DihedralTable(lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_dihedral_tablecut);
-  ntables = 0;
-  tables = nullptr;
-  checkU_fname = checkF_fname = nullptr;
+  aat_k = aat_theta0_1 = aat_theta0_2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 DihedralTableCut::~DihedralTableCut()
 {
-  if (allocated) {
-    memory->destroy(aat_k);
-    memory->destroy(aat_theta0_1);
-    memory->destroy(aat_theta0_2);
-
-    for (int m = 0; m < ntables; m++) free_table(&tables[m]);
-    memory->sfree(tables);
-    memory->sfree(checkU_fname);
-    memory->sfree(checkF_fname);
-
-    memory->destroy(setflag);
-    memory->destroy(tabindex);
-
-  }
+  memory->destroy(aat_k);
+  memory->destroy(aat_theta0_1);
+  memory->destroy(aat_theta0_2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -702,7 +417,7 @@ void DihedralTableCut::compute(int eflag, int vflag)
 
       for (i = 0; i < 4; i++)
         for (j = 0; j < 3; j++)
-          fabcd[i][j] -=  - gt*gtt*fpphi*dphidr[i][j]
+          fabcd[i][j] -=  gt*gtt*fpphi*dphidr[i][j]
             - gt*gptt*fphi*dthetadr[1][i][j] + gpt*gtt*fphi*dthetadr[0][i][j];
 
     // apply force to each of 4 atoms
@@ -751,35 +466,7 @@ void DihedralTableCut::allocate()
 
   memory->create(tabindex,n+1,"dihedral:tabindex");
   memory->create(setflag,n+1,"dihedral:setflag");
-
-  for (int i = 1; i <= n; i++)
-    setflag[i] = 0;
-}
-
-void DihedralTableCut::settings(int narg, char **arg)
-{
-  if (narg != 2) error->all(FLERR,"Illegal dihedral_style command");
-
-  if (strcmp(arg[0],"linear") == 0) tabstyle = LINEAR;
-  else if (strcmp(arg[0],"spline") == 0) tabstyle = SPLINE;
-  else error->all(FLERR,"Unknown table style in dihedral style table_cut");
-
-  tablength = utils::inumeric(FLERR,arg[1],false,lmp);
-  if (tablength < 3)
-    error->all(FLERR,"Illegal number of dihedral table entries");
-  // delete old tables, since cannot just change settings
-
-  for (int m = 0; m < ntables; m++) free_table(&tables[m]);
-  memory->sfree(tables);
-
-  if (allocated) {
-    memory->destroy(setflag);
-    memory->destroy(tabindex);
-  }
-  allocated = 0;
-
-  ntables = 0;
-  tables = nullptr;
+  for (int i = 1; i <= n; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -790,9 +477,9 @@ void DihedralTableCut::settings(int narg, char **arg)
 
 void DihedralTableCut::coeff(int narg, char **arg)
 {
-
   if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
   if (!allocated) allocate();
+
   int ilo,ihi;
   utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
@@ -820,29 +507,19 @@ void DihedralTableCut::coeff(int narg, char **arg)
   // --- check the angle data for range errors ---
   // ---  and resolve issues with periodicity  ---
 
-  if (tb->ninput < 2) {
-    string err_msg;
-    err_msg = string("Invalid dihedral table length (")
-      + string(arg[5]) + string(").");
-    error->one(FLERR,err_msg);
-  }
-  else if ((tb->ninput == 2) && (tabstyle == SPLINE)) {
-    string err_msg;
-    err_msg = string("Invalid dihedral spline table length. (Try linear)\n (")
-      + string(arg[5]) + string(").");
-    error->one(FLERR,err_msg);
-  }
+  if (tb->ninput < 2)
+    error->all(FLERR,fmt::format("Invalid dihedral table length: {}",arg[5]));
+  else if ((tb->ninput == 2) && (tabstyle == SPLINE))
+    error->all(FLERR,fmt::format("Invalid dihedral spline table length: {} "
+                                 "(Try linear)",arg[5]));
 
   // check for monotonicity
   for (int i=0; i < tb->ninput-1; i++) {
     if (tb->phifile[i] >= tb->phifile[i+1]) {
-      stringstream i_str;
-      i_str << i+1;
-      string err_msg =
-        string("Dihedral table values are not increasing (") +
-        string(arg[5]) + string(", ")+i_str.str()+string("th entry)");
+      auto err_msg =fmt::format("Dihedral table values are not increasing "
+                                "({}, entry {})",arg[5],i+1);
       if (i==0)
-        err_msg += string("\n(This is probably a mistake with your table format.)\n");
+        err_msg += "\n(This is probably a mistake with your table format.)\n";
       error->all(FLERR,err_msg);
     }
   }
@@ -851,20 +528,13 @@ void DihedralTableCut::coeff(int narg, char **arg)
   double philo = tb->phifile[0];
   double phihi = tb->phifile[tb->ninput-1];
   if (tb->use_degrees) {
-    if ((phihi - philo) >= 360) {
-      string err_msg;
-      err_msg = string("Dihedral table angle range must be < 360 degrees (")
-        +string(arg[5]) + string(").");
-      error->all(FLERR,err_msg);
-    }
-  }
-  else {
-    if ((phihi - philo) >= MY_2PI) {
-      string err_msg;
-      err_msg = string("Dihedral table angle range must be < 2*PI radians (")
-        + string(arg[5]) + string(").");
-      error->all(FLERR,err_msg);
-    }
+    if ((phihi - philo) >= 360)
+      error->all(FLERR,fmt::format("Dihedral table angle range must be < 360 "
+                                   "degrees ({})",arg[5]));
+  } else {
+    if ((phihi - philo) >= MY_2PI)
+      error->all(FLERR,fmt::format("Dihedral table angle range must be < 2*PI "
+                                   "radians ({})",arg[5]));
   }
 
   // convert phi from degrees to radians
@@ -932,10 +602,9 @@ void DihedralTableCut::coeff(int narg, char **arg)
   // Optional: allow the user to print out the interpolated spline tables
 
   if (me == 0) {
-    if (checkU_fname && (strlen(checkU_fname) != 0))
-    {
-      ofstream checkU_file;
-      checkU_file.open(checkU_fname, ios::out);
+    if (!checkU_fname.empty()) {
+      std::ofstream checkU_file;
+      checkU_file.open(checkU_fname, std::ios::out);
       for (int i=0; i < tablength; i++) {
         double phi = i*MY_2PI/tablength;
         double u = tb->e[i];
@@ -945,12 +614,10 @@ void DihedralTableCut::coeff(int narg, char **arg)
       }
       checkU_file.close();
     }
-    if (checkF_fname && (strlen(checkF_fname) != 0))
-    {
-      ofstream checkF_file;
-      checkF_file.open(checkF_fname, ios::out);
-      for (int i=0; i < tablength; i++)
-      {
+    if (!checkF_fname.empty()) {
+      std::ofstream checkF_file;
+      checkF_file.open(checkF_fname, std::ios::out);
+      for (int i=0; i < tablength; i++) {
         double phi = i*MY_2PI/tablength;
         double f;
         if ((tabstyle == SPLINE) && (tb->f_unspecified)) {
@@ -992,429 +659,3 @@ void DihedralTableCut::coeff(int narg, char **arg)
 
   if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 }
-
-/* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::write_restart(FILE *fp)
-{
-  write_restart_settings(fp);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::read_restart(FILE *fp)
-{
-  read_restart_settings(fp);
-  allocate();
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 writes out coeffs to restart file
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::write_restart_settings(FILE *fp)
-{
-  fwrite(&tabstyle,sizeof(int),1,fp);
-  fwrite(&tablength,sizeof(int),1,fp);
-}
-
-/* ----------------------------------------------------------------------
-   proc 0 reads coeffs from restart file, bcasts them
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::read_restart_settings(FILE *fp)
-{
-  if (comm->me == 0) {
-    utils::sfread(FLERR,&tabstyle,sizeof(int),1,fp,nullptr,error);
-    utils::sfread(FLERR,&tablength,sizeof(int),1,fp,nullptr,error);
-  }
-
-  MPI_Bcast(&tabstyle,1,MPI_INT,0,world);
-  MPI_Bcast(&tablength,1,MPI_INT,0,world);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DihedralTableCut::null_table(Table *tb)
-{
-  tb->phifile = tb->efile = tb->ffile = nullptr;
-  tb->e2file = tb->f2file = nullptr;
-  tb->phi = tb->e = tb->de = nullptr;
-  tb->f = tb->df = tb->e2 = tb->f2 = nullptr;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DihedralTableCut::free_table(Table *tb)
-{
-  memory->destroy(tb->phifile);
-  memory->destroy(tb->efile);
-  memory->destroy(tb->ffile);
-  memory->destroy(tb->e2file);
-  memory->destroy(tb->f2file);
-
-  memory->destroy(tb->phi);
-  memory->destroy(tb->e);
-  memory->destroy(tb->de);
-  memory->destroy(tb->f);
-  memory->destroy(tb->df);
-  memory->destroy(tb->e2);
-  memory->destroy(tb->f2);
-}
-
-/* ----------------------------------------------------------------------
-   read table file, only called by proc 0
-------------------------------------------------------------------------- */
-
-static const int MAXLINE=2048;
-
-void DihedralTableCut::read_table(Table *tb, char *file, char *keyword)
-{
-  char line[MAXLINE];
-
-  // open file
-
-  FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr) {
-    string err_msg = string("Cannot open file ") + string(file);
-    error->one(FLERR,err_msg);
-  }
-
-  // loop until section found with matching keyword
-
-  while (1) {
-    if (fgets(line,MAXLINE,fp) == nullptr) {
-      string err_msg=string("Did not find keyword \"")
-        +string(keyword)+string("\" in dihedral table file.");
-      error->one(FLERR, err_msg);
-    }
-    if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
-    param_extract(tb,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++)
-      utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  }
-
-  // read args on 2nd line of section
-  // allocate table arrays for file values
-
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  param_extract(tb,line);
-  memory->create(tb->phifile,tb->ninput,"dihedral:phifile");
-  memory->create(tb->efile,tb->ninput,"dihedral:efile");
-  memory->create(tb->ffile,tb->ninput,"dihedral:ffile");
-
-  // read a,e,f table values from file
-
-  int itmp;
-  for (int i = 0; i < tb->ninput; i++) {
-    // Read the next line.  Make sure the file is long enough.
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-
-    // Skip blank lines and delete text following a '#' character
-    char *pe = strchr(line, '#');
-    if (pe != nullptr) *pe = '\0'; //terminate string at '#' character
-    char *pc = line;
-    while ((*pc != '\0') && isspace(*pc))
-      pc++;
-    if (*pc != '\0') { //If line is not a blank line
-      stringstream line_ss(line);
-      if (tb->f_unspecified) {
-        line_ss >> itmp;
-        line_ss >> tb->phifile[i];
-        line_ss >> tb->efile[i];
-      } else {
-        line_ss >> itmp;
-        line_ss >> tb->phifile[i];
-        line_ss >> tb->efile[i];
-        line_ss >> tb->ffile[i];
-      }
-      if (! line_ss) {
-        stringstream err_msg;
-        err_msg << "Read error in table "<< keyword<<", near line "<<i+1<<"\n"
-                << "   (Check to make sure the number of columns is correct.)";
-        if ((! tb->f_unspecified) && (i==0))
-          err_msg << "\n   (This sometimes occurs if users forget to specify the \"NOF\" option.)\n";
-        error->one(FLERR, err_msg.str().c_str());
-      }
-    } else //if it is a blank line, then skip it.
-      i--;
-  } //for (int i = 0; (i < tb->ninput) && fp; i++) {
-
-  fclose(fp);
-}
-
-/* ----------------------------------------------------------------------
-   build spline representation of e,f over entire range of read-in table
-   this function sets these values in e2file,f2file.
-   I also perform a crude check for force & energy consistency.
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::spline_table(Table *tb)
-{
-  memory->create(tb->e2file,tb->ninput,"dihedral:e2file");
-  memory->create(tb->f2file,tb->ninput,"dihedral:f2file");
-
-  if (cyc_spline(tb->phifile, tb->efile, tb->ninput,
-                 MY_2PI,tb->e2file,comm->me == 0))
-    error->one(FLERR,"Error computing dihedral spline tables");
-
-  if (! tb->f_unspecified) {
-    if (cyc_spline(tb->phifile, tb->ffile, tb->ninput,
-                   MY_2PI, tb->f2file, comm->me == 0))
-      error->one(FLERR,"Error computing dihedral spline tables");
-  }
-
-  // CHECK to help make sure the user calculated forces in a way
-  // which is grossly numerically consistent with the energy table.
-  if (! tb->f_unspecified) {
-    int num_disagreements = 0;
-    for (int i=0; i<tb->ninput; i++) {
-
-      // Calculate what the force should be at the control points
-      // by using linear interpolation of the derivatives of the energy:
-
-      double phi_i = tb->phifile[i];
-
-      // First deal with periodicity
-      double phi_im1, phi_ip1;
-      int im1 = i-1;
-      if (im1 < 0) {
-        im1 += tb->ninput;
-        phi_im1 = tb->phifile[im1] - MY_2PI;
-      }
-      else
-        phi_im1 = tb->phifile[im1];
-      int ip1 = i+1;
-      if (ip1 >= tb->ninput) {
-        ip1 -= tb->ninput;
-        phi_ip1 = tb->phifile[ip1] + MY_2PI;
-      }
-      else
-        phi_ip1 = tb->phifile[ip1];
-
-      // Now calculate the midpoints above and below phi_i = tb->phifile[i]
-      double phi_lo= 0.5*(phi_im1 + phi_i); //midpoint between phi_im1 and phi_i
-      double phi_hi= 0.5*(phi_i + phi_ip1); //midpoint between phi_i and phi_ip1
-
-      // Use a linear approximation to the derivative at these two midpoints
-      double dU_dphi_lo =
-        (tb->efile[i] - tb->efile[im1])
-        /
-        (phi_i - phi_im1);
-      double dU_dphi_hi =
-        (tb->efile[ip1] - tb->efile[i])
-        /
-        (phi_ip1 - phi_i);
-
-      // Now calculate the derivative at position
-      // phi_i (=tb->phifile[i]) using linear interpolation
-
-      double a = (phi_i - phi_lo) / (phi_hi - phi_lo);
-      double b = (phi_hi - phi_i) / (phi_hi - phi_lo);
-      double dU_dphi = a*dU_dphi_lo  +  b*dU_dphi_hi;
-      double f = -dU_dphi;
-      // Alternately, we could use spline interpolation instead:
-      // double f = - splintD(tb->phifile, tb->efile, tb->e2file,
-      //                      tb->ninput, MY_2PI, tb->phifile[i]);
-      // This is the way I originally did it, but I trust
-      // the ugly simple linear way above better.
-      // Recall this entire block of code doess not calculate
-      // anything important.  It does not have to be perfect.
-      // We are only checking for stupid user errors here.
-
-      if ((f != 0.0) &&
-          (tb->ffile[i] != 0.0) &&
-          ((f/tb->ffile[i] < 0.5) || (f/tb->ffile[i] > 2.0))) {
-        num_disagreements++;
-      }
-    } // for (int i=0; i<tb->ninput; i++)
-
-    if ((num_disagreements > tb->ninput/2) && (num_disagreements > 2)) {
-      string msg("Dihedral table has inconsistent forces and energies. (Try \"NOF\".)\n");
-      error->all(FLERR,msg.c_str());
-    }
-
-  } // check for consistency if (! tb->f_unspecified)
-
-} // DihedralTable::spline_table()
-
-
-/* ----------------------------------------------------------------------
-   compute a,e,f vectors from splined values
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::compute_table(Table *tb)
-{
-  //delta = table spacing in dihedral angle for tablength (cyclic) bins
-  tb->delta = MY_2PI / tablength;
-  tb->invdelta = 1.0/tb->delta;
-  tb->deltasq6 = tb->delta*tb->delta / 6.0;
-
-  // N evenly spaced bins in dihedral angle from 0 to 2*PI
-  // phi,e,f = value at lower edge of bin
-  // de,df values = delta values of e,f (cyclic, in this case)
-  // phi,e,f,de,df are arrays containing "tablength" number of entries
-
-  memory->create(tb->phi,tablength,"dihedral:phi");
-  memory->create(tb->e,tablength,"dihedral:e");
-  memory->create(tb->de,tablength,"dihedral:de");
-  memory->create(tb->f,tablength,"dihedral:f");
-  memory->create(tb->df,tablength,"dihedral:df");
-  memory->create(tb->e2,tablength,"dihedral:e2");
-  memory->create(tb->f2,tablength,"dihedral:f2");
-
-  if (tabstyle == SPLINE) {
-    // Use cubic spline interpolation to calculate the entries in the
-    // internal table. (This is true regardless...even if tabstyle!=SPLINE.)
-    for (int i = 0; i < tablength; i++) {
-      double phi = i*tb->delta;
-      tb->phi[i] = phi;
-      tb->e[i]= cyc_splint(tb->phifile,tb->efile,tb->e2file,tb->ninput,MY_2PI,phi);
-      if (! tb->f_unspecified)
-        tb->f[i] = cyc_splint(tb->phifile,tb->ffile,tb->f2file,tb->ninput,MY_2PI,phi);
-    }
-  } // if (tabstyle == SPLINE)
-  else if (tabstyle == LINEAR) {
-    if (! tb->f_unspecified) {
-      for (int i = 0; i < tablength; i++) {
-        double phi = i*tb->delta;
-        tb->phi[i] = phi;
-        tb->e[i]= cyc_lin(tb->phifile,tb->efile,tb->ninput,MY_2PI,phi);
-        tb->f[i]= cyc_lin(tb->phifile,tb->ffile,tb->ninput,MY_2PI,phi);
-      }
-    }
-    else {
-      for (int i = 0; i < tablength; i++) {
-        double phi = i*tb->delta;
-        tb->phi[i] = phi;
-        tb->e[i]= cyc_lin(tb->phifile,tb->efile,tb->ninput,MY_2PI,phi);
-      }
-      // In the linear case, if the user did not specify the forces, then we
-      // must generate the "f" array. Do this using linear interpolation
-      // of the e array (which itself was generated above)
-      for (int i = 0; i < tablength; i++) {
-        int im1 = i-1; if (im1 < 0) im1 += tablength;
-        int ip1 = i+1; if (ip1 >= tablength) ip1 -= tablength;
-        double dedx = (tb->e[ip1] - tb->e[im1]) / (2.0 * tb->delta);
-        // (This is the average of the linear slopes on either side of the node.
-        //  Note that the nodes in the internal table are evenly spaced.)
-        tb->f[i] = -dedx;
-      }
-    }
-
-
-    // Fill the linear interpolation tables (de, df)
-    for (int i = 0; i < tablength; i++) {
-      int ip1 = i+1; if (ip1 >= tablength) ip1 -= tablength;
-      tb->de[i] = tb->e[ip1] - tb->e[i];
-      tb->df[i] = tb->f[ip1] - tb->f[i];
-    }
-  } // else if (tabstyle == LINEAR)
-
-
-
-  cyc_spline(tb->phi, tb->e, tablength, MY_2PI, tb->e2, comm->me == 0);
-  if (! tb->f_unspecified)
-    cyc_spline(tb->phi, tb->f, tablength, MY_2PI, tb->f2, comm->me == 0);
-}
-
-
-/* ----------------------------------------------------------------------
-   extract attributes from parameter line in table section
-   format of line: N value NOF DEGREES RADIANS
-   N is required, other params are optional
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::param_extract(Table *tb, char *line)
-{
-  //tb->theta0 = 180.0; <- equilibrium angles not supported
-  tb->ninput = 0;
-  tb->f_unspecified = false; //default
-  tb->use_degrees   = true;  //default
-
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = atoi(word);
-    }
-    else if (strcmp(word,"NOF") == 0) {
-      tb->f_unspecified = true;
-    }
-    else if ((strcmp(word,"DEGREES") == 0) || (strcmp(word,"degrees") == 0)) {
-      tb->use_degrees = true;
-    }
-    else if ((strcmp(word,"RADIANS") == 0) || (strcmp(word,"radians") == 0)) {
-      tb->use_degrees = false;
-    }
-    else if (strcmp(word,"CHECKU") == 0) {
-      word = strtok(nullptr," \t\n\r\f");
-      memory->sfree(checkU_fname);
-      memory->create(checkU_fname,strlen(word)+1,"dihedral_table:checkU");
-      strcpy(checkU_fname, word);
-    }
-    else if (strcmp(word,"CHECKF") == 0) {
-      word = strtok(nullptr," \t\n\r\f");
-      memory->sfree(checkF_fname);
-      memory->create(checkF_fname,strlen(word)+1,"dihedral_table:checkF");
-      strcpy(checkF_fname, word);
-    }
-    // COMMENTING OUT:  equilibrium angles are not supported
-    //else if (strcmp(word,"EQ") == 0) {
-    //  word = strtok(nullptr," \t\n\r\f");
-    //  tb->theta0 = atof(word);
-    //}
-    else {
-      string err_msg("Invalid keyword in dihedral angle table parameters");
-      err_msg += string(" (") + string(word) + string(")");
-      error->one(FLERR, err_msg);
-    }
-    word = strtok(nullptr," \t\n\r\f");
-  }
-
-  if (tb->ninput == 0)
-    error->one(FLERR,"Dihedral table parameters did not set N");
-
-} // DihedralTable::param_extract()
-
-
-/* ----------------------------------------------------------------------
-   broadcast read-in table info from proc 0 to other procs
-   this function communicates these values in Table:
-     ninput,phifile,efile,ffile,
-     f_unspecified,use_degrees
-------------------------------------------------------------------------- */
-
-void DihedralTableCut::bcast_table(Table *tb)
-{
-  MPI_Bcast(&tb->ninput,1,MPI_INT,0,world);
-
-  int me;
-  MPI_Comm_rank(world,&me);
-  if (me > 0) {
-    memory->create(tb->phifile,tb->ninput,"dihedral:phifile");
-    memory->create(tb->efile,tb->ninput,"dihedral:efile");
-    memory->create(tb->ffile,tb->ninput,"dihedral:ffile");
-  }
-
-  MPI_Bcast(tb->phifile,tb->ninput,MPI_DOUBLE,0,world);
-  MPI_Bcast(tb->efile,tb->ninput,MPI_DOUBLE,0,world);
-  MPI_Bcast(tb->ffile,tb->ninput,MPI_DOUBLE,0,world);
-
-  MPI_Bcast(&tb->f_unspecified,1,MPI_INT,0,world);
-  MPI_Bcast(&tb->use_degrees,1,MPI_INT,0,world);
-
-  // COMMENTING OUT:  equilibrium angles are not supported
-  //MPI_Bcast(&tb->theta0,1,MPI_DOUBLE,0,world);
-}
-
-

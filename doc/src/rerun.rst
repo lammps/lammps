@@ -15,7 +15,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *first* or *last* or *every* or *skip* or *start* or *stop* or *dump*
+     keyword = *first* or *last* or *every* or *skip* or *start* or *stop* or *post* or *dump*
       *first* args = Nfirst
         Nfirst = dump timestep to start on
       *last* args = Nlast
@@ -28,6 +28,7 @@ Syntax
         Nstart = timestep on which pseudo run will start
       *stop* args = Nstop
         Nstop = timestep to which pseudo run will end
+      *post* value = *yes* or *no*
       *dump* args = same as :doc:`read_dump <read_dump>` command starting with its field arguments
 
 Examples
@@ -154,6 +155,10 @@ Also note that an error will occur if you read a snapshot from the
 dump file with a timestep value larger than the *stop* setting you
 have specified.
 
+The *post* keyword can be used to minimize the output to the screen that
+happens after a *rerun* command, similar to the post keyword of the
+:doc:`run command <run>`. It is set to *no* by default.
+
 The *dump* keyword is required and must be the last keyword specified.
 Its arguments are passed internally to the :doc:`read_dump <read_dump>`
 command.  The first argument following the *dump* keyword should be
@@ -226,4 +231,4 @@ Default
 
 The option defaults are first = 0, last = a huge value (effectively
 infinity), start = same as first, stop = same as last, every = 0, skip
-= 1;
+= 1, post = no;

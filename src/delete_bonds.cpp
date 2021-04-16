@@ -30,7 +30,7 @@ enum{MULTI,ATOM,BOND,ANGLE,DIHEDRAL,IMPROPER,STATS};
 
 /* ---------------------------------------------------------------------- */
 
-DeleteBonds::DeleteBonds(LAMMPS *lmp) : Pointers(lmp) {}
+DeleteBonds::DeleteBonds(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

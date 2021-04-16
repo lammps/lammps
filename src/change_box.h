@@ -20,11 +20,11 @@ CommandStyle(change_box,ChangeBox)
 #ifndef LMP_CHANGE_BOX_H
 #define LMP_CHANGE_BOX_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ChangeBox : protected Pointers {
+class ChangeBox : public Command {
  public:
   ChangeBox(class LAMMPS *);
   void command(int, char **);

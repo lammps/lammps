@@ -433,7 +433,7 @@ void FixMove::init()
   if (velocityflag) memory->create(velocity,maxatom,3,"move:velocity");
   else velocity = nullptr;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 

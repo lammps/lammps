@@ -130,7 +130,7 @@ void FixAddTorque::init()
     varflag = EQUAL;
   else varflag = CONSTANT;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -140,7 +140,7 @@ void FixAddTorque::init()
 
 void FixAddTorque::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

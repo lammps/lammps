@@ -79,7 +79,7 @@ int FixLbViscous::setmask()
 void FixLbViscous::init()
 {
 
-  if (strcmp(update->integrate_style,"respa") == 0)
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
 }
@@ -88,7 +88,7 @@ void FixLbViscous::init()
 
 void FixLbViscous::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet") != nullptr)
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

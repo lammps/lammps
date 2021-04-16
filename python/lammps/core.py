@@ -278,6 +278,9 @@ class lammps(object):
 
     self.lib.lammps_id_name.argtypes = [c_void_p, c_char_p, c_int, c_char_p, c_int]
 
+    self.lib.lammps_plugin_count.argtypes = [ ]
+    self.lib.lammps_plugin_name.argtypes = [c_int, c_char_p, c_char_p, c_int]
+
     self.lib.lammps_version.argtypes = [c_void_p]
 
     self.lib.lammps_get_os_info.argtypes = [c_char_p, c_int]
@@ -729,12 +732,11 @@ class lammps(object):
   def extract_global(self, name, dtype=LAMMPS_AUTODETECT):
     """Query LAMMPS about global settings of different types.
 
-    This is a wrapper around the :cpp:func:`lammps_extract_global`
-    function of the C-library interface.  Unlike the C function
-    this method returns the value and not a pointer and thus can
-    only return the first value for keywords representing a list
-    of values.  The :cpp:func:`lammps_extract_global` documentation
-    includes a list of the supported keywords and their data types.
+    This is a wrapper around the :cpp:func:`lammps_extract_global` function
+    of the C-library interface.  Since there are no pointers in Python, this
+    method will - unlike the C function - return the value or a list of
+    values.  The :cpp:func:`lammps_extract_global` documentation includes a
+    list of the supported keywords and their data types.
     Since Python needs to know the data type to be able to interpret
     the result, by default, this function will try to auto-detect the data type
     by asking the library. You can also force a specific data type.  For that
@@ -746,11 +748,22 @@ class lammps(object):
     :type name:  string
     :param dtype: data type of the returned data (see :ref:`py_datatype_constants`)
     :type dtype:  int, optional
-    :return: value of the property or None
-    :rtype: int, float, or NoneType
+    :return: value of the property or list of values or None
+    :rtype: int, float, list, or NoneType
     """
+
     if dtype == LAMMPS_AUTODETECT:
       dtype = self.extract_global_datatype(name)
+
+    # set length of vector for items that are not a scalar
+    vec_dict = { 'boxlo':3, 'boxhi':3, 'sublo':3, 'subhi':3,
+                 'sublo_lambda':3, 'subhi_lambda':3, 'periodicity':3 }
+    if name in vec_dict:
+      veclen = vec_dict[name]
+    elif name == 'respa_dt':
+      veclen = self.extract_global('respa_levels',LAMMPS_INT)
+    else:
+      veclen = 1
 
     if name: name = name.encode()
     else: return None
@@ -766,13 +779,18 @@ class lammps(object):
       target_type = float
     elif dtype == LAMMPS_STRING:
       self.lib.lammps_extract_global.restype = c_char_p
-      target_type = lambda x: str(x, 'ascii')
 
     ptr = self.lib.lammps_extract_global(self.lmp, name)
     if ptr:
-      return target_type(ptr[0])
+      if dtype == LAMMPS_STRING:
+        return ptr.decode('utf-8')
+      if veclen > 1:
+        result = []
+        for i in range(0,veclen):
+          result.append(target_type(ptr[i]))
+        return result
+      else: return target_type(ptr[0])
     return None
-
 
   # -------------------------------------------------------------------------
   # extract per-atom info datatype
@@ -1640,6 +1658,29 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
+  def available_plugins(self, category):
+    """Returns a list of plugins available for a given category
+
+    This is a wrapper around the functions :cpp:func:`lammps_plugin_count()`
+    and :cpp:func:`lammps_plugin_name()` of the library interface.
+
+    .. versionadded:: 10Mar2021
+
+    :return: list of style/name pairs of loaded plugins
+    :rtype:  list
+    """
+
+    available_plugins = []
+    num = self.lib.lammps_plugin_count(self.lmp)
+    sty = create_string_buffer(100)
+    nam = create_string_buffer(100)
+    for idx in range(num):
+      self.lib.lammps_plugin_name(idx, sty, nam, 100)
+      available_plugins.append([sty.value.decode(), nam.value.decode()])
+    return available_plugins
+
+  # -------------------------------------------------------------------------
+
   def set_fix_external_callback(self, fix_name, callback, caller=None):
     import numpy as np
 
@@ -1706,17 +1747,23 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def find_pair_neighlist(self, style, exact=True, nsub=0, request=0):
+  def find_pair_neighlist(self, style, exact=True, nsub=0, reqid=0):
     """Find neighbor list index of pair style neighbor list
 
-    Try finding pair instance that matches style. If exact is set, the pair must
-    match style exactly. If exact is 0, style must only be contained. If pair is
-    of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.
+    Search for a neighbor list requested by a pair style instance that
+    matches "style".  If exact is True, the pair style name must match
+    exactly. If exact is False, the pair style name is matched against
+    "style" as regular expression or sub-string. If the pair style is a
+    hybrid pair style, the style is instead matched against the hybrid
+    sub-styles. If the same pair style is used as sub-style multiple
+    types, you must set nsub to a value n > 0 which indicates the nth
+    instance of that sub-style to be used (same as for the pair_coeff
+    command). The default value of 0 will fail to match in that case.
 
-    Once the pair instance has been identified, multiple neighbor list requests
-    may be found. Every neighbor list is uniquely identified by its request
-    index. Thus, providing this request index ensures that the correct neighbor
-    list index is returned.
+    Once the pair style instance has been identified, it may have
+    requested multiple neighbor lists. Those are uniquely identified by
+    a request ID > 0 as set by the pair style. Otherwise the request
+    ID is 0.
 
     :param style: name of pair style that should be searched for
     :type  style: string
@@ -1724,44 +1771,58 @@ class lammps(object):
     :type  exact: bool, optional
     :param nsub:  match nsub-th hybrid sub-style, defaults to 0
     :type  nsub:  int, optional
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid: list request id, > 0 in case there are more than one, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     style = style.encode()
     exact = int(exact)
-    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, request)
+    idx = self.lib.lammps_find_pair_neighlist(self.lmp, style, exact, nsub, reqid)
     return idx
 
   # -------------------------------------------------------------------------
 
-  def find_fix_neighlist(self, fixid, request=0):
+  def find_fix_neighlist(self, fixid, reqid=0):
     """Find neighbor list index of fix neighbor list
+
+    The fix instance requesting the neighbor list is uniquely identified
+    by the fix ID.  In case the fix has requested multiple neighbor
+    lists, those are uniquely identified by a request ID > 0 as set by
+    the fix.  Otherwise the request ID is 0 (the default).
 
     :param fixid: name of fix
     :type  fixid: string
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid:   id of neighbor list request, in case there are more than one request, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     fixid = fixid.encode()
-    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, request)
+    idx = self.lib.lammps_find_fix_neighlist(self.lmp, fixid, reqid)
     return idx
 
   # -------------------------------------------------------------------------
 
-  def find_compute_neighlist(self, computeid, request=0):
+  def find_compute_neighlist(self, computeid, reqid=0):
     """Find neighbor list index of compute neighbor list
+
+    The compute instance requesting the neighbor list is uniquely
+    identified by the compute ID.  In case the compute has requested
+    multiple neighbor lists, those are uniquely identified by a request
+    ID > 0 as set by the compute.  Otherwise the request ID is 0 (the
+    default).
 
     :param computeid: name of compute
     :type  computeid: string
-    :param request:   index of neighbor list request, in case there are more than one, defaults to 0
-    :type  request:   int, optional
+    :param reqid:   index of neighbor list request, in case there are more than one request, defaults to 0
+    :type  reqid:   int, optional
     :return: neighbor list index if found, otherwise -1
     :rtype:  int
-     """
+
+    """
     computeid = computeid.encode()
-    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, request)
+    idx = self.lib.lammps_find_compute_neighlist(self.lmp, computeid, reqid)
     return idx

@@ -20,11 +20,11 @@ CommandStyle(create_box,CreateBox)
 #ifndef LMP_CREATE_BOX_H
 #define LMP_CREATE_BOX_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class CreateBox : protected Pointers {
+class CreateBox : public Command {
  public:
   CreateBox(class LAMMPS *);
   void command(int, char **);

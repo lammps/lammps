@@ -42,7 +42,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-Velocity::Velocity(LAMMPS *lmp) : Pointers(lmp) {}
+Velocity::Velocity(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -108,7 +108,7 @@ void Velocity::command(int narg, char **arg)
 
   int initcomm = 0;
   if (style == ZERO && rfix >= 0 &&
-      utils::strmatch(modify->fix[rfix]->style,"^rigid/small")) initcomm = 1;
+      utils::strmatch(modify->fix[rfix]->style,"^rigid.*/small.*")) initcomm = 1;
   if ((style == CREATE || style == SET) && temperature &&
       strcmp(temperature->style,"temp/cs") == 0) initcomm = 1;
 

@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Replicate::Replicate(LAMMPS *lmp) : Pointers(lmp) {}
+Replicate::Replicate(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

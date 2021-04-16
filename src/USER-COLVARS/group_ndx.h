@@ -22,13 +22,13 @@ CommandStyle(group2ndx,Group2Ndx)
 #ifndef LMP_GROUP_NDX_H
 #define LMP_GROUP_NDX_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Group2Ndx : protected Pointers {
+class Group2Ndx : public Command {
  public:
-  Group2Ndx(class LAMMPS *lmp) : Pointers(lmp) {};
+  Group2Ndx(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
  private:
   void write_group(FILE *, int);

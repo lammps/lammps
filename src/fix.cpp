@@ -21,7 +21,6 @@
 #include "memory.h"
 
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -172,6 +171,12 @@ void Fix::modify_params(int narg, char **arg)
       iarg += n;
     }
   }
+}
+
+void::Fix::set_molecule(int, tagint, int, double *, double *, double *)
+{
+  error->all(FLERR,fmt::format("Molecule update not implemented for "
+                               "fix {}", style));
 }
 
 /* ----------------------------------------------------------------------

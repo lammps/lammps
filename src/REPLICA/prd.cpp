@@ -46,7 +46,7 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 /* ---------------------------------------------------------------------- */
 
-PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
+PRD::PRD(LAMMPS *lmp) : Command(lmp) {}
 
 /* ----------------------------------------------------------------------
    perform PRD simulation on one or more replicas

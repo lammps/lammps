@@ -52,7 +52,7 @@ enum{NONE,RATIO,SUBSET};
 
 /* ---------------------------------------------------------------------- */
 
-CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp), basistype(nullptr) {}
+CreateAtoms::CreateAtoms(LAMMPS *lmp) : Command(lmp), basistype(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 

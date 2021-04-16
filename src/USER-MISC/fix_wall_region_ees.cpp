@@ -118,7 +118,7 @@ void FixWallRegionEES::init()
   offset = 0;
 
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -126,7 +126,7 @@ void FixWallRegionEES::init()
 
 void FixWallRegionEES::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

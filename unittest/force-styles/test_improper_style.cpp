@@ -38,7 +38,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <mpi.h>
 
 #include <map>
@@ -235,41 +234,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     YamlWriter writer(outfile);
 
-    // lammps_version
-    writer.emit("lammps_version", lmp->version);
-
-    // date_generated
-    std::time_t now = time(NULL);
-    block           = ctime(&now);
-    block           = block.substr(0, block.find("\n") - 1);
-    writer.emit("date_generated", block);
-
-    // epsilon
-    writer.emit("epsilon", config.epsilon);
-
-    // prerequisites
-    block.clear();
-    for (auto &prerequisite : config.prerequisites) {
-        block += prerequisite.first + " " + prerequisite.second + "\n";
-    }
-    writer.emit_block("prerequisites", block);
-
-    // pre_commands
-    block.clear();
-    for (auto &command : config.pre_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("pre_commands", block);
-
-    // post_commands
-    block.clear();
-    for (auto &command : config.post_commands) {
-        block += command + "\n";
-    }
-    writer.emit_block("post_commands", block);
-
-    // input_file
-    writer.emit("input_file", config.input_file);
+    // write yaml header
+    write_yaml_header(&writer, &test_config, lmp->version);
 
     // improper_style
     writer.emit("improper_style", config.improper_style);
@@ -301,7 +267,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     // init_forces
     block.clear();
-    auto f   = lmp->atom->f;
+    auto f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -321,7 +287,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     writer.emit_block("run_stress", block);
 
     block.clear();
-    f   = lmp->atom->f;
+    f = lmp->atom->f;
     for (int i = 1; i <= natoms; ++i) {
         const int j = lmp->atom->map(i);
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
@@ -334,6 +300,8 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
 TEST(ImproperStyle, plain)
 {
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     char **argv = (char **)args;
@@ -560,6 +528,8 @@ TEST(ImproperStyle, plain)
 TEST(ImproperStyle, omp)
 {
     if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
     const char *args[] = {"ImproperStyle", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",           "omp",  "4",    "-sf",   "omp"};
 

@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Temper::Temper(LAMMPS *lmp) : Pointers(lmp) {}
+Temper::Temper(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

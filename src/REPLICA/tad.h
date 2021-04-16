@@ -20,11 +20,11 @@ CommandStyle(tad,TAD)
 #ifndef LMP_TAD_H
 #define LMP_TAD_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class TAD : protected Pointers {
+class TAD : public Command {
  public:
   TAD(class LAMMPS *);
   ~TAD();

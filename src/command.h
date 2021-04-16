@@ -11,30 +11,19 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
+#ifndef LMP_COMMAND_H
+#define LMP_COMMAND_H
 
-CommandStyle(server,Server)
-
-#else
-
-#ifndef LMP_SERVER_H
-#define LMP_SERVER_H
-
-#include "command.h"
+#include "pointers.h"
 
 namespace LAMMPS_NS {
 
-class Server : public Command {
+class Command : protected Pointers {
  public:
-  Server(class LAMMPS *lmp) : Command(lmp) {};
-  void command(int, char **);
+  Command(class LAMMPS *lmp) : Pointers(lmp) {};
+  virtual void command(int, char **) = 0;
 };
 
 }
 
 #endif
-#endif
-
-/* ERROR/WARNING messages:
-
-*/

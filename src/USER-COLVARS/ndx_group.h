@@ -22,14 +22,14 @@ CommandStyle(ndx2group,Ndx2Group)
 #ifndef LMP_NDX_GROUP_H
 #define LMP_NDX_GROUP_H
 
-#include "pointers.h"
+#include "command.h"
 #include <vector>
 
 namespace LAMMPS_NS {
 
-class Ndx2Group : protected Pointers {
+class Ndx2Group : public Command {
  public:
-  Ndx2Group(class LAMMPS *lmp) : Pointers(lmp) {};
+  Ndx2Group(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
   void create(const std::string &, const std::vector<tagint> &);
 };

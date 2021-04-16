@@ -20,11 +20,11 @@ CommandStyle(prd,PRD)
 #ifndef LMP_PRD_H
 #define LMP_PRD_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class PRD : protected Pointers {
+class PRD : public Command {
  public:
   PRD(class LAMMPS *);
   ~PRD() {}

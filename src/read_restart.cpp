@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ReadRestart::ReadRestart(LAMMPS *lmp) : Pointers(lmp) {}
+ReadRestart::ReadRestart(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

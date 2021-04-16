@@ -43,6 +43,8 @@
 #include "reaxc_defs.h"
 #include "reaxc_types.h"
 
+#include "reaxff_api.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -315,8 +317,8 @@ void FixQEqReax::allocate_matrix()
   double safezone;
 
   if (reaxflag) {
-    mincap = reaxc->system->mincap;
-    safezone = reaxc->system->safezone;
+    mincap = reaxc->api->system->mincap;
+    safezone = reaxc->api->system->safezone;
   } else {
     mincap = REAX_MIN_CAP;
     safezone = REAX_SAFE_ZONE;

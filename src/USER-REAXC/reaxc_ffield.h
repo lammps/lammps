@@ -24,8 +24,8 @@
   <http://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#ifndef __FFIELD_H_
-#define __FFIELD_H_
+#ifndef LMP_REAXC_FFIELD_H
+#define LMP_REAXC_FFIELD_H
 
 #include "reaxc_types.h"
 

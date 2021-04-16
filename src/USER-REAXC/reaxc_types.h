@@ -325,6 +325,15 @@ struct far_neighbor_data {
   rvec dvec;
 };
 
+namespace ReaxFF {
+  struct far_neighbor_data {
+    int nbr;
+    ivec rel_box;
+    double d;
+    rvec dvec;
+  };
+}
+
 struct hbond_data {
   int nbr;
   int scl;

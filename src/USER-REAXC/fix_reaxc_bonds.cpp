@@ -29,6 +29,8 @@
 #include "reaxc_types.h"
 #include "reaxc_defs.h"
 
+#include "reaxff_api.h"
+
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -186,7 +188,7 @@ void FixReaxCBonds::FindBond(struct _reax_list * /*lists*/, int &numbonds)
   inum = reaxc->list->inum;
   ilist = reaxc->list->ilist;
   bond_data *bo_ij;
-  bo_cut = reaxc->control->bg_cut;
+  bo_cut = reaxc->api->control->bg_cut;
 
   tagint *tag = atom->tag;
 
@@ -194,8 +196,8 @@ void FixReaxCBonds::FindBond(struct _reax_list * /*lists*/, int &numbonds)
     i = ilist[ii];
     nj = 0;
 
-    for (pj = Start_Index(i, reaxc->lists); pj < End_Index(i, reaxc->lists); ++pj) {
-      bo_ij = &( reaxc->lists->select.bond_list[pj] );
+    for (pj = Start_Index(i, reaxc->api->lists); pj < End_Index(i, reaxc->api->lists); ++pj) {
+      bo_ij = &( reaxc->api->lists->select.bond_list[pj] );
       j = bo_ij->nbr;
       jtag = tag[j];
       bo_tmp = bo_ij->bo_data.BO;
@@ -223,8 +225,8 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
   for (i = 0; i < nlocal; i++) {
     buf[j-1] = atom->tag[i];
     buf[j+0] = atom->type[i];
-    buf[j+1] = reaxc->workspace->total_bond_order[i];
-    buf[j+2] = reaxc->workspace->nlp[i];
+    buf[j+1] = reaxc->api->workspace->total_bond_order[i];
+    buf[j+2] = reaxc->api->workspace->nlp[i];
     buf[j+3] = atom->q[i];
     buf[j+4] = numneigh[i];
     numbonds = nint(buf[j+4]);
@@ -258,7 +260,7 @@ void FixReaxCBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
   bigint ntimestep = update->ntimestep;
   double sbotmp, nlptmp, avqtmp, abotmp;
 
-  double cutof3 = reaxc->control->bg_cut;
+  double cutof3 = reaxc->api->control->bg_cut;
   MPI_Request irequest, irequest2;
 
   if (me == 0) {

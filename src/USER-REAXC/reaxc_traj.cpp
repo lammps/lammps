@@ -111,7 +111,7 @@ void Write_Header(reax_system *system, control_params *control, output_controls 
   /* only the master node writes into trajectory header */
   if (system->my_rank == MASTER_NODE) {
     std::string buffer("");
-    
+
     /* to skip the header */
     buffer += fmtline("chars_to_skip_header:",(NUM_HEADER_LINES-1) * HEADER_LINE_LEN);
 
@@ -167,7 +167,7 @@ void Write_Header(reax_system *system, control_params *control, output_controls 
     buffer += fmtline("molecular_analysis_frequency:", 0);
 
     /* dump out the buffer */
-    
+
     fputs(buffer.c_str(),out_control->strj);
   }
 }
@@ -324,13 +324,13 @@ void Write_Atoms(reax_system *system, output_controls *out_control,
 
   /* fill in buffer */
   out_control->buffer[0] = 0;
-  
+
   for (i = 0; i < system->n; ++i) {
     std::string buffer("");
     p_atom = &(system->my_atoms[i]);
     buffer += fmt::format("{:9}{:10.3f}{:10.3f}{:10.3f}",p_atom->orig_id,
                           p_atom->x[0], p_atom->x[1],p_atom->x[2]);
-    
+
     switch (out_control->atom_info) {
     case OPT_ATOM_BASIC:
       buffer += fmt::format("{:10.3f}\n",p_atom->q);

@@ -1,0 +1,10 @@
+Martin Svoboda (ICPF, UJEP) - svobod.martin@gmail.com
+Karel Sindelka (ICPF) - sindelka@icpf.cas.cz 
+Martin Lisal (ICPF, UJEP) - lisal@icpf.cas.cz
+
+This package implements a generalised force field for dissipative
+particle dynamics (DPD). The extension divides contributions
+of dissipative and random forces to parrallel and perpendicular parts.
+See the doc pages for "pair_style dpdext" and "pair_style dpdext/tstat".
+
+There are example scripts for using this package in examples/USER/dpdext.

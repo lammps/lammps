@@ -413,7 +413,7 @@ void Variable::set(int narg, char **arg)
       if (style[ivar] != EQUAL)
         error->all(FLERR,"Cannot redefine variable as a different style");
       delete [] data[ivar][0];
-      copy(1,&arg[2],data[ivar]);
+      data[ivar][0] = utils::strdup(arg[2]);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -422,7 +422,7 @@ void Variable::set(int narg, char **arg)
       which[nvar] = 0;
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
-      copy(1,&arg[2],data[nvar]);
+      data[nvar][0] = utils::strdup(arg[2]);
       data[nvar][1] = new char[VALUELENGTH];
       strcpy(data[nvar][1],"(undefined)");
     }
@@ -439,7 +439,7 @@ void Variable::set(int narg, char **arg)
       if (style[ivar] != ATOM)
         error->all(FLERR,"Cannot redefine variable as a different style");
       delete [] data[ivar][0];
-      copy(1,&arg[2],data[ivar]);
+      data[ivar][0] = utils::strdup(arg[2]);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -448,7 +448,7 @@ void Variable::set(int narg, char **arg)
       which[nvar] = 0;
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
-      copy(1,&arg[2],data[nvar]);
+      data[nvar][0] = utils::strdup(arg[2]);
     }
 
   // VECTOR
@@ -463,7 +463,7 @@ void Variable::set(int narg, char **arg)
       if (style[ivar] != VECTOR)
         error->all(FLERR,"Cannot redefine variable as a different style");
       delete [] data[ivar][0];
-      copy(1,&arg[2],data[ivar]);
+      data[ivar][0] = utils::strdup(arg[2]);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -472,7 +472,7 @@ void Variable::set(int narg, char **arg)
       which[nvar] = 0;
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
-      copy(1,&arg[2],data[nvar]);
+      data[nvar][0] = utils::strdup(arg[2]);
     }
 
   // PYTHON
@@ -489,7 +489,7 @@ void Variable::set(int narg, char **arg)
       if (style[ivar] != PYTHON)
         error->all(FLERR,"Cannot redefine variable as a different style");
       delete [] data[ivar][0];
-      copy(1,&arg[2],data[ivar]);
+      data[ivar][0] = utils::strdup(arg[2]);
       replaceflag = 1;
     } else {
       if (nvar == maxvar) grow();
@@ -498,7 +498,7 @@ void Variable::set(int narg, char **arg)
       which[nvar] = 1;
       pad[nvar] = 0;
       data[nvar] = new char*[num[nvar]];
-      copy(1,&arg[2],data[nvar]);
+      data[nvar][0] = utils::strdup(arg[2]);
       data[nvar][1] = new char[VALUELENGTH];
       strcpy(data[nvar][1],"(undefined)");
     }

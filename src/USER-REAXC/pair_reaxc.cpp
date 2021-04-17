@@ -291,7 +291,7 @@ void PairReaxC::coeff(int nargs, char **args)
 
   // read ffield file
 
-  Read_Force_Field(args[2], &(api->system->reax_param), api->control);
+  Read_Force_Field(args[2], &(api->system->reax_param), api->control, world);
 
   // read args that map atom types to elements in potential file
   // map[i] = which element the Ith atom type is, -1 if "NULL"

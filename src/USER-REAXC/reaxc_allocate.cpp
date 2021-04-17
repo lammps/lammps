@@ -27,6 +27,8 @@
 #include "reaxff_api.h"
 
 #include "error.h"
+#include "memory.h"
+#include "pair.h"
 
 namespace ReaxFF {
 
@@ -59,39 +61,19 @@ namespace ReaxFF {
 
   void DeAllocate_System(reax_system *system)
   {
-    int i, j, k;
-    int ntypes;
-    reax_interaction *ff_params;
     auto error = system->error_ptr;
+    auto memory = system->mem_ptr;
 
     // deallocate the atom list
     sfree(error, system->my_atoms, "system->my_atoms");
 
     // deallocate the ffield parameters storage
-    ff_params = &(system->reax_param);
-    ntypes = ff_params->num_atom_types;
-
-    sfree(error, ff_params->gp.l, "ff:globals");
-
-    for (i = 0; i < ntypes; ++i) {
-      for (j = 0; j < ntypes; ++j) {
-        for (k = 0; k < ntypes; ++k) {
-          sfree(error, ff_params->fbp[i][j][k], "ff:fbp[i,j,k]");
-        }
-        sfree(error, ff_params->fbp[i][j], "ff:fbp[i,j]");
-        sfree(error, ff_params->thbp[i][j], "ff:thbp[i,j]");
-        sfree(error, ff_params->hbp[i][j], "ff:hbp[i,j]");
-      }
-      sfree(error, ff_params->fbp[i], "ff:fbp[i]");
-      sfree(error, ff_params->thbp[i], "ff:thbp[i]");
-      sfree(error, ff_params->hbp[i], "ff:hbp[i]");
-      sfree(error, ff_params->tbp[i], "ff:tbp[i]");
-    }
-    sfree(error, ff_params->fbp, "ff:fbp");
-    sfree(error, ff_params->thbp, "ff:thbp");
-    sfree(error, ff_params->hbp, "ff:hbp");
-    sfree(error, ff_params->tbp, "ff:tbp");
-    sfree(error, ff_params->sbp, "ff:sbp");
+    memory->destroy(system->reax_param.gp.l);
+    memory->destroy(system->reax_param.sbp);
+    memory->destroy(system->reax_param.tbp);
+    memory->destroy(system->reax_param.thbp);
+    memory->destroy(system->reax_param.hbp);
+    memory->destroy(system->reax_param.fbp);
   }
 
   /*************       workspace        *************/

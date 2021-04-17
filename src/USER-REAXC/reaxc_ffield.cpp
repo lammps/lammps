@@ -26,726 +26,625 @@
 
 #include "reaxff_api.h"
 
-#include <mpi.h>
+#include "error.h"
+#include "memory.h"
+#include "text_file_reader.h"
+#include "utils.h"
+
 #include <cctype>
 #include <cmath>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include "error.h"
-
-#include "utils.h"
+#include <string>
 
 using LAMMPS_NS::utils::open_potential;
 using LAMMPS_NS::utils::getsyserror;
 
 namespace ReaxFF {
+
+  class parser_error : public std::exception {
+    std::string message;
+  public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
+
   extern int  Tokenize(char* s, char*** tok);
 
   void Read_Force_Field(const char *filename, reax_interaction *reax,
-                        control_params *control)
+                        control_params *control, MPI_Comm world)
   {
-    char    *s;
-    char   **tmp;
     char ****tor_flag;
-    int      c, i, j, k, l, m, n, o, p, cnt;
-    int lgflag = control->lgflag;
-    int errorflag = 1;
-    double     val;
-    int me = control->me;
+    auto error = control->error_ptr;
+    auto lmp = control->lmp_ptr;
+    auto memory = control->lmp_ptr->memory;
 
-    FILE *fp = open_potential(filename,control->lmp_ptr,nullptr);
-    if (!fp)
-      control->error_ptr->all(FLERR,fmt::format("Cannot open ReaxFF potential "
-                                                "file {}: {}",filename,
-                                                getsyserror()));
-    s = (char*) malloc(sizeof(char)*MAX_LINE);
-    tmp = (char**) malloc(sizeof(char*)*MAX_TOKENS);
-    for (i=0; i < MAX_TOKENS; i++)
-      tmp[i] = (char*) malloc(sizeof(char)*MAX_TOKEN_LEN);
+    // read and parse the force field only on rank 0
 
-    /* reading first header comment */
-    fgets(s, MAX_LINE, fp);
+#define THROW_ERROR(txt)                                                \
+    throw parser_error(fmt::format("{}:{}: {}",filename,lineno,txt))
 
-    /* line 2 is number of global parameters */
-    fgets(s, MAX_LINE, fp);
-    c = Tokenize(s, &tmp);
+    if (control->me == 0) {
+      FILE *fp = LAMMPS_NS::utils::open_potential(filename, lmp, nullptr);
+      if (!fp)
+        error->one(FLERR,fmt::format("The ReaxFF parameter file {} cannot be opened: {}",
+                                     filename, getsyserror()));
+      LAMMPS_NS::TextFileReader reader(fp, "ReaxFF parameter");
 
-    /* reading the number of global parameters */
-    n = atoi(tmp[0]);
-    if (n < 1) {
-      if (me == 0)
-        control->error_ptr->warning(FLERR, "Number of globals in ffield file is 0. The file will not be read.");
-      fclose(fp);
-      free(s);
-      free(tmp);
-      return;
+      try {
+        int i,j,k,l,m,n,lineno = 0;
+
+        // skip header comment line
+
+        reader.skip_line();
+        ++lineno;
+
+        // set some defaults
+
+        reax->gp.vdw_type = 0;
+
+        // get number of global parameters
+
+        auto values = reader.next_values(0);
+        n = values.next_int();
+        reax->gp.n_global = n;
+        ++lineno;
+
+        if (n < 1)
+          THROW_ERROR("Invalid number of global parameters");
+
+        memory->create(reax->gp.l,n,"reaxff:gp.l");
+
+        // see reaxff_types.h for mapping between l[i] and the lambdas used in ff
+
+        for (i = 0; i < n; ++i) {
+          values = reader.next_values(0);
+          ++lineno;
+          reax->gp.l[i] = values.next_double();
+        }
+
+        // next line is number of atom types followed by 3 lines of comments
+
+        values = reader.next_values(0);
+        n = values.next_int();
+        reax->num_atom_types = n;
+        reader.skip_line();
+        reader.skip_line();
+        reader.skip_line();
+        lineno += 4;
+
+        // allocate and clear storage for ffield data
+
+        memory->create(reax->sbp,n,"reaxff:sbp");
+        memory->create(reax->tbp,n,n,"reaxff:tbp");
+        memory->create(reax->thbp,n,n,n,"reaxff:thbp");
+        memory->create(reax->hbp,n,n,n,"reaxff:hbp");
+        memory->create(reax->fbp,n,n,n,n,"reaxff:fbp");
+        memory->create(tor_flag,n,n,n,n,"reaxff:tor_flag");
+        memset(&(reax->sbp[0]),0,sizeof(single_body_parameters)*n);
+        memset(&(reax->tbp[0][0]),0,sizeof(two_body_parameters)*n*n);
+        memset(&(reax->thbp[0][0][0]),0,sizeof(three_body_header)*n*n*n);
+        memset(&(reax->hbp[0][0][0]),0,sizeof(hbond_parameters)*n*n*n);
+        memset(&(reax->fbp[0][0][0][0]),0,sizeof(four_body_header)*n*n*n*n);
+        memset(&tor_flag[0][0][0][0],0,sizeof(char)*n*n*n*n);
+
+        // atomic parameters
+        // four lines per atom type, or 5 if lgvdw != 0
+        // the first starts with the symbol and has 9 words
+        // the next three have 8 words
+        // the fifth will have 2 words, if present
+
+        const int lgflag = control->lgflag;
+        const int ntypes = n;
+        for (i = 0; i < ntypes; ++i) {
+
+          // line one
+
+          values = reader.next_values(0);
+          ++lineno;
+
+          if ((values.count() < 8) && !lgflag)
+            THROW_ERROR("This force field file requires using 'lgvdw yes'");
+          if (values.count() < 9)
+            THROW_ERROR("Invalid force field file format");
+
+          auto element = values.next_string();
+          int len = MIN(element.size(),3);
+          for (j = 0; j < len; ++j)
+            reax->sbp[i].name[j] = toupper(element[j]);
+          reax->sbp[i].name[j] = '\0';
+
+          reax->sbp[i].r_s        = values.next_double();
+          reax->sbp[i].valency    = values.next_double();
+          reax->sbp[i].mass       = values.next_double();
+          reax->sbp[i].r_vdw      = values.next_double();
+          reax->sbp[i].epsilon    = values.next_double();
+          reax->sbp[i].gamma      = values.next_double();
+          reax->sbp[i].r_pi       = values.next_double();
+          reax->sbp[i].valency_e  = values.next_double();
+          reax->sbp[i].nlp_opt = 0.5 * (reax->sbp[i].valency_e-reax->sbp[i].valency);
+
+          // line two
+
+          values = reader.next_values(0);
+          ++lineno;
+          if (values.count() < 8)
+            THROW_ERROR("Invalid force field file format");
+
+          reax->sbp[i].alpha      = values.next_double();
+          reax->sbp[i].gamma_w    = values.next_double();
+          reax->sbp[i].valency_boc= values.next_double();
+          reax->sbp[i].p_ovun5    = values.next_double();
+          values.skip();
+          reax->sbp[i].chi        = values.next_double();
+          reax->sbp[i].eta        = 2.0*values.next_double();
+          reax->sbp[i].p_hbond = (int) values.next_double();
+
+          // line three
+
+          values = reader.next_values(0);
+          ++lineno;
+          if (values.count() < 8)
+            THROW_ERROR("Invalid force field file format");
+
+          reax->sbp[i].r_pi_pi    = values.next_double();
+          reax->sbp[i].p_lp2      = values.next_double();
+          values.skip();
+          reax->sbp[i].b_o_131    = values.next_double();
+          reax->sbp[i].b_o_132    = values.next_double();
+          reax->sbp[i].b_o_133    = values.next_double();
+
+          // line four
+
+          values = reader.next_values(0);
+          ++lineno;
+          if (values.count() < 8)
+            THROW_ERROR("Invalid force field file format");
+
+          reax->sbp[i].p_ovun2    = values.next_double();
+          reax->sbp[i].p_val3     = values.next_double();
+          values.skip();
+          reax->sbp[i].valency_val= values.next_double();
+          reax->sbp[i].p_val5     = values.next_double();
+          reax->sbp[i].rcore2     = values.next_double();
+          reax->sbp[i].ecore2     = values.next_double();
+          reax->sbp[i].acore2     = values.next_double();
+
+          // read line five only when lgflag != 0
+
+          if (lgflag) {
+            values = reader.next_values(0);
+            ++lineno;
+            if (values.count() < 2)
+              THROW_ERROR("Invalid force field file format");
+            reax->sbp[i].lgcij    = values.next_double();
+            reax->sbp[i].lgre     = values.next_double();
+          } else reax->sbp[i].lgcij = reax->sbp[i].lgre = 0.0;
+
+          // van der Waals settings check:
+
+          // Inner-wall?
+          if ((reax->sbp[i].rcore2 > 0.01) && (reax->sbp[i].acore2 > 0.01)) {
+            // Shielding van der Waals?
+            if (reax->sbp[i].gamma_w > 0.5) {
+              if (reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3) {
+                const auto errmsg
+                  = fmt::format("Van der Waals parameters for element {} "
+                                "indicate inner wall+shielding, but earlier "
+                                "atoms indicate a different van der Waals "
+                                "method. This may cause division-by-zero "
+                                "errors. Keeping van der Waals setting for "
+                                "earlier atoms.",reax->sbp[i].name);
+                error->warning(FLERR,errmsg);
+              } else {
+                reax->gp.vdw_type = 3;
+              }
+            } else {  // No shielding van der Waals parameters present
+              if ((reax->gp.vdw_type != 0) && (reax->gp.vdw_type != 2)) {
+                const auto errmsg
+                  = fmt::format("Van der Waals parameters for element {} "
+                                "indicate inner wall withou shielding, but "
+                                "earlier atoms indicate a different van der "
+                                "Waals-method. This may cause division-by-"
+                                "zero errors. Keeping van der Waals setting "
+                                "for earlier atoms.", reax->sbp[i].name);
+                error->warning(FLERR,errmsg);
+              } else {
+                reax->gp.vdw_type = 2;
+              }
+            }
+          } else { // No Inner wall parameters present
+            if (reax->sbp[i].gamma_w > 0.5) { // Shielding vdWaals
+              if ((reax->gp.vdw_type != 0) && (reax->gp.vdw_type != 1)) {
+                const auto errmsg
+                  = fmt::format("Van der Waals parameters for element {} "
+                                "indicate shielding without inner wall, but "
+                                "earlier elements indicate a different van der "
+                                "Waals method. This may cause division-by-zero "
+                                "errors. Keeping van der Waals setting for "
+                                "earlier atoms.", reax->sbp[i].name);
+                error->warning(FLERR,errmsg);
+              } else {
+                reax->gp.vdw_type = 1;
+              }
+            } else {
+              error->one(FLERR,fmt::format("Inconsistent van der Waals "
+                                           "parameters: No shielding or inner "
+                                           "wall set for element {}",
+                                           reax->sbp[i].name));
+            }
+          }
+        }
+
+        /* Equate vval3 to valf for first-row elements (25/10/2004) */
+        for (i = 0; i < ntypes; i++) {
+          if ((reax->sbp[i].mass < 21) &&
+              (reax->sbp[i].valency_val != reax->sbp[i].valency_boc)) {
+            error->warning(FLERR,fmt::format("Changed valency_val to valency"
+                                             "_boc for {}", reax->sbp[i].name));
+            reax->sbp[i].valency_val = reax->sbp[i].valency_boc;
+          }
+        }
+
+        // next line is number of two body parameters followed by 1 comment line
+
+        values = reader.next_values(0);
+        n = values.next_int();
+        reader.skip_line();
+        lineno += 2;
+
+        for (i = 0; i < n; ++i) {
+
+          // first line
+
+          values = reader.next_values(0);
+          ++lineno;
+          if (values.count() < 10)
+            THROW_ERROR("Invalid force field file format");
+
+          j = values.next_int() - 1;
+          k = values.next_int() - 1;
+
+          if ((j < 0) || (k < 0))
+            THROW_ERROR("Inconsistent force field file");
+
+          if ((j < ntypes) && (k < ntypes)) {
+            reax->tbp[j][k].De_s    = reax->tbp[k][j].De_s    = values.next_double();
+            reax->tbp[j][k].De_p    = reax->tbp[k][j].De_p    = values.next_double();
+            reax->tbp[j][k].De_pp   = reax->tbp[k][j].De_pp   = values.next_double();
+            reax->tbp[j][k].p_be1   = reax->tbp[k][j].p_be1   = values.next_double();
+            reax->tbp[j][k].p_bo5   = reax->tbp[k][j].p_bo5   = values.next_double();
+            reax->tbp[j][k].v13cor  = reax->tbp[k][j].v13cor  = values.next_double();
+            reax->tbp[j][k].p_bo6   = reax->tbp[k][j].p_bo6   = values.next_double();
+            reax->tbp[j][k].p_ovun1 = reax->tbp[k][j].p_ovun1 = values.next_double();
+          }
+
+          // second line
+
+          values = reader.next_values(0);
+          ++lineno;
+          if (values.count() < 8)
+            THROW_ERROR("Invalid force field file format");
+
+          if ((j < ntypes) && (k < ntypes)) {
+            reax->tbp[j][k].p_be2 = reax->tbp[k][j].p_be2 = values.next_double();
+            reax->tbp[j][k].p_bo3 = reax->tbp[k][j].p_bo3 = values.next_double();
+            reax->tbp[j][k].p_bo4 = reax->tbp[k][j].p_bo4 = values.next_double();
+            values.skip();
+            reax->tbp[j][k].p_bo1 = reax->tbp[k][j].p_bo1 = values.next_double();
+            reax->tbp[j][k].p_bo2 = reax->tbp[k][j].p_bo2 = values.next_double();
+            reax->tbp[j][k].ovc   = reax->tbp[k][j].ovc   = values.next_double();
+          }
+        }
+
+        for (i=0; i < ntypes; ++i) {
+          for (j=i; j < ntypes; ++j) {
+            reax->tbp[i][j].r_s = reax->tbp[j][i].r_s =
+              0.5*(reax->sbp[j].r_s + reax->sbp[i].r_s);
+
+            reax->tbp[i][j].r_p = reax->tbp[j][i].r_p =
+              0.5*(reax->sbp[j].r_pi + reax->sbp[i].r_pi);
+
+            reax->tbp[i][j].r_pp = reax->tbp[j][i].r_pp =
+              0.5*(reax->sbp[j].r_pi_pi + reax->sbp[i].r_pi_pi);
+
+            reax->tbp[i][j].p_boc3 = reax->tbp[j][i].p_boc3 =
+              sqrt(reax->sbp[j].b_o_132 * reax->sbp[i].b_o_132);
+
+            reax->tbp[i][j].p_boc4 = reax->tbp[j][i].p_boc4 =
+              sqrt(reax->sbp[j].b_o_131 * reax->sbp[i].b_o_131);
+
+            reax->tbp[i][j].p_boc5 = reax->tbp[j][i].p_boc5 =
+              sqrt(reax->sbp[j].b_o_133 * reax->sbp[i].b_o_133);
+
+            reax->tbp[i][j].D = reax->tbp[j][i].D =
+              sqrt(reax->sbp[j].epsilon * reax->sbp[i].epsilon);
+
+            reax->tbp[i][j].alpha = reax->tbp[j][i].alpha =
+              sqrt(reax->sbp[j].alpha * reax->sbp[i].alpha);
+
+            reax->tbp[i][j].r_vdW = reax->tbp[j][i].r_vdW =
+              2.0*sqrt(reax->sbp[j].r_vdw * reax->sbp[i].r_vdw);
+
+            reax->tbp[i][j].gamma_w = reax->tbp[j][i].gamma_w =
+              sqrt(reax->sbp[j].gamma_w * reax->sbp[i].gamma_w);
+
+            reax->tbp[i][j].gamma = reax->tbp[j][i].gamma =
+              pow(reax->sbp[j].gamma * reax->sbp[i].gamma,-1.5);
+
+            // additions for additional vdWaals interaction types - inner core
+
+            reax->tbp[i][j].rcore = reax->tbp[j][i].rcore =
+              sqrt(reax->sbp[i].rcore2 * reax->sbp[j].rcore2);
+
+            reax->tbp[i][j].ecore = reax->tbp[j][i].ecore =
+              sqrt(reax->sbp[i].ecore2 * reax->sbp[j].ecore2);
+
+            reax->tbp[i][j].acore = reax->tbp[j][i].acore =
+              sqrt(reax->sbp[i].acore2 * reax->sbp[j].acore2);
+
+            // additions for additional vdWalls interaction types lg correction
+
+            reax->tbp[i][j].lgcij = reax->tbp[j][i].lgcij =
+              sqrt(reax->sbp[i].lgcij * reax->sbp[j].lgcij);
+
+            reax->tbp[i][j].lgre = reax->tbp[j][i].lgre
+              = 2.0 * reax->gp.l[35] * sqrt(reax->sbp[i].lgre*reax->sbp[j].lgre);
+          }
+        }
+
+        // next line is number of two body off-diagonal parameters
+
+        values = reader.next_values(0);
+        n = values.next_int();
+        ++lineno;
+
+        double val;
+        for (i = 0; i < n; ++i) {
+          values = reader.next_values(0);
+          ++lineno;
+          if ((int)values.count() < 8 + lgflag)
+            THROW_ERROR("Invalid force field file format");
+
+          j = values.next_int() - 1;
+          k = values.next_int() - 1;
+
+          if ((j < 0) || (k < 0))
+            THROW_ERROR("Inconsistent force field file");
+
+          if ((j < ntypes) && (k < ntypes)) {
+            val = values.next_double();
+            if (val > 0.0) reax->tbp[j][k].D = reax->tbp[k][j].D = val;
+
+            val = values.next_double();
+            if (val > 0.0) reax->tbp[j][k].r_vdW = reax->tbp[k][j].r_vdW = 2*val;
+
+            val = values.next_double();
+            if (val > 0.0) reax->tbp[j][k].alpha = reax->tbp[k][j].alpha = val;
+
+            val = values.next_double();
+            if (val > 0.0) reax->tbp[j][k].r_s = reax->tbp[k][j].r_s = val;
+
+            val = values.next_double();
+            if (val > 0.0) reax->tbp[j][k].r_p = reax->tbp[k][j].r_p = val;
+
+            val = values.next_double();
+            if (val > 0.0) reax->tbp[j][k].r_pp = reax->tbp[k][j].r_pp = val;
+
+            if (lgflag) {
+              val = values.next_double();
+              if (val >= 0.0) reax->tbp[j][k].lgcij = reax->tbp[k][j].lgcij = val;
+            }
+          }
+        }
+
+        // next line is number of three body parameters
+
+        values = reader.next_values(0);
+        n = values.next_int();
+        ++lineno;
+
+        int cnt;
+        for (i = 0; i < n; ++i) {
+          values = reader.next_values(0);
+          ++lineno;
+          if (values.count() < 10)
+            THROW_ERROR("Invalid force field file format");
+
+          j = values.next_int() - 1;
+          k = values.next_int() - 1;
+          l = values.next_int() - 1;
+
+          if ((j < 0) || (k < 0) || (l < 0))
+            THROW_ERROR("Inconsistent force field file");
+
+          if ((j < ntypes) && (k < ntypes) && (l < ntypes)) {
+
+            cnt = reax->thbp[j][k][l].cnt;
+            reax->thbp[j][k][l].cnt++;
+            reax->thbp[l][k][j].cnt++;
+
+            val = values.next_double();
+            reax->thbp[j][k][l].prm[cnt].theta_00 = val;
+            reax->thbp[l][k][j].prm[cnt].theta_00 = val;
+
+            val = values.next_double();
+            reax->thbp[j][k][l].prm[cnt].p_val1 = val;
+            reax->thbp[l][k][j].prm[cnt].p_val1 = val;
+
+            val = values.next_double();
+            reax->thbp[j][k][l].prm[cnt].p_val2 = val;
+            reax->thbp[l][k][j].prm[cnt].p_val2 = val;
+
+            val = values.next_double();
+            reax->thbp[j][k][l].prm[cnt].p_coa1 = val;
+            reax->thbp[l][k][j].prm[cnt].p_coa1 = val;
+
+            val = values.next_double();
+            reax->thbp[j][k][l].prm[cnt].p_val7 = val;
+            reax->thbp[l][k][j].prm[cnt].p_val7 = val;
+
+            val = values.next_double();
+            reax->thbp[j][k][l].prm[cnt].p_pen1 = val;
+            reax->thbp[l][k][j].prm[cnt].p_pen1 = val;
+
+            val = values.next_double();
+            reax->thbp[j][k][l].prm[cnt].p_val4 = val;
+            reax->thbp[l][k][j].prm[cnt].p_val4 = val;
+          }
+        }
+
+        // next line is number of four body parameters
+
+        values = reader.next_values(0);
+        n = values.next_int();
+        ++lineno;
+
+        for (i = 0; i < n; ++i) {
+          values = reader.next_values(0);
+          ++lineno;
+          if (values.count() < 9)
+            THROW_ERROR("Invalid force field file format");
+
+          j = values.next_int() - 1;
+          k = values.next_int() - 1;
+          l = values.next_int() - 1;
+          m = values.next_int() - 1;
+
+          if ((j < -1) || (k < 0) || (l < 0) || (m < -1))
+            THROW_ERROR("Inconsistent force field file");
+
+          if ((j >= 0) && (m >= 0)) { // this means the entry is not in compact form
+
+            if ((j < ntypes) && (k < ntypes) && (l < ntypes) && (m < ntypes)) {
+
+              tor_flag[j][k][l][m] = 1;
+              tor_flag[m][l][k][j] = 1;
+
+              reax->fbp[j][k][l][m].cnt = 1;
+              reax->fbp[m][l][k][j].cnt = 1;
+
+              val = values.next_double();
+              reax->fbp[j][k][l][m].prm[0].V1 = val;
+              reax->fbp[m][l][k][j].prm[0].V1 = val;
+
+              val = values.next_double();
+              reax->fbp[j][k][l][m].prm[0].V2 = val;
+              reax->fbp[m][l][k][j].prm[0].V2 = val;
+
+              val = values.next_double();
+              reax->fbp[j][k][l][m].prm[0].V3 = val;
+              reax->fbp[m][l][k][j].prm[0].V3 = val;
+
+              val = values.next_double();
+              reax->fbp[j][k][l][m].prm[0].p_tor1 = val;
+              reax->fbp[m][l][k][j].prm[0].p_tor1 = val;
+
+              val = values.next_double();
+              reax->fbp[j][k][l][m].prm[0].p_cot1 = val;
+              reax->fbp[m][l][k][j].prm[0].p_cot1 = val;
+            }
+
+          } else { /* This means the entry is of the form 0-X-Y-0 */
+
+            if ((k < ntypes) && (l < ntypes)) {
+              const double val1 = values.next_double();
+              const double val2 = values.next_double();
+              const double val3 = values.next_double();
+              const double val4 = values.next_double();
+              const double val5 = values.next_double();
+
+              for (int p = 0; p < ntypes; ++p) {
+                for (int o = 0; o < ntypes; ++o) {
+                  reax->fbp[p][k][l][o].cnt = 1;
+                  reax->fbp[o][l][k][p].cnt = 1;
+
+                  if (tor_flag[p][k][l][o] == 0) {
+                    reax->fbp[p][k][l][o].prm[0].V1 = val1;
+                    reax->fbp[p][k][l][o].prm[0].V2 = val2;
+                    reax->fbp[p][k][l][o].prm[0].V3 = val3;
+                    reax->fbp[p][k][l][o].prm[0].p_tor1 = val4;
+                    reax->fbp[p][k][l][o].prm[0].p_cot1 = val5;
+                  }
+
+                  if (tor_flag[o][l][k][p] == 0) {
+                    reax->fbp[o][l][k][p].prm[0].V1 = val1;
+                    reax->fbp[o][l][k][p].prm[0].V2 = val2;
+                    reax->fbp[o][l][k][p].prm[0].V3 = val3;
+                    reax->fbp[o][l][k][p].prm[0].p_tor1 = val4;
+                    reax->fbp[o][l][k][p].prm[0].p_cot1 = val5;
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // next line is number of hydrogen bond parameters
+
+        values = reader.next_values(0);
+        n = values.next_int();
+        ++lineno;
+
+        for (i = 0; i < ntypes; ++i)
+          for (j = 0; j < ntypes; ++j)
+            for (k = 0; k < ntypes; ++k)
+              reax->hbp[i][j][k].r0_hb = -1.0;
+
+        for (i = 0; i < n; ++i) {
+          values = reader.next_values(0);
+          ++lineno;
+          if (values.count() < 7)
+            THROW_ERROR("Invalid force field file format");
+
+          j = values.next_int() - 1;
+          k = values.next_int() - 1;
+          l = values.next_int() - 1;
+
+          if ((j < 0) || (k < 0) || (l < 0))
+            THROW_ERROR("Inconsistent force field file");
+
+          if ((j < ntypes) && (k < ntypes) && (l < ntypes)) {
+            reax->hbp[j][k][m].r0_hb = values.next_double();
+            reax->hbp[j][k][m].p_hb1 = values.next_double();
+            reax->hbp[j][k][m].p_hb2 = values.next_double();
+            reax->hbp[j][k][m].p_hb3 = values.next_double();
+          }
+        }
+
+        memory->destroy(tor_flag);
+      } catch (std::exception &e) {
+        error->one(FLERR,e.what());
+      }
     }
 
-    reax->gp.n_global = n;
-    reax->gp.l = (double*) malloc(sizeof(double)*n);
+    // broadcast global parameters and allocate list on ranks != 0
+    MPI_Bcast(&reax->gp,sizeof(global_parameters),MPI_CHAR,0,world);
+    if (control->me != 0) memory->create(reax->gp.l,reax->gp.n_global,"reaxff:gp.l");
+    MPI_Bcast(reax->gp.l,reax->gp.n_global,MPI_DOUBLE,0,world);
 
-    /* see reax_types.h for mapping between l[i] and the lambdas used in ff */
-    for (i=0; i < n; i++) {
-      fgets(s,MAX_LINE,fp);
-      c = Tokenize(s,&tmp);
-
-      val = (double) atof(tmp[0]);
-      reax->gp.l[i] = val;
+    // allocate storage for atom type based data
+    MPI_Bcast(&reax->num_atom_types,1,MPI_INT,0,world);
+    if (control->me != 0) {
+      const int n = reax->num_atom_types;
+      memory->create(reax->sbp,n,"reaxff:sbp");
+      memory->create(reax->tbp,n,n,"reaxff:tbp");
+      memory->create(reax->thbp,n,n,n,"reaxff:thbp");
+      memory->create(reax->hbp,n,n,n,"reaxff:hbp");
+      memory->create(reax->fbp,n,n,n,n,"reaxff:fbp");
     }
+
+    // broadcast type specific force field data
+    const int n = reax->num_atom_types;
+    MPI_Bcast(&(reax->sbp[0]),sizeof(single_body_parameters)*n,MPI_CHAR,0,world);
+    MPI_Bcast(&(reax->tbp[0][0]),sizeof(two_body_parameters)*n*n,MPI_CHAR,0,world);
+    MPI_Bcast(&(reax->thbp[0][0][0]),sizeof(three_body_header)*n*n*n,MPI_CHAR,0,world);
+    MPI_Bcast(&(reax->hbp[0][0][0]),sizeof(hbond_parameters)*n*n*n,MPI_CHAR,0,world);
+    MPI_Bcast(&(reax->fbp[0][0][0][0]),sizeof(four_body_header)*n*n*n*n,MPI_CHAR,0,world);
+
+    // apply parameters to various settings
 
     control->bo_cut    = 0.01 * reax->gp.l[29];
     control->nonb_low  = reax->gp.l[11];
     control->nonb_cut  = reax->gp.l[12];
-
-    /* next line is number of atom types and some comments */
-    fgets(s, MAX_LINE, fp);
-    c = Tokenize(s, &tmp);
-    reax->num_atom_types = atoi(tmp[0]);
-
-    /* 3 lines of comments */
-    fgets(s,MAX_LINE,fp);
-    fgets(s,MAX_LINE,fp);
-    fgets(s,MAX_LINE,fp);
-
-    /* Allocating structures in reax_interaction */
-    reax->sbp = (single_body_parameters*)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(single_body_parameters), "sbp");
-    reax->tbp = (two_body_parameters**)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters*), "tbp");
-    reax->thbp= (three_body_header***)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header**), "thbp");
-    reax->hbp = (hbond_parameters***)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters**), "hbp");
-    reax->fbp = (four_body_header****)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header***), "fbp");
-    tor_flag  = (char****)
-      scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char***), "tor_flag");
-
-    for (i = 0; i < reax->num_atom_types; i++) {
-      reax->tbp[i] = (two_body_parameters*)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(two_body_parameters), "tbp[i]");
-      reax->thbp[i]= (three_body_header**)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header*), "thbp[i]");
-      reax->hbp[i] = (hbond_parameters**)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters*), "hbp[i]");
-      reax->fbp[i] = (four_body_header***)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header**), "fbp[i]");
-      tor_flag[i]  = (char***)
-        scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char**), "tor_flag[i]");
-
-      for (j = 0; j < reax->num_atom_types; j++) {
-        reax->thbp[i][j]= (three_body_header*)
-          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(three_body_header), "thbp[i,j]");
-        reax->hbp[i][j] = (hbond_parameters*)
-          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(hbond_parameters), "hbp[i,j]");
-        reax->fbp[i][j] = (four_body_header**)
-          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header*), "fbp[i,j]");
-        tor_flag[i][j]  = (char**)
-          scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char*), "tor_flag[i,j]");
-
-        for (k=0; k < reax->num_atom_types; k++) {
-          reax->fbp[i][j][k] = (four_body_header*)
-            scalloc(control->error_ptr,  reax->num_atom_types, sizeof(four_body_header), "fbp[i,j,k]");
-          tor_flag[i][j][k]  = (char*)
-            scalloc(control->error_ptr,  reax->num_atom_types, sizeof(char), "tor_flag[i,j,k]");
-        }
-      }
-    }
-
-    reax->gp.vdw_type = 0;
-
-    char errmsg[1024];
-
-    for (i = 0; i < reax->num_atom_types; i++) {
-      /* line one */
-      fgets(s, MAX_LINE, fp);
-      c = Tokenize(s, &tmp);
-
-      /* Sanity checks */
-      if (c == 2 && !lgflag)
-        control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");
-
-      if (c < 9) {
-        snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
-        control->error_ptr->all(FLERR, errmsg);
-      }
-
-      for (j = 0; j < (int)(strlen(tmp[0])); ++j)
-        reax->sbp[i].name[j] = toupper(tmp[0][j]);
-
-      val = atof(tmp[1]); reax->sbp[i].r_s        = val;
-      val = atof(tmp[2]); reax->sbp[i].valency    = val;
-      val = atof(tmp[3]); reax->sbp[i].mass       = val;
-      val = atof(tmp[4]); reax->sbp[i].r_vdw      = val;
-      val = atof(tmp[5]); reax->sbp[i].epsilon    = val;
-      val = atof(tmp[6]); reax->sbp[i].gamma      = val;
-      val = atof(tmp[7]); reax->sbp[i].r_pi       = val;
-      val = atof(tmp[8]); reax->sbp[i].valency_e  = val;
-      reax->sbp[i].nlp_opt = 0.5 * (reax->sbp[i].valency_e-reax->sbp[i].valency);
-
-      /* line two */
-      fgets(s, MAX_LINE, fp);
-      c = Tokenize(s, &tmp);
-
-      /* Sanity check */
-      if (c < 8) {
-        snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
-        control->error_ptr->all(FLERR, errmsg);
-      }
-
-      val = atof(tmp[0]); reax->sbp[i].alpha      = val;
-      val = atof(tmp[1]); reax->sbp[i].gamma_w    = val;
-      val = atof(tmp[2]); reax->sbp[i].valency_boc= val;
-      val = atof(tmp[3]); reax->sbp[i].p_ovun5    = val;
-      val = atof(tmp[4]);
-      val = atof(tmp[5]); reax->sbp[i].chi        = val;
-      val = atof(tmp[6]); reax->sbp[i].eta        = 2.0 * val;
-      val = atof(tmp[7]); reax->sbp[i].p_hbond = (int) val;
-
-      /* line 3 */
-      fgets(s, MAX_LINE, fp);
-      c = Tokenize(s, &tmp);
-
-      /* Sanity check */
-      if (c < 8) {
-        snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
-        control->error_ptr->all(FLERR, errmsg);
-      }
-
-      val = atof(tmp[0]); reax->sbp[i].r_pi_pi    = val;
-      val = atof(tmp[1]); reax->sbp[i].p_lp2      = val;
-      val = atof(tmp[2]);
-      val = atof(tmp[3]); reax->sbp[i].b_o_131    = val;
-      val = atof(tmp[4]); reax->sbp[i].b_o_132    = val;
-      val = atof(tmp[5]); reax->sbp[i].b_o_133    = val;
-      val = atof(tmp[6]);
-      val = atof(tmp[7]);
-
-      /* line 4  */
-      fgets(s, MAX_LINE, fp);
-      c = Tokenize(s, &tmp);
-
-      /* Sanity check */
-      if (c < 8) {
-        snprintf (errmsg, 1024, "Missing parameter(s) in line %s", s);
-        control->error_ptr->all(FLERR, errmsg);
-      }
-
-      val = atof(tmp[0]); reax->sbp[i].p_ovun2    = val;
-      val = atof(tmp[1]); reax->sbp[i].p_val3     = val;
-      val = atof(tmp[2]);
-      val = atof(tmp[3]); reax->sbp[i].valency_val= val;
-      val = atof(tmp[4]); reax->sbp[i].p_val5     = val;
-      val = atof(tmp[5]); reax->sbp[i].rcore2     = val;
-      val = atof(tmp[6]); reax->sbp[i].ecore2     = val;
-      val = atof(tmp[7]); reax->sbp[i].acore2     = val;
-
-      /* line 5, only if lgvdw is yes */
-      if (lgflag) {
-        fgets(s, MAX_LINE, fp);
-        c = Tokenize(s, &tmp);
-
-        /* Sanity check */
-        if (c > 2) {
-          control->error_ptr->all(FLERR,"Force field file incompatible with 'lgvdw yes'");
-        }
-
-        val = atof(tmp[0]); reax->sbp[i].lgcij           = val;
-        val = atof(tmp[1]); reax->sbp[i].lgre           = val;
-      }
-
-      if (reax->sbp[i].rcore2>0.01 && reax->sbp[i].acore2>0.01) { // Inner-wall
-        if (reax->sbp[i].gamma_w>0.5) { // Shielding vdWaals
-          if (reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3) {
-            if (errorflag && (me == 0)) {
-              char errmsg[512];
-              snprintf(errmsg, 512, "VdWaals-parameters for element %s "
-                       "indicate inner wall+shielding, but earlier "
-                       "atoms indicate different vdWaals-method. "
-                       "This may cause division-by-zero errors. "
-                       "Keeping vdWaals-setting for earlier atoms.",
-                       reax->sbp[i].name);
-              control->error_ptr->warning(FLERR,errmsg);
-            }
-            errorflag = 0;
-          } else {
-            reax->gp.vdw_type = 3;
-          }
-        } else {  // No shielding vdWaals parameters present
-          if (reax->gp.vdw_type != 0 && reax->gp.vdw_type != 2) {
-            if (me == 0) {
-              char errmsg[512];
-              snprintf(errmsg, 512, "VdWaals-parameters for element %s "
-                       "indicate inner wall without shielding, but earlier "
-                       "atoms indicate different vdWaals-method. "
-                       "This may cause division-by-zero errors. "
-                       "Keeping vdWaals-setting for earlier atoms.",
-                       reax->sbp[i].name);
-              control->error_ptr->warning(FLERR,errmsg);
-            }
-          } else {
-            reax->gp.vdw_type = 2;
-          }
-        }
-      } else { // No Inner wall parameters present
-        if (reax->sbp[i].gamma_w>0.5) { // Shielding vdWaals
-          if (reax->gp.vdw_type != 0 && reax->gp.vdw_type != 1) {
-            if (me == 0) {
-              char errmsg[512];
-              snprintf(errmsg, 512, "VdWaals parameters for element %s "
-                       "indicate shielding without inner wall, but earlier "
-                       "elements indicate different vdWaals-method. "
-                       "This may cause division-by-zero errors. "
-                       "Keeping vdWaals-setting for earlier atoms.",
-                       reax->sbp[i].name);
-              control->error_ptr->warning(FLERR,errmsg);
-            }
-          } else {
-            reax->gp.vdw_type = 1;
-          }
-        } else {
-          char errmsg[256];
-          snprintf(errmsg, 256, "Inconsistent vdWaals-parameters: "
-                   "No shielding or inner-wall set for element %s",
-                   reax->sbp[i].name);
-          control->error_ptr->all(FLERR, errmsg);
-        }
-      }
-    }
-
-    /* Equate vval3 to valf for first-row elements (25/10/2004) */
-    for (i = 0; i < reax->num_atom_types; i++)
-      if (reax->sbp[i].mass < 21 &&
-           reax->sbp[i].valency_val != reax->sbp[i].valency_boc) {
-        if (me == 0) {
-          char errmsg[256];
-          snprintf(errmsg, 256, "Changed valency_val to valency_boc for %s",
-                   reax->sbp[i].name);
-          control->error_ptr->warning(FLERR,errmsg);
-        }
-        reax->sbp[i].valency_val = reax->sbp[i].valency_boc;
-      }
-
-    /* next line is number of two body combination and some comments */
-    fgets(s,MAX_LINE,fp);
-    c=Tokenize(s,&tmp);
-
-    if (c == 2 && !lgflag) {
-      control->error_ptr->all(FLERR, "Force field file requires using 'lgvdw yes'");
-    }
-
-    l = atoi(tmp[0]);
-
-    /* a line of comments */
-    fgets(s,MAX_LINE,fp);
-
-    for (i=0; i < l; i++) {
-      /* line 1 */
-      fgets(s,MAX_LINE,fp);
-      c=Tokenize(s,&tmp);
-
-      j = atoi(tmp[0]) - 1;
-      k = atoi(tmp[1]) - 1;
-      if ((c < 10) || (j < 0) || (k < 0))
-        control->error_ptr->all(FLERR, "Inconsistent force field file");
-
-      if (j < reax->num_atom_types && k < reax->num_atom_types) {
-
-        val = atof(tmp[2]); reax->tbp[j][k].De_s      = val;
-        reax->tbp[k][j].De_s      = val;
-        val = atof(tmp[3]); reax->tbp[j][k].De_p      = val;
-        reax->tbp[k][j].De_p      = val;
-        val = atof(tmp[4]); reax->tbp[j][k].De_pp     = val;
-        reax->tbp[k][j].De_pp     = val;
-        val = atof(tmp[5]); reax->tbp[j][k].p_be1     = val;
-        reax->tbp[k][j].p_be1     = val;
-        val = atof(tmp[6]); reax->tbp[j][k].p_bo5     = val;
-        reax->tbp[k][j].p_bo5     = val;
-        val = atof(tmp[7]); reax->tbp[j][k].v13cor    = val;
-        reax->tbp[k][j].v13cor    = val;
-
-        val = atof(tmp[8]); reax->tbp[j][k].p_bo6     = val;
-        reax->tbp[k][j].p_bo6     = val;
-        val = atof(tmp[9]); reax->tbp[j][k].p_ovun1 = val;
-        reax->tbp[k][j].p_ovun1 = val;
-
-        /* line 2 */
-        fgets(s,MAX_LINE,fp);
-        c=Tokenize(s,&tmp);
-        if (c < 8)
-          control->error_ptr->all(FLERR, "Inconsistent force field file");
-
-        val = atof(tmp[0]); reax->tbp[j][k].p_be2     = val;
-        reax->tbp[k][j].p_be2     = val;
-        val = atof(tmp[1]); reax->tbp[j][k].p_bo3     = val;
-        reax->tbp[k][j].p_bo3     = val;
-        val = atof(tmp[2]); reax->tbp[j][k].p_bo4     = val;
-        reax->tbp[k][j].p_bo4     = val;
-        val = atof(tmp[3]);
-
-        val = atof(tmp[4]); reax->tbp[j][k].p_bo1     = val;
-        reax->tbp[k][j].p_bo1     = val;
-        val = atof(tmp[5]); reax->tbp[j][k].p_bo2     = val;
-        reax->tbp[k][j].p_bo2     = val;
-        val = atof(tmp[6]); reax->tbp[j][k].ovc       = val;
-        reax->tbp[k][j].ovc       = val;
-
-        val = atof(tmp[7]);
-      }
-    }
-
-    for (i=0; i < reax->num_atom_types; i++)
-      for (j=i; j < reax->num_atom_types; j++) {
-        reax->tbp[i][j].r_s = 0.5 *
-          (reax->sbp[i].r_s + reax->sbp[j].r_s);
-        reax->tbp[j][i].r_s = 0.5 *
-          (reax->sbp[j].r_s + reax->sbp[i].r_s);
-
-        reax->tbp[i][j].r_p = 0.5 *
-          (reax->sbp[i].r_pi + reax->sbp[j].r_pi);
-        reax->tbp[j][i].r_p = 0.5 *
-          (reax->sbp[j].r_pi + reax->sbp[i].r_pi);
-
-        reax->tbp[i][j].r_pp = 0.5 *
-          (reax->sbp[i].r_pi_pi + reax->sbp[j].r_pi_pi);
-        reax->tbp[j][i].r_pp = 0.5 *
-          (reax->sbp[j].r_pi_pi + reax->sbp[i].r_pi_pi);
-
-
-        reax->tbp[i][j].p_boc3 =
-          sqrt(reax->sbp[i].b_o_132 *
-               reax->sbp[j].b_o_132);
-        reax->tbp[j][i].p_boc3 =
-          sqrt(reax->sbp[j].b_o_132 *
-               reax->sbp[i].b_o_132);
-
-        reax->tbp[i][j].p_boc4 =
-          sqrt(reax->sbp[i].b_o_131 *
-               reax->sbp[j].b_o_131);
-        reax->tbp[j][i].p_boc4 =
-          sqrt(reax->sbp[j].b_o_131 *
-               reax->sbp[i].b_o_131);
-
-        reax->tbp[i][j].p_boc5 =
-          sqrt(reax->sbp[i].b_o_133 *
-               reax->sbp[j].b_o_133);
-        reax->tbp[j][i].p_boc5 =
-          sqrt(reax->sbp[j].b_o_133 *
-               reax->sbp[i].b_o_133);
-
-
-        reax->tbp[i][j].D =
-          sqrt(reax->sbp[i].epsilon *
-               reax->sbp[j].epsilon);
-
-        reax->tbp[j][i].D =
-          sqrt(reax->sbp[j].epsilon *
-               reax->sbp[i].epsilon);
-
-        reax->tbp[i][j].alpha =
-          sqrt(reax->sbp[i].alpha *
-               reax->sbp[j].alpha);
-
-        reax->tbp[j][i].alpha =
-          sqrt(reax->sbp[j].alpha *
-               reax->sbp[i].alpha);
-
-        reax->tbp[i][j].r_vdW =
-          2.0 * sqrt(reax->sbp[i].r_vdw * reax->sbp[j].r_vdw);
-
-        reax->tbp[j][i].r_vdW =
-          2.0 * sqrt(reax->sbp[j].r_vdw * reax->sbp[i].r_vdw);
-
-        reax->tbp[i][j].gamma_w =
-          sqrt(reax->sbp[i].gamma_w *
-               reax->sbp[j].gamma_w);
-
-        reax->tbp[j][i].gamma_w =
-          sqrt(reax->sbp[j].gamma_w *
-               reax->sbp[i].gamma_w);
-
-        reax->tbp[i][j].gamma =
-          pow(reax->sbp[i].gamma *
-              reax->sbp[j].gamma,-1.5);
-
-        reax->tbp[j][i].gamma =
-          pow(reax->sbp[j].gamma *
-              reax->sbp[i].gamma,-1.5);
-
-        // additions for additional vdWaals interaction types - inner core
-
-        reax->tbp[i][j].rcore = reax->tbp[j][i].rcore =
-          sqrt(reax->sbp[i].rcore2 * reax->sbp[j].rcore2);
-
-        reax->tbp[i][j].ecore = reax->tbp[j][i].ecore =
-          sqrt(reax->sbp[i].ecore2 * reax->sbp[j].ecore2);
-
-        reax->tbp[i][j].acore = reax->tbp[j][i].acore =
-          sqrt(reax->sbp[i].acore2 * reax->sbp[j].acore2);
-
-        // additions for additional vdWalls interaction types lg correction
-
-        reax->tbp[i][j].lgcij = reax->tbp[j][i].lgcij =
-          sqrt(reax->sbp[i].lgcij * reax->sbp[j].lgcij);
-
-        reax->tbp[i][j].lgre = reax->tbp[j][i].lgre = 2.0 * reax->gp.l[35] *
-          sqrt(reax->sbp[i].lgre*reax->sbp[j].lgre);
-
-      }
-
-    fgets(s,MAX_LINE,fp);
-    c=Tokenize(s,&tmp);
-    l = atoi(tmp[0]);
-
-    for (i=0; i < l; i++) {
-      fgets(s,MAX_LINE,fp);
-      c=Tokenize(s,&tmp);
-
-      j = atoi(tmp[0]) - 1;
-      k = atoi(tmp[1]) - 1;
-
-      if ((c < (lgflag ? 9 : 8)) || (j < 0) || (k < 0))
-        control->error_ptr->all(FLERR, "Inconsistent force field file");
-
-      if (j < reax->num_atom_types && k < reax->num_atom_types)        {
-        val = atof(tmp[2]);
-        if (val > 0.0) {
-          reax->tbp[j][k].D = val;
-          reax->tbp[k][j].D = val;
-        }
-
-        val = atof(tmp[3]);
-        if (val > 0.0) {
-          reax->tbp[j][k].r_vdW = 2 * val;
-          reax->tbp[k][j].r_vdW = 2 * val;
-        }
-
-        val = atof(tmp[4]);
-        if (val > 0.0) {
-          reax->tbp[j][k].alpha = val;
-          reax->tbp[k][j].alpha = val;
-        }
-
-        val = atof(tmp[5]);
-        if (val > 0.0) {
-          reax->tbp[j][k].r_s = val;
-          reax->tbp[k][j].r_s = val;
-        }
-
-        val = atof(tmp[6]);
-        if (val > 0.0) {
-          reax->tbp[j][k].r_p = val;
-          reax->tbp[k][j].r_p = val;
-        }
-
-        val = atof(tmp[7]);
-        if (val > 0.0) {
-          reax->tbp[j][k].r_pp = val;
-          reax->tbp[k][j].r_pp = val;
-        }
-
-        if (lgflag) {
-          val = atof(tmp[8]);
-          if (val >= 0.0) {
-            reax->tbp[j][k].lgcij = val;
-            reax->tbp[k][j].lgcij = val;
-          }
-        }
-      }
-    }
-
-    for (i = 0; i < reax->num_atom_types; ++i)
-      for (j = 0; j < reax->num_atom_types; ++j)
-        for (k = 0; k < reax->num_atom_types; ++k)
-          reax->thbp[i][j][k].cnt = 0;
-
-    fgets(s, MAX_LINE, fp);
-    c = Tokenize(s, &tmp);
-    l = atoi(tmp[0]);
-
-    for (i = 0; i < l; i++) {
-      fgets(s,MAX_LINE,fp);
-      c=Tokenize(s,&tmp);
-
-      j = atoi(tmp[0]) - 1;
-      k = atoi(tmp[1]) - 1;
-      m = atoi(tmp[2]) - 1;
-      if ((c < 10) || (j < 0) || (k < 0) || (m < 0))
-        control->error_ptr->all(FLERR, "Inconsistent force field file");
-
-      if (j < reax->num_atom_types && k < reax->num_atom_types &&
-          m < reax->num_atom_types) {
-        cnt = reax->thbp[j][k][m].cnt;
-        reax->thbp[j][k][m].cnt++;
-        reax->thbp[m][k][j].cnt++;
-
-        val = atof(tmp[3]);
-        reax->thbp[j][k][m].prm[cnt].theta_00 = val;
-        reax->thbp[m][k][j].prm[cnt].theta_00 = val;
-
-        val = atof(tmp[4]);
-        reax->thbp[j][k][m].prm[cnt].p_val1 = val;
-        reax->thbp[m][k][j].prm[cnt].p_val1 = val;
-
-        val = atof(tmp[5]);
-        reax->thbp[j][k][m].prm[cnt].p_val2 = val;
-        reax->thbp[m][k][j].prm[cnt].p_val2 = val;
-
-        val = atof(tmp[6]);
-        reax->thbp[j][k][m].prm[cnt].p_coa1 = val;
-        reax->thbp[m][k][j].prm[cnt].p_coa1 = val;
-
-        val = atof(tmp[7]);
-        reax->thbp[j][k][m].prm[cnt].p_val7 = val;
-        reax->thbp[m][k][j].prm[cnt].p_val7 = val;
-
-        val = atof(tmp[8]);
-        reax->thbp[j][k][m].prm[cnt].p_pen1 = val;
-        reax->thbp[m][k][j].prm[cnt].p_pen1 = val;
-
-        val = atof(tmp[9]);
-        reax->thbp[j][k][m].prm[cnt].p_val4 = val;
-        reax->thbp[m][k][j].prm[cnt].p_val4 = val;
-      }
-    }
-
-    /* clear all entries first */
-    for (i = 0; i < reax->num_atom_types; ++i)
-      for (j = 0; j < reax->num_atom_types; ++j)
-        for (k = 0; k < reax->num_atom_types; ++k)
-          for (m = 0; m < reax->num_atom_types; ++m) {
-            reax->fbp[i][j][k][m].cnt = 0;
-            tor_flag[i][j][k][m] = 0;
-          }
-
-    /* next line is number of 4-body params and some comments */
-    fgets(s, MAX_LINE, fp);
-    c = Tokenize(s, &tmp);
-    l = atoi(tmp[0]);
-
-    for (i = 0; i < l; i++) {
-      fgets(s, MAX_LINE, fp);
-      c = Tokenize(s, &tmp);
-
-      j = atoi(tmp[0]) - 1;
-      k = atoi(tmp[1]) - 1;
-      m = atoi(tmp[2]) - 1;
-      n = atoi(tmp[3]) - 1;
-      if ((c < 9) || (k < 0) || (m < 0))
-        control->error_ptr->all(FLERR, "Inconsistent force field file");
-
-      if (j >= 0 && n >= 0) { // this means the entry is not in compact form
-        if (j < reax->num_atom_types && k < reax->num_atom_types &&
-            m < reax->num_atom_types && n < reax->num_atom_types) {
-          tor_flag[j][k][m][n] = 1;
-          tor_flag[n][m][k][j] = 1;
-
-          reax->fbp[j][k][m][n].cnt = 1;
-          reax->fbp[n][m][k][j].cnt = 1;
-
-          val = atof(tmp[4]);
-          reax->fbp[j][k][m][n].prm[0].V1 = val;
-          reax->fbp[n][m][k][j].prm[0].V1 = val;
-
-          val = atof(tmp[5]);
-          reax->fbp[j][k][m][n].prm[0].V2 = val;
-          reax->fbp[n][m][k][j].prm[0].V2 = val;
-
-          val = atof(tmp[6]);
-          reax->fbp[j][k][m][n].prm[0].V3 = val;
-          reax->fbp[n][m][k][j].prm[0].V3 = val;
-
-          val = atof(tmp[7]);
-          reax->fbp[j][k][m][n].prm[0].p_tor1 = val;
-          reax->fbp[n][m][k][j].prm[0].p_tor1 = val;
-
-          val = atof(tmp[8]);
-          reax->fbp[j][k][m][n].prm[0].p_cot1 = val;
-          reax->fbp[n][m][k][j].prm[0].p_cot1 = val;
-        }
-      } else { /* This means the entry is of the form 0-X-Y-0 */
-        if (k < reax->num_atom_types && m < reax->num_atom_types)
-          for (p = 0; p < reax->num_atom_types; p++)
-            for (o = 0; o < reax->num_atom_types; o++) {
-              reax->fbp[p][k][m][o].cnt = 1;
-              reax->fbp[o][m][k][p].cnt = 1;
-
-              if (tor_flag[p][k][m][o] == 0) {
-                reax->fbp[p][k][m][o].prm[0].V1 = atof(tmp[4]);
-                reax->fbp[p][k][m][o].prm[0].V2 = atof(tmp[5]);
-                reax->fbp[p][k][m][o].prm[0].V3 = atof(tmp[6]);
-                reax->fbp[p][k][m][o].prm[0].p_tor1 = atof(tmp[7]);
-                reax->fbp[p][k][m][o].prm[0].p_cot1 = atof(tmp[8]);
-              }
-
-              if (tor_flag[o][m][k][p] == 0) {
-                reax->fbp[o][m][k][p].prm[0].V1 = atof(tmp[4]);
-                reax->fbp[o][m][k][p].prm[0].V2 = atof(tmp[5]);
-                reax->fbp[o][m][k][p].prm[0].V3 = atof(tmp[6]);
-                reax->fbp[o][m][k][p].prm[0].p_tor1 = atof(tmp[7]);
-                reax->fbp[o][m][k][p].prm[0].p_cot1 = atof(tmp[8]);
-              }
-            }
-      }
-    }
-
-    /* next line is number of hydrogen bond params and some comments */
-    fgets(s, MAX_LINE, fp);
-    c = Tokenize(s, &tmp);
-    l = atoi(tmp[0]);
-
-    for (i = 0; i < reax->num_atom_types; ++i)
-      for (j = 0; j < reax->num_atom_types; ++j)
-        for (k = 0; k < reax->num_atom_types; ++k)
-          reax->hbp[i][j][k].r0_hb = -1.0;
-
-    for (i = 0; i < l; i++) {
-      fgets(s, MAX_LINE, fp);
-      c = Tokenize(s, &tmp);
-
-      j = atoi(tmp[0]) - 1;
-      k = atoi(tmp[1]) - 1;
-      m = atoi(tmp[2]) - 1;
-      if ((c < 7) || (j < 0) || (k < 0) || (m < 0))
-        control->error_ptr->all(FLERR, "Inconsistent force field file");
-
-      if (j < reax->num_atom_types && m < reax->num_atom_types) {
-        val = atof(tmp[3]);
-        reax->hbp[j][k][m].r0_hb = val;
-
-        val = atof(tmp[4]);
-        reax->hbp[j][k][m].p_hb1 = val;
-
-        val = atof(tmp[5]);
-        reax->hbp[j][k][m].p_hb2 = val;
-
-        val = atof(tmp[6]);
-        reax->hbp[j][k][m].p_hb3 = val;
-      }
-    }
-
-    /* deallocate helper storage */
-    for (i = 0; i < MAX_TOKENS; i++)
-      free(tmp[i]);
-    free(tmp);
-    free(s);
-
-
-    /* deallocate tor_flag */
-    for (i = 0; i < reax->num_atom_types; i++) {
-      for (j = 0; j < reax->num_atom_types; j++) {
-        for (k = 0; k < reax->num_atom_types; k++) {
-          free(tor_flag[i][j][k]);
-        }
-        free(tor_flag[i][j]);
-      }
-      free(tor_flag[i]);
-    }
-    free(tor_flag);
-
-    // close file
-
-    fclose(fp);
   }
+#undef THROW_ERROR
 }

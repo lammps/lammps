@@ -68,7 +68,8 @@ namespace ReaxFF
 
   // ffield
 
-  extern void Read_Force_Field(const char *, reax_interaction *, control_params *);
+  extern void Read_Force_Field(const char *, reax_interaction *,
+                               control_params *, MPI_Comm);
 
   // forces
 

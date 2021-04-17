@@ -145,6 +145,7 @@ PairReaxC::~PairReaxC()
   delete api->data;
   delete api->workspace;
   memory->destroy(api->lists);
+  delete api;
 
   // deallocate interface storage
   if (allocated) {

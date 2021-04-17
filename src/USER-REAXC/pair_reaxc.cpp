@@ -94,6 +94,7 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   api->system->total_cap = 0;
   api->system->my_atoms = nullptr;
   api->system->pair_ptr = this;
+  api->system->mem_ptr = memory;
   api->system->error_ptr = error;
   api->control->error_ptr = error;
   api->control->lmp_ptr = lmp;

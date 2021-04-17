@@ -30,6 +30,7 @@
 namespace LAMMPS_NS {
   class Error;
   class LAMMPS;
+  class Memory;
   class Pair;
 }
 
@@ -47,8 +48,8 @@ namespace ReaxFF
   struct global_parameters
   {
     int n_global;
-    double* l;
     int vdw_type;
+    double *l;
   };
 
   struct single_body_parameters
@@ -213,6 +214,8 @@ namespace ReaxFF
 
     LAMMPS_NS::Error *error_ptr;
     LAMMPS_NS::Pair  *pair_ptr;
+    LAMMPS_NS::Memory *mem_ptr;
+
     int my_bonds;
     int mincap,minhbonds;
     double safezone, saferzone;

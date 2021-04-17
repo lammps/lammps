@@ -23,41 +23,30 @@
 
 #include "reaxff_types.h"
 
-namespace ReaxFF 
-{
-  // uncomment to enabled collecting ReaxFF OpenMP timing data
-  // #define OMP_TIMING 1
-
-#ifdef OMP_TIMING
-  // pkcoff timing fields
-  enum { COMPUTEINDEX=0,
-    COMPUTEWLINDEX,
-    COMPUTEBFINDEX,
-    COMPUTEQEQINDEX,
-    COMPUTENBFINDEX,
-    COMPUTEIFINDEX,
-    COMPUTETFINDEX,
-    COMPUTEBOINDEX,
-    COMPUTEBONDSINDEX,
-    COMPUTEATOMENERGYINDEX,
-    COMPUTEVALENCEANGLESBOINDEX,
-    COMPUTETORSIONANGLESBOINDEX,
-    COMPUTEHBONDSINDEX,
-    COMPUTECG1INDEX,
-    COMPUTECG2INDEX,
-    COMPUTECGCOMPUTEINDEX,
-    COMPUTECALCQINDEX,
-    COMPUTEINITMVINDEX,
-    COMPUTEMVCOMPINDEX,
-    LASTTIMINGINDEX
-  };
-
-  extern double ompTimingData[LASTTIMINGINDEX];
-  extern int ompTimingCount[LASTTIMINGINDEX];
-  extern int ompTimingCGCount[LASTTIMINGINDEX];
+#if defined(_OPENMP)
+#include <omp.h>
 #endif
 
+namespace ReaxFF 
+{
   // exported Functions
+
+  // bond orders OpenMP
+
+  extern void Add_dBond_to_ForcesOMP(reax_system *, int, int, storage *, reax_list **);
+  extern void Add_dBond_to_Forces_NPTOMP(reax_system *, int, int, storage *, reax_list **);
+  extern int BOp_OMP(storage *, reax_list *, double, int, int, far_neighbor_data *,
+                     single_body_parameters *, single_body_parameters *,
+                     two_body_parameters *, int, double, double, double,
+                     double, double, double, double);
+
+  extern void BOOMP(reax_system *, control_params *, simulation_data *,
+                    storage *, reax_list **, output_controls *);
+  
+  // bonds OpenMP
+  
+  extern void BondsOMP(reax_system *, simulation_data *,
+                       storage *, reax_list **);
 
   // forces OpenMP
 
@@ -65,11 +54,53 @@ namespace ReaxFF
                                 simulation_data *, storage *,
                                 reax_list **, output_controls *);
 
+  // hydrogen bonds
+  
+  extern void Hydrogen_BondsOMP(reax_system *, control_params *,
+                                simulation_data *, storage *, reax_list **);
+
   // init md OpenMP
 
   extern void InitializeOMP(reax_system *, control_params *,
                             simulation_data *, storage *, reax_list **,
                             output_controls *, MPI_Comm);
+
+  // multi body
+
+  extern void Atom_EnergyOMP(reax_system *, simulation_data *, storage *, reax_list **);
+
+  // nonbonded
+
+  extern void vdW_Coulomb_Energy_OMP(reax_system *, control_params *,
+                                     simulation_data *, storage *, reax_list **);
+  extern void Tabulated_vdW_Coulomb_Energy_OMP(reax_system *, control_params *,
+                                               simulation_data *, storage *,
+                                               reax_list **);
+  extern void LR_vdW_CoulombOMP(reax_system *, storage *, control_params *,
+                                int, int, double, LR_data *);
+
+  // torsion angles
+
+  extern void Torsion_AnglesOMP(reax_system *, control_params *,
+                                simulation_data *, storage *, reax_list **);
+
+  // valence angles
+
+  extern void Calculate_ThetaOMP(rvec, double, rvec, double, double *, double *);
+  extern void Calculate_dCos_ThetaOMP(rvec, double, rvec, double,
+                                      rvec *, rvec *, rvec *);
+  extern void Valence_AnglesOMP(reax_system *, control_params *, simulation_data *,
+                                storage *, reax_list **);
+
+  // OpenMP helpers
+
+  inline int get_tid() {
+#if defined(_OPENMP)
+    return omp_get_thread_num();
+#else
+    return 0;
+#endif
+  }
 }
 
 #endif

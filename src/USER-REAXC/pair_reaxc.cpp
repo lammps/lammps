@@ -417,7 +417,7 @@ void PairReaxC::setup()
 
     // initialize my data structures
 
-    PreAllocate_Space(api->system, api->control, api->workspace);
+    PreAllocate_Space(api->system, api->workspace);
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
@@ -430,7 +430,8 @@ void PairReaxC::setup()
 
     write_reax_lists();
     api->system->wsize = comm->nprocs;
-    Initialize(api->system, api->control, api->data, api->workspace, &api->lists, api->out_control, world);
+    Initialize(api->system, api->control, api->data, api->workspace,
+               &api->lists, api->out_control, world);
     for (int k = 0; k < api->system->N; ++k) {
       num_bonds[k] = api->system->my_atoms[k].num_bonds;
       num_hbonds[k] = api->system->my_atoms[k].num_hbonds;

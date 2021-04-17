@@ -24,8 +24,7 @@
   <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_tool_box.h"
-#include "reaxc_defs.h"
+#include "reaxff_api.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -33,93 +32,95 @@
 
 #include "error.h"
 
-int Tokenize( char* s, char*** tok )
-{
-  char test[MAX_LINE];
-  const char *sep = (const char *)"\t \n\r\f!=";
-  char *word;
-  int count=0;
+namespace ReaxFF {
+  
+  int Tokenize(char* s, char*** tok)
+  {
+    char test[MAX_LINE];
+    const char *sep = (const char *)"\t \n\r\f!=";
+    char *word;
+    int count=0;
 
-  strncpy( test, s, MAX_LINE-1);
+    strncpy(test, s, MAX_LINE-1);
 
-  for (word = strtok(test, sep); word; word = strtok(nullptr, sep)) {
-    strncpy( (*tok)[count], word, MAX_LINE );
-    count++;
+    for (word = strtok(test, sep); word; word = strtok(nullptr, sep)) {
+      strncpy((*tok)[count], word, MAX_LINE);
+      count++;
+    }
+
+    return count;
   }
-
-  return count;
-}
 
 /* safe malloc */
-void *smalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name )
-{
-  void *ptr;
+  void *smalloc(LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name)
+  {
+    void *ptr;
 
-  if (n <= 0) {
-    auto errmsg = fmt::format("Trying to allocate {} bytes for array {}. "
-                              "returning NULL.", n, name);
-    if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg.c_str(),stderr);
+    if (n <= 0) {
+      auto errmsg = fmt::format("Trying to allocate {} bytes for array {}. "
+                                "returning NULL.", n, name);
+      if (error_ptr) error_ptr->one(FLERR,errmsg);
+      else fputs(errmsg.c_str(),stderr);
 
-    return nullptr;
+      return nullptr;
+    }
+
+    ptr = malloc(n);
+    if (ptr == nullptr) {
+      auto errmsg = fmt::format("Failed to allocate {} bytes for array {}",
+                                n, name);
+      if (error_ptr) error_ptr->one(FLERR,errmsg);
+      else fputs(errmsg.c_str(),stderr);
+    }
+
+    return ptr;
   }
-
-  ptr = malloc( n );
-  if (ptr == nullptr) {
-    auto errmsg = fmt::format("Failed to allocate {} bytes for array {}",
-                              n, name);
-    if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg.c_str(),stderr);
-  }
-
-  return ptr;
-}
 
 /* safe calloc */
-void *scalloc( LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const char *name )
-{
-  void *ptr;
+  void *scalloc(LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const char *name)
+  {
+    void *ptr;
 
-  if (n <= 0) {
-    auto errmsg = fmt::format("Trying to allocate {} elements for array {}. "
-            "returning NULL.\n", n, name);
-    if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg.c_str(),stderr);
-    return nullptr;
+    if (n <= 0) {
+      auto errmsg = fmt::format("Trying to allocate {} elements for array {}. "
+                                "returning NULL.\n", n, name);
+      if (error_ptr) error_ptr->one(FLERR,errmsg);
+      else fputs(errmsg.c_str(),stderr);
+      return nullptr;
+    }
+
+    if (size <= 0) {
+      auto errmsg = fmt::format("Elements size for array {} is {}. "
+                                "returning NULL", name, size);
+      if (error_ptr) error_ptr->one(FLERR,errmsg);
+      else fputs(errmsg.c_str(),stderr);
+      return nullptr;
+    }
+
+    ptr = calloc(n, size);
+    if (ptr == nullptr) {
+      auto errmsg = fmt::format("Failed to allocate {} bytes for array {}",
+                                n*size, name);
+      if (error_ptr) error_ptr->one(FLERR,errmsg);
+      else fputs(errmsg.c_str(),stderr);
+    }
+
+    return ptr;
   }
 
-  if (size <= 0) {
-    auto errmsg = fmt::format("Elements size for array {} is {}. "
-             "returning NULL", name, size);
-    if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg.c_str(),stderr);
-    return nullptr;
-  }
 
-  ptr = calloc( n, size );
-  if (ptr == nullptr) {
-    auto errmsg = fmt::format("Failed to allocate {} bytes for array {}",
-                              n*size, name);
-    if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg.c_str(),stderr);
-  }
+  /* safe free */
+  void sfree(LAMMPS_NS::Error* error_ptr, void *ptr, const char *name)
+  {
+    if (ptr == nullptr) {
+      auto errmsg = fmt::format("Trying to free the already free()'d pointer {}",
+                                name);
+      if (error_ptr) error_ptr->one(FLERR,errmsg);
+      else fputs(errmsg.c_str(),stderr);
+      return;
+    }
 
-  return ptr;
+    free(ptr);
+    ptr = nullptr;
+  }
 }
-
-
-/* safe free */
-void sfree( LAMMPS_NS::Error* error_ptr, void *ptr, const char *name )
-{
-  if (ptr == nullptr) {
-    auto errmsg = fmt::format("Trying to free the already free()'d pointer {}",
-                              name);
-    if (error_ptr) error_ptr->one(FLERR,errmsg);
-    else fputs(errmsg.c_str(),stderr);
-    return;
-  }
-
-  free(ptr);
-  ptr = nullptr;
-}
-

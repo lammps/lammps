@@ -16,18 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_reaxc_species_kokkos.h"
+
 #include "atom.h"
-#include "fix_ave_atom.h"
-#include "reaxc_defs.h"
-#include "pair_reaxc_kokkos.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "input.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+
+#include "fix_ave_atom.h"
+#include "pair_reaxc_kokkos.h"
+#include "reaxff_defs.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

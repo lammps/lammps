@@ -24,112 +24,113 @@
   <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_bonds.h"
-#include <cmath>
+#include "reaxff_api.h"
+
 #include "pair.h"
-#include "reaxc_defs.h"
-#include "reaxc_list.h"
 
-void Bonds( reax_system *system, control_params * /*control*/,
-            simulation_data *data, storage *workspace, reax_list **lists,
-            output_controls * /*out_control*/ )
-{
-  int i, j, pj, natoms;
-  int start_i, end_i;
-  int type_i, type_j;
-  double ebond, pow_BOs_be2, exp_be12, CEbo;
-  double gp3, gp4, gp7, gp10, gp37;
-  double exphu, exphua1, exphub1, exphuov, hulpov, estriph;
-  double decobdbo, decobdboua, decobdboub;
-  single_body_parameters *sbp_i, *sbp_j;
-  two_body_parameters *twbp;
-  bond_order_data *bo_ij;
-  reax_list *bonds;
+#include <cmath>
 
-  bonds = (*lists) + BONDS;
-  gp3 = system->reax_param.gp.l[3];
-  gp4 = system->reax_param.gp.l[4];
-  gp7 = system->reax_param.gp.l[7];
-  gp10 = system->reax_param.gp.l[10];
-  gp37 = (int) system->reax_param.gp.l[37];
-  natoms = system->n;
+namespace ReaxFF {
+  void Bonds(reax_system *system, simulation_data *data,
+             storage *workspace, reax_list **lists)
+  {
+    int i, j, pj, natoms;
+    int start_i, end_i;
+    int type_i, type_j;
+    double ebond, pow_BOs_be2, exp_be12, CEbo;
+    double gp3, gp4, gp7, gp10, gp37;
+    double exphu, exphua1, exphub1, exphuov, hulpov, estriph;
+    double decobdbo, decobdboua, decobdboub;
+    single_body_parameters *sbp_i, *sbp_j;
+    two_body_parameters *twbp;
+    bond_order_data *bo_ij;
+    reax_list *bonds;
 
-  for (i = 0; i < natoms; ++i) {
-    start_i = Start_Index(i, bonds);
-    end_i = End_Index(i, bonds);
+    bonds = (*lists) + BONDS;
+    gp3 = system->reax_param.gp.l[3];
+    gp4 = system->reax_param.gp.l[4];
+    gp7 = system->reax_param.gp.l[7];
+    gp10 = system->reax_param.gp.l[10];
+    gp37 = (int) system->reax_param.gp.l[37];
+    natoms = system->n;
 
-    for (pj = start_i; pj < end_i; ++pj) {
-      j = bonds->select.bond_list[pj].nbr;
+    for (i = 0; i < natoms; ++i) {
+      start_i = Start_Index(i, bonds);
+      end_i = End_Index(i, bonds);
 
-      if (system->my_atoms[i].orig_id > system->my_atoms[j].orig_id)
-        continue;
-      if (system->my_atoms[i].orig_id == system->my_atoms[j].orig_id) {
-        if (system->my_atoms[j].x[2] <  system->my_atoms[i].x[2]) continue;
-        if (system->my_atoms[j].x[2] == system->my_atoms[i].x[2] &&
-            system->my_atoms[j].x[1] <  system->my_atoms[i].x[1]) continue;
-        if (system->my_atoms[j].x[2] == system->my_atoms[i].x[2] &&
-            system->my_atoms[j].x[1] == system->my_atoms[i].x[1] &&
-            system->my_atoms[j].x[0] <  system->my_atoms[i].x[0]) continue;
-      }
+      for (pj = start_i; pj < end_i; ++pj) {
+        j = bonds->select.bond_list[pj].nbr;
 
-      /* set the pointers */
-      type_i = system->my_atoms[i].type;
-      type_j = system->my_atoms[j].type;
-      sbp_i = &( system->reax_param.sbp[type_i] );
-      sbp_j = &( system->reax_param.sbp[type_j] );
-      twbp = &( system->reax_param.tbp[type_i][type_j] );
-      bo_ij = &( bonds->select.bond_list[pj].bo_data );
+        if (system->my_atoms[i].orig_id > system->my_atoms[j].orig_id)
+          continue;
+        if (system->my_atoms[i].orig_id == system->my_atoms[j].orig_id) {
+          if (system->my_atoms[j].x[2] <  system->my_atoms[i].x[2]) continue;
+          if (system->my_atoms[j].x[2] == system->my_atoms[i].x[2] &&
+              system->my_atoms[j].x[1] <  system->my_atoms[i].x[1]) continue;
+          if (system->my_atoms[j].x[2] == system->my_atoms[i].x[2] &&
+              system->my_atoms[j].x[1] == system->my_atoms[i].x[1] &&
+              system->my_atoms[j].x[0] <  system->my_atoms[i].x[0]) continue;
+        }
 
-      /* calculate the constants */
-      if (bo_ij->BO_s == 0.0) pow_BOs_be2 = 0.0;
-      else pow_BOs_be2 = pow( bo_ij->BO_s, twbp->p_be2 );
-      exp_be12 = exp( twbp->p_be1 * ( 1.0 - pow_BOs_be2 ) );
-      CEbo = -twbp->De_s * exp_be12 *
-        ( 1.0 - twbp->p_be1 * twbp->p_be2 * pow_BOs_be2 );
+        /* set the pointers */
+        type_i = system->my_atoms[i].type;
+        type_j = system->my_atoms[j].type;
+        sbp_i = &( system->reax_param.sbp[type_i] );
+        sbp_j = &( system->reax_param.sbp[type_j] );
+        twbp = &( system->reax_param.tbp[type_i][type_j] );
+        bo_ij = &( bonds->select.bond_list[pj].bo_data );
 
-      /* calculate the Bond Energy */
-      data->my_en.e_bond += ebond =
-        -twbp->De_s * bo_ij->BO_s * exp_be12
-        -twbp->De_p * bo_ij->BO_pi
-        -twbp->De_pp * bo_ij->BO_pi2;
+        /* calculate the constants */
+        if (bo_ij->BO_s == 0.0) pow_BOs_be2 = 0.0;
+        else pow_BOs_be2 = pow( bo_ij->BO_s, twbp->p_be2 );
+        exp_be12 = exp( twbp->p_be1 * ( 1.0 - pow_BOs_be2 ) );
+        CEbo = -twbp->De_s * exp_be12 *
+          ( 1.0 - twbp->p_be1 * twbp->p_be2 * pow_BOs_be2 );
 
-      /* tally into per-atom energy */
-      if (system->pair_ptr->evflag)
-        system->pair_ptr->ev_tally(i,j,natoms,1,ebond,0.0,0.0,0.0,0.0,0.0);
+        /* calculate the Bond Energy */
+        data->my_en.e_bond += ebond =
+          -twbp->De_s * bo_ij->BO_s * exp_be12
+          -twbp->De_p * bo_ij->BO_pi
+          -twbp->De_pp * bo_ij->BO_pi2;
 
-      /* calculate derivatives of Bond Orders */
-      bo_ij->Cdbo += CEbo;
-      bo_ij->Cdbopi -= (CEbo + twbp->De_p);
-      bo_ij->Cdbopi2 -= (CEbo + twbp->De_pp);
+        /* tally into per-atom energy */
+        if (system->pair_ptr->evflag)
+          system->pair_ptr->ev_tally(i,j,natoms,1,ebond,0.0,0.0,0.0,0.0,0.0);
 
-      /* Stabilisation terminal triple bond */
-      if (bo_ij->BO >= 1.00) {
-        if ( gp37 == 2 ||
-            (sbp_i->mass == 12.0000 && sbp_j->mass == 15.9990) ||
-            (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990)) {
-          exphu = exp( -gp7 * SQR(bo_ij->BO - 2.50) );
-          exphua1 = exp(-gp3 * (workspace->total_bond_order[i]-bo_ij->BO));
-          exphub1 = exp(-gp3 * (workspace->total_bond_order[j]-bo_ij->BO));
-          exphuov = exp(gp4 * (workspace->Delta[i] + workspace->Delta[j]));
-          hulpov = 1.0 / (1.0 + 25.0 * exphuov);
+        /* calculate derivatives of Bond Orders */
+        bo_ij->Cdbo += CEbo;
+        bo_ij->Cdbopi -= (CEbo + twbp->De_p);
+        bo_ij->Cdbopi2 -= (CEbo + twbp->De_pp);
 
-          estriph = gp10 * exphu * hulpov * (exphua1 + exphub1);
-          data->my_en.e_bond += estriph;
+        /* Stabilisation terminal triple bond */
+        if (bo_ij->BO >= 1.00) {
+          if ( gp37 == 2 ||
+               (sbp_i->mass == 12.0000 && sbp_j->mass == 15.9990) ||
+               (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990)) {
+            exphu = exp( -gp7 * SQR(bo_ij->BO - 2.50) );
+            exphua1 = exp(-gp3 * (workspace->total_bond_order[i]-bo_ij->BO));
+            exphub1 = exp(-gp3 * (workspace->total_bond_order[j]-bo_ij->BO));
+            exphuov = exp(gp4 * (workspace->Delta[i] + workspace->Delta[j]));
+            hulpov = 1.0 / (1.0 + 25.0 * exphuov);
 
-          decobdbo = gp10 * exphu * hulpov * (exphua1 + exphub1) *
-            ( gp3 - 2.0 * gp7 * (bo_ij->BO-2.50) );
-          decobdboua = -gp10 * exphu * hulpov *
-            (gp3*exphua1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
-          decobdboub = -gp10 * exphu * hulpov *
-            (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
+            estriph = gp10 * exphu * hulpov * (exphua1 + exphub1);
+            data->my_en.e_bond += estriph;
 
-          /* tally into per-atom energy */
-          if (system->pair_ptr->evflag)
-            system->pair_ptr->ev_tally(i,j,natoms,1,estriph,0.0,0.0,0.0,0.0,0.0);
+            decobdbo = gp10 * exphu * hulpov * (exphua1 + exphub1) *
+              ( gp3 - 2.0 * gp7 * (bo_ij->BO-2.50) );
+            decobdboua = -gp10 * exphu * hulpov *
+              (gp3*exphua1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
+            decobdboub = -gp10 * exphu * hulpov *
+              (gp3*exphub1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
 
-          bo_ij->Cdbo += decobdbo;
-          workspace->CdDelta[i] += decobdboua;
-          workspace->CdDelta[j] += decobdboub;
+            /* tally into per-atom energy */
+            if (system->pair_ptr->evflag)
+              system->pair_ptr->ev_tally(i,j,natoms,1,estriph,0.0,0.0,0.0,0.0,0.0);
+
+            bo_ij->Cdbo += decobdbo;
+            workspace->CdDelta[i] += decobdboua;
+            workspace->CdDelta[j] += decobdboub;
+          }
         }
       }
     }

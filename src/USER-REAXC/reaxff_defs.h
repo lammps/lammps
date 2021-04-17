@@ -59,7 +59,6 @@
 #define MAX_TOKENS          1024
 #define MAX_TOKEN_LEN       1024
 
-#define NUM_INTRS      10
 #define ALMOST_ZERO    1e-10
 #define NEG_INF       -1e10
 #define NO_BOND        1e-3  // 0.001

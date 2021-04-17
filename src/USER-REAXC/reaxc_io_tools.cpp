@@ -24,43 +24,76 @@
   <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_io_tools.h"
-#include <cstdio>
-#include <cstring>
-#include "reaxc_defs.h"
-#include "reaxc_system_props.h"
-#include "reaxc_traj.h"
+#include "reaxff_api.h"
 
-void Init_Output_Files(reax_system *system, control_params *control,
-                      output_controls *out_control, MPI_Comm world)
-{
-  if (out_control->write_steps > 0)
-    Init_Traj(system, control, out_control, world);
-}
+namespace ReaxFF {
+  void Collect_System_Energy(reax_system *system, simulation_data *data,
+                             MPI_Comm comm)
+  {
+    double my_en[13], sys_en[13];
 
-/************************ close output files ************************/
-void Close_Output_Files(reax_system *system, output_controls *out_control)
-{
-  if (out_control->write_steps > 0)
-    End_Traj(system->my_rank, out_control);
-}
+    my_en[0] = data->my_en.e_bond;
+    my_en[1] = data->my_en.e_ov;
+    my_en[2] = data->my_en.e_un;
+    my_en[3] = data->my_en.e_lp;
+    my_en[4] = data->my_en.e_ang;
+    my_en[5] = data->my_en.e_pen;
+    my_en[6] = data->my_en.e_coa;
+    my_en[7] = data->my_en.e_hb;
+    my_en[8] = data->my_en.e_tor;
+    my_en[9] = data->my_en.e_con;
+    my_en[10] = data->my_en.e_vdW;
+    my_en[11] = data->my_en.e_ele;
+    my_en[12] = data->my_en.e_pol;
+    MPI_Reduce( my_en, sys_en, 13, MPI_DOUBLE, MPI_SUM, MASTER_NODE, comm );
 
-void Output_Results(reax_system *system, control_params *control,
-                    simulation_data *data, reax_list **lists,
-                    output_controls *out_control, MPI_Comm world)
-{
-
-  if ((out_control->energy_update_freq > 0 &&
-      data->step%out_control->energy_update_freq == 0) ||
-     (out_control->write_steps > 0 &&
-      data->step%out_control->write_steps == 0)) {
-    /* update system-wide energies */
-    Compute_System_Energy(system, data, world);
-
-    /* write current frame */
-    if ( out_control->write_steps > 0 && data->step % out_control->write_steps == 0) {
-      Append_Frame( system, control, data, lists, out_control, world);
+    if (system->my_rank == MASTER_NODE) {
+      data->sys_en.e_bond = sys_en[0];
+      data->sys_en.e_ov = sys_en[1];
+      data->sys_en.e_un = sys_en[2];
+      data->sys_en.e_lp = sys_en[3];
+      data->sys_en.e_ang = sys_en[4];
+      data->sys_en.e_pen = sys_en[5];
+      data->sys_en.e_coa = sys_en[6];
+      data->sys_en.e_hb = sys_en[7];
+      data->sys_en.e_tor = sys_en[8];
+      data->sys_en.e_con = sys_en[9];
+      data->sys_en.e_vdW = sys_en[10];
+      data->sys_en.e_ele = sys_en[11];
+      data->sys_en.e_pol = sys_en[12];
     }
+  } 
+
+  void Init_Output_Files(reax_system *system, control_params *control,
+                      output_controls *out_control, MPI_Comm world)
+  {
+    if (out_control->write_steps > 0)
+      Init_Traj(system, control, out_control, world);
   }
 
+  /************************ close output files ************************/
+  void Close_Output_Files(reax_system *system, output_controls *out_control)
+  {
+    if (out_control->write_steps > 0)
+      End_Traj(system->my_rank, out_control);
+  }
+
+  void Output_Results(reax_system *system, control_params *control,
+                      simulation_data *data, reax_list **lists,
+                      output_controls *out_control, MPI_Comm world)
+  {
+
+    if ((out_control->energy_update_freq > 0 &&
+         data->step%out_control->energy_update_freq == 0) ||
+        (out_control->write_steps > 0 &&
+         data->step%out_control->write_steps == 0)) {
+      /* update system-wide energies */
+      Collect_System_Energy(system, data, world);
+
+      /* write current frame */
+      if (out_control->write_steps > 0 && data->step % out_control->write_steps == 0) {
+        Append_Frame(system, control, data, lists, out_control, world);
+      }
+    }
+  }
 }

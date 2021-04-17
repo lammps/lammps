@@ -24,344 +24,312 @@
   <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_allocate.h"
-#include <cstdlib>
-#include "reaxc_defs.h"
-#include "reaxc_list.h"
-#include "reaxc_tool_box.h"
-
-#if defined(LMP_USER_OMP) && defined(_OPENMP)
-#include <omp.h>
-#endif
+#include "reaxff_api.h"
 
 #include "error.h"
 
-/* allocate space for my_atoms
-   important: we cannot know the exact number of atoms that will fall into a
-   process's box throughout the whole simulation. therefore
-   we need to make upper bound estimates for various data structures */
-int PreAllocate_Space( reax_system *system, control_params * /*control*/,
-                       storage * workspace )
-{
-  int mincap = system->mincap;
-  double safezone = system->safezone;
+namespace ReaxFF {
 
-  // determine the local and total capacity
+  /* allocate space for my_atoms
+     important: we cannot know the exact number of atoms that will fall into a
+     process's box throughout the whole simulation. therefore
+     we need to make upper bound estimates for various data structures */
+  void PreAllocate_Space(reax_system *system, storage * workspace)
+  {
+    const int mincap = system->mincap;
+    const double safezone = system->safezone;
 
-  system->local_cap = MAX( (int)(system->n * safezone), mincap );
-  system->total_cap = MAX( (int)(system->N * safezone), mincap );
+    // determine the local and total capacity
 
-  system->my_atoms = (reax_atom*)
-    scalloc(system->error_ptr,  system->total_cap, sizeof(reax_atom), "my_atoms");
+    system->local_cap = MAX((int)(system->n * safezone), mincap);
+    system->total_cap = MAX((int)(system->N * safezone), mincap);
 
-  // Nullify some arrays only used in omp styles
-  // Should be safe to do here since called in pair->setup();
-#ifdef LMP_USER_OMP
-  workspace->CdDeltaReduction = nullptr;
-  workspace->forceReduction = nullptr;
-  workspace->valence_angle_atom_myoffset = nullptr;
-#else
-  LMP_UNUSED_PARAM(workspace);
-#endif
+    system->my_atoms = (reax_atom*) scalloc(system->error_ptr,
+      system->total_cap, sizeof(reax_atom), "my_atoms");
 
-  return SUCCESS;
-}
+    // Nullify some arrays only used in omp styles
+    // Should be safe to do here since called in pair->setup();
 
+    workspace->CdDeltaReduction = nullptr;
+    workspace->forceReduction = nullptr;
+    workspace->valence_angle_atom_myoffset = nullptr;
+  }
 
-/*************       system        *************/
+  /*************       system        *************/
 
-void DeAllocate_System( reax_system *system )
-{
-  int i, j, k;
-  int ntypes;
-  reax_interaction *ff_params;
+  void DeAllocate_System(reax_system *system)
+  {
+    int i, j, k;
+    int ntypes;
+    reax_interaction *ff_params;
+    auto error = system->error_ptr;
 
-  // deallocate the atom list
-  sfree(system->error_ptr,  system->my_atoms, "system->my_atoms" );
+    // deallocate the atom list
+    sfree(error,  system->my_atoms, "system->my_atoms");
 
-  // deallocate the ffield parameters storage
-  ff_params = &(system->reax_param);
-  ntypes = ff_params->num_atom_types;
+    // deallocate the ffield parameters storage
+    ff_params = &(system->reax_param);
+    ntypes = ff_params->num_atom_types;
 
-  sfree(system->error_ptr,  ff_params->gp.l, "ff:globals" );
+    sfree(error,  ff_params->gp.l, "ff:globals");
 
-  for (i = 0; i < ntypes; ++i) {
-    for (j = 0; j < ntypes; ++j) {
-      for (k = 0; k < ntypes; ++k) {
-        sfree(system->error_ptr,  ff_params->fbp[i][j][k], "ff:fbp[i,j,k]" );
+    for (i = 0; i < ntypes; ++i) {
+      for (j = 0; j < ntypes; ++j) {
+        for (k = 0; k < ntypes; ++k) {
+          sfree(error, ff_params->fbp[i][j][k], "ff:fbp[i,j,k]");
+        }
+        sfree(error, ff_params->fbp[i][j], "ff:fbp[i,j]");
+        sfree(error, ff_params->thbp[i][j], "ff:thbp[i,j]");
+        sfree(error, ff_params->hbp[i][j], "ff:hbp[i,j]");
       }
-      sfree(system->error_ptr,  ff_params->fbp[i][j], "ff:fbp[i,j]" );
-      sfree(system->error_ptr,  ff_params->thbp[i][j], "ff:thbp[i,j]" );
-      sfree(system->error_ptr,  ff_params->hbp[i][j], "ff:hbp[i,j]" );
+      sfree(error, ff_params->fbp[i], "ff:fbp[i]");
+      sfree(error, ff_params->thbp[i], "ff:thbp[i]");
+      sfree(error, ff_params->hbp[i], "ff:hbp[i]");
+      sfree(error, ff_params->tbp[i], "ff:tbp[i]");
     }
-    sfree(system->error_ptr,  ff_params->fbp[i], "ff:fbp[i]" );
-    sfree(system->error_ptr,  ff_params->thbp[i], "ff:thbp[i]" );
-    sfree(system->error_ptr,  ff_params->hbp[i], "ff:hbp[i]" );
-    sfree(system->error_ptr,  ff_params->tbp[i], "ff:tbp[i]" );
+    sfree(error, ff_params->fbp, "ff:fbp");
+    sfree(error, ff_params->thbp, "ff:thbp");
+    sfree(error, ff_params->hbp, "ff:hbp");
+    sfree(error, ff_params->tbp, "ff:tbp");
+    sfree(error, ff_params->sbp, "ff:sbp");
   }
-  sfree(system->error_ptr,  ff_params->fbp, "ff:fbp" );
-  sfree(system->error_ptr,  ff_params->thbp, "ff:thbp" );
-  sfree(system->error_ptr,  ff_params->hbp, "ff:hbp" );
-  sfree(system->error_ptr,  ff_params->tbp, "ff:tbp" );
-  sfree(system->error_ptr,  ff_params->sbp, "ff:sbp" );
-}
 
+  /*************       workspace        *************/
+  void DeAllocate_Workspace(control_params *control, storage *workspace)
+  {
+    if (!workspace->allocated)
+      return;
 
-/*************       workspace        *************/
-void DeAllocate_Workspace( control_params * control, storage *workspace )
-{
-  if (!workspace->allocated)
-    return;
+    workspace->allocated = 0;
+    auto error = control->error_ptr;
 
-  workspace->allocated = 0;
+    /* bond order storage */
+    sfree(error,  workspace->total_bond_order, "total_bo");
+    sfree(error,  workspace->Deltap, "Deltap");
+    sfree(error,  workspace->Deltap_boc, "Deltap_boc");
+    sfree(error,  workspace->dDeltap_self, "dDeltap_self");
+    sfree(error,  workspace->Delta, "Delta");
+    sfree(error,  workspace->Delta_lp, "Delta_lp");
+    sfree(error,  workspace->Delta_lp_temp, "Delta_lp_temp");
+    sfree(error,  workspace->dDelta_lp, "dDelta_lp");
+    sfree(error,  workspace->dDelta_lp_temp, "dDelta_lp_temp");
+    sfree(error,  workspace->Delta_e, "Delta_e");
+    sfree(error,  workspace->Delta_boc, "Delta_boc");
+    sfree(error,  workspace->Delta_val, "Delta_val");
+    sfree(error,  workspace->nlp, "nlp");
+    sfree(error,  workspace->nlp_temp, "nlp_temp");
+    sfree(error,  workspace->Clp, "Clp");
+    sfree(error,  workspace->vlpex, "vlpex");
+    sfree(error,  workspace->bond_mark, "bond_mark");
 
-  /* bond order storage */
-  sfree(control->error_ptr,  workspace->total_bond_order, "total_bo" );
-  sfree(control->error_ptr,  workspace->Deltap, "Deltap" );
-  sfree(control->error_ptr,  workspace->Deltap_boc, "Deltap_boc" );
-  sfree(control->error_ptr,  workspace->dDeltap_self, "dDeltap_self" );
-  sfree(control->error_ptr,  workspace->Delta, "Delta" );
-  sfree(control->error_ptr,  workspace->Delta_lp, "Delta_lp" );
-  sfree(control->error_ptr,  workspace->Delta_lp_temp, "Delta_lp_temp" );
-  sfree(control->error_ptr,  workspace->dDelta_lp, "dDelta_lp" );
-  sfree(control->error_ptr,  workspace->dDelta_lp_temp, "dDelta_lp_temp" );
-  sfree(control->error_ptr,  workspace->Delta_e, "Delta_e" );
-  sfree(control->error_ptr,  workspace->Delta_boc, "Delta_boc" );
-  sfree(control->error_ptr,  workspace->Delta_val, "Delta_val" );
-  sfree(control->error_ptr,  workspace->nlp, "nlp" );
-  sfree(control->error_ptr,  workspace->nlp_temp, "nlp_temp" );
-  sfree(control->error_ptr,  workspace->Clp, "Clp" );
-  sfree(control->error_ptr,  workspace->vlpex, "vlpex" );
-  sfree(control->error_ptr,  workspace->bond_mark, "bond_mark" );
+    /* force related storage */
+    sfree(error,  workspace->f, "f");
+    sfree(error,  workspace->CdDelta, "CdDelta");
 
-  /* force related storage */
-  sfree(control->error_ptr,  workspace->f, "f" );
-  sfree(control->error_ptr,  workspace->CdDelta, "CdDelta" );
+    /* reductions */
 
-  /* reductions */
-#ifdef LMP_USER_OMP
-  if (workspace->CdDeltaReduction) sfree(control->error_ptr,  workspace->CdDeltaReduction, "cddelta_reduce" );
-  if (workspace->forceReduction) sfree(control->error_ptr,  workspace->forceReduction, "f_reduce" );
-  if (workspace->valence_angle_atom_myoffset) sfree(control->error_ptr,  workspace->valence_angle_atom_myoffset, "valence_angle_atom_myoffset");
-#endif
-}
-
-void Allocate_Workspace( control_params *control, storage *workspace, int total_cap)
-{
-  int total_real, total_rvec;
-
-  workspace->allocated = 1;
-  total_real = total_cap * sizeof(double);
-  total_rvec = total_cap * sizeof(rvec);
-
-  /* bond order related storage  */
-  workspace->total_bond_order = (double*) smalloc(control->error_ptr,  total_real, "total_bo");
-  workspace->Deltap = (double*) smalloc(control->error_ptr,  total_real, "Deltap");
-  workspace->Deltap_boc = (double*) smalloc(control->error_ptr,  total_real, "Deltap_boc");
-  workspace->dDeltap_self = (rvec*) smalloc(control->error_ptr,  total_rvec, "dDeltap_self");
-  workspace->Delta = (double*) smalloc(control->error_ptr,  total_real, "Delta");
-  workspace->Delta_lp = (double*) smalloc(control->error_ptr,  total_real, "Delta_lp");
-  workspace->Delta_lp_temp = (double*)
-    smalloc(control->error_ptr,  total_real, "Delta_lp_temp");
-  workspace->dDelta_lp = (double*) smalloc(control->error_ptr,  total_real, "dDelta_lp");
-  workspace->dDelta_lp_temp = (double*)
-    smalloc(control->error_ptr,  total_real, "dDelta_lp_temp");
-  workspace->Delta_e = (double*) smalloc(control->error_ptr,  total_real, "Delta_e");
-  workspace->Delta_boc = (double*) smalloc(control->error_ptr,  total_real, "Delta_boc");
-  workspace->Delta_val = (double*) smalloc(control->error_ptr,  total_real, "Delta_val");
-  workspace->nlp = (double*) smalloc(control->error_ptr,  total_real, "nlp");
-  workspace->nlp_temp = (double*) smalloc(control->error_ptr,  total_real, "nlp_temp");
-  workspace->Clp = (double*) smalloc(control->error_ptr,  total_real, "Clp");
-  workspace->vlpex = (double*) smalloc(control->error_ptr,  total_real, "vlpex");
-  workspace->bond_mark = (int*)
-    scalloc(control->error_ptr,  total_cap, sizeof(int), "bond_mark");
-
-  /* force related storage */
-  workspace->f = (rvec*) scalloc(control->error_ptr,  total_cap, sizeof(rvec), "f");
-  workspace->CdDelta = (double*)
-    scalloc(control->error_ptr,  total_cap, sizeof(double), "CdDelta");
-
-  // storage for reductions with multiple threads
-#ifdef LMP_USER_OMP
-  workspace->CdDeltaReduction = (double *) scalloc(control->error_ptr, sizeof(double), (rc_bigint)total_cap*control->nthreads,
-                                                 "cddelta_reduce");
-
-  workspace->forceReduction = (rvec *) scalloc(control->error_ptr, sizeof(rvec), (rc_bigint)total_cap*control->nthreads,
-                                               "forceReduction");
-
-  workspace->valence_angle_atom_myoffset = (int *) scalloc(control->error_ptr, sizeof(int), total_cap, "valence_angle_atom_myoffset");
-#else
-  LMP_UNUSED_PARAM(control);
-#endif
-}
-
-
-static void Reallocate_Neighbor_List( reax_list *far_nbrs, int n,
-                                      int num_intrs )
-{
-  Delete_List( far_nbrs);
-  if (!Make_List( n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs )) {
-    far_nbrs->error_ptr->one(FLERR,"Problem in initializing far neighbors list");
+    if (workspace->CdDeltaReduction)
+      sfree(error, workspace->CdDeltaReduction, "cddelta_reduce");
+    if (workspace->forceReduction)
+      sfree(error, workspace->forceReduction, "f_reduce");
+    if (workspace->valence_angle_atom_myoffset)
+      sfree(error, workspace->valence_angle_atom_myoffset, "valence_angle_atom_myoffset");
   }
-}
+
+  void Allocate_Workspace(control_params *control, storage *workspace, int total_cap)
+  {
+    int total_real, total_rvec;
+    auto error = control->error_ptr;
+
+    workspace->allocated = 1;
+    total_real = total_cap * sizeof(double);
+    total_rvec = total_cap * sizeof(rvec);
+
+    /* bond order related storage  */
+    workspace->total_bond_order = (double*) smalloc(error, total_real, "total_bo");
+    workspace->Deltap = (double*) smalloc(error, total_real, "Deltap");
+    workspace->Deltap_boc = (double*) smalloc(error, total_real, "Deltap_boc");
+    workspace->dDeltap_self = (rvec*) smalloc(error, total_rvec, "dDeltap_self");
+    workspace->Delta = (double*) smalloc(error, total_real, "Delta");
+    workspace->Delta_lp = (double*) smalloc(error, total_real, "Delta_lp");
+    workspace->Delta_lp_temp = (double*) smalloc(error, total_real, "Delta_lp_temp");
+    workspace->dDelta_lp = (double*) smalloc(error, total_real, "dDelta_lp");
+    workspace->dDelta_lp_temp = (double*) smalloc(error, total_real, "dDelta_lp_temp");
+    workspace->Delta_e = (double*) smalloc(error, total_real, "Delta_e");
+    workspace->Delta_boc = (double*) smalloc(error, total_real, "Delta_boc");
+    workspace->Delta_val = (double*) smalloc(error, total_real, "Delta_val");
+    workspace->nlp = (double*) smalloc(error, total_real, "nlp");
+    workspace->nlp_temp = (double*) smalloc(error, total_real, "nlp_temp");
+    workspace->Clp = (double*) smalloc(error, total_real, "Clp");
+    workspace->vlpex = (double*) smalloc(error, total_real, "vlpex");
+    workspace->bond_mark = (int*) scalloc(error, total_cap, sizeof(int), "bond_mark");
+
+    /* force related storage */
+    workspace->f = (rvec*) scalloc(error, total_cap, sizeof(rvec), "f");
+    workspace->CdDelta = (double*) scalloc(error, total_cap, sizeof(double), "CdDelta");
+
+    // storage for reductions with multiple threads
+
+    workspace->CdDeltaReduction = (double *) scalloc(error,
+      sizeof(double), (rc_bigint)total_cap*control->nthreads, "cddelta_reduce");
+    workspace->forceReduction = (rvec *) scalloc(error,
+      sizeof(rvec), (rc_bigint)total_cap*control->nthreads, "forceReduction");
+    workspace->valence_angle_atom_myoffset = (int *) scalloc(error,
+     sizeof(int), total_cap, "valence_angle_atom_myoffset");
+  }
 
 
-static int Reallocate_HBonds_List( reax_system *system, reax_list *hbonds )
-{
-  int i, total_hbonds;
-
-  int mincap = system->mincap;
-  double saferzone = system->saferzone;
-
-  total_hbonds = 0;
-  for (i = 0; i < system->n; ++i)
-    if ((system->my_atoms[i].Hindex) >= 0) {
-      total_hbonds += system->my_atoms[i].num_hbonds;
+  static void Reallocate_Neighbor_List(reax_list *far_nbrs, int n, int num_intrs)
+  {
+    Delete_List(far_nbrs);
+    if (!Make_List(n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs)) {
+      far_nbrs->error_ptr->one(FLERR,"Problem in initializing far neighbors list");
     }
-  total_hbonds = (int)(MAX(total_hbonds*saferzone, mincap*system->minhbonds));
-
-  Delete_List( hbonds);
-  if (!Make_List( system->Hcap, total_hbonds, TYP_HBOND, hbonds )) {
-    hbonds->error_ptr->one(FLERR, "Not enough space for hydrogen bonds list");
   }
 
-  return total_hbonds;
-}
+  static int Reallocate_HBonds_List(reax_system *system, reax_list *hbonds)
+  {
+    int i, total_hbonds;
 
+    int mincap = system->mincap;
+    double saferzone = system->saferzone;
 
-static int Reallocate_Bonds_List( reax_system *system, reax_list *bonds,
-                                  int *total_bonds, int *est_3body )
-{
-  int i;
+    total_hbonds = 0;
+    for (i = 0; i < system->n; ++i)
+      if ((system->my_atoms[i].Hindex) >= 0) {
+        total_hbonds += system->my_atoms[i].num_hbonds;
+      }
+    total_hbonds = (int)(MAX(total_hbonds*saferzone, mincap*system->minhbonds));
 
-  int mincap = system->mincap;
-  double safezone = system->safezone;
+    Delete_List(hbonds);
+    if (!Make_List(system->Hcap, total_hbonds, TYP_HBOND, hbonds)) {
+      hbonds->error_ptr->one(FLERR, "Not enough space for hydrogen bonds list");
+    }
 
-  *total_bonds = 0;
-  *est_3body = 0;
-  for (i = 0; i < system->N; ++i) {
-    *est_3body += SQR(system->my_atoms[i].num_bonds);
-    *total_bonds += system->my_atoms[i].num_bonds;
-  }
-  *total_bonds = (int)(MAX( *total_bonds * safezone, mincap*MIN_BONDS ));
-
-#ifdef LMP_USER_OMP
-  if (system->omp_active)
-    for (i = 0; i < bonds->num_intrs; ++i)
-      sfree(system->error_ptr, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
-#endif
-
-  Delete_List( bonds);
-  if (!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds)) {
-    bonds->error_ptr->one(FLERR, "Not enough space for bonds list");
+    return total_hbonds;
   }
 
-#ifdef LMP_USER_OMP
-#if defined(_OPENMP)
-  int nthreads = omp_get_num_threads();
-#else
-  int nthreads = 1;
-#endif
+  static int Reallocate_Bonds_List(control_params *control, reax_system *system,
+                                 reax_list *bonds, int *total_bonds, int *est_3body)
+  {
+    int i;
 
-  if (system->omp_active)
-    for (i = 0; i < bonds->num_intrs; ++i)
-      bonds->select.bond_list[i].bo_data.CdboReduction =
-        (double*) smalloc(system->error_ptr, sizeof(double)*nthreads, "CdboReduction");
-#endif
+    int mincap = system->mincap;
+    double safezone = system->safezone;
 
-  return SUCCESS;
-}
+    *total_bonds = 0;
+    *est_3body = 0;
+    for (i = 0; i < system->N; ++i) {
+      *est_3body += SQR(system->my_atoms[i].num_bonds);
+      *total_bonds += system->my_atoms[i].num_bonds;
+    }
+    *total_bonds = (int)(MAX(*total_bonds * safezone, mincap*MIN_BONDS));
 
+    if (system->omp_active)
+      for (i = 0; i < bonds->num_intrs; ++i)
+        sfree(system->error_ptr, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
 
-void ReAllocate( reax_system *system, control_params *control,
-                 simulation_data *data, storage *workspace, reax_list **lists )
-{
-  auto error = system->error_ptr;
-  int num_bonds, est_3body, Hflag;
-  int newsize;
-  reallocate_data *wsr;
-  reax_list *far_nbrs;
+    Delete_List(bonds);
+    if (!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds)) {
+      bonds->error_ptr->one(FLERR, "Not enough space for bonds list");
+    }
 
-  int mincap = system->mincap;
-  double safezone = system->safezone;
-  double saferzone = system->saferzone;
+    if (system->omp_active)
+      for (i = 0; i < bonds->num_intrs; ++i)
+        bonds->select.bond_list[i].bo_data.CdboReduction =
+          (double*) smalloc(system->error_ptr, sizeof(double)*control->nthreads, "CdboReduction");
 
-  wsr = &(workspace->realloc);
-
-  if ( system->n >= DANGER_ZONE * system->local_cap ||
-      (0 && system->n <= LOOSE_ZONE * system->local_cap)) {
-    system->local_cap = MAX( (int)(system->n * safezone), mincap );
+    return SUCCESS;
   }
 
-  int Nflag = 0;
-  if ( system->N >= DANGER_ZONE * system->total_cap ||
-      (0 && system->N <= LOOSE_ZONE * system->total_cap)) {
-    Nflag = 1;
-    system->total_cap = MAX( (int)(system->N * safezone), mincap );
-  }
+  void ReAllocate(reax_system *system, control_params *control,
+                  simulation_data *data, storage *workspace, reax_list **lists)
+  {
+    int num_bonds, est_3body, Hflag;
+    int newsize;
+    reax_list *far_nbrs;
 
-  if (Nflag) {
-    /* system */
-    system->my_atoms = (reax_atom *)::realloc(system->my_atoms,
-                                              system->total_cap*sizeof(reax_atom));
-    /* workspace */
-    DeAllocate_Workspace(control, workspace);
-    Allocate_Workspace(control, workspace, system->total_cap);
-  }
+    int mincap = system->mincap;
+    double safezone = system->safezone;
+    double saferzone = system->saferzone;
 
-  /* far neighbors */
+    auto error = system->error_ptr;
+    reallocate_data *wsr = &(workspace->realloc);
 
-  far_nbrs = *lists + FAR_NBRS;
+    if (system->n >= DANGER_ZONE * system->local_cap ||
+        (0 && system->n <= LOOSE_ZONE * system->local_cap)) {
+      system->local_cap = MAX((int)(system->n * safezone), mincap);
+    }
 
-  if (Nflag || wsr->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
-    if (wsr->num_far > far_nbrs->num_intrs)
-      error->one(FLERR,fmt::format("step{}: ran out of space on far_nbrs: top={}, max={}",
+    int Nflag = 0;
+    if (system->N >= DANGER_ZONE * system->total_cap ||
+        (0 && system->N <= LOOSE_ZONE * system->total_cap)) {
+      Nflag = 1;
+      system->total_cap = MAX((int)(system->N * safezone), mincap);
+    }
+
+    if (Nflag) {
+      /* system */
+      system->my_atoms = (reax_atom *)::realloc(system->my_atoms,
+        system->total_cap*sizeof(reax_atom));
+      /* workspace */
+      DeAllocate_Workspace(control, workspace);
+      Allocate_Workspace(control, workspace, system->total_cap);
+    }
+
+    /* far neighbors */
+
+    far_nbrs = *lists + FAR_NBRS;
+
+    if (Nflag || wsr->num_far >= far_nbrs->num_intrs * DANGER_ZONE) {
+      if (wsr->num_far > far_nbrs->num_intrs)
+        error->one(FLERR,fmt::format("step{}: ran out of space on far_nbrs: top={}, max={}",
                                    data->step, wsr->num_far, far_nbrs->num_intrs));
 
-    newsize = static_cast<int>
-      (MAX( wsr->num_far*safezone, mincap*REAX_MIN_NBRS));
+      newsize = static_cast<int>
+        (MAX(wsr->num_far*safezone, mincap*REAX_MIN_NBRS));
 
-    Reallocate_Neighbor_List( far_nbrs, system->total_cap, newsize);
-    wsr->num_far = 0;
-  }
-
-  /* hydrogen bonds list */
-  if (control->hbond_cut > 0) {
-    Hflag = 0;
-    if ( system->numH >= DANGER_ZONE * system->Hcap ||
-        (0 && system->numH <= LOOSE_ZONE * system->Hcap)) {
-      Hflag = 1;
-      system->Hcap = int(MAX( system->numH * saferzone, mincap ));
+      Reallocate_Neighbor_List(far_nbrs, system->total_cap, newsize);
+      wsr->num_far = 0;
     }
 
-    if (Hflag || wsr->hbonds) {
-      Reallocate_HBonds_List( system, (*lists)+HBONDS);
-      wsr->hbonds = 0;
+    /* hydrogen bonds list */
+    if (control->hbond_cut > 0) {
+      Hflag = 0;
+      if (system->numH >= DANGER_ZONE * system->Hcap ||
+          (0 && system->numH <= LOOSE_ZONE * system->Hcap)) {
+        Hflag = 1;
+        system->Hcap = int(MAX(system->numH * saferzone, mincap));
+      }
+
+      if (Hflag || wsr->hbonds) {
+        Reallocate_HBonds_List(system, (*lists)+HBONDS);
+        wsr->hbonds = 0;
+      }
     }
-  }
 
-  /* bonds list */
-  num_bonds = est_3body = -1;
-  if (Nflag || wsr->bonds) {
-    Reallocate_Bonds_List( system, (*lists)+BONDS, &num_bonds,
-                           &est_3body);
-    wsr->bonds = 0;
-    wsr->num_3body = MAX( wsr->num_3body, est_3body ) * 2;
-  }
-
-  /* 3-body list */
-  if (wsr->num_3body > 0) {
-    Delete_List( (*lists)+THREE_BODIES);
-
-    if (num_bonds == -1)
-      num_bonds = ((*lists)+BONDS)->num_intrs;
-
-    wsr->num_3body = (int)(MAX(wsr->num_3body*safezone, MIN_3BODIES));
-
-    if ( !Make_List( num_bonds, wsr->num_3body, TYP_THREE_BODY,
-                    (*lists)+THREE_BODIES )) {
-      error->one(FLERR, "Problem in initializing angles list");
+    /* bonds list */
+    num_bonds = est_3body = -1;
+    if (Nflag || wsr->bonds) {
+      Reallocate_Bonds_List(control, system, (*lists)+BONDS, &num_bonds, &est_3body);
+      wsr->bonds = 0;
+      wsr->num_3body = MAX(wsr->num_3body, est_3body) * 2;
     }
-    wsr->num_3body = -1;
+
+    /* 3-body list */
+    if (wsr->num_3body > 0) {
+      Delete_List((*lists)+THREE_BODIES);
+
+      if (num_bonds == -1)
+        num_bonds = ((*lists)+BONDS)->num_intrs;
+
+      wsr->num_3body = (int)(MAX(wsr->num_3body*safezone, MIN_3BODIES));
+
+      if (!Make_List(num_bonds, wsr->num_3body, TYP_THREE_BODY,
+                     (*lists)+THREE_BODIES)) {
+        error->one(FLERR, "Problem in initializing angles list");
+      }
+      wsr->num_3body = -1;
+    }
   }
 }

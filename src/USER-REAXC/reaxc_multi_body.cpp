@@ -24,17 +24,18 @@
   <https://www.gnu.org/licenses/>.
   ----------------------------------------------------------------------*/
 
-#include "reaxc_multi_body.h"
+#include "reaxff_api.h"
+
+#include "pair.h"
+
 #include <cmath>
 #include <cstring>
-#include "pair.h"
-#include "reaxc_defs.h"
-#include "reaxc_list.h"
 
-void Atom_Energy( reax_system *system, control_params *control,
-                  simulation_data *data, storage *workspace, reax_list **lists,
-                  output_controls * /*out_control*/ )
-{
+namespace ReaxFF {
+  
+  void Atom_Energy(reax_system *system, control_params *control,
+                   simulation_data *data, storage *workspace, reax_list **lists)
+  {
   int i, j, pj, type_i, type_j;
   double Delta_lpcorr, dfvl;
   double e_lp, expvd2, inv_expvd2, dElp, CElp, DlpVi;
@@ -67,7 +68,7 @@ void Atom_Energy( reax_system *system, control_params *control,
     /* set the parameter pointer */
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
-    sbp_i = &(system->reax_param.sbp[ type_i ]);
+    sbp_i = &(system->reax_param.sbp[type_i]);
 
     /* lone-pair Energy */
     p_lp2 = sbp_i->p_lp2;
@@ -126,11 +127,10 @@ void Atom_Energy( reax_system *system, control_params *control,
       }
   }
 
-
   for (i = 0; i < system->n; ++i) {
     type_i = system->my_atoms[i].type;
     if (type_i < 0) continue;
-    sbp_i = &(system->reax_param.sbp[ type_i ]);
+    sbp_i = &(system->reax_param.sbp[type_i]);
 
     /* over-coordination energy */
     if (sbp_i->mass > 21.0)
@@ -144,7 +144,7 @@ void Atom_Energy( reax_system *system, control_params *control,
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
         bo_ij = &(bonds->select.bond_list[pj].bo_data);
-        twbp = &(system->reax_param.tbp[ type_i ][ type_j ]);
+        twbp = &(system->reax_param.tbp[type_i][type_j]);
 
         sum_ovun1 += twbp->p_ovun1 * twbp->De_s * bo_ij->BO;
         sum_ovun2 += (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j])*
@@ -218,9 +218,8 @@ void Atom_Energy( reax_system *system, control_params *control,
       pbond = &(bonds->select.bond_list[pj]);
       j = pbond->nbr;
       bo_ij = &(pbond->bo_data);
-      twbp  = &(system->reax_param.tbp[ system->my_atoms[i].type ]
+      twbp  = &(system->reax_param.tbp[system->my_atoms[i].type]
                 [system->my_atoms[pbond->nbr].type]);
-
 
       bo_ij->Cdbo += CEover1 * twbp->p_ovun1 * twbp->De_s;// OvCoor-1st
       workspace->CdDelta[j] += CEover4 * (1.0 - dfvl*workspace->dDelta_lp[j]) *
@@ -230,15 +229,13 @@ void Atom_Energy( reax_system *system, control_params *control,
       bo_ij->Cdbopi2 += CEover4 *
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // OvCoor-3b
 
-
       workspace->CdDelta[j] += CEunder4 * (1.0 - dfvl*workspace->dDelta_lp[j]) *
         (bo_ij->BO_pi + bo_ij->BO_pi2);   // UnCoor - 2a
       bo_ij->Cdbopi += CEunder4 *
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // UnCoor-2b
       bo_ij->Cdbopi2 += CEunder4 *
         (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j]);  // UnCoor-2b
-
     }
-
   }
+}
 }

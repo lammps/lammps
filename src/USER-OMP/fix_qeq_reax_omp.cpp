@@ -33,16 +33,17 @@
 
 #include "fix_qeq_reax_omp.h"
 
-#include <cmath>
-#include "pair_reaxc.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "update.h"
-#include "memory.h"
-#include "error.h"
-#include "reaxc_defs.h"
-#include "reaxc_types.h"
+
+#include "pair_reaxc.h"
+#include "reaxff_defs.h"
+
+#include <cmath>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -50,11 +51,6 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-#define EV_TO_KCAL_PER_MOL 14.4
-#define SQR(x) ((x)*(x))
-#define CUBE(x) ((x)*(x)*(x))
-#define MIN_NBRS 100
 
 /* ---------------------------------------------------------------------- */
 

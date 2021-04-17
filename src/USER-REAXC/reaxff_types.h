@@ -123,6 +123,13 @@ namespace ReaxFF
     double v13cor, ovc;
   };
 
+  struct dbond_coefficients {
+    double C1dbo, C2dbo, C3dbo;
+    double C1dbopi, C2dbopi, C3dbopi, C4dbopi;
+    double C1dbopi2, C2dbopi2, C3dbopi2, C4dbopi2;
+    double C1dDelta, C2dDelta, C3dDelta;
+  };
+
   /* 3-body parameters */
   struct three_body_parameters {
     /* valence angle */
@@ -424,12 +431,6 @@ namespace ReaxFF
     cubic_spline_coef *vdW, *CEvd;
     cubic_spline_coef *ele, *CEclmb;
   };
-
-/* function pointer defs */
-
-  typedef void (*interaction_function) (reax_system *, control_params *,
-                                        simulation_data *, storage *,
-                                        reax_list **, output_controls *);
 }
 
 #endif

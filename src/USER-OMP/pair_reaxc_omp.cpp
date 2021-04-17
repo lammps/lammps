@@ -197,7 +197,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   setup();
 
-  Reset( api->system, api->control, api->data, api->workspace, &api->lists );
+  Reset(api->system, api->control, api->data, api->workspace, &api->lists);
 
   // Why not update workspace like in MPI-only code?
   // Using the MPI-only way messes up the hb energy
@@ -270,7 +270,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   api->data->step = update->ntimestep;
 
-  Output_Results( api->system, api->control, api->data, &api->lists, api->out_control, world );
+  Output_Results(api->system, api->control, api->data, &api->lists, api->out_control, world);
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
 
@@ -298,7 +298,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxCOMP::init_style( )
+void PairReaxCOMP::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair reax/c/omp requires atom attribute q");
@@ -354,7 +354,7 @@ void PairReaxCOMP::init_style( )
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxCOMP::setup( )
+void PairReaxCOMP::setup()
 {
   int oldN;
   int mincap = api->system->mincap;
@@ -380,12 +380,12 @@ void PairReaxCOMP::setup( )
 
     // determine the local and total capacity
 
-    api->system->local_cap = MAX( (int)(api->system->n * safezone), mincap );
-    api->system->total_cap = MAX( (int)(api->system->N * safezone), mincap );
+    api->system->local_cap = MAX((int)(api->system->n * safezone), mincap);
+    api->system->total_cap = MAX((int)(api->system->N * safezone), mincap);
 
     // initialize my data structures
 
-    PreAllocate_Space( api->system, api->control, api->workspace );
+    PreAllocate_Space(api->system, api->workspace);
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
@@ -395,7 +395,8 @@ void PairReaxCOMP::setup( )
 
     write_reax_lists();
 
-    InitializeOMP(api->system, api->control, api->data, api->workspace, &api->lists, api->out_control, world);
+    InitializeOMP(api->system, api->control, api->data, api->workspace,
+                  &api->lists, api->out_control, world);
 
     for (int k = 0; k < api->system->N; ++k) {
       num_bonds[k] = api->system->my_atoms[k].num_bonds;
@@ -411,7 +412,7 @@ void PairReaxCOMP::setup( )
     // reset the bond list info for new atoms
 
     for (int k = oldN; k < api->system->N; ++k)
-      Set_End_Index( k, Start_Index( k, api->lists+BONDS ), api->lists+BONDS );
+      Set_End_Index(k, Start_Index(k, api->lists+BONDS), api->lists+BONDS);
 
     // estimate far neighbor list size
     // Not present in MPI-only version
@@ -419,7 +420,7 @@ void PairReaxCOMP::setup( )
 
     // check if I need to shrink/extend my data-structs
 
-    ReAllocate( api->system, api->control, api->data, api->workspace, &api->lists );
+    ReAllocate(api->system, api->control, api->data, api->workspace, &api->lists);
   }
 }
 
@@ -522,7 +523,7 @@ int PairReaxCOMP::write_reax_lists()
   for (itr_i = 0; itr_i < numall; ++itr_i) {
     i = ilist[itr_i];
     jlist = firstneigh[i];
-    Set_Start_Index( i, num_nbrs_offset[i], far_nbrs );
+    Set_Start_Index(i, num_nbrs_offset[i], far_nbrs);
 
     if (i < inum)
       cutoff_sqr = SQR(api->control->nonb_cut);
@@ -534,15 +535,15 @@ int PairReaxCOMP::write_reax_lists()
     for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
       j = jlist[itr_j];
       j &= NEIGHMASK;
-      get_distance( x[j], x[i], &d_sqr, &dvec );
+      get_distance(x[j], x[i], &d_sqr, &dvec);
 
       if (d_sqr <= cutoff_sqr) {
-        dist = sqrt( d_sqr );
-        set_far_nbr(&far_list[num_nbrs_offset[i] + num_mynbrs], j, dist, dvec );
+        dist = sqrt(d_sqr);
+        set_far_nbr(&far_list[num_nbrs_offset[i] + num_mynbrs], j, dist, dvec);
         ++num_mynbrs;
       }
     }
-    Set_End_Index( i, num_nbrs_offset[i] + num_mynbrs, far_nbrs );
+    Set_End_Index(i, num_nbrs_offset[i] + num_mynbrs, far_nbrs);
   }
 
 #ifdef OMP_TIMING
@@ -587,7 +588,7 @@ void PairReaxCOMP::FindBond()
 
     nj = 0;
     for (pj = Start_Index(i, api->lists); pj < End_Index(i, api->lists); ++pj) {
-      bo_ij = &( api->lists->select.bond_list[pj] );
+      bo_ij = &(api->lists->select.bond_list[pj]);
       j = bo_ij->nbr;
       if (j < i) continue;
 

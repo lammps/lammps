@@ -28,12 +28,12 @@
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "pair_reaxc.h"
 #include "update.h"
 
-#include <cstring>
+#include "pair_reaxc.h"
+#include "reaxff_defs.h"
 
-#include "reaxc_defs.h"
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

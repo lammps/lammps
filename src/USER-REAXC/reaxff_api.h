@@ -39,14 +39,29 @@ namespace ReaxFF
 
   // exported Functions
 
-  // allocate
+  // allocate X
 
+  extern void Allocate_Workspace(control_params *, storage *, int);
   extern void DeAllocate_System(reax_system *);
   extern void DeAllocate_Workspace(control_params *, storage *);
-  extern int  PreAllocate_Space(reax_system *, control_params *, storage *);
+  extern void PreAllocate_Space(reax_system *, storage *);
   extern void ReAllocate(reax_system *, control_params *, simulation_data *,
                          storage *, reax_list **);
 
+  // bond orders
+
+  extern void BO(reax_system *, control_params *, simulation_data *,
+                 storage *, reax_list **, output_controls *);
+  extern int BOp(storage *, reax_list *, double, int, int, far_neighbor_data *,
+                 single_body_parameters *, single_body_parameters *,
+                 two_body_parameters *);
+  extern void Add_dBond_to_Forces(reax_system*, int, int, storage*, reax_list**);
+  extern void Add_dBond_to_Forces_NPT(int, int, storage*, reax_list**);
+
+  // bonds
+
+  extern void Bonds(reax_system *, simulation_data *, storage *, reax_list **);
+  
   // control
 
   extern void Read_Control_File(const char *, control_params *, output_controls *);
@@ -59,19 +74,34 @@ namespace ReaxFF
 
   extern void Compute_Forces(reax_system *, control_params *, simulation_data *,
                              storage *, reax_list **, output_controls *);
+  extern void Estimate_Storages(reax_system *, control_params *, reax_list **,
+                                int *, int *, int *, int *);
 
+  // hydrogen bonds
+  
+  extern void Hydrogen_Bonds(reax_system *, control_params *,
+                             simulation_data *, storage *, reax_list **);
   // init md
 
+  extern void Init_System(reax_system *, control_params *);
+  extern void Init_Simulation_Data(simulation_data *);
+  extern void Init_Workspace(reax_system *, control_params *, storage *);
   extern void Initialize(reax_system *, control_params *, simulation_data *,
                          storage *, reax_list **, output_controls *, MPI_Comm);
 
   // io tools
 
+  extern void Init_Output_Files(reax_system *, control_params *,
+                                output_controls *, MPI_Comm);
   extern void Close_Output_Files(reax_system *, output_controls *);
   extern void Output_Results(reax_system *, control_params *, simulation_data *,
                              reax_list **, output_controls *, MPI_Comm);
+  extern void Collect_System_Energy(reax_system *, simulation_data *, MPI_Comm);
 
   // lists
+
+  extern int  Make_List(int, int, int, reax_list *);
+  extern void Delete_List(reax_list*);
 
   inline int Start_Index(int i, reax_list *l) { return l->index[i]; }
   inline int End_Index(int i, reax_list *l) { return l->end_index[i]; }
@@ -81,11 +111,14 @@ namespace ReaxFF
   inline void Set_End_Index(int i, int val, reax_list *l) {
     l->end_index[i] = val;
   }
-  extern void Delete_List(reax_list*);
-  extern int  Make_List(int, int, int, reax_list *);
+  inline int Num_Entries(int i, reax_list *l) {
+    return l->end_index[i] - l->index[i];
+  }
 
   // lookup
 
+  extern void Init_Lookup_Tables(reax_system *, control_params *,
+                                 storage *, MPI_Comm);
   extern void Deallocate_Lookup_Tables(reax_system *);
   extern void Natural_Cubic_Spline(LAMMPS_NS::Error*, const double *,
                                    const double *, cubic_spline_coef *,
@@ -94,16 +127,59 @@ namespace ReaxFF
                                     const double *, double v0, double vlast,
                                     cubic_spline_coef *coef, unsigned int n);
 
+  // multi body
+
+  extern void Atom_Energy(reax_system *, control_params *, simulation_data *,
+                          storage *, reax_list **);
+
+  // nonbonded
+
+  extern void Compute_Polarization_Energy(reax_system *, simulation_data *);
+  extern void vdW_Coulomb_Energy(reax_system *, control_params *,
+                                 simulation_data *, storage *, reax_list **);
+  extern void Tabulated_vdW_Coulomb_Energy(reax_system *, control_params *,
+                                           simulation_data *, storage *,
+                                           reax_list **);
+  extern void LR_vdW_Coulomb(reax_system *, storage *, control_params *,
+                             int, int, double, LR_data *);
+
   // reset tools
 
   extern void Reset(reax_system *, control_params *, simulation_data *,
                     storage *, reax_list **);
-
+  extern void Reset_Simulation_Data(simulation_data *);
+  extern void Reset_Workspace(reax_system *, storage *);
+  
   // toolbox
 
   extern void *scalloc(LAMMPS_NS::Error *, rc_bigint, rc_bigint, const char *);
   extern void *smalloc(LAMMPS_NS::Error *, rc_bigint, const char *);
   extern void sfree(LAMMPS_NS::Error *, void *, const char *);
+
+  // torsion angles
+
+  extern double Calculate_Omega(rvec, double, rvec, double, rvec, double,
+                                rvec, double, three_body_interaction_data *,
+                                three_body_interaction_data *, rvec, rvec,
+                                rvec, rvec);
+  extern void Torsion_Angles(reax_system *, control_params *, simulation_data *,
+                             storage *, reax_list **);
+
+  // traj
+
+  extern void Init_Traj(reax_system *, control_params *,
+                        output_controls *, MPI_Comm);
+  extern void End_Traj(int, output_controls *);
+  extern void Append_Frame(reax_system *, control_params *, simulation_data *,
+                           reax_list **, output_controls *, MPI_Comm);
+
+  // valence angles
+
+  extern void Calculate_Theta(rvec, double, rvec, double, double *, double *);
+  extern void Calculate_dCos_Theta(rvec, double, rvec, double,
+                                   rvec *, rvec *, rvec *);
+  extern void Valence_Angles(reax_system *, control_params *, simulation_data *,
+                             storage *, reax_list **);
 
   // vector
 
@@ -146,6 +222,24 @@ namespace ReaxFF
   }
 
   inline void ivec_MakeZero(ivec v) { v[0] = v[1] = v[2] = 0; }
+
+  inline void ivec_Copy(ivec dest, ivec src) {
+    dest[0] = src[0], dest[1] = src[1], dest[2] = src[2];
+  }
+
+  inline void ivec_Scale(ivec dest, double C, ivec src)
+  {
+  dest[0] = (int)(C * src[0]);
+  dest[1] = (int)(C * src[1]);
+  dest[2] = (int)(C * src[2]);
+  }
+
+  inline void ivec_Sum(ivec dest, ivec v1, ivec v2)
+  {
+    dest[0] = v1[0] + v2[0];
+    dest[1] = v1[1] + v2[1];
+    dest[2] = v1[2] + v2[2];
+  }
 }
 
 #endif

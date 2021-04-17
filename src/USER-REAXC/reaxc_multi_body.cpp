@@ -32,7 +32,7 @@
 #include <cstring>
 
 namespace ReaxFF {
-  
+
   void Atom_Energy(reax_system *system, control_params *control,
                    simulation_data *data, storage *workspace, reax_list **lists)
   {

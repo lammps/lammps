@@ -33,7 +33,7 @@
 #include "error.h"
 
 namespace ReaxFF {
-  
+
   static void Compute_Bonded_Forces(reax_system *system, control_params *control,
                              simulation_data *data, storage *workspace,
                              reax_list **lists, output_controls *out_control)

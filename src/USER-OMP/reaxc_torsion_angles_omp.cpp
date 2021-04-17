@@ -39,7 +39,7 @@
 using namespace LAMMPS_NS;
 
 namespace ReaxFF {
-  
+
   /* ---------------------------------------------------------------------- */
   void Torsion_AnglesOMP(reax_system *system, control_params *control,
                          simulation_data *data, storage *workspace,

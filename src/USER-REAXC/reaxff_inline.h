@@ -23,7 +23,7 @@
 
 #include "accelerator_kokkos.h" // for LAMMPS_INLINE
 
-namespace ReaxFF 
+namespace ReaxFF
 {
   struct LR_data
   {

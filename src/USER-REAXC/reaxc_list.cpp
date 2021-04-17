@@ -29,7 +29,7 @@
 #include "error.h"
 
 namespace ReaxFF {
-  
+
   /************* allocate list space ******************/
   int Make_List(int n, int num_intrs, int type, reax_list *l)
   {

@@ -33,7 +33,7 @@
 #include "error.h"
 
 namespace ReaxFF {
-  
+
   int Tokenize(char* s, char*** tok)
   {
     char test[MAX_LINE];

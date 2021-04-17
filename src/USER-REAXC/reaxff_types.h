@@ -33,7 +33,7 @@ namespace LAMMPS_NS {
   class Pair;
 }
 
-namespace ReaxFF 
+namespace ReaxFF
 {
   /********************** TYPE DEFINITIONS ********************/
   typedef int ivec[3];

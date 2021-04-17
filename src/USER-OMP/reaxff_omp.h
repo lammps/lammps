@@ -27,7 +27,7 @@
 #include <omp.h>
 #endif
 
-namespace ReaxFF 
+namespace ReaxFF
 {
   // exported Functions
 
@@ -42,9 +42,9 @@ namespace ReaxFF
 
   extern void BOOMP(reax_system *, control_params *, simulation_data *,
                     storage *, reax_list **, output_controls *);
-  
+
   // bonds OpenMP
-  
+
   extern void BondsOMP(reax_system *, simulation_data *,
                        storage *, reax_list **);
 
@@ -55,7 +55,7 @@ namespace ReaxFF
                                 reax_list **, output_controls *);
 
   // hydrogen bonds
-  
+
   extern void Hydrogen_BondsOMP(reax_system *, control_params *,
                                 simulation_data *, storage *, reax_list **);
 

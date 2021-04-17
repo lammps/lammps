@@ -31,7 +31,7 @@
 #include "pair.h"
 #include "error.h"
 
-namespace ReaxFF { 
+namespace ReaxFF {
   void Calculate_Theta( rvec dvec_ji, double d_ji, rvec dvec_jk, double d_jk,
                         double *theta, double *cos_theta )
   {

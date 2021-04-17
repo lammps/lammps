@@ -41,9 +41,9 @@ using namespace LAMMPS_NS;
 namespace ReaxFF {
 /* ---------------------------------------------------------------------- */
 
-  void Compute_Bonded_ForcesOMP(reax_system *system, control_params *control,
-                                simulation_data *data, storage *workspace,
-                                reax_list **lists, output_controls *out_control)
+  static void Compute_Bonded_ForcesOMP(reax_system *system, control_params *control,
+                                       simulation_data *data, storage *workspace,
+                                       reax_list **lists, output_controls *out_control)
   {
 
     BOOMP(system, control, data, workspace, lists, out_control);
@@ -55,10 +55,9 @@ namespace ReaxFF {
       Hydrogen_BondsOMP(system, control, data, workspace, lists);
   }
 
-// Only difference with MPI-only version is inclusion of OMP_TIMING statements
-  void Compute_NonBonded_ForcesOMP(reax_system *system, control_params *control,
-                                    simulation_data *data, storage *workspace,
-                                    reax_list **lists, output_controls *out_control)
+  static void Compute_NonBonded_ForcesOMP(reax_system *system, control_params *control,
+                                          simulation_data *data, storage *workspace,
+                                          reax_list **lists)
   {
     /* van der Waals and Coulomb interactions */
 
@@ -73,8 +72,8 @@ namespace ReaxFF {
 /* this version of Compute_Total_Force computes forces from
    coefficients accumulated by all interaction functions.
    Saves enormous time & space! */
-  void Compute_Total_ForceOMP(reax_system *system, control_params *control,
-                              storage *workspace, reax_list **lists)
+  static void Compute_Total_ForceOMP(reax_system *system, control_params *control,
+                                     storage *workspace, reax_list **lists)
   {
     int natoms = system->N;
     int nthreads = control->nthreads;
@@ -172,7 +171,7 @@ namespace ReaxFF {
 
 /* ---------------------------------------------------------------------- */
 
-  void Validate_ListsOMP(reax_system *system, storage * /*workspace*/, reax_list **lists,
+  static void Validate_ListsOMP(reax_system *system, reax_list **lists,
                          int step, int n, int N, int numH)
   {
     int comp, Hindex;
@@ -469,9 +468,8 @@ namespace ReaxFF {
     workspace->realloc.num_bonds = num_bonds;
     workspace->realloc.num_hbonds = num_hbonds;
 
-    Validate_ListsOMP(system, workspace, lists, data->step,
-                       system->n, system->N, system->numH);
-
+    Validate_ListsOMP(system, lists, data->step,
+                      system->n, system->N, system->numH);
   }
 
 /* ---------------------------------------------------------------------- */
@@ -485,11 +483,10 @@ namespace ReaxFF {
 
     // Bonded Interactions
     Compute_Bonded_ForcesOMP(system, control, data, workspace,
-                              lists, out_control);
+                             lists, out_control);
 
     // Nonbonded Interactions
-    Compute_NonBonded_ForcesOMP(system, control, data, workspace,
-                                 lists, out_control);
+    Compute_NonBonded_ForcesOMP(system, control, data, workspace, lists);
 
     // Total Force
     Compute_Total_ForceOMP(system, control, workspace, lists);

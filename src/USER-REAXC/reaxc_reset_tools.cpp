@@ -32,7 +32,7 @@
 #include <cstring>
 
 namespace ReaxFF {
-  
+
   static void Reset_Atoms(reax_system* system, control_params *control)
   {
     int i;

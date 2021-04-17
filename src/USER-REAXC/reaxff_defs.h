@@ -90,7 +90,7 @@
 #define REAX_MAX_4BODY_PARAM    5
 #define REAX_MAX_ATOM_TYPES     25
 
-namespace ReaxFF 
+namespace ReaxFF
 {
   /******************* ENUMERATORS *************************/
 

@@ -25,7 +25,7 @@
 
 #include <cmath>
 
-namespace ReaxFF 
+namespace ReaxFF
 {
   // per instance data
   struct API {
@@ -61,7 +61,7 @@ namespace ReaxFF
   // bonds
 
   extern void Bonds(reax_system *, simulation_data *, storage *, reax_list **);
-  
+
   // control
 
   extern void Read_Control_File(const char *, control_params *, output_controls *);
@@ -78,7 +78,7 @@ namespace ReaxFF
                                 int *, int *, int *, int *);
 
   // hydrogen bonds
-  
+
   extern void Hydrogen_Bonds(reax_system *, control_params *,
                              simulation_data *, storage *, reax_list **);
   // init md
@@ -149,7 +149,7 @@ namespace ReaxFF
                     storage *, reax_list **);
   extern void Reset_Simulation_Data(simulation_data *);
   extern void Reset_Workspace(reax_system *, storage *);
-  
+
   // toolbox
 
   extern void *scalloc(LAMMPS_NS::Error *, rc_bigint, rc_bigint, const char *);

@@ -41,7 +41,7 @@ using LAMMPS_NS::utils::getsyserror;
 
 namespace ReaxFF {
   extern int  Tokenize(char* s, char*** tok);
-  
+
   void Read_Force_Field(const char *filename, reax_interaction *reax,
                         control_params *control)
   {

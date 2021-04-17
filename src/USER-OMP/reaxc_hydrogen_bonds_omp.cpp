@@ -38,7 +38,7 @@
 using namespace LAMMPS_NS;
 
 namespace ReaxFF {
-  
+
   /* ---------------------------------------------------------------------- */
 
   void Hydrogen_BondsOMP( reax_system *system, control_params *control,

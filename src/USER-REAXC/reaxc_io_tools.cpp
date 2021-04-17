@@ -62,7 +62,7 @@ namespace ReaxFF {
       data->sys_en.e_ele = sys_en[11];
       data->sys_en.e_pol = sys_en[12];
     }
-  } 
+  }
 
   void Init_Output_Files(reax_system *system, control_params *control,
                       output_controls *out_control, MPI_Comm world)

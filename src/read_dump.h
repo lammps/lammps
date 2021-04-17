@@ -22,11 +22,11 @@ CommandStyle(read_dump,ReadDump)
 #ifndef LMP_READ_DUMP_H
 #define LMP_READ_DUMP_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ReadDump : protected Pointers {
+class ReadDump : public Command {
  public:
   ReadDump(class LAMMPS *);
   ~ReadDump();

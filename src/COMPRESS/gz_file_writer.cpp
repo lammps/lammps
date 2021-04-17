@@ -67,7 +67,7 @@ size_t GzFileWriter::write(const void * buffer, size_t length)
 void GzFileWriter::flush()
 {
   if (!isopen()) return;
-  
+
   gzflush(gzFp, Z_SYNC_FLUSH);
 }
 

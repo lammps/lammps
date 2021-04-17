@@ -40,7 +40,6 @@
 #include <cstring>
 #include <unistd.h>
 #include <unordered_map>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

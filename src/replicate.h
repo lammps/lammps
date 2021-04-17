@@ -20,11 +20,11 @@ CommandStyle(replicate,Replicate)
 #ifndef LMP_REPLICATE_H
 #define LMP_REPLICATE_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Replicate : protected Pointers {
+class Replicate : public Command {
  public:
   Replicate(class LAMMPS *);
   void command(int, char **);

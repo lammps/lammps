@@ -10,7 +10,7 @@ build target in the conventional and CMake based build systems
 # copy LAMMPS shared library and lammps package to system dirs
 
 from __future__ import print_function
-import sys,os,shutil
+import sys,os,shutil,time
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='install.py',
@@ -80,13 +80,15 @@ if args.dir:
 
   sys.exit()
 
-# extract version string from header
+# extract LAMMPS version string from header
+# and convert to python packaging compatible version
 def get_lammps_version(header):
     with open(header, 'r') as f:
         line = f.readline()
         start_pos = line.find('"')+1
         end_pos = line.find('"', start_pos)
-        return "".join(line[start_pos:end_pos].split())
+        t = time.strptime("".join(line[start_pos:end_pos].split()), "%d%b%Y")
+        return "{}.{}.{}".format(t.tm_year,t.tm_mon,t.tm_mday)
 
 verstr = get_lammps_version(args.version)
 

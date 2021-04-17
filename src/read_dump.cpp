@@ -15,10 +15,6 @@
    Contributing author: Timothy Sirk (ARL)
 ------------------------------------------------------------------------- */
 
-// lmptype.h must be first b/c this file uses MAXBIGINT and includes mpi.h
-// due to OpenMPI bug which sets INT64_MAX via its mpi.h
-//   before lmptype.h can set flags to insure it is done correctly
-
 #include "read_dump.h"
 
 #include "atom.h"
@@ -46,7 +42,7 @@ enum{NOADD,YESADD,KEEPADD};
 
 /* ---------------------------------------------------------------------- */
 
-ReadDump::ReadDump(LAMMPS *lmp) : Pointers(lmp)
+ReadDump::ReadDump(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

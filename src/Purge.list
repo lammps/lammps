@@ -51,6 +51,40 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# removed on 17 Apr 2021
+reaxc_allocate.h
+reaxc_bond_orders.h
+reaxc_bonds.h
+reaxc_control.h
+reaxc_defs.h
+reaxc_ffield.h
+reaxc_forces.h
+reaxc_hydrogen_bonds.h
+reaxc_init_md.h
+reaxc_io_tools.h
+reaxc_list.h
+reaxc_lookup.h
+reaxc_multi_body.h
+reaxc_nonbonded.h
+reaxc_reset_tools.h
+reaxc_system_props.h
+reaxc_system_props.cpp
+reaxc_tool_box.h
+reaxc_torsion_angles.h
+reaxc_traj.h
+reaxc_types.h
+reaxc_valence_angles.h
+reaxc_vector.h
+reaxc_vector.cpp
+reaxc_bond_orders_omp.h
+reaxc_bonds_omp.h
+reaxc_forces_omp.h
+reaxc_hydrogen_bonds_omp.h
+reaxc_init_md_omp.h
+reaxc_multi_body_omp.h
+reaxc_nonbonded_omp.h
+reaxc_torsion_angles_omp.h
+reaxc_valence_angles_omp.h
 # removed on 9 Sep 2020
 mergesort.h
 # renamed on 8 May 2020

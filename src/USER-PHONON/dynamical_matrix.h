@@ -15,6 +15,7 @@ CommandStyle(dynamical_matrix,DynamicalMatrix)
 
 namespace LAMMPS_NS {
 
+<<<<<<< HEAD
 class DynamicalMatrix : public Command {
  public:
   DynamicalMatrix(class LAMMPS *);
@@ -56,6 +57,7 @@ class DynamicalMatrix : public Command {
   int igroup,groupbit;
   bigint gcount;             // number of atoms in group
   bigint dynlen;             // rank of dynamical matrix
+  bigint dynlenb;            // new dynlen if folded
   int scaleflag;
   int me;
   bigint *groupmap;
@@ -64,6 +66,7 @@ class DynamicalMatrix : public Command {
   int binaryflag;            // 1 if dump file is written binary, 0 no
   int file_opened;           // 1 if openfile method has been called, 0 no
   int file_flag;             // 1 custom file name, 0 dynmat.dat
+  int folded;                // 1 folded, 0 nonfolded
 
   FILE *fp;
 };

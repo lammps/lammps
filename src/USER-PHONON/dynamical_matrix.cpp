@@ -21,9 +21,9 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
+#include "utils.h"
+#include "fmt/format.h"
 #include "update.h"
-
-#include <cmath>
 #include <cstring>
 #include <algorithm>
 
@@ -74,6 +74,9 @@ void DynamicalMatrix::setup()
     eflag=0;
     vflag=0;
     update_force();
+
+    modify->setup(vflag);
+    update->setupflag = 0;
 
     //if all then skip communication groupmap population
     if (gcount == atom->natoms)
@@ -127,12 +130,16 @@ void DynamicalMatrix::command(int narg, char **arg)
     compressed = 0;
     file_flag = 0;
     file_opened = 0;
+    folded = 0;
     conversion = 1;
 
     // read options from end of input line
     if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
     else if (style == ESKM) options(narg-3,&arg[3]); //COME BACK
     else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
+
+    if (!folded) dynlenb = dynlen;
+    else dynlenb = (atom->natoms)*3;
 
     if (atom->map_style == Atom::MAP_NONE)
       error->all(FLERR,"Dynamical_matrix command requires an atom map, see atom_modify");
@@ -185,6 +192,16 @@ void DynamicalMatrix::options(int narg, char **arg)
             if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
             filename = arg[iarg + 1];
             file_flag = 1;
+            iarg += 2;
+        } else if (strcmp(arg[iarg],"fold") == 0) {
+            if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
+            if (strcmp(arg[iarg+1],"yes") == 0) {
+                folded = 1;
+            }
+            else if (strcmp(arg[iarg+1],"no") == 0) {
+                folded = 0;
+            }
+            else error->all(FLERR,"Illegal input for dynamical_matrix fold option");
             iarg += 2;
         } else error->all(FLERR,"Illegal dynamical_matrix command");
     }
@@ -246,20 +263,20 @@ void DynamicalMatrix::calculateMatrix()
 
     double **dynmat = new double*[3];
     for (int i=0; i<3; i++)
-        dynmat[i] = new double[dynlen];
+        dynmat[i] = new double[dynlenb];
 
     double **fdynmat = new double*[3];
     for (int i=0; i<3; i++)
-        fdynmat[i] = new double[dynlen];
+        fdynmat[i] = new double[dynlenb];
 
     //initialize dynmat to all zeros
     dynmat_clear(dynmat);
 
-    if (comm->me == 0 && screen) {
-        fprintf(screen,"Calculating Dynamical Matrix ...\n");
-        fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
-        fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
-        fprintf(screen,"  Total dynamical matrix elements = " BIGINT_FORMAT "\n", (dynlen*dynlen) );
+    if (comm->me == 0) {
+        utils::logmesg(lmp,fmt::format("Calculating Dynamical Matrix ...\n"));
+        utils::logmesg(lmp,fmt::format("  Total # of atoms = {}\n", natoms));
+        utils::logmesg(lmp,fmt::format("  Atoms in group = {}\n", gcount));
+        utils::logmesg(lmp,fmt::format("  Total dynamical matrix elements = {}\n", (dynlenb*dynlen) ));
     }
 
     // emit dynlen rows of dimalpha*dynlen*dimbeta elements
@@ -276,9 +293,16 @@ void DynamicalMatrix::calculateMatrix()
             for (bigint j=1; j<=natoms; j++) {
                 local_jdx = atom->map(j);
                 if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
-                    && gm[j-1] >= 0) {
-                    for (int beta=0; beta<3; beta++) {
-                        dynmat[alpha][gm[j-1]*3+beta] -= f[local_jdx][beta];
+                    && (gm[j-1] >= 0 || folded)){
+                    if (folded) {
+                        for (int beta=0; beta<3; beta++){
+                            dynmat[alpha][(j-1)*3+beta] -= f[local_jdx][beta];
+                        }
+                    }
+                    else {
+                        for (int beta=0; beta<3; beta++){
+                            dynmat[alpha][gm[j-1]*3+beta] -= f[local_jdx][beta];
+                        }
                     }
                 }
             }
@@ -287,22 +311,31 @@ void DynamicalMatrix::calculateMatrix()
             for (bigint j=1; j<=natoms; j++) {
                 local_jdx = atom->map(j);
                 if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
-                    && gm[j-1] >= 0) {
-                    for (int beta=0; beta<3; beta++) {
-                        if (atom->rmass_flag == 1)
-                            imass = sqrt(m[local_idx] * m[local_jdx]);
-                        else
-                            imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
-                        dynmat[alpha][gm[j-1]*3+beta] -= -f[local_jdx][beta];
-                        dynmat[alpha][gm[j-1]*3+beta] /= (2 * del * imass);
-                        dynmat[alpha][gm[j-1]*3+beta] *= conversion;
+                    && (gm[j-1] >= 0 || folded)){
+                    if (atom->rmass_flag == 1)
+                      imass = sqrt(m[local_idx] * m[local_jdx]);
+                    else
+                      imass = sqrt(m[type[local_idx]] * m[type[local_jdx]]);
+                    if (folded){
+                        for (int beta=0; beta<3; beta++){
+                            dynmat[alpha][(j-1)*3+beta] -= -f[local_jdx][beta];
+                            dynmat[alpha][(j-1)*3+beta] /= (2 * del * imass);
+                            dynmat[alpha][(j-1)*3+beta] *= conversion;
+                        }
+                    }
+                    else{
+                        for (int beta=0; beta<3; beta++){
+                            dynmat[alpha][gm[j-1]*3+beta] -= -f[local_jdx][beta];
+                            dynmat[alpha][gm[j-1]*3+beta] /= (2 * del * imass);
+                            dynmat[alpha][gm[j-1]*3+beta] *= conversion;
+                        }
                     }
                 }
             }
             displace_atom(local_idx,alpha,1);
         }
         for (int k=0; k<3; k++)
-            MPI_Reduce(dynmat[k],fdynmat[k],dynlen,MPI_DOUBLE,MPI_SUM,0,world);
+            MPI_Reduce(dynmat[k],fdynmat[k],dynlenb,MPI_DOUBLE,MPI_SUM,0,world);
         if (me == 0)
             writeMatrix(fdynmat);
         dynmat_clear(dynmat);
@@ -340,12 +373,12 @@ void DynamicalMatrix::writeMatrix(double **dynmat)
     clearerr(fp);
     if (binaryflag) {
         for (int i=0; i<3; i++)
-            fwrite(dynmat[i], sizeof(double), dynlen, fp);
+            fwrite(dynmat[i], sizeof(double), dynlenb, fp);
         if (ferror(fp))
             error->one(FLERR, "Error writing to binary file");
     } else {
         for (int i = 0; i < 3; i++) {
-            for (bigint j = 0; j < dynlen; j++) {
+            for (bigint j = 0; j < dynlenb; j++) {
                 if ((j+1)%3==0) fprintf(fp, "%4.8f\n", dynmat[i][j]);
                 else fprintf(fp, "%4.8f ",dynmat[i][j]);
             }
@@ -444,7 +477,7 @@ void DynamicalMatrix::force_clear()
 void DynamicalMatrix::dynmat_clear(double **dynmat)
 {
 
-    size_t nbytes = sizeof(double) * dynlen;
+    size_t nbytes = sizeof(double) * dynlenb;
 
     if (nbytes) {
         for (int i=0; i<3; i++)

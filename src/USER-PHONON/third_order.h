@@ -48,6 +48,7 @@ namespace LAMMPS_NS {
     void convert_units(const char *style);
     void displace_atom(int local_idx, int direction, int magnitude);
     void writeMatrix(double *, bigint, int, bigint, int);
+    void getNeighbortags();
 
     double conversion;
     double conv_energy;
@@ -56,6 +57,7 @@ namespace LAMMPS_NS {
     double del;
     int igroup,groupbit;
     bigint dynlen;
+    bigint dynlenb;
     int scaleflag;
     int me;
     bigint gcount;  // number of atoms in group
@@ -65,6 +67,11 @@ namespace LAMMPS_NS {
     int binaryflag;            // 1 if dump file is written binary, 0 no
     int file_opened;           // 1 if openfile method has been called, 0 no
     int file_flag;             // 1 custom file name, 0 dynmat.dat
+    int folded;                // 1 if system is folded, 0 no
+
+    class NeighList *list;
+    int *ijnum;
+    bigint **neighbortags;
 
     FILE *fp;
   };

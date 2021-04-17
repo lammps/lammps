@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
  * \param  filetype  Description of file type for error messages */
 
 TextFileReader::TextFileReader(const std::string &filename, const std::string &filetype)
-  : filename(filename), filetype(filetype), ignore_comments(true)
+  : filetype(filetype), ignore_comments(true)
 {
   fp = fopen(filename.c_str(), "r");
 
@@ -49,6 +49,18 @@ TextFileReader::TextFileReader(const std::string &filename, const std::string &f
     throw FileReaderException(fmt::format("cannot open {} file {}: {}",
                               filetype, filename, utils::getsyserror()));
   }
+}
+
+/**
+ * \overload
+ *
+ * \param  fp        File descriptor of the already opened file
+ * \param  filetype  Description of file type for error messages */
+
+TextFileReader::TextFileReader(FILE *fp, const std::string &filetype)
+  : filetype(filetype), fp(fp), ignore_comments(true)
+{
+  if (fp == nullptr) throw FileReaderException("Invalid file descriptor");
 }
 
 /** Closes the file */

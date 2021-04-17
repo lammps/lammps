@@ -142,5 +142,3 @@ void ljsmt_gpu_compute(const int ago, const int inum_full, const int nall,
 double ljsmt_gpu_bytes() {
   return LJSMTMF.host_memory_usage();
 }
-
-

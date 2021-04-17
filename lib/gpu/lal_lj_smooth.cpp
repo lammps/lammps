@@ -145,7 +145,7 @@ double LJSMOOTHT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void LJSMOOTHT::loop(const bool _eflag, const bool _vflag) {
+int LJSMOOTHT::loop(const bool _eflag, const bool _vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int eflag, vflag;

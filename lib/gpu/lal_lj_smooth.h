@@ -1,13 +1,13 @@
 /***************************************************************************
                                     lj_smooth.h
                              -------------------
-                            W. Michael Brown (ORNL)
+                            G. Melikyan 
   Class for acceleration of the lj/smooth pair style.
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
     begin                :
-    email                : brownw@ornl.gov
+    email                : gkmelikyan@edu.hse.ru
  ***************************************************************************/
 
 #ifndef LAL_LJ_SMOOTH_H
@@ -83,7 +83,7 @@ class LJSMOOTH : public BaseAtomic<numtyp, acctyp> {
 
  private:
   bool _allocated;
-  void loop(const bool _eflag, const bool _vflag);
+  int loop(const int _eflag, const int _vflag);
 };
 
 }

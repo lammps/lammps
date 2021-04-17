@@ -389,9 +389,7 @@ void PairReaxCOMP::setup()
     write_reax_atoms();
 
     int num_nbrs = estimate_reax_lists();
-    if (!Make_List(api->system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR,
-                  api->lists+FAR_NBRS))
-      error->all(FLERR,"Pair reax/c problem in far neighbor list");
+    Make_List(api->system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR, api->lists+FAR_NBRS);
 
     write_reax_lists();
 

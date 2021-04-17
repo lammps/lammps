@@ -31,7 +31,7 @@
 namespace ReaxFF {
 
   /************* allocate list space ******************/
-  int Make_List(int n, int num_intrs, int type, reax_list *l)
+  void Make_List(int n, int num_intrs, int type, reax_list *l)
   {
     l->allocated = 1;
 
@@ -91,8 +91,6 @@ namespace ReaxFF {
     default:
       l->error_ptr->all(FLERR,fmt::format("No list type {} defined", l->type));
     }
-
-    return SUCCESS;
   }
 
   void Delete_List(reax_list *l)

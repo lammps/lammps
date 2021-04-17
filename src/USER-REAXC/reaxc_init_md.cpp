@@ -115,7 +115,7 @@ namespace ReaxFF {
     Init_Taper(control, workspace);
   }
 
-  static int Init_Lists(reax_system *system, control_params *control, reax_list **lists)
+  static void Init_Lists(reax_system *system, control_params *control, reax_list **lists)
   {
     int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
     int *hb_top, *bond_top;
@@ -123,7 +123,6 @@ namespace ReaxFF {
     int mincap = system->mincap;
     double safezone = system->safezone;
     double saferzone = system->saferzone;
-    LAMMPS_NS::Error *error = system->error_ptr;
 
     bond_top = (int*) calloc(system->total_cap, sizeof(int));
     hb_top = (int*) calloc(system->local_cap, sizeof(int));
@@ -139,10 +138,7 @@ namespace ReaxFF {
       }
       total_hbonds = (int)(MAX(total_hbonds*saferzone,mincap*system->minhbonds));
 
-      if (!Make_List(system->Hcap, total_hbonds, TYP_HBOND,
-                     *lists+HBONDS))
-        error->one(FLERR, "Not enough space for hbonds list.");
-
+      Make_List(system->Hcap, total_hbonds, TYP_HBOND,*lists+HBONDS);
       (*lists+HBONDS)->error_ptr = system->error_ptr;
     }
 
@@ -153,24 +149,16 @@ namespace ReaxFF {
     }
     bond_cap = (int)(MAX(total_bonds*safezone, mincap*MIN_BONDS));
 
-    if (!Make_List(system->total_cap, bond_cap, TYP_BOND,
-                   *lists+BONDS))
-      error->one(FLERR, "Not enough space for bonds list.");
-
+    Make_List(system->total_cap, bond_cap, TYP_BOND,*lists+BONDS);
     (*lists+BONDS)->error_ptr = system->error_ptr;
 
     /* 3bodies list */
     cap_3body = (int)(MAX(num_3body*safezone, MIN_3BODIES));
-    if (!Make_List(bond_cap, cap_3body, TYP_THREE_BODY,
-                   *lists+THREE_BODIES))
-      error->one(FLERR,"Problem in initializing angles list.");
-
+    Make_List(bond_cap, cap_3body, TYP_THREE_BODY,*lists+THREE_BODIES);
     (*lists+THREE_BODIES)->error_ptr = system->error_ptr;
 
     free(hb_top);
     free(bond_top);
-
-    return SUCCESS;
   }
 
   void Initialize(reax_system *system, control_params *control,
@@ -178,19 +166,11 @@ namespace ReaxFF {
                   reax_list **lists, output_controls *out_control,
                   MPI_Comm world)
   {
-    char msg[MAX_STR];
-    LAMMPS_NS::Error *error = system->error_ptr;
-
     Init_System(system, control);
     Init_Simulation_Data(data);
     Init_Workspace(system, control, workspace);
-
-    if (Init_Lists(system, control, lists) ==FAILURE)
-      error->one(FLERR,fmt::format("Error on: {}. System could not be "
-                                   "initialized. Terminating.",msg));
-
-    Init_Output_Files(system, control, out_control,world);
-
+    Init_Lists(system, control, lists);
+    Init_Output_Files(system, control, out_control, world);
     if (control->tabulate)
       Init_Lookup_Tables(system, control, workspace, world);
   }

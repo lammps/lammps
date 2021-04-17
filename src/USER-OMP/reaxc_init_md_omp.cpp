@@ -37,8 +37,8 @@
 /* ---------------------------------------------------------------------- */
 
 namespace ReaxFF {
-  int Init_ListsOMP(reax_system *system, control_params *control,
-                    reax_list **lists)
+  static void Init_ListsOMP(reax_system *system, control_params *control,
+                            reax_list **lists)
   {
     int i, total_hbonds, total_bonds, bond_cap, num_3body, cap_3body, Htop;
     int *hb_top, *bond_top;
@@ -62,10 +62,7 @@ namespace ReaxFF {
       }
       total_hbonds = (int)(MAX(total_hbonds*saferzone,mincap*system->minhbonds));
 
-      if (!Make_List(system->Hcap, total_hbonds, TYP_HBOND,
-                     *lists+HBONDS)) {
-        error->one(FLERR, "Not enough space for hbonds list. Terminating!");
-      }
+      Make_List(system->Hcap, total_hbonds, TYP_HBOND,*lists+HBONDS);
     }
 
     total_bonds = 0;
@@ -75,10 +72,7 @@ namespace ReaxFF {
     }
     bond_cap = (int)(MAX(total_bonds*safezone, mincap*MIN_BONDS));
 
-    if (!Make_List(system->total_cap, bond_cap, TYP_BOND,
-                   *lists+BONDS)) {
-      error->one(FLERR, "Not enough space for bonds list. Terminating!\n");
-    }
+    Make_List(system->total_cap, bond_cap, TYP_BOND,*lists+BONDS);
 
     int nthreads = control->nthreads;
     reax_list *bonds = (*lists)+BONDS;
@@ -89,16 +83,10 @@ namespace ReaxFF {
 
     /* 3bodies list */
     cap_3body = (int)(MAX(num_3body*safezone, MIN_3BODIES));
-    if (!Make_List(bond_cap, cap_3body, TYP_THREE_BODY,
-                   *lists+THREE_BODIES)) {
-
-      error->one(FLERR, "Problem in initializing angles list. Terminating!");
-    }
+    Make_List(bond_cap, cap_3body, TYP_THREE_BODY,*lists+THREE_BODIES);
 
     free(hb_top);
     free(bond_top);
-
-    return SUCCESS;
   }
 
 /* ---------------------------------------------------------------------- */

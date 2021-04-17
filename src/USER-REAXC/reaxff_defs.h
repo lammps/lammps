@@ -25,13 +25,6 @@
 #define inline __inline__
 #endif /*IBMC*/
 
-#ifndef SUCCESS
-#define SUCCESS  1
-#endif
-#ifndef FAILURE
-#define FAILURE  0
-#endif
-
 #define SQR(x)        ((x)*(x))
 #define CUBE(x)       ((x)*(x)*(x))
 #define DEG2RAD(a)    ((a)*constPI/180.0)

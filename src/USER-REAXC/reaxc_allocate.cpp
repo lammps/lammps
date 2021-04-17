@@ -65,13 +65,13 @@ namespace ReaxFF {
     auto error = system->error_ptr;
 
     // deallocate the atom list
-    sfree(error,  system->my_atoms, "system->my_atoms");
+    sfree(error, system->my_atoms, "system->my_atoms");
 
     // deallocate the ffield parameters storage
     ff_params = &(system->reax_param);
     ntypes = ff_params->num_atom_types;
 
-    sfree(error,  ff_params->gp.l, "ff:globals");
+    sfree(error, ff_params->gp.l, "ff:globals");
 
     for (i = 0; i < ntypes; ++i) {
       for (j = 0; j < ntypes; ++j) {
@@ -104,27 +104,27 @@ namespace ReaxFF {
     auto error = control->error_ptr;
 
     /* bond order storage */
-    sfree(error,  workspace->total_bond_order, "total_bo");
-    sfree(error,  workspace->Deltap, "Deltap");
-    sfree(error,  workspace->Deltap_boc, "Deltap_boc");
-    sfree(error,  workspace->dDeltap_self, "dDeltap_self");
-    sfree(error,  workspace->Delta, "Delta");
-    sfree(error,  workspace->Delta_lp, "Delta_lp");
-    sfree(error,  workspace->Delta_lp_temp, "Delta_lp_temp");
-    sfree(error,  workspace->dDelta_lp, "dDelta_lp");
-    sfree(error,  workspace->dDelta_lp_temp, "dDelta_lp_temp");
-    sfree(error,  workspace->Delta_e, "Delta_e");
-    sfree(error,  workspace->Delta_boc, "Delta_boc");
-    sfree(error,  workspace->Delta_val, "Delta_val");
-    sfree(error,  workspace->nlp, "nlp");
-    sfree(error,  workspace->nlp_temp, "nlp_temp");
-    sfree(error,  workspace->Clp, "Clp");
-    sfree(error,  workspace->vlpex, "vlpex");
-    sfree(error,  workspace->bond_mark, "bond_mark");
+    sfree(error, workspace->total_bond_order, "total_bo");
+    sfree(error, workspace->Deltap, "Deltap");
+    sfree(error, workspace->Deltap_boc, "Deltap_boc");
+    sfree(error, workspace->dDeltap_self, "dDeltap_self");
+    sfree(error, workspace->Delta, "Delta");
+    sfree(error, workspace->Delta_lp, "Delta_lp");
+    sfree(error, workspace->Delta_lp_temp, "Delta_lp_temp");
+    sfree(error, workspace->dDelta_lp, "dDelta_lp");
+    sfree(error, workspace->dDelta_lp_temp, "dDelta_lp_temp");
+    sfree(error, workspace->Delta_e, "Delta_e");
+    sfree(error, workspace->Delta_boc, "Delta_boc");
+    sfree(error, workspace->Delta_val, "Delta_val");
+    sfree(error, workspace->nlp, "nlp");
+    sfree(error, workspace->nlp_temp, "nlp_temp");
+    sfree(error, workspace->Clp, "Clp");
+    sfree(error, workspace->vlpex, "vlpex");
+    sfree(error, workspace->bond_mark, "bond_mark");
 
     /* force related storage */
-    sfree(error,  workspace->f, "f");
-    sfree(error,  workspace->CdDelta, "CdDelta");
+    sfree(error, workspace->f, "f");
+    sfree(error, workspace->CdDelta, "CdDelta");
 
     /* reductions */
 
@@ -182,9 +182,7 @@ namespace ReaxFF {
   static void Reallocate_Neighbor_List(reax_list *far_nbrs, int n, int num_intrs)
   {
     Delete_List(far_nbrs);
-    if (!Make_List(n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs)) {
-      far_nbrs->error_ptr->one(FLERR,"Problem in initializing far neighbors list");
-    }
+    Make_List(n, num_intrs, TYP_FAR_NEIGHBOR, far_nbrs);
   }
 
   static int Reallocate_HBonds_List(reax_system *system, reax_list *hbonds)
@@ -202,15 +200,13 @@ namespace ReaxFF {
     total_hbonds = (int)(MAX(total_hbonds*saferzone, mincap*system->minhbonds));
 
     Delete_List(hbonds);
-    if (!Make_List(system->Hcap, total_hbonds, TYP_HBOND, hbonds)) {
-      hbonds->error_ptr->one(FLERR, "Not enough space for hydrogen bonds list");
-    }
+    Make_List(system->Hcap, total_hbonds, TYP_HBOND, hbonds);
 
     return total_hbonds;
   }
 
-  static int Reallocate_Bonds_List(control_params *control, reax_system *system,
-                                 reax_list *bonds, int *total_bonds, int *est_3body)
+  static void Reallocate_Bonds_List(control_params *control, reax_system *system,
+                                    reax_list *bonds, int *total_bonds, int *est_3body)
   {
     int i;
 
@@ -230,16 +226,12 @@ namespace ReaxFF {
         sfree(system->error_ptr, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
 
     Delete_List(bonds);
-    if (!Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds)) {
-      bonds->error_ptr->one(FLERR, "Not enough space for bonds list");
-    }
+    Make_List(system->total_cap, *total_bonds, TYP_BOND, bonds);
 
     if (system->omp_active)
       for (i = 0; i < bonds->num_intrs; ++i)
         bonds->select.bond_list[i].bo_data.CdboReduction =
           (double*) smalloc(system->error_ptr, sizeof(double)*control->nthreads, "CdboReduction");
-
-    return SUCCESS;
   }
 
   void ReAllocate(reax_system *system, control_params *control,
@@ -325,10 +317,8 @@ namespace ReaxFF {
 
       wsr->num_3body = (int)(MAX(wsr->num_3body*safezone, MIN_3BODIES));
 
-      if (!Make_List(num_bonds, wsr->num_3body, TYP_THREE_BODY,
-                     (*lists)+THREE_BODIES)) {
-        error->one(FLERR, "Problem in initializing angles list");
-      }
+      Make_List(num_bonds, wsr->num_3body, TYP_THREE_BODY,
+                (*lists)+THREE_BODIES);
       wsr->num_3body = -1;
     }
   }

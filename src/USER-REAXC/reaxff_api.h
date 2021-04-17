@@ -100,7 +100,7 @@ namespace ReaxFF
 
   // lists
 
-  extern int  Make_List(int, int, int, reax_list *);
+  extern void Make_List(int, int, int, reax_list *);
   extern void Delete_List(reax_list*);
 
   inline int Start_Index(int i, reax_list *l) { return l->index[i]; }

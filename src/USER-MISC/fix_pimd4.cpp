@@ -210,6 +210,8 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
   total_spring_energy = 0.0;
   t_prim = 0.0;
 
+  for(int i=0; i<9; i++) virial[i] = 0.0;
+
   tote = totke = totenthalpy = 0.0;
 
   dfdl = 0.0;
@@ -262,12 +264,13 @@ FixPIMD4::FixPIMD4(LAMMPS *lmp, int narg, char **arg) :
 
   id_press = new char[12];
   strcpy(id_press, "pimd_press");
-  newarg = new char*[4];
+  newarg = new char*[5];
   newarg[0] = id_press;
   newarg[1] = (char*) "all";
   newarg[2] = (char*) "pressure";
   newarg[3] = (char*) "thermo_temp";
-  modify->add_compute(4, newarg);
+  newarg[4] = (char*) "virial";
+  modify->add_compute(5, newarg);
   delete [] newarg;
   
   domain->set_global_box();
@@ -310,7 +313,7 @@ void FixPIMD4::end_of_step()
   if(universe->me==0) printf("This is the end of step %ld.\n", update->ntimestep);
   }
   //if(universe->iworld==0) printf("This is the end of step %ld.\n\n\n", update->ntimestep);
-  //printf("vol_=%f\n",vol_); 
+  //printf("p_vir=%.8e, p_cv=%.8e\n",p_vir, p_cv); 
 }
 
 /* ---------------------------------------------------------------------- */
@@ -365,6 +368,8 @@ void FixPIMD4::init()
   {
     dtf = 0.5 * update->dt * force->ftm2v;
     dtv = 0.5 * update->dt;
+    dtv2 = dtv * dtv;
+    dtv3 = 1./3 * dtv2 * dtv;
   }
   else
   {
@@ -392,7 +397,7 @@ void FixPIMD4::init()
   {
     W = (3*atom->natoms + 1) * tau_p * tau_p / beta_np;
     //W = 4 * tau_p * tau_p / beta_np;
-    printf("N=%d, tau_p=%f, beta=%f, W=%f\n", atom->natoms, tau_p, beta_np, W);
+    //printf("N=%d, tau_p=%f, beta=%f, W=%f\n", atom->natoms, tau_p, beta_np, W);
     Vcoeff = 1.0;
     vw = 0.0;
   }
@@ -480,7 +485,10 @@ void FixPIMD4::setup(int vflag)
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
   post_force(vflag);
+  compute_p_vir();
   end_of_step();
+  //fprintf(stdout, "virial=%.8e.\n", virial[0]+virial[4]+virial[8]);
+  //fprintf(stdout, "vir=%.8e.\n", vir);
   c_pe->addstep(update->ntimestep+1); 
   c_press->addstep(update->ntimestep+1);
   double *boxlo = domain->boxlo;
@@ -895,13 +903,25 @@ void FixPIMD4::svr_step()
 
 void FixPIMD4::press_v_step()
 {
+  int nlocal = atom->nlocal;
+  double **f = atom->f;
+  double **v = atom->v;
+  int *type = atom->type; 
   double volume = domain->xprd * domain->yprd * domain->zprd;
   //vol_ = domain->xprd * domain->yprd * domain->zprd;
   compute_totke();
+  compute_vir();
   compute_p_vir();
   //printf("volume=%f, p_vir=%f, Pext=%f, Vcoeff=%f, beta_np=%f, W=%f.\n", volume, p_vir, Pext, Vcoeff, beta_np, W);
-  //vw += dtv * 3 * (volume * (p_vir - Pext) + Vcoeff / beta_np) / W;
-  vw += dtv * 3 * (vol_ * (p_vir - Pext) + Vcoeff / beta_np) / W;
+  vw += dtv * 3 * (volume * (p_vir - Pext) + Vcoeff / beta_np) / W;
+  for(int i = 0; i < nlocal; i++)
+  {
+    for(int j = 0; j < 3; j++)
+    {
+      vw += dtv2 * f[i][j] * v[i][j] / W + dtv3 * f[i][j] * f[i][j] / mass[type[i]] / W;
+    }
+  }
+  //vw += dtv * 3 * (vol_ * (p_vir - Pext) + Vcoeff / beta_np) / W;
   //printf("vw=%f.\n", vw); 
 }
 
@@ -924,12 +944,24 @@ void FixPIMD4::press_x_step()
     } 
   }
   //printf("before xprd=%f, expq=%f.\n", domain->xprd, expq);
-  //domain->xprd *= expq;
+  domain->xprd *= expq;
   //printf("after xprd=%f, expq=%f.\n", domain->xprd, expq);
-  //domain->yprd *= expq;
-  //domain->zprd *= expq;
-  //vol_ = domain->xprd * domain->yprd * domain->zprd;
-  vol_ *= expq * expq * expq;
+  domain->yprd *= expq;
+  domain->zprd *= expq;
+
+  domain->boxlo[0] = -0.5*domain->xprd;
+  domain->boxlo[1] = -0.5*domain->yprd;
+  domain->boxlo[2] = -0.5*domain->zprd;
+  domain->boxhi[0] = 0.5*domain->xprd;
+  domain->boxhi[1] = 0.5*domain->yprd;
+  domain->boxhi[2] = 0.5*domain->zprd;
+
+  domain->set_global_box();
+  domain->set_local_box();
+
+  //printf("after reset xprd=%f, expq=%f.\n", domain->xprd, expq);
+  vol_ = domain->xprd * domain->yprd * domain->zprd;
+  //vol_ *= expq * expq * expq;
 }
 
 void FixPIMD4::press_o_step()
@@ -1459,19 +1491,36 @@ void FixPIMD4::compute_fc()
 
 void FixPIMD4::compute_vir()
 {
+  double volume = domain->xprd * domain->yprd * domain->zprd;
+  c_press->compute_vector();
+  virial[0] = c_press->vector[0]*volume;
+  virial[4] = c_press->vector[1]*volume;
+  virial[8] = c_press->vector[2]*volume;
+  virial[1] = c_press->vector[3]*volume;
+  virial[2] = c_press->vector[4]*volume;
+  virial[5] = c_press->vector[5]*volume;
   int nlocal = atom->nlocal;  
   xf = vir = xcfc = centroid_vir = 0.0;
   for(int i=0; i<nlocal; i++)
   {
     for(int j=0; j<3; j++)
     {
-      xf += atom->x[i][j] * atom->f[i][j];
+      //xf += atom->x[i][j] * atom->f[i][j];
       xcfc += xc[3*i+j] * fc[3*i+j];
     }
   }
 
-  MPI_Allreduce(&xf,&vir,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+  //MPI_Allreduce(&xf,&vir,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
   MPI_Allreduce(&xcfc, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, world);
+  for(int i=0; i<3; i++)
+  {
+    for(int j=0; j<3; j++)
+    {
+      //printf("%.3e  ", virial[3*i+j]);
+    }
+    //printf("\n");
+  }
+  vir=(virial[0]+virial[4]+virial[8]);
 }
 /* ---------------------------------------------------------------------- */
 
@@ -1527,8 +1576,8 @@ void FixPIMD4::compute_p_cv()
 void FixPIMD4::compute_p_vir()
 {
   //inv_volume = 1. / (domain->xprd * domain->yprd * domain->zprd);
-  inv_volume = 1. / vol_;
-  p_vir = 2.  / 3 * inv_volume * totke + 1. / 3 * inv_volume * vir * force->nktv2p;
+  //inv_volume = 1. / vol_;
+  //p_vir = 2.  / 3 * inv_volume * totke + 1. / 3 * inv_volume * vir * force->nktv2p;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1553,8 +1602,8 @@ void FixPIMD4::compute_totke()
   // printf("iworld = %d, totke = %.6e.\n", universe->iworld, totke);
   // if(universe->iworld==0) printf("mvv2e = %.6e.\n", force->mvv2e);
   totke *= force->mvv2e / np;
-  //c_press->compute_scalar();
-  //p_vir = c_press->scalar;
+  c_press->compute_scalar();
+  p_vir = 2.  / 3 * inv_volume * totke + c_press->scalar;
   //p_cv = 2.  / 3 * inv_volume * totke + 1. / 3 * inv_volume * vir * force->nktv2p;
 }
 
@@ -1633,9 +1682,10 @@ void FixPIMD4::compute_tote()
 
 void FixPIMD4::compute_totenthalpy()
 {
-  //double volume = domain->xprd * domain->yprd * domain->zprd;
+  double volume = domain->xprd * domain->yprd * domain->zprd;
   //totenthalpy = tote + 0.5*W*vw*vw + Pext * volume - Vcoeff/beta_np * log(volume);
-  totenthalpy = tote + 0.5*W*vw*vw + Pext * vol_ ;
+  totenthalpy = tote + 0.5*W*vw*vw + Pext * volume ;
+  //totenthalpy = tote + 0.5*W*vw*vw + Pext * vol_ ;
   //printf("vol=%f, enth=%f.\n", volume, totenthalpy);
 }
 
@@ -1646,16 +1696,16 @@ double FixPIMD4::compute_vector(int n)
   if(n==0) { return totke; }
   //if(n==1) { return total_spring_energy; }
   if(n==1) { return atom->v[0][0]; }
-  //if(n==2) { return pote; }
-  if(n==2) { return atom->x[0][0]; }
+  if(n==2) { return pote; }
+  //if(n==2) { return atom->x[0][0]; }
   //if(n==3) { if(!pextflag) {return tote;} else {return totenthalpy;} }
   if(n==3) { return totenthalpy; }
   //if(n==4) { return t_prim; }
   //if(n==4) { printf("returning vol_=%f\n", vol_);  return vol_; }
   if(n==4) { return vol_; }
-  if(n==5) { return t_vir; }
-  if(n==6) { return t_cv; }
-  if(n==7) { return p_prim; }
+  if(n==5) { return domain->xprd; }
+  if(n==6) { return domain->yprd; }
+  if(n==7) { return domain->zprd; }
   if(n==8) { return p_vir; }
   if(n==9) { return p_cv; }
   //if(pextflag) size_vector = 11;

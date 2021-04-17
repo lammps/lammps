@@ -123,7 +123,7 @@ class FixPIMD4 : public Fix {
 
   /* Langevin thermostat BAOAB integration */
 
-  double dtv, dtf;
+  double dtv, dtf, dtv2, dtv3;
   bool baoab_ready;
   double gamma, c1, c2, tau;
   double baoab_temp;
@@ -171,6 +171,7 @@ class FixPIMD4 : public Fix {
   char *id_press;
   class Compute *c_pe;
   class Compute *c_press;
+  double virial[9];
 
   /* thermodynamic integration */
   int tiflag;

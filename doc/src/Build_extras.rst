@@ -1253,8 +1253,8 @@ be built for the most part with all major versions of the C++ language.
 USER-PACE package
 -----------------------------
 
-This package requires a library that can be downloaded and built 
-in lib/pace or somewhere else, which must be done before building 
+This package requires a library that can be downloaded and built
+in lib/pace or somewhere else, which must be done before building
 LAMMPS with this package. The code for the library can be found
 at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps-user-pace/>`_
 
@@ -1276,8 +1276,8 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
    .. tab:: Traditional make
 
       You can download and build the USER-PACE library
-      in one step from the ``lammps/src`` dir, using these commands, 
-      which invoke the ``lib/pace/Install.py`` script. 
+      in one step from the ``lammps/src`` dir, using these commands,
+      which invoke the ``lib/pace/Install.py`` script.
 
       .. code-block:: bash
 

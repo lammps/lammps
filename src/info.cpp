@@ -39,7 +39,6 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "region.h"
-#include "universe.h"
 #include "update.h"
 #include "variable.h"
 

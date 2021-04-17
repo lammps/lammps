@@ -18,16 +18,16 @@
 
 #include "fix_qeq.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -386,13 +386,11 @@ int FixQEq::CG( double *b, double *x )
     vector_sum( d, 1., p, beta, d, inum );
   }
 
-  if (loop >= maxiter && comm->me == 0) {
-    char str[128];
-    sprintf(str,"Fix qeq CG convergence failed (%g) after %d iterations "
-            "at " BIGINT_FORMAT " step",sqrt(sig_new)/b_norm,loop,update->ntimestep);
-    error->warning(FLERR,str);
-  }
-
+  if ((comm->me == 0) && (loop >= maxiter))
+    error->warning(FLERR,fmt::format("Fix qeq CG convergence failed ({}) "
+                                     "after {} iterations at step {}",
+                                     sqrt(sig_new)/b_norm,loop,
+                                     update->ntimestep));
   return loop;
 }
 
@@ -708,11 +706,9 @@ void FixQEq::read_file(char *file)
   FILE *fp;
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix qeq parameter file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,fmt::format("Cannot open fix qeq parameter file {}: {}",
+                                   file,utils::getsyserror()));
   }
 
   // read each line out of file, skipping blank lines or leading '#'

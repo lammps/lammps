@@ -38,7 +38,7 @@ enum{NOHYPER,GLOBAL,LOCAL};
 
 /* ---------------------------------------------------------------------- */
 
-Hyper::Hyper(LAMMPS *lmp) : Pointers(lmp), dumplist(nullptr) {}
+Hyper::Hyper(LAMMPS *lmp) : Command(lmp), dumplist(nullptr) {}
 
 /* ----------------------------------------------------------------------
    perform hyperdynamics simulation

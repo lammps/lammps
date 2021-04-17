@@ -35,7 +35,7 @@ enum{X=0,Y,Z,YZ,XZ,XY};
 
 /* ---------------------------------------------------------------------- */
 
-ChangeBox::ChangeBox(LAMMPS *lmp) : Pointers(lmp) {}
+ChangeBox::ChangeBox(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

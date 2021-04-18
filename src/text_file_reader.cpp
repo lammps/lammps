@@ -175,5 +175,8 @@ void TextFileReader::next_dvector(double * list, int n) {
  * \return              ValueTokenizer object for read in text */
 
 ValueTokenizer TextFileReader::next_values(int nparams, const std::string &separators) {
-  return ValueTokenizer(next_line(nparams), separators);
+  char *ptr = next_line(nparams);
+  if (ptr == nullptr)
+    throw EOFException(fmt::format("Missing line in {} file!", filetype));
+  return ValueTokenizer(line, separators);
 }

@@ -66,6 +66,7 @@ namespace ReaxFF {
         error->one(FLERR,fmt::format("The ReaxFF parameter file {} cannot be opened: {}",
                                      filename, getsyserror()));
       LAMMPS_NS::TextFileReader reader(fp, "ReaxFF parameter");
+      reader.ignore_comments = false;
 
       try {
         int i,j,k,l,m,n,lineno = 0;

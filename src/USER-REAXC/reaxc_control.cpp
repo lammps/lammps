@@ -28,7 +28,7 @@
 
 #include "error.h"
 #include "utils.h"
-#include "tokenizer.h"
+#include "text_file_reader.h"
 
 #include <cstring>
 #include <exception>
@@ -60,19 +60,14 @@ namespace ReaxFF {
     const char *what() const noexcept { return message.c_str(); }
   };
 
+  // NOTE: this function is run on MPI rank 0 only
+
   void Read_Control_File(const char *control_file, control_params *control,
                          output_controls *out_control)
   {
-    FILE *fp;
-    char line[MAX_LINE];
     auto error = control->error_ptr;
     auto lmp = control->lmp_ptr;
 
-    /* open control file */
-    fp = fopen(control_file, "r");
-    if (!fp)
-      error->one(FLERR,fmt::format("The control file {} cannot be opened: {}",
-                                   control_file, getsyserror()));
     /* assign default values */
     strcpy(control->sim_name, "simulate");
     control->nthreads = 1;
@@ -92,13 +87,16 @@ namespace ReaxFF {
     out_control->angle_info = 0;
 
     /* read control parameters file */
-    while (fgets(line, MAX_LINE, fp)) {
-      ValueTokenizer values(line);
+    try {
+      LAMMPS_NS::TextFileReader reader(control_file, "ReaxFF control");
+      reader.ignore_comments = false;
 
-      // empty line
-      if (values.count() == 0) continue;
+      while (1) {
+        auto values = reader.next_values(0);
 
-      try {
+        // empty line
+        if (values.count() == 0) continue;
+
         auto keyword = values.next_string();
 
         if (!values.has_next())
@@ -139,10 +137,11 @@ namespace ReaxFF {
         } else {
           throw parser_error(fmt::format("Unknown parameter {} in control file", keyword));
         }
-      } catch (std::exception &e) {
-        error->one(FLERR, e.what());
       }
+    } catch (LAMMPS_NS::EOFException &) {
+      ; // catch and ignore
+    } catch (std::exception &e) {
+      error->one(FLERR, e.what());
     }
-    fclose(fp);
   }
 }

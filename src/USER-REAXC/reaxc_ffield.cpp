@@ -601,10 +601,10 @@ namespace ReaxFF {
             THROW_ERROR("Inconsistent force field file");
 
           if ((j < ntypes) && (k < ntypes) && (l < ntypes)) {
-            reax->hbp[j][k][m].r0_hb = values.next_double();
-            reax->hbp[j][k][m].p_hb1 = values.next_double();
-            reax->hbp[j][k][m].p_hb2 = values.next_double();
-            reax->hbp[j][k][m].p_hb3 = values.next_double();
+            reax->hbp[j][k][l].r0_hb = values.next_double();
+            reax->hbp[j][k][l].p_hb1 = values.next_double();
+            reax->hbp[j][k][l].p_hb2 = values.next_double();
+            reax->hbp[j][k][l].p_hb3 = values.next_double();
           }
         }
 

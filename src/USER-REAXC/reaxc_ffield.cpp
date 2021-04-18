@@ -47,8 +47,6 @@ namespace ReaxFF {
     const char *what() const noexcept { return message.c_str(); }
   };
 
-  extern int  Tokenize(char* s, char*** tok);
-
   void Read_Force_Field(const char *filename, reax_interaction *reax,
                         control_params *control, MPI_Comm world)
   {

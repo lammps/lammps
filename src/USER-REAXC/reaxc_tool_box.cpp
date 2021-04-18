@@ -34,24 +34,7 @@
 
 namespace ReaxFF {
 
-  int Tokenize(char* s, char*** tok)
-  {
-    char test[MAX_LINE];
-    const char *sep = (const char *)"\t \n\r\f!=";
-    char *word;
-    int count=0;
-
-    strncpy(test, s, MAX_LINE-1);
-
-    for (word = strtok(test, sep); word; word = strtok(nullptr, sep)) {
-      strncpy((*tok)[count], word, MAX_LINE);
-      count++;
-    }
-
-    return count;
-  }
-
-/* safe malloc */
+  /* safe malloc */
   void *smalloc(LAMMPS_NS::Error *error_ptr, rc_bigint n, const char *name)
   {
     void *ptr;
@@ -76,7 +59,7 @@ namespace ReaxFF {
     return ptr;
   }
 
-/* safe calloc */
+  /* safe calloc */
   void *scalloc(LAMMPS_NS::Error *error_ptr, rc_bigint n, rc_bigint size, const char *name)
   {
     void *ptr;
@@ -107,7 +90,6 @@ namespace ReaxFF {
 
     return ptr;
   }
-
 
   /* safe free */
   void sfree(LAMMPS_NS::Error* error_ptr, void *ptr, const char *name)

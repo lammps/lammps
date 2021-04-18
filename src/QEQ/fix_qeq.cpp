@@ -24,15 +24,24 @@
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
+#include "text_file_reader.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define MAXLINE 1024
+
+class parser_error : public std::exception {
+  std::string message;
+public:
+  parser_error(const std::string &mesg) { message = mesg; }
+  const char *what() const noexcept { return message.c_str(); }
+};
 
 /* ---------------------------------------------------------------------- */
 
@@ -184,21 +193,21 @@ void FixQEq::deallocate_storage()
   memory->destroy(s);
   memory->destroy(t);
 
-  memory->destroy( Hdia_inv );
-  memory->destroy( b_s );
-  memory->destroy( b_t );
+  memory->destroy(Hdia_inv);
+  memory->destroy(b_s);
+  memory->destroy(b_t);
 
-  memory->destroy( p );
-  memory->destroy( q );
-  memory->destroy( r );
-  memory->destroy( d );
+  memory->destroy(p);
+  memory->destroy(q);
+  memory->destroy(r);
+  memory->destroy(d);
 
-  memory->destroy( chizj );
-  memory->destroy( qf );
-  memory->destroy( q1 );
-  memory->destroy( q2 );
+  memory->destroy(chizj);
+  memory->destroy(qf);
+  memory->destroy(q1);
+  memory->destroy(q2);
 
-  memory->destroy( qv );
+  memory->destroy(qv);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -224,7 +233,7 @@ void FixQEq::allocate_matrix()
   safezone = SAFE_ZONE;
 
   nlocal = atom->nlocal;
-  n_cap = MAX( (int)(nlocal * safezone), mincap );
+  n_cap = MAX((int)(nlocal * safezone), mincap);
   nall = atom->nlocal + atom->nghost;
 
   // determine the total space for the H matrix
@@ -687,13 +696,7 @@ void FixQEq::vector_add( double* dest, double c, double* v, int k )
 
 void FixQEq::read_file(char *file)
 {
-  int i;
-  int params_per_line = 6;
-  char **words = new char*[params_per_line+1];
-
-  int ntypes = atom->ntypes;
-  int *setflag = new int[ntypes+1];
-  for (i=0; i <= ntypes; ++i) setflag[i] = 0;
+  const int ntypes = atom->ntypes;
 
   memory->create(chi,ntypes+1,"qeq:chi");
   memory->create(eta,ntypes+1,"qeq:eta");
@@ -701,70 +704,66 @@ void FixQEq::read_file(char *file)
   memory->create(zeta,ntypes+1,"qeq:zeta");
   memory->create(zcore,ntypes+1,"qeq:zcore");
 
-  // open file on proc 0
-
-  FILE *fp;
-  if (comm->me == 0) {
-    fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix qeq parameter file {}: {}",
-                                   file,utils::getsyserror()));
-  }
-
   // read each line out of file, skipping blank lines or leading '#'
   // store line of params if all 3 element tags are in element list
 
-  int n,nwords,eof,nlo,nhi;
-  char line[MAXLINE],*ptr;
-
-  eof = 0;
-
-  while (1) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
+  if (comm->me == 0) {
+    int *setflag = new int[ntypes+1];
+    for (int n=0; n <= ntypes; ++n) {
+      setflag[n] = 0;
+      chi[n] = eta[n] = gamma[n] = zeta[n] = zcore[n] = 0.0;
     }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-    // strip comment, skip line if blank
+    try {
+      int nlo,nhi;
+      double val;
 
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+      FILE *fp = utils::open_potential(file,lmp,nullptr);
+      if (fp == nullptr)
+        throw parser_error(fmt::format("Cannot open fix qeq parameter file {}:"
+                                       " {}", file,utils::getsyserror()));
+      TextFileReader reader(fp, "qeq parameter");
 
-    // must have 6 parameters per line.
+      while (1) {
+        auto values = reader.next_values(0);
 
-    if (nwords < 6)
-      error->all(FLERR,"Invalid fix qeq parameter file");
+        if (values.count() == 0) continue;
+        if (values.count() < 6)
+          throw parser_error("Invalid qeq parameter file");
 
-    // words = ptrs to first 6 words in line
+        auto word = values.next_string();
+        utils::bounds(FLERR,word,1,ntypes,nlo,nhi,nullptr);
+        if ((nlo < 0) || (nhi < 0))
+          throw parser_error("Invalid atom type range");
 
-    for (n=0, words[n] = strtok(line," \t\n\r\f");
-         n < 6;
-         words[++n] = strtok(nullptr," \t\n\r\f"));
-
-    utils::bounds(FLERR,words[0],1,ntypes,nlo,nhi,error);
-    for (n=nlo; n <=nhi; ++n) {
-      chi[n]     = utils::numeric(FLERR,words[1],false,lmp);
-      eta[n]     = utils::numeric(FLERR,words[2],false,lmp);
-      gamma[n]   = utils::numeric(FLERR,words[3],false,lmp);
-      zeta[n]    = utils::numeric(FLERR,words[4],false,lmp);
-      zcore[n]   = utils::numeric(FLERR,words[5],false,lmp);
-      setflag[n] = 1;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) chi[n] = val;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) eta[n] = val;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) gamma[n] = val;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) zeta[n] = val;
+        val = values.next_double();
+        for (int n=nlo; n <= nhi; ++n) zcore[n] = val;
+        for (int n=nlo; n <= nhi; ++n) setflag[n] = 1;
+      }
+    } catch (EOFException &e) {
+      ; // catch and ignore to exit loop
+    } catch (std::exception &e) {
+      error->one(FLERR,e.what());
     }
+
+    for (int n=1; n <= ntypes; ++n)
+      if (setflag[n] == 0)
+        error->one(FLERR,fmt::format("Parameters for atom type {} missing in "
+                                     "qeq parameter file", n));
+    delete[] setflag;
   }
 
-  // check if all types are set
-  for (n=1; n <= ntypes; ++n)
-    if (setflag[n] == 0)
-      error->all(FLERR,"Invalid fix qeq parameter file");
-
-  delete [] words;
-  delete [] setflag;
+  MPI_Bcast(chi,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(eta,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(gamma,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(zeta,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(zcore,ntypes+1,MPI_DOUBLE,0,world);
 }

@@ -27,7 +27,7 @@ GPUs) and HIP (for AMD GPUs). You choose the mode at build time to
 produce an executable compatible with a specific hardware.
 
 .. admonition:: C++14 support
-      :class: note
+   :class: note
 
    Kokkos requires using a compiler that supports the c++14 standard. For
    some compilers, it may be necessary to add a flag to enable c++14 support.

@@ -34,11 +34,13 @@
 
 namespace ReaxFF {
 
-  static void Compute_Bonded_Forces(reax_system *system, control_params *control,
-                             simulation_data *data, storage *workspace,
-                             reax_list **lists, output_controls *out_control)
+  static void Compute_Bonded_Forces(reax_system *system,
+                                    control_params *control,
+                                    simulation_data *data,
+                                    storage *workspace,
+                                    reax_list **lists)
   {
-    BO(system, control, data, workspace, lists, out_control);
+    BO(system, workspace, lists);
     Bonds(system, data, workspace, lists);
     Atom_Energy(system, control, data, workspace, lists);
     Valence_Angles(system, control, data, workspace, lists);
@@ -47,8 +49,10 @@ namespace ReaxFF {
       Hydrogen_Bonds(system, control, data, workspace, lists);
   }
 
-  static void Compute_NonBonded_Forces(reax_system *system, control_params *control,
-                                       simulation_data *data, storage *workspace,
+  static void Compute_NonBonded_Forces(reax_system *system,
+                                       control_params *control,
+                                       simulation_data *data,
+                                       storage *workspace,
                                        reax_list **lists)
   {
 
@@ -60,7 +64,7 @@ namespace ReaxFF {
   }
 
   static void Compute_Total_Force(reax_system *system, control_params *control,
-                           storage *workspace, reax_list **lists)
+                                  storage *workspace, reax_list **lists)
   {
     int i, pj;
     reax_list *bonds = (*lists) + BONDS;
@@ -112,10 +116,6 @@ namespace ReaxFF {
         if (Hindex > -1) {
           system->my_atoms[i].num_hbonds =
             (int)(MAX(Num_Entries(Hindex, hbonds)*saferzone, system->minhbonds));
-
-          //if(Num_Entries(i, hbonds) >=
-          //(Start_Index(i+1,hbonds)-Start_Index(i,hbonds))*0.90/*DANGER_ZONE*/) {
-          //  workspace->realloc.hbonds = 1;
 
           if (Hindex < numH-1)
             comp = Start_Index(Hindex+1, hbonds);
@@ -374,14 +374,13 @@ namespace ReaxFF {
 
   void Compute_Forces(reax_system *system, control_params *control,
                       simulation_data *data, storage *workspace,
-                      reax_list **lists, output_controls *out_control)
+                      reax_list **lists)
   {
 
     Init_Forces_noQEq(system, control, data, workspace, lists);
 
     /********* bonded interactions ************/
-    Compute_Bonded_Forces(system, control, data, workspace,
-                          lists, out_control);
+    Compute_Bonded_Forces(system, control, data, workspace, lists);
 
     /********* nonbonded interactions ************/
     Compute_NonBonded_Forces(system, control, data, workspace, lists);

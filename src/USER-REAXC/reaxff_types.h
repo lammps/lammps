@@ -228,7 +228,6 @@ namespace ReaxFF
   /* system control parameters */
   struct control_params
   {
-    char sim_name[REAX_MAX_STR];
     int  nthreads;
 
     double bond_cut;
@@ -270,9 +269,7 @@ namespace ReaxFF
   struct simulation_data
   {
     rc_bigint  step;
-
     energy_data my_en;            // per MPI rank energies
-    energy_data sys_en;           // global energies
   };
 
   struct three_body_interaction_data
@@ -397,27 +394,6 @@ namespace ReaxFF
     int type;
     list_type select;
     class LAMMPS_NS::Error     *error_ptr;
-  };
-
-  struct output_controls
-  {
-    FILE *strj;
-    int   atom_line_len;
-    int   bond_line_len;
-    int   angle_line_len;
-    int   write_atoms;
-    int   write_bonds;
-    int   write_angles;
-    int   buffer_len;
-    char *buffer;
-
-    int   write_steps;
-    char  traj_title[81];
-    int   atom_info;
-    int   bond_info;
-    int   angle_info;
-
-    int   energy_update_freq;
   };
 
   struct LR_lookup_table

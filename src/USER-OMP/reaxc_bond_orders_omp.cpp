@@ -366,8 +366,7 @@ namespace ReaxFF {
 
 /* ---------------------------------------------------------------------- */
 
-  void BOOMP( reax_system *system, control_params * /* control */, simulation_data * /* data */,
-              storage *workspace, reax_list **lists, output_controls * /* out_control */)
+  void BOOMP( reax_system *system, storage *workspace, reax_list **lists)
   {
     double p_lp1 = system->reax_param.gp.l[15];
     double p_boc1 = system->reax_param.gp.l[0];

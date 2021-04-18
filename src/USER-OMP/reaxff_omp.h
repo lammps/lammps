@@ -40,8 +40,7 @@ namespace ReaxFF
                      two_body_parameters *, int, double, double, double,
                      double, double, double, double);
 
-  extern void BOOMP(reax_system *, control_params *, simulation_data *,
-                    storage *, reax_list **, output_controls *);
+  extern void BOOMP(reax_system *, storage *, reax_list **);
 
   // bonds OpenMP
 
@@ -51,8 +50,7 @@ namespace ReaxFF
   // forces OpenMP
 
   extern void Compute_ForcesOMP(reax_system *, control_params *,
-                                simulation_data *, storage *,
-                                reax_list **, output_controls *);
+                                simulation_data *, storage *, reax_list **);
 
   // hydrogen bonds
 
@@ -61,9 +59,8 @@ namespace ReaxFF
 
   // init md OpenMP
 
-  extern void InitializeOMP(reax_system *, control_params *,
-                            simulation_data *, storage *, reax_list **,
-                            output_controls *, MPI_Comm);
+  extern void InitializeOMP(reax_system *, control_params *, simulation_data *,
+                            storage *, reax_list **,MPI_Comm);
 
   // multi body
 

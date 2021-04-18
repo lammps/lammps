@@ -1199,11 +1199,9 @@
 /reaxc_bonds.cpp
 /reaxc_control.cpp
 /reaxc_ffield.cpp
-/reaxc_ffield.h
 /reaxc_forces.cpp
 /reaxc_hydrogen_bonds.cpp
 /reaxc_init_md.cpp
-/reaxc_io_tools.cpp
 /reaxc_list.cpp
 /reaxc_lookup.cpp
 /reaxc_multi_body.cpp
@@ -1211,11 +1209,11 @@
 /reaxc_reset_tools.cpp
 /reaxc_tool_box.cpp
 /reaxc_torsion_angles.cpp
-/reaxc_traj.cpp
 /reaxc_valence_angles.cpp
 /reaxff_api.h
 /reaxff_defs.h
 /reaxff_inline.h
+/reaxff_omp.h
 /reaxff_types.h
 /remap.cpp
 /remap.h

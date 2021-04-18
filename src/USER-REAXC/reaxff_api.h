@@ -31,7 +31,6 @@ namespace ReaxFF
   struct API {
     control_params *control;
     reax_system *system;
-    output_controls *out_control;
     simulation_data *data;
     storage *workspace;
     reax_list *lists;
@@ -39,7 +38,7 @@ namespace ReaxFF
 
   // exported Functions
 
-  // allocate X
+  // allocate
 
   extern void Allocate_Workspace(control_params *, storage *, int);
   extern void DeAllocate_System(reax_system *);
@@ -50,8 +49,7 @@ namespace ReaxFF
 
   // bond orders
 
-  extern void BO(reax_system *, control_params *, simulation_data *,
-                 storage *, reax_list **, output_controls *);
+  extern void BO(reax_system *, storage *, reax_list **);
   extern int BOp(storage *, reax_list *, double, int, int, far_neighbor_data *,
                  single_body_parameters *, single_body_parameters *,
                  two_body_parameters *);
@@ -64,7 +62,7 @@ namespace ReaxFF
 
   // control
 
-  extern void Read_Control_File(const char *, control_params *, output_controls *);
+  extern void Read_Control_File(const char *, control_params *);
 
   // ffield
 
@@ -73,8 +71,8 @@ namespace ReaxFF
 
   // forces
 
-  extern void Compute_Forces(reax_system *, control_params *, simulation_data *,
-                             storage *, reax_list **, output_controls *);
+  extern void Compute_Forces(reax_system *, control_params *,
+                             simulation_data *, storage *, reax_list **);
   extern void Estimate_Storages(reax_system *, control_params *, reax_list **,
                                 int *, int *, int *, int *);
 
@@ -88,16 +86,7 @@ namespace ReaxFF
   extern void Init_Simulation_Data(simulation_data *);
   extern void Init_Workspace(reax_system *, control_params *, storage *);
   extern void Initialize(reax_system *, control_params *, simulation_data *,
-                         storage *, reax_list **, output_controls *, MPI_Comm);
-
-  // io tools
-
-  extern void Init_Output_Files(reax_system *, control_params *,
-                                output_controls *, MPI_Comm);
-  extern void Close_Output_Files(reax_system *, output_controls *);
-  extern void Output_Results(reax_system *, control_params *, simulation_data *,
-                             reax_list **, output_controls *, MPI_Comm);
-  extern void Collect_System_Energy(reax_system *, simulation_data *, MPI_Comm);
+                         storage *, reax_list **, MPI_Comm);
 
   // lists
 
@@ -163,24 +152,16 @@ namespace ReaxFF
                                 rvec, double, three_body_interaction_data *,
                                 three_body_interaction_data *, rvec, rvec,
                                 rvec, rvec);
-  extern void Torsion_Angles(reax_system *, control_params *, simulation_data *,
-                             storage *, reax_list **);
-
-  // traj
-
-  extern void Init_Traj(reax_system *, control_params *,
-                        output_controls *, MPI_Comm);
-  extern void End_Traj(int, output_controls *);
-  extern void Append_Frame(reax_system *, control_params *, simulation_data *,
-                           reax_list **, output_controls *, MPI_Comm);
+  extern void Torsion_Angles(reax_system *, control_params *,
+                             simulation_data *, storage *, reax_list **);
 
   // valence angles
 
   extern void Calculate_Theta(rvec, double, rvec, double, double *, double *);
   extern void Calculate_dCos_Theta(rvec, double, rvec, double,
                                    rvec *, rvec *, rvec *);
-  extern void Valence_Angles(reax_system *, control_params *, simulation_data *,
-                             storage *, reax_list **);
+  extern void Valence_Angles(reax_system *, control_params *,
+                             simulation_data *, storage *, reax_list **);
 
   // vector
 

@@ -62,6 +62,7 @@ reaxc_forces.h
 reaxc_hydrogen_bonds.h
 reaxc_init_md.h
 reaxc_io_tools.h
+reaxc_io_tools.cpp
 reaxc_list.h
 reaxc_lookup.h
 reaxc_multi_body.h
@@ -72,6 +73,7 @@ reaxc_system_props.cpp
 reaxc_tool_box.h
 reaxc_torsion_angles.h
 reaxc_traj.h
+reaxc_traj.cpp
 reaxc_types.h
 reaxc_valence_angles.h
 reaxc_vector.h

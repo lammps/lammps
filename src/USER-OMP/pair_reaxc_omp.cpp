@@ -211,7 +211,7 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   startTimeBase = MPI_Wtime();
 #endif
 
-  Compute_ForcesOMP(api->system,api->control,api->data,api->workspace,&api->lists,api->out_control);
+  Compute_ForcesOMP(api->system,api->control,api->data,api->workspace,&api->lists);
   read_reax_forces(vflag);
 
 #ifdef OMP_TIMING
@@ -269,8 +269,6 @@ void PairReaxCOMP::compute(int eflag, int vflag)
   // Set internal timestep counter to that of LAMMPS
 
   api->data->step = update->ntimestep;
-
-  Output_Results(api->system, api->control, api->data, &api->lists, api->out_control, world);
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
 
@@ -393,8 +391,8 @@ void PairReaxCOMP::setup()
 
     write_reax_lists();
 
-    InitializeOMP(api->system, api->control, api->data, api->workspace,
-                  &api->lists, api->out_control, world);
+    InitializeOMP(api->system, api->control, api->data,
+                  api->workspace, &api->lists, world);
 
     for (int k = 0; k < api->system->N; ++k) {
       num_bonds[k] = api->system->my_atoms[k].num_bonds;

@@ -77,8 +77,6 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   memset(api->system,0,sizeof(reax_system));
   api->control = new control_params;
   memset(api->control,0,sizeof(control_params));
-  api->out_control = new output_controls;
-  memset(api->out_control,0,sizeof(output_controls));
   api->data = new simulation_data;
   api->workspace = new storage;
   memory->create(api->lists, LIST_N,"reaxff:lists");
@@ -124,7 +122,6 @@ PairReaxC::~PairReaxC()
   delete[] fix_id;
 
   if (setup_flag) {
-    Close_Output_Files(api->system,api->out_control);
 
     // deallocate reax data-structures
 
@@ -141,7 +138,6 @@ PairReaxC::~PairReaxC()
 
   delete api->system;
   delete api->control;
-  delete api->out_control;
   delete api->data;
   delete api->workspace;
   memory->destroy(api->lists);
@@ -192,8 +188,6 @@ void PairReaxC::settings(int narg, char **arg)
     // read name of control file or use default controls
 
     if (strcmp(arg[0],"NULL") == 0) {
-      strcpy(api->control->sim_name, "simulate");
-      api->out_control->energy_update_freq = 0;
       api->control->tabulate = 0;
 
       api->control->bond_cut = 5.;
@@ -204,15 +198,9 @@ void PairReaxC::settings(int narg, char **arg)
 
       api->control->nthreads = 1;
 
-      api->out_control->write_steps = 0;
-      strcpy(api->out_control->traj_title, "default_title");
-      api->out_control->atom_info = 0;
-      api->out_control->bond_info = 0;
-      api->out_control->angle_info = 0;
-    } else Read_Control_File(arg[0], api->control, api->out_control);
+    } else Read_Control_File(arg[0], api->control);
   }
   MPI_Bcast(api->control,sizeof(control_params),MPI_CHAR,0,world);
-  MPI_Bcast(api->out_control,sizeof(output_controls),MPI_CHAR,0,world);
 
   // must reset these to local values after broadcast
   api->control->me = comm->me;
@@ -431,8 +419,8 @@ void PairReaxC::setup()
 
     write_reax_lists();
     api->system->wsize = comm->nprocs;
-    Initialize(api->system, api->control, api->data, api->workspace,
-               &api->lists, api->out_control, world);
+    Initialize(api->system, api->control, api->data,
+               api->workspace, &api->lists, world);
     for (int k = 0; k < api->system->N; ++k) {
       num_bonds[k] = api->system->my_atoms[k].num_bonds;
       num_hbonds[k] = api->system->my_atoms[k].num_hbonds;
@@ -500,7 +488,7 @@ void PairReaxC::compute(int eflag, int vflag)
 
   // forces
 
-  Compute_Forces(api->system,api->control,api->data,api->workspace,&api->lists,api->out_control);
+  Compute_Forces(api->system,api->control,api->data,api->workspace,&api->lists);
   read_reax_forces(vflag);
 
   for (int k = 0; k < api->system->N; ++k) {
@@ -526,9 +514,6 @@ void PairReaxC::compute(int eflag, int vflag)
     ecoul += api->data->my_en.e_ele;
     ecoul += api->data->my_en.e_pol;
 
-    // eng_vdwl += evdwl;
-    // eng_coul += ecoul;
-
     // Store the different parts of the energy
     // in a list for output by compute pair command
 
@@ -553,8 +538,6 @@ void PairReaxC::compute(int eflag, int vflag)
 // Set internal timestep counter to that of LAMMPS
 
   api->data->step = update->ntimestep;
-
-  Output_Results(api->system, api->control, api->data, &api->lists, api->out_control, world);
 
   // populate tmpid and tmpbo arrays for fix reax/c/species
   int i, j;

@@ -41,7 +41,7 @@ using LAMMPS_NS::utils::logmesg;
 using LAMMPS_NS::ValueTokenizer;
 
 namespace ReaxFF {
-  static std::unordered_set<std::string> ignored_keywords = {
+  static std::unordered_set<std::string> inactive_keywords = {
     "ensemble_type", "nsteps", "dt", "proc_by_dim", "random_vel",
     "restart_format", "restart_freq", "reposition_atoms",
     "restrict_bonds", "remove_CoM_vel", "debug_level", "reneighbor",
@@ -50,8 +50,9 @@ namespace ReaxFF {
     "t_freq", "pressure", "p_mass", "pt_mass", "compress", "press_mode",
     "geo_format", "traj_compress", "traj_method", "molecular_analysis",
     "ignore", "dipole_anal", "freq_dipole_anal", "diffusion_coef",
-    "freq_diffusion_coef", "restrict_type"
-  };
+    "freq_diffusion_coef", "restrict_type", "traj_title", "simulation_name",
+    "energy_update_freq", "atom_info", "atom_velocities", "atom_forces",
+    "bond_info", "angle_info" };
 
   class parser_error : public std::exception {
     std::string message;
@@ -62,14 +63,11 @@ namespace ReaxFF {
 
   // NOTE: this function is run on MPI rank 0 only
 
-  void Read_Control_File(const char *control_file, control_params *control,
-                         output_controls *out_control)
+  void Read_Control_File(const char *control_file, control_params *control)
   {
     auto error = control->error_ptr;
-    auto lmp = control->lmp_ptr;
 
     /* assign default values */
-    strcpy(control->sim_name, "simulate");
     control->nthreads = 1;
     control->tabulate = 0;
     control->virial = 0;
@@ -78,13 +76,6 @@ namespace ReaxFF {
     control->thb_cut = 0.001;
     control->thb_cutsq = 0.00001;
     control->hbond_cut = 7.5;
-
-    out_control->write_steps = 0;
-    out_control->energy_update_freq = 0;
-    strcpy(out_control->traj_title, "default_title");
-    out_control->atom_info = 0;
-    out_control->bond_info = 0;
-    out_control->angle_info = 0;
 
     /* read control parameters file */
     try {
@@ -102,12 +93,9 @@ namespace ReaxFF {
         if (!values.has_next())
           throw parser_error(fmt::format("No value(s) for control parameter: {}\n",keyword));
 
-        if (ignored_keywords.find(keyword) != ignored_keywords.end()) {
-          logmesg(lmp,fmt::format("Ignoring inactive control parameter: {}\n",keyword));
-        } else if (keyword == "simulation_name") {
-          strcpy(control->sim_name, values.next_string().c_str());
-        } else if (keyword == "energy_update_freq") {
-          out_control->energy_update_freq = values.next_int();
+        if (inactive_keywords.find(keyword) != inactive_keywords.end()) {
+          error->warning(FLERR,fmt::format("Ignoring inactive control "
+                                           "parameter: {}",keyword));
         } else if (keyword == "nbrhood_cutoff") {
           control->bond_cut = values.next_double();
         } else if (keyword == "bond_graph_cutoff") {
@@ -121,21 +109,12 @@ namespace ReaxFF {
         } else if (keyword == "tabulate_long_range") {
           control->tabulate = values.next_int();
         } else if (keyword == "write_freq") {
-          out_control->write_steps = values.next_int();
-        } else if (keyword == "traj_title") {
-          strcpy(out_control->traj_title, values.next_string().c_str());
-        } else if (keyword == "atom_info") {
-          out_control->atom_info += values.next_int() * 4;
-        } else if (keyword == "atom_velocities") {
-          out_control->atom_info += values.next_int() * 2;
-        } else if (keyword == "atom_forces") {
-          out_control->atom_info += values.next_int() * 1;
-        } else if (keyword == "bond_info") {
-          out_control->bond_info = values.next_int();
-        } else if (keyword == "angle_info") {
-          out_control->angle_info = values.next_int();
+          if (values.next_int() > 0)
+            error->warning(FLERR,"Support for writing native trajectories has "
+                           "been removed after LAMMPS version 8 April 2021");
         } else {
-          throw parser_error(fmt::format("Unknown parameter {} in control file", keyword));
+          throw parser_error(fmt::format("Unknown parameter {} in "
+                                         "control file", keyword));
         }
       }
     } catch (LAMMPS_NS::EOFException &) {

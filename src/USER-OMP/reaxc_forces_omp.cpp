@@ -43,10 +43,10 @@ namespace ReaxFF {
 
   static void Compute_Bonded_ForcesOMP(reax_system *system, control_params *control,
                                        simulation_data *data, storage *workspace,
-                                       reax_list **lists, output_controls *out_control)
+                                       reax_list **lists)
   {
 
-    BOOMP(system, control, data, workspace, lists, out_control);
+    BOOMP(system, workspace, lists);
     BondsOMP(system, data, workspace, lists);
     Atom_EnergyOMP(system, data, workspace, lists);
     Valence_AnglesOMP(system, control, data, workspace, lists);
@@ -476,14 +476,13 @@ namespace ReaxFF {
 
   void Compute_ForcesOMP(reax_system *system, control_params *control,
                           simulation_data *data, storage *workspace,
-                          reax_list **lists, output_controls *out_control)
+                          reax_list **lists)
   {
     // Init Forces
     Init_Forces_noQEq_OMP(system, control, data, workspace, lists);
 
     // Bonded Interactions
-    Compute_Bonded_ForcesOMP(system, control, data, workspace,
-                             lists, out_control);
+    Compute_Bonded_ForcesOMP(system, control, data, workspace, lists);
 
     // Nonbonded Interactions
     Compute_NonBonded_ForcesOMP(system, control, data, workspace, lists);

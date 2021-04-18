@@ -49,28 +49,9 @@ namespace ReaxFF {
       }
   }
 
-
-  static void Reset_Energies(energy_data *en)
-  {
-    en->e_bond = 0;
-    en->e_ov = 0;
-    en->e_un = 0;
-    en->e_lp = 0;
-    en->e_ang = 0;
-    en->e_pen = 0;
-    en->e_coa = 0;
-    en->e_hb = 0;
-    en->e_tor = 0;
-    en->e_con = 0;
-    en->e_vdW = 0;
-    en->e_ele = 0;
-    en->e_pol = 0;
-  }
-
   void Reset_Simulation_Data(simulation_data* data)
   {
-    Reset_Energies(&data->my_en);
-    Reset_Energies(&data->sys_en);
+    memset(&data->my_en,0,sizeof(energy_data));
   }
 
   void Reset_Workspace(reax_system *system, storage *workspace)
@@ -136,8 +117,8 @@ namespace ReaxFF {
   }
 
 
-  void Reset(reax_system *system, control_params *control, simulation_data *data,
-              storage *workspace, reax_list **lists)
+  void Reset(reax_system *system, control_params *control,
+             simulation_data *data, storage *workspace, reax_list **lists)
   {
     Reset_Atoms(system, control);
     Reset_Simulation_Data(data);

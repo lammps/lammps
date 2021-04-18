@@ -248,12 +248,6 @@ void FixQEqReaxOMP::init_storage()
 
 void FixQEqReaxOMP::pre_force(int /* vflag */)
 {
-
-#ifdef OMP_TIMING
-  double endTimeBase, startTimeBase, funcstartTimeBase;
-  funcstartTimeBase = MPI_Wtime();
-#endif
-
   if (update->ntimestep % nevery) return;
 
   int n = atom->nlocal;
@@ -279,69 +273,22 @@ void FixQEqReaxOMP::pre_force(int /* vflag */)
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
-#ifdef OMP_TIMING
-  startTimeBase = MPI_Wtime();
-#endif
-
   init_matvec();
 
-#ifdef OMP_TIMING
-  endTimeBase = MPI_Wtime();
-  ompTimingData[COMPUTEINITMVINDEX] += (endTimeBase-startTimeBase);
-  startTimeBase = endTimeBase;
-#endif
-
   if (dual_enabled) {
-    matvecs = dual_CG(b_s, b_t, s, t); // OMP_TIMING inside dual_CG
+    matvecs = dual_CG(b_s, b_t, s, t);
   } else {
     matvecs_s = CG(b_s, s);     // CG on s - parallel
-
-#ifdef OMP_TIMING
-    endTimeBase = MPI_Wtime();
-    ompTimingData[COMPUTECG1INDEX] += (endTimeBase-startTimeBase);
-    ompTimingCount[COMPUTECG1INDEX]++;
-    ompTimingCGCount[COMPUTECG1INDEX]+= matvecs_s;
-    startTimeBase = endTimeBase;
-#endif
-
     matvecs_t = CG(b_t, t);     // CG on t - parallel
-
-#ifdef OMP_TIMING
-    endTimeBase = MPI_Wtime();
-    ompTimingData[COMPUTECG2INDEX] += (endTimeBase-startTimeBase);
-    ompTimingCount[COMPUTECG2INDEX]++;
-    ompTimingCGCount[COMPUTECG2INDEX]+= matvecs_t;
-    startTimeBase = endTimeBase;
-#endif
-
   } // if (dual_enabled)
 
-#ifdef OMP_TIMING
-  startTimeBase = MPI_Wtime();
-#endif
-
   calculate_Q();
-
-#ifdef OMP_TIMING
-  endTimeBase = MPI_Wtime();
-  ompTimingData[COMPUTECALCQINDEX] += (endTimeBase-startTimeBase);
-#endif
-
-#ifdef OMP_TIMING
-  endTimeBase = MPI_Wtime();
-  ompTimingData[COMPUTEQEQINDEX] += (endTimeBase-funcstartTimeBase);
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReaxOMP::init_matvec()
 {
-#ifdef OMP_TIMING
-  long endTimeBase, startTimeBase;
-  startTimeBase = MPI_Wtime();
-#endif
-
   /* fill-in H matrix */
   compute_H();
 
@@ -410,11 +357,6 @@ void FixQEqReaxOMP::init_matvec()
   comm->forward_comm_fix(this); //Dist_vector( s );
   pack_flag = 3;
   comm->forward_comm_fix(this); //Dist_vector( t );
-
-#ifdef OMP_TIMING
-  endTimeBase = MPI_Wtime();
-  ompTimingData[COMPUTEMVCOMPINDEX] += (long) (endTimeBase-startTimeBase);
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -685,12 +627,6 @@ void FixQEqReaxOMP::vector_add( double* dest, double c, double* v, int k)
 
 int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
 {
-
-#ifdef OMP_TIMING
-  double endTimeBase, startTimeBase;
-  startTimeBase = MPI_Wtime();
-#endif
-
   int i;
   double alpha_s, alpha_t, beta_s, beta_t, b_norm_s, b_norm_t;
   double sig_old_s, sig_old_t, sig_new_s, sig_new_t;
@@ -836,15 +772,6 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
   matvecs_s = matvecs_t = i; // The plus one makes consistent with count from CG()
   matvecs = i;
 
-  // Timing info for iterating s&t together
-#ifdef OMP_TIMING
-  endTimeBase = MPI_Wtime();
-  ompTimingData[COMPUTECG1INDEX] += (endTimeBase-startTimeBase);
-  ompTimingCount[COMPUTECG1INDEX]++;
-  ompTimingCGCount[COMPUTECG1INDEX]+= i;
-  startTimeBase = endTimeBase;
-#endif
-
   // If necessary, converge other system
   if (sqrt(sig_new_s)/b_norm_s > tolerance) {
     pack_flag = 2;
@@ -860,15 +787,6 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
     i+= CG(b2, x2);
     matvecs_t = i;
   }
-
-  // Timing info for remainder of s or t
-#ifdef OMP_TIMING
-  endTimeBase = MPI_Wtime();
-  ompTimingData[COMPUTECG2INDEX] += (endTimeBase-startTimeBase);
-  ompTimingCount[COMPUTECG2INDEX]++;
-  ompTimingCGCount[COMPUTECG2INDEX]+= i - matvecs;
-  startTimeBase = endTimeBase;
-#endif
 
   if ( i >= imax && comm->me == 0)
     error->warning(FLERR,fmt::format("Fix qeq/reax/omp CG convergence failed "

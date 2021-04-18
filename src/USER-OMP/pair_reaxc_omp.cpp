@@ -60,12 +60,6 @@
 using namespace LAMMPS_NS;
 using namespace ReaxFF;
 
-#ifdef OMP_TIMING
-double ompTimingData[LASTTIMINGINDEX];
-int ompTimingCount[LASTTIMINGINDEX];
-int ompTimingCGCount[LASTTIMINGINDEX];
-#endif
-
 static const char cite_pair_reax_c_omp[] =
   "pair reax/c/omp and fix qeq/reax/omp command:\n\n"
   "@Article{Aktulga17,\n"
@@ -86,14 +80,6 @@ PairReaxCOMP::PairReaxCOMP(LAMMPS *lmp) : PairReaxC(lmp), ThrOMP(lmp, THR_PAIR)
   api->system->omp_active = 1;
 
   num_nbrs_offset = nullptr;
-
-#ifdef OMP_TIMING
-  for (int i=0;i<LASTTIMINGINDEX;i++) {
-    ompTimingData[i] = 0;
-    ompTimingCount[i] = 0;
-    ompTimingCGCount[i] = 0;
-  }
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -106,64 +92,6 @@ PairReaxCOMP::~PairReaxCOMP()
       sfree(error, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
   }
   memory->destroy(num_nbrs_offset);
-
-#ifdef OMP_TIMING
-  int myrank;
-
-  MPI_Comm_rank(world,&myrank);
-
-  // Write screen output
-  if (timer->has_full() && myrank == 0 && screen) {
-    fprintf(screen,"\n\nWrite_Lists    took %11.3lf seconds", ompTimingData[COMPUTEWLINDEX]);
-
-    fprintf(screen,"\n\nCompute_Forces took %11.3lf seconds:", ompTimingData[COMPUTEINDEX]);
-    fprintf(screen,"\n ->Initial Forces: %11.3lf seconds", ompTimingData[COMPUTEIFINDEX]);
-    fprintf(screen,"\n ->Bond Order:     %11.3lf seconds", ompTimingData[COMPUTEBOINDEX]);
-    fprintf(screen,"\n ->Atom Energy:    %11.3lf seconds", ompTimingData[COMPUTEATOMENERGYINDEX]);
-    fprintf(screen,"\n ->Bond:           %11.3lf seconds", ompTimingData[COMPUTEBONDSINDEX]);
-    fprintf(screen,"\n ->Hydrogen bonds: %11.3lf seconds", ompTimingData[COMPUTEHBONDSINDEX]);
-    fprintf(screen,"\n ->Torsion Angles: %11.3lf seconds", ompTimingData[COMPUTETORSIONANGLESBOINDEX]);
-    fprintf(screen,"\n ->Valence Angles: %11.3lf seconds", ompTimingData[COMPUTEVALENCEANGLESBOINDEX]);
-    fprintf(screen,"\n ->Non-Bonded For: %11.3lf seconds", ompTimingData[COMPUTENBFINDEX]);
-    fprintf(screen,"\n ->Total Forces:   %11.3lf seconds", ompTimingData[COMPUTETFINDEX]);
-
-    fprintf(screen,"\n\nfixQEQ:          %11.3lf seconds", ompTimingData[COMPUTEQEQINDEX]);
-    fprintf(screen,"\n ->QEQ init:       %11.3lf seconds", ompTimingData[COMPUTEINITMVINDEX]);
-
-    double avg = double(ompTimingCGCount[COMPUTECG1INDEX]) / double(ompTimingCount[COMPUTECG1INDEX]);
-    fprintf(screen,"\n ->QEQ CG1:        %11.3lf seconds with %4.1lf iterations on average.", ompTimingData[COMPUTECG1INDEX], avg);
-
-    avg = double(ompTimingCGCount[COMPUTECG2INDEX]) / double(ompTimingCount[COMPUTECG2INDEX]);
-    fprintf(screen,"\n ->QEQ CG2:        %11.3lf seconds with %4.1lf iterations on average.", ompTimingData[COMPUTECG2INDEX], avg);
-    fprintf(screen,"\n ->QEQ CalcQ:      %11.3lf seconds\n", ompTimingData[COMPUTECALCQINDEX]);
-  }
-
-  // Write logfile output
-  if (timer->has_full() && myrank == 0 && logfile) {
-    fprintf(logfile,"\n\nWrite_Lists    took %11.3lf seconds", ompTimingData[COMPUTEWLINDEX]);
-
-    fprintf(logfile,"\n\nCompute_Forces took %11.3lf seconds:", ompTimingData[COMPUTEINDEX]);
-    fprintf(logfile,"\n ->Initial Forces: %11.3lf seconds", ompTimingData[COMPUTEIFINDEX]);
-    fprintf(logfile,"\n ->Bond Order:     %11.3lf seconds", ompTimingData[COMPUTEBOINDEX]);
-    fprintf(logfile,"\n ->Atom Energy:    %11.3lf seconds", ompTimingData[COMPUTEATOMENERGYINDEX]);
-    fprintf(logfile,"\n ->Bond:           %11.3lf seconds", ompTimingData[COMPUTEBONDSINDEX]);
-    fprintf(logfile,"\n ->Hydrogen bonds: %11.3lf seconds", ompTimingData[COMPUTEHBONDSINDEX]);
-    fprintf(logfile,"\n ->Torsion Angles: %11.3lf seconds", ompTimingData[COMPUTETORSIONANGLESBOINDEX]);
-    fprintf(logfile,"\n ->Valence Angles: %11.3lf seconds", ompTimingData[COMPUTEVALENCEANGLESBOINDEX]);
-    fprintf(logfile,"\n ->Non-Bonded For: %11.3lf seconds", ompTimingData[COMPUTENBFINDEX]);
-    fprintf(logfile,"\n ->Total Forces:   %11.3lf seconds", ompTimingData[COMPUTETFINDEX]);
-
-    fprintf(logfile,"\n\nfixQEQ:          %11.3lf seconds", ompTimingData[COMPUTEQEQINDEX]);
-    fprintf(logfile,"\n ->QEQ init:       %11.3lf seconds", ompTimingData[COMPUTEINITMVINDEX]);
-
-    double avg = double(ompTimingCGCount[COMPUTECG1INDEX]) / double(ompTimingCount[COMPUTECG1INDEX]);
-    fprintf(logfile,"\n ->QEQ CG1:        %11.3lf seconds with %4.1lf iterations on average.", ompTimingData[COMPUTECG1INDEX], avg);
-
-    avg = double(ompTimingCGCount[COMPUTECG2INDEX]) / double(ompTimingCount[COMPUTECG2INDEX]);
-    fprintf(logfile,"\n ->QEQ CG2:        %11.3lf seconds with %4.1lf iterations on average.", ompTimingData[COMPUTECG2INDEX], avg);
-    fprintf(logfile,"\n ->QEQ CalcQ:      %11.3lf seconds\n", ompTimingData[COMPUTECALCQINDEX]);
-  }
-#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -206,18 +134,8 @@ void PairReaxCOMP::compute(int eflag, int vflag)
 
   // forces
 
-#ifdef OMP_TIMING
-  double startTimeBase,endTimeBase;
-  startTimeBase = MPI_Wtime();
-#endif
-
   Compute_ForcesOMP(api->system,api->control,api->data,api->workspace,&api->lists);
   read_reax_forces(vflag);
-
-#ifdef OMP_TIMING
-  endTimeBase = MPI_Wtime();
-  ompTimingData[COMPUTEINDEX] += (endTimeBase-startTimeBase);
-#endif
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static)
@@ -478,11 +396,6 @@ int PairReaxCOMP::estimate_reax_lists()
 
 int PairReaxCOMP::write_reax_lists()
 {
-#ifdef OMP_TIMING
-  double startTimeBase, endTimeBase;
-  startTimeBase = MPI_Wtime();
-#endif
-
   int itr_i, itr_j, i, j, num_mynbrs;
   int *jlist;
   double d_sqr, dist, cutoff_sqr;
@@ -541,11 +454,6 @@ int PairReaxCOMP::write_reax_lists()
     }
     Set_End_Index(i, num_nbrs_offset[i] + num_mynbrs, far_nbrs);
   }
-
-#ifdef OMP_TIMING
-  endTimeBase = MPI_Wtime();
-  ompTimingData[COMPUTEWLINDEX] += (endTimeBase-startTimeBase);
-#endif
 
   return num_nbrs;
 }

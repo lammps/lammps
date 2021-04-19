@@ -232,7 +232,7 @@ int FixBondCreate::setmask()
 
 void FixBondCreate::init()
 {
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // check cutoff for iatomtype,jatomtype

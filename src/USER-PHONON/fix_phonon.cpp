@@ -23,21 +23,22 @@
      konglt@sjtu.edu.cn; konglt@gmail.com
 ------------------------------------------------------------------------- */
 
+#include "fix_phonon.h"
+
+#include "atom.h"
+#include "citeme.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "fft3d_wrap.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
-#include "fix_phonon.h"
-#include "fft3d_wrap.h"
-#include "atom.h"
-#include "compute.h"
-#include "domain.h"
-#include "force.h"
-#include "group.h"
-#include "modify.h"
-#include "update.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -77,15 +78,9 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   waitsteps = utils::bnumeric(FLERR,arg[5],false,lmp); // Wait this many timesteps before actually measuring
   if (waitsteps < 0) error->all(FLERR,"Illegal fix phonon command: waitsteps < 0 !");
 
-  int n = strlen(arg[6]) + 1; // map file
-  mapfile = new char[n];
-  strcpy(mapfile, arg[6]);
-
-  n = strlen(arg[7]) + 1;   // prefix of output
-  prefix = new char[n];
-  strcpy(prefix, arg[7]);
-  logfile = new char[n+4];
-  sprintf(logfile,"%s.log",prefix);
+  mapfile = utils::strdup(arg[6]);
+  prefix = utils::strdup(arg[7]);
+  logfile = utils::strdup(std::string(prefix)+".log");
 
   int sdim = sysdim = domain->dimension;
   int iarg = 8;
@@ -184,11 +179,9 @@ FixPhonon::FixPhonon(LAMMPS *lmp,  int narg, char **arg) : Fix(lmp, narg, arg)
   // output some information on the system to log file
   if (me == 0) {
     flog = fopen(logfile, "w");
-    if (flog == nullptr) {
-      char str[MAXLINE];
-      sprintf(str,"Can not open output file %s",logfile);
-      error->one(FLERR,str);
-    }
+    if (flog == nullptr)
+      error->one(FLERR,fmt::format("Can not open output file {}: {}",
+                                   logfile,utils::getsyserror()));
     fprintf(flog,"############################################################\n");
     fprintf(flog,"# group name of the atoms under study      : %s\n", group->names[igroup]);
     fprintf(flog,"# total number of atoms in the group       : %d\n", ngroup);
@@ -440,9 +433,7 @@ int FixPhonon::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"temp") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal fix_modify command");
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify temp ID");
@@ -563,10 +554,9 @@ void FixPhonon::readmap()
   // read from map file for others
   char line[MAXLINE];
   FILE *fp = fopen(mapfile, "r");
-  if (fp == nullptr) {
-    sprintf(line,"Cannot open input map file %s", mapfile);
-    error->all(FLERR,line);
-  }
+  if (fp == nullptr)
+    error->all(FLERR,fmt::format("Cannot open input map file {}: {}",
+                                 mapfile, utils::getsyserror()));
 
   if (fgets(line,MAXLINE,fp) == nullptr)
     error->all(FLERR,"Error while reading header of mapping file!");
@@ -712,9 +702,8 @@ void FixPhonon::postprocess( )
 
     // write binary file, in fact, it is the force constants matrix that is written
     // Enforcement of ASR and the conversion of dynamical matrix is done in the postprocessing code
-    char fname[MAXLINE];
-    sprintf(fname,"%s.bin." BIGINT_FORMAT,prefix,update->ntimestep);
-    FILE *fp_bin = fopen(fname,"wb");
+    auto fname = fmt::format("{}.bin.{}",prefix,update->ntimestep);
+    FILE *fp_bin = fopen(fname.c_str(),"wb");
 
     fwrite(&sysdim, sizeof(int),    1, fp_bin);
     fwrite(&nx,     sizeof(int),    1, fp_bin);

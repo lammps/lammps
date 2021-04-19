@@ -206,7 +206,5 @@ void ComputeEventDisplace::reset_extra_compute_fix(const char *id_new)
   id_event = nullptr;
   if (id_new == nullptr) return;
 
-  int n = strlen(id_new) + 1;
-  id_event = new char[n];
-  strcpy(id_event,id_new);
+  id_event = utils::strdup(id_new);
 }

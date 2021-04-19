@@ -401,7 +401,7 @@ void Finish::end(int flag)
   }
 #endif
 
-  if (lmp->kokkos && lmp->kokkos->ngpus > 0)
+  if ((comm->me == 0) && lmp->kokkos && (lmp->kokkos->ngpus > 0))
     if (const char* env_clb = getenv("CUDA_LAUNCH_BLOCKING"))
       if (!(strcmp(env_clb,"1") == 0)) {
         error->warning(FLERR,"Timing breakdown may not be accurate "

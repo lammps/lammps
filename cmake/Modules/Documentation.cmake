@@ -55,11 +55,15 @@ if(BUILD_DOC)
     COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install -r ${DOC_BUILD_DIR}/requirements.txt --upgrade
   )
 
+  set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.1.2.tar.gz" CACHE STRING "URL for MathJax tarball")
+  set(MATHJAX_MD5 "a4a6a093a89bc2ccab1452d766b98e53" CACHE STRING "MD5 checksum of MathJax tarball")
+  mark_as_advanced(MATHJAX_URL)
+
   # download mathjax distribution and unpack to folder "mathjax"
   if(NOT EXISTS ${DOC_BUILD_STATIC_DIR}/mathjax/es5)
-    file(DOWNLOAD "https://github.com/mathjax/MathJax/archive/3.1.2.tar.gz"
+    file(DOWNLOAD ${MATHJAX_URL}
       "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz"
-      EXPECTED_MD5 a4a6a093a89bc2ccab1452d766b98e53)
+      EXPECTED_MD5 ${MATHJAX_MD5})
     execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
     execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${DOC_BUILD_STATIC_DIR}/mathjax)

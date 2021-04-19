@@ -35,7 +35,6 @@
 #include <cstring>
 #include <map>
 #include <utility>
-#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -553,7 +552,7 @@ void Group::assign(const std::string &groupcmd)
    add flagged atoms to a new or existing group
 ------------------------------------------------------------------------- */
 
-void Group::create(const char *name, int *flag)
+void Group::create(const std::string &name, int *flag)
 {
   int i;
 

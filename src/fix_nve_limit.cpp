@@ -13,16 +13,15 @@
 
 #include "fix_nve_limit.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "comm.h"
 #include "error.h"
+#include "force.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,7 +65,7 @@ void FixNVELimit::init()
   vlimitsq = (xlimit/dtv) * (xlimit/dtv);
   ncount = 0;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
   // warn if using fix shake, which will lead to invalid constraint forces

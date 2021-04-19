@@ -76,6 +76,12 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_improper_atom3, improper_atom3);
   memoryKK->destroy_kokkos(k_improper_atom4, improper_atom4);
 
+  // SPIN package
+
+  memoryKK->destroy_kokkos(k_sp, sp);
+  memoryKK->destroy_kokkos(k_fm, fm);
+  memoryKK->destroy_kokkos(k_fm_long, fm_long);
+
   // USER-DPD package
   memoryKK->destroy_kokkos(k_uCond,uCond);
   memoryKK->destroy_kokkos(k_uMech,uMech);
@@ -257,9 +263,7 @@ int AtomKokkos::add_custom(const char *name, int flag)
     nivector++;
     iname = (char **) memory->srealloc(iname,nivector*sizeof(char *),
                                        "atom:iname");
-    int n = strlen(name) + 1;
-    iname[index] = new char[n];
-    strcpy(iname[index],name);
+    iname[index] = utils::strdup(name);
     ivector = (int **) memory->srealloc(ivector,nivector*sizeof(int *),
                                         "atom:ivector");
     memory->create(ivector[index],nmax,"atom:ivector");
@@ -268,9 +272,7 @@ int AtomKokkos::add_custom(const char *name, int flag)
     ndvector++;
     dname = (char **) memory->srealloc(dname,ndvector*sizeof(char *),
                                        "atom:dname");
-    int n = strlen(name) + 1;
-    dname[index] = new char[n];
-    strcpy(dname[index],name);
+    dname[index] = utils::strdup(name);
     this->sync(Device,DVECTOR_MASK);
     memoryKK->grow_kokkos(k_dvector,dvector,ndvector,nmax,
                         "atom:dvector");

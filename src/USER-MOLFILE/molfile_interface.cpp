@@ -23,6 +23,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cctype>
+#include <strings.h>    // for strcasecmp()
 
 #if defined(_WIN32)
 #include <windows.h>

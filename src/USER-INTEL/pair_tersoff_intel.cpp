@@ -482,7 +482,7 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
       fc.c_inner_loop[i][0][j].d2 = 1.0;
       fc.c_inner_loop[0][i][j].d2 = 1.0;
       for (int k = 1; k < tp1; k++) {
-        Param * param = &params[elem2param[map[i]][map[j]][map[k]]];
+        Param * param = &params[elem3param[map[i]][map[j]][map[k]]];
         fc.c_cutoff_inner[i][k][j].cutsq = static_cast<flt_t>(param->cutsq);
         fc.c_inner_loop[i][j][k].lam3 = static_cast<flt_t>(param->lam3);
         fc.c_inner_loop[i][j][k].bigr = static_cast<flt_t>(param->bigr);
@@ -504,7 +504,7 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
         fc.c_inner[i][j][k].powermint = static_cast<flt_t>(param->powermint);
 
       }
-      Param * param = &params[elem2param[map[i]][map[j]][map[j]]];
+      Param * param = &params[elem3param[map[i]][map[j]][map[j]]];
       fc.c_cutoff_outer[i][j].cutsq = static_cast<flt_t>(param->cutsq);
       fc.c_first_loop[i][j].bigr = static_cast<flt_t>(param->bigr);
       fc.c_first_loop[i][j].bigd = static_cast<flt_t>(param->bigd);

@@ -41,7 +41,7 @@ public:
     Tokenizer& operator=(Tokenizer&&) = default;
 
     void reset();
-    void skip(int n);
+    void skip(int n=1);
     bool has_next() const;
     bool contains(const std::string &str) const;
     std::string next();
@@ -104,7 +104,7 @@ public:
 
     bool has_next() const;
     bool contains(const std::string &value) const;
-    void skip(int ntokens);
+    void skip(int ntokens=1);
 
     size_t count();
 };

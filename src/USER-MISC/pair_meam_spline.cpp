@@ -32,18 +32,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_meam_spline.h"
-#include <cmath>
 
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -54,10 +54,6 @@ PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   restartinfo = 0;
   one_coeff = 1;
-
-  nelements = 0;
-  elements = nullptr;
-  map = nullptr;
 
   Uprime_values = nullptr;
   nmax = 0;
@@ -80,10 +76,6 @@ PairMEAMSpline::PairMEAMSpline(LAMMPS *lmp) : Pair(lmp)
 
 PairMEAMSpline::~PairMEAMSpline()
 {
-  if (elements)
-    for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
-
   delete[] twoBodyInfo;
   memory->destroy(Uprime_values);
 
@@ -98,8 +90,6 @@ PairMEAMSpline::~PairMEAMSpline()
     delete[] gs;
 
     delete[] zero_atom_energies;
-
-    delete [] map;
   }
 }
 
@@ -387,11 +377,6 @@ void PairMEAMSpline::coeff(int narg, char **arg)
   int i,j,n;
 
   if (narg != 3 + atom->ntypes)
-    error->all(FLERR,"Incorrect args for pair coefficients");
-
-  // insure I,J args are * *
-
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
   // read potential file: also sets the number of elements.

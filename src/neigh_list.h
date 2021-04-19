@@ -44,6 +44,7 @@ class NeighList : protected Pointers {
   int copy;                        // 1 if this list is copied from another list
   int kk2cpu;                      // 1 if this list is copied from Kokkos to CPU
   int copymode;                    // 1 if this is a Kokkos on-device copy
+  int id;                          // copied from neighbor list request
 
   // data structs to store neighbor pairs I,J and associated values
 

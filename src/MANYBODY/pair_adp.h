@@ -67,8 +67,6 @@ class PairADP : public Pair {
 
   // potentials as file data
 
-  int *map;                   // which element each atom type maps to
-
   struct Setfl {
     char **elements;
     int nelements,nrho,nr;

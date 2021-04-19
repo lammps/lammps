@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 int vashishta_gpu_init(const int ntypes, const int inum, const int nall,
                        const int max_nbors, const double cell_size,
                        int &gpu_mode, FILE *screen, int* host_map,
-                       const int nelements, int*** host_elem2param,
+                       const int nelements, int*** host_elem3param,
                        const int nparams, const double* cutsq, const double* r0,
                        const double* gamma, const double* eta,
                        const double* lam1inv, const double* lam4inv,
@@ -217,7 +217,7 @@ void PairVashishtaGPU::init_style()
   int mnf = 5e-2 * neighbor->oneatom;
   int success = vashishta_gpu_init(atom->ntypes+1, atom->nlocal, atom->nlocal+atom->nghost, mnf,
                             cell_size, gpu_mode, screen, map, nelements,
-                            elem2param, nparams, cutsq, r0, gamma, eta, lam1inv,
+                            elem3param, nparams, cutsq, r0, gamma, eta, lam1inv,
                             lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw,
                             c0, costheta, bigb, big2b, bigc);
   memory->destroy(cutsq);

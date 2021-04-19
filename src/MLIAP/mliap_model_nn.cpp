@@ -18,9 +18,9 @@
 #include "mliap_model_nn.h"
 #include "pair_mliap.h"
 #include "mliap_data.h"
-#include "error.h"
 
 #include "comm.h"
+#include "error.h"
 #include "memory.h"
 #include "tokenizer.h"
 

@@ -740,6 +740,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
 
   // If binning on GPU, do this now
   if (_gpu_nbor==1) {
+    mn = _max_nbors;
     const numtyp i_cell_size=static_cast<numtyp>(1.0/_cell_size);
     const int neigh_block=_block_cell_id;
     const int GX=(int)ceil((float)nall/neigh_block);

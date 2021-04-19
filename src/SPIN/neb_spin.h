@@ -20,11 +20,11 @@ CommandStyle(neb/spin,NEBSpin)
 #ifndef LMP_NEB_SPIN_H
 #define LMP_NEB_SPIN_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class NEBSpin : protected Pointers {
+class NEBSpin : public Command {
  public:
   NEBSpin(class LAMMPS *);
   ~NEBSpin();

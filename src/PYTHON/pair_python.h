@@ -50,6 +50,7 @@ class PairPython : public Pair {
   int  * skip_types;
 
   virtual void allocate();
+  void * get_member_function(const char *);
 };
 
 }

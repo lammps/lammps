@@ -393,7 +393,7 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
   jtype = type[j];
 
   r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
-  r2k = rsq/J3[itype][jtype]/J3[itype][jtype];
+  r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
 
   Jex = 4.0*J1_mag[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);

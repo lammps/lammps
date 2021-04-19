@@ -212,8 +212,8 @@ additionally requires cub (https://nvlabs.github.io/cub). Download and
 extract the cub directory to lammps/lib/gpu/ or specify an appropriate
 path in lammps/lib/gpu/Makefile.hip.
 2. In Makefile.hip it is possible to specify the target platform via
-export HIP_PLATFORM=hcc or HIP_PLATFORM=nvcc as well as the target
-architecture (gfx803, gfx900, gfx906 etc.)
+export HIP_PLATFORM=amd (ROCm >= 4.1), HIP_PLATFORM=hcc (ROCm <= 4.0)
+or HIP_PLATFORM=nvcc as well as the target architecture (gfx803, gfx900, gfx906 etc.)
 3. If your MPI implementation does not support `mpicxx --showme` command,
 it is required to specify the corresponding MPI compiler and linker flags
 in lammps/lib/gpu/Makefile.hip and in lammps/src/MAKE/OPTIONS/Makefile.hip.
@@ -278,4 +278,3 @@ and
 Brown, W.M., Masako, Y. Implementing Molecular Dynamics on Hybrid High
 Performance Computers - Three-Body Potentials. Computer Physics Communications.
 2013. 184: p. 2785–2793.
-

@@ -12,7 +12,7 @@ Syntax
 
 * ID, group are documented in :doc:`fix <fix>` command
 * precession/spin = style name of this fix command
-* style = *zeeman* or *anisotropy* or *cubic*
+* style = *zeeman* or *anisotropy* or *cubic* or *stt* or *hexaniso*
 
   .. parsed-literal::
 
@@ -22,12 +22,15 @@ Syntax
        *anisotropy* args = K x y z
          K = intensity of the magnetic anisotropy (in eV)
          x y z = vector direction of the anisotropy
-
-  .. parsed-literal::
-
        *cubic* args = K1 K2c n1x n1y n1x n2x n2y n2z n3x n3y n3z
          K1 and K2c = intensity of the magnetic anisotropy (in eV)
          n1x to n3z = three direction vectors of the cubic anisotropy
+       *stt* args = J x y z
+         H = intensity of the spin-transfer torque field (in Tesla)
+         x y z = vector direction of the field
+       *hexaniso* args = K6 x y z
+         H = intensity of the spin-transfer torque field (in Tesla)
+         x y z = vector direction of the field
 
 Examples
 """"""""

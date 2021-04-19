@@ -45,21 +45,13 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixLangevinSpin::FixLangevinSpin(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_temp(nullptr), random(nullptr)
+  Fix(lmp, narg, arg), random(nullptr)
 {
   if (narg != 6) error->all(FLERR,"Illegal langevin/spin command");
 
   temp = utils::numeric(FLERR,arg[3],false,lmp);
   alpha_t = utils::numeric(FLERR,arg[4],false,lmp);
   seed = utils::inumeric(FLERR,arg[5],false,lmp);
-
-  dynamic_group_allow = 1;
-  scalar_flag = 1;
-  global_freq = 1;
-  extscalar = 1;
-  ecouple_flag = 1;
-  nevery = 1;
-  tallyflag = 1;
 
   if (alpha_t < 0.0) {
     error->all(FLERR,"Illegal langevin/spin command");
@@ -117,10 +109,8 @@ void FixLangevinSpin::init()
 
   double hbar = force->hplanck/MY_2PI;  // eV/(rad.THz)
   double kb = force->boltz;             // eV/K
-  // D = (MY_2PI*alpha_t*gil_factor*kb*temp);
 
   D = (alpha_t*gil_factor*kb*temp);
-  // D = (12.0/MY_2PI)*(MY_2PI*alpha_t*gil_factor*kb*temp);
   D /= (hbar*dts);
   sigma = sqrt(2.0*D);
 }
@@ -163,7 +153,6 @@ void FixLangevinSpin::add_temperature(int i, double spi[3], double fmi[3])
   double rz = sigma*random->gaussian();
   double hbar = force->hplanck/MY_2PI;
 
-  energyS += 0.25*hbar*(rx*spi[0]+ry*spi[1]+rz*spi[2])*update->dt;
   // adding the random field
 
   fmi[0] += rx;
@@ -187,16 +176,3 @@ void FixLangevinSpin::compute_single_langevin(int i, double spi[3], double fmi[3
     if (temp_flag) add_temperature(i,spi,fmi);
   }
 }
-
-/* ---------------------------------------------------------------------- */
-
-double FixLangevinSpin::compute_scalar()
-{
-  if (!tallyflag) return 0.0;
-
-  double energy_all;
-  MPI_Allreduce(&energyS,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
-  return -energy_all;
-}
-
-/* ---------------------------------------------------------------------- */

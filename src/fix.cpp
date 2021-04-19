@@ -21,7 +21,6 @@
 #include "memory.h"
 
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

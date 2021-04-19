@@ -42,7 +42,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-NEB::NEB(LAMMPS *lmp) : Pointers(lmp), all(nullptr), rdist(nullptr) {}
+NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
 
 /* ----------------------------------------------------------------------
    internal NEB constructor, called from TAD
@@ -50,7 +50,7 @@ NEB::NEB(LAMMPS *lmp) : Pointers(lmp), all(nullptr), rdist(nullptr) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
-  : Pointers(lmp), all(nullptr), rdist(nullptr)
+  : Command(lmp), all(nullptr), rdist(nullptr)
 {
   double delx,dely,delz;
 

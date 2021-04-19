@@ -20,13 +20,13 @@ CommandStyle(server,Server)
 #ifndef LMP_SERVER_H
 #define LMP_SERVER_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Server : protected Pointers {
+class Server : public Command {
  public:
-  Server(class LAMMPS *lmp) : Pointers(lmp) {};
+  Server(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 };
 

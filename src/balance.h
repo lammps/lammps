@@ -20,11 +20,11 @@ CommandStyle(balance,Balance)
 #ifndef LMP_BALANCE_H
 #define LMP_BALANCE_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Balance : protected Pointers {
+class Balance : public Command {
  public:
   class RCB *rcb;
   class FixStore *fixstore;       // per-atom weights stored in FixStore

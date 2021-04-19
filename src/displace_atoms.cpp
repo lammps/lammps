@@ -42,7 +42,7 @@ enum{MOVE,RAMP,RANDOM,ROTATE};
 
 /* ---------------------------------------------------------------------- */
 
-DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Pointers(lmp)
+DisplaceAtoms::DisplaceAtoms(LAMMPS *lmp) : Command(lmp)
 {
   mvec = nullptr;
 }

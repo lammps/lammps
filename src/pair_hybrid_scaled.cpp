@@ -396,6 +396,9 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq,
     double *vals = new double[nvars];
     for (i = 0; i < nvars; ++i) {
       j = input->variable->find(scalevars[i].c_str());
+      if (j < 0)
+        error->all(FLERR,fmt::format("Variable '{}' not found when updating "
+                                     "scale factors",scalevars[i]));
       vals[i] = input->variable->compute_equal(j);
     }
     for (i = 0; i < nstyles; ++i) {
@@ -457,8 +460,6 @@ void PairHybridScaled::coeff(int narg, char **arg)
       if (multiple[m]) {
         multflag = 1;
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-        if (!isdigit(arg[3][0]))
-          error->all(FLERR,"Incorrect args for pair coefficients");
         int index = utils::inumeric(FLERR,arg[3],false,lmp);
         if (index == multiple[m]) break;
         else continue;

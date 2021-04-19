@@ -551,11 +551,23 @@ void FixNVESpin::sectoring()
 {
   int sec[3];
   double sublo[3],subhi[3];
-  double* sublotmp = domain->sublo;
-  double* subhitmp = domain->subhi;
-  for (int dim = 0 ; dim < 3 ; dim++) {
-    sublo[dim]=sublotmp[dim];
-    subhi[dim]=subhitmp[dim];
+
+  if (domain->triclinic == 1){
+     double* sublotmp = domain->sublo_lamda;
+     double* subhitmp = domain->subhi_lamda;
+     for (int dim = 0 ; dim < 3 ; dim++) {
+       sublo[dim]=sublotmp[dim]*domain->boxhi[dim];
+       subhi[dim]=subhitmp[dim]*domain->boxhi[dim];
+     }
+  }
+
+  else {
+     double* sublotmp = domain->sublo;
+     double* subhitmp = domain->subhi;
+     for (int dim = 0 ; dim < 3 ; dim++) {
+       sublo[dim]=sublotmp[dim];
+       subhi[dim]=subhitmp[dim];
+     }
   }
 
   const double rsx = subhi[0] - sublo[0];

@@ -20,11 +20,11 @@ CommandStyle(reset_atom_ids,ResetIDs)
 #ifndef LMP_RESET_IDS_H
 #define LMP_RESET_IDS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ResetIDs : protected Pointers {
+class ResetIDs : public Command {
  public:
   struct AtomRvous {
     bigint ibin;

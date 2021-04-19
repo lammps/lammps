@@ -3,6 +3,7 @@
 clear 
 units 		metal
 atom_style 	spin
+# atom_style 	spin/kk
 
 dimension 	3
 boundary 	p p p

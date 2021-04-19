@@ -12,22 +12,24 @@
 ------------------------------------------------------------------------- */
 
 #include "create_box.h"
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "region.h"
 #include "region_prism.h"
-#include "force.h"
-#include "comm.h"
 #include "update.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-CreateBox::CreateBox(LAMMPS *lmp) : Pointers(lmp) {}
+CreateBox::CreateBox(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

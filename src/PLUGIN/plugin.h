@@ -21,12 +21,12 @@ CommandStyle(plugin,Plugin)
 #define LMP_PLUGIN_H
 
 #include "lammpsplugin.h"
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS
 {
 
-  class Plugin : protected Pointers {
+  class Plugin : public Command {
   public:
     Plugin(class LAMMPS *);
     void command(int, char **);

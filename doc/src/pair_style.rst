@@ -99,7 +99,7 @@ accelerated styles exist.
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
-* :doc:`agni <pair_agni>` - machine learned potential mapping atomic environment to forces
+* :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`atm <pair_atm>` - Axilrod-Teller-Muto potential
@@ -280,6 +280,7 @@ accelerated styles exist.
 * :doc:`oxrna2/hbond <pair_oxrna2>` -
 * :doc:`oxrna2/stk <pair_oxrna2>` -
 * :doc:`oxrna2/xstk <pair_oxrna2>` -
+* :doc:`pace <pair_pace>` - Atomic Cluster Expansion (ACE) machine-learning potential
 * :doc:`peri/eps <pair_peri>` - peridynamic EPS potential
 * :doc:`peri/lps <pair_peri>` - peridynamic LPS potential
 * :doc:`peri/pmb <pair_peri>` - peridynamic PMB potential
@@ -297,7 +298,7 @@ accelerated styles exist.
 * :doc:`smd/ulsph <pair_smd_ulsph>` -
 * :doc:`smtbq <pair_smtbq>` -
 * :doc:`mliap <pair_mliap>` - Multiple styles of machine-learning potential
-* :doc:`snap <pair_snap>` - SNAP quantum-accurate potential
+* :doc:`snap <pair_snap>` - SNAP machine-learning potential
 * :doc:`soft <pair_soft>` - Soft (cosine) potential
 * :doc:`sph/heatconduction <pair_sph_heatconduction>` -
 * :doc:`sph/idealgas <pair_sph_idealgas>` -

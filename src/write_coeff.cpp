@@ -22,7 +22,6 @@
 #include "force.h"
 #include "improper.h"
 #include "pair.h"
-#include "universe.h"
 
 #include <cctype>
 #include <cstring>

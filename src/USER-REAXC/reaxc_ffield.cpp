@@ -77,7 +77,7 @@ namespace ReaxFF {
         ++lineno;
 
         // set some defaults
-        auto gp = reax->gp;
+        auto &gp = reax->gp;
 
         gp.vdw_type = 0;
 
@@ -112,11 +112,11 @@ namespace ReaxFF {
         lineno += 4;
 
         // allocate and clear storage for ffield data
-        auto sbp = reax->sbp;
-        auto tbp = reax->tbp;
-        auto thbp = reax->thbp;
-        auto hbp = reax->hbp;
-        auto fbp = reax->fbp;
+        auto &sbp = reax->sbp;
+        auto &tbp = reax->tbp;
+        auto &thbp = reax->thbp;
+        auto &hbp = reax->hbp;
+        auto &fbp = reax->fbp;
 
         memory->create(sbp,n,"reaxff:sbp");
         memory->create(tbp,n,n,"reaxff:tbp");

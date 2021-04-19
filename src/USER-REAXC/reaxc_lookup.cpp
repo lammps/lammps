@@ -148,8 +148,6 @@ namespace ReaxFF {
                           storage *workspace, MPI_Comm world)
   {
     int i, j, r;
-    int num_atom_types;
-    int existing_types[REAX_MAX_ATOM_TYPES], aggregated[REAX_MAX_ATOM_TYPES];
     double dr;
     double *h, *fh, *fvdw, *fele, *fCEvd, *fCEclmb;
     double v0_vdw, v0_ele, vlast_vdw, vlast_ele;
@@ -161,7 +159,9 @@ namespace ReaxFF {
     vlast_vdw = 0;
     vlast_ele = 0;
 
-    num_atom_types = system->reax_param.num_atom_types;
+    const int num_atom_types = system->reax_param.num_atom_types;
+    int *existing_types = new int[num_atom_types];
+    int *aggregated = new int[num_atom_types];
     dr = control->nonb_cut / control->tabulate;
     h = (double*)
       smalloc(system->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:h");
@@ -182,13 +182,12 @@ namespace ReaxFF {
       LR[i] = (LR_lookup_table*)
         scalloc(system->error_ptr, num_atom_types, sizeof(LR_lookup_table), "lookup:LR[i]");
 
-    for (i = 0; i < REAX_MAX_ATOM_TYPES; ++i)
+    for (i = 0; i < num_atom_types; ++i)
       existing_types[i] = 0;
     for (i = 0; i < system->n; ++i)
-      existing_types[ system->my_atoms[i].type ] = 1;
+      existing_types[system->my_atoms[i].type] = 1;
 
-    MPI_Allreduce(existing_types, aggregated, REAX_MAX_ATOM_TYPES,
-                  MPI_INT, MPI_SUM, world);
+    MPI_Allreduce(existing_types, aggregated, num_atom_types, MPI_INT, MPI_SUM, world);
 
     for (i = 0; i < num_atom_types; ++i) {
       if (aggregated[i]) {
@@ -261,6 +260,8 @@ namespace ReaxFF {
     free(fCEvd);
     free(fele);
     free(fCEclmb);
+    delete[] existing_types;
+    delete[] aggregated;
   }
 
   void Deallocate_Lookup_Tables(reax_system *system)

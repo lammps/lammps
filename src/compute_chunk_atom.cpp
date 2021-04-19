@@ -245,7 +245,6 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else maxflag[idim] = COORD;
       if (maxflag[idim] == COORD)
         maxvalue[idim] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      else error->all(FLERR,"Illegal compute chunk/atom command");
       iarg += 4;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");

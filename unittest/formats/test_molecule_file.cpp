@@ -35,7 +35,7 @@ using utils::split_words;
 #define test_name test_info_->name()
 
 
-static void create_molecule_files()
+static void create_molecule_files(const std::string & h2o_filename, const std::string & co2_filename)
 {
     // create molecule files
     const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
@@ -60,18 +60,16 @@ static void create_molecule_files()
                             "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
                             "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
 
-    FILE *fp = fopen("tmp.moltest.h2o.mol", "w");
+    FILE *fp = fopen(h2o_filename.c_str(), "w");
     if (fp) {
         fputs(h2o_file, fp);
         fclose(fp);
     }
-    rename("tmp.moltest.h2o.mol", "moltest.h2o.mol");
-    fp = fopen("tmp.moltest.co2.mol", "w");
+    fp = fopen(co2_filename.c_str(), "w");
     if (fp) {
         fputs(co2_file, fp);
         fclose(fp);
     }
-    rename("tmp.moltest.co2.mol", "moltest.co2.mol");
 }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -79,21 +77,25 @@ bool verbose = false;
 
 class MoleculeFileTest : public LAMMPSTest {
 protected:
+    static void SetUpTestSuite() {
+        create_molecule_files("moltest.h2o.mol", "moltest.co2.mol");
+    }
+
+    static void TearDownTestSuite() {
+        remove("moltest.h2o.mol");
+        remove("moltest.co2.mol");
+    }
+
     void SetUp() override
     {
         testbinary = "MoleculeFileTest";
         LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
-        BEGIN_HIDE_OUTPUT();
-        create_molecule_files();
-        END_HIDE_OUTPUT();
     }
 
     void TearDown() override
     {
         LAMMPSTest::TearDown();
-        remove("moltest.h2o.mol");
-        remove("moltest.co2.mol");
     }
 
     void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)

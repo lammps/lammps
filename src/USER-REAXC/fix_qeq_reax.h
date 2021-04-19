@@ -52,10 +52,11 @@ class FixQEqReax : public Fix {
   void min_setup_pre_force(int);
   void min_pre_force(int);
 
-  int matvecs;
+  virtual double compute_scalar();
 
  protected:
   int nevery,reaxflag;
+  int matvecs;
   int nn, NN, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
@@ -94,13 +95,7 @@ class FixQEqReax : public Fix {
 
   //CG storage
   double *p, *q, *r, *d;
-  int imax;
-
-  //GMRES storage
-  //double *g,*y;
-  //double **v;
-  //double **h;
-  //double *hc, *hs;
+  int imax, maxwarn;
 
   char *pertype_option;  // argument to determine how per-type info is obtained
   virtual void pertype_parameters(char*);
@@ -120,7 +115,6 @@ class FixQEqReax : public Fix {
   virtual void calculate_Q();
 
   virtual int CG(double*,double*);
-  //int GMRES(double*,double*);
   virtual void sparse_matvec(sparse_matrix*,double*,double*);
 
   virtual int pack_forward_comm(int, int *, double *, int, int *);

@@ -280,6 +280,7 @@ void FixQEqReaxOMP::pre_force(int /* vflag */)
   } else {
     matvecs_s = CG(b_s, s);     // CG on s - parallel
     matvecs_t = CG(b_t, t);     // CG on t - parallel
+    matvecs = matvecs_s + matvecs_t;
   } // if (dual_enabled)
 
   calculate_Q();
@@ -461,7 +462,7 @@ int FixQEqReaxOMP::CG( double *b, double *x)
     }
   }
 
-  if (i >= imax && comm->me == 0)
+  if ((i >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR,fmt::format("Fix qeq/reax/omp CG convergence failed "
                                      "after {} iterations at step {}",
                                      i,update->ntimestep));
@@ -768,31 +769,31 @@ int FixQEqReaxOMP::dual_CG( double *b1, double *b2, double *x1, double *x2)
     }
   }
 
-  i++;
-  matvecs_s = matvecs_t = i; // The plus one makes consistent with count from CG()
-  matvecs = i;
+  matvecs_s = matvecs_t = i;
 
-  // If necessary, converge other system
-  if (sqrt(sig_new_s)/b_norm_s > tolerance) {
+  // If only one was converged and there are still iterations left, converge other system
+  if ((matvecs_s < imax) && (sqrt(sig_new_s)/b_norm_s > tolerance)) {
     pack_flag = 2;
     comm->forward_comm_fix(this); // x1 => s
 
-    i+= CG(b1, x1);
-    matvecs_s = i;
-  }
-  else if (sqrt(sig_new_t)/b_norm_t > tolerance) {
+    int saved_imax = imax;
+    imax -= matvecs_s;
+    matvecs_s += CG(b1, x1);
+    imax = saved_imax;
+  } else if ((matvecs_t < imax) && (sqrt(sig_new_t)/b_norm_t > tolerance)) {
     pack_flag = 3;
     comm->forward_comm_fix(this); // x2 => t
-
-    i+= CG(b2, x2);
-    matvecs_t = i;
+    int saved_imax = imax;
+    imax -= matvecs_t;
+    matvecs_t += CG(b2, x2);
+    imax = saved_imax;
   }
 
-  if ( i >= imax && comm->me == 0)
+  if ((i >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR,fmt::format("Fix qeq/reax/omp CG convergence failed "
                                      "after {} iterations at step {}",
                                      i,update->ntimestep));
-  return i;
+  return matvecs_s + matvecs_t;
 }
 
 /* ---------------------------------------------------------------------- */

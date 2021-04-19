@@ -70,9 +70,14 @@ static const char cite_fix_qeq_reax[] =
 /* ---------------------------------------------------------------------- */
 
 FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), pertype_option(nullptr)
+  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr)
 {
-  if (narg<8 || narg>11) error->all(FLERR,"Illegal fix qeq/reax command");
+  scalar_flag = 1;
+  extscalar = 0;
+  imax = 200;
+  maxwarn = 1;
+
+  if ((narg < 8) || (narg > 12)) error->all(FLERR,"Illegal fix qeq/reax command");
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix qeq/reax command");
@@ -82,14 +87,15 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   tolerance = utils::numeric(FLERR,arg[6],false,lmp);
   pertype_option = utils::strdup(arg[7]);
 
-  // dual CG support only available for USER-OMP variant
+  // dual CG support is only available for USER-OMP variant
   // check for compatibility is in Fix::post_constructor()
+
   dual_enabled = 0;
-  imax = 200;
 
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dual") == 0) dual_enabled = 1;
+    else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
         error->all(FLERR,"Illegal fix qeq/reax command");
@@ -115,12 +121,14 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
   b_prm = nullptr;
 
   // CG
+
   p = nullptr;
   q = nullptr;
   r = nullptr;
   d = nullptr;
 
   // H matrix
+
   H.firstnbr = nullptr;
   H.numnbrs = nullptr;
   H.jlist = nullptr;
@@ -128,13 +136,13 @@ FixQEqReax::FixQEqReax(LAMMPS *lmp, int narg, char **arg) :
 
   // dual CG support
   // Update comm sizes for this fix
+
   if (dual_enabled) comm_forward = comm_reverse = 2;
   else comm_forward = comm_reverse = 1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxc = nullptr;
   reaxc = (PairReaxC *) force->pair_match("^reax/c",0);
 
   s_hist = t_hist = nullptr;
@@ -385,6 +393,13 @@ void FixQEqReax::init()
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQEqReax::compute_scalar()
+{
+  return matvecs/2.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -728,7 +743,7 @@ int FixQEqReax::CG(double *b, double *x)
     vector_sum(d, 1., p, beta, d, nn);
   }
 
-  if (i >= imax && comm->me == 0)
+  if ((i >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR,fmt::format("Fix qeq/reax CG convergence failed "
                                      "after {} iterations at step {}",
                                      i,update->ntimestep));

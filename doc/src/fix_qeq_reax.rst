@@ -24,10 +24,10 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *dual* or *maxiter*
+     keyword = *dual* or *maxiter* or *nowarn*
        *dual* = process S and T matrix in parallel (only for qeq/reax/omp)
        *maxiter* N = limit the number of iterations to *N*
-
+       *nowarn* = do not print a warning message if the maximum number of iterations was reached
 
 Examples
 """"""""
@@ -40,13 +40,15 @@ Examples
 Description
 """""""""""
 
-Perform the charge equilibration (QEq) method as described in :ref:`(Rappe and Goddard) <Rappe2>` and formulated in :ref:`(Nakano) <Nakano2>`.  It is
-typically used in conjunction with the ReaxFF force field model as
-implemented in the :doc:`pair_style reax/c <pair_reaxc>` command, but
-it can be used with any potential in LAMMPS, so long as it defines and
-uses charges on each atom.  The :doc:`fix qeq/comb <fix_qeq_comb>`
-command should be used to perform charge equilibration with the :doc:`COMB potential <pair_comb>`.  For more technical details about the
-charge equilibration performed by fix qeq/reax, see the
+Perform the charge equilibration (QEq) method as described in
+:ref:`(Rappe and Goddard) <Rappe2>` and formulated in :ref:`(Nakano)
+<Nakano2>`.  It is typically used in conjunction with the ReaxFF force
+field model as implemented in the :doc:`pair_style reax/c <pair_reaxc>`
+command, but it can be used with any potential in LAMMPS, so long as it
+defines and uses charges on each atom.  The :doc:`fix qeq/comb
+<fix_qeq_comb>` command should be used to perform charge equilibration
+with the :doc:`COMB potential <pair_comb>`.  For more technical details
+about the charge equilibration performed by fix qeq/reax, see the
 :ref:`(Aktulga) <qeq-Aktulga>` paper.
 
 The QEq method minimizes the electrostatic energy of the system by
@@ -79,12 +81,21 @@ the *qeq/reax/omp* style. Otherwise they are processed separately.
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.
 
+The optional *nowarn* keyword silences the warning message printed
+when the maximum number of iterations was reached.  This can be
+useful for comparing serial and parallel results where having the
+same fixed number of QEq iterations is desired, which can be achieved
+by using a very small tolerance and setting *maxiter* to the desired
+number of iterations.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.  No global scalar or vector or per-atom
-quantities are stored by this fix for access by various :doc:`output commands <Howto_output>`.  No parameter of this fix can be used
-with the *start/stop* keywords of the :doc:`run <run>` command.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.  This fix computes a global scalar (the number of
+iterations) for access by various :doc:`output commands <Howto_output>`.
+No parameter of this fix can be used with the *start/stop* keywords of
+the :doc:`run <run>` command.
 
 This fix is invoked during :doc:`energy minimization <minimize>`.
 
@@ -97,12 +108,13 @@ This fix is invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-REAXC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+Fix *qeq/reax* is part of the USER-REAXC package.  It is only enabled if
+LAMMPS was built with this package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
-This fix does not correctly handle interactions
-involving multiple periodic images of the same atom. Hence, it should not
-be used for periodic cell dimensions less than 10 angstroms.
+This fix does not correctly handle interactions involving multiple
+periodic images of the same atom. Hence, it should not be used for
+periodic cell dimensions less than 10 angstroms.
 
 Related commands
 """"""""""""""""

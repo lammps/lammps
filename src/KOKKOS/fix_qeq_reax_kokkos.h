@@ -224,8 +224,8 @@ class FixQEqReaxKokkos : public FixQEqReax, public KokkosBase {
   void init_hist();
   void allocate_matrix();
   void allocate_array();
-  void cg_solve1();
-  void cg_solve2();
+  int cg_solve1();
+  int cg_solve2();
   void calculate_q();
 
   int neighflag, pack_flag;

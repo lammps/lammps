@@ -281,11 +281,11 @@ void FixQEqReaxKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // 1st cg solve over b_s, s
 
-  cg_solve1();
+  matvecs = cg_solve1();
 
   // 2nd cg solve over b_t, t
 
-  cg_solve2();
+  matvecs += cg_solve2();
 
   // calculate_Q();
 
@@ -721,7 +721,7 @@ void FixQEqReaxKokkos<DeviceType>::matvec_item(int ii) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxKokkos<DeviceType>::cg_solve1()
+int FixQEqReaxKokkos<DeviceType>::cg_solve1()
 // b = b_s, x = s;
 {
   const int inum = list->inum;
@@ -838,17 +838,18 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     Kokkos::parallel_for(inum,vecsum2_functor);
   }
 
-  if (loop >= imax && comm->me == 0)
+  if ((loop >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR,fmt::format("Fix qeq/reax/kk cg_solve1 convergence "
                                      "failed after {} iterations at step {}: "
                                      "{}", loop, update->ntimestep,
                                      sqrt(sig_new)/b_norm));
+  return loop;
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxKokkos<DeviceType>::cg_solve2()
+int FixQEqReaxKokkos<DeviceType>::cg_solve2()
 // b = b_t, x = t;
 {
   const int inum = list->inum;
@@ -967,11 +968,12 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
     Kokkos::parallel_for(inum,vecsum2_functor);
   }
 
-  if (loop >= imax && comm->me == 0)
+  if ((loop >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR,fmt::format("Fix qeq/reax/kk cg_solve2 convergence "
                                      "failed after {} iterations at step {}: "
                                      "{}", loop, update->ntimestep,
                                      sqrt(sig_new)/b_norm));
+  return loop;
 }
 
 /* ---------------------------------------------------------------------- */

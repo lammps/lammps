@@ -547,6 +547,15 @@ void PairHybrid::init_style()
     if (used == 0) error->all(FLERR,"Pair hybrid sub-style is not used");
   }
 
+  // The GPU library uses global data for each pair style, so the
+  // same style must not be used multiple times
+
+  for (istyle = 0; istyle < nstyles; istyle++) {
+    bool is_gpu = (((PairHybrid *)styles[m])->suffix_flag & Suffix::GPU);
+    if (multiple[istyle] && is_gpu)
+      error->all(FLERR,"GPU package styles must not be used multiple times");
+  }
+
   // check if special_lj/special_coul overrides are compatible
 
   for (istyle = 0; istyle < nstyles; istyle++) {

@@ -77,27 +77,28 @@ namespace ReaxFF {
         ++lineno;
 
         // set some defaults
+        auto gp = reax->gp;
 
-        reax->gp.vdw_type = 0;
+        gp.vdw_type = 0;
 
         // get number of global parameters
 
         auto values = reader.next_values(0);
         n = values.next_int();
-        reax->gp.n_global = n;
+        gp.n_global = n;
         ++lineno;
 
         if (n < 1)
           THROW_ERROR("Invalid number of global parameters");
 
-        memory->create(reax->gp.l,n,"reaxff:gp.l");
+        memory->create(gp.l,n,"reaxff:gp.l");
 
         // see reaxff_types.h for mapping between l[i] and the lambdas used in ff
 
         for (i = 0; i < n; ++i) {
           values = reader.next_values(0);
           ++lineno;
-          reax->gp.l[i] = values.next_double();
+          gp.l[i] = values.next_double();
         }
 
         // next line is number of atom types followed by 3 lines of comments
@@ -111,18 +112,23 @@ namespace ReaxFF {
         lineno += 4;
 
         // allocate and clear storage for ffield data
+        auto sbp = reax->sbp;
+        auto tbp = reax->tbp;
+        auto thbp = reax->thbp;
+        auto hbp = reax->hbp;
+        auto fbp = reax->fbp;
 
-        memory->create(reax->sbp,n,"reaxff:sbp");
-        memory->create(reax->tbp,n,n,"reaxff:tbp");
-        memory->create(reax->thbp,n,n,n,"reaxff:thbp");
-        memory->create(reax->hbp,n,n,n,"reaxff:hbp");
-        memory->create(reax->fbp,n,n,n,n,"reaxff:fbp");
+        memory->create(sbp,n,"reaxff:sbp");
+        memory->create(tbp,n,n,"reaxff:tbp");
+        memory->create(thbp,n,n,n,"reaxff:thbp");
+        memory->create(hbp,n,n,n,"reaxff:hbp");
+        memory->create(fbp,n,n,n,n,"reaxff:fbp");
         memory->create(tor_flag,n,n,n,n,"reaxff:tor_flag");
-        memset(&(reax->sbp[0]),0,sizeof(single_body_parameters)*n);
-        memset(&(reax->tbp[0][0]),0,sizeof(two_body_parameters)*n*n);
-        memset(&(reax->thbp[0][0][0]),0,sizeof(three_body_header)*n*n*n);
-        memset(&(reax->hbp[0][0][0]),0,sizeof(hbond_parameters)*n*n*n);
-        memset(&(reax->fbp[0][0][0][0]),0,sizeof(four_body_header)*n*n*n*n);
+        memset(&(sbp[0]),0,sizeof(single_body_parameters)*n);
+        memset(&(tbp[0][0]),0,sizeof(two_body_parameters)*n*n);
+        memset(&(thbp[0][0][0]),0,sizeof(three_body_header)*n*n*n);
+        memset(&(hbp[0][0][0]),0,sizeof(hbond_parameters)*n*n*n);
+        memset(&(fbp[0][0][0][0]),0,sizeof(four_body_header)*n*n*n*n);
         memset(&tor_flag[0][0][0][0],0,sizeof(char)*n*n*n*n);
 
         // atomic parameters
@@ -133,6 +139,7 @@ namespace ReaxFF {
 
         const int lgflag = control->lgflag;
         const int ntypes = n;
+
         for (i = 0; i < ntypes; ++i) {
 
           // line one
@@ -146,20 +153,20 @@ namespace ReaxFF {
             THROW_ERROR("Invalid force field file format");
 
           auto element = values.next_string();
-          int len = MIN(element.size(),3);
+          int len = MIN(element.size(),3); // truncate stored element symbol if necessary
           for (j = 0; j < len; ++j)
-            reax->sbp[i].name[j] = toupper(element[j]);
-          reax->sbp[i].name[j] = '\0';
+            sbp[i].name[j] = toupper(element[j]);
+          sbp[i].name[len] = '\0';
 
-          reax->sbp[i].r_s        = values.next_double();
-          reax->sbp[i].valency    = values.next_double();
-          reax->sbp[i].mass       = values.next_double();
-          reax->sbp[i].r_vdw      = values.next_double();
-          reax->sbp[i].epsilon    = values.next_double();
-          reax->sbp[i].gamma      = values.next_double();
-          reax->sbp[i].r_pi       = values.next_double();
-          reax->sbp[i].valency_e  = values.next_double();
-          reax->sbp[i].nlp_opt = 0.5 * (reax->sbp[i].valency_e-reax->sbp[i].valency);
+          sbp[i].r_s        = values.next_double();
+          sbp[i].valency    = values.next_double();
+          sbp[i].mass       = values.next_double();
+          sbp[i].r_vdw      = values.next_double();
+          sbp[i].epsilon    = values.next_double();
+          sbp[i].gamma      = values.next_double();
+          sbp[i].r_pi       = values.next_double();
+          sbp[i].valency_e  = values.next_double();
+          sbp[i].nlp_opt = 0.5 * (sbp[i].valency_e-sbp[i].valency);
 
           // line two
 
@@ -168,14 +175,14 @@ namespace ReaxFF {
           if (values.count() < 8)
             THROW_ERROR("Invalid force field file format");
 
-          reax->sbp[i].alpha      = values.next_double();
-          reax->sbp[i].gamma_w    = values.next_double();
-          reax->sbp[i].valency_boc= values.next_double();
-          reax->sbp[i].p_ovun5    = values.next_double();
+          sbp[i].alpha      = values.next_double();
+          sbp[i].gamma_w    = values.next_double();
+          sbp[i].valency_boc= values.next_double();
+          sbp[i].p_ovun5    = values.next_double();
           values.skip();
-          reax->sbp[i].chi        = values.next_double();
-          reax->sbp[i].eta        = 2.0*values.next_double();
-          reax->sbp[i].p_hbond = (int) values.next_double();
+          sbp[i].chi        = values.next_double();
+          sbp[i].eta        = 2.0*values.next_double();
+          sbp[i].p_hbond = (int) values.next_double();
 
           // line three
 
@@ -184,12 +191,12 @@ namespace ReaxFF {
           if (values.count() < 8)
             THROW_ERROR("Invalid force field file format");
 
-          reax->sbp[i].r_pi_pi    = values.next_double();
-          reax->sbp[i].p_lp2      = values.next_double();
+          sbp[i].r_pi_pi    = values.next_double();
+          sbp[i].p_lp2      = values.next_double();
           values.skip();
-          reax->sbp[i].b_o_131    = values.next_double();
-          reax->sbp[i].b_o_132    = values.next_double();
-          reax->sbp[i].b_o_133    = values.next_double();
+          sbp[i].b_o_131    = values.next_double();
+          sbp[i].b_o_132    = values.next_double();
+          sbp[i].b_o_133    = values.next_double();
 
           // line four
 
@@ -198,14 +205,14 @@ namespace ReaxFF {
           if (values.count() < 8)
             THROW_ERROR("Invalid force field file format");
 
-          reax->sbp[i].p_ovun2    = values.next_double();
-          reax->sbp[i].p_val3     = values.next_double();
+          sbp[i].p_ovun2    = values.next_double();
+          sbp[i].p_val3     = values.next_double();
           values.skip();
-          reax->sbp[i].valency_val= values.next_double();
-          reax->sbp[i].p_val5     = values.next_double();
-          reax->sbp[i].rcore2     = values.next_double();
-          reax->sbp[i].ecore2     = values.next_double();
-          reax->sbp[i].acore2     = values.next_double();
+          sbp[i].valency_val= values.next_double();
+          sbp[i].p_val5     = values.next_double();
+          sbp[i].rcore2     = values.next_double();
+          sbp[i].ecore2     = values.next_double();
+          sbp[i].acore2     = values.next_double();
 
           // read line five only when lgflag != 0
 
@@ -214,72 +221,72 @@ namespace ReaxFF {
             ++lineno;
             if (values.count() < 2)
               THROW_ERROR("Invalid force field file format");
-            reax->sbp[i].lgcij    = values.next_double();
-            reax->sbp[i].lgre     = values.next_double();
-          } else reax->sbp[i].lgcij = reax->sbp[i].lgre = 0.0;
+            sbp[i].lgcij    = values.next_double();
+            sbp[i].lgre     = values.next_double();
+          } else sbp[i].lgcij = sbp[i].lgre = 0.0;
 
           // van der Waals settings check:
 
           // Inner-wall?
-          if ((reax->sbp[i].rcore2 > 0.01) && (reax->sbp[i].acore2 > 0.01)) {
+          if ((sbp[i].rcore2 > 0.01) && (sbp[i].acore2 > 0.01)) {
             // Shielding van der Waals?
-            if (reax->sbp[i].gamma_w > 0.5) {
-              if (reax->gp.vdw_type != 0 && reax->gp.vdw_type != 3) {
+            if (sbp[i].gamma_w > 0.5) {
+              if (gp.vdw_type != 0 && gp.vdw_type != 3) {
                 const auto errmsg
                   = fmt::format("Van der Waals parameters for element {} "
                                 "indicate inner wall+shielding, but earlier "
                                 "atoms indicate a different van der Waals "
                                 "method. This may cause division-by-zero "
                                 "errors. Keeping van der Waals setting for "
-                                "earlier atoms.",reax->sbp[i].name);
+                                "earlier atoms.",sbp[i].name);
                 error->warning(FLERR,errmsg);
               } else {
-                reax->gp.vdw_type = 3;
+                gp.vdw_type = 3;
               }
             } else {  // No shielding van der Waals parameters present
-              if ((reax->gp.vdw_type != 0) && (reax->gp.vdw_type != 2)) {
+              if ((gp.vdw_type != 0) && (gp.vdw_type != 2)) {
                 const auto errmsg
                   = fmt::format("Van der Waals parameters for element {} "
                                 "indicate inner wall withou shielding, but "
                                 "earlier atoms indicate a different van der "
                                 "Waals-method. This may cause division-by-"
                                 "zero errors. Keeping van der Waals setting "
-                                "for earlier atoms.", reax->sbp[i].name);
+                                "for earlier atoms.", sbp[i].name);
                 error->warning(FLERR,errmsg);
               } else {
-                reax->gp.vdw_type = 2;
+                gp.vdw_type = 2;
               }
             }
           } else { // No Inner wall parameters present
-            if (reax->sbp[i].gamma_w > 0.5) { // Shielding vdWaals
-              if ((reax->gp.vdw_type != 0) && (reax->gp.vdw_type != 1)) {
+            if (sbp[i].gamma_w > 0.5) { // Shielding vdWaals
+              if ((gp.vdw_type != 0) && (gp.vdw_type != 1)) {
                 const auto errmsg
                   = fmt::format("Van der Waals parameters for element {} "
                                 "indicate shielding without inner wall, but "
                                 "earlier elements indicate a different van der "
                                 "Waals method. This may cause division-by-zero "
                                 "errors. Keeping van der Waals setting for "
-                                "earlier atoms.", reax->sbp[i].name);
+                                "earlier atoms.", sbp[i].name);
                 error->warning(FLERR,errmsg);
               } else {
-                reax->gp.vdw_type = 1;
+                gp.vdw_type = 1;
               }
             } else {
               error->one(FLERR,fmt::format("Inconsistent van der Waals "
                                            "parameters: No shielding or inner "
                                            "wall set for element {}",
-                                           reax->sbp[i].name));
+                                           sbp[i].name));
             }
           }
         }
 
         /* Equate vval3 to valf for first-row elements (25/10/2004) */
         for (i = 0; i < ntypes; i++) {
-          if ((reax->sbp[i].mass < 21) &&
-              (reax->sbp[i].valency_val != reax->sbp[i].valency_boc)) {
+          if ((sbp[i].mass < 21) &&
+              (sbp[i].valency_val != sbp[i].valency_boc)) {
             error->warning(FLERR,fmt::format("Changed valency_val to valency"
-                                             "_boc for {}", reax->sbp[i].name));
-            reax->sbp[i].valency_val = reax->sbp[i].valency_boc;
+                                             "_boc for {}", sbp[i].name));
+            sbp[i].valency_val = sbp[i].valency_boc;
           }
         }
 
@@ -306,14 +313,14 @@ namespace ReaxFF {
             THROW_ERROR("Inconsistent force field file");
 
           if ((j < ntypes) && (k < ntypes)) {
-            reax->tbp[j][k].De_s    = reax->tbp[k][j].De_s    = values.next_double();
-            reax->tbp[j][k].De_p    = reax->tbp[k][j].De_p    = values.next_double();
-            reax->tbp[j][k].De_pp   = reax->tbp[k][j].De_pp   = values.next_double();
-            reax->tbp[j][k].p_be1   = reax->tbp[k][j].p_be1   = values.next_double();
-            reax->tbp[j][k].p_bo5   = reax->tbp[k][j].p_bo5   = values.next_double();
-            reax->tbp[j][k].v13cor  = reax->tbp[k][j].v13cor  = values.next_double();
-            reax->tbp[j][k].p_bo6   = reax->tbp[k][j].p_bo6   = values.next_double();
-            reax->tbp[j][k].p_ovun1 = reax->tbp[k][j].p_ovun1 = values.next_double();
+            tbp[j][k].De_s    = tbp[k][j].De_s    = values.next_double();
+            tbp[j][k].De_p    = tbp[k][j].De_p    = values.next_double();
+            tbp[j][k].De_pp   = tbp[k][j].De_pp   = values.next_double();
+            tbp[j][k].p_be1   = tbp[k][j].p_be1   = values.next_double();
+            tbp[j][k].p_bo5   = tbp[k][j].p_bo5   = values.next_double();
+            tbp[j][k].v13cor  = tbp[k][j].v13cor  = values.next_double();
+            tbp[j][k].p_bo6   = tbp[k][j].p_bo6   = values.next_double();
+            tbp[j][k].p_ovun1 = tbp[k][j].p_ovun1 = values.next_double();
           }
 
           // second line
@@ -324,69 +331,40 @@ namespace ReaxFF {
             THROW_ERROR("Invalid force field file format");
 
           if ((j < ntypes) && (k < ntypes)) {
-            reax->tbp[j][k].p_be2 = reax->tbp[k][j].p_be2 = values.next_double();
-            reax->tbp[j][k].p_bo3 = reax->tbp[k][j].p_bo3 = values.next_double();
-            reax->tbp[j][k].p_bo4 = reax->tbp[k][j].p_bo4 = values.next_double();
+            tbp[j][k].p_be2 = tbp[k][j].p_be2 = values.next_double();
+            tbp[j][k].p_bo3 = tbp[k][j].p_bo3 = values.next_double();
+            tbp[j][k].p_bo4 = tbp[k][j].p_bo4 = values.next_double();
             values.skip();
-            reax->tbp[j][k].p_bo1 = reax->tbp[k][j].p_bo1 = values.next_double();
-            reax->tbp[j][k].p_bo2 = reax->tbp[k][j].p_bo2 = values.next_double();
-            reax->tbp[j][k].ovc   = reax->tbp[k][j].ovc   = values.next_double();
+            tbp[j][k].p_bo1 = tbp[k][j].p_bo1 = values.next_double();
+            tbp[j][k].p_bo2 = tbp[k][j].p_bo2 = values.next_double();
+            tbp[j][k].ovc   = tbp[k][j].ovc   = values.next_double();
           }
         }
 
         for (i=0; i < ntypes; ++i) {
           for (j=i; j < ntypes; ++j) {
-            reax->tbp[i][j].r_s = reax->tbp[j][i].r_s =
-              0.5*(reax->sbp[j].r_s + reax->sbp[i].r_s);
-
-            reax->tbp[i][j].r_p = reax->tbp[j][i].r_p =
-              0.5*(reax->sbp[j].r_pi + reax->sbp[i].r_pi);
-
-            reax->tbp[i][j].r_pp = reax->tbp[j][i].r_pp =
-              0.5*(reax->sbp[j].r_pi_pi + reax->sbp[i].r_pi_pi);
-
-            reax->tbp[i][j].p_boc3 = reax->tbp[j][i].p_boc3 =
-              sqrt(reax->sbp[j].b_o_132 * reax->sbp[i].b_o_132);
-
-            reax->tbp[i][j].p_boc4 = reax->tbp[j][i].p_boc4 =
-              sqrt(reax->sbp[j].b_o_131 * reax->sbp[i].b_o_131);
-
-            reax->tbp[i][j].p_boc5 = reax->tbp[j][i].p_boc5 =
-              sqrt(reax->sbp[j].b_o_133 * reax->sbp[i].b_o_133);
-
-            reax->tbp[i][j].D = reax->tbp[j][i].D =
-              sqrt(reax->sbp[j].epsilon * reax->sbp[i].epsilon);
-
-            reax->tbp[i][j].alpha = reax->tbp[j][i].alpha =
-              sqrt(reax->sbp[j].alpha * reax->sbp[i].alpha);
-
-            reax->tbp[i][j].r_vdW = reax->tbp[j][i].r_vdW =
-              2.0*sqrt(reax->sbp[j].r_vdw * reax->sbp[i].r_vdw);
-
-            reax->tbp[i][j].gamma_w = reax->tbp[j][i].gamma_w =
-              sqrt(reax->sbp[j].gamma_w * reax->sbp[i].gamma_w);
-
-            reax->tbp[i][j].gamma = reax->tbp[j][i].gamma =
-              pow(reax->sbp[j].gamma * reax->sbp[i].gamma,-1.5);
+            tbp[i][j].r_s     = tbp[j][i].r_s     = 0.5*(sbp[j].r_s + sbp[i].r_s);
+            tbp[i][j].r_p     = tbp[j][i].r_p     = 0.5*(sbp[j].r_pi + sbp[i].r_pi);
+            tbp[i][j].r_pp    = tbp[j][i].r_pp    = 0.5*(sbp[j].r_pi_pi + sbp[i].r_pi_pi);
+            tbp[i][j].p_boc3  = tbp[j][i].p_boc3  = sqrt(sbp[j].b_o_132 * sbp[i].b_o_132);
+            tbp[i][j].p_boc4  = tbp[j][i].p_boc4  = sqrt(sbp[j].b_o_131 * sbp[i].b_o_131);
+            tbp[i][j].p_boc5  = tbp[j][i].p_boc5  = sqrt(sbp[j].b_o_133 * sbp[i].b_o_133);
+            tbp[i][j].D       = tbp[j][i].D       = sqrt(sbp[j].epsilon * sbp[i].epsilon);
+            tbp[i][j].alpha   = tbp[j][i].alpha   = sqrt(sbp[j].alpha * sbp[i].alpha);
+            tbp[i][j].r_vdW   = tbp[j][i].r_vdW   = 2.0*sqrt(sbp[j].r_vdw * sbp[i].r_vdw);
+            tbp[i][j].gamma_w = tbp[j][i].gamma_w = sqrt(sbp[j].gamma_w * sbp[i].gamma_w);
+            tbp[i][j].gamma   = tbp[j][i].gamma   = pow(sbp[j].gamma * sbp[i].gamma,-1.5);
 
             // additions for additional vdWaals interaction types - inner core
 
-            reax->tbp[i][j].rcore = reax->tbp[j][i].rcore =
-              sqrt(reax->sbp[i].rcore2 * reax->sbp[j].rcore2);
-
-            reax->tbp[i][j].ecore = reax->tbp[j][i].ecore =
-              sqrt(reax->sbp[i].ecore2 * reax->sbp[j].ecore2);
-
-            reax->tbp[i][j].acore = reax->tbp[j][i].acore =
-              sqrt(reax->sbp[i].acore2 * reax->sbp[j].acore2);
+            tbp[i][j].rcore   = tbp[j][i].rcore   = sqrt(sbp[i].rcore2 * sbp[j].rcore2);
+            tbp[i][j].ecore   = tbp[j][i].ecore   = sqrt(sbp[i].ecore2 * sbp[j].ecore2);
+            tbp[i][j].acore   = tbp[j][i].acore   = sqrt(sbp[i].acore2 * sbp[j].acore2);
 
             // additions for additional vdWalls interaction types lg correction
 
-            reax->tbp[i][j].lgcij = reax->tbp[j][i].lgcij =
-              sqrt(reax->sbp[i].lgcij * reax->sbp[j].lgcij);
-
-            reax->tbp[i][j].lgre = reax->tbp[j][i].lgre
-              = 2.0 * reax->gp.l[35] * sqrt(reax->sbp[i].lgre*reax->sbp[j].lgre);
+            tbp[i][j].lgcij   = tbp[j][i].lgcij   = sqrt(sbp[i].lgcij * sbp[j].lgcij);
+            tbp[i][j].lgre    = tbp[j][i].lgre    = 2.0*gp.l[35]*sqrt(sbp[i].lgre*sbp[j].lgre);
           }
         }
 
@@ -411,26 +389,26 @@ namespace ReaxFF {
 
           if ((j < ntypes) && (k < ntypes)) {
             val = values.next_double();
-            if (val > 0.0) reax->tbp[j][k].D = reax->tbp[k][j].D = val;
+            if (val > 0.0) tbp[j][k].D = tbp[k][j].D = val;
 
             val = values.next_double();
-            if (val > 0.0) reax->tbp[j][k].r_vdW = reax->tbp[k][j].r_vdW = 2*val;
+            if (val > 0.0) tbp[j][k].r_vdW = tbp[k][j].r_vdW = 2*val;
 
             val = values.next_double();
-            if (val > 0.0) reax->tbp[j][k].alpha = reax->tbp[k][j].alpha = val;
+            if (val > 0.0) tbp[j][k].alpha = tbp[k][j].alpha = val;
 
             val = values.next_double();
-            if (val > 0.0) reax->tbp[j][k].r_s = reax->tbp[k][j].r_s = val;
+            if (val > 0.0) tbp[j][k].r_s = tbp[k][j].r_s = val;
 
             val = values.next_double();
-            if (val > 0.0) reax->tbp[j][k].r_p = reax->tbp[k][j].r_p = val;
+            if (val > 0.0) tbp[j][k].r_p = tbp[k][j].r_p = val;
 
             val = values.next_double();
-            if (val > 0.0) reax->tbp[j][k].r_pp = reax->tbp[k][j].r_pp = val;
+            if (val > 0.0) tbp[j][k].r_pp = tbp[k][j].r_pp = val;
 
             if (lgflag) {
               val = values.next_double();
-              if (val >= 0.0) reax->tbp[j][k].lgcij = reax->tbp[k][j].lgcij = val;
+              if (val >= 0.0) tbp[j][k].lgcij = tbp[k][j].lgcij = val;
             }
           }
         }
@@ -457,37 +435,37 @@ namespace ReaxFF {
 
           if ((j < ntypes) && (k < ntypes) && (l < ntypes)) {
 
-            cnt = reax->thbp[j][k][l].cnt;
-            reax->thbp[j][k][l].cnt++;
-            reax->thbp[l][k][j].cnt++;
+            cnt = thbp[j][k][l].cnt;
+            thbp[j][k][l].cnt++;
+            thbp[l][k][j].cnt++;
 
             val = values.next_double();
-            reax->thbp[j][k][l].prm[cnt].theta_00 = val;
-            reax->thbp[l][k][j].prm[cnt].theta_00 = val;
+            thbp[j][k][l].prm[cnt].theta_00 = val;
+            thbp[l][k][j].prm[cnt].theta_00 = val;
 
             val = values.next_double();
-            reax->thbp[j][k][l].prm[cnt].p_val1 = val;
-            reax->thbp[l][k][j].prm[cnt].p_val1 = val;
+            thbp[j][k][l].prm[cnt].p_val1 = val;
+            thbp[l][k][j].prm[cnt].p_val1 = val;
 
             val = values.next_double();
-            reax->thbp[j][k][l].prm[cnt].p_val2 = val;
-            reax->thbp[l][k][j].prm[cnt].p_val2 = val;
+            thbp[j][k][l].prm[cnt].p_val2 = val;
+            thbp[l][k][j].prm[cnt].p_val2 = val;
 
             val = values.next_double();
-            reax->thbp[j][k][l].prm[cnt].p_coa1 = val;
-            reax->thbp[l][k][j].prm[cnt].p_coa1 = val;
+            thbp[j][k][l].prm[cnt].p_coa1 = val;
+            thbp[l][k][j].prm[cnt].p_coa1 = val;
 
             val = values.next_double();
-            reax->thbp[j][k][l].prm[cnt].p_val7 = val;
-            reax->thbp[l][k][j].prm[cnt].p_val7 = val;
+            thbp[j][k][l].prm[cnt].p_val7 = val;
+            thbp[l][k][j].prm[cnt].p_val7 = val;
 
             val = values.next_double();
-            reax->thbp[j][k][l].prm[cnt].p_pen1 = val;
-            reax->thbp[l][k][j].prm[cnt].p_pen1 = val;
+            thbp[j][k][l].prm[cnt].p_pen1 = val;
+            thbp[l][k][j].prm[cnt].p_pen1 = val;
 
             val = values.next_double();
-            reax->thbp[j][k][l].prm[cnt].p_val4 = val;
-            reax->thbp[l][k][j].prm[cnt].p_val4 = val;
+            thbp[j][k][l].prm[cnt].p_val4 = val;
+            thbp[l][k][j].prm[cnt].p_val4 = val;
           }
         }
 
@@ -511,65 +489,48 @@ namespace ReaxFF {
           if ((j < -1) || (k < 0) || (l < 0) || (m < -1))
             THROW_ERROR("Inconsistent force field file");
 
+          const double val1 = values.next_double();
+          const double val2 = values.next_double();
+          const double val3 = values.next_double();
+          const double val4 = values.next_double();
+          const double val5 = values.next_double();
+
           if ((j >= 0) && (m >= 0)) { // this means the entry is not in compact form
 
             if ((j < ntypes) && (k < ntypes) && (l < ntypes) && (m < ntypes)) {
 
-              tor_flag[j][k][l][m] = 1;
-              tor_flag[m][l][k][j] = 1;
+              tor_flag[j][k][l][m] = tor_flag[m][l][k][j] = 1;
+              fbp[j][k][l][m].cnt  = fbp[m][l][k][j].cnt  = 1;
 
-              reax->fbp[j][k][l][m].cnt = 1;
-              reax->fbp[m][l][k][j].cnt = 1;
-
-              val = values.next_double();
-              reax->fbp[j][k][l][m].prm[0].V1 = val;
-              reax->fbp[m][l][k][j].prm[0].V1 = val;
-
-              val = values.next_double();
-              reax->fbp[j][k][l][m].prm[0].V2 = val;
-              reax->fbp[m][l][k][j].prm[0].V2 = val;
-
-              val = values.next_double();
-              reax->fbp[j][k][l][m].prm[0].V3 = val;
-              reax->fbp[m][l][k][j].prm[0].V3 = val;
-
-              val = values.next_double();
-              reax->fbp[j][k][l][m].prm[0].p_tor1 = val;
-              reax->fbp[m][l][k][j].prm[0].p_tor1 = val;
-
-              val = values.next_double();
-              reax->fbp[j][k][l][m].prm[0].p_cot1 = val;
-              reax->fbp[m][l][k][j].prm[0].p_cot1 = val;
+              fbp[j][k][l][m].prm[0].V1     = fbp[m][l][k][j].prm[0].V1     = val1;
+              fbp[j][k][l][m].prm[0].V2     = fbp[m][l][k][j].prm[0].V2     = val2;
+              fbp[j][k][l][m].prm[0].V3     = fbp[m][l][k][j].prm[0].V3     = val3;
+              fbp[j][k][l][m].prm[0].p_tor1 = fbp[m][l][k][j].prm[0].p_tor1 = val4;
+              fbp[j][k][l][m].prm[0].p_cot1 = fbp[m][l][k][j].prm[0].p_cot1 = val5;
             }
 
           } else { /* This means the entry is of the form 0-X-Y-0 */
 
             if ((k < ntypes) && (l < ntypes)) {
-              const double val1 = values.next_double();
-              const double val2 = values.next_double();
-              const double val3 = values.next_double();
-              const double val4 = values.next_double();
-              const double val5 = values.next_double();
-
               for (int p = 0; p < ntypes; ++p) {
                 for (int o = 0; o < ntypes; ++o) {
-                  reax->fbp[p][k][l][o].cnt = 1;
-                  reax->fbp[o][l][k][p].cnt = 1;
 
                   if (tor_flag[p][k][l][o] == 0) {
-                    reax->fbp[p][k][l][o].prm[0].V1 = val1;
-                    reax->fbp[p][k][l][o].prm[0].V2 = val2;
-                    reax->fbp[p][k][l][o].prm[0].V3 = val3;
-                    reax->fbp[p][k][l][o].prm[0].p_tor1 = val4;
-                    reax->fbp[p][k][l][o].prm[0].p_cot1 = val5;
+                    fbp[p][k][l][o].cnt = 1;
+                    fbp[p][k][l][o].prm[0].V1 = val1;
+                    fbp[p][k][l][o].prm[0].V2 = val2;
+                    fbp[p][k][l][o].prm[0].V3 = val3;
+                    fbp[p][k][l][o].prm[0].p_tor1 = val4;
+                    fbp[p][k][l][o].prm[0].p_cot1 = val5;
                   }
 
                   if (tor_flag[o][l][k][p] == 0) {
-                    reax->fbp[o][l][k][p].prm[0].V1 = val1;
-                    reax->fbp[o][l][k][p].prm[0].V2 = val2;
-                    reax->fbp[o][l][k][p].prm[0].V3 = val3;
-                    reax->fbp[o][l][k][p].prm[0].p_tor1 = val4;
-                    reax->fbp[o][l][k][p].prm[0].p_cot1 = val5;
+                    fbp[o][l][k][p].cnt = 1;
+                    fbp[o][l][k][p].prm[0].V1 = val1;
+                    fbp[o][l][k][p].prm[0].V2 = val2;
+                    fbp[o][l][k][p].prm[0].V3 = val3;
+                    fbp[o][l][k][p].prm[0].p_tor1 = val4;
+                    fbp[o][l][k][p].prm[0].p_cot1 = val5;
                   }
                 }
               }
@@ -586,7 +547,7 @@ namespace ReaxFF {
         for (i = 0; i < ntypes; ++i)
           for (j = 0; j < ntypes; ++j)
             for (k = 0; k < ntypes; ++k)
-              reax->hbp[i][j][k].r0_hb = -1.0;
+              hbp[i][j][k].r0_hb = -1.0;
 
         for (i = 0; i < n; ++i) {
           values = reader.next_values(0);
@@ -602,10 +563,10 @@ namespace ReaxFF {
             THROW_ERROR("Inconsistent force field file");
 
           if ((j < ntypes) && (k < ntypes) && (l < ntypes)) {
-            reax->hbp[j][k][l].r0_hb = values.next_double();
-            reax->hbp[j][k][l].p_hb1 = values.next_double();
-            reax->hbp[j][k][l].p_hb2 = values.next_double();
-            reax->hbp[j][k][l].p_hb3 = values.next_double();
+            hbp[j][k][l].r0_hb = values.next_double();
+            hbp[j][k][l].p_hb1 = values.next_double();
+            hbp[j][k][l].p_hb2 = values.next_double();
+            hbp[j][k][l].p_hb3 = values.next_double();
           }
         }
 
@@ -622,8 +583,8 @@ namespace ReaxFF {
 
     // allocate storage for atom type based data
     MPI_Bcast(&reax->num_atom_types,1,MPI_INT,0,world);
+    const int n = reax->num_atom_types;
     if (control->me != 0) {
-      const int n = reax->num_atom_types;
       memory->create(reax->sbp,n,"reaxff:sbp");
       memory->create(reax->tbp,n,n,"reaxff:tbp");
       memory->create(reax->thbp,n,n,n,"reaxff:thbp");
@@ -632,14 +593,13 @@ namespace ReaxFF {
     }
 
     // broadcast type specific force field data
-    const int n = reax->num_atom_types;
     MPI_Bcast(&(reax->sbp[0]),sizeof(single_body_parameters)*n,MPI_CHAR,0,world);
     MPI_Bcast(&(reax->tbp[0][0]),sizeof(two_body_parameters)*n*n,MPI_CHAR,0,world);
     MPI_Bcast(&(reax->thbp[0][0][0]),sizeof(three_body_header)*n*n*n,MPI_CHAR,0,world);
     MPI_Bcast(&(reax->hbp[0][0][0]),sizeof(hbond_parameters)*n*n*n,MPI_CHAR,0,world);
     MPI_Bcast(&(reax->fbp[0][0][0][0]),sizeof(four_body_header)*n*n*n*n,MPI_CHAR,0,world);
 
-    // apply parameters to various settings
+    // apply global parameters to global control settings
 
     control->bo_cut    = 0.01 * reax->gp.l[29];
     control->nonb_low  = reax->gp.l[11];

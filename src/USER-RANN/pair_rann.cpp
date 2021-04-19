@@ -164,12 +164,12 @@ PairRANN::~PairRANN()
     memory->destroy(sx);
     memory->destroy(sy);
     memory->destroy(sz);
-    memory->destroy(dlayerx);
-    memory->destroy(dlayery);
-    memory->destroy(dlayerz);
-    memory->destroy(dlayersumx);
-    memory->destroy(dlayersumy);
-    memory->destroy(dlayersumz);
+    memory->destroy(dsx);
+    memory->destroy(dsy);
+    memory->destroy(dsz);
+    memory->destroy(dssumx);
+    memory->destroy(dssumy);
+    memory->destroy(dssumz);
   }
 }
 
@@ -538,7 +538,7 @@ void PairRANN::read_weight(std::vector<std::string> line,std::vector<std::string
       }
       for (j=1;j<net[l].dimensions[i+1];j++) {
         ptr = fgets(linetemp,longline,fp);
-        *linenum++;
+        (*linenum)++;
         Tokenizer values1 = Tokenizer(linetemp,": ,\t_\n");
         line1 = values1.as_vector();
         if (ptr==NULL)error->one(filename,*linenum,"unexpected end of potential file!");
@@ -569,7 +569,7 @@ void PairRANN::read_bias(std::vector<std::string> line,std::vector<std::string> 
       net[l].Biases[i][0] = utils::numeric(filename,*linenum,line1[0].c_str(),1,lmp);
       for (j=1;j<net[l].dimensions[i+1];j++) {
         ptr = fgets(linetemp,MAXLINE,fp);
-        *linenum++;
+        (*linenum)++;
         Tokenizer values1 = Tokenizer(linetemp,": ,\t_\n");
         line1 = values1.as_vector();
         net[l].Biases[i][j] = utils::numeric(filename,*linenum,line1[0].c_str(),1,lmp);
@@ -700,12 +700,12 @@ bool PairRANN::check_potential() {
     memory->create(sx,fmax*nmax2,"pair:sx");
     memory->create(sy,fmax*nmax2,"pair:sy");
     memory->create(sz,fmax*nmax2,"pair:sz");
-    memory->create(dlayerx,nmax2,fnmax,"pair:dsx");
-    memory->create(dlayery,nmax2,fnmax,"pair:dsy");
-    memory->create(dlayerz,nmax2,fnmax,"pair:dsz");
-    memory->create(dlayersumx,nmax2,fnmax,"pair:dssumx");
-    memory->create(dlayersumy,nmax2,fnmax,"pair:dssumy");
-    memory->create(dlayersumz,nmax2,fnmax,"pair:dssumz");
+    memory->create(dsx,nmax2,fnmax,"pair:dsx");
+    memory->create(dsy,nmax2,fnmax,"pair:dsy");
+    memory->create(dsz,nmax2,fnmax,"pair:dsz");
+    memory->create(dssumx,nmax2,fnmax,"pair:dssumx");
+    memory->create(dssumy,nmax2,fnmax,"pair:dssumy");
+    memory->create(dssumz,nmax2,fnmax,"pair:dssumz");
   }
   return false;//everything looks good
 }

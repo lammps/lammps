@@ -182,6 +182,8 @@ Examples
    pair_coeff * * 100.0 2.0 1.5 1.0
    pair_coeff 1 1 100.0 2.0 1.5 1.0 3.0
 
+Example input scripts available: examples/USER/fep
+
 Description
 """""""""""
 

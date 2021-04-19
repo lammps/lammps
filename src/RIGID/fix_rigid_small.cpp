@@ -73,6 +73,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   dof_flag = 1;
   enforce2d_flag = 1;
   stores_ids = 1;
+  centroidstressflag = CENTROID_AVAIL;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -1350,7 +1351,9 @@ void FixRigidSmall::set_xv()
       vr[4] = 0.5*x0*fc2;
       vr[5] = 0.5*x1*fc2;
 
-      v_tally(1,&i,1.0,vr);
+      double rlist[][3] = {x0, x1, x2};
+      double flist[][3] = {0.5*fc0, 0.5*fc1, 0.5*fc2};
+      v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
     }
   }
 
@@ -1510,7 +1513,9 @@ void FixRigidSmall::set_v()
       vr[4] = 0.5*x0*fc2;
       vr[5] = 0.5*x1*fc2;
 
-      v_tally(1,&i,1.0,vr);
+      double rlist[][3] = {x0, x1, x2};
+      double flist[][3] = {0.5*fc0, 0.5*fc1, 0.5*fc2};
+      v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
     }
   }
 

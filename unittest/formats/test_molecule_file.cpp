@@ -60,18 +60,18 @@ static void create_molecule_files()
                             "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
                             "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
 
-    FILE *fp = fopen("tmp.h2o.mol", "w");
+    FILE *fp = fopen("tmp.moltest.h2o.mol", "w");
     if (fp) {
         fputs(h2o_file, fp);
         fclose(fp);
     }
-    rename("tmp.h2o.mol", "h2o.mol");
-    fp = fopen("tmp.co2.mol", "w");
+    rename("tmp.moltest.h2o.mol", "moltest.h2o.mol");
+    fp = fopen("tmp.moltest.co2.mol", "w");
     if (fp) {
         fputs(co2_file, fp);
         fclose(fp);
     }
-    rename("tmp.co2.mol", "co2.mol");
+    rename("tmp.moltest.co2.mol", "moltest.co2.mol");
 }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -92,13 +92,13 @@ protected:
     void TearDown() override
     {
         LAMMPSTest::TearDown();
-        remove("h2o.mol");
-        remove("co2.mol");
+        remove("moltest.h2o.mol");
+        remove("moltest.co2.mol");
     }
 
     void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)
     {
-        std::string file = name + ".mol";
+        std::string file = fmt::format("moltest_{}.mol", name);
         FILE *fp         = fopen(file.c_str(), "w");
         fputs(content.c_str(), fp);
         fclose(fp);
@@ -195,7 +195,7 @@ TEST_F(MoleculeFileTest, twomols)
 TEST_F(MoleculeFileTest, twofiles)
 {
     BEGIN_CAPTURE_OUTPUT();
-    command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
+    command("molecule twomols moltest.h2o.mol moltest.co2.mol offset 2 1 1 0 0");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, MatchesRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
                                      "with max type 2.*2 bonds with max type 1.*"

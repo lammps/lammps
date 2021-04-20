@@ -948,9 +948,7 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[2] = utils::numeric(FLERR,arg[2],false,lmp);
   special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
-  // have to cast to PairHybrid to work around C++ access restriction
-
-  if (((PairHybrid *)styles[m])->suffix_flag & (Suffix::INTEL|Suffix::GPU))
+  if (styles[m]->suffix_flag & (Suffix::INTEL|Suffix::GPU))
     error->all(FLERR,"Pair_modify special is not compatible with "
                      "suffix version of hybrid substyle");
 

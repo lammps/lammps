@@ -28,6 +28,8 @@ class Pair : protected Pointers {
   friend class FixGPU;
   friend class FixIntel;
   friend class FixOMP;
+  friend class FixQEq;
+  friend class PairHybrid;
   friend class ThrOMP;
   friend class Info;
 

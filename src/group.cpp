@@ -35,6 +35,7 @@
 #include <cstring>
 #include <map>
 #include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -380,7 +381,7 @@ void Group::assign(int narg, char **arg)
     if (narg < 4) error->all(FLERR,"Illegal group command");
 
     int length = narg-2;
-    int *list = new int[length];
+    std::vector<int> list(length);
 
     int jgroup;
     for (int iarg = 2; iarg < narg; iarg++) {
@@ -409,8 +410,6 @@ void Group::assign(int narg, char **arg)
         if (mask[i] & otherbit) mask[i] &= inverse;
     }
 
-    delete [] list;
-
   // style = union
 
   } else if (strcmp(arg[1],"union") == 0) {
@@ -418,7 +417,7 @@ void Group::assign(int narg, char **arg)
     if (narg < 3) error->all(FLERR,"Illegal group command");
 
     int length = narg-2;
-    int *list = new int[length];
+    std::vector<int> list(length);
 
     int jgroup;
     for (int iarg = 2; iarg < narg; iarg++) {
@@ -439,8 +438,6 @@ void Group::assign(int narg, char **arg)
         if (mask[i] & otherbit) mask[i] |= bit;
     }
 
-    delete [] list;
-
   // style = intersect
 
   } else if (strcmp(arg[1],"intersect") == 0) {
@@ -448,7 +445,7 @@ void Group::assign(int narg, char **arg)
     if (narg < 4) error->all(FLERR,"Illegal group command");
 
     int length = narg-2;
-    int *list = new int[length];
+    std::vector<int> list(length);
 
     int jgroup;
     for (int iarg = 2; iarg < narg; iarg++) {
@@ -471,8 +468,6 @@ void Group::assign(int narg, char **arg)
       }
       if (ok) mask[i] |= bit;
     }
-
-    delete [] list;
 
   // style = dynamic
   // create a new FixGroup to dynamically determine atoms in group
@@ -539,13 +534,12 @@ void Group::assign(int narg, char **arg)
 void Group::assign(const std::string &groupcmd)
 {
   auto args = utils::split_words(groupcmd);
-  char **newarg = new char*[args.size()];
+  std::vector<char*> newarg(args.size());
   int i=0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  assign(args.size(),newarg);
-  delete[] newarg;
+  assign(args.size(),newarg.data());
 }
 
 /* ----------------------------------------------------------------------

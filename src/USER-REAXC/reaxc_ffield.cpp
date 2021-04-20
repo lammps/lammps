@@ -91,6 +91,7 @@ namespace ReaxFF {
         if (n < 1)
           THROW_ERROR("Invalid number of global parameters");
 
+        memory->destroy(gp.l);
         memory->create(gp.l,n,"reaxff:gp.l");
 
         // see reaxff_types.h for mapping between l[i] and the lambdas used in ff
@@ -118,6 +119,11 @@ namespace ReaxFF {
         auto &hbp = reax->hbp;
         auto &fbp = reax->fbp;
 
+        memory->destroy(sbp);
+        memory->destroy(tbp);
+        memory->destroy(thbp);
+        memory->destroy(hbp);
+        memory->destroy(fbp);
         memory->create(sbp,n,"reaxff:sbp");
         memory->create(tbp,n,n,"reaxff:tbp");
         memory->create(thbp,n,n,n,"reaxff:thbp");

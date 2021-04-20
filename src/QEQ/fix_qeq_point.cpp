@@ -38,7 +38,15 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg) {}
+  FixQEq(lmp, narg, arg) {
+  if (narg == 10) {
+    if (strcmp(arg[8],"warn") == 0) {
+      if (strcmp(arg[9],"no") == 0) maxwarn = 0;
+      else if (strcmp(arg[9],"yes") == 0) maxwarn = 1;
+      else error->all(FLERR,"Illegal fix qeq/point command");
+    } else error->all(FLERR,"Illegal fix qeq/point command");
+  } else if (narg > 8) error->all(FLERR,"Illegal fix qeq/point command");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -80,6 +88,7 @@ void FixQEqPoint::pre_force(int /*vflag*/)
   init_matvec();
   matvecs = CG(b_s, s);         // CG on s - parallel
   matvecs += CG(b_t, t);        // CG on t - parallel
+  matvecs /= 2;
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();

@@ -52,6 +52,12 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/slater command");
       alpha = atof(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/slater command");
+      if (strcmp(arg[iarg+1],"no") == 0) maxwarn = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) maxwarn = 1;
+      else error->all(FLERR,"Illegal fix qeq/slater command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/slater command");
   }
 
@@ -120,6 +126,7 @@ void FixQEqSlater::pre_force(int /*vflag*/)
   init_matvec();
   matvecs = CG(b_s, s);         // CG on s - parallel
   matvecs += CG(b_t, t);        // CG on t - parallel
+  matvecs /= 2;
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();

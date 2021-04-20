@@ -54,10 +54,15 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 8) error->all(FLERR,"Illegal fix qeq command");
 
+  scalar_flag = 1;
+  extscalar = 0;
+
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   cutoff = utils::numeric(FLERR,arg[4],false,lmp);
   tolerance = utils::numeric(FLERR,arg[5],false,lmp);
   maxiter = utils::inumeric(FLERR,arg[6],false,lmp);
+  maxwarn = 1;
+  matvecs = 0;
 
   // check for sane arguments
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
@@ -123,7 +128,6 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   } else {
     read_file(arg[7]);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -277,6 +281,13 @@ void FixQEq::reallocate_matrix()
 
 /* ---------------------------------------------------------------------- */
 
+double FixQEq::compute_scalar()
+{
+  return matvecs;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixQEq::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
@@ -395,7 +406,7 @@ int FixQEq::CG( double *b, double *x )
     vector_sum( d, 1., p, beta, d, inum );
   }
 
-  if ((comm->me == 0) && (loop >= maxiter))
+  if ((comm->me == 0) && maxwarn && (loop >= maxiter))
     error->warning(FLERR,fmt::format("Fix qeq CG convergence failed ({}) "
                                      "after {} iterations at step {}",
                                      sqrt(sig_new)/b_norm,loop,

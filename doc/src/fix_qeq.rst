@@ -34,13 +34,14 @@ Syntax
 * maxiter = maximum iterations to perform charge equilibration
 * qfile = a filename with QEq parameters or *coul/streitz* or *reax/c*
 * zero or more keyword/value pairs may be appended
-* keyword = *alpha* or *qdamp* or *qstep*
+* keyword = *alpha* or *qdamp* or *qstep* or *warn*
 
   .. parsed-literal::
 
        *alpha* value = Slater type orbital exponent (qeq/slater only)
        *qdamp* value = damping factor for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
        *qstep* value = time step size for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
+       *warn* value = do (=yes) or do not (=no) print a warning when the maximum number of iterations is reached
 
 Examples
 """"""""
@@ -101,8 +102,8 @@ The QEq method minimizes the electrostatic energy of the system (or
 equalizes the derivative of energy with respect to charge of all the
 atoms) by adjusting the partial charge on individual atoms based on
 interactions with their neighbors within *cutoff*\ .  It requires a few
-parameters, in *metal* units, for each atom type which provided in a
-file specified by *qfile*\ .  The file has the following format
+parameters in the appropriate units for each atom type which are read
+from a file specified by *qfile*\ .  The file has the following format
 
 .. parsed-literal::
 
@@ -112,7 +113,7 @@ file specified by *qfile*\ .  The file has the following format
    Ntype chi eta gamma zeta qcore
 
 There have to be parameters given for every atom type. Wildcard entries
-are possible using the same syntax as elsewhere in LAMMPS
+are possible using the same type range syntax as for "coeff" commands
 (i.e., n\*m, n\*, \*m, \*). Later entries will overwrite previous ones.
 Empty lines or any text following the pound sign (#) are ignored.
 Each line starts with the atom type followed by five parameters.
@@ -126,6 +127,14 @@ entries per line are required.
 * *zeta* = Slater type orbital exponent defined by the :ref:`Streitz-Mintmire <Streitz1>` potential in reverse distance units
 * *qcore* = charge of the nucleus defined by the :ref:`Streitz-Mintmire potential <Streitz1>` potential in charge units
 
+The fix qeq styles will print a warning if the charges are not
+equilibrated within *tolerance* by *maxiter* steps, unless the
+*warn* keyword is used with "no" as argument. This latter option
+may be useful for testing and benchmarking purposes, as it allows
+to use a fixed number of QEq iterations when *tolerance* is set
+to a small enough value to alway reach the *maxiter* limit. Turning
+off warnings will avoid the excessive output in that case.
+  
 The *qeq/point* style describes partial charges on atoms as point
 charges.  Interaction between a pair of charged particles is 1/r,
 which is the simplest description of the interaction between charges.
@@ -229,7 +238,7 @@ Related commands
 Default
 """""""
 
-none
+warn yes
 
 ----------
 

@@ -12,10 +12,10 @@ else()
 endif()
 
 # Set path to include directory.
-find_path(N2P2_INCLUDE_DIR InterfaceLammps.h PATHS "${N2P2_DIR}/include")
+find_path(N2P2_INCLUDE_DIR InterfaceLammps.h HINTS "${N2P2_DIR}/include")
 # Two libraries need to be linked: libnnp and libnnpif.
-find_library(N2P2_LIBNNP NAMES nnp PATHS "${N2P2_DIR}/lib")
-find_library(N2P2_LIBNNPIF NAMES nnpif PATHS "${N2P2_DIR}/lib")
+find_library(N2P2_LIBNNP NAMES nnp HINTS "${N2P2_DIR}/lib")
+find_library(N2P2_LIBNNPIF NAMES nnpif HINTS "${N2P2_DIR}/lib")
 # Users could compile n2p2 with extra flags which are then also required for
 # pair_hdnnp.cpp compilation. To forward them to the LAMMPS build process n2p2
 # writes a file with cmake commands, e.g.
@@ -23,7 +23,7 @@ find_library(N2P2_LIBNNPIF NAMES nnpif PATHS "${N2P2_DIR}/lib")
 # target_compile_definitions(lammps PRIVATE -DN2P2_NO_SF_GROUPS)
 #
 # to "lib/lammps-extra.cmake" which is then included by USER-HDNNP.cmake.
-find_file(N2P2_CMAKE_EXTRA NAMES lammps-extra.cmake PATHS "${N2P2_DIR}/lib")
+find_file(N2P2_CMAKE_EXTRA NAMES lammps-extra.cmake HINTS "${N2P2_DIR}/lib")
 
 find_package_handle_standard_args(N2P2 DEFAULT_MSG
   N2P2_DIR

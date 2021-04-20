@@ -78,7 +78,9 @@ PairReaxC::PairReaxC(LAMMPS *lmp) : Pair(lmp)
   api->control = new control_params;
   memset(api->control,0,sizeof(control_params));
   api->data = new simulation_data;
+  memset(api->data,0,sizeof(simulation_data));
   api->workspace = new storage;
+  memset(api->workspace,0,sizeof(storage));
   memory->create(api->lists, LIST_N,"reaxff:lists");
   memset(api->lists,0,LIST_N * sizeof(reax_list));
 

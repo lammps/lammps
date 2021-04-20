@@ -120,7 +120,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   atom->add_callback(Atom::GROW);
 
   for (int i = 0; i < atom->nmax; i++)
-    for (int j = 0; j < nprev; ++j )
+    for (int j = 0; j < nprev; ++j)
       s_hist[i][j] = t_hist[i][j] = atom->q[i];
 
   if (strcmp(arg[7],"coul/streitz") == 0) {
@@ -253,7 +253,7 @@ void FixQEq::allocate_matrix()
     i = ilist[ii];
     m += numneigh[i];
   }
-  m_cap = MAX( (int)(m * safezone), mincap * MIN_NBRS );
+  m_cap = MAX((int)(m * safezone), mincap * MIN_NBRS);
 
   H.n = n_cap;
   H.m = m_cap;
@@ -267,10 +267,10 @@ void FixQEq::allocate_matrix()
 
 void FixQEq::deallocate_matrix()
 {
-  memory->destroy( H.firstnbr );
-  memory->destroy( H.numnbrs );
-  memory->destroy( H.jlist );
-  memory->destroy( H.val );
+  memory->destroy(H.firstnbr);
+  memory->destroy(H.numnbrs);
+  memory->destroy(H.jlist);
+  memory->destroy(H.val);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -365,7 +365,7 @@ void FixQEq::min_pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-int FixQEq::CG( double *b, double *x )
+int FixQEq::CG(double *b, double *x)
 {
   int  loop, i, ii, inum, *ilist;
   double tmp, alfa, beta, b_norm;
@@ -375,10 +375,10 @@ int FixQEq::CG( double *b, double *x )
   ilist = list->ilist;
 
   pack_flag = 1;
-  sparse_matvec( &H, x, q );
-  comm->reverse_comm_fix( this );
+  sparse_matvec(&H, x, q);
+  comm->reverse_comm_fix(this);
 
-  vector_sum( r , 1.,  b, -1., q, inum );
+  vector_sum(r , 1.,  b, -1., q, inum);
 
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
@@ -387,19 +387,19 @@ int FixQEq::CG( double *b, double *x )
     else d[i] = 0.0;
   }
 
-  b_norm = parallel_norm( b, inum );
-  sig_new = parallel_dot( r, d, inum);
+  b_norm = parallel_norm(b, inum);
+  sig_new = parallel_dot(r, d, inum);
 
   for (loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop) {
     comm->forward_comm_fix(this);
-    sparse_matvec( &H, d, q );
+    sparse_matvec(&H, d, q);
     comm->reverse_comm_fix(this);
 
-    tmp = parallel_dot( d, q, inum);
+    tmp = parallel_dot(d, q, inum);
     alfa = sig_new / tmp;
 
-    vector_add( x, alfa, d, inum );
-    vector_add( r, -alfa, q, inum );
+    vector_add(x, alfa, d, inum);
+    vector_add(r, -alfa, q, inum);
 
     for (ii = 0; ii < inum; ++ii) {
       i = ilist[ii];
@@ -408,10 +408,10 @@ int FixQEq::CG( double *b, double *x )
     }
 
     sig_old = sig_new;
-    sig_new = parallel_dot( r, p, inum);
+    sig_new = parallel_dot(r, p, inum);
 
     beta = sig_new / sig_old;
-    vector_sum( d, 1., p, beta, d, inum );
+    vector_sum(d, 1., p, beta, d, inum);
   }
 
   if ((comm->me == 0) && maxwarn && (loop >= maxiter))
@@ -425,7 +425,7 @@ int FixQEq::CG( double *b, double *x )
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
+void FixQEq::sparse_matvec(sparse_matrix *A, double *x, double *b)
 {
   int i, j, itr_j;
 
@@ -444,7 +444,7 @@ void FixQEq::sparse_matvec( sparse_matrix *A, double *x, double *b )
 
   for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit) {
-      for ( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];
         b[i] += A->val[itr_j] * x[j];
         b[j] += A->val[itr_j] * x[i];
@@ -466,8 +466,8 @@ void FixQEq::calculate_Q()
   inum = list->inum;
   ilist = list->ilist;
 
-  s_sum = parallel_vector_acc( s, inum );
-  t_sum = parallel_vector_acc( t, inum);
+  s_sum = parallel_vector_acc(s, inum);
+  t_sum = parallel_vector_acc(t, inum);
   u = s_sum / t_sum;
 
   for (ii = 0; ii < inum; ++ii) {
@@ -485,7 +485,7 @@ void FixQEq::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix( this ); //Dist_vector( atom->q );
+  comm->forward_comm_fix(this); //Dist_vector(atom->q);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -516,11 +516,11 @@ void FixQEq::unpack_forward_comm(int n, int first, double *buf)
 
   if (pack_flag == 1)
     for (m = 0, i = first; m < n; m++, i++) d[i] = buf[m];
-  else if ( pack_flag == 2)
+  else if (pack_flag == 2)
     for (m = 0, i = first; m < n; m++, i++) s[i] = buf[m];
-  else if ( pack_flag == 3)
+  else if (pack_flag == 3)
     for (m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
-  else if ( pack_flag == 4)
+  else if (pack_flag == 4)
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
 }
 
@@ -605,7 +605,7 @@ int FixQEq::unpack_exchange(int n, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEq::parallel_norm( double *v, int n )
+double FixQEq::parallel_norm(double *v, int n)
 {
   int  i;
   double my_sum, norm_sqr;
@@ -623,14 +623,14 @@ double FixQEq::parallel_norm( double *v, int n )
       my_sum += v[i]*v[i];
   }
 
-  MPI_Allreduce( &my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce(&my_sum, &norm_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
 
-  return sqrt( norm_sqr );
+  return sqrt(norm_sqr);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEq::parallel_dot( double *v1, double *v2, int n)
+double FixQEq::parallel_dot(double *v1, double *v2, int n)
 {
   int  i;
   double my_dot, res;
@@ -648,14 +648,14 @@ double FixQEq::parallel_dot( double *v1, double *v2, int n)
       my_dot += v1[i] * v2[i];
   }
 
-  MPI_Allreduce( &my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce(&my_dot, &res, 1, MPI_DOUBLE, MPI_SUM, world);
 
   return res;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixQEq::parallel_vector_acc( double *v, int n )
+double FixQEq::parallel_vector_acc(double *v, int n)
 {
   int  i;
   double my_acc, res;
@@ -673,15 +673,15 @@ double FixQEq::parallel_vector_acc( double *v, int n )
       my_acc += v[i];
   }
 
-  MPI_Allreduce( &my_acc, &res, 1, MPI_DOUBLE, MPI_SUM, world );
+  MPI_Allreduce(&my_acc, &res, 1, MPI_DOUBLE, MPI_SUM, world);
 
   return res;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::vector_sum( double* dest, double c, double* v,
-                                double d, double* y, int k )
+void FixQEq::vector_sum(double* dest, double c, double* v,
+                                double d, double* y, int k)
 {
   int kk;
   int *ilist;
@@ -697,7 +697,7 @@ void FixQEq::vector_sum( double* dest, double c, double* v,
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEq::vector_add( double* dest, double c, double* v, int k )
+void FixQEq::vector_add(double* dest, double c, double* v, int k)
 {
   int kk;
   int *ilist;

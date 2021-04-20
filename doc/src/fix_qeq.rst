@@ -134,7 +134,7 @@ may be useful for testing and benchmarking purposes, as it allows
 to use a fixed number of QEq iterations when *tolerance* is set
 to a small enough value to alway reach the *maxiter* limit. Turning
 off warnings will avoid the excessive output in that case.
-  
+
 The *qeq/point* style describes partial charges on atoms as point
 charges.  Interaction between a pair of charged particles is 1/r,
 which is the simplest description of the interaction between charges.

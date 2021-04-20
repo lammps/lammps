@@ -17,14 +17,12 @@
 
 #ifdef LAMMPS_ZSTD
 
-#include "dump_local_zstd.h"
 #include "domain.h"
+#include "dump_local_zstd.h"
 #include "error.h"
 #include "update.h"
 
-
 #include <cstring>
-
 
 using namespace LAMMPS_NS;
 
@@ -41,7 +39,6 @@ DumpLocalZstd::DumpLocalZstd(LAMMPS *lmp, int narg, char **arg) :
 DumpLocalZstd::~DumpLocalZstd()
 {
 }
-
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
@@ -81,7 +78,9 @@ void DumpLocalZstd::openfile()
         nameslist[numfiles] = utils::strdup(filecurrent);
         ++numfiles;
       } else {
-        remove(nameslist[fileidx]);
+        if (remove(nameslist[fileidx]) != 0) {
+          error->warning(FLERR, fmt::format("Could not delete {}", nameslist[fileidx]));
+        }
         delete[] nameslist[fileidx];
         nameslist[fileidx] = utils::strdup(filecurrent);
         fileidx = (fileidx + 1) % maxfiles;
@@ -145,7 +144,35 @@ void DumpLocalZstd::write_header(bigint ndump)
 
 void DumpLocalZstd::write_data(int n, double *mybuf)
 {
-  writer.write(mybuf, sizeof(char)*n);
+  if (buffer_flag == 1) {
+    writer.write(mybuf, sizeof(char)*n);
+  } else {
+    constexpr size_t VBUFFER_SIZE = 256;
+    char vbuffer[VBUFFER_SIZE];
+    int m = 0;
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < size_one; j++) {
+        int written = 0;
+        if (vtype[j] == Dump::INT) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int> (mybuf[m]));
+        } else if (vtype[j] == Dump::DOUBLE) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+        } else if (vtype[j] == Dump::BIGINT) {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint> (mybuf[m]));
+        } else {
+          written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
+        }
+
+        if (written > 0) {
+          writer.write(vbuffer, written);
+        } else if (written < 0) {
+          error->one(FLERR, "Error while writing dump local/gz output");
+        }
+        m++;
+      }
+      writer.write("\n", 1);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,7 +211,7 @@ int DumpLocalZstd::modify_param(int narg, char **arg)
         return 2;
       }
     } catch (FileWriterException &e) {
-      error->one(FLERR, e.what());
+      error->one(FLERR, fmt::format("Illegal dump_modify command: {}", e.what()));
     }
   }
   return consumed;

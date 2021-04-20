@@ -45,14 +45,14 @@ public:
 
     void enable_triclinic()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("change_box all triclinic");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void generate_dump(std::string dump_file, std::string dump_modify_options, int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id all {} 1 {}", dump_style, dump_file));
 
         if (!dump_modify_options.empty()) {
@@ -60,7 +60,7 @@ public:
         }
 
         command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file,
@@ -76,7 +76,7 @@ public:
                                            std::string text_modify_options, std::string compressed_modify_options,
                                            int ntimesteps)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {} {}", dump_style, text_file, text_options));
         command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_file, compressed_options));
 
@@ -89,17 +89,17 @@ public:
         }
 
         command(fmt::format("run {}", ntimesteps));
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     std::string convert_compressed_to_text(std::string compressed_file)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         std::string converted_file = compressed_file.substr(0, compressed_file.find_last_of('.'));
         std::string cmdline =
             fmt::format("{} -d -c {} > {}", COMPRESS_BINARY, compressed_file, converted_file);
         system(cmdline.c_str());
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
         return converted_file;
     }
 };

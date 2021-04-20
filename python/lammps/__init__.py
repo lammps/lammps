@@ -13,10 +13,16 @@ from .core import *
 from .data import *
 from .pylammps import *
 
-# convert module string version to numeric version
+# convert installed module string version to numeric version
 def get_version_number():
-    from datetime import datetime
+    import time
+    from os.path import join
     from sys import version_info
+
+    # must report 0 when inside LAMMPS source tree
+    if __file__.find(join('python', 'lammps', '__init__.py')) > 0:
+        return 0
+
     vstring = None
     if version_info.major == 3 and version_info.minor >= 8:
         from importlib.metadata import version
@@ -32,7 +38,7 @@ def get_version_number():
     if not vstring:
         return 0
 
-    d = datetime.strptime(vstring, "%d%b%Y")
-    return d.year*10000 + d.month*100 + d.day
+    t = time.strptime(vstring, "%Y.%m.%d")
+    return t.tm_year*10000 + t.tm_mon*100 + t.tm_mday
 
 __version__ = get_version_number()

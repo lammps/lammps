@@ -149,7 +149,7 @@ void PPPMGPU::init()
   // GPU precision specific init
 
   bool respa_value=false;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     respa_value=true;
 
   if (order>8)

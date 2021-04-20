@@ -12,14 +12,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_enforce2d.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
 #include "modify.h"
 #include "respa.h"
-#include "error.h"
-
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -90,7 +89,7 @@ void FixEnforce2D::init()
 
 void FixEnforce2D::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     int nlevels_respa = ((Respa *) update->integrate)->nlevels;

@@ -32,6 +32,9 @@
 /pair_kim.cpp
 /pair_kim.h
 
+/pair_pace.cpp
+/pair_pace.h
+
 /superpose3d.h
 
 /kokkos.cpp
@@ -171,6 +174,10 @@
 /pair_lj_charmmfsw_coul_charmmfsh.h
 /pair_lj_charmmfsw_coul_long.cpp
 /pair_lj_charmmfsw_coul_long.h
+
+/plugin.cpp
+/plugin.h
+/lammpsplugin.h
 
 /atom_vec_spin.cpp
 /atom_vec_spin.h

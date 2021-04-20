@@ -14,20 +14,19 @@
 
 #include "pair_hybrid.h"
 
-#include <cstring>
-#include <cctype>
 #include "atom.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "update.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
 #include "respa.h"
-
 #include "suffix.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -114,7 +113,7 @@ void PairHybrid::compute(int eflag, int vflag)
 
   Respa *respa = nullptr;
   respaflag = 0;
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     respa = (Respa *) update->integrate;
     if (respa->nhybrid_styles > 0) respaflag = 1;
   }
@@ -468,10 +467,7 @@ void PairHybrid::coeff(int narg, char **arg)
       if (multiple[m]) {
         multflag = 1;
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-        if (!isdigit(arg[3][0]))
-          error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = utils::inumeric(FLERR,arg[3],false,lmp);
-        if (index == multiple[m]) break;
+        if (multiple[m] == utils::inumeric(FLERR,arg[3],false,lmp)) break;
         else continue;
       } else break;
     }
@@ -492,7 +488,7 @@ void PairHybrid::coeff(int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st remaining arg
 
-  if (!none) styles[m]->coeff(narg-1-multflag,&arg[1+multflag]);
+  if (!none) styles[m]->coeff(narg-1-multflag,arg+1+multflag);
 
   // if sub-style only allows one pair coeff call (with * * and type mapping)
   // then unset setflag/map assigned to that style before setting it below

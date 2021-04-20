@@ -150,7 +150,7 @@ shifted to be 0.0 at the cutoff distance Rc.
 The :doc:`pair_modify <pair_modify>` table option is not relevant
 for these pair styles.
 
-These pair style do not support the :doc:`pair_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding long-range tail corrections to energy and
 pressure.
 

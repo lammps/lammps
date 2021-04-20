@@ -22,6 +22,11 @@ set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
 set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
 set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
 
+set(LAMMPS_DOWNLOADS_URL "https://download.lammps.org" CACHE STRING "Base URL for LAMMPS downloads")
+set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
+set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
+mark_as_advanced(LAMMPS_DOWNLOADS_URL)
+
 find_package(Git)
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
@@ -113,13 +118,13 @@ option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 
 set(STANDARD_PACKAGES ASPHERE BODY CLASS2 COLLOID COMPRESS DIPOLE
   GRANULAR KSPACE LATTE MANYBODY MC MESSAGE MISC MLIAP MOLECULE PERI POEMS
-  QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
+  PLUGIN QEQ REPLICA RIGID SHOCK SPIN SNAP SRD KIM PYTHON MSCG MPIIO VORONOI
   USER-ADIOS USER-ATC USER-AWPMD USER-BOCS USER-CGDNA USER-MESODPD USER-CGSDK
   USER-COLVARS USER-DIFFRACTION USER-DPD USER-DRUDE USER-EFF USER-FEP USER-H5MD
   USER-HDNNP USER-LB USER-MANIFOLD USER-MEAMC USER-MESONT USER-MGPT USER-MISC
   USER-MOFFF USER-MOLFILE USER-NETCDF USER-PHONON USER-PLUMED USER-PTM USER-QTB
   USER-REACTION USER-REAXC USER-SCAFACOS USER-SDPD USER-SMD USER-SMTBQ USER-SPH
-  USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF)
+  USER-TALLY USER-UEF USER-VTK USER-QUIP USER-QMMM USER-YAFF USER-PACE)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT USER-INTEL USER-OMP)
 
@@ -264,6 +269,7 @@ endif()
 set(ENABLE_IWYU OFF CACHE BOOL "Add 'iwyu' build target to call the include-what-you-use tool")
 mark_as_advanced(ENABLE_IWYU)
 if(ENABLE_IWYU)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
   find_program(IWYU_EXE NAMES include-what-you-use iwyu)
   find_program(IWYU_TOOL NAMES iwyu_tool iwyu-tool iwyu_tool.py)
   if (IWYU_EXE AND IWYU_TOOL)
@@ -382,7 +388,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL KSPACE PYTHON MLIAP VORONOI USER-COLVARS USER-HDNNP USER-MOLFILE USER-NETCDF USER-PLUMED USER-QMMM
-        USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS)
+        USER-QUIP USER-SCAFACOS USER-SMD USER-VTK KIM LATTE MESSAGE MSCG COMPRESS USER-PACE)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -532,6 +538,18 @@ foreach(PKG_WITH_INCL CORESHELL QEQ USER-OMP USER-SDPD KOKKOS OPT USER-INTEL GPU
     include(Packages/${PKG_WITH_INCL})
   endif()
 endforeach()
+
+if(PKG_PLUGIN)
+  if(BUILD_SHARED_LIBS)
+    target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+  else()
+    message(WARNING "Plugin loading will not work unless BUILD_SHARED_LIBS is enabled")
+  endif()
+  # link with -ldl or equivalent for plugin loading; except on Windows
+  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+    target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
+  endif()
+endif()
 
 ######################################################################
 # the windows version of LAMMPS requires a couple extra libraries
@@ -713,7 +731,7 @@ get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
-   Operating System: ${CMAKE_SYSTEM_NAME}
+   Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
    Build type:       ${CMAKE_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")

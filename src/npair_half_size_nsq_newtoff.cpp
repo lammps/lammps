@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_half_size_nsq_newtoff.h"
-#include "neigh_list.h"
+
 #include "atom.h"
-#include "atom_vec.h"
+#include "error.h"
 #include "group.h"
 #include "my_page.h"
-#include "error.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

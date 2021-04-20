@@ -18,22 +18,24 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "group.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
 #include "rigid_const.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -234,8 +236,6 @@ void FixRigidNH::init()
   }
 
   g_f = nf_t + nf_r;
-  onednft = 1.0 + (double)(dimension) / (double)g_f;
-  onednfr = (double) (dimension) / (double)g_f;
 
   // see Table 1 in Kamberaj et al
 
@@ -719,6 +719,8 @@ void FixRigidNH::final_integrate()
 
 void FixRigidNH::nhc_temp_integrate()
 {
+  if (g_f == 0) return;
+
   int i,j,k;
   double kt,gfkt_t,gfkt_r,tmp,ms,s,s2;
 
@@ -1063,6 +1065,8 @@ void FixRigidNH::compute_press_target()
 
 void FixRigidNH::nh_epsilon_dot()
 {
+  if (g_f == 0) return;
+
   int i;
   double volume,scale,f_epsilon;
 

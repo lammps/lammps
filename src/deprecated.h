@@ -26,13 +26,13 @@ CommandStyle(kim_query,Deprecated)
 #ifndef LMP_DEPRECATED_H
 #define LMP_DEPRECATED_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Deprecated : protected Pointers {
+class Deprecated : public Command {
  public:
-  Deprecated(class LAMMPS *lmp) : Pointers(lmp) {};
+  Deprecated(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 };
 

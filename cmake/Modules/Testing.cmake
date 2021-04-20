@@ -16,11 +16,14 @@ if(ENABLE_TESTING)
   set(MEMORYCHECK_COMMAND "${VALGRIND_BINARY}" CACHE FILEPATH "Memory Check Command")
   set(MEMORYCHECK_COMMAND_OPTIONS "${VALGRIND_DEFAULT_OPTIONS}" CACHE STRING "Memory Check Command Options")
 
-  # check if a faster linker is available.
-  # only verified with GNU and Clang compilers and new CMake
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-    if((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-        OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+  # we need to build and link a LOT of tester executables, so it is worth checking if
+  # a faster linker is available. requires GNU or Clang compiler, newer CMake.
+  # also only verified with Fedora Linux > 30 and Ubuntu <= 18.04 (Ubuntu 20.04 fails)
+  if((CMAKE_SYSTEM_NAME STREQUAL Linux) AND (CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+      AND ((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+        OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")))
+    if (((CMAKE_LINUX_DISTRO STREQUAL Ubuntu) AND (CMAKE_DISTRO_VERSION VERSION_LESS_EQUAL 18.04))
+        OR ((CMAKE_LINUX_DISTRO STREQUAL Fedora) AND (CMAKE_DISTRO_VERSION VERSION_GREATER 30)))
       include(CheckCXXCompilerFlag)
       set(CMAKE_CUSTOM_LINKER_DEFAULT default)
       check_cxx_compiler_flag(-fuse-ld=lld HAVE_LLD_LINKER_FLAG)

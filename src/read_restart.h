@@ -20,11 +20,11 @@ CommandStyle(read_restart,ReadRestart)
 #ifndef LMP_READ_RESTART_H
 #define LMP_READ_RESTART_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ReadRestart : protected Pointers {
+class ReadRestart : public Command {
  public:
   ReadRestart(class LAMMPS *);
   void command(int, char **);

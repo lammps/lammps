@@ -22,7 +22,6 @@
 #include "modify.h"
 
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 

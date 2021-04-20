@@ -42,6 +42,9 @@ using ::testing::MatchesRegex;
             auto mesg = ::testing::internal::GetCapturedStdout(); \
             ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
         }                                                         \
+        else { \
+           std::cerr << "[          ] [ INFO ] Skipping death test (no exception support) \n";   \
+        } \
     }
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).

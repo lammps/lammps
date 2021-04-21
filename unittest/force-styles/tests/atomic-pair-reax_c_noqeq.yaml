@@ -1,8 +1,8 @@
 ---
 lammps_version: 8 Apr 2021
-date_generated: Mon Apr 19 09:21:19 2021
+date_generated: Wed Apr 21 08:52:00 2021
 epsilon: 5e-13
-skip_tests: 
+skip_tests: omp
 prerequisites: ! |
   pair reax/c
 pre_commands: ! |

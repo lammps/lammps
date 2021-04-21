@@ -27,12 +27,12 @@
 
 #include "reaxff_api.h"
 
+#include "error.h"
+
 #include <mpi.h>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
-
-#include "error.h"
 
 namespace ReaxFF {
 

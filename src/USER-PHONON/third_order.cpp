@@ -423,8 +423,8 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
     if (folded){
       for (int k = 0; k < atom->natoms; k++){
         norm = square(dynmat[k*3])+
-               square(dynmat[k*3+1])+
-               square(dynmat[k*3+2]);
+          square(dynmat[k*3+1])+
+          square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
           fmt::print(fp,"{} {} {} {} {} {:.8f} {.8f} {.8f}\n",
                      i+1, a + 1, j+1, b + 1, k+1,
@@ -435,8 +435,8 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
     } else {
       for (int k = 0; k < gcount; k++){
         norm = square(dynmat[k*3])+
-               square(dynmat[k*3+1])+
-               square(dynmat[k*3+2]);
+          square(dynmat[k*3+1])+
+          square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
           fmt::print(fp, "{} {} {} {} {} {:.8f} {.8f} {.8f}\n",
                      i+1, a + 1, j+1, b + 1, groupmap[k]+1,

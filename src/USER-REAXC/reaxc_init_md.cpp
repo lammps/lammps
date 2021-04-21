@@ -2,15 +2,16 @@
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, hmaktulga@lbl.gov
-  Joseph Fogarty, jcfogart@mail.usf.edu
-  Sagar Pandit, pandit@usf.edu
-  Ananth Y Grama, ayg@cs.purdue.edu
+
+  Contributing authors:
+  H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
+  Corresponding author:
+  Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-  Algorithmic Techniques", Parallel Computing, in press.
+  Algorithmic Techniques", Parallel Computing, 38 (4-5), 245-259
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -165,11 +166,11 @@ namespace ReaxFF {
                   simulation_data *data, storage *workspace,
                   reax_list **lists, MPI_Comm world)
   {
-    Init_System(system, control);
+    Init_System(system,control);
     Init_Simulation_Data(data);
-    Init_Workspace(system, control, workspace);
-    Init_Lists(system, control, lists);
+    Init_Workspace(system,control,workspace);
+    Init_Lists(system,control,lists);
     if (control->tabulate)
-      Init_Lookup_Tables(system, control, workspace, world);
+      Init_Lookup_Tables(system,control,workspace,world);
   }
 }

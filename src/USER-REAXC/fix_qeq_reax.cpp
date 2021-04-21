@@ -376,8 +376,8 @@ void FixQEqReax::init()
   if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/reax requires atom attribute q");
 
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/reax group has no atoms");
+  if (group->count(igroup) == 0)
+    error->all(FLERR,"Fix qeq/reax group has no atoms");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs

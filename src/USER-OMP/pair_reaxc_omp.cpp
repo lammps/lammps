@@ -35,19 +35,20 @@
 
 #include "pair_reaxc_omp.h"
 
-#include <cmath>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
+#include "citeme.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "fix_reaxc.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "modify.h"
-#include "fix_reaxc.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
 
 #include "reaxff_api.h"
 #include "reaxff_omp.h"
@@ -92,6 +93,127 @@ PairReaxCOMP::~PairReaxCOMP()
       sfree(error, bonds->select.bond_list[i].bo_data.CdboReduction, "CdboReduction");
   }
   memory->destroy(num_nbrs_offset);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairReaxCOMP::init_style()
+{
+  if (!atom->q_flag)
+    error->all(FLERR,"Pair style reax/c/omp requires atom attribute q");
+
+  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
+                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
+  if (!have_qeq && qeqflag == 1)
+    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax or qeq/shielded");
+
+  api->system->n = atom->nlocal; // my atoms
+  api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
+  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
+  api->system->wsize = comm->nprocs;
+
+  if (atom->tag_enable == 0)
+    error->all(FLERR,"Pair style reax/c/omp requires atom IDs");
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style reax/c/omp requires newton pair on");
+
+  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
+
+  if (atom->natoms > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for pair style reax/c/omp");
+
+  // need a half neighbor list w/ Newton off and ghost neighbors
+  // built whenever re-neighboring occurs
+
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->newton = 2;
+  neighbor->requests[irequest]->ghost = 1;
+
+  cutmax = MAX3(api->control->nonb_cut, api->control->hbond_cut, api->control->bond_cut);
+  if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))
+    error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
+                   "increased neighbor list skin.");
+
+  if (fix_reax == nullptr) {
+    modify->add_fix(fmt::format("{} all REAXC",fix_id));
+    fix_reax = (FixReaxC *) modify->fix[modify->nfix-1];
+  }
+
+  api->control->nthreads = comm->nthreads;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairReaxCOMP::setup()
+{
+  int oldN;
+  int mincap = api->system->mincap;
+  double safezone = api->system->safezone;
+
+  api->system->n = atom->nlocal; // my atoms
+  api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
+  oldN = api->system->N;
+  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
+
+  if (api->system->N > nmax) {
+    memory->destroy(num_nbrs_offset);
+    // Don't update nmax here. It is updated at end of compute().
+    memory->create(num_nbrs_offset, api->system->N, "pair:num_nbrs_offset");
+  }
+
+  if (setup_flag == 0) {
+
+    setup_flag = 1;
+
+    int *num_bonds = fix_reax->num_bonds;
+    int *num_hbonds = fix_reax->num_hbonds;
+
+    // determine the local and total capacity
+
+    api->system->local_cap = MAX((int)(api->system->n * safezone), mincap);
+    api->system->total_cap = MAX((int)(api->system->N * safezone), mincap);
+
+    // initialize my data structures
+
+    PreAllocate_Space(api->system, api->workspace);
+    write_reax_atoms();
+
+    api->system->wsize = comm->nprocs;
+
+    int num_nbrs = estimate_reax_lists();
+    if (num_nbrs < 0)
+      error->all(FLERR,"Too many neighbors for pair style reax/c");
+
+    Make_List(api->system->total_cap,num_nbrs,TYP_FAR_NEIGHBOR,api->lists+FAR_NBRS);
+    (api->lists+FAR_NBRS)->error_ptr=error;
+
+    write_reax_lists();
+
+    InitializeOMP(api->system,api->control,api->data,api->workspace,&api->lists,world);
+    for (int k = 0; k < api->system->N; ++k) {
+      num_bonds[k] = api->system->my_atoms[k].num_bonds;
+      num_hbonds[k] = api->system->my_atoms[k].num_hbonds;
+    }
+
+  } else {
+
+    // fill in reax datastructures
+
+    write_reax_atoms();
+
+    // reset the bond list info for new atoms
+
+    for (int k = oldN; k < api->system->N; ++k)
+      Set_End_Index(k, Start_Index(k, api->lists+BONDS), api->lists+BONDS);
+
+    // estimate far neighbor list size
+    // Not present in MPI-only version
+    api->workspace->realloc.num_far = estimate_reax_lists();
+
+    // check if I need to shrink/extend my data-structs
+
+    ReAllocate(api->system, api->control, api->data, api->workspace, &api->lists);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,132 +331,6 @@ void PairReaxCOMP::compute(int eflag, int vflag)
       }
 
     FindBond();
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairReaxCOMP::init_style()
-{
-  if (!atom->q_flag)
-    error->all(FLERR,"Pair reax/c/omp requires atom attribute q");
-
-  // firstwarn = 1;
-
-  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
-                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
-  if (!have_qeq && qeqflag == 1)
-    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax or qeq/shielded");
-
-  api->system->n = atom->nlocal; // my atoms
-  api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
-  api->system->wsize = comm->nprocs;
-
-  if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style reax/c/omp requires atom IDs");
-  if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style reax/c/omp requires newton pair on");
-
- if ((atom->map_tag_max > 99999999) && (comm->me == 0))
-    error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c/omp "
-                   "native output files may get misformatted or corrupted");
-
-  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
-
-  if (atom->natoms > MAXSMALLINT)
-    error->all(FLERR,"Too many atoms for pair style reax/c/omp");
-
-  // need a half neighbor list w/ Newton off and ghost neighbors
-  // built whenever re-neighboring occurs
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->newton = 2;
-  neighbor->requests[irequest]->ghost = 1;
-
-  cutmax = MAX3(api->control->nonb_cut, api->control->hbond_cut, api->control->bond_cut);
-  if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))
-    error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
-                   "increased neighbor list skin.");
-
-  for (int i = 0; i < LIST_N; ++i)
-    api->lists[i].allocated = 0;
-
-  if (fix_reax == nullptr) {
-    modify->add_fix(fmt::format("{} all REAXC",fix_id));
-    fix_reax = (FixReaxC *) modify->fix[modify->nfix-1];
-  }
-
-  api->control->nthreads = comm->nthreads;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairReaxCOMP::setup()
-{
-  int oldN;
-  int mincap = api->system->mincap;
-  double safezone = api->system->safezone;
-
-  api->system->n = atom->nlocal; // my atoms
-  api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
-  oldN = api->system->N;
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
-
-  if (api->system->N > nmax) {
-    memory->destroy(num_nbrs_offset);
-    // Don't update nmax here. It is updated at end of compute().
-    memory->create(num_nbrs_offset, api->system->N, "pair:num_nbrs_offset");
-  }
-
-  if (setup_flag == 0) {
-
-    setup_flag = 1;
-
-    int *num_bonds = fix_reax->num_bonds;
-    int *num_hbonds = fix_reax->num_hbonds;
-
-    // determine the local and total capacity
-
-    api->system->local_cap = MAX((int)(api->system->n * safezone), mincap);
-    api->system->total_cap = MAX((int)(api->system->N * safezone), mincap);
-
-    // initialize my data structures
-
-    PreAllocate_Space(api->system, api->workspace);
-    write_reax_atoms();
-
-    int num_nbrs = estimate_reax_lists();
-    Make_List(api->system->total_cap, num_nbrs, TYP_FAR_NEIGHBOR, api->lists+FAR_NBRS);
-
-    write_reax_lists();
-
-    InitializeOMP(api->system, api->control, api->data,
-                  api->workspace, &api->lists, world);
-
-    for (int k = 0; k < api->system->N; ++k) {
-      num_bonds[k] = api->system->my_atoms[k].num_bonds;
-      num_hbonds[k] = api->system->my_atoms[k].num_hbonds;
-    }
-
-  } else {
-
-    // fill in reax datastructures
-
-    write_reax_atoms();
-
-    // reset the bond list info for new atoms
-
-    for (int k = oldN; k < api->system->N; ++k)
-      Set_End_Index(k, Start_Index(k, api->lists+BONDS), api->lists+BONDS);
-
-    // estimate far neighbor list size
-    // Not present in MPI-only version
-    api->workspace->realloc.num_far = estimate_reax_lists();
-
-    // check if I need to shrink/extend my data-structs
-
-    ReAllocate(api->system, api->control, api->data, api->workspace, &api->lists);
   }
 }
 

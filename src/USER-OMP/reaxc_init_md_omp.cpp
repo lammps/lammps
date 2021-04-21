@@ -1,6 +1,5 @@
 /*----------------------------------------------------------------------
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
-  Website: https://www.cs.purdue.edu/puremd
 
   Copyright (2010) Purdue University
 
@@ -27,14 +26,12 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxff_omp.h"
+#include "reaxff_api.h"
 
 #include "error.h"
 
-#include "reaxff_api.h"
-
+#include <mpi.h>
 #include <cstdlib>
-
-/* ---------------------------------------------------------------------- */
 
 namespace ReaxFF {
   static void Init_ListsOMP(reax_system *system, control_params *control,
@@ -63,6 +60,7 @@ namespace ReaxFF {
       total_hbonds = (int)(MAX(total_hbonds*saferzone,mincap*system->minhbonds));
 
       Make_List(system->Hcap, total_hbonds, TYP_HBOND,*lists+HBONDS);
+      (*lists+HBONDS)->error_ptr = system->error_ptr;
     }
 
     total_bonds = 0;
@@ -73,6 +71,7 @@ namespace ReaxFF {
     bond_cap = (int)(MAX(total_bonds*safezone, mincap*MIN_BONDS));
 
     Make_List(system->total_cap, bond_cap, TYP_BOND,*lists+BONDS);
+    (*lists+BONDS)->error_ptr = system->error_ptr;
 
     int nthreads = control->nthreads;
     reax_list *bonds = (*lists)+BONDS;
@@ -84,14 +83,12 @@ namespace ReaxFF {
     /* 3bodies list */
     cap_3body = (int)(MAX(num_3body*safezone, MIN_3BODIES));
     Make_List(bond_cap, cap_3body, TYP_THREE_BODY,*lists+THREE_BODIES);
+    (*lists+THREE_BODIES)->error_ptr = system->error_ptr;
 
     free(hb_top);
     free(bond_top);
   }
 
-/* ---------------------------------------------------------------------- */
-
-// The only difference with the MPI-only function is calls to Init_ListsOMP and Init_Force_FunctionsOMP().
   void InitializeOMP(reax_system *system, control_params *control,
                      simulation_data *data, storage *workspace,
                      reax_list **lists, MPI_Comm world)
@@ -100,7 +97,6 @@ namespace ReaxFF {
     Init_Simulation_Data(data);
     Init_Workspace(system,control,workspace);
     Init_ListsOMP(system,control,lists);
-
     if (control->tabulate)
       Init_Lookup_Tables(system,control,workspace,world);
   }

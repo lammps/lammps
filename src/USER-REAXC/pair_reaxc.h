@@ -54,8 +54,6 @@ class PairReaxC : public Pair {
   double **tmpbo,**tmpr;
 
   ReaxFF::API *api;
-
-  bigint ngroup;
   typedef double rvec[3];
 
 protected:

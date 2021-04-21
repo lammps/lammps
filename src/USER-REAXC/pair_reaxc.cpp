@@ -12,8 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Hasan Metin Aktulga, Purdue University
-   (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
+   Contributing author:
+   Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
+
    Per-atom energy/virial added by Ray Shan (Sandia)
    Fix reax/c/bonds and fix reax/c/species for pair_style reax/c added by
         Ray Shan (Sandia)
@@ -26,7 +27,6 @@
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
 #include "fix_reaxc.h"
 #include "force.h"
 #include "memory.h"
@@ -129,7 +129,7 @@ PairReaxC::~PairReaxC()
 
     if (api->control->tabulate) Deallocate_Lookup_Tables(api->system);
 
-    if (api->control->hbond_cut > 0)  Delete_List(api->lists+HBONDS);
+    if (api->control->hbond_cut > 0) Delete_List(api->lists+HBONDS);
     Delete_List(api->lists+BONDS);
     Delete_List(api->lists+THREE_BODIES);
     Delete_List(api->lists+FAR_NBRS);
@@ -335,8 +335,6 @@ void PairReaxC::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style reax/c requires atom attribute q");
 
-  // firstwarn = 1;
-
   bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
                    || (modify->find_fix_by_style("^qeq/shielded") != -1));
   if (!have_qeq && qeqflag == 1)
@@ -351,9 +349,6 @@ void PairReaxC::init_style()
     error->all(FLERR,"Pair style reax/c requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reax/c requires newton pair on");
-  if ((atom->map_tag_max > 99999999) && (comm->me == 0))
-    error->warning(FLERR,"Some Atom-IDs are too large. Pair style reax/c "
-                   "native output files may get misformatted or corrupted");
 
   // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
 
@@ -371,10 +366,6 @@ void PairReaxC::init_style()
   if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))
     error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
                    "increased neighbor list skin.");
-
-  for (int i = 0; i < LIST_N; ++i)
-    if (api->lists[i].allocated != 1)
-      api->lists[i].allocated = 0;
 
   if (fix_reax == nullptr) {
     modify->add_fix(fmt::format("{} all REAXC",fix_id));
@@ -412,17 +403,18 @@ void PairReaxC::setup()
     PreAllocate_Space(api->system, api->workspace);
     write_reax_atoms();
 
+    api->system->wsize = comm->nprocs;
+
     int num_nbrs = estimate_reax_lists();
     if (num_nbrs < 0)
       error->all(FLERR,"Too many neighbors for pair style reax/c");
-    Make_List(api->system->total_cap, num_nbrs,
-              TYP_FAR_NEIGHBOR, api->lists+FAR_NBRS);
+
+    Make_List(api->system->total_cap,num_nbrs,TYP_FAR_NEIGHBOR,api->lists+FAR_NBRS);
     (api->lists+FAR_NBRS)->error_ptr=error;
 
     write_reax_lists();
-    api->system->wsize = comm->nprocs;
-    Initialize(api->system, api->control, api->data,
-               api->workspace, &api->lists, world);
+
+    Initialize(api->system,api->control,api->data,api->workspace,&api->lists,world);
     for (int k = 0; k < api->system->N; ++k) {
       num_bonds[k] = api->system->my_atoms[k].num_bonds;
       num_hbonds[k] = api->system->my_atoms[k].num_hbonds;
@@ -443,9 +435,6 @@ void PairReaxC::setup()
 
     ReAllocate(api->system, api->control, api->data, api->workspace, &api->lists);
   }
-
-  bigint local_ngroup = list->inum;
-  MPI_Allreduce(&local_ngroup, &ngroup, 1, MPI_LMP_BIGINT, MPI_SUM, world);
 }
 
 /* ---------------------------------------------------------------------- */

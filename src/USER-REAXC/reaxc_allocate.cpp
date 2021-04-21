@@ -288,6 +288,20 @@ namespace ReaxFF {
       Reallocate_Bonds_List(control, system, (*lists)+BONDS, &num_bonds, &est_3body);
       wsr->bonds = 0;
       wsr->num_3body = MAX(wsr->num_3body, est_3body) * 2;
+
+
+      if (system->omp_active) {
+        int nthreads = control->nthreads;
+        reax_list *bonds = (*lists)+BONDS;
+
+        for (int i = 0; i < bonds->num_intrs; ++i) {
+          sfree(error, bonds->select.bond_list[i].bo_data.CdboReduction,
+                "CdboReduction");
+
+          bonds->select.bond_list[i].bo_data.CdboReduction =
+            (double*) smalloc(error, sizeof(double)*nthreads, "CdboReduction");
+        }
+      }
     }
 
     /* 3-body list */

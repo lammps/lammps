@@ -72,8 +72,6 @@ class FixQEqReax : public Fix {
   double *chi,*eta,*gamma;  // qeq parameters
   double **shld;
 
-  bigint ngroup;
-
   // fictitious charges
 
   double *s, *t;

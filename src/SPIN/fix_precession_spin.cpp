@@ -143,7 +143,8 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
   double norm2,inorm;
   if (zeeman_flag) {
     norm2 = nhx*nhx + nhy*nhy + nhz*nhz;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     nhx *= inorm;
     nhy *= inorm;
@@ -152,7 +153,8 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
 
   if (stt_flag) {
     norm2 = nsttx*nsttx + nstty*nstty + nsttz*nsttz;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     nsttx *= inorm;
     nstty *= inorm;
@@ -161,7 +163,8 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
 
   if (aniso_flag) {
     norm2 = nax*nax + nay*nay + naz*naz;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     nax *= inorm;
     nay *= inorm;
@@ -170,21 +173,24 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
 
   if (cubic_flag) {
     norm2 = nc1x*nc1x + nc1y*nc1y + nc1z*nc1z;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     nc1x *= inorm;
     nc1y *= inorm;
     nc1z *= inorm;
     
     norm2 = nc2x*nc2x + nc2y*nc2y + nc2z*nc2z;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     nc2x *= inorm;
     nc2y *= inorm;
     nc2z *= inorm;
     
     norm2 = nc3x*nc3x + nc3y*nc3y + nc3z*nc3z;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     nc3x *= inorm;
     nc3y *= inorm;
@@ -193,14 +199,16 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
   
   if (hexaniso_flag) {
     norm2 = n6x*n6x + n6y*n6y + n6z*n6z;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     n6x *= inorm;
     n6y *= inorm;
     n6z *= inorm;
     
     norm2 = m6x*m6x + m6y*m6y + m6z*m6z;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     m6x *= inorm;
     m6y *= inorm;
@@ -210,7 +218,8 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
     l6z = (n6y*m6x-n6x*m6y);
     
     norm2 = l6x*l6x + l6y*l6y + l6z*l6z;
-    if (norm2 == 0.0) else error->all(FLERR,"Illegal precession/spin command");
+    if (norm2 == 0.0) 
+      error->all(FLERR,"Illegal precession/spin command");
     inorm = 1.0/sqrt(norm2);
     l6x *= inorm;
     l6y *= inorm;

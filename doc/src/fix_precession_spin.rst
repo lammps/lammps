@@ -127,7 +127,7 @@ details on cubic anisotropies.
 
 Style *stt* is used to simulate the interaction between the spins and 
 a spin-transfer torque.
-See equation(7) of :ref:`(Chirac) <Chirac1>` for more details about the 
+See equation (7) of :ref:`(Chirac) <Chirac1>` for more details about the 
 implemented spin-transfer torque term. 
 
 In all cases, the choice of :math:`(x y z)` only imposes the vector
@@ -136,6 +136,16 @@ important; its length is ignored (the entered vectors are
 normalized).
 
 Those styles can be combined within one single command line.
+
+.. note::
+
+   The norm of all vectors defined with the precession/spin command 
+   have to be non-zero. For example, defining
+   "fix 1 all precession/spin zeeman 0.1 0.0 0.0 0.0" would result
+   in an error message. 
+   Since those vector components are used to compute the inverse of the
+   field (or anisotropy) vector norm, setting a zero-vector would result 
+   in a division by zero.
 
 ----------
 

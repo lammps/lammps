@@ -60,7 +60,7 @@ enum{NONE};
 
 FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  pair(nullptr), spin_pairs(nullptr), locklangevinspin(nullptr), 
+  pair(nullptr), spin_pairs(nullptr), locklangevinspin(nullptr),
   locksetforcespin(nullptr), lockprecessionspin(nullptr),
   rsec(nullptr), stack_head(nullptr), stack_foot(nullptr),
   backward_stacks(nullptr), forward_stacks(nullptr)
@@ -75,7 +75,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   nlocal_max = 0;
   npairs = 0;
   npairspin = 0;
-  
+
   // test nprec
   nprecspin = nlangspin = nsetspin = 0;
 
@@ -221,22 +221,22 @@ void FixNVESpin::init()
   }
 
   // set ptrs for fix precession/spin styles
-  
+
   // loop 1: obtain # of fix precession/spin styles
-  
+
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (strstr(modify->fix[iforce]->style,"precession/spin")) {
       nprecspin++;
     }
   }
-  
+
   // init length of vector of ptrs to precession/spin styles
 
   if (nprecspin > 0) {
     lockprecessionspin = new FixPrecessionSpin*[nprecspin];
   }
-  
+
   // loop 2: fill vector with ptrs to precession/spin styles
 
   int count2 = 0;
@@ -249,26 +249,26 @@ void FixNVESpin::init()
       }
     }
   }
-  
+
   if (count2 != nprecspin)
     error->all(FLERR,"Incorrect number of fix precession/spin");
 
   // set ptrs for fix langevin/spin styles
-  
+
   // loop 1: obtain # of fix langevin/spin styles
-  
+
   for (iforce = 0; iforce < modify->nfix; iforce++) {
     if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
       nlangspin++;
     }
   }
-  
+
   // init length of vector of ptrs to precession/spin styles
 
   if (nlangspin > 0) {
     locklangevinspin = new FixLangevinSpin*[nprecspin];
   }
-  
+
   // loop 2: fill vector with ptrs to precession/spin styles
 
   count2 = 0;
@@ -281,10 +281,10 @@ void FixNVESpin::init()
       }
     }
   }
-  
+
   if (count2 != nlangspin)
     error->all(FLERR,"Incorrect number of fix precession/spin");
-  
+
   // ptrs FixSetForceSpin classes
 
   for (iforce = 0; iforce < modify->nfix; iforce++) {

@@ -63,7 +63,7 @@ class FixPrecessionSpin : public Fix {
   double compute_cubic_energy(double *);
 
   // hexagonal aniso calculations
-  
+
   void compute_hexaniso(double *, double *);
   double compute_hexaniso_energy(double *);
 

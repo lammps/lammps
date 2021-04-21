@@ -65,15 +65,15 @@ friend class PairSpin;
 
   int nlangspin;
   class FixLangevinSpin **locklangevinspin;
-  
+
   // pointers to fix setforce/spin styles
-  
+
   int nsetspin;
   class FixSetForceSpin *locksetforcespin; // to be done
-  
+
   // pointers to fix precession/spin styles
 
-  int nprecspin; 
+  int nprecspin;
   class FixPrecessionSpin **lockprecessionspin;
 
   // pointers to magnetic pair styles

@@ -34,7 +34,7 @@ class FixLangevinSpin : public Fix {
   void init();
   void setup(int);
   void add_tdamping(double *, double *);                 // add transverse damping
-  void add_temperature(int, double *, double *); 
+  void add_temperature(int, double *, double *);
   void compute_single_langevin(int, double *, double *);
 
  protected:

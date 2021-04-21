@@ -297,7 +297,7 @@ TEST_F(GroupTest, Dynamic)
     command("group grow delete");
     command("variable ramp equal step");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(group->ngroup, 4);
+    ASSERT_EQ(group->ngroup, 3);
 
     TEST_FAILURE(".*ERROR: Group dynamic cannot reference itself.*",
                  command("group half dynamic half region top"););

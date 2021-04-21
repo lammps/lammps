@@ -59,9 +59,8 @@
 namespace ReaxFF
 {
   /******************* ENUMERATORS *************************/
-  enum lists { BONDS, THREE_BODIES, HBONDS, FAR_NBRS, LIST_N };
-  enum interactions {TYP_VOID, TYP_BOND, TYP_THREE_BODY,
-    TYP_HBOND, TYP_FAR_NEIGHBOR, TYP_DBO, TYP_DDELTA, TYP_N};
+  enum {BONDS, THREE_BODIES, HBONDS, FAR_NBRS, LIST_N};
+  enum {TYP_BOND, TYP_THREE_BODY, TYP_HBOND, TYP_FAR_NEIGHBOR, TYP_N};
 }
 
 #endif

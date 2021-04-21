@@ -293,16 +293,6 @@ namespace ReaxFF
     far_neighbor_data *ptr;
   };
 
-  struct dDelta_data {
-    int wrt;
-    rvec dVal;
-  };
-
-  struct dbond_data {
-    int wrt;
-    rvec dBO, dBOpi, dBOpi2;
-  };
-
   struct bond_order_data {
     double BO, BO_s, BO_pi, BO_pi2;
     double Cdbo, Cdbopi, Cdbopi2;
@@ -372,11 +362,8 @@ namespace ReaxFF
 
   union list_type
   {
-    void *v;
     three_body_interaction_data *three_body_list;
     bond_data          *bond_list;
-    dbond_data         *dbo_list;
-    dDelta_data        *dDelta_list;
     far_neighbor_data  *far_nbr_list;
     hbond_data         *hbond_list;
   };

@@ -46,11 +46,6 @@ namespace ReaxFF {
     l->type = type;
 
     switch(l->type) {
-    case TYP_VOID:
-      if (l->select.v) sfree(l->error_ptr, l->select.v, "list:v");
-      l->select.v = (void*) smalloc(l->error_ptr, (rc_bigint) num_intrs * sizeof(void*), "list:v");
-      break;
-
     case TYP_THREE_BODY:
       if (l->select.three_body_list) sfree(l->error_ptr, l->select.three_body_list,"list:three_bodies");
       l->select.three_body_list = (three_body_interaction_data*)
@@ -62,18 +57,6 @@ namespace ReaxFF {
       if (l->select.bond_list) sfree(l->error_ptr, l->select.bond_list,"list:bonds");
       l->select.bond_list = (bond_data*)
         smalloc(l->error_ptr, (rc_bigint) num_intrs * sizeof(bond_data), "list:bonds");
-      break;
-
-    case TYP_DBO:
-      if (l->select.dbo_list) sfree(l->error_ptr, l->select.dbo_list,"list:dbonds");
-      l->select.dbo_list = (dbond_data*)
-        smalloc(l->error_ptr, (rc_bigint) num_intrs * sizeof(dbond_data), "list:dbonds");
-      break;
-
-    case TYP_DDELTA:
-      if (l->select.dDelta_list) sfree(l->error_ptr, l->select.dDelta_list,"list:dDeltas");
-      l->select.dDelta_list = (dDelta_data*)
-        smalloc(l->error_ptr, (rc_bigint) num_intrs * sizeof(dDelta_data), "list:dDeltas");
       break;
 
     case TYP_FAR_NEIGHBOR:
@@ -105,10 +88,6 @@ namespace ReaxFF {
     l->end_index = nullptr;
 
     switch(l->type) {
-    case TYP_VOID:
-      sfree(l->error_ptr, l->select.v, "list:v");
-      l->select.v = nullptr;
-      break;
     case TYP_HBOND:
       sfree(l->error_ptr, l->select.hbond_list, "list:hbonds");
       l->select.hbond_list = nullptr;
@@ -120,14 +99,6 @@ namespace ReaxFF {
     case TYP_BOND:
       sfree(l->error_ptr, l->select.bond_list, "list:bonds");
       l->select.bond_list = nullptr;
-      break;
-    case TYP_DBO:
-      sfree(l->error_ptr, l->select.dbo_list, "list:dbos");
-      l->select.dbo_list = nullptr;
-      break;
-    case TYP_DDELTA:
-      sfree(l->error_ptr, l->select.dDelta_list, "list:dDeltas");
-      l->select.dDelta_list = nullptr;
       break;
     case TYP_THREE_BODY:
       sfree(l->error_ptr, l->select.three_body_list, "list:three_bodies");

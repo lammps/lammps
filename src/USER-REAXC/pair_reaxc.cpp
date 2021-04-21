@@ -758,8 +758,6 @@ double PairReaxC::memory_usage()
   bytes += (double)2.0 * api->lists->n * sizeof(int);
   bytes += (double)api->lists->num_intrs * sizeof(three_body_interaction_data);
   bytes += (double)api->lists->num_intrs * sizeof(bond_data);
-  bytes += (double)api->lists->num_intrs * sizeof(dbond_data);
-  bytes += (double)api->lists->num_intrs * sizeof(dDelta_data);
   bytes += (double)api->lists->num_intrs * sizeof(far_neighbor_data);
   bytes += (double)api->lists->num_intrs * sizeof(hbond_data);
 

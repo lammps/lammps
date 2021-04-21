@@ -28,6 +28,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -35,8 +36,6 @@
 #include "random_mars.h"
 #include "respa.h"
 #include "update.h"
-#include "compute.h"
-#include "group.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

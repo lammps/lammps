@@ -79,7 +79,7 @@ void DynamicalMatrix::setup()
 
     //if all then skip communication groupmap population
     if (gcount == atom->natoms)
-        for (bigint i=0; i<atom->natoms; i++)
+        for (bigint i=0; i < atom->natoms; i++)
             groupmap[i] = i;
     else
         create_groupmap();
@@ -179,13 +179,11 @@ void DynamicalMatrix::options(int narg, char **arg)
             if (iarg + 2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
             if (strcmp(arg[iarg+1],"gzip") == 0) {
                 compressed = 1;
-            }
-            else if (strcmp(arg[iarg+1],"yes") == 0) {
+            } else if (strcmp(arg[iarg+1],"yes") == 0) {
                 binaryflag = 1;
             }
             iarg += 2;
-        }
-        else if (strcmp(arg[iarg],"file") == 0) {
+        } else if (strcmp(arg[iarg],"file") == 0) {
             if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
             filename = arg[iarg + 1];
             file_flag = 1;
@@ -194,11 +192,9 @@ void DynamicalMatrix::options(int narg, char **arg)
             if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
             if (strcmp(arg[iarg+1],"yes") == 0) {
                 folded = 1;
-            }
-            else if (strcmp(arg[iarg+1],"no") == 0) {
+            } else if (strcmp(arg[iarg+1],"no") == 0) {
                 folded = 0;
-            }
-            else error->all(FLERR,"Illegal input for dynamical_matrix fold option");
+            } else error->all(FLERR,"Illegal input for dynamical_matrix fold option");
             iarg += 2;
         } else error->all(FLERR,"Illegal dynamical_matrix command");
     }
@@ -294,8 +290,7 @@ void DynamicalMatrix::calculateMatrix()
                         for (int beta=0; beta<3; beta++){
                             dynmat[alpha][(j-1)*3+beta] -= f[local_jdx][beta];
                         }
-                    }
-                    else {
+                    } else {
                         for (int beta=0; beta<3; beta++){
                             dynmat[alpha][gm[j-1]*3+beta] -= f[local_jdx][beta];
                         }
@@ -318,8 +313,7 @@ void DynamicalMatrix::calculateMatrix()
                             dynmat[alpha][(j-1)*3+beta] /= (2 * del * imass);
                             dynmat[alpha][(j-1)*3+beta] *= conversion;
                         }
-                    }
-                    else{
+                    } else {
                         for (int beta=0; beta<3; beta++){
                             dynmat[alpha][gm[j-1]*3+beta] -= -f[local_jdx][beta];
                             dynmat[alpha][gm[j-1]*3+beta] /= (2 * del * imass);
@@ -573,12 +567,12 @@ void DynamicalMatrix::create_groupmap()
     }
 
     //populate arrays for Allgatherv
-    for (int i=0; i<comm->nprocs; i++) {
+    for (int i=0; i < comm->nprocs; i++) {
         recv[i] = 0;
     }
     recv[comm->me] = gid;
     MPI_Allreduce(recv,displs,comm->nprocs,MPI_INT,MPI_SUM,world);
-    for (int i=0; i<comm->nprocs; i++) {
+    for (int i=0; i < comm->nprocs; i++) {
         recv[i]=displs[i];
         if (i>0) displs[i] = displs[i-1]+recv[i-1];
         else displs[i] = 0;
@@ -590,7 +584,7 @@ void DynamicalMatrix::create_groupmap()
 
     //populate member groupmap based on temp groupmap
     bigint j = 0;
-    for (bigint i=1; i<=natoms; i++) {
+    for (bigint i=1; i <= natoms; i++) {
         // flag groupmap contents that are in temp_groupmap
         if (j < gcount && i == temp_groupmap[j])
             groupmap[i-1] = j++;

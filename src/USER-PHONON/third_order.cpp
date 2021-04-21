@@ -26,8 +26,8 @@
 #include "timer.h"
 #include "update.h"
 
-#include <cstring>
 #include <algorithm>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -217,11 +217,9 @@ void ThirdOrder::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
       if (strcmp(arg[iarg+1],"yes") == 0) {
         folded = 1;
-      }
-      else if (strcmp(arg[iarg+1],"no") == 0) {
+      } else if (strcmp(arg[iarg+1],"no") == 0) {
         folded = 0;
-      }
-      else error->all(FLERR,"Illegal input for third_order fold option");
+      } else error->all(FLERR,"Illegal input for third_order fold option");
       iarg += 2;
     } else error->all(FLERR,"Illegal third_order command");
   }
@@ -608,7 +606,7 @@ void ThirdOrder::create_groupmap()
   bigint *temp_groupmap = new bigint[natoms];
 
   //find number of local atoms in the group (final_gid)
-  for (bigint i=1; i<=natoms; i++) {
+  for (bigint i=1; i <= natoms; i++) {
     local_idx = atom->map(i);
     if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit)
       gid += 1; // gid at the end of loop is final_Gid
@@ -618,7 +616,7 @@ void ThirdOrder::create_groupmap()
 
   gid = 0;
   //create a map between global atom id and group atom id for each proc
-  for (bigint i=1; i<=natoms; i++) {
+  for (bigint i=1; i <= natoms; i++) {
     local_idx = atom->map(i);
     if ((local_idx >= 0) && (local_idx < nlocal)
         && (mask[local_idx] & groupbit)) {
@@ -628,12 +626,12 @@ void ThirdOrder::create_groupmap()
   }
 
   //populate arrays for Allgatherv
-  for (int i=0; i<comm->nprocs; i++) {
+  for (int i=0; i < comm->nprocs; i++) {
     recv[i] = 0;
   }
   recv[comm->me] = gid;
   MPI_Allreduce(recv,displs,comm->nprocs,MPI_INT,MPI_SUM,world);
-  for (int i=0; i<comm->nprocs; i++) {
+  for (int i=0; i < comm->nprocs; i++) {
     recv[i]=displs[i];
     if (i>0) displs[i] = displs[i-1]+recv[i-1];
     else displs[i] = 0;
@@ -646,7 +644,7 @@ void ThirdOrder::create_groupmap()
 
   //populate member groupmap based on temp groupmap
   bigint j = 0;
-  for (bigint i=1; i<=natoms; i++) {
+  for (bigint i=1; i <= natoms; i++) {
     // flag groupmap contents that are in temp_groupmap
     if (j < gcount && i == temp_groupmap[j])
       groupmap[i-1] = j++;

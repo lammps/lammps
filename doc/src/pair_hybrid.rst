@@ -452,6 +452,9 @@ the same or else LAMMPS will generate an error.
 Pair style *hybrid/scaled* currently only works for non-accelerated
 pair styles and pair styles from the OPT package.
 
+When using pair styles from the GPU package they must not be listed
+multiple times.  LAMMPS will detect this and abort.
+
 Related commands
 """"""""""""""""
 

@@ -75,17 +75,17 @@ namespace ReaxFF {
         /* set the pointers */
         type_i = system->my_atoms[i].type;
         type_j = system->my_atoms[j].type;
-        sbp_i = &( system->reax_param.sbp[type_i] );
-        sbp_j = &( system->reax_param.sbp[type_j] );
-        twbp = &( system->reax_param.tbp[type_i][type_j] );
-        bo_ij = &( bonds->select.bond_list[pj].bo_data );
+        sbp_i = &(system->reax_param.sbp[type_i]);
+        sbp_j = &(system->reax_param.sbp[type_j]);
+        twbp = &(system->reax_param.tbp[type_i][type_j]);
+        bo_ij = &(bonds->select.bond_list[pj].bo_data);
 
         /* calculate the constants */
         if (bo_ij->BO_s == 0.0) pow_BOs_be2 = 0.0;
-        else pow_BOs_be2 = pow( bo_ij->BO_s, twbp->p_be2 );
-        exp_be12 = exp( twbp->p_be1 * ( 1.0 - pow_BOs_be2 ) );
+        else pow_BOs_be2 = pow(bo_ij->BO_s, twbp->p_be2);
+        exp_be12 = exp(twbp->p_be1 * (1.0 - pow_BOs_be2));
         CEbo = -twbp->De_s * exp_be12 *
-          ( 1.0 - twbp->p_be1 * twbp->p_be2 * pow_BOs_be2 );
+          (1.0 - twbp->p_be1 * twbp->p_be2 * pow_BOs_be2);
 
         /* calculate the Bond Energy */
         data->my_en.e_bond += ebond =
@@ -104,10 +104,10 @@ namespace ReaxFF {
 
         /* Stabilisation terminal triple bond */
         if (bo_ij->BO >= 1.00) {
-          if ( gp37 == 2 ||
+          if (gp37 == 2 ||
                (sbp_i->mass == 12.0000 && sbp_j->mass == 15.9990) ||
                (sbp_j->mass == 12.0000 && sbp_i->mass == 15.9990)) {
-            exphu = exp( -gp7 * SQR(bo_ij->BO - 2.50) );
+            exphu = exp(-gp7 * SQR(bo_ij->BO - 2.50));
             exphua1 = exp(-gp3 * (workspace->total_bond_order[i]-bo_ij->BO));
             exphub1 = exp(-gp3 * (workspace->total_bond_order[j]-bo_ij->BO));
             exphuov = exp(gp4 * (workspace->Delta[i] + workspace->Delta[j]));
@@ -117,7 +117,7 @@ namespace ReaxFF {
             data->my_en.e_bond += estriph;
 
             decobdbo = gp10 * exphu * hulpov * (exphua1 + exphub1) *
-              ( gp3 - 2.0 * gp7 * (bo_ij->BO-2.50) );
+              (gp3 - 2.0 * gp7 * (bo_ij->BO-2.50));
             decobdboua = -gp10 * exphu * hulpov *
               (gp3*exphua1 + 25.0*gp4*exphuov*hulpov*(exphua1+exphub1));
             decobdboub = -gp10 * exphu * hulpov *

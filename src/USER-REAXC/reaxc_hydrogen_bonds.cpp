@@ -67,20 +67,20 @@ namespace ReaxFF {
         type_j     = system->my_atoms[j].type;
         start_j    = Start_Index(j, bonds);
         end_j      = End_Index(j, bonds);
-        hb_start_j = Start_Index( system->my_atoms[j].Hindex, hbonds );
-        hb_end_j   = End_Index( system->my_atoms[j].Hindex, hbonds );
+        hb_start_j = Start_Index(system->my_atoms[j].Hindex, hbonds);
+        hb_end_j   = End_Index(system->my_atoms[j].Hindex, hbonds);
         if (type_j < 0) continue;
 
         top = 0;
         for (pi = start_j; pi < end_j; ++pi)  {
-          pbond_ij = &( bond_list[pi] );
+          pbond_ij = &(bond_list[pi]);
           i = pbond_ij->nbr;
           type_i = system->my_atoms[i].type;
           if (type_i < 0) continue;
           bo_ij = &(pbond_ij->bo_data);
 
-          if ( system->reax_param.sbp[type_i].p_hbond == 2 &&
-               bo_ij->BO >= HB_THRESHOLD )
+          if (system->reax_param.sbp[type_i].p_hbond == 2 &&
+               bo_ij->BO >= HB_THRESHOLD)
             hblist[top++] = pi;
         }
 
@@ -91,36 +91,36 @@ namespace ReaxFF {
           if (type_k < 0) continue;
           nbr_jk = hbond_list[pk].ptr;
           r_jk = nbr_jk->d;
-          rvec_Scale( dvec_jk, hbond_list[pk].scl, nbr_jk->dvec );
+          rvec_Scale(dvec_jk, hbond_list[pk].scl, nbr_jk->dvec);
 
           for (itr = 0; itr < top; ++itr) {
             pi = hblist[itr];
-            pbond_ij = &( bonds->select.bond_list[pi] );
+            pbond_ij = &(bonds->select.bond_list[pi]);
             i = pbond_ij->nbr;
 
             if (system->my_atoms[i].orig_id != system->my_atoms[k].orig_id) {
               bo_ij = &(pbond_ij->bo_data);
               type_i = system->my_atoms[i].type;
               if (type_i < 0) continue;
-              hbp = &(system->reax_param.hbp[ type_i ][ type_j ][ type_k ]);
+              hbp = &(system->reax_param.hbp[type_i][type_j][type_k]);
               if (hbp->r0_hb <= 0.0) continue;
               ++num_hb_intrs;
 
-              Calculate_Theta( pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,
-                               &theta, &cos_theta );
+              Calculate_Theta(pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,
+                               &theta, &cos_theta);
               /* the derivative of cos(theta) */
-              Calculate_dCos_Theta( pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,
+              Calculate_dCos_Theta(pbond_ij->dvec, pbond_ij->d, dvec_jk, r_jk,
                                     &dcos_theta_di, &dcos_theta_dj,
-                                    &dcos_theta_dk );
+                                    &dcos_theta_dk);
 
               /* hyrogen bond energy*/
-              sin_theta2 = sin( theta/2.0 );
+              sin_theta2 = sin(theta/2.0);
               sin_xhz4 = SQR(sin_theta2);
               sin_xhz4 *= sin_xhz4;
-              cos_xhz1 = ( 1.0 - cos_theta );
-              exp_hb2 = exp( -hbp->p_hb2 * bo_ij->BO );
-              exp_hb3 = exp( -hbp->p_hb3 * ( hbp->r0_hb / r_jk +
-                                             r_jk / hbp->r0_hb - 2.0 ) );
+              cos_xhz1 = (1.0 - cos_theta);
+              exp_hb2 = exp(-hbp->p_hb2 * bo_ij->BO);
+              exp_hb3 = exp(-hbp->p_hb3 * (hbp->r0_hb / r_jk +
+                                             r_jk / hbp->r0_hb - 2.0));
 
               data->my_en.e_hb += e_hb =
                 hbp->p_hb1 * (1.0 - exp_hb2) * exp_hb3 * sin_xhz4;
@@ -135,36 +135,36 @@ namespace ReaxFF {
 
               if (control->virial == 0) {
                 // dcos terms
-                rvec_ScaledAdd( workspace->f[i], +CEhb2, dcos_theta_di );
-                rvec_ScaledAdd( workspace->f[j], +CEhb2, dcos_theta_dj );
-                rvec_ScaledAdd( workspace->f[k], +CEhb2, dcos_theta_dk );
+                rvec_ScaledAdd(workspace->f[i], +CEhb2, dcos_theta_di);
+                rvec_ScaledAdd(workspace->f[j], +CEhb2, dcos_theta_dj);
+                rvec_ScaledAdd(workspace->f[k], +CEhb2, dcos_theta_dk);
                 // dr terms
-                rvec_ScaledAdd( workspace->f[j], -CEhb3/r_jk, dvec_jk );
-                rvec_ScaledAdd( workspace->f[k], +CEhb3/r_jk, dvec_jk );
+                rvec_ScaledAdd(workspace->f[j], -CEhb3/r_jk, dvec_jk);
+                rvec_ScaledAdd(workspace->f[k], +CEhb3/r_jk, dvec_jk);
               }
               else {
-                rvec_Scale( force, +CEhb2, dcos_theta_di ); // dcos terms
-                rvec_Add( workspace->f[i], force );
+                rvec_Scale(force, +CEhb2, dcos_theta_di); // dcos terms
+                rvec_Add(workspace->f[i], force);
 
-                rvec_ScaledAdd( workspace->f[j], +CEhb2, dcos_theta_dj );
+                rvec_ScaledAdd(workspace->f[j], +CEhb2, dcos_theta_dj);
 
-                ivec_Scale( rel_jk, hbond_list[pk].scl, nbr_jk->rel_box );
-                rvec_Scale( force, +CEhb2, dcos_theta_dk );
-                rvec_Add( workspace->f[k], force );
+                ivec_Scale(rel_jk, hbond_list[pk].scl, nbr_jk->rel_box);
+                rvec_Scale(force, +CEhb2, dcos_theta_dk);
+                rvec_Add(workspace->f[k], force);
 
                 // dr terms
-                rvec_ScaledAdd( workspace->f[j], -CEhb3/r_jk, dvec_jk );
+                rvec_ScaledAdd(workspace->f[j], -CEhb3/r_jk, dvec_jk);
 
-                rvec_Scale( force, CEhb3/r_jk, dvec_jk );
-                rvec_Add( workspace->f[k], force );
+                rvec_Scale(force, CEhb3/r_jk, dvec_jk);
+                rvec_Add(workspace->f[k], force);
               }
 
               /* tally into per-atom virials */
               if (system->pair_ptr->vflag_atom || system->pair_ptr->evflag) {
-                rvec_ScaledSum( delij, 1., system->my_atoms[j].x,
-                                -1., system->my_atoms[i].x );
-                rvec_ScaledSum( delkj, 1., system->my_atoms[j].x,
-                                -1., system->my_atoms[k].x );
+                rvec_ScaledSum(delij, 1., system->my_atoms[j].x,
+                                -1., system->my_atoms[i].x);
+                rvec_ScaledSum(delkj, 1., system->my_atoms[j].x,
+                                -1., system->my_atoms[k].x);
 
                 rvec_Scale(fi_tmp, CEhb2, dcos_theta_di);
                 rvec_Scale(fk_tmp, CEhb2, dcos_theta_dk);

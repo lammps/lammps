@@ -266,7 +266,7 @@ void FixQEqDynamic::unpack_forward_comm(int n, int first, double *buf)
 
   if (pack_flag == 1)
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if ( pack_flag == 2)
+  else if (pack_flag == 2)
     for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 

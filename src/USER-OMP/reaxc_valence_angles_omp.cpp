@@ -276,8 +276,8 @@ namespace ReaxFF {
 
         my_offset = _my_offset[j];
 
-        p_val3 = system->reax_param.sbp[ type_j ].p_val3;
-        p_val5 = system->reax_param.sbp[ type_j ].p_val5;
+        p_val3 = system->reax_param.sbp[type_j].p_val3;
+        p_val5 = system->reax_param.sbp[type_j].p_val5;
 
         SBOp = 0, prod_SBO = 1;
         for (t = start_j; t < end_j; ++t) {
@@ -390,7 +390,7 @@ namespace ReaxFF {
                   (bo_ij->BO > control->thb_cut) &&
                   (bo_jk->BO > control->thb_cut) &&
                   (bo_ij->BO * bo_jk->BO > control->thb_cutsq)) {
-                thbh = &(system->reax_param.thbp[ type_i ][ type_j ][ type_k ]);
+                thbh = &(system->reax_param.thbp[type_i][type_j][type_k]);
 
                 for (cnt = 0; cnt < thbh->cnt; ++cnt) {
 
@@ -457,7 +457,7 @@ namespace ReaxFF {
                     exp_pen2ij = exp(-p_pen2 * SQR(BOA_ij - 2.0));
                     exp_pen2jk = exp(-p_pen2 * SQR(BOA_jk - 2.0));
                     exp_pen3 = exp(-p_pen3 * workspace->Delta[j]);
-                    exp_pen4 = exp( p_pen4 * workspace->Delta[j]);
+                    exp_pen4 = exp(p_pen4 * workspace->Delta[j]);
                     trm_pen34 = 1.0 + exp_pen3 + exp_pen4;
                     f9_Dj = (2.0 + exp_pen3) / trm_pen34;
                     Cf9j = (-p_pen3 * exp_pen3 * trm_pen34 -

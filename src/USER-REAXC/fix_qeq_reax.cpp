@@ -593,8 +593,8 @@ void FixQEqReax::init_matvec()
     if (atom->mask[i] & groupbit) {
 
       /* init pre-conditioner for H and init solution vectors */
-      Hdia_inv[i] = 1. / eta[ atom->type[i] ];
-      b_s[i]      = -chi[ atom->type[i] ];
+      Hdia_inv[i] = 1. / eta[atom->type[i]];
+      b_s[i]      = -chi[atom->type[i]];
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for s & t from previous solutions */
@@ -761,7 +761,7 @@ void FixQEqReax::sparse_matvec(sparse_matrix *A, double *x, double *b)
   for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
-      b[i] = eta[ atom->type[i] ] * x[i];
+      b[i] = eta[atom->type[i]] * x[i];
   }
 
   for (ii = nn; ii < NN; ++ii) {
@@ -835,7 +835,7 @@ int FixQEqReax::pack_forward_comm(int n, int *list, double *buf,
     m = 0;
     for (int i = 0; i < n; i++) {
       int j = 2 * list[i];
-      buf[m++] = d[j  ];
+      buf[m++] = d[j];
       buf[m++] = d[j+1];
     }
     return m;
@@ -862,7 +862,7 @@ void FixQEqReax::unpack_forward_comm(int n, int first, double *buf)
     m = 0;
     for (i = first; i < last; i++) {
       int j = 2 * i;
-      d[j  ] = buf[m++];
+      d[j] = buf[m++];
       d[j+1] = buf[m++];
     }
   }
@@ -878,7 +878,7 @@ int FixQEqReax::pack_reverse_comm(int n, int first, double *buf)
     int last = first + n;
     for (i = first; i < last; i++) {
       int indxI = 2 * i;
-      buf[m++] = q[indxI  ];
+      buf[m++] = q[indxI];
       buf[m++] = q[indxI+1];
     }
     return m;
@@ -896,7 +896,7 @@ void FixQEqReax::unpack_reverse_comm(int n, int *list, double *buf)
     int m = 0;
     for (int i = 0; i < n; i++) {
       int indxI = 2 * list[i];
-      q[indxI  ] += buf[m++];
+      q[indxI] += buf[m++];
       q[indxI+1] += buf[m++];
     }
   } else {

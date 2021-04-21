@@ -58,7 +58,7 @@ namespace ReaxFF {
     nbr_j = &(bonds->select.bond_list[pj]);
     j = nbr_j->nbr;
     bo_ij = &(nbr_j->bo_data);
-    bo_ji = &(bonds->select.bond_list[ nbr_j->sym_index ].bo_data);
+    bo_ji = &(bonds->select.bond_list[nbr_j->sym_index].bo_data);
 
     double c = bo_ij->Cdbo + bo_ji->Cdbo;
     coef.C1dbo = bo_ij->C1dbo * c;
@@ -83,19 +83,19 @@ namespace ReaxFF {
     coef.C3dDelta = bo_ij->C3dbo * c;
 
     c = (coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2);
-    rvec_Scale(     temp, c,    bo_ij->dBOp );
+    rvec_Scale(    temp, c,    bo_ij->dBOp);
 
     c = (coef.C2dbo + coef.C2dDelta + coef.C3dbopi + coef.C3dbopi2);
-    rvec_ScaledAdd( temp, c,    workspace->dDeltap_self[i] );
+    rvec_ScaledAdd(temp, c,    workspace->dDeltap_self[i]);
 
-    rvec_ScaledAdd( temp, coef.C1dbopi,  bo_ij->dln_BOp_pi );
-    rvec_ScaledAdd( temp, coef.C1dbopi2, bo_ij->dln_BOp_pi2 );
+    rvec_ScaledAdd(temp, coef.C1dbopi,  bo_ij->dln_BOp_pi);
+    rvec_ScaledAdd(temp, coef.C1dbopi2, bo_ij->dln_BOp_pi2);
 
-    rvec_Add(workspace->forceReduction[reductionOffset+i],temp );
+    rvec_Add(workspace->forceReduction[reductionOffset+i],temp);
 
     if (system->pair_ptr->vflag_atom) {
       rvec_Scale(fi_tmp, -1.0, temp);
-      rvec_ScaledSum( delij, 1., system->my_atoms[i].x,-1., system->my_atoms[j].x );
+      rvec_ScaledSum(delij, 1., system->my_atoms[i].x,-1., system->my_atoms[j].x);
 
       pair_reax_ptr->ev_tally_xyz_thr_proxy(system->pair_ptr,i,j,system->N,0,0,0,
                                             fi_tmp[0],fi_tmp[1],fi_tmp[2],
@@ -103,20 +103,20 @@ namespace ReaxFF {
     }
 
     c = -(coef.C1dbo + coef.C1dDelta + coef.C2dbopi + coef.C2dbopi2);
-    rvec_Scale(     temp, c,    bo_ij->dBOp );
+    rvec_Scale(    temp, c,    bo_ij->dBOp);
 
     c = (coef.C3dbo + coef.C3dDelta + coef.C4dbopi + coef.C4dbopi2);
-    rvec_ScaledAdd( temp,  c,    workspace->dDeltap_self[j] );
+    rvec_ScaledAdd(temp,  c,    workspace->dDeltap_self[j]);
 
-    rvec_ScaledAdd( temp, -coef.C1dbopi,  bo_ij->dln_BOp_pi );
-    rvec_ScaledAdd( temp, -coef.C1dbopi2, bo_ij->dln_BOp_pi2 );
+    rvec_ScaledAdd(temp, -coef.C1dbopi,  bo_ij->dln_BOp_pi);
+    rvec_ScaledAdd(temp, -coef.C1dbopi2, bo_ij->dln_BOp_pi2);
 
 
-    rvec_Add(workspace->forceReduction[reductionOffset+j],temp );
+    rvec_Add(workspace->forceReduction[reductionOffset+j],temp);
 
     if (system->pair_ptr->vflag_atom) {
       rvec_Scale(fj_tmp, -1.0, temp);
-      rvec_ScaledSum( delji, 1., system->my_atoms[j].x,-1., system->my_atoms[i].x );
+      rvec_ScaledSum(delji, 1., system->my_atoms[j].x,-1., system->my_atoms[i].x);
 
       pair_reax_ptr->ev_tally_xyz_thr_proxy(system->pair_ptr,j,i,system->N,0,0,0,
                                             fj_tmp[0],fj_tmp[1],fj_tmp[2],
@@ -128,15 +128,15 @@ namespace ReaxFF {
       nbr_k = &(bonds->select.bond_list[pk]);
       k = nbr_k->nbr;
 
-      // rvec_Scale(     temp, -coef.C2dbo,    nbr_k->bo_data.dBOp);
-      // rvec_ScaledAdd( temp, -coef.C2dDelta, nbr_k->bo_data.dBOp);
-      // rvec_ScaledAdd( temp, -coef.C3dbopi,  nbr_k->bo_data.dBOp);
-      // rvec_ScaledAdd( temp, -coef.C3dbopi2, nbr_k->bo_data.dBOp);
+      // rvec_Scale(    temp, -coef.C2dbo,    nbr_k->bo_data.dBOp);
+      // rvec_ScaledAdd(temp, -coef.C2dDelta, nbr_k->bo_data.dBOp);
+      // rvec_ScaledAdd(temp, -coef.C3dbopi,  nbr_k->bo_data.dBOp);
+      // rvec_ScaledAdd(temp, -coef.C3dbopi2, nbr_k->bo_data.dBOp);
 
       const double c = -(coef.C2dbo + coef.C2dDelta + coef.C3dbopi + coef.C3dbopi2);
       rvec_Scale(temp, c, nbr_k->bo_data.dBOp);
 
-      rvec_Add(workspace->forceReduction[reductionOffset+k],temp );
+      rvec_Add(workspace->forceReduction[reductionOffset+k],temp);
 
       if (system->pair_ptr->vflag_atom) {
         rvec_Scale(fk_tmp, -1.0, temp);
@@ -158,15 +158,15 @@ namespace ReaxFF {
       nbr_k = &(bonds->select.bond_list[pk]);
       k = nbr_k->nbr;
 
-      // rvec_Scale(     temp, -coef.C3dbo,    nbr_k->bo_data.dBOp );
-      // rvec_ScaledAdd( temp, -coef.C3dDelta, nbr_k->bo_data.dBOp);
-      // rvec_ScaledAdd( temp, -coef.C4dbopi,  nbr_k->bo_data.dBOp);
-      // rvec_ScaledAdd( temp, -coef.C4dbopi2, nbr_k->bo_data.dBOp);
+      // rvec_Scale(    temp, -coef.C3dbo,    nbr_k->bo_data.dBOp);
+      // rvec_ScaledAdd(temp, -coef.C3dDelta, nbr_k->bo_data.dBOp);
+      // rvec_ScaledAdd(temp, -coef.C4dbopi,  nbr_k->bo_data.dBOp);
+      // rvec_ScaledAdd(temp, -coef.C4dbopi2, nbr_k->bo_data.dBOp);
 
       const double c = -(coef.C3dbo + coef.C3dDelta + coef.C4dbopi + coef.C4dbopi2);
       rvec_Scale(temp, c, nbr_k->bo_data.dBOp);
 
-      rvec_Add(workspace->forceReduction[reductionOffset+k],temp );
+      rvec_Add(workspace->forceReduction[reductionOffset+k],temp);
 
       if (system->pair_ptr->vflag_atom) {
         rvec_Scale(fk_tmp, -1.0, temp);
@@ -203,7 +203,7 @@ namespace ReaxFF {
     nbr_j = &(bonds->select.bond_list[pj]);
     j = nbr_j->nbr;
     bo_ij = &(nbr_j->bo_data);
-    bo_ji = &(bonds->select.bond_list[ nbr_j->sym_index ].bo_data);
+    bo_ji = &(bonds->select.bond_list[nbr_j->sym_index].bo_data);
 
     coef.C1dbo = bo_ij->C1dbo * (bo_ij->Cdbo + bo_ji->Cdbo);
     coef.C2dbo = bo_ij->C2dbo * (bo_ij->Cdbo + bo_ji->Cdbo);
@@ -238,59 +238,59 @@ namespace ReaxFF {
       rvec_ScaledAdd(temp, -coef.C3dbopi2, nbr_k->bo_data.dBOp);/*3rd, dBOpi2*/
 
       /* force */
-      rvec_Add(workspace->forceReduction[reductionOffset+k],temp );
+      rvec_Add(workspace->forceReduction[reductionOffset+k],temp);
     }
 
     /* then atom i itself  */
-    rvec_Scale( temp, coef.C1dbo, bo_ij->dBOp );                      /*1st,dBO*/
-    rvec_ScaledAdd( temp, coef.C2dbo, workspace->dDeltap_self[i] );   /*2nd,dBO*/
-    rvec_ScaledAdd( temp, coef.C1dDelta, bo_ij->dBOp );               /*1st,dBO*/
-    rvec_ScaledAdd( temp, coef.C2dDelta, workspace->dDeltap_self[i] );/*2nd,dBO*/
-    rvec_ScaledAdd( temp, coef.C1dbopi, bo_ij->dln_BOp_pi );        /*1st,dBOpi*/
-    rvec_ScaledAdd( temp, coef.C2dbopi, bo_ij->dBOp );              /*2nd,dBOpi*/
-    rvec_ScaledAdd( temp, coef.C3dbopi, workspace->dDeltap_self[i]);/*3rd,dBOpi*/
+    rvec_Scale(temp, coef.C1dbo, bo_ij->dBOp);                      /*1st,dBO*/
+    rvec_ScaledAdd(temp, coef.C2dbo, workspace->dDeltap_self[i]);   /*2nd,dBO*/
+    rvec_ScaledAdd(temp, coef.C1dDelta, bo_ij->dBOp);               /*1st,dBO*/
+    rvec_ScaledAdd(temp, coef.C2dDelta, workspace->dDeltap_self[i]);/*2nd,dBO*/
+    rvec_ScaledAdd(temp, coef.C1dbopi, bo_ij->dln_BOp_pi);        /*1st,dBOpi*/
+    rvec_ScaledAdd(temp, coef.C2dbopi, bo_ij->dBOp);              /*2nd,dBOpi*/
+    rvec_ScaledAdd(temp, coef.C3dbopi, workspace->dDeltap_self[i]);/*3rd,dBOpi*/
 
-    rvec_ScaledAdd( temp, coef.C1dbopi2, bo_ij->dln_BOp_pi2 );  /*1st,dBO_pi2*/
-    rvec_ScaledAdd( temp, coef.C2dbopi2, bo_ij->dBOp );         /*2nd,dBO_pi2*/
-    rvec_ScaledAdd( temp, coef.C3dbopi2, workspace->dDeltap_self[i] );/*3rd*/
+    rvec_ScaledAdd(temp, coef.C1dbopi2, bo_ij->dln_BOp_pi2);  /*1st,dBO_pi2*/
+    rvec_ScaledAdd(temp, coef.C2dbopi2, bo_ij->dBOp);         /*2nd,dBO_pi2*/
+    rvec_ScaledAdd(temp, coef.C3dbopi2, workspace->dDeltap_self[i]);/*3rd*/
 
     /* force */
-    rvec_Add(workspace->forceReduction[reductionOffset+i],temp );
+    rvec_Add(workspace->forceReduction[reductionOffset+i],temp);
 
     for (pk = Start_Index(j, bonds); pk < End_Index(j, bonds); ++pk) {
       nbr_k = &(bonds->select.bond_list[pk]);
       k = nbr_k->nbr;
 
-      rvec_Scale( temp, -coef.C3dbo, nbr_k->bo_data.dBOp );      /*3rd,dBO*/
-      rvec_ScaledAdd( temp, -coef.C3dDelta, nbr_k->bo_data.dBOp);/*dDelta*/
-      rvec_ScaledAdd( temp, -coef.C4dbopi, nbr_k->bo_data.dBOp); /*4th,dBOpi*/
-      rvec_ScaledAdd( temp, -coef.C4dbopi2, nbr_k->bo_data.dBOp);/*4th,dBOpi2*/
+      rvec_Scale(temp, -coef.C3dbo, nbr_k->bo_data.dBOp);      /*3rd,dBO*/
+      rvec_ScaledAdd(temp, -coef.C3dDelta, nbr_k->bo_data.dBOp);/*dDelta*/
+      rvec_ScaledAdd(temp, -coef.C4dbopi, nbr_k->bo_data.dBOp); /*4th,dBOpi*/
+      rvec_ScaledAdd(temp, -coef.C4dbopi2, nbr_k->bo_data.dBOp);/*4th,dBOpi2*/
 
       /* force */
-      rvec_Add(workspace->forceReduction[reductionOffset+k],temp );
+      rvec_Add(workspace->forceReduction[reductionOffset+k],temp);
     }
 
     /* then atom j itself */
-    rvec_Scale( temp, -coef.C1dbo, bo_ij->dBOp );                    /*1st, dBO*/
-    rvec_ScaledAdd( temp, coef.C3dbo, workspace->dDeltap_self[j] );  /*2nd, dBO*/
-    rvec_ScaledAdd( temp, -coef.C1dDelta, bo_ij->dBOp );             /*1st, dBO*/
-    rvec_ScaledAdd( temp, coef.C3dDelta, workspace->dDeltap_self[j]);/*2nd, dBO*/
+    rvec_Scale(temp, -coef.C1dbo, bo_ij->dBOp);                    /*1st, dBO*/
+    rvec_ScaledAdd(temp, coef.C3dbo, workspace->dDeltap_self[j]);  /*2nd, dBO*/
+    rvec_ScaledAdd(temp, -coef.C1dDelta, bo_ij->dBOp);             /*1st, dBO*/
+    rvec_ScaledAdd(temp, coef.C3dDelta, workspace->dDeltap_self[j]);/*2nd, dBO*/
 
-    rvec_ScaledAdd( temp, -coef.C1dbopi, bo_ij->dln_BOp_pi );       /*1st,dBOpi*/
-    rvec_ScaledAdd( temp, -coef.C2dbopi, bo_ij->dBOp );             /*2nd,dBOpi*/
-    rvec_ScaledAdd( temp, coef.C4dbopi, workspace->dDeltap_self[j]);/*3rd,dBOpi*/
+    rvec_ScaledAdd(temp, -coef.C1dbopi, bo_ij->dln_BOp_pi);       /*1st,dBOpi*/
+    rvec_ScaledAdd(temp, -coef.C2dbopi, bo_ij->dBOp);             /*2nd,dBOpi*/
+    rvec_ScaledAdd(temp, coef.C4dbopi, workspace->dDeltap_self[j]);/*3rd,dBOpi*/
 
-    rvec_ScaledAdd( temp, -coef.C1dbopi2, bo_ij->dln_BOp_pi2 );    /*1st,dBOpi2*/
-    rvec_ScaledAdd( temp, -coef.C2dbopi2, bo_ij->dBOp );           /*2nd,dBOpi2*/
-    rvec_ScaledAdd( temp,coef.C4dbopi2,workspace->dDeltap_self[j]);/*3rd,dBOpi2*/
+    rvec_ScaledAdd(temp, -coef.C1dbopi2, bo_ij->dln_BOp_pi2);    /*1st,dBOpi2*/
+    rvec_ScaledAdd(temp, -coef.C2dbopi2, bo_ij->dBOp);           /*2nd,dBOpi2*/
+    rvec_ScaledAdd(temp,coef.C4dbopi2,workspace->dDeltap_self[j]);/*3rd,dBOpi2*/
 
     /* force */
-    rvec_Add(workspace->forceReduction[reductionOffset+j],temp );
+    rvec_Add(workspace->forceReduction[reductionOffset+j],temp);
   }
 
 /* ---------------------------------------------------------------------- */
 
-  int BOp_OMP( storage * /* workspace */, reax_list *bonds, double bo_cut,
+  int BOp_OMP(storage * /* workspace */, reax_list *bonds, double bo_cut,
                int i, int btop_i, far_neighbor_data *nbr_pj,
                single_body_parameters * /* sbp_i */, single_body_parameters * /* sbp_j */,
                two_body_parameters *twbp,
@@ -309,24 +309,24 @@ namespace ReaxFF {
     /* Initially BO values are the uncorrected ones, page 1 */
 
     /****** bonds i-j and j-i ******/
-    ibond = &( bonds->select.bond_list[btop_i] );
-    jbond = &( bonds->select.bond_list[btop_j] );
+    ibond = &(bonds->select.bond_list[btop_i]);
+    jbond = &(bonds->select.bond_list[btop_j]);
 
     ibond->nbr = j;
     jbond->nbr = i;
     ibond->d = nbr_pj->d;
     jbond->d = nbr_pj->d;
-    rvec_Copy( ibond->dvec, nbr_pj->dvec );
-    rvec_Scale( jbond->dvec, -1, nbr_pj->dvec );
-    ivec_Copy( ibond->rel_box, nbr_pj->rel_box );
-    ivec_Scale( jbond->rel_box, -1, nbr_pj->rel_box );
+    rvec_Copy(ibond->dvec, nbr_pj->dvec);
+    rvec_Scale(jbond->dvec, -1, nbr_pj->dvec);
+    ivec_Copy(ibond->rel_box, nbr_pj->rel_box);
+    ivec_Scale(jbond->rel_box, -1, nbr_pj->rel_box);
     ibond->dbond_index = btop_i;
     jbond->dbond_index = btop_i;
     ibond->sym_index = btop_j;
     jbond->sym_index = btop_i;
 
-    bo_ij = &( ibond->bo_data );
-    bo_ji = &( jbond->bo_data );
+    bo_ij = &(ibond->bo_data);
+    bo_ji = &(jbond->bo_data);
     bo_ji->BO     = bo_ij->BO     = BO;
     bo_ji->BO_s   = bo_ij->BO_s   = BO_s;
     bo_ji->BO_pi  = bo_ij->BO_pi  = BO_pi;
@@ -344,14 +344,14 @@ namespace ReaxFF {
     rvec_Scale(bo_ij->dln_BOp_pi2,
                -bo_ij->BO_pi2*Cln_BOp_pi2,ibond->dvec);
     rvec_Scale(bo_ji->dln_BOp_s,   -1., bo_ij->dln_BOp_s);
-    rvec_Scale(bo_ji->dln_BOp_pi,  -1., bo_ij->dln_BOp_pi );
-    rvec_Scale(bo_ji->dln_BOp_pi2, -1., bo_ij->dln_BOp_pi2 );
+    rvec_Scale(bo_ji->dln_BOp_pi,  -1., bo_ij->dln_BOp_pi);
+    rvec_Scale(bo_ji->dln_BOp_pi2, -1., bo_ij->dln_BOp_pi2);
 
-    rvec_Scale( bo_ij->dBOp,
+    rvec_Scale(bo_ij->dBOp,
                 -(bo_ij->BO_s * Cln_BOp_s +
                   bo_ij->BO_pi * Cln_BOp_pi +
-                  bo_ij->BO_pi2 * Cln_BOp_pi2), ibond->dvec );
-    rvec_Scale( bo_ji->dBOp, -1., bo_ij->dBOp );
+                  bo_ij->BO_pi2 * Cln_BOp_pi2), ibond->dvec);
+    rvec_Scale(bo_ji->dBOp, -1., bo_ij->dBOp);
 
     bo_ij->BO_s -= bo_cut;
     bo_ij->BO   -= bo_cut;
@@ -366,7 +366,7 @@ namespace ReaxFF {
 
 /* ---------------------------------------------------------------------- */
 
-  void BOOMP( reax_system *system, storage *workspace, reax_list **lists)
+  void BOOMP(reax_system *system, storage *workspace, reax_list **lists)
   {
     double p_lp1 = system->reax_param.gp.l[15];
     double p_boc1 = system->reax_param.gp.l[0];
@@ -428,10 +428,10 @@ namespace ReaxFF {
           j = bonds->select.bond_list[pj].nbr;
           type_j = system->my_atoms[j].type;
           if (type_j < 0) continue;
-          bo_ij = &( bonds->select.bond_list[pj].bo_data );
+          bo_ij = &(bonds->select.bond_list[pj].bo_data);
 
           if (i < j || workspace->bond_mark[j] > 3) {
-            twbp = &( system->reax_param.tbp[type_i][type_j] );
+            twbp = &(system->reax_param.tbp[type_i][type_j]);
 
             if (twbp->ovc < 0.001 && twbp->v13cor < 0.001) {
               bo_ij->C1dbo = 1.000000;
@@ -456,38 +456,38 @@ namespace ReaxFF {
               /* on page 1 */
               if (twbp->ovc >= 0.001) {
                 /* Correction for overcoordination */
-                exp_p1i = exp( -p_boc1 * Deltap_i );
-                exp_p2i = exp( -p_boc2 * Deltap_i );
-                exp_p1j = exp( -p_boc1 * Deltap_j );
-                exp_p2j = exp( -p_boc2 * Deltap_j );
+                exp_p1i = exp(-p_boc1 * Deltap_i);
+                exp_p2i = exp(-p_boc2 * Deltap_i);
+                exp_p1j = exp(-p_boc1 * Deltap_j);
+                exp_p2j = exp(-p_boc2 * Deltap_j);
 
                 f2 = exp_p1i + exp_p1j;
-                f3 = -1.0 / p_boc2 * log( 0.5 * ( exp_p2i  + exp_p2j ) );
-                f1 = 0.5 * ( ( val_i + f2 )/( val_i + f2 + f3 ) +
-                             ( val_j + f2 )/( val_j + f2 + f3 ) );
+                f3 = -1.0 / p_boc2 * log(0.5 * (exp_p2i  + exp_p2j));
+                f1 = 0.5 * ((val_i + f2)/(val_i + f2 + f3) +
+                             (val_j + f2)/(val_j + f2 + f3));
 
                 /* Now come the derivates */
                 /* Bond Order pages 5-7, derivative of f1 */
                 temp = f2 + f3;
                 u1_ij = val_i + temp;
                 u1_ji = val_j + temp;
-                Cf1A_ij = 0.5 * f3 * (1.0 / SQR( u1_ij ) +
-                                      1.0 / SQR( u1_ji ));
-                Cf1B_ij = -0.5 * (( u1_ij - f3 ) / SQR( u1_ij ) +
-                                  ( u1_ji - f3 ) / SQR( u1_ji ));
+                Cf1A_ij = 0.5 * f3 * (1.0 / SQR(u1_ij) +
+                                      1.0 / SQR(u1_ji));
+                Cf1B_ij = -0.5 * ((u1_ij - f3) / SQR(u1_ij) +
+                                  (u1_ji - f3) / SQR(u1_ji));
 
-                Cf1_ij = 0.50 * ( -p_boc1 * exp_p1i / u1_ij -
+                Cf1_ij = 0.50 * (-p_boc1 * exp_p1i / u1_ij -
                                   ((val_i+f2) / SQR(u1_ij)) *
-                                  ( -p_boc1 * exp_p1i +
-                                    exp_p2i / ( exp_p2i + exp_p2j ) ) +
+                                  (-p_boc1 * exp_p1i +
+                                    exp_p2i / (exp_p2i + exp_p2j)) +
                                   -p_boc1 * exp_p1i / u1_ji -
                                   ((val_j+f2) / SQR(u1_ji)) *
-                                  ( -p_boc1 * exp_p1i +
-                                    exp_p2i / ( exp_p2i + exp_p2j ) ));
+                                  (-p_boc1 * exp_p1i +
+                                    exp_p2i / (exp_p2i + exp_p2j)));
 
 
                 Cf1_ji = -Cf1A_ij * p_boc1 * exp_p1j +
-                  Cf1B_ij * exp_p2j / ( exp_p2i + exp_p2j );
+                  Cf1B_ij * exp_p2j / (exp_p2i + exp_p2j);
               } else {
                 /* No overcoordination correction! */
                 f1 = 1.0;
@@ -496,9 +496,9 @@ namespace ReaxFF {
 
               if (twbp->v13cor >= 0.001) {
                 /* Correction for 1-3 bond orders */
-                exp_f4 =exp(-(twbp->p_boc4 * SQR( bo_ij->BO ) -
+                exp_f4 =exp(-(twbp->p_boc4 * SQR(bo_ij->BO) -
                               Deltap_boc_i) * twbp->p_boc3 + twbp->p_boc5);
-                exp_f5 =exp(-(twbp->p_boc4 * SQR( bo_ij->BO ) -
+                exp_f5 =exp(-(twbp->p_boc4 * SQR(bo_ij->BO) -
                               Deltap_boc_j) * twbp->p_boc3 + twbp->p_boc5);
 
                 f4 = 1. / (1. + exp_f4);
@@ -526,7 +526,7 @@ namespace ReaxFF {
               bo_ij->BO    = bo_ij->BO    * A0_ij;
               bo_ij->BO_pi = bo_ij->BO_pi * A0_ij *f1;
               bo_ij->BO_pi2= bo_ij->BO_pi2* A0_ij *f1;
-              bo_ij->BO_s  = bo_ij->BO - ( bo_ij->BO_pi + bo_ij->BO_pi2 );
+              bo_ij->BO_s  = bo_ij->BO - (bo_ij->BO_pi + bo_ij->BO_pi2);
 
               bo_ij->C1dbo = A0_ij + bo_ij->BO * A1_ij;
               bo_ij->C2dbo = bo_ij->BO * A2_ij;
@@ -585,8 +585,8 @@ namespace ReaxFF {
                everything else is set in uncorrected_bo calculations */
             sym_index = bonds->select.bond_list[pj].sym_index;
 
-            bo_ij = &( bonds->select.bond_list[pj].bo_data );
-            bo_ji = &(bonds->select.bond_list[ sym_index ].bo_data);
+            bo_ij = &(bonds->select.bond_list[pj].bo_data);
+            bo_ji = &(bonds->select.bond_list[sym_index].bo_data);
             bo_ij->BO = bo_ji->BO;
             bo_ij->BO_s = bo_ji->BO_s;
             bo_ij->BO_pi = bo_ji->BO_pi;
@@ -612,7 +612,7 @@ namespace ReaxFF {
       for (j = 0; j < system->N; ++j) {
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
-        sbp_j = &(system->reax_param.sbp[ type_j ]);
+        sbp_j = &(system->reax_param.sbp[type_j]);
 
         workspace->Delta[j] = workspace->total_bond_order[j] - sbp_j->valency;
         workspace->Delta_e[j] = workspace->total_bond_order[j] - sbp_j->valency_e;

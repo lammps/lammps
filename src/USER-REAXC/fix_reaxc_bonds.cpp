@@ -47,7 +47,7 @@ FixReaxCBonds::FixReaxCBonds(LAMMPS *lmp, int narg, char **arg) :
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
-  if (nevery <= 0 )
+  if (nevery <= 0)
     error->all(FLERR,"Illegal fix reax/c/bonds command");
 
   if (me == 0) {
@@ -194,7 +194,7 @@ void FixReaxCBonds::FindBond(struct _reax_list * /*lists*/, int &numbonds)
     nj = 0;
 
     for (pj = Start_Index(i, reaxc->api->lists); pj < End_Index(i, reaxc->api->lists); ++pj) {
-      bo_ij = &( reaxc->api->lists->select.bond_list[pj] );
+      bo_ij = &(reaxc->api->lists->select.bond_list[pj]);
       j = bo_ij->nbr;
       jtag = tag[j];
       bo_tmp = bo_ij->bo_data.BO;
@@ -233,7 +233,7 @@ void FixReaxCBonds::PassBuffer(double *buf, int &nbuf_local)
     }
     j += (5+numbonds);
 
-    if (atom->molecule == nullptr ) buf[j] = 0.0;
+    if (atom->molecule == nullptr) buf[j] = 0.0;
     else buf[j] = atom->molecule[i];
     j ++;
 

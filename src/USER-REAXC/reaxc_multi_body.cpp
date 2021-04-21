@@ -72,8 +72,8 @@ namespace ReaxFF {
 
     /* lone-pair Energy */
     p_lp2 = sbp_i->p_lp2;
-    expvd2 = exp( -75 * workspace->Delta_lp[i] );
-    inv_expvd2 = 1. / (1. + expvd2 );
+    expvd2 = exp(-75 * workspace->Delta_lp[i]);
+    inv_expvd2 = 1. / (1. + expvd2);
 
     numbonds = 0;
     e_lp = 0.0;
@@ -103,9 +103,9 @@ namespace ReaxFF {
         type_j = system->my_atoms[j].type;
         if (type_j < 0) continue;
 
-        if (!strcmp( system->reax_param.sbp[type_j].name, "C" )) {
-          twbp = &( system->reax_param.tbp[type_i][type_j]);
-          bo_ij = &( bonds->select.bond_list[pj].bo_data );
+        if (!strcmp(system->reax_param.sbp[type_j].name, "C")) {
+          twbp = &(system->reax_param.tbp[type_i][type_j]);
+          bo_ij = &(bonds->select.bond_list[pj].bo_data);
           Di = workspace->Delta[i];
           vov3 = bo_ij->BO - Di - 0.040*pow(Di, 4.);
 
@@ -148,16 +148,16 @@ namespace ReaxFF {
 
         sum_ovun1 += twbp->p_ovun1 * twbp->De_s * bo_ij->BO;
         sum_ovun2 += (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j])*
-          ( bo_ij->BO_pi + bo_ij->BO_pi2 );
+          (bo_ij->BO_pi + bo_ij->BO_pi2);
 
       }
 
-    exp_ovun1 = p_ovun3 * exp( p_ovun4 * sum_ovun2 );
+    exp_ovun1 = p_ovun3 * exp(p_ovun4 * sum_ovun2);
     inv_exp_ovun1 = 1.0 / (1 + exp_ovun1);
     Delta_lpcorr  = workspace->Delta[i] -
       (dfvl * workspace->Delta_lp_temp[i]) * inv_exp_ovun1;
 
-    exp_ovun2 = exp( p_ovun2 * Delta_lpcorr );
+    exp_ovun2 = exp(p_ovun2 * Delta_lpcorr);
     inv_exp_ovun2 = 1.0 / (1.0 + exp_ovun2);
 
     DlpVi = 1.0 / (Delta_lpcorr + sbp_i->valency + 1e-8);
@@ -166,9 +166,9 @@ namespace ReaxFF {
     data->my_en.e_ov += e_ov = sum_ovun1 * CEover1;
 
     CEover2 = sum_ovun1 * DlpVi * inv_exp_ovun2 *
-      (1.0 - Delta_lpcorr * ( DlpVi + p_ovun2 * exp_ovun2 * inv_exp_ovun2 ));
+      (1.0 - Delta_lpcorr * (DlpVi + p_ovun2 * exp_ovun2 * inv_exp_ovun2));
 
-    CEover3 = CEover2 * (1.0 - dfvl * workspace->dDelta_lp[i] * inv_exp_ovun1 );
+    CEover3 = CEover2 * (1.0 - dfvl * workspace->dDelta_lp[i] * inv_exp_ovun1);
 
     CEover4 = CEover2 * (dfvl * workspace->Delta_lp_temp[i]) *
       p_ovun4 * exp_ovun1 * SQR(inv_exp_ovun1);
@@ -179,7 +179,7 @@ namespace ReaxFF {
     p_ovun5 = sbp_i->p_ovun5;
 
     exp_ovun2n = 1.0 / exp_ovun2;
-    exp_ovun6 = exp( p_ovun6 * Delta_lpcorr );
+    exp_ovun6 = exp(p_ovun6 * Delta_lpcorr);
     exp_ovun8 = p_ovun7 * exp(p_ovun8 * sum_ovun2);
     inv_exp_ovun2n = 1.0 / (1.0 + exp_ovun2n);
     inv_exp_ovun8 = 1.0 / (1.0 + exp_ovun8);
@@ -194,8 +194,8 @@ namespace ReaxFF {
         -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
     CEunder1 = inv_exp_ovun2n *
-      ( p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8 +
-        p_ovun2 * e_un * exp_ovun2n );
+      (p_ovun5 * p_ovun6 * exp_ovun6 * inv_exp_ovun8 +
+        p_ovun2 * e_un * exp_ovun2n);
     CEunder2 = -e_un * p_ovun8 * exp_ovun8 * inv_exp_ovun8;
     CEunder3 = CEunder1 * (1.0 - dfvl*workspace->dDelta_lp[i]*inv_exp_ovun1);
     CEunder4 = CEunder1 * (dfvl*workspace->Delta_lp_temp[i]) *

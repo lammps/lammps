@@ -93,7 +93,7 @@ namespace ReaxFF {
       for (i = 0; i < system->n; ++i) {
         type_i = system->my_atoms[i].type;
         if (type_i < 0) continue;
-        sbp_i = &(system->reax_param.sbp[ type_i ]);
+        sbp_i = &(system->reax_param.sbp[type_i]);
 
         /* lone-pair Energy */
         p_lp2 = sbp_i->p_lp2;
@@ -158,7 +158,7 @@ namespace ReaxFF {
       for (i = 0; i < system->n; ++i) {
         type_i = system->my_atoms[i].type;
         if (type_i < 0) continue;
-        sbp_i = &(system->reax_param.sbp[ type_i ]);
+        sbp_i = &(system->reax_param.sbp[type_i]);
 
         /* over-coordination energy */
         if (sbp_i->mass > 21.0)
@@ -172,7 +172,7 @@ namespace ReaxFF {
           type_j = system->my_atoms[j].type;
           if (type_j < 0) continue;
           bo_ij = &(bonds->select.bond_list[pj].bo_data);
-          twbp = &(system->reax_param.tbp[ type_i ][ type_j ]);
+          twbp = &(system->reax_param.tbp[type_i][type_j]);
 
           sum_ovun1 += twbp->p_ovun1 * twbp->De_s * bo_ij->BO;
           sum_ovun2 += (workspace->Delta[j] - dfvl*workspace->Delta_lp_temp[j])*
@@ -243,7 +243,7 @@ namespace ReaxFF {
           pbond = &(bonds->select.bond_list[pj]);
           j = pbond->nbr;
           bo_ij = &(pbond->bo_data);
-          twbp  = &(system->reax_param.tbp[ system->my_atoms[i].type ]
+          twbp  = &(system->reax_param.tbp[system->my_atoms[i].type]
                     [system->my_atoms[pbond->nbr].type]);
 
           bo_ij->Cdbo += CEover1 * twbp->p_ovun1 * twbp->De_s; // OvCoor-1st

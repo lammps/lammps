@@ -2389,7 +2389,7 @@ void PairReaxCKokkos<DeviceType>::operator()(PairReaxComputeAngular<NEIGHFLAG,EV
       exp_pen2ij = exp(-p_pen2 * (BOA_ij - 2.0)*(BOA_ij - 2.0));
       exp_pen2jk = exp(-p_pen2 * (BOA_ik - 2.0)*(BOA_ik - 2.0));
       exp_pen3 = exp(-p_pen3 * d_Delta[i]);
-      exp_pen4 = exp( p_pen4 * d_Delta[i]);
+      exp_pen4 = exp(p_pen4 * d_Delta[i]);
       trm_pen34 = 1.0 + exp_pen3 + exp_pen4;
       f9_Dj = (2.0 + exp_pen3) / trm_pen34;
       Cf9j = (-p_pen3 * exp_pen3 * trm_pen34 - (2.0 + exp_pen3) *

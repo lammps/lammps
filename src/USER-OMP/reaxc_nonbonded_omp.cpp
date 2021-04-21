@@ -112,8 +112,8 @@ namespace ReaxFF {
           if (flag) {
 
             r_ij = nbr_pj->d;
-            twbp = &(system->reax_param.tbp[ system->my_atoms[i].type ]
-                     [ system->my_atoms[j].type ]);
+            twbp = &(system->reax_param.tbp[system->my_atoms[i].type]
+                     [system->my_atoms[j].type]);
 
             /* Calculate Taper and its derivative */
             // Tap = nbr_pj->Tap;   -- precomputed during compte_H

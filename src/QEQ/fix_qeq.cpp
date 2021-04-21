@@ -434,7 +434,7 @@ void FixQEq::sparse_matvec(sparse_matrix *A, double *x, double *b)
 
   for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit)
-      b[i] = eta[ atom->type[i] ] * x[i];
+      b[i] = eta[atom->type[i]] * x[i];
   }
 
   for (i = nlocal; i < nall; ++i) {

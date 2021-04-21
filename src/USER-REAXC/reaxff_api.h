@@ -184,8 +184,8 @@ namespace ReaxFF
     return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
   }
 
-  inline double rvec_Norm( rvec v ) {
-    return sqrt( SQR(v[0]) + SQR(v[1]) + SQR(v[2]) );
+  inline double rvec_Norm(rvec v) {
+    return sqrt(SQR(v[0]) + SQR(v[1]) + SQR(v[2]));
   }
 
   inline void rvec_Scale(rvec ret, double c, rvec v) {

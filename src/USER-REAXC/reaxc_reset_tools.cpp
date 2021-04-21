@@ -43,7 +43,7 @@ namespace ReaxFF {
       for (i = 0; i < system->n; ++i) {
         atom = &(system->my_atoms[i]);
         if (atom->type < 0) continue;
-        if (system->reax_param.sbp[ atom->type ].p_hbond == 1)
+        if (system->reax_param.sbp[atom->type].p_hbond == 1)
           atom->Hindex = system->numH++;
         else atom->Hindex = -1;
       }

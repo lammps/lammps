@@ -29,7 +29,7 @@
 #define CUBE(x)       ((x)*(x)*(x))
 #define DEG2RAD(a)    ((a)*constPI/180.0)
 #define RAD2DEG(a)    ((a)*180.0/constPI)
-#define MAX3(x,y,z)   MAX( MAX(x,y), z)
+#define MAX3(x,y,z)   MAX(MAX(x,y), z)
 
 #define constPI        3.14159265
 #define C_ele          332.06371

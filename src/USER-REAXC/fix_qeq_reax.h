@@ -127,9 +127,9 @@ class FixQEqReax : public Fix {
   virtual int pack_exchange(int, double *);
   virtual int unpack_exchange(int, double *);
 
-  virtual double parallel_norm( double*, int );
-  virtual double parallel_dot( double*, double*, int );
-  virtual double parallel_vector_acc( double*, int );
+  virtual double parallel_norm(double*, int);
+  virtual double parallel_dot(double*, double*, int);
+  virtual double parallel_vector_acc(double*, int);
 
   virtual void vector_sum(double*,double,double*,double,double*,int);
   virtual void vector_add(double*, double, double*,int);

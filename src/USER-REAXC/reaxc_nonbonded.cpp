@@ -111,8 +111,8 @@ namespace ReaxFF {
         if (flag) {
 
           r_ij = nbr_pj->d;
-          twbp = &(system->reax_param.tbp[ system->my_atoms[i].type ]
-                   [ system->my_atoms[j].type ]);
+          twbp = &(system->reax_param.tbp[system->my_atoms[i].type]
+                   [system->my_atoms[j].type]);
 
           Tap = workspace->Tap[7] * r_ij + workspace->Tap[6];
           Tap = Tap * r_ij + workspace->Tap[5];

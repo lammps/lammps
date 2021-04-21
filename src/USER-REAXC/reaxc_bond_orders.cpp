@@ -2,15 +2,16 @@
   PuReMD - Purdue ReaxFF Molecular Dynamics Program
 
   Copyright (2010) Purdue University
-  Hasan Metin Aktulga, hmaktulga@lbl.gov
-  Joseph Fogarty, jcfogart@mail.usf.edu
-  Sagar Pandit, pandit@usf.edu
-  Ananth Y Grama, ayg@cs.purdue.edu
+
+  Contributing authors:
+  H. M. Aktulga, J. Fogarty, S. Pandit, A. Grama
+  Corresponding author:
+  Hasan Metin Aktulga, Michigan State University, hma@cse.msu.edu
 
   Please cite the related publication:
   H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
   "Parallel Reactive Molecular Dynamics: Numerical Methods and
-  Algorithmic Techniques", Parallel Computing, in press.
+  Algorithmic Techniques", Parallel Computing, 38 (4-5), 245-259
 
   This program is free software; you can redistribute it and/or
   modify it under the terms of the GNU General Public License as
@@ -64,6 +65,11 @@ namespace ReaxFF {
     coef.C2dDelta = bo_ij->C2dbo * (workspace->CdDelta[i]+workspace->CdDelta[j]);
     coef.C3dDelta = bo_ij->C3dbo * (workspace->CdDelta[i]+workspace->CdDelta[j]);
 
+
+    /************************************
+     * forces related to atom i          *
+     * first neighbors of atom i         *
+     ************************************/
     for (pk = Start_Index(i, bonds); pk < End_Index(i, bonds); ++pk) {
       nbr_k = &(bonds->select.bond_list[pk]);
       k = nbr_k->nbr;

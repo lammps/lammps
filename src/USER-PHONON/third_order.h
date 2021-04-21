@@ -59,7 +59,6 @@ namespace LAMMPS_NS {
     bigint dynlen;
     bigint dynlenb;
     int scaleflag;
-    int me;
     bigint gcount;  // number of atoms in group
     bigint *groupmap;
 

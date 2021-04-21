@@ -18,17 +18,14 @@
 #include "kspace.h"
 #include "math_special.h"
 #include "memory.h"
-#include "neighbor.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "modify.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
-#include "finish.h"
-#include "math_special.h"
-#include "utils.h"
-#include "fmt/format.h"
 #include "update.h"
+
 #include <cstring>
 #include <algorithm>
 
@@ -47,7 +44,7 @@ ThirdOrder::ThirdOrder(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 
 ThirdOrder::~ThirdOrder()
 {
-  if (fp && me == 0) fclose(fp);
+  if (fp && comm->me == 0) fclose(fp);
   fp = nullptr;
   memory->destroy(groupmap);
   // memory->destroy(ijnum);
@@ -101,8 +98,6 @@ void ThirdOrder::setup()
 
 void ThirdOrder::command(int narg, char **arg)
 {
-  MPI_Comm_rank(world,&me);
-
   if (domain->box_exist == 0)
     error->all(FLERR,"third_order command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal third_order command");
@@ -161,14 +156,14 @@ void ThirdOrder::command(int narg, char **arg)
   // read options from end of input line
   if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
   else if (style == ESKM) options(narg-3,&arg[3]); //COME BACK
-  else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
+  else error->all(FLERR,"Illegal third_order command");
   del = utils::numeric(FLERR, arg[2],false,lmp);
 
   if (!folded) dynlenb = dynlen;
   else dynlenb = (atom->natoms)*3;
 
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"third_order command requires an atom map, see atom_modify");
+    error->all(FLERR,"third_order command requires an atom map");
 
   // move atoms by 3-vector or specified variable(s)
 
@@ -230,7 +225,7 @@ void ThirdOrder::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal third_order command");
   }
-  if (file_flag == 1 and me == 0) {
+  if (file_flag == 1 && comm->me == 0) {
     openfile(filename);
   }
 }
@@ -297,7 +292,7 @@ void ThirdOrder::calculateMatrix()
     utils::logmesg(lmp, fmt::format("Calculating Third Order ...\n"));
     utils::logmesg(lmp, fmt::format("  Total # of atoms = {}\n", natoms));
     utils::logmesg(lmp, fmt::format("  Atoms in group = {}\n", gcount));
-    utils::logmesg(lmp, fmt::format("  Total third order elements = {}\n", (dynlen*dynlenb*dynlenb) ));
+    utils::logmesg(lmp, fmt::format("  Total third order elements = {}\n", (dynlen*dynlenb*dynlenb)));
   }
 
   update->nsteps = 0;
@@ -387,7 +382,7 @@ void ThirdOrder::calculateMatrix()
           displace_atom(local_jdx, beta, 1);
           displace_atom(local_idx, alpha, 1);
           MPI_Reduce(dynmat,fdynmat,dynlenb,MPI_DOUBLE,MPI_SUM,0,world);
-          if (me == 0){
+          if (comm->me == 0){
             if (folded) {
               writeMatrix(fdynmat, gm[i-1], alpha, j, beta);
             } else {
@@ -411,7 +406,7 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
-  if (screen && me ==0 )
+  if (screen && comm->me ==0)
     fprintf(screen,"Finished Calculating Third Order Tensor\n");
 }
 
@@ -421,7 +416,7 @@ void ThirdOrder::calculateMatrix()
 
 void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
 {
-  if (me != 0)
+  if (comm->me != 0)
     return;
 
   double norm;
@@ -433,13 +428,11 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
                square(dynmat[k*3+1])+
                square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fprintf(fp,
-                  BIGINT_FORMAT " %d " BIGINT_FORMAT
-                  " %d %d %7.8f %7.8f %7.8f\n",
-                  i+1, a + 1, j+1, b + 1, k+1,
-                  dynmat[k*3] * conversion,
-                  dynmat[k*3+1] * conversion,
-                  dynmat[k*3+2] * conversion);
+          fmt::print(fp,"{} {} {} {} {} {:.8f} {.8f} {.8f}\n",
+                     i+1, a + 1, j+1, b + 1, k+1,
+                     dynmat[k*3] * conversion,
+                     dynmat[k*3+1] * conversion,
+                     dynmat[k*3+2] * conversion);
       }
     } else {
       for (int k = 0; k < gcount; k++){
@@ -447,13 +440,11 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
                square(dynmat[k*3+1])+
                square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fprintf(fp,
-                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d "
-                  BIGINT_FORMAT " %7.8f %7.8f %7.8f\n",
-                  i+1, a + 1, j+1, b + 1, groupmap[k]+1,
-                  dynmat[k*3] * conversion,
-                  dynmat[k*3+1] * conversion,
-                  dynmat[k*3+2] * conversion);
+          fmt::print(fp, "{} {} {} {} {} {:.8f} {.8f} {.8f}\n",
+                     i+1, a + 1, j+1, b + 1, groupmap[k]+1,
+                     dynmat[k*3] * conversion,
+                     dynmat[k*3+1] * conversion,
+                     dynmat[k*3+2] * conversion);
       }
     }
   } else if (binaryflag && fp) {

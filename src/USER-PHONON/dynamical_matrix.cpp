@@ -21,9 +21,8 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "timer.h"
-#include "utils.h"
-#include "fmt/format.h"
 #include "update.h"
+
 #include <cstring>
 #include <algorithm>
 
@@ -41,7 +40,7 @@ DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 
 DynamicalMatrix::~DynamicalMatrix()
 {
-    if (fp && me == 0) fclose(fp);
+    if (fp && comm->me == 0) fclose(fp);
     memory->destroy(groupmap);
     fp = nullptr;
 }
@@ -90,8 +89,6 @@ void DynamicalMatrix::setup()
 
 void DynamicalMatrix::command(int narg, char **arg)
 {
-    MPI_Comm_rank(world,&me);
-
     if (domain->box_exist == 0)
         error->all(FLERR,"Dynamical_matrix command before simulation box is defined");
     if (narg < 2) error->all(FLERR,"Illegal dynamical_matrix command");
@@ -120,7 +117,7 @@ void DynamicalMatrix::command(int narg, char **arg)
     int style = -1;
     if (strcmp(arg[1],"regular") == 0) style = REGULAR;
     else if (strcmp(arg[1],"eskm") == 0) style = ESKM;
-    else error->all(FLERR,"Illegal Dynamical Matrix command");
+    else error->all(FLERR,"Illegal dynamical_matrix command");
     del = utils::numeric(FLERR, arg[2],false,lmp);
 
     // set option defaults
@@ -136,13 +133,13 @@ void DynamicalMatrix::command(int narg, char **arg)
     // read options from end of input line
     if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
     else if (style == ESKM) options(narg-3,&arg[3]); //COME BACK
-    else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
+    else error->all(FLERR,"Illegal dynamical_matrix command");
 
     if (!folded) dynlenb = dynlen;
     else dynlenb = (atom->natoms)*3;
 
     if (atom->map_style == Atom::MAP_NONE)
-      error->all(FLERR,"Dynamical_matrix command requires an atom map, see atom_modify");
+      error->all(FLERR,"Dynamical_matrix command requires an atom map");
 
     // move atoms by 3-vector or specified variable(s)
 
@@ -219,7 +216,6 @@ void DynamicalMatrix::options(int narg, char **arg)
 void DynamicalMatrix::openfile(const char* filename)
 {
     // if file already opened, return
-    //if (me!=0) return;
     if (file_opened) return;
 
     if (compressed) {
@@ -276,7 +272,7 @@ void DynamicalMatrix::calculateMatrix()
         utils::logmesg(lmp,fmt::format("Calculating Dynamical Matrix ...\n"));
         utils::logmesg(lmp,fmt::format("  Total # of atoms = {}\n", natoms));
         utils::logmesg(lmp,fmt::format("  Atoms in group = {}\n", gcount));
-        utils::logmesg(lmp,fmt::format("  Total dynamical matrix elements = {}\n", (dynlenb*dynlen) ));
+        utils::logmesg(lmp,fmt::format("  Total dynamical matrix elements = {}\n", (dynlenb*dynlen)));
     }
 
     // emit dynlen rows of dimalpha*dynlen*dimbeta elements
@@ -336,7 +332,7 @@ void DynamicalMatrix::calculateMatrix()
         }
         for (int k=0; k<3; k++)
             MPI_Reduce(dynmat[k],fdynmat[k],dynlenb,MPI_DOUBLE,MPI_SUM,0,world);
-        if (me == 0)
+        if (comm->me == 0)
             writeMatrix(fdynmat);
         dynmat_clear(dynmat);
         if (comm->me == 0 && screen) {
@@ -358,7 +354,7 @@ void DynamicalMatrix::calculateMatrix()
         delete [] fdynmat[i];
     delete [] fdynmat;
 
-    if (screen && me ==0 ) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
+    if (screen && comm->me ==0) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -367,7 +363,7 @@ void DynamicalMatrix::calculateMatrix()
 
 void DynamicalMatrix::writeMatrix(double **dynmat)
 {
-    if (me != 0 || !fp)
+    if (comm->me != 0 || !fp)
         return;
 
     clearerr(fp);
@@ -379,8 +375,9 @@ void DynamicalMatrix::writeMatrix(double **dynmat)
     } else {
         for (int i = 0; i < 3; i++) {
             for (bigint j = 0; j < dynlenb; j++) {
-                if ((j+1)%3==0) fprintf(fp, "%4.8f\n", dynmat[i][j]);
-                else fprintf(fp, "%4.8f ",dynmat[i][j]);
+              fmt::print(fp, "{:.8f}", dynmat[i][j]);
+              if ((j+1)%3==0) fputs("\n",fp);
+              else fputs(" ",fp);
             }
         }
         if (ferror(fp))

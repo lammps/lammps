@@ -55,8 +55,8 @@ if(BUILD_DOC)
     COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install -r ${DOC_BUILD_DIR}/requirements.txt --upgrade
   )
 
-  set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.1.2.tar.gz" CACHE STRING "URL for MathJax tarball")
-  set(MATHJAX_MD5 "a4a6a093a89bc2ccab1452d766b98e53" CACHE STRING "MD5 checksum of MathJax tarball")
+  set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.1.3.tar.gz" CACHE STRING "URL for MathJax tarball")
+  set(MATHJAX_MD5 "b81661c6e6ba06278e6ae37b30b0c492" CACHE STRING "MD5 checksum of MathJax tarball")
   mark_as_advanced(MATHJAX_URL)
 
   # download mathjax distribution and unpack to folder "mathjax"

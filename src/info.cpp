@@ -317,57 +317,8 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & ACCELERATOR) {
-    fputs("\nAccelerator configuration:\n\n",out);
-    std::string mesg;
-    if (has_package("GPU")) {
-      mesg = "GPU package API:";
-      if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";
-      if (has_accelerator_feature("GPU","api","hip"))    mesg += " HIP";
-      if (has_accelerator_feature("GPU","api","opencl")) mesg += " OpenCL";
-      mesg +=  "\nGPU package precision:";
-      if (has_accelerator_feature("GPU","precision","single")) mesg += " single";
-      if (has_accelerator_feature("GPU","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("GPU","precision","double")) mesg += " double";
-      mesg += "\n";
-      fputs(mesg.c_str(),out);
-    }
-    if (has_package("KOKKOS")) {
-      mesg = "KOKKOS package API:";
-      if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
-      if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
-      if (has_accelerator_feature("KOKKOS","api","sycl"))     mesg += " SYCL";
-      if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
-      if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
-      if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
-      mesg +=  "\nKOKKOS package precision:";
-      if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
-      if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
-      mesg += "\n";
-      fputs(mesg.c_str(),out);
-    }
-    if (has_package("USER-OMP")) {
-      mesg = "USER-OMP package API:";
-      if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
-      if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
-      mesg +=  "\nUSER-OMP package precision:";
-      if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
-      if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
-      mesg += "\n";
-      fputs(mesg.c_str(),out);
-    }
-    if (has_package("USER-INTEL")) {
-      mesg = "USER-INTEL package API:";
-      if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
-      if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
-      mesg +=  "\nUSER-INTEL package precision:";
-      if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
-      if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
-      if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
-      mesg += "\n";
-      fputs(mesg.c_str(),out);
-    }
+    fmt::print(out,"\nAccelerator configuration:\n\n{}",
+               get_accelerator_info());
   }
 
   if (flags & MEMORY) {
@@ -1427,6 +1378,57 @@ std::string Info::get_cxx_info()
 #else
   return "unknown";
 #endif
+}
+
+std::string Info::get_accelerator_info(const std::string &package)
+{
+  std::string mesg("");
+  if ((package.empty() || (package == "GPU")) && has_package("GPU")) {
+    mesg += "GPU package API:";
+    if (has_accelerator_feature("GPU","api","cuda"))   mesg += " CUDA";
+    if (has_accelerator_feature("GPU","api","hip"))    mesg += " HIP";
+    if (has_accelerator_feature("GPU","api","opencl")) mesg += " OpenCL";
+    mesg +=  "\nGPU package precision:";
+    if (has_accelerator_feature("GPU","precision","single")) mesg += " single";
+    if (has_accelerator_feature("GPU","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("GPU","precision","double")) mesg += " double";
+    mesg += "\n";
+  }
+  if ((package.empty() || (package == "KOKKOS")) && has_package("KOKKOS")) {
+    mesg += "KOKKOS package API:";
+    if (has_accelerator_feature("KOKKOS","api","cuda"))     mesg += " CUDA";
+    if (has_accelerator_feature("KOKKOS","api","hip"))      mesg += " HIP";
+    if (has_accelerator_feature("KOKKOS","api","sycl"))     mesg += " SYCL";
+    if (has_accelerator_feature("KOKKOS","api","openmp"))   mesg += " OpenMP";
+    if (has_accelerator_feature("KOKKOS","api","serial"))   mesg += " Serial";
+    if (has_accelerator_feature("KOKKOS","api","pthreads")) mesg += " Pthreads";
+    mesg +=  "\nKOKKOS package precision:";
+    if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
+    if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+    mesg += "\n";
+  }
+  if ((package.empty() || (package == "USER-OMP")) && has_package("USER-OMP")) {
+    mesg += "USER-OMP package API:";
+    if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
+    if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
+    mesg +=  "\nUSER-OMP package precision:";
+    if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
+    if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
+    mesg += "\n";
+  }
+  if ((package.empty() || (package == "USER-INTEL")) && has_package("USER-INTEL")) {
+    mesg += "USER-INTEL package API:";
+    if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
+    if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
+    mesg +=  "\nUSER-INTEL package precision:";
+    if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
+    if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
+    mesg += "\n";
+  }
+  return mesg;
 }
 
 /* ---------------------------------------------------------------------- */

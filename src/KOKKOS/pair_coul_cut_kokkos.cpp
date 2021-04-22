@@ -46,8 +46,10 @@ PairCoulCutKokkos<DeviceType>::PairCoulCutKokkos(LAMMPS *lmp) : PairCoulCut(lmp)
 template<class DeviceType>
 PairCoulCutKokkos<DeviceType>::~PairCoulCutKokkos()
 {
-  if (allocated)
+  if (allocated) {
     memoryKK->destroy_kokkos(k_cutsq, cutsq);
+    cleanup_copy();
+  }
 }
 
 /* ---------------------------------------------------------------------- */

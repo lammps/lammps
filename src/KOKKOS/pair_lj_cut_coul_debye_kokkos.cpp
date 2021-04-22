@@ -63,6 +63,9 @@ PairLJCutCoulDebyeKokkos<DeviceType>::~PairLJCutCoulDebyeKokkos()
     memoryKK->destroy_kokkos(k_cut_ljsq, cut_ljsq);
     memoryKK->destroy_kokkos(k_cut_coulsq, cut_coulsq);
   }
+  if (allocated) {
+    cleanup_copy();
+  }
 }
 
 /* ---------------------------------------------------------------------- */

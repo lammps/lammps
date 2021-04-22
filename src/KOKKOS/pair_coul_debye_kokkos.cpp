@@ -56,8 +56,10 @@ PairCoulDebyeKokkos<DeviceType>::PairCoulDebyeKokkos(LAMMPS *lmp):PairCoulDebye(
 template<class DeviceType>
 PairCoulDebyeKokkos<DeviceType>::~PairCoulDebyeKokkos()
 {
-  if (allocated)
+  if (allocated) {
     memoryKK->destroy_kokkos(k_cutsq, cutsq);
+    cleanup_copy();
+  }
 }
 
 /* ---------------------------------------------------------------------- */

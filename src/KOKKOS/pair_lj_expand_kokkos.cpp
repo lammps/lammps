@@ -60,6 +60,9 @@ PairLJExpandKokkos<DeviceType>::~PairLJExpandKokkos()
     memory->sfree(cutsq);
     cutsq = nullptr;
   }
+  if (allocated) {
+    cleanup_copy();
+  }
 }
 
 /* ---------------------------------------------------------------------- */

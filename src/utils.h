@@ -57,8 +57,7 @@ namespace LAMMPS_NS {
      * This function simplifies the repetitive task of outputting some
      * message to both the screen and/or the log file. The template
      * wrapper with fmtlib format and argument processing allows
-     * this function to work similar to fmt::print().
-     * The specialization overload handles the case of no arguments.
+     * this function to work similar to ``fmt::print()``.
      *
      *  \param lmp    pointer to LAMMPS class instance
      *  \param format format string of message to be printed
@@ -70,7 +69,10 @@ namespace LAMMPS_NS {
                         fmt::make_args_checked<Args...>(format, args...));
     }
 
-    /** \overload */
+    /** \overload
+     *
+     *  \param lmp    pointer to LAMMPS class instance
+     *  \param mesg   string with message to be printed */
 
     void logmesg(LAMMPS *lmp, const std::string &mesg);
 

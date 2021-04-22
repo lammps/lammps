@@ -401,8 +401,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   if (customflag) delete [] bodyID;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  create bodies CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  create bodies CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
 
   // set nlocal_body and allocate bodies I own
 
@@ -460,10 +460,9 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   MPI_Allreduce(&atomone,&atomall,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
   if (me == 0) {
-    auto msg = fmt::format("  {} rigid bodies with {} atoms\n",nbody,atomall);
-    msg += fmt::format("  {:.8} = max distance from body owner to body atom\n",
-                       maxextent);
-    utils::logmesg(lmp,msg);
+    utils::logmesg(lmp,"  {} rigid bodies with {} atoms\n"
+                   "  {:.8} = max distance from body owner to body atom\n",
+                   nbody,atomall,maxextent);
   }
 
   // initialize Marsaglia RNG with processor-unique seed

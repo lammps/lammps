@@ -320,8 +320,8 @@ void CreateBonds::many()
   bigint nadd_bonds = atom->nbonds - nbonds_previous;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Added {} bonds, new total = {}\n",
-                                   nadd_bonds,atom->nbonds));
+    utils::logmesg(lmp,"Added {} bonds, new total = {}\n",
+                   nadd_bonds,atom->nbonds);
 }
 
 /* ---------------------------------------------------------------------- */

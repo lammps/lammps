@@ -283,8 +283,7 @@ void PairDSMC::init_style()
   cellz = (domain->boxhi[2] - domain->boxlo[2])/ncellsz;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("DSMC cell size = {} x {} x {}\n",
-                                   cellx,celly,cellz));
+    utils::logmesg(lmp,"DSMC cell size = {} x {} x {}\n",cellx,celly,cellz);
 
   total_ncells = ncellsx*ncellsy*ncellsz;
   vol = cellx*celly*cellz;

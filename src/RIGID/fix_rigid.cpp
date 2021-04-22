@@ -602,8 +602,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} rigid bodies with {} atoms\n",
-                                   nbody,nsum));
+    utils::logmesg(lmp,"  {} rigid bodies with {} atoms\n",nbody,nsum);
 }
 
 /* ---------------------------------------------------------------------- */

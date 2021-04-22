@@ -69,8 +69,8 @@ namespace LAMMPS_NS
         utils::logmesg(lmp,"Currently loaded plugins\n");
         for (int i=0; i < num; ++i) {
           auto entry = plugin_get_info(i);
-          utils::logmesg(lmp,fmt::format("{:4}: {} style plugin {}\n",
-                                         i+1,entry->style,entry->name));
+          utils::logmesg(lmp,"{:4}: {} style plugin {}\n",
+                         i+1,entry->style,entry->name);
         }
       }
     } else error->all(FLERR,"Illegal plugin command");
@@ -96,8 +96,7 @@ namespace LAMMPS_NS
     void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
     if (dso == nullptr) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Open of file {} failed: {}\n",
-                                       file,dlerror()));
+        utils::logmesg(lmp,"Open of file {} failed: {}\n",file,dlerror());
       return;
     }
 
@@ -110,8 +109,8 @@ namespace LAMMPS_NS
       dlclose(dso);
 
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Plugin symbol lookup failure in "
-                                       "file {}: {}\n",file,dlerror()));
+        utils::logmesg(lmp,"Plugin symbol lookup failure in file {}: {}\n",
+                       file,dlerror());
       return;
     }
 
@@ -144,20 +143,19 @@ namespace LAMMPS_NS
     int idx = plugin_find(plugin->style,plugin->name);
     if (idx >= 0) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Ignoring load of {} style {}: must "
-                                       "unload existing {} plugin first\n",
-                                       plugin->style,plugin->name,plugin->name));
+        utils::logmesg(lmp,"Ignoring load of {} style {}: must "
+                       "unload existing {} plugin first\n",
+                       plugin->style,plugin->name,plugin->name);
       return;
     }
 
     if (me == 0) {
-      utils::logmesg(lmp,fmt::format("Loading plugin: {} by {}\n",
-                                     plugin->info,plugin->author));
+      utils::logmesg(lmp,"Loading plugin: {} by {}\n",
+                     plugin->info,plugin->author);
       // print version info only if the versions of host and plugin don't match
       if ((plugin->version) && (strcmp(plugin->version,lmp->version) != 0))
-        utils::logmesg(lmp,fmt::format("  compiled for LAMMPS version {} "
-                                       "loaded into LAMMPS version {}\n",
-                                       plugin->version,lmp->version));
+        utils::logmesg(lmp,"  compiled for LAMMPS version {}, loaded into "
+                       "LAMMPS version {}\n",plugin->version,lmp->version);
     }
 
     pluginlist.push_back(*plugin);
@@ -260,8 +258,8 @@ namespace LAMMPS_NS
       (*command_map)[plugin->name] = (Input::CommandCreator)plugin->creator.v1;
 
     } else {
-      utils::logmesg(lmp,fmt::format("Loading plugin for {} styles not "
-                                     "yet implemented\n",pstyle));
+      utils::logmesg(lmp,"Loading plugins for {} styles not "
+                     "yet implemented\n",pstyle);
       pluginlist.pop_back();
     }
 #endif
@@ -285,8 +283,8 @@ namespace LAMMPS_NS
         && (strcmp(style,"fix") != 0) && (strcmp(style,"region") != 0)
         && (strcmp(style,"command") != 0)) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Ignoring unload: {} is not a "
-                                       "supported plugin style\n",style));
+        utils::logmesg(lmp,"Ignoring unload: {} is not a "
+                       "supported plugin style\n",style);
       return;
     }
 
@@ -294,8 +292,8 @@ namespace LAMMPS_NS
     int idx = plugin_find(style,name);
     if (idx < 0) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Ignoring unload of {} style {}: not "
-                                       "loaded from a plugin\n",style,name));
+        utils::logmesg(lmp,"Ignoring unload of {} style {}: not "
+                       "loaded from a plugin\n",style,name);
       return;
     }
 
@@ -305,7 +303,7 @@ namespace LAMMPS_NS
     // remove selected plugin from list of plugins
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("Unloading {} style {}\n",style,name));
+      utils::logmesg(lmp,"Unloading {} style {}\n",style,name);
     plugin_erase(style,name);
 
     // remove style of given name from corresponding map

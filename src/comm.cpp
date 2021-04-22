@@ -103,7 +103,7 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   if (!lmp->kokkos) omp_set_num_threads(nthreads);
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  using {} OpenMP thread(s) per MPI task\n",nthreads));
+    utils::logmesg(lmp,"  using {} OpenMP thread(s) per MPI task\n",nthreads);
 #endif
 
 }

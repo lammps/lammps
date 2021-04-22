@@ -412,9 +412,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     char* keywd = strtok(line,"' \t\n\r\f");
     char* keyval = strtok(nullptr,"' \t\n\r\f");
 
-    if (comm->me == 0) {
-      utils::logmesg(lmp, fmt::format("SNAP keyword {} {} \n", keywd, keyval));
-    }
+    if (comm->me == 0)
+      utils::logmesg(lmp,"SNAP keyword {} {} \n", keywd, keyval);
 
     // check for keywords with one value per element
 

@@ -535,9 +535,9 @@ void Group::assign(int narg, char **arg)
 
   if (me == 0) {
     if (dynamic[igroup])
-      utils::logmesg(lmp,fmt::format("dynamic group {} defined\n",names[igroup]));
+      utils::logmesg(lmp,"dynamic group {} defined\n",names[igroup]);
     else
-      utils::logmesg(lmp,fmt::format("{:.15g} atoms in group {}\n",all,names[igroup]));
+      utils::logmesg(lmp,"{:.15g} atoms in group {}\n",all,names[igroup]);
   }
 }
 

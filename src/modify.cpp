@@ -925,9 +925,9 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0)
-        utils::logmesg(lmp,fmt::format("Resetting global fix info from restart file:\n"
-                                       "  fix style: {}, fix ID: {}\n",
-                                       fix[ifix]->style,fix[ifix]->id));
+        utils::logmesg(lmp,"Resetting global fix info from restart file:\n"
+                       "  fix style: {}, fix ID: {}\n",
+                       fix[ifix]->style,fix[ifix]->id);
     }
 
   // check if Fix is in restart_peratom list
@@ -941,9 +941,9 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         fix[ifix]->unpack_restart(j,index_restart_peratom[i]);
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0)
-        utils::logmesg(lmp,fmt::format("Resetting peratom fix info from restart file:\n"
-                                       "  fix style: {}, fix ID: {}\n",
-                                       fix[ifix]->style,fix[ifix]->id));
+        utils::logmesg(lmp,"Resetting peratom fix info from restart file:\n"
+                       "  fix style: {}, fix ID: {}\n",
+                       fix[ifix]->style,fix[ifix]->id);
     }
 
   // increment nfix (if new)
@@ -1574,8 +1574,8 @@ void Modify::restart_deallocate(int flag)
         utils::logmesg(lmp,"Unused restart file global fix info:\n");
         for (i = 0; i < nfix_restart_global; i++) {
           if (used_restart_global[i]) continue;
-          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
-                                         style_restart_global[i],id_restart_global[i]));
+          utils::logmesg(lmp,"  fix style: {}, fix ID: {}\n",
+                         style_restart_global[i],id_restart_global[i]);
         }
       }
     }
@@ -1602,8 +1602,8 @@ void Modify::restart_deallocate(int flag)
         utils::logmesg(lmp,"Unused restart file peratom fix info:\n");
         for (i = 0; i < nfix_restart_peratom; i++) {
           if (used_restart_peratom[i]) continue;
-          utils::logmesg(lmp,fmt::format("  fix style: {}, fix ID: {}\n",
-                                         style_restart_peratom[i],id_restart_peratom[i]));
+          utils::logmesg(lmp,"  fix style: {}, fix ID: {}\n",
+                         style_restart_peratom[i],id_restart_peratom[i]);
         }
       }
     }

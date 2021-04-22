@@ -279,15 +279,15 @@ void Bond::write_file(int narg, char **arg)
                                      units, update->unit_style));
       }
       std::string date = utils::get_potential_date(table_file,"table");
-      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
-                                     "DATE: {}\n", table_file, date));
+      utils::logmesg(lmp,"Appending to table file {} with "
+                     "DATE: {}\n", table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
       char datebuf[16];
       time_t tv = time(nullptr);
       strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
-      utils::logmesg(lmp,fmt::format("Creating table file {} with "
-                                     "DATE: {}\n", table_file, datebuf));
+      utils::logmesg(lmp,"Creating table file {} with "
+                     "DATE: {}\n", table_file, datebuf);
       fp = fopen(table_file.c_str(),"w");
       if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by bond_write\n",
                          datebuf, update->unit_style);

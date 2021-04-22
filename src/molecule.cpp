@@ -146,16 +146,14 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
   // stats
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("Read molecule template {}:\n"
-                                   "  {} molecules\n"
-                                   "  {} atoms with max type {}\n"
-                                   "  {} bonds with max type {}\n"
-                                   "  {} angles with max type {}\n"
-                                   "  {} dihedrals with max type {}\n"
-                                   "  {} impropers with max type {}\n",
-                                   id,nmolecules,natoms,ntypes,
-                                   nbonds,nbondtypes,nangles,nangletypes,
-                                   ndihedrals,ndihedraltypes,nimpropers,nimpropertypes));
+    utils::logmesg(lmp,"Read molecule template {}:\n  {} molecules\n"
+                   "  {} atoms with max type {}\n"
+                   "  {} bonds with max type {}\n"
+                   "  {} angles with max type {}\n"
+                   "  {} dihedrals with max type {}\n"
+                   "  {} impropers with max type {}\n", id,nmolecules,
+                   natoms,ntypes,nbonds,nbondtypes,nangles,nangletypes,
+                   ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
 }
 
 /* ---------------------------------------------------------------------- */

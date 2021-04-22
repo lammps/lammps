@@ -565,8 +565,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     wjelem[jelem] = utils::numeric(FLERR,words[2].c_str(),false,lmp);
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("SNAP Element = {}, Radius {}, Weight {}\n",
-                                     elements[jelem], radelem[jelem], wjelem[jelem]));
+      utils::logmesg(lmp,"SNAP Element = {}, Radius {}, Weight {}\n",
+                     elements[jelem], radelem[jelem], wjelem[jelem]);
 
     for (int icoeff = 0; icoeff < ncoeffall; icoeff++) {
       if (comm->me == 0) {
@@ -660,7 +660,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     auto keyval = words[1];
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("SNAP keyword {} {}\n",keywd,keyval));
+      utils::logmesg(lmp,"SNAP keyword {} {}\n",keywd,keyval);
 
     if (keywd == "rcutfac") {
       rcutfac = utils::numeric(FLERR,keyval.c_str(),false,lmp);

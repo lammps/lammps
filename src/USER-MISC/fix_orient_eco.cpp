@@ -162,8 +162,8 @@ void FixOrientECO::init() {
   // compute normalization factor
   int neigh = get_norm();
   if (me == 0) {
-    utils::logmesg(lmp,fmt::format("  fix orient/eco: cutoff={} norm_fac={} "
-                                   "neighbors={}\n", r_cut, norm_fac, neigh));
+    utils::logmesg(lmp,"  fix orient/eco: cutoff={} norm_fac={} "
+                   "neighbors={}\n", r_cut, norm_fac, neigh);
   }
 
   inv_norm_fac = 1.0 / norm_fac;

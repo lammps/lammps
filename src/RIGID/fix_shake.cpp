@@ -226,8 +226,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   find_clusters();
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  find clusters CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
 
   // initialize list of SHAKE clusters to constrain
 
@@ -1007,11 +1007,11 @@ void FixShake::find_clusters()
   MPI_Allreduce(&tmp,&count4,1,MPI_INT,MPI_SUM,world);
 
   if (me == 0) {
-    auto mesg = fmt::format("{:>8} = # of size 2 clusters\n",count2/2);
-    mesg += fmt::format("{:>8} = # of size 3 clusters\n",count3/3);
-    mesg += fmt::format("{:>8} = # of size 4 clusters\n",count4/4);
-    mesg += fmt::format("{:>8} = # of frozen angles\n",count1/3);
-    utils::logmesg(lmp,mesg);
+    utils::logmesg(lmp,"{:>8} = # of size 2 clusters\n"
+                   "{:>8} = # of size 3 clusters\n"
+                   "{:>8} = # of size 4 clusters\n"
+                   "{:>8} = # of frozen angles\n",
+                   count2/2,count3/3,count4/4,count1/3);
   }
 }
 

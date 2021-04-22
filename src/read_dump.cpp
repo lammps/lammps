@@ -157,13 +157,14 @@ void ReadDump::command(int narg, char **arg)
   domain->print_box("  ");
 
   if (me == 0)
-    utils::logmesg(lmp, fmt::format("  {} atoms before read\n",natoms_prev)
-                   + fmt::format("  {} atoms in snapshot\n",nsnap_all)
-                   + fmt::format("  {} atoms purged\n",npurge_all)
-                   + fmt::format("  {} atoms replaced\n",nreplace_all)
-                   + fmt::format("  {} atoms trimmed\n",ntrim_all)
-                   + fmt::format("  {} atoms added\n",nadd_all)
-                   + fmt::format("  {} atoms after read\n",atom->natoms));
+    utils::logmesg(lmp,"  {} atoms before read\n"
+                   "  {} atoms in snapshot\n"
+                   "  {} atoms purged\n"
+                   "  {} atoms replaced\n"
+                   "  {} atoms trimmed\n"
+                   "  {} atoms added\n"
+                   "  {} atoms after read\n",natoms_prev,nsnap_all,
+                   npurge_all,nreplace_all,ntrim_all,nadd_all,atom->natoms);
 }
 
 /* ---------------------------------------------------------------------- */

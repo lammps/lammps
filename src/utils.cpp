@@ -1099,10 +1099,8 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
     std::string date       = get_potential_date(filepath, "potential");
     std::string units      = get_potential_units(filepath, "potential");
 
-    if (!date.empty() && (me == 0)) {
-      logmesg(lmp, fmt::format("Reading potential file {} "
-                               "with DATE: {}\n", name, date));
-    }
+    if (!date.empty() && (me == 0))
+      logmesg(lmp,"Reading potential file {} with DATE: {}\n", name, date);
 
     if (auto_convert == nullptr) {
       if (!units.empty() && (units != unit_style) && (me == 0)) {

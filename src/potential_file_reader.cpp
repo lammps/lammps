@@ -254,8 +254,8 @@ TextFileReader *PotentialFileReader::open_potential(const std::string &path) {
     std::string units      = utils::get_potential_units(filepath, filetype);
 
     if (!date.empty())
-      utils::logmesg(lmp, fmt::format("Reading {} file {} with DATE: {}\n",
-                                      filetype, filename, date));
+      utils::logmesg(lmp,"Reading {} file {} with DATE: {}\n",
+                     filetype, filename, date);
 
     if (units.empty()) {
       unit_convert = utils::NOCONVERT;

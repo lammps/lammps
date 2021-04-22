@@ -197,6 +197,6 @@ Oxford University Press.
 
 .. _Chirac1:
 
-**(Chirac)** Chirac, Théophile, et al.  Ultrafast antiferromagnetic
+**(Chirac)** Chirac, Theophile, et al.  Ultrafast antiferromagnetic
 switching in NiO induced by spin transfer torques.
 Physical Review B 102.13 (2020): 134415.

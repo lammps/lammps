@@ -17,6 +17,8 @@
 /*! \file utils.h */
 
 #include "lmptype.h"
+#include "fmt/format.h"
+
 #include <string>
 #include <vector>
 #include <cstdio>
@@ -45,10 +47,30 @@ namespace LAMMPS_NS {
 
     std::string strfind(const std::string &text, const std::string &pattern);
 
-    /** Send message to screen and logfile, if available
+    /* Internal function handling the argument list for logmesg(). */
+
+    void _internal_logmesg(LAMMPS *lmp, fmt::string_view format,
+                           fmt::format_args args);
+
+    /** Send formatted message to screen and logfile, if available
      *
-     *  \param lmp   pointer to LAMMPS class instance
-     *  \param mesg  message to be printed */
+     * This function simplifies the repetitive task of outputting some
+     * message to both the screen and/or the log file. The template
+     * wrapper with fmtlib format and argument processing allows
+     * this function to work similar to fmt::print().
+     * The specialization overload handles the case of no arguments.
+     *
+     *  \param lmp    pointer to LAMMPS class instance
+     *  \param format format string of message to be printed
+     *  \param args   arguments to format string */
+
+    template <typename S, typename... Args>
+    void logmesg(LAMMPS *lmp, const S &format, Args&&... args) {
+      _internal_logmesg(lmp, format,
+                        fmt::make_args_checked<Args...>(format, args...));
+    }
+
+    /** \overload */
 
     void logmesg(LAMMPS *lmp, const std::string &mesg);
 

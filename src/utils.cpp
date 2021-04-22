@@ -123,17 +123,19 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
     return "";
 }
 
-/** This function simplifies the repetitive task of outputting some
- * message to both the screen and/or the log file. In combination
- * with using fmt::format(), which returns the formatted text
- * in a std::string() instance, this can be used to reduce
- * operations previously requiring several lines of code to
- * a single statement. */
+/* specialization for the case of just a single string argument */
 
 void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
 {
   if (lmp->screen)  fputs(mesg.c_str(), lmp->screen);
   if (lmp->logfile) fputs(mesg.c_str(), lmp->logfile);
+}
+
+void utils::_internal_logmesg(LAMMPS *lmp,  fmt::string_view format,
+                           fmt::format_args args)
+{
+  if (lmp->screen)  fmt::vprint(lmp->screen,  format, args);
+  if (lmp->logfile) fmt::vprint(lmp->logfile, format, args);
 }
 
 /* define this here, so we won't have to include the headers

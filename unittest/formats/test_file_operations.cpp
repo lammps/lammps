@@ -126,7 +126,7 @@ TEST_F(FileOperationsTest, safe_fread)
 
 TEST_F(FileOperationsTest, logmesg)
 {
-    char buf[8];
+    char buf[16];
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
@@ -134,14 +134,15 @@ TEST_F(FileOperationsTest, logmesg)
     utils::logmesg(lmp, "one\n");
     command("log test_logmesg.log");
     utils::logmesg(lmp, "two\n");
+    utils::logmesg(lmp, "three={}\n",3);
     command("log none");
     std::string out = END_CAPTURE_OUTPUT();
-    memset(buf, 0, 8);
+    memset(buf, 0, 16);
     FILE *fp = fopen("test_logmesg.log", "r");
-    fread(buf, 1, 8, fp);
+    fread(buf, 1, 16, fp);
     fclose(fp);
-    ASSERT_THAT(out, StrEq("one\ntwo\n"));
-    ASSERT_THAT(buf, StrEq("two\n"));
+    ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\n"));
+    ASSERT_THAT(buf, StrEq("two\nthree=3\n"));
     remove("test_logmesg.log");
 }
 

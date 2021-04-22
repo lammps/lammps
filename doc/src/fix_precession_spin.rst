@@ -12,7 +12,7 @@ Syntax
 
 * ID, group are documented in :doc:`fix <fix>` command
 * precession/spin = style name of this fix command
-* style = *zeeman* or *anisotropy* or *cubic*
+* style = *zeeman* or *anisotropy* or *cubic* or *stt*
 
   .. parsed-literal::
 
@@ -22,12 +22,12 @@ Syntax
        *anisotropy* args = K x y z
          K = intensity of the magnetic anisotropy (in eV)
          x y z = vector direction of the anisotropy
-
-  .. parsed-literal::
-
        *cubic* args = K1 K2c n1x n1y n1x n2x n2y n2z n3x n3y n3z
          K1 and K2c = intensity of the magnetic anisotropy (in eV)
          n1x to n3z = three direction vectors of the cubic anisotropy
+       *stt* args = J x y z
+         J = intensity of the spin-transfer torque field
+         x y z = vector direction of the field
 
 Examples
 """"""""
@@ -125,12 +125,27 @@ axis along the :math:`(1 1 1)`-type cube diagonals).  :math:`K_2^c >
 diagonals.  See chapter 2 of :ref:`(Skomski) <Skomski1>` for more
 details on cubic anisotropies.
 
+Style *stt* is used to simulate the interaction between the spins and 
+a spin-transfer torque.
+See equation (7) of :ref:`(Chirac) <Chirac1>` for more details about the 
+implemented spin-transfer torque term. 
+
 In all cases, the choice of :math:`(x y z)` only imposes the vector
 directions for the forces. Only the direction of the vector is
 important; its length is ignored (the entered vectors are
 normalized).
 
 Those styles can be combined within one single command line.
+
+.. note::
+
+   The norm of all vectors defined with the precession/spin command 
+   have to be non-zero. For example, defining
+   "fix 1 all precession/spin zeeman 0.1 0.0 0.0 0.0" would result
+   in an error message. 
+   Since those vector components are used to compute the inverse of the
+   field (or anisotropy) vector norm, setting a zero-vector would result 
+   in a division by zero.
 
 ----------
 
@@ -162,11 +177,6 @@ is only enabled if LAMMPS was built with this package, and if the
 atom_style "spin" was declared.  See the :doc:`Build package
 <Build_package>` doc page for more info.
 
-The *precession/spin* style can only be declared once. If more than
-one precession type (for example combining an anisotropy and a Zeeman
-interactions) has to be declared, they have to be chained in the same
-command line (as shown in the examples above).
-
 Related commands
 """"""""""""""""
 
@@ -184,3 +194,9 @@ none
 
 **(Skomski)** Skomski, R. (2008). Simple models of magnetism.
 Oxford University Press.
+
+.. _Chirac1:
+
+**(Chirac)** Chirac, Théophile, et al.  Ultrafast antiferromagnetic 
+switching in NiO induced by spin transfer torques. 
+Physical Review B 102.13 (2020): 134415.

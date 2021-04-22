@@ -964,13 +964,12 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 void Modify::add_fix(const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
-  char **newarg = new char*[args.size()];
-  int i=0;
+  std::vector<char *> newarg(args.size());
+  int i = 0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_fix(args.size(),newarg,trysuffix);
-  delete[] newarg;
+  add_fix(args.size(),newarg.data(),trysuffix);
 }
 
 

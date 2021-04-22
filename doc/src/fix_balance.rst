@@ -216,7 +216,7 @@ above.  It changes the positions of cutting planes between processors
 in an iterative fashion, seeking to reduce the imbalance factor.
 
 The *dimstr* argument is a string of characters, each of which must be
-an "x" or "y" or "z".  Eacn character can appear zero or one time,
+an "x" or "y" or "z".  Each character can appear zero or one time,
 since there is no advantage to balancing on a dimension more than
 once.  You should normally only list dimensions where you expect there
 to be a density variation in the particles.

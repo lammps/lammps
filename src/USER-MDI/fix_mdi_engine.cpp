@@ -503,6 +503,10 @@ char *FixMDIEngine::engine_mode(const char *node)
 
 void FixMDIEngine::receive_coordinates(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The >COORDS MDI command does not support lj units");
+
   double posconv;
   double angstrom_to_bohr;
   MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
@@ -549,6 +553,10 @@ void FixMDIEngine::receive_coordinates(Error* error)
 
 void FixMDIEngine::send_coordinates(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The <COORDS MDI command does not support lj units");
+
   double posconv;
   double angstrom_to_bohr;
   MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
@@ -624,6 +632,10 @@ void FixMDIEngine::send_charges(Error* error)
 
 void FixMDIEngine::send_energy(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The <ENERGY MDI command does not support lj units");
+
   double kelvin_to_hartree;
   MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
 
@@ -647,6 +659,10 @@ void FixMDIEngine::send_energy(Error* error)
 
 void FixMDIEngine::send_pe(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The <PE MDI command does not support lj units");
+
   double kelvin_to_hartree;
   MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
 
@@ -666,6 +682,10 @@ void FixMDIEngine::send_pe(Error* error)
 
 void FixMDIEngine::send_ke(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The <KE MDI command does not support lj units");
+
   double kelvin_to_hartree;
   MDI_Conversion_Factor("kelvin_energy", "hartree", &kelvin_to_hartree);
 
@@ -718,25 +738,49 @@ void FixMDIEngine::send_labels(Error* error)
 
 void FixMDIEngine::send_masses(Error* error)
 {
+  double * const rmass = atom->rmass;
   double * const mass = atom->mass;
   int * const type = atom->type;
+  int nlocal = atom->nlocal;
 
-  if (master) { 
-    double *mass_by_atom = new double[atom->natoms];
-    for (int iatom=0; iatom < atom->natoms; iatom++) {
-      mass_by_atom[ atom->tag[iatom] - 1 ] = mass[ type[iatom] ];
-    }
-    ierr = MDI_Send((char*) mass_by_atom, atom->natoms, MDI_DOUBLE, driver_socket);
-    if (ierr != 0)
-      error->all(FLERR,"Unable to send atom masses to driver");
-    delete [] mass_by_atom;
+  double *mass_by_atom = new double[atom->natoms];
+  double *mass_by_atom_reduced = new double[atom->natoms];
+  for (int iatom=0; iatom < atom->natoms; iatom++) {
+    mass_by_atom[iatom] = 0.0;
   }
 
+  // determine the atomic masses
+  if (rmass) {
+    for (int iatom=0; iatom < nlocal; iatom++) {
+      mass_by_atom[ atom->tag[iatom] - 1 ] = rmass[iatom];
+    }
+  }
+  else {
+    for (int iatom=0; iatom < nlocal; iatom++) {
+      mass_by_atom[ atom->tag[iatom] - 1 ] = mass[ type[iatom] ];
+    }
+  }
+
+  MPI_Reduce(mass_by_atom, mass_by_atom_reduced, atom->natoms, MPI_DOUBLE, MPI_SUM, 0, world);
+
+  // send the atomic masses to the driver
+  if (master) {
+    ierr = MDI_Send((char*) mass_by_atom_reduced, atom->natoms, MDI_DOUBLE, driver_socket);
+    if (ierr != 0)
+      error->all(FLERR,"Unable to send atom masses to driver");
+  }
+  
+  delete [] mass_by_atom;
+  delete [] mass_by_atom_reduced;
 }
 
 
 void FixMDIEngine::send_forces(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The <FORCES MDI command does not support lj units");
+
   double angstrom_to_bohr;
   MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
   double kelvin_to_hartree;
@@ -818,6 +862,10 @@ void FixMDIEngine::send_forces(Error* error)
 
 void FixMDIEngine::receive_forces(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The >FORCES MDI command does not support lj units");
+
   double angstrom_to_bohr;
   MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
   double kelvin_to_hartree;
@@ -855,6 +903,10 @@ void FixMDIEngine::receive_forces(Error* error)
 
 void FixMDIEngine::add_forces(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The >+FORCES MDI command does not support lj units");
+
   double angstrom_to_bohr;
   MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
   double kelvin_to_hartree;
@@ -892,6 +944,10 @@ void FixMDIEngine::add_forces(Error* error)
 
 void FixMDIEngine::send_cell(Error* error)
 {
+  // unable to convert to atomic units if LAMMPS is using lj units
+  if (strcmp(update->unit_style,"lj") == 0)
+    error->all(FLERR,"The <CELL MDI command does not support lj units");
+
   double angstrom_to_bohr;
   MDI_Conversion_Factor("angstrom", "bohr", &angstrom_to_bohr);
 

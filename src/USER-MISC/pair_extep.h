@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -48,30 +48,24 @@ class PairExTeP : public Pair {
     double c1,c2,c3,c4;
     int ielement,jelement,kelement;
     int powermint;
-    double Z_i,Z_j;              // added for ExTePZBL
+    double Z_i,Z_j;             // added for ExTePZBL
     double ZBLcut,ZBLexpscale;
-    double c5,ca1,ca4;           // added for ExTePMOD
+    double c5,ca1,ca4;          // added for ExTePMOD
     double powern_del;
   };
 
   Param *params;                // parameter set for an I-J-K interaction
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
   double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
 
-  int maxlocal;                    // size of numneigh, firstneigh arrays
-  int maxpage;                     // # of pages currently allocated
-  int pgsize;                      // size of neighbor page
-  int oneatom;                     // max # of neighbors for one atom
-  MyPage<int> *ipage;              // neighbor list pages
-  int *SR_numneigh;                // # of pair neighbors for each atom
-  int **SR_firstneigh;             // ptr to 1st neighbor of each atom
+  int maxlocal;                 // size of numneigh, firstneigh arrays
+  int maxpage;                  // # of pages currently allocated
+  int pgsize;                   // size of neighbor page
+  int oneatom;                  // max # of neighbors for one atom
+  MyPage<int> *ipage;           // neighbor list pages
+  int *SR_numneigh;             // # of pair neighbors for each atom
+  int **SR_firstneigh;          // ptr to 1st neighbor of each atom
 
-  double *Nt, *Nd;               // sum of cutoff fns ( f_C ) with SR neighs
+  double *Nt, *Nd;              // sum of cutoff fns ( f_C ) with SR neighs
 
   void allocate();
   void spline_init();

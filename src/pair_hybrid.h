@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,14 +37,14 @@ class PairHybrid : public Pair {
   PairHybrid(class LAMMPS *);
   virtual ~PairHybrid();
   virtual void compute(int, int);
-  void settings(int, char **);
+  virtual void settings(int, char **);
   virtual void coeff(int, char **);
   void init_style();
   double init_one(int, int);
   void setup();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
+  virtual double single(int, int, int, int, double, double, double, double &);
   void modify_params(int narg, char **arg);
   double memory_usage();
 

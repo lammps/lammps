@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -216,17 +216,27 @@ class Pair : protected Pointers {
   virtual void del_tally_callback(class Compute *);
 
  protected:
-  int instance_me;        // which Pair class instantiation I am
+  int instance_me;              // which Pair class instantiation I am
+  int special_lj[4];            // copied from force->special_lj for Kokkos
+  int suffix_flag;              // suffix compatibility flag
 
-  int special_lj[4];           // copied from force->special_lj for Kokkos
+                                // pair_modify settings
+  int offset_flag,mix_flag;     // flags for offset and mixing
+  double tabinner;              // inner cutoff for Coulomb table
+  double tabinner_disp;         // inner cutoff for dispersion table
 
-  int suffix_flag;             // suffix compatibility flag
-
-                                       // pair_modify settings
-  int offset_flag,mix_flag;            // flags for offset and mixing
-  double tabinner;                     // inner cutoff for Coulomb table
-  double tabinner_disp;                 // inner cutoff for dispersion table
-
+ protected:
+  // for mapping of elements to atom types and parameters
+  // mostly used for manybody potentials
+  int nelements;                // # of unique elements
+  char **elements;              // names of unique elements
+  int *elem1param;              // mapping from elements to parameters
+  int **elem2param;             // mapping from element pairs to parameters
+  int ***elem3param;            // mapping from element triplets to parameters
+  int *map;                     // mapping from atom types to elements
+  int nparams;                  // # of stored parameter sets
+  int maxparam;                 // max # of parameter sets
+  void map_element2type(int, char**, bool update_setflag=true);
 
  public:
   // custom data type for accessing Coulomb tables

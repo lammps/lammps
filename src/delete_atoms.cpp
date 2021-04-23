@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Pointers(lmp) {}
+DeleteAtoms::DeleteAtoms(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

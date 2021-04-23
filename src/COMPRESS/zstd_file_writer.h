@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,7 +38,7 @@ class ZstdFileWriter : public FileWriter {
 public:
     ZstdFileWriter();
     virtual ~ZstdFileWriter();
-    virtual void open(const std::string &path) override;
+    virtual void open(const std::string &path, bool append = false) override;
     virtual void close() override;
     virtual void flush() override;
     virtual size_t write(const void * buffer, size_t length) override;

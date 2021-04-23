@@ -82,19 +82,11 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   uxif_high = utils::numeric(FLERR,arg[8],false,lmp);
 
   if (direction_of_motion == 0) {
-    int n = strlen(arg[9]) + 1;
-    chifilename = new char[n];
-    strcpy(chifilename,arg[9]);
-    n = strlen(arg[10]) + 1;
-    xifilename = new char[n];
-    strcpy(xifilename,arg[10]);
+    chifilename = utils::strdup(arg[9]);
+    xifilename = utils::strdup(arg[10]);
   } else if (direction_of_motion == 1) {
-    int n = strlen(arg[9]) + 1;
-    xifilename = new char[n];
-    strcpy(xifilename,arg[9]);
-    n = strlen(arg[10]) + 1;
-    chifilename = new char[n];
-    strcpy(chifilename,arg[10]);
+    xifilename = utils::strdup(arg[9]);
+    chifilename = utils::strdup(arg[10]);
   } else error->all(FLERR,"Illegal fix orient/bcc command");
 
   // initializations
@@ -210,7 +202,7 @@ int FixOrientBCC::setmask()
 
 void FixOrientBCC::init()
 {
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -236,7 +228,7 @@ void FixOrientBCC::init_list(int /*id*/, NeighList *ptr)
 
 void FixOrientBCC::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -54,9 +54,6 @@ public:
         double memory_usage();
 
 protected:
-  char **elements;              // names of unique elements
-  int *map;                     // mapping from atom types to elements
-  int nelements;                // # of unique elements
 
         class SplineFunction {
         public:

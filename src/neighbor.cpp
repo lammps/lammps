@@ -319,7 +319,7 @@ void Neighbor::init()
   // rRESPA cutoffs
 
   int respa = 0;
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
   }
@@ -2354,6 +2354,22 @@ void Neighbor::modify_params(int narg, char **arg)
 
     } else error->all(FLERR,"Illegal neigh_modify command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow modifying parameters from a single string
+------------------------------------------------------------------------- */
+
+void Neighbor::modify_params(const std::string &modcmd)
+{
+  auto args = utils::split_words(modcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  modify_params(args.size(),newarg);
+  delete[] newarg;
 }
 
 /* ----------------------------------------------------------------------

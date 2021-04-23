@@ -124,7 +124,7 @@ void PairTersoffMODKokkos<DeviceType>::setup_params()
   for (i = 1; i <= n; i++)
     for (j = 1; j <= n; j++)
       for (k = 1; k <= n; k++) {
-        m = elem2param[map[i]][map[j]][map[k]];
+        m = elem3param[map[i]][map[j]][map[k]];
         k_params.h_view(i,j,k).powerm = params[m].powerm;
         k_params.h_view(i,j,k).lam3 = params[m].lam3;
         k_params.h_view(i,j,k).h = params[m].h;

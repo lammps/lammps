@@ -1061,7 +1061,7 @@ bool lmp_gpu_config(const std::string &category, const std::string &setting)
     return setting == "opencl";
 #elif defined(USE_HIP)
     return setting == "hip";
-#elif defined(USE_CUDA)
+#elif defined(USE_CUDA) || defined(USE_CUDART)
     return setting == "cuda";
 #endif
     return false;

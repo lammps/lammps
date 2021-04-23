@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------
-   Lammps - Large-scale Atomic/Molecular Massively Parallel Simulator
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
@@ -131,24 +131,10 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   }
 
   // Create temperature compute:
-  const char *fix_id = arg[1];
-  int n = strlen(fix_id)+6;
-  id_temp = new char[n];
-  strcpy(id_temp,fix_id);
-  strcat(id_temp,"_temp");
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char*) "temp";
 
-
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   int icompute = modify->find_compute(id_temp);
-  if (icompute < 0) {
-    error->all(FLERR,"Temperature ID for fix nvt/manifold/rattle "
-               "does not exist");
-  }
   temperature = modify->compute[icompute];
   if (temperature->tempbias) which = BIAS;
   else                        which = NOBIAS;
@@ -167,8 +153,6 @@ FixNVTManifoldRattle::FixNVTManifoldRattle(LAMMPS *lmp, int narg, char **arg,
   for (int ich = 0; ich < mtchain; ++ich) {
     eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
   }
-
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,9 +169,6 @@ FixNVTManifoldRattle::~FixNVTManifoldRattle()
   if (id_temp)    delete[] id_temp;
 }
 
-
-
-
 int FixNVTManifoldRattle::setmask()
 {
   int mask = 0;
@@ -197,7 +178,6 @@ int FixNVTManifoldRattle::setmask()
 
   return mask;
 }
-
 
 /* --------------------------------------------------------------------------
    Check that force modification happens before position and velocity update.
@@ -218,8 +198,6 @@ void FixNVTManifoldRattle::init()
   else                        which = NOBIAS;
 
 }
-
-
 
 void FixNVTManifoldRattle::setup(int /*vflag*/)
 {
@@ -359,9 +337,6 @@ void FixNVTManifoldRattle::nh_v_temp()
   }
 }
 
-
-
-
 // Most of this logic is based on fix_nh:
 void FixNVTManifoldRattle::initial_integrate(int /*vflag*/)
 {
@@ -381,8 +356,6 @@ void FixNVTManifoldRattle::final_integrate()
   nhc_temp_integrate();
 }
 
-
-
 /* ---------------------------------------------------------------------- */
 void FixNVTManifoldRattle::reset_dt()
 {
@@ -394,10 +367,6 @@ void FixNVTManifoldRattle::reset_dt()
   tdrag_factor = 1.0 - (update->dt * t_freq * drag);
 
 }
-
-
-
-
 
 double FixNVTManifoldRattle::memory_usage()
 {

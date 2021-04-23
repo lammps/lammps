@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -47,12 +47,11 @@ class PairMEAMC : public Pair {
 
  private:
   class MEAM *meam_inst;
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  std::vector<std::string> elements; // names of unique elements
-  std::vector<double> mass;          // mass of each element
+  double cutmax;                        // max cutoff for all elements
+  int nlibelements;                     // # of library elements
+  std::vector<std::string> libelements; // names of library elements
+  std::vector<double> mass;             // mass of library element
 
-  int *map;                     // mapping from atom types (1-indexed) to elements (1-indexed)
   double **scale;               // scaling factor for adapt
 
   void allocate();

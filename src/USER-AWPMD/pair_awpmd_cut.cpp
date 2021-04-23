@@ -150,7 +150,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
 
 # if 1
   // mapping of the LAMMPS numbers to the AWPMC numbers
-  vector<int> gmap(ntot,-1);
+  std::vector<int> gmap(ntot,-1);
 
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
@@ -226,7 +226,7 @@ void PairAWPMDCut::compute(int eflag, int vflag)
   // prepare the solver object
   wpmd->reset();
 
-  map<int,vector<int> > etmap;
+  std::map<int,std::vector<int> > etmap;
   // add particles to the AWPMD solver object
   for (int i = 0; i < ntot; i++) {
     //int i = ilist[ii];
@@ -246,8 +246,8 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     fi= new Vector_3[wpmd->ni];
 
   // adding electrons
-  for (map<int,vector<int> >::iterator it=etmap.begin(); it!= etmap.end(); ++it) {
-    vector<int> &el=it->second;
+  for (std::map<int,std::vector<int> >::iterator it=etmap.begin(); it!= etmap.end(); ++it) {
+    std::vector<int> &el=it->second;
     if (!el.size()) // should not happen
       continue;
     int s=spin[el[0]] >0 ? 0 : 1;

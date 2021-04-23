@@ -349,7 +349,7 @@ the box size stored with the snapshot.
 
 The *xtc* style writes XTC files, a compressed trajectory format used
 by the GROMACS molecular dynamics package, and described
-`here <http://manual.gromacs.org/current/online/xtc.html>`_.
+`here <https://manual.gromacs.org/current/reference-manual/file-formats.html#xtc>`_.
 The precision used in XTC files can be adjusted via the
 :doc:`dump_modify <dump_modify>` command.  The default value of 1000
 means that coordinates are stored to 1/1000 nanometer accuracy.  XTC

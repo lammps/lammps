@@ -25,6 +25,8 @@
 #include "update.h"
 #include "variable.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 #define BIG 1.0e20

@@ -17,7 +17,6 @@
 #include "error.h"
 
 #include <cstring>
-#include <cctype>
 
 using namespace LAMMPS_NS;
 
@@ -51,10 +50,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
       if (multiple[m]) {
         multflag = 1;
         if (narg < 4) error->all(FLERR,"Incorrect args for pair coefficients");
-        if (!isdigit(arg[3][0]))
-          error->all(FLERR,"Incorrect args for pair coefficients");
-        int index = utils::inumeric(FLERR,arg[3],false,lmp);
-        if (index == multiple[m]) break;
+        if (multiple[m] == utils::inumeric(FLERR,arg[3],false,lmp)) break;
         else continue;
       } else break;
     }
@@ -75,7 +71,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st remaining arg
 
-  if (!none) styles[m]->coeff(narg-1-multflag,&arg[1+multflag]);
+  if (!none) styles[m]->coeff(narg-1-multflag,arg+1+multflag);
 
   // set setflag and which type pairs map to which sub-style
   // if sub-style is none: set hybrid subflag, wipe out map

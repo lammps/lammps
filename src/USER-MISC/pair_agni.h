@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,11 +45,6 @@ class PairAGNI : public Pair {
 
  protected:
   double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique atom type labels
-  char **elements;              // names of unique elements
-  int *elem2param;              // mapping from element pairs to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
   int atomic_feature_version;   // version of fingerprint
   Param *params;                // parameter set for an I-J interaction
   virtual void allocate();

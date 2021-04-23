@@ -136,13 +136,16 @@ double RanMars::gaussian(double mu, double sigma)
 
 double RanMars::rayleigh(double sigma)
 {
-  double first,v1;
+  double v1;
 
-  if (sigma <= 0) error->all(FLERR,"Invalid Rayleigh parameter");
+  if (sigma <= 0.0) error->all(FLERR,"Invalid Rayleigh parameter");
 
   v1 = uniform();
-  first = sigma*sqrt(-2.0*log(v1));
-  return first;
+  // avoid a floating point exception due to log(0.0)
+  // and just return a very big number
+  if (v1 == 0.0) return 1.0e300;
+
+  return sigma*sqrt(-2.0*log(v1));
 }
 
 /* ----------------------------------------------------------------------

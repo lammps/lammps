@@ -169,9 +169,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"yes") == 0) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal fix bond/react command:"
                                       "'stabilization' keyword has too few arguments");
-        int n = strlen(arg[iarg+2]) + 1;
-        exclude_group = new char[n];
-        strcpy(exclude_group,arg[iarg+2]);
+        exclude_group = utils::strdup(arg[iarg+2]);
         stabilization_flag = 1;
         nve_limit_xmax = arg[iarg+3];
         iarg += 4;
@@ -273,9 +271,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     groupbits[rxn] = group->bitmask[groupid];
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      n = strlen(&arg[iarg][2]) + 1;
-      char *str = new char[n];
-      strcpy(str,&arg[iarg][2]);
+      char *str = utils::strdup(&arg[iarg][2]);
       var_id[NEVERY][rxn] = input->variable->find(str);
       if (var_id[NEVERY][rxn] < 0)
         error->all(FLERR,"Bond/react: Variable name does not exist");
@@ -291,9 +287,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      n = strlen(&arg[iarg][2]) + 1;
-      char *str = new char[n];
-      strcpy(str,&arg[iarg][2]);
+      char *str = utils::strdup(&arg[iarg][2]);
       var_id[RMIN][rxn] = input->variable->find(str);
       if (var_id[RMIN][rxn] < 0)
         error->all(FLERR,"Bond/react: Variable name does not exist");
@@ -312,9 +306,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     iarg++;
 
     if (strncmp(arg[iarg],"v_",2) == 0) {
-      n = strlen(&arg[iarg][2]) + 1;
-      char *str = new char[n];
-      strcpy(str,&arg[iarg][2]);
+      char *str = utils::strdup(&arg[iarg][2]);
       var_id[RMAX][rxn] = input->variable->find(str);
       if (var_id[RMAX][rxn] < 0)
         error->all(FLERR,"Bond/react: Variable name does not exist");
@@ -340,8 +332,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                            "fix bond/react does not exist");
 
     //read superimpose file
-    files[rxn] = new char[strlen(arg[iarg])+1];
-    strcpy(files[rxn],arg[iarg]);
+    files[rxn] = utils::strdup(arg[iarg]);
     iarg++;
 
     while (iarg < narg && strcmp(arg[iarg],"react") != 0) {
@@ -350,9 +341,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
                                       "'prob' keyword has too few arguments");
         // check if probability is a variable
         if (strncmp(arg[iarg+1],"v_",2) == 0) {
-          int n = strlen(&arg[iarg+1][2]) + 1;
-          char *str = new char[n];
-          strcpy(str,&arg[iarg+1][2]);
+          char *str = utils::strdup(&arg[iarg+1][2]);
           var_id[PROB][rxn] = input->variable->find(str);
           if (var_id[PROB][rxn] < 0)
             error->all(FLERR,"Bond/react: Variable name does not exist");
@@ -693,7 +682,6 @@ it will have the name 'i_limit_tags' and will be intitialized to 0 (not in group
 
 void FixBondReact::post_constructor()
 {
-  int len;
   // let's add the limit_tags per-atom property fix
   std::string cmd = std::string("bond_react_props_internal");
   id_fix2 = new char[cmd.size()+1];
@@ -727,21 +715,14 @@ void FixBondReact::post_constructor()
         fix3 = modify->fix[modify->nfix-1];
       }
 
-      len = strlen("statted_tags") + 1;
-      statted_id = new char[len];
-      strcpy(statted_id,"statted_tags");
+      statted_id = utils::strdup("statted_tags");
 
       // if static group exists, use as parent group
       // also, rename dynamic exclude_group by appending '_REACT'
       char *exclude_PARENT_group;
-      int n = strlen(exclude_group) + 1;
-      exclude_PARENT_group = new char[n];
-      strcpy(exclude_PARENT_group,exclude_group);
-      n += strlen("_REACT");
+      exclude_PARENT_group = utils::strdup(exclude_group);
       delete [] exclude_group;
-      exclude_group = new char[n];
-      strcpy(exclude_group,exclude_PARENT_group);
-      strcat(exclude_group,"_REACT");
+      exclude_group = utils::strdup(std::string(exclude_PARENT_group)+"_REACT");
 
       group->find_or_create(exclude_group);
       if (groupid == -1)
@@ -766,13 +747,8 @@ void FixBondReact::post_constructor()
       // sleeping code, for future capabilities
       custom_exclude_flag = 1;
       // first we have to find correct fix group reference
-      int n = strlen("GROUP_") + strlen(exclude_group) + 1;
-      char *fix_group = new char[n];
-      strcpy(fix_group,"GROUP_");
-      strcat(fix_group,exclude_group);
-      int ifix = modify->find_fix(fix_group);
+      int ifix = modify->find_fix(std::string("GROUP_")+exclude_group);
       Fix *fix = modify->fix[ifix];
-      delete [] fix_group;
 
       // this returns names of corresponding property
       int unused;
@@ -780,10 +756,7 @@ void FixBondReact::post_constructor()
       idprop = (char *) fix->extract("property",unused);
       if (idprop == nullptr)
         error->all(FLERR,"Exclude group must be a per-atom property group");
-
-      len = strlen(idprop) + 1;
-      statted_id = new char[len];
-      strcpy(statted_id,idprop);
+      statted_id = utils::strdup(idprop);
 
       // initialize per-atom statted_tags to 1
       // need to correct for smooth restarts

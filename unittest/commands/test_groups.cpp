@@ -22,18 +22,13 @@
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "../testing/core.h"
 
 #include <cstring>
 #include <vector>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
-
-#if defined(OMPI_MAJOR_VERSION)
-const bool have_openmpi = true;
-#else
-const bool have_openmpi = false;
-#endif
 
 using LAMMPS_NS::utils::split_words;
 
@@ -42,54 +37,22 @@ using ::testing::ExitedWithCode;
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
-#define TEST_FAILURE(errmsg, ...)                                 \
-    if (Info::has_exceptions()) {                                 \
-        ::testing::internal::CaptureStdout();                     \
-        ASSERT_ANY_THROW({__VA_ARGS__});                          \
-        auto mesg = ::testing::internal::GetCapturedStdout();     \
-        if (verbose) std::cout << mesg;                           \
-        ASSERT_THAT(mesg, MatchesRegex(errmsg));                  \
-    } else {                                                      \
-        if (!have_openmpi) {                                      \
-            ::testing::internal::CaptureStdout();                 \
-            ASSERT_DEATH({__VA_ARGS__}, "");                      \
-            auto mesg = ::testing::internal::GetCapturedStdout(); \
-            if (verbose) std::cout << mesg;                       \
-            ASSERT_THAT(mesg, MatchesRegex(errmsg));              \
-        }                                                         \
-    }
-
-class GroupTest : public ::testing::Test {
+class GroupTest : public LAMMPSTest {
 protected:
-    LAMMPS *lmp;
     Group *group;
     Domain *domain;
 
     void SetUp() override
     {
-        const char *args[] = {"GroupTest", "-log", "none", "-echo", "screen", "-nocite"};
-        char **argv        = (char **)args;
-        int argc           = sizeof(args) / sizeof(char *);
-        if (!verbose) ::testing::internal::CaptureStdout();
-        lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        group = lmp->group;
+        testbinary = "GroupTest";
+        LAMMPSTest::SetUp();
+        group  = lmp->group;
         domain = lmp->domain;
     }
 
-    void TearDown() override
-    {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        delete lmp;
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-        std::cout.flush();
-    }
-
-    void command(const std::string &cmd) { lmp->input->one(cmd); }
-
     void atomic_system()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("units real");
         command("lattice sc 1.0 origin 0.125 0.125 0.125");
         command("region box block -2 2 -2 2 -2 2");
@@ -101,23 +64,25 @@ protected:
         command("region top block INF INF -2.0 -1.0 INF INF");
         command("set region left type 2");
         command("set region right type 3");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     void molecular_system()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         command("fix props all property/atom mol rmass q");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
+
         atomic_system();
-        if (!verbose) ::testing::internal::CaptureStdout();
+    
+        BEGIN_HIDE_OUTPUT();
         command("variable molid atom floor(id/4)+1");
         command("variable charge atom 2.0*sin(PI/32*id)");
         command("set atom * mol v_molid");
         command("set atom * charge v_charge");
         command("set type 1 mass 0.5");
         command("set type 2*4 mass 2.0");
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 };
 
@@ -131,7 +96,7 @@ TEST_F(GroupTest, EmptyDelete)
 {
     atomic_system();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group new1 empty");
     command("group new2 empty");
     command("group new2 empty");
@@ -143,16 +108,16 @@ TEST_F(GroupTest, EmptyDelete)
     command("compute 1 new3 ke");
     command("dump 1 new4 atom 50 dump.melt");
     command("atom_modify first new5");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->ngroup, 7);
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new3 xxx"););
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new3 empty xxx"););
     TEST_FAILURE(".*ERROR: Group command requires atom attribute molecule.*",
                  command("group new2 include molecule"););
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     group->assign("new1 delete");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->ngroup, 6);
 
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group new2 delete xxx"););
@@ -172,13 +137,13 @@ TEST_F(GroupTest, RegionClear)
 {
     atomic_system();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group one region left");
     command("group two region right");
     command("group three empty");
     command("group four region left");
     command("group four region right");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("one")), 16);
     ASSERT_EQ(group->count(group->find("two")), 16);
     ASSERT_EQ(group->count(group->find("three")), 0);
@@ -189,20 +154,20 @@ TEST_F(GroupTest, RegionClear)
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three region left xxx"););
     TEST_FAILURE(".*ERROR: Group region ID does not exist.*", command("group four region dummy"););
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group one clear");
     command("group two clear");
     command("group three clear");
     command("group four clear");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("one")), 0);
     ASSERT_EQ(group->count(group->find("two")), 0);
     ASSERT_EQ(group->count(group->find("three")), 0);
     ASSERT_EQ(group->count(group->find("four")), 0);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("delete_atoms region box");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("all")), 0);
 }
 
@@ -214,7 +179,7 @@ TEST_F(GroupTest, SelectRestart)
     for (int i = 0; i < lmp->atom->natoms; ++i)
         flags[i] = i & 1;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group one region left");
     command("group two region right");
     group->create("half", flags);
@@ -224,7 +189,7 @@ TEST_F(GroupTest, SelectRestart)
     command("group five subtract all half four");
     command("group top region top");
     command("group six intersect half top");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("one")), 16);
     ASSERT_EQ(group->count(group->find("two")), 16);
     ASSERT_EQ(group->count(group->find("three")), 0);
@@ -235,12 +200,12 @@ TEST_F(GroupTest, SelectRestart)
     ASSERT_EQ(group->count(group->find("half"), domain->find_region("top")), 8);
     ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 8.0);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("write_restart group.restart");
     command("clear");
     command("read_restart group.restart");
     unlink("group.restart");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     group = lmp->group;
     ASSERT_EQ(group->count(group->find("one")), 16);
     ASSERT_EQ(group->count(group->find("two")), 16);
@@ -250,11 +215,11 @@ TEST_F(GroupTest, SelectRestart)
     ASSERT_EQ(group->count(group->find("five")), 16);
     ASSERT_DOUBLE_EQ(group->mass(group->find("six")), 8.0);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group four clear");
     command("group five clear");
     command("group six clear");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
 
     TEST_FAILURE(".*ERROR: Group ID does not exist.*", command("group four union one two xxx"););
     TEST_FAILURE(".*ERROR: Group ID does not exist.*",
@@ -267,14 +232,14 @@ TEST_F(GroupTest, Molecular)
 {
     molecular_system();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group one region left");
     command("group two region right");
     command("group half id 1:1000:2");
     command("group top region top");
     command("group three intersect half top");
     command("group three include molecule");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("one")), 16);
     ASSERT_EQ(group->count(group->find("two")), 16);
     ASSERT_EQ(group->count(group->find("three")), 15);
@@ -290,36 +255,36 @@ TEST_F(GroupTest, Dynamic)
 {
     atomic_system();
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("variable step atom id<=step");
     command("group half id 1:1000:2");
     command("group grow dynamic half var step every 1");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("grow")), 0);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("run 10 post no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("grow")), 5);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group grow dynamic half var step every 1");
     command("run 10 post no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("grow")), 10);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group grow static");
     command("run 10 post no");
     command("group part variable step");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("grow")), 10);
     ASSERT_EQ(group->count(group->find("part")), 30);
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group grow dynamic half var step every 1");
     command("run 10 post no");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    END_HIDE_OUTPUT();
     ASSERT_EQ(group->count(group->find("grow")), 20);
     TEST_FAILURE(".*ERROR: Cannot subtract groups using a dynamic group.*",
                  command("group chunk subtract half grow"););
@@ -328,11 +293,11 @@ TEST_F(GroupTest, Dynamic)
     TEST_FAILURE(".*ERROR: Cannot intersect groups using a dynamic group.*",
                  command("group chunk intersect half grow"););
 
-    if (!verbose) ::testing::internal::CaptureStdout();
+    BEGIN_HIDE_OUTPUT();
     command("group grow delete");
     command("variable ramp equal step");
-    if (!verbose) ::testing::internal::GetCapturedStdout();
-    ASSERT_EQ(group->ngroup, 4);
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(group->ngroup, 3);
 
     TEST_FAILURE(".*ERROR: Group dynamic cannot reference itself.*",
                  command("group half dynamic half region top"););
@@ -351,7 +316,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (have_openmpi && !LAMMPS_NS::Info::has_exceptions())
+    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

@@ -18,20 +18,21 @@
 
 #include "fix_reaxc_species.h"
 
-
-#include <cstring>
-#include "fix_ave_atom.h"
 #include "atom.h"
-#include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_ave_atom.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 #include "pair_reaxc.h"
+#include "update.h"
+
+#include <cstring>
+
 #include "reaxc_defs.h"
 
 using namespace LAMMPS_NS;

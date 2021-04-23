@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -41,7 +41,7 @@ class Variable : protected Pointers {
 
   char *retrieve(const char *);
   double compute_equal(int);
-  double compute_equal(char *);
+  double compute_equal(const std::string &);
   void compute_atom(int, int, double *, int, int);
   int compute_vector(int, double **);
   void internal_set(int, double);
@@ -52,6 +52,10 @@ class Variable : protected Pointers {
  public:
   int nvar;                // # of defined variables
   char **names;            // name of each variable
+
+  // must match "varstyles" array in info.cpp
+  enum{INDEX,LOOP,WORLD,UNIVERSE,ULOOP,STRING,GETENV,
+     SCALARFILE,ATOMFILE,FORMAT,EQUAL,ATOM,VECTOR,PYTHON,INTERNAL};
 
  private:
   int me;
@@ -122,8 +126,6 @@ class Variable : protected Pointers {
                       Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
   void atom_vector(char *, Tree **, Tree **, int &);
-  int is_constant(char *);
-  double constant(char *);
   int parse_args(char *, char **);
   char *find_next_comma(char *);
   void print_var_error(const std::string &, int, const std::string &,

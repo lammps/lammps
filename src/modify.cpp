@@ -964,13 +964,12 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 void Modify::add_fix(const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
-  char **newarg = new char*[args.size()];
-  int i=0;
+  std::vector<char *> newarg(args.size());
+  int i = 0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_fix(args.size(),newarg,trysuffix);
-  delete[] newarg;
+  add_fix(args.size(),newarg.data(),trysuffix);
 }
 
 
@@ -1069,10 +1068,12 @@ void Modify::delete_fix(const std::string &id)
 
 void Modify::delete_fix(int ifix)
 {
-  if (fix[ifix]) delete fix[ifix];
-  atom->update_callback(ifix);
+  if ((ifix < 0) || (ifix >= nfix)) return;
 
-  // move other Fixes and fmask down in list one slot
+  // delete instance and move other Fixes and fmask down in list one slot
+
+  delete fix[ifix];
+  atom->update_callback(ifix);
 
   for (int i = ifix+1; i < nfix; i++) fix[i-1] = fix[i];
   for (int i = ifix+1; i < nfix; i++) fmask[i-1] = fmask[i];
@@ -1099,11 +1100,9 @@ int Modify::find_fix(const std::string &id)
 
 int Modify::find_fix_by_style(const char *style)
 {
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style,style)) break;
-  if (ifix == nfix) return -1;
-  return ifix;
+  for (int ifix = 0; ifix < nfix; ifix++)
+    if (utils::strmatch(fix[ifix]->style,style)) return ifix;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -1326,10 +1325,16 @@ void Modify::delete_compute(const std::string &id)
 {
   int icompute = find_compute(id);
   if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
+  delete_compute(icompute);
+}
+
+void Modify::delete_compute(int icompute)
+{
+  if ((icompute < 0) || (icompute >= ncompute)) return;
+
+  // delete and move other Computes down in list one slot
+
   delete compute[icompute];
-
-  // move other Computes down in list one slot
-
   for (int i = icompute+1; i < ncompute; i++) compute[i-1] = compute[i];
   ncompute--;
 }
@@ -1344,6 +1349,18 @@ int Modify::find_compute(const std::string &id)
   if (id.empty()) return -1;
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (id == compute[icompute]->id) return icompute;
+  return -1;
+}
+
+/* ----------------------------------------------------------------------
+   find a compute by style
+   return index of compute or -1 if not found
+------------------------------------------------------------------------- */
+
+int Modify::find_compute_by_style(const char *style)
+{
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (utils::strmatch(compute[icompute]->style,style)) return icompute;
   return -1;
 }
 

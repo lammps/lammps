@@ -14,18 +14,15 @@
 #include "output.h"
 #include "style_dump.h"         // IWYU pragma: keep
 
-#include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "dump.h"
 #include "error.h"
-#include "force.h"
 #include "group.h"
 #include "info.h"
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "thermo.h"
 #include "update.h"
 #include "variable.h"

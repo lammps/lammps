@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,13 +52,7 @@ class PairGW : public Pair {
   };
 
   Param *params;                // parameter set for an I-J-K interaction
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to paramegw
-  int *map;                     // mapping from atom types to elements
   double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
 
   int **pages;                     // neighbor list pages
   int maxlocal;                    // size of numneigh, firstneigh arrays

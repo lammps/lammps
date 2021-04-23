@@ -1,6 +1,6 @@
 /* ---------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation. Under the terms of Contract
@@ -140,7 +140,7 @@ void FixElectronStoppingFit::init()
 
 void FixElectronStoppingFit::setup(int vflag)
 {
-  if (strcmp(update->integrate_style,"verlet") == 0)
+  if (utils::strmatch(update->integrate_style,"^verlet"))
      post_force(vflag);
   else {
      ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);

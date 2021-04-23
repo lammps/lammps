@@ -386,7 +386,7 @@ void DihedralCharmmfsw::coeff(int narg, char **arg)
 
 void DihedralCharmmfsw::init_style()
 {
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     Respa *r = (Respa *) update->integrate;
     if (r->level_pair >= 0 && (r->level_pair != r->level_dihedral))
       error->all(FLERR,"Dihedral style charmmfsw must be set to same"

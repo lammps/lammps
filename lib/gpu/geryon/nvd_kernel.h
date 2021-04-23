@@ -108,17 +108,14 @@ class UCL_Program {
       std::cerr << log << std::endl
                 << "----------------------------------------------------------\n\n";
       #endif
-      if (foutput != NULL) {
-	fprintf(foutput,"\n\n");
-	fprintf(foutput,
-		"----------------------------------------------------------\n");
-	fprintf(foutput," UCL Error: Error compiling PTX Program...\n");
-	fprintf(foutput,
-		"----------------------------------------------------------\n");
-	fprintf(foutput,"%s\n",log->c_str());
-	fprintf(foutput,
-		"----------------------------------------------------------\n");
-	fprintf(foutput,"\n\n");
+      if (foutput != nullptr) {
+        fprintf(foutput,"\n\n");
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput, " UCL Error: Error compiling PTX Program...\n");
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput, "%s\n",log->c_str());
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput,"\n\n");
       }
       return UCL_COMPILE_ERROR;
     }

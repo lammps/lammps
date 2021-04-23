@@ -4109,7 +4109,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     Fix *fix = nullptr;
     int index,nvec,nstride;
     char *ptr1,*ptr2;
-    ivar = -1;
+    int ivar = -1;
 
     // argument is compute
 
@@ -4387,7 +4387,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     if (narg != 1)
       print_var_error(FLERR,"Invalid special function in variable formula",ivar);
 
-    ivar = find(args[0]);
+    int ivar = find(args[0]);
     if (ivar < 0) {
       std::string mesg = "Variable ID '";
       mesg += args[0];
@@ -4399,7 +4399,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     // save value in tree or on argstack
 
     if (style[ivar] == SCALARFILE) {
-      value = atof(data[ivar][0]);
+      double value = atof(data[ivar][0]);
       int done = reader[ivar]->read_scalar(data[ivar][0]);
       if (done) remove(ivar);
 

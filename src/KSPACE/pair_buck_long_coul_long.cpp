@@ -563,9 +563,9 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
               force_buck = r*expr*buck1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej];
               if (eflag) evdwl = expr*buckai[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej];
             } else {                                             //special case
-              double f = special_lj[ni], t = rn*(1.0-f);
-              force_buck = f*r*expr*buck1i[typej] -(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej] +t*buck2i[typej];
-              if (eflag) evdwl = f*expr*buckai[typej] -(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej]+t*buckci[typej];
+              double fc = special_lj[ni], t = rn*(1.0-fc);
+              force_buck = fc*r*expr*buck1i[typej] -(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej] +t*buck2i[typej];
+              if (eflag) evdwl = fc*expr*buckai[typej] -(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej]+t*buckci[typej];
             }
           }
         } else {                                                // cut
@@ -574,10 +574,10 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
             if (eflag) evdwl = expr*buckai[typej] -
                          rn*buckci[typej]-offseti[typej];
           } else {                                        // special case
-            double f = special_lj[ni];
-            force_buck = f*(r*expr*buck1i[typej]-rn*buck2i[typej]);
+            double fc = special_lj[ni];
+            force_buck = fc*(r*expr*buck1i[typej]-rn*buck2i[typej]);
             if (eflag)
-              evdwl = f*(expr*buckai[typej]-rn*buckci[typej]-offseti[typej]);
+              evdwl = fc*(expr*buckai[typej]-rn*buckci[typej]-offseti[typej]);
           }
         }
       }
@@ -586,10 +586,10 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
       fpair = (force_coul+force_buck)*r2inv;
 
       if (newton_pair || j < nlocal) {
-        double *fj = f0+(j+(j<<1)), f;
-        fi[0] += f = d[0]*fpair; fj[0] -= f;
-        fi[1] += f = d[1]*fpair; fj[1] -= f;
-        fi[2] += f = d[2]*fpair; fj[2] -= f;
+        double *fj = f0+(j+(j<<1)), fp;
+        fi[0] += fp = d[0]*fpair; fj[0] -= fp;
+        fi[1] += fp = d[1]*fpair; fj[1] -= fp;
+        fi[2] += fp = d[2]*fpair; fj[2] -= fp;
       }
       else {
         fi[0] += d[0]*fpair;

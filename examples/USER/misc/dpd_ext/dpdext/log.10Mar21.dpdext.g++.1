@@ -1,4 +1,4 @@
-LAMMPS (10 Mar 2021)
+LAMMPS (8 Apr 2021)
 # DPD Fluid
 
 variable T    equal 1.0
@@ -34,9 +34,9 @@ mass         1 1.0
 mass         2 2.0
 ###
 
-pair_style	 dpdext ${T} ${rc} 3854262
-pair_style	 dpdext 1 ${rc} 3854262
-pair_style	 dpdext 1 1 3854262
+pair_style	 dpd/ext ${T} ${rc} 3854262
+pair_style	 dpd/ext 1 ${rc} 3854262
+pair_style	 dpd/ext 1 1 3854262
 
 pair_coeff   1 1 25.0 4.5 4.53 0.5 0.53   1.2 #${rcD}
 pair_coeff   1 2 25.1 4.51 4.54 0.51 0.54 1.21 #${rcD}
@@ -61,7 +61,7 @@ Neighbor list info ...
   ghost atom cutoff = 1.52
   binsize = 0.76, bins = 8 8 8
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
-  (1) pair dpdext, perpetual
+  (1) pair dpd/ext, perpetual
       attributes: half, newton on
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
@@ -169,20 +169,20 @@ Step Time Temp Press
    49000          490    1.0337198    7.5777833 
    49500          495   0.94052507    7.3661443 
    50000          500   0.98527818    7.1746325 
-Loop time of 10.2559 on 1 procs for 50000 steps with 200 atoms
+Loop time of 9.88248 on 1 procs for 50000 steps with 200 atoms
 
-Performance: 4212216.548 tau/day, 4875.251 timesteps/s
-99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 4371371.882 tau/day, 5059.458 timesteps/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 8.9888     | 8.9888     | 8.9888     |   0.0 | 87.65
-Neigh   | 0.832      | 0.832      | 0.832      |   0.0 |  8.11
-Comm    | 0.30913    | 0.30913    | 0.30913    |   0.0 |  3.01
-Output  | 0.0021966  | 0.0021966  | 0.0021966  |   0.0 |  0.02
-Modify  | 0.084161   | 0.084161   | 0.084161   |   0.0 |  0.82
-Other   |            | 0.03957    |            |       |  0.39
+Pair    | 8.7028     | 8.7028     | 8.7028     |   0.0 | 88.06
+Neigh   | 0.73687    | 0.73687    | 0.73687    |   0.0 |  7.46
+Comm    | 0.31881    | 0.31881    | 0.31881    |   0.0 |  3.23
+Output  | 0.0013947  | 0.0013947  | 0.0013947  |   0.0 |  0.01
+Modify  | 0.081394   | 0.081394   | 0.081394   |   0.0 |  0.82
+Other   |            | 0.04118    |            |       |  0.42
 
 Nlocal:        200.000 ave         200 max         200 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

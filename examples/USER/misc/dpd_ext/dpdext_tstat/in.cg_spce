@@ -13,10 +13,10 @@ comm_modify  vel yes
 
 read_data    cg_spce.data
 
-pair_style	 hybrid/overlay table linear 1000 dpdext/tstat ${T} ${T} ${rc} 385262
+pair_style	 hybrid/overlay table linear 1000 dpd/ext/tstat ${T} ${T} ${rc} 385262
 
 pair_coeff   1 1 table cg_spce_table.pot VOTCA ${rc}
-pair_coeff   1 1 dpdext/tstat 20.0 10.0 0.5 0.5 ${rcD}
+pair_coeff   1 1 dpd/ext/tstat 20.0 10.0 0.5 0.5 ${rcD}
 
 timestep    1.0
 run_style   verlet

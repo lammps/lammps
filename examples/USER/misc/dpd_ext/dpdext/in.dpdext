@@ -23,7 +23,7 @@ mass         1 1.0
 mass         2 2.0
 ###
 
-pair_style	 dpdext ${T} ${rc} 3854262
+pair_style	 dpd/ext ${T} ${rc} 3854262
 
 pair_coeff   1 1 25.0 4.5 4.53 0.5 0.53   1.2 #${rcD}
 pair_coeff   1 2 25.1 4.51 4.54 0.51 0.54 1.21 #${rcD}

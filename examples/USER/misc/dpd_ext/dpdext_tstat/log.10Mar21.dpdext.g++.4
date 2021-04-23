@@ -1,4 +1,4 @@
-LAMMPS (10 Mar 2021)
+LAMMPS (8 Apr 2021)
 # Coarse-Grained SPC/E Water
 
 variable T   equal 300.0
@@ -18,19 +18,19 @@ Reading data file ...
   1 by 2 by 2 MPI processor grid
   reading atoms ...
   2180 atoms
-  read_data CPU = 0.012 seconds
+  read_data CPU = 0.005 seconds
 
-pair_style	 hybrid/overlay table linear 1000 dpdext/tstat ${T} ${T} ${rc} 385262
-pair_style	 hybrid/overlay table linear 1000 dpdext/tstat 300 ${T} ${rc} 385262
-pair_style	 hybrid/overlay table linear 1000 dpdext/tstat 300 300 ${rc} 385262
-pair_style	 hybrid/overlay table linear 1000 dpdext/tstat 300 300 9 385262
+pair_style	 hybrid/overlay table linear 1000 dpd/ext/tstat ${T} ${T} ${rc} 385262
+pair_style	 hybrid/overlay table linear 1000 dpd/ext/tstat 300 ${T} ${rc} 385262
+pair_style	 hybrid/overlay table linear 1000 dpd/ext/tstat 300 300 ${rc} 385262
+pair_style	 hybrid/overlay table linear 1000 dpd/ext/tstat 300 300 9 385262
 
 pair_coeff   1 1 table cg_spce_table.pot VOTCA ${rc}
 pair_coeff   1 1 table cg_spce_table.pot VOTCA 9
 WARNING: 16 of 351 force values in table VOTCA are inconsistent with -dE/dr.
   Should only be flagged at inflection points (../pair_table.cpp:461)
-pair_coeff   1 1 dpdext/tstat 20.0 10.0 0.5 0.5 ${rcD}
-pair_coeff   1 1 dpdext/tstat 20.0 10.0 0.5 0.5 10
+pair_coeff   1 1 dpd/ext/tstat 20.0 10.0 0.5 0.5 ${rcD}
+pair_coeff   1 1 dpd/ext/tstat 20.0 10.0 0.5 0.5 10
 
 timestep    1.0
 run_style   verlet
@@ -56,7 +56,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-  (2) pair dpdext/tstat, perpetual, copy from (1)
+  (2) pair dpd/ext/tstat, perpetual, copy from (1)
       attributes: half, newton on
       pair build: copy
       stencil: none
@@ -264,20 +264,20 @@ Step Time Temp Press
     1980         1980    297.94119    5615.6403 
     1990         1990    298.37687     9727.308 
     2000         2000    296.08394    6400.2746 
-Loop time of 40.5503 on 4 procs for 2000 steps with 2180 atoms
+Loop time of 41.5171 on 4 procs for 2000 steps with 2180 atoms
 
-Performance: 4.261 ns/day, 5.632 hours/ns, 49.321 timesteps/s
-99.4% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 4.162 ns/day, 5.766 hours/ns, 48.173 timesteps/s
+99.5% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 37.953     | 38.022     | 38.132     |   1.1 | 93.77
-Neigh   | 0.10585    | 0.10835    | 0.10994    |   0.5 |  0.27
-Comm    | 2.2287     | 2.3368     | 2.405      |   4.6 |  5.76
-Output  | 0.0072037  | 0.0081832  | 0.011022   |   1.8 |  0.02
-Modify  | 0.023132   | 0.024188   | 0.025948   |   0.7 |  0.06
-Other   |            | 0.05032    |            |       |  0.12
+Pair    | 38.667     | 38.954     | 39.453     |   4.8 | 93.83
+Neigh   | 0.10947    | 0.11039    | 0.11153    |   0.3 |  0.27
+Comm    | 1.8661     | 2.3644     | 2.652      |  19.6 |  5.70
+Output  | 0.0082644  | 0.0094232  | 0.01281    |   2.0 |  0.02
+Modify  | 0.024678   | 0.025206   | 0.025888   |   0.3 |  0.06
+Other   |            | 0.05335    |            |       |  0.13
 
 Nlocal:        545.000 ave         559 max         531 min
 Histogram: 1 0 0 0 1 1 0 0 0 1
@@ -290,4 +290,4 @@ Total # of neighbors = 261662
 Ave neighs/atom = 120.02844
 Neighbor list builds = 26
 Dangerous builds = 0
-Total wall time: 0:00:40
+Total wall time: 0:00:41

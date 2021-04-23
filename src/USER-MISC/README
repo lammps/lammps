@@ -90,6 +90,8 @@ pair_style coul/slater/long, Evangelos Voyiatzis, evoyiatzis at gmail.com, 26 Fe
 pair_style dipole/sf, Mario Orsi, orsimario at gmail.com, 8 Aug 11
 pair_style e3b, Steven Strong (U Chicago), stevene.strong at gmail dot com, 16 Apr 19
 pair_style drip, Mingjian Wen, University of Minnesota, wenxx151 at umn.edu, 17 Apr 19
+pair_style dpd/ext, Martin Svoboda, Karel Sindelka, Martin Lisal, ICPF and UJEP, svobod.martin at gmail dot com, 23 Apr 21
+pair_style dpd/ext/tstat, Martin Svoboda, Karel Sindelka, Martin Lisal, ICPF and UJEP , svobod.martin at gmail dot com, 23 Apr 21
 pair_style edip, Luca Ferraro, luca.ferraro at caspur.it, 15 Sep 11
 pair_style extep, Jaap Kroes (Radboud U), jaapkroes at gmail dot com, 28 Nov 17
 pair_style gauss/cut, Axel Kohlmeyer, akohlmey at gmail.com, 1 Dec 11

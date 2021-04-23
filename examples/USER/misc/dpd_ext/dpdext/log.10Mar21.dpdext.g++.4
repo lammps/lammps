@@ -1,4 +1,4 @@
-LAMMPS (10 Mar 2021)
+LAMMPS (8 Apr 2021)
 # DPD Fluid
 
 variable T    equal 1.0
@@ -34,9 +34,9 @@ mass         1 1.0
 mass         2 2.0
 ###
 
-pair_style	 dpdext ${T} ${rc} 3854262
-pair_style	 dpdext 1 ${rc} 3854262
-pair_style	 dpdext 1 1 3854262
+pair_style	 dpd/ext ${T} ${rc} 3854262
+pair_style	 dpd/ext 1 ${rc} 3854262
+pair_style	 dpd/ext 1 1 3854262
 
 pair_coeff   1 1 25.0 4.5 4.53 0.5 0.53   1.2 #${rcD}
 pair_coeff   1 2 25.1 4.51 4.54 0.51 0.54 1.21 #${rcD}
@@ -61,7 +61,7 @@ Neighbor list info ...
   ghost atom cutoff = 1.52
   binsize = 0.76, bins = 8 8 8
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
-  (1) pair dpdext, perpetual
+  (1) pair dpd/ext, perpetual
       attributes: half, newton on
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
@@ -169,20 +169,20 @@ Step Time Temp Press
    49000          490    0.9759139    7.4839858 
    49500          495   0.91538068    7.1780491 
    50000          500    1.0310634    7.1522794 
-Loop time of 9.14414 on 4 procs for 50000 steps with 200 atoms
+Loop time of 8.5908 on 4 procs for 50000 steps with 200 atoms
 
-Performance: 4724338.550 tau/day, 5467.984 timesteps/s
-96.6% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 5028633.375 tau/day, 5820.178 timesteps/s
+95.7% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.0824     | 5.212      | 5.3376     |   5.1 | 57.00
-Neigh   | 0.49498    | 0.50029    | 0.505      |   0.6 |  5.47
-Comm    | 3.1637     | 3.2822     | 3.4143     |   6.3 | 35.89
-Output  | 0.0025831  | 0.003088   | 0.004569   |   1.5 |  0.03
-Modify  | 0.067261   | 0.068927   | 0.070535   |   0.5 |  0.75
-Other   |            | 0.07762    |            |       |  0.85
+Pair    | 4.9505     | 5.054      | 5.1885     |   4.1 | 58.83
+Neigh   | 0.47025    | 0.47603    | 0.47954    |   0.5 |  5.54
+Comm    | 2.7876     | 2.9237     | 3.0336     |   5.5 | 34.03
+Output  | 0.0024114  | 0.0029766  | 0.0046443  |   1.8 |  0.03
+Modify  | 0.062911   | 0.064188   | 0.065603   |   0.4 |  0.75
+Other   |            | 0.06992    |            |       |  0.81
 
 Nlocal:        50.0000 ave          53 max          46 min
 Histogram: 1 0 0 0 1 0 0 0 1 1
@@ -198,4 +198,4 @@ Dangerous builds = 5000
 
 write_data final.data pair ij
 System init for write_data ...
-Total wall time: 0:00:09
+Total wall time: 0:00:08

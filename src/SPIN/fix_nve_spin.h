@@ -61,6 +61,12 @@ friend class PairSpin;
   int tdamp_flag, temp_flag;
   int setforce_spin_flag;
 
+  // pointers to magnetic pair styles
+
+  int npairs, npairspin;                // # of pairs, and # of spin pairs
+  class Pair *pair;
+  class PairSpin **spin_pairs;          // vector of spin pairs
+
   // pointers to fix langevin/spin styles
 
   int nlangspin;
@@ -75,12 +81,6 @@ friend class PairSpin;
 
   int nprecspin;
   class FixPrecessionSpin **lockprecessionspin;
-
-  // pointers to magnetic pair styles
-
-  int npairs, npairspin;                // # of pairs, and # of spin pairs
-  class Pair *pair;
-  class PairSpin **spin_pairs;          // vector of spin pairs
 
   // sectoring variables
 

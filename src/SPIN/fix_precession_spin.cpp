@@ -440,7 +440,7 @@ void FixPrecessionSpin::compute_stt(double spi[3], double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-double FixPrecessionSpin::compute_stt_energy(double spi[3])
+double FixPrecessionSpin::compute_stt_energy(double * /* spi */)
 {
   double energy = 0.0;  // Non-conservative force
   return energy;
@@ -530,14 +530,13 @@ double FixPrecessionSpin::compute_cubic_energy(double spi[3])
 
 void FixPrecessionSpin::compute_hexaniso(double spi[3], double fmi[3])
 {
-  double s_x,s_y,s_z;
+  double s_x,s_y;
   double pf, phi, ssint2;
 
   // changing to the axes' frame
 
   s_x = l6x*spi[0]+l6y*spi[1]+l6z*spi[2];
   s_y = m6x*spi[0]+m6y*spi[1]+m6z*spi[2];
-  s_z = n6x*spi[0]+n6y*spi[1]+n6z*spi[2];
 
   // hexagonal anisotropy in the axes' frame
 

@@ -142,15 +142,11 @@ void FixLangevinSpin::add_tdamping(double spi[3], double fmi[3])
 
 /* ---------------------------------------------------------------------- */
 
-void FixLangevinSpin::add_temperature(int i, double spi[3], double fmi[3])
+void FixLangevinSpin::add_temperature(double fmi[3])
 {
-  // double rx = sigma*(2.0*random->uniform() - 1.0);
-  // double ry = sigma*(2.0*random->uniform() - 1.0);
-  // double rz = sigma*(2.0*random->uniform() - 1.0);
   double rx = sigma*random->gaussian();
   double ry = sigma*random->gaussian();
   double rz = sigma*random->gaussian();
-  double hbar = force->hplanck/MY_2PI;
 
   // adding the random field
 
@@ -172,6 +168,6 @@ void FixLangevinSpin::compute_single_langevin(int i, double spi[3], double fmi[3
   int *mask = atom->mask;
   if (mask[i] & groupbit) {
     if (tdamp_flag) add_tdamping(spi,fmi);
-    if (temp_flag) add_temperature(i,spi,fmi);
+    if (temp_flag) add_temperature(fmi);
   }
 }

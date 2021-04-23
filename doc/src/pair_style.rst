@@ -150,6 +150,8 @@ accelerated styles exist.
 * :doc:`coul/wolf <pair_coul>` - Coulomb via Wolf potential
 * :doc:`coul/wolf/cs <pair_cs>` - Coulomb via Wolf potential with core/shell adjustments
 * :doc:`dpd <pair_dpd>` - dissipative particle dynamics (DPD)
+* :doc:`dpd/ext <pair_dpd_ext>` - generalised force field for DPD
+* :doc:`dpd/ext/tstat <pair_dpd_ext>` - pair-wise DPD thermostatting  with generalised force field
 * :doc:`dpd/fdt <pair_dpd_fdt>` - DPD for constant temperature and pressure
 * :doc:`dpd/fdt/energy <pair_dpd_fdt>` - DPD for constant energy and enthalpy
 * :doc:`dpd/tstat <pair_dpd>` - pair-wise DPD thermostatting

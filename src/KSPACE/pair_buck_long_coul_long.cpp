@@ -506,40 +506,39 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
 
       if (order1 && (rsq < cut_coulsq)) {                // coulombic
         if (!ncoultablebits || rsq <= tabinnersq) {        // series real space
-          double x = g_ewald*r;
-          double s = qri*q[j], t = 1.0/(1.0+EWALD_P*x);
+          double x1 = g_ewald*r;
+          double s = qri*q[j], t = 1.0/(1.0+EWALD_P*x1);
           if (ni == 0) {
-            s *= g_ewald*exp(-x*x);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
+            s *= g_ewald*exp(-x1*x1);
+            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x1)+EWALD_F*s;
             if (eflag) ecoul = t;
-          }
-          else {                                        // special case
-            double f = s*(1.0-special_coul[ni])/r;
-            s *= g_ewald*exp(-x*x);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-f;
-            if (eflag) ecoul = t-f;
+          } else {                                        // special case
+            double fc = s*(1.0-special_coul[ni])/r;
+            s *= g_ewald*exp(-x1*x1);
+            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x1)+EWALD_F*s-fc;
+            if (eflag) ecoul = t-fc;
           }
         }                                                // table real space
         else {
           union_int_float_t t;
           t.f = rsq;
           const int k = (t.i & ncoulmask) >> ncoulshiftbits;
-          double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
+          double fc = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
           if (ni == 0) {
-            force_coul = qiqj*(ftable[k]+f*dftable[k]);
-            if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]);
+            force_coul = qiqj*(ftable[k]+fc*dftable[k]);
+            if (eflag) ecoul = qiqj*(etable[k]+fc*detable[k]);
           }
           else {                                        // special case
-            t.f = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
-            force_coul = qiqj*(ftable[k]+f*dftable[k]-t.f);
-            if (eflag) ecoul = qiqj*(etable[k]+f*detable[k]-t.f);
+            t.f = (1.0-special_coul[ni])*(ctable[k]+fc*dctable[k]);
+            force_coul = qiqj*(ftable[k]+fc*dftable[k]-t.f);
+            if (eflag) ecoul = qiqj*(etable[k]+fc*detable[k]-t.f);
           }
         }
       } else force_coul = ecoul = 0.0;
 
       if (rsq < cut_bucksqi[typej]) {                        // buckingham
-        double rn = r2inv*r2inv*r2inv,
-                        expr = exp(-r*rhoinvi[typej]);
+        double rn = r2inv*r2inv*r2inv;
+        double expr = exp(-r*rhoinvi[typej]);
         if (order6) {                                        // long-range
           if (!ndisptablebits || rsq <= tabinnerdispsq) {
             double x2 = g2*rsq, a2 = 1.0/x2;

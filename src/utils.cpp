@@ -1008,8 +1008,8 @@ std::string utils::get_potential_file_path(const std::string &path) {
 
       while (dirs.has_next()) {
         auto pot = utils::path_basename(filepath);
-        auto path = dirs.next();
-        filepath = utils::path_join(path, pot);
+        auto dir = dirs.next();
+        filepath = utils::path_join(dir, pot);
 
         if (utils::file_is_readable(filepath)) {
           return filepath;

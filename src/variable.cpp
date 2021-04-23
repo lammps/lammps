@@ -1894,7 +1894,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
       } else if (strncmp(word,"v_",2) == 0) {
 
-        int ivar = find(word+2);
+        ivar = find(word+2);
         if (ivar < 0)
           print_var_error(FLERR,fmt::format("Invalid variable reference "
                                 "{} in variable formula",word),ivar);
@@ -2338,7 +2338,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
 double Variable::collapse_tree(Tree *tree)
 {
-  double arg1,arg2;
+  double arg1,arg2,arg3;
 
   if (tree->type == VALUE) return tree->value;
   if (tree->type == ATOMARRAY) return 0.0;
@@ -2805,19 +2805,19 @@ double Variable::collapse_tree(Tree *tree)
       error->one(FLERR,"Invalid math function in variable formula");
     if (ivalue4 < ivalue1 || ivalue5 > ivalue2)
       error->one(FLERR,"Invalid math function in variable formula");
-    bigint istep;
+    bigint istep, offset;
     if (update->ntimestep < ivalue1) istep = ivalue1;
     else if (update->ntimestep < ivalue2) {
       if (update->ntimestep < ivalue4 || update->ntimestep > ivalue5) {
-        bigint offset = update->ntimestep - ivalue1;
+        offset = update->ntimestep - ivalue1;
         istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
         if (update->ntimestep < ivalue2 && istep > ivalue4)
           tree->value = ivalue4;
       } else {
-        bigint offset = update->ntimestep - ivalue4;
+        offset = update->ntimestep - ivalue4;
         istep = ivalue4 + (offset/ivalue6)*ivalue6 + ivalue6;
         if (istep > ivalue5) {
-          bigint offset = ivalue5 - ivalue1;
+          offset = ivalue5 - ivalue1;
           istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
           if (istep > ivalue2) istep = MAXBIGINT;
         }
@@ -2828,8 +2828,8 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == VDISPLACE) {
-    double arg1 = collapse_tree(tree->first);
-    double arg2 = collapse_tree(tree->second);
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     double delta = update->ntimestep - update->beginstep;
@@ -2838,9 +2838,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == SWIGGLE) {
-    double arg1 = collapse_tree(tree->first);
-    double arg2 = collapse_tree(tree->second);
-    double arg3 = collapse_tree(tree->extra[0]);
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    arg3 = collapse_tree(tree->extra[0]);
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
@@ -2853,9 +2853,9 @@ double Variable::collapse_tree(Tree *tree)
   }
 
   if (tree->type == CWIGGLE) {
-    double arg1 = collapse_tree(tree->first);
-    double arg2 = collapse_tree(tree->second);
-    double arg3 = collapse_tree(tree->extra[0]);
+    arg1 = collapse_tree(tree->first);
+    arg2 = collapse_tree(tree->second);
+    arg3 = collapse_tree(tree->extra[0]);
     if (tree->first->type != VALUE || tree->second->type != VALUE ||
         tree->extra[0]->type != VALUE) return 0.0;
     tree->type = VALUE;
@@ -3134,19 +3134,19 @@ double Variable::eval_tree(Tree *tree, int i)
       error->one(FLERR,"Invalid math function in variable formula");
     if (ivalue4 < ivalue1 || ivalue5 > ivalue2)
       error->one(FLERR,"Invalid math function in variable formula");
-    bigint istep;
+    bigint istep, offset;
     if (update->ntimestep < ivalue1) istep = ivalue1;
     else if (update->ntimestep < ivalue2) {
       if (update->ntimestep < ivalue4 || update->ntimestep > ivalue5) {
-        bigint offset = update->ntimestep - ivalue1;
+        offset = update->ntimestep - ivalue1;
         istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
         if (update->ntimestep < ivalue2 && istep > ivalue4)
           tree->value = ivalue4;
       } else {
-        bigint offset = update->ntimestep - ivalue4;
+        offset = update->ntimestep - ivalue4;
         istep = ivalue4 + (offset/ivalue6)*ivalue6 + ivalue6;
         if (istep > ivalue5) {
-          bigint offset = ivalue5 - ivalue1;
+          offset = ivalue5 - ivalue1;
           istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
           if (istep > ivalue2) istep = MAXBIGINT;
         }
@@ -3716,18 +3716,18 @@ int Variable::math_function(char *word, char *contents, Tree **tree,
         error->one(FLERR,"Invalid math function in variable formula");
       if (ivalue4 < ivalue1 || ivalue5 > ivalue2)
         error->one(FLERR,"Invalid math function in variable formula");
-      bigint istep;
+      bigint istep, offset;
       if (update->ntimestep < ivalue1) istep = ivalue1;
       else if (update->ntimestep < ivalue2) {
         if (update->ntimestep < ivalue4 || update->ntimestep > ivalue5) {
-          bigint offset = update->ntimestep - ivalue1;
+          offset = update->ntimestep - ivalue1;
           istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
           if (update->ntimestep < ivalue4 && istep > ivalue4) istep = ivalue4;
         } else {
-          bigint offset = update->ntimestep - ivalue4;
+          offset = update->ntimestep - ivalue4;
           istep = ivalue4 + (offset/ivalue6)*ivalue6 + ivalue6;
           if (istep > ivalue5) {
-            bigint offset = ivalue5 - ivalue1;
+            offset = ivalue5 - ivalue1;
             istep = ivalue1 + (offset/ivalue3)*ivalue3 + ivalue3;
             if (istep > ivalue2) istep = MAXBIGINT;
           }
@@ -4107,9 +4107,9 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
 
     Compute *compute = nullptr;
     Fix *fix = nullptr;
-    int ivar = -1;
     int index,nvec,nstride;
     char *ptr1,*ptr2;
+    ivar = -1;
 
     // argument is compute
 
@@ -4387,7 +4387,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     if (narg != 1)
       print_var_error(FLERR,"Invalid special function in variable formula",ivar);
 
-    int ivar = find(args[0]);
+    ivar = find(args[0]);
     if (ivar < 0) {
       std::string mesg = "Variable ID '";
       mesg += args[0];
@@ -4399,7 +4399,7 @@ int Variable::special_function(char *word, char *contents, Tree **tree,
     // save value in tree or on argstack
 
     if (style[ivar] == SCALARFILE) {
-      double value = atof(data[ivar][0]);
+      value = atof(data[ivar][0]);
       int done = reader[ivar]->read_scalar(data[ivar][0]);
       if (done) remove(ivar);
 

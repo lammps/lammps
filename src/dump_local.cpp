@@ -197,16 +197,14 @@ void DumpLocal::init_style()
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
-  int icompute;
   for (i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
+    int icompute = modify->find_compute(id_compute[i]);
     if (icompute < 0) error->all(FLERR,"Could not find dump local compute ID");
     compute[i] = modify->compute[icompute];
   }
 
-  int ifix;
   for (i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
+    int ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all(FLERR,"Could not find dump local fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->local_freq)

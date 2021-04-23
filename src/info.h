@@ -54,6 +54,7 @@ class Info : public Command {
   static std::string get_mpi_vendor();
   static std::string get_mpi_info(int &, int &);
   static std::string get_cxx_info();
+  static std::string get_accelerator_info(const std::string &pkg="");
 
   void get_memory_info(double *);
   char **get_variable_names(int &num);

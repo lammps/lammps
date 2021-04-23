@@ -109,18 +109,16 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
       if (j == 0) {
         double *compute_vector = compute->vector_atom;
-        int n = nlocal;
         if (flag < 0) {
-          for (i = 0; i < n; i++)
+          for (i = 0; i < nlocal; i++)
             if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
               combine(one,compute_vector[i],i);
         } else one = compute_vector[flag];
       } else {
         double **compute_array = compute->array_atom;
-        int n = nlocal;
         int jm1 = j - 1;
         if (flag < 0) {
-          for (i = 0; i < n; i++)
+          for (i = 0; i < nlocal; i++)
             if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
               combine(one,compute_array[i][jm1],i);
         } else one = compute_array[flag][jm1];
@@ -134,17 +132,15 @@ double ComputeReduceRegion::compute_one(int m, int flag)
 
       if (j == 0) {
         double *compute_vector = compute->vector_local;
-        int n = compute->size_local_rows;
         if (flag < 0)
-          for (i = 0; i < n; i++)
+          for (i = 0; i < compute->size_local_rows; i++)
             combine(one,compute_vector[i],i);
         else one = compute_vector[flag];
       } else {
         double **compute_array = compute->array_local;
-        int n = compute->size_local_rows;
         int jm1 = j - 1;
         if (flag < 0)
-          for (i = 0; i < n; i++)
+          for (i = 0; i < compute->size_local_rows; i++)
             combine(one,compute_array[i][jm1],i);
         else one = compute_array[flag][jm1];
       }
@@ -161,9 +157,8 @@ double ComputeReduceRegion::compute_one(int m, int flag)
     if (flavor[m] == PERATOM) {
       if (j == 0) {
         double *fix_vector = fix->vector_atom;
-        int n = nlocal;
         if (flag < 0) {
-          for (i = 0; i < n; i++)
+          for (i = 0; i < nlocal; i++)
             if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2]))
               combine(one,fix_vector[i],i);
         } else one = fix_vector[flag];
@@ -180,17 +175,15 @@ double ComputeReduceRegion::compute_one(int m, int flag)
     } else if (flavor[m] == LOCAL) {
       if (j == 0) {
         double *fix_vector = fix->vector_local;
-        int n = fix->size_local_rows;
         if (flag < 0)
-          for (i = 0; i < n; i++)
+          for (i = 0; i < fix->size_local_rows; i++)
             combine(one,fix_vector[i],i);
         else one = fix_vector[flag];
       } else {
         double **fix_array = fix->array_local;
-        int n = fix->size_local_rows;
         int jm1 = j - 1;
         if (flag < 0)
-          for (i = 0; i < n; i++)
+          for (i = 0; i < fix->size_local_rows; i++)
             combine(one,fix_array[i][jm1],i);
         else one = fix_array[flag][jm1];
       }

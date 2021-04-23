@@ -25,13 +25,15 @@ PairStyle(hybrid,PairHybrid)
 namespace LAMMPS_NS {
 
 class PairHybrid : public Pair {
+  friend class ComputeSpin;
   friend class FixGPU;
   friend class FixIntel;
   friend class FixOMP;
+  friend class FixNVESpin;
   friend class Force;
+  friend class Info;
   friend class Neighbor;
   friend class Respa;
-  friend class Info;
   friend class PairDeprecated;
  public:
   PairHybrid(class LAMMPS *);

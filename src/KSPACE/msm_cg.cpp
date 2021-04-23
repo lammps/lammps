@@ -166,7 +166,7 @@ void MSMCG::compute(int eflag, int vflag)
   // forward communicate charge density values to fill ghost grid points
   // compute direct sum interaction and then restrict to coarser grid
 
-  for (int n=0; n<=levels-2; n++) {
+  for (n=0; n<=levels-2; n++) {
     if (!active_flag[n]) continue;
     current_level = n;
     gc[n]->forward_comm_kspace(this,1,sizeof(double),FORWARD_RHO,
@@ -209,7 +209,7 @@ void MSMCG::compute(int eflag, int vflag)
   // prolongate energy/virial from coarser grid to finer grid
   // reverse communicate from ghost grid points to get full sum
 
-  for (int n=levels-2; n>=0; n--) {
+  for (n=levels-2; n>=0; n--) {
     if (!active_flag[n]) continue;
     prolongation(n);
 

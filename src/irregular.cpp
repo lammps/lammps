@@ -891,7 +891,6 @@ int Irregular::create_data_grouped(int n, int *procs, int sortflag)
     utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
 
-    int j;
     for (i = 0; i < nrecv_proc; i++) {
       j = order[i];
       proc_recv_ordered[i] = proc_recv[j];

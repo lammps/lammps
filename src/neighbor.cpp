@@ -513,7 +513,7 @@ void Neighbor::init()
   // print_pairwise_info() made use of requests
   // set of NeighLists now stores all needed info
 
-  for (int i = 0; i < nrequest; i++) {
+  for (i = 0; i < nrequest; i++) {
     delete requests[i];
     requests[i] = nullptr;
   }
@@ -2079,7 +2079,7 @@ void Neighbor::build(int topoflag)
 
   if (style != Neighbor::NSQ) {
     if (last_setup_bins < 0) setup_bins();
-    for (int i = 0; i < nbin; i++) {
+    for (i = 0; i < nbin; i++) {
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();
     }

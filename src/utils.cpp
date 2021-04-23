@@ -673,6 +673,18 @@ std::string utils::utf8_subst(const std::string &line)
         // ZERO WIDTH SPACE (U+200B)
         if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x8bU))
           out += ' ', i += 2;
+        // LEFT SINGLE QUOTATION MARK (U+2018)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x98U))
+          out += '\'', i += 2;
+        // RIGHT SINGLE QUOTATION MARK (U+2019)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x99U))
+          out += '\'', i += 2;
+        // LEFT DOUBLE QUOTATION MARK (U+201C)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x9cU))
+          out += '"', i += 2;
+        // RIGHT DOUBLE QUOTATION MARK (U+201D)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x9dU))
+          out += '"', i += 2;
         // NARROW NO-BREAK SPACE (U+202F)
         if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0xafU))
           out += ' ', i += 2;
@@ -996,8 +1008,8 @@ std::string utils::get_potential_file_path(const std::string &path) {
 
       while (dirs.has_next()) {
         auto pot = utils::path_basename(filepath);
-        auto path = dirs.next();
-        filepath = utils::path_join(path, pot);
+        auto dir = dirs.next();
+        filepath = utils::path_join(dir, pot);
 
         if (utils::file_is_readable(filepath)) {
           return filepath;

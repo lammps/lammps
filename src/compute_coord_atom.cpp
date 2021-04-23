@@ -305,7 +305,7 @@ void ComputeCoordAtom::compute_peratom()
           rsq = delx*delx + dely*dely + delz*delz;
           if (rsq < cutsq) {
             double dot_product = 0.0;
-            for (int m=0; m < 2*(2*l+1); m++) {
+            for (m=0; m < 2*(2*l+1); m++) {
               dot_product += normv[i][nqlist+m]*normv[j][nqlist+m];
             }
             if (dot_product > threshold) n++;

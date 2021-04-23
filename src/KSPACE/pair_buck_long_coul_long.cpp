@@ -548,10 +548,10 @@ void PairBuckLongCoulLong::compute(int eflag, int vflag)
                 r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
               if (eflag) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
             } else {                                        // special case
-              double f = special_lj[ni], t = rn*(1.0-f);
-              force_buck = f*r*expr*buck1i[typej]-
+              double fc = special_lj[ni], t = rn*(1.0-fc);
+              force_buck = fc*r*expr*buck1i[typej]-
                 g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*buck2i[typej];
-              if (eflag) evdwl = f*expr*buckai[typej] -
+              if (eflag) evdwl = fc*expr*buckai[typej] -
                            g6*((a2+1.0)*a2+0.5)*x2+t*buckci[typej];
             }
           } else {                                              //table real space

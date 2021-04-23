@@ -1894,7 +1894,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
 
       } else if (strncmp(word,"v_",2) == 0) {
 
-        ivar = find(word+2);
+        int ivar = find(word+2);
         if (ivar < 0)
           print_var_error(FLERR,fmt::format("Invalid variable reference "
                                 "{} in variable formula",word),ivar);

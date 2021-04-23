@@ -82,15 +82,18 @@ void ComputeSpin::init()
 
   // loop 1: obtain # of Pairs, and # of Pair/Spin styles
 
-  if (force->pair_match("spin",0,0)) {        // only one Pair/Spin style
-    pair = force->pair_match("spin",0,0);
-    npairs = pair->instance_total;
+  PairHybrid *hybrid = (PairHybrid *)force->pair_match("^hybrid",0);
+  if (force->pair_match("^spin",0,0)) {        // only one Pair/Spin style
+    pair = force->pair_match("^spin",0,0);
+    if (hybrid == nullptr) npairs = 1;
+    else npairs = hybrid->nstyles;
     npairspin = 1;
-  } else if (force->pair_match("spin",0,1)) { // more than one Pair/Spin style
-    pair = force->pair_match("spin",0,1);
-    npairs = pair->instance_total;
+  } else if (force->pair_match("^spin",0,1)) { // more than one Pair/Spin style
+    pair = force->pair_match("^spin",0,1);
+    if (hybrid == nullptr) npairs = 1;
+    else npairs = hybrid->nstyles;
     for (int i = 0; i<npairs; i++) {
-      if (force->pair_match("spin",0,i)) {
+      if (force->pair_match("^spin",0,i)) {
         npairspin ++;
       }
     }

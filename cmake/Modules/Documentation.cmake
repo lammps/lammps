@@ -56,7 +56,7 @@ if(BUILD_DOC)
   )
 
   set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.1.3.tar.gz" CACHE STRING "URL for MathJax tarball")
-  set(MATHJAX_MD5 "b81661c6e6ba06278e6ae37b30b0c492" CACHE STRING "MD5 checksum of MathJax tarball")
+  set(MATHJAX_MD5 "d1c98c746888bfd52ca8ebc10704f92f" CACHE STRING "MD5 checksum of MathJax tarball")
   mark_as_advanced(MATHJAX_URL)
 
   # download mathjax distribution and unpack to folder "mathjax"

@@ -236,7 +236,7 @@ $(VENV):
 	)
 
 $(MATHJAX):
-	@git clone -b 3.1.3 -c advice.detachedHead=0 --depth 1 git://github.com/mathjax/MathJax.git $@
+	@git clone -b 3.1.4 -c advice.detachedHead=0 --depth 1 git://github.com/mathjax/MathJax.git $@
 
 $(TXT2RST) $(ANCHORCHECK): $(VENV)
 	@( \

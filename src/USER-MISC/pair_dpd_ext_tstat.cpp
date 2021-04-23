@@ -17,15 +17,15 @@
 
 #include "pair_dpd_ext_tstat.h"
 
-#include <cmath>
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "comm.h"
 #include "random_mars.h"
-#include "error.h"
+#include "update.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -114,23 +114,23 @@ void PairDPDExtTstat::compute(int eflag, int vflag)
         delvy = vytmp - v[j][1];
         delvz = vztmp - v[j][2];
         dot = delx*delvx + dely*delvy + delz*delvz;
-        
+
         P[0][0] = 1.0 - delx*delx*rinv*rinv;
         P[0][1] =     - delx*dely*rinv*rinv;
         P[0][2] =     - delx*delz*rinv*rinv;
-        
+
         P[1][0] = P[0][1];
         P[1][1] = 1.0 - dely*dely*rinv*rinv;
         P[1][2] =     - dely*delz*rinv*rinv;
-        
+
         P[2][0] = P[0][2];
         P[2][1] = P[1][2];
         P[2][2] = 1.0 - delz*delz*rinv*rinv;
-        
+
         wd = 1.0 - r/cut[itype][jtype];
         wdPar = pow(wd,ws[itype][jtype]);
         wdPerp = pow(wd,wsT[itype][jtype]);
-        
+
         randnum = random->gaussian();
         randnumx = random->gaussian();
         randnumy = random->gaussian();
@@ -141,7 +141,7 @@ void PairDPDExtTstat::compute(int eflag, int vflag)
 
         // random force - parallel
         fpair += sigma[itype][jtype]*wdPar*randnum*dtinvsqrt;
-        
+
         fpairx = fpair*rinv*delx;
         fpairy = fpair*rinv*dely;
         fpairz = fpair*rinv*delz;
@@ -161,7 +161,7 @@ void PairDPDExtTstat::compute(int eflag, int vflag)
                   (P[1][0]*randnumx + P[1][1]*randnumy + P[1][2]*randnumz)*dtinvsqrt;
         fpairz += sigmaT[itype][jtype]*wdPerp*
                   (P[2][0]*randnumx + P[2][1]*randnumy + P[2][2]*randnumz)*dtinvsqrt;
-        
+
         fpairx *= factor_dpd;
         fpairy *= factor_dpd;
         fpairz *= factor_dpd;

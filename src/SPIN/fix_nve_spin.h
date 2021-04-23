@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -61,11 +61,20 @@ friend class PairSpin;
   int tdamp_flag, temp_flag;
   int setforce_spin_flag;
 
-  // pointers to magnetic fixes
+  // pointers to fix langevin/spin styles
 
-  class FixPrecessionSpin *lockprecessionspin;
-  class FixLangevinSpin *locklangevinspin;
-  class FixSetForceSpin *locksetforcespin;
+  int nlangspin;
+  class FixLangevinSpin **locklangevinspin;
+  
+  // pointers to fix setforce/spin styles
+  
+  int nsetspin;
+  class FixSetForceSpin *locksetforcespin; // to be done
+  
+  // pointers to fix precession/spin styles
+
+  int nprecspin; 
+  class FixPrecessionSpin **lockprecessionspin;
 
   // pointers to magnetic pair styles
 

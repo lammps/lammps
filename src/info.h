@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,15 +20,15 @@ CommandStyle(info,Info)
 #ifndef LMP_INFO_H
 #define LMP_INFO_H
 
-#include "pointers.h"
+#include "command.h"
 
 #include <vector>
 
 namespace LAMMPS_NS {
 
-class Info : protected Pointers {
+class Info : public Command {
  public:
-  Info(class LAMMPS *lmp) : Pointers(lmp) {};
+  Info(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 
   bool is_active(const char *, const char *);

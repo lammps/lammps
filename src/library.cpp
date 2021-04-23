@@ -31,7 +31,6 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
-#include "integrate.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"

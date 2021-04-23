@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Pointers(lmp) {
+ResetMolIDs::ResetMolIDs(LAMMPS *lmp) : Command(lmp) {
   cfa = nullptr;
   cca = nullptr;
 

@@ -32,7 +32,6 @@
 #include "output.h"
 #include "pair.h"
 #include "thermo.h"
-#include "universe.h"
 #include "update.h"
 
 #include <cstring>
@@ -43,7 +42,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
+WriteRestart::WriteRestart(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

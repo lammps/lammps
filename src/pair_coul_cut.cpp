@@ -260,7 +260,7 @@ void PairCoulCut::read_restart(FILE *fp)
       MPI_Bcast(&scale[i][j],1,MPI_DOUBLE,0,world);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) 
+        if (me == 0)
           utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }

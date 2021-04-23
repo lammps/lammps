@@ -237,15 +237,12 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"y") == 0) idim = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) idim = 2;
       else error->all(FLERR,"Illegal compute chunk/atom command");
+      minflag[idim] = COORD;
       if (strcmp(arg[iarg+2],"lower") == 0) minflag[idim] = LOWER;
-      else minflag[idim] = COORD;
-      if (minflag[idim] == COORD)
-        minvalue[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      else minvalue[idim] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxflag[idim] = COORD;
       if (strcmp(arg[iarg+3],"upper") == 0) maxflag[idim] = UPPER;
-      else maxflag[idim] = COORD;
-      if (maxflag[idim] == COORD)
-        maxvalue[idim] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      else error->all(FLERR,"Illegal compute chunk/atom command");
+      else maxvalue[idim] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");

@@ -43,7 +43,7 @@ static int compare_coords(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
-ResetIDs::ResetIDs(LAMMPS *lmp) : Pointers(lmp) {}
+ResetIDs::ResetIDs(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

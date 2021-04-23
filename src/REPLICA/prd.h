@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,11 +20,11 @@ CommandStyle(prd,PRD)
 #ifndef LMP_PRD_H
 #define LMP_PRD_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class PRD : protected Pointers {
+class PRD : public Command {
  public:
   PRD(class LAMMPS *);
   ~PRD() {}

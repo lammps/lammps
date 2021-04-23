@@ -76,7 +76,7 @@ class TersoffMod : public BaseThree<numtyp, acctyp> {
   /// ts5.x = c5, ts5.y = h
   UCL_D_Vec<numtyp4> ts5;
 
-  UCL_D_Vec<numtyp> cutsq_pair;
+  numtyp _cutsq_max;
 
   UCL_D_Vec<int> elem2param;
   UCL_D_Vec<int> map;

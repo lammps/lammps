@@ -46,7 +46,8 @@ TextFileReader::TextFileReader(const std::string &filename, const std::string &f
   fp = fopen(filename.c_str(), "r");
 
   if (fp == nullptr) {
-    throw FileReaderException(fmt::format("cannot open {} file {}", filetype, filename));
+    throw FileReaderException(fmt::format("cannot open {} file {}: {}",
+                              filetype, filename, utils::getsyserror()));
   }
 }
 

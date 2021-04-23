@@ -42,7 +42,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 /* ---------------------------------------------------------------------- */
 
-Velocity::Velocity(LAMMPS *lmp) : Pointers(lmp) {}
+Velocity::Velocity(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

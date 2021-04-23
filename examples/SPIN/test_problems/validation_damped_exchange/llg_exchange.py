@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import mpmath as mp
 
 hbar=0.658212           # Planck's constant (eV.fs/rad)
-# J0=0.05                 # per-neighbor exchange interaction (eV)
+J0=0.05                 # per-neighbor exchange interaction (eV)
 
 # exchange interaction parameters
 J1 = 11.254 # in eV 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,13 +20,13 @@ CommandStyle(write_coeff,WriteCoeff)
 #ifndef LMP_WRITE_COEFF_H
 #define LMP_WRITE_COEFF_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class WriteCoeff : protected Pointers {
+class WriteCoeff : public Command {
  public:
-  WriteCoeff(class LAMMPS *lmp) : Pointers(lmp) {};
+  WriteCoeff(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 };
 

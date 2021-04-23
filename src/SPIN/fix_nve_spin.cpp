@@ -266,7 +266,7 @@ void FixNVESpin::init()
   // init length of vector of ptrs to precession/spin styles
 
   if (nlangspin > 0) {
-    locklangevinspin = new FixLangevinSpin*[nprecspin];
+    locklangevinspin = new FixLangevinSpin*[nlangspin];
   }
 
   // loop 2: fill vector with ptrs to precession/spin styles

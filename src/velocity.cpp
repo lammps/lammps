@@ -578,13 +578,9 @@ void Velocity::scale(int /*narg*/, char **arg)
 
   int tflag = 0;
   if (temperature == nullptr) {
-    char **arg = new char*[3];
-    arg[0] = (char *) "velocity_temp";
-    arg[1] = group->names[igroup];
-    arg[2] = (char *) "temp";
-    temperature = new ComputeTemp(lmp,3,arg);
+    modify->add_compute(fmt::format("velocity_temp {} temp"));
+    temperature = modify->compute[modify->ncompute-1];
     tflag = 1;
-    delete [] arg;
   }
 
   // initialize temperature computation

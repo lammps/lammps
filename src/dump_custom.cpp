@@ -316,33 +316,29 @@ void DumpCustom::init_style()
   // find current ptr for each compute,fix,variable
   // check that fix frequency is acceptable
 
-  int icompute;
   for (i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
+    int icompute = modify->find_compute(id_compute[i]);
     if (icompute < 0) error->all(FLERR,"Could not find dump custom compute ID");
     compute[i] = modify->compute[icompute];
   }
 
-  int ifix;
   for (i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
+    int ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all(FLERR,"Could not find dump custom fix ID");
     fix[i] = modify->fix[ifix];
     if (nevery % modify->fix[ifix]->peratom_freq)
       error->all(FLERR,"Dump custom and fix not computed at compatible times");
   }
 
-  int ivariable;
   for (i = 0; i < nvariable; i++) {
-    ivariable = input->variable->find(id_variable[i]);
+    int ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0)
       error->all(FLERR,"Could not find dump custom variable name");
     variable[i] = ivariable;
   }
 
-  int icustom;
   for (i = 0; i < ncustom; i++) {
-    icustom = atom->find_custom(id_custom[i],flag_custom[i]);
+    int icustom = atom->find_custom(id_custom[i],flag_custom[i]);
     if (icustom < 0)
       error->all(FLERR,"Could not find custom per-atom property ID");
   }

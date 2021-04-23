@@ -46,8 +46,6 @@ if(DOWNLOAD_MDI)
   target_link_directories(lmp PRIVATE ${LAMMPS_LIB_MDI_BIN_DIR}/lib/mdi)
   target_link_libraries(lmp PRIVATE mdi)
 
-  add_definitions(-DLMP_USER_MDI=1)
-
 else()
 
   find_package(mdi)
@@ -57,10 +55,12 @@ else()
 
   # Link the lammps library against MDI
   target_include_directories(lammps PRIVATE ${mdi_INCLUDE_DIR})
-  target_link_libraries(lammps PRIVATE ${mdi_LIBRARIES})
+  target_link_libraries(lammps PRIVATE ${mdi_LIBRARY})
 
   # Link the lammps executable against MDI
   target_include_directories(lmp PRIVATE ${mdi_INCLUDE_DIR})
-  target_link_libraries(lmp PRIVATE ${mdi_LIBRARIES})
+  target_link_libraries(lmp PRIVATE ${mdi_LIBRARY})
 
 endif()
+
+add_definitions(-DLMP_USER_MDI=1)

@@ -723,7 +723,6 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         allocate_arrays();
       }
 
-      bigint ntimestep = update->ntimestep;
       int lockforever_flag = 0;
       for (i = 0; i < nvalues; i++) {
         if (!varlen[i] || which[i] != ArgInfo::COMPUTE) continue;

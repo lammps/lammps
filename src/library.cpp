@@ -1952,8 +1952,9 @@ void *lammps_extract_variable(void *handle, const char *name, const char *group)
     }
   }
   END_CAPTURE
-
+#if defined(LAMMPS_EXCEPTIONS)
   return nullptr;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2207,7 +2208,6 @@ void lammps_gather_atoms_concat(void *handle, char *name, int type, int count, v
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        int *copy;
         lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
         offset = 0;
         for (i = 0; i < nlocal; i++) {
@@ -3057,7 +3057,6 @@ void lammps_gather_concat(void *handle, char *name, int type, int count, void *d
                        MPI_INT,lmp->world);
 
       } else if (imgunpack) {
-        int *copy;
         lmp->memory->create(copy,count*nlocal,"lib/gather:copy");
         offset = 0;
         for (i = 0; i < nlocal; i++) {

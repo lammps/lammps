@@ -1244,7 +1244,7 @@ int DumpImage::modify_param(int narg, char **arg)
     else error->all(FLERR,"Illegal dump_modify command");
     int nentry = utils::inumeric(FLERR,arg[5],false,lmp);
     if (nentry < 1) error->all(FLERR,"Illegal dump_modify command");
-    int n = 6 + factor*nentry;
+    n = 6 + factor*nentry;
     if (narg < n) error->all(FLERR,"Illegal dump_modify command");
     int flag = image->map_reset(0,n-1,&arg[1]);
     if (flag) error->all(FLERR,"Illegal dump_modify command");

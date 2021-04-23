@@ -115,7 +115,7 @@ class UCL_Program {
 	fprintf(foutput," UCL Error: Error compiling PTX Program...\n");
 	fprintf(foutput,
 		"----------------------------------------------------------\n");
-	fprintf(foutput,"%s\n",log);
+	fprintf(foutput,"%s\n",log->c_str());
 	fprintf(foutput,
 		"----------------------------------------------------------\n");
 	fprintf(foutput,"\n\n");

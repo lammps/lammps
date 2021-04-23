@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 
   /**
    *  @class FixATC
-   *  @brief Class for an atom-to-continuum (ATC) Lammps fix.
+   *  @brief Class for an atom-to-continuum (ATC) LAMMPS fix.
    */
 
   class FixATC : public Fix {

@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(dpdext/tstat,PairDPDTstatExt)
+PairStyle(dpd/ext/tstat,PairDPDExtTstat)
 
 #else
 
-#ifndef LMP_PAIR_DPD_TSTAT_EXT_H
-#define LMP_PAIR_DPD_TSTAT_EXT_H
+#ifndef LMP_PAIR_DPD_EXT_TSTAT_H
+#define LMP_PAIR_DPD_EXT_TSTAT_H
 
 #include "pair_dpd_ext.h"
 
 namespace LAMMPS_NS {
 
-class PairDPDTstatExt : public PairDPDExt {
+class PairDPDExtTstat : public PairDPDExt {
  public:
-  PairDPDTstatExt(class LAMMPS *);
-  ~PairDPDTstatExt() {}
+  PairDPDExtTstat(class LAMMPS *);
+  ~PairDPDExtTstat() {}
   void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);

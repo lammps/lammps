@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(dpdext,PairDPDExt)
+PairStyle(dpd/ext,PairDPDExt)
 
 #else
 

@@ -15,7 +15,7 @@
   Contributing authors: Martin Svoboda (ICPF, UJEP), Martin Lísal (ICPF, UJEP)
 ------------------------------------------------------------------------- */
 
-#include "pair_dpd_tstat_ext.h"
+#include "pair_dpd_ext_tstat.h"
 
 #include <cmath>
 #include "atom.h"
@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDTstatExt::PairDPDTstatExt(LAMMPS *lmp) : PairDPDExt(lmp)
+PairDPDExtTstat::PairDPDExtTstat(LAMMPS *lmp) : PairDPDExt(lmp)
 {
   single_enable = 0;
   writedata = 1;
@@ -41,7 +41,7 @@ PairDPDTstatExt::PairDPDTstatExt(LAMMPS *lmp) : PairDPDExt(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairDPDTstatExt::compute(int eflag, int vflag)
+void PairDPDExtTstat::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fpairx,fpairy,fpairz,fpair;
@@ -190,7 +190,7 @@ void PairDPDTstatExt::compute(int eflag, int vflag)
    global settings
 ------------------------------------------------------------------------- */
 
-void PairDPDTstatExt::settings(int narg, char **arg)
+void PairDPDExtTstat::settings(int narg, char **arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
@@ -221,7 +221,7 @@ void PairDPDTstatExt::settings(int narg, char **arg)
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-void PairDPDTstatExt::coeff(int narg, char **arg)
+void PairDPDExtTstat::coeff(int narg, char **arg)
 {
   if (narg < 6 || narg > 7)
     error->all(FLERR,"Incorrect args for pair coefficients");
@@ -261,7 +261,7 @@ void PairDPDTstatExt::coeff(int narg, char **arg)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairDPDTstatExt::write_restart(FILE *fp)
+void PairDPDExtTstat::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -283,7 +283,7 @@ void PairDPDTstatExt::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairDPDTstatExt::read_restart(FILE *fp)
+void PairDPDExtTstat::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
 
@@ -316,7 +316,7 @@ void PairDPDTstatExt::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairDPDTstatExt::write_restart_settings(FILE *fp)
+void PairDPDExtTstat::write_restart_settings(FILE *fp)
 {
   fwrite(&t_start,sizeof(double),1,fp);
   fwrite(&t_stop,sizeof(double),1,fp);
@@ -329,7 +329,7 @@ void PairDPDTstatExt::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairDPDTstatExt::read_restart_settings(FILE *fp)
+void PairDPDExtTstat::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
     utils::sfread(FLERR,&t_start,sizeof(double),1,fp,nullptr,error);
@@ -357,7 +357,7 @@ void PairDPDTstatExt::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairDPDTstatExt::write_data(FILE *fp)
+void PairDPDExtTstat::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp,"%d %g %g %g %g\n",i,gamma[i][i],gammaT[i][i],ws[i][i],wsT[i][i]);
@@ -367,7 +367,7 @@ void PairDPDTstatExt::write_data(FILE *fp)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairDPDTstatExt::write_data_all(FILE *fp)
+void PairDPDExtTstat::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)

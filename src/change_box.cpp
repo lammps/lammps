@@ -193,7 +193,7 @@ void ChangeBox::command(int narg, char **arg)
   // compute scale factors if FINAL,DELTA used since they have distance units
 
   int flag = 0;
-  for (int i = 0; i < nops; i++)
+  for (i = 0; i < nops; i++)
     if (ops[i].style == FINAL || ops[i].style == DELTA) flag = 1;
 
   if (flag && scaleflag) {
@@ -295,7 +295,7 @@ void ChangeBox::command(int narg, char **arg)
       if (output->ndump)
         error->all(FLERR,
                    "Cannot change box ortho/triclinic with dumps defined");
-      for (int i = 0; i < modify->nfix; i++)
+      for (i = 0; i < modify->nfix; i++)
         if (modify->fix[i]->no_change_box)
           error->all(FLERR,
                      "Cannot change box ortho/triclinic with "
@@ -310,7 +310,7 @@ void ChangeBox::command(int narg, char **arg)
       if (output->ndump)
         error->all(FLERR,
                    "Cannot change box ortho/triclinic with dumps defined");
-      for (int i = 0; i < modify->nfix; i++)
+      for (i = 0; i < modify->nfix; i++)
         if (modify->fix[i]->no_change_box)
           error->all(FLERR,
                      "Cannot change box ortho/triclinic with "

@@ -317,14 +317,14 @@ void DumpCustom::init_style()
   // check that fix frequency is acceptable
 
   int icompute;
-  for (int i = 0; i < ncompute; i++) {
+  for (i = 0; i < ncompute; i++) {
     icompute = modify->find_compute(id_compute[i]);
     if (icompute < 0) error->all(FLERR,"Could not find dump custom compute ID");
     compute[i] = modify->compute[icompute];
   }
 
   int ifix;
-  for (int i = 0; i < nfix; i++) {
+  for (i = 0; i < nfix; i++) {
     ifix = modify->find_fix(id_fix[i]);
     if (ifix < 0) error->all(FLERR,"Could not find dump custom fix ID");
     fix[i] = modify->fix[ifix];
@@ -333,7 +333,7 @@ void DumpCustom::init_style()
   }
 
   int ivariable;
-  for (int i = 0; i < nvariable; i++) {
+  for (i = 0; i < nvariable; i++) {
     ivariable = input->variable->find(id_variable[i]);
     if (ivariable < 0)
       error->all(FLERR,"Could not find dump custom variable name");
@@ -341,7 +341,7 @@ void DumpCustom::init_style()
   }
 
   int icustom;
-  for (int i = 0; i < ncustom; i++) {
+  for (i = 0; i < ncustom; i++) {
     icustom = atom->find_custom(id_custom[i],flag_custom[i]);
     if (icustom < 0)
       error->all(FLERR,"Could not find custom per-atom property ID");
@@ -546,7 +546,7 @@ int DumpCustom::count()
 
   // grow choose and variable vbuf arrays if needed
 
-  int nlocal = atom->nlocal;
+  const int nlocal = atom->nlocal;
   if (atom->nmax > maxlocal) {
     maxlocal = atom->nmax;
 
@@ -620,7 +620,6 @@ int DumpCustom::count()
     double *values;
     double value;
     int nstride,lastflag;
-    int nlocal = atom->nlocal;
 
     for (int ithresh = 0; ithresh < nthresh; ithresh++) {
 
@@ -1536,7 +1535,6 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
       default:
         return iarg;
-        break;
       }
     }
   }

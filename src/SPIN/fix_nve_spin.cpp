@@ -22,20 +22,23 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_spin.h"
-#include <cstring>
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_precession_spin.h"
 #include "fix_langevin_spin.h"
+#include "fix_precession_spin.h"
 #include "fix_setforce_spin.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair_hybrid.h"
 #include "pair_spin.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -200,18 +203,18 @@ void FixNVESpin::init()
   int count1 = 0;
   if (npairspin == 1) {
     count1 = 1;
-    spin_pairs[0] = (PairSpin *) force->pair_match("spin",0,0);
+    spin_pairs[0] = (PairSpin *) force->pair_match("^spin",0,0);
   } else if (npairspin > 1) {
     for (int i = 0; i<npairs; i++) {
-      if (force->pair_match("spin",0,i)) {
-        spin_pairs[count1] = (PairSpin *) force->pair_match("spin",0,i);
+      if (force->pair_match("^spin",0,i)) {
+        spin_pairs[count1] = (PairSpin *) force->pair_match("^spin",0,i);
         count1++;
       }
     }
   }
 
   if (count1 != npairspin)
-    error->all(FLERR,"Incorrect number of spin pairs");
+    error->all(FLERR,"Incorrect number of spin pair styles");
 
   // set pair/spin and long/spin flags
 
@@ -229,7 +232,7 @@ void FixNVESpin::init()
 
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (strstr(modify->fix[iforce]->style,"precession/spin")) {
+    if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
       nprecspin++;
     }
   }
@@ -245,7 +248,7 @@ void FixNVESpin::init()
   int count2 = 0;
   if (nprecspin > 0) {
     for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (strstr(modify->fix[iforce]->style,"precession/spin")) {
+      if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
         precession_spin_flag = 1;
         lockprecessionspin[count2] = (FixPrecessionSpin *) modify->fix[iforce];
         count2++;
@@ -254,30 +257,30 @@ void FixNVESpin::init()
   }
 
   if (count2 != nprecspin)
-    error->all(FLERR,"Incorrect number of fix precession/spin");
+    error->all(FLERR,"Incorrect number of precession/spin fixes");
 
   // set ptrs for fix langevin/spin styles
 
   // loop 1: obtain # of fix langevin/spin styles
 
   for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
+    if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
       nlangspin++;
     }
   }
 
-  // init length of vector of ptrs to precession/spin styles
+  // init length of vector of ptrs to langevin/spin styles
 
   if (nlangspin > 0) {
     locklangevinspin = new FixLangevinSpin*[nlangspin];
   }
 
-  // loop 2: fill vector with ptrs to precession/spin styles
+  // loop 2: fill vector with ptrs to langevin/spin styles
 
   count2 = 0;
   if (nlangspin > 0) {
     for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (strstr(modify->fix[iforce]->style,"langevin/spin")) {
+      if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
         maglangevin_flag = 1;
         locklangevinspin[count2] = (FixLangevinSpin *) modify->fix[iforce];
         count2++;
@@ -286,12 +289,12 @@ void FixNVESpin::init()
   }
 
   if (count2 != nlangspin)
-    error->all(FLERR,"Incorrect number of fix precession/spin");
+    error->all(FLERR,"Incorrect number of langevin/spin fixes");
 
   // ptrs FixSetForceSpin classes
 
   for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (strstr(modify->fix[iforce]->style,"setforce/spin")) {
+    if (utils::strmatch(modify->fix[iforce]->style,"^setforce/spin")) {
       setforce_spin_flag = 1;
       locksetforcespin = (FixSetForceSpin *) modify->fix[iforce];
     }

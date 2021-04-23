@@ -23,8 +23,6 @@
 
 #include "compute_spin.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "error.h"
 #include "fix_precession_spin.h"
@@ -32,8 +30,12 @@
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair_hybrid.h"
 #include "pair_spin.h"
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -110,25 +112,25 @@ void ComputeSpin::init()
   int count = 0;
   if (npairspin == 1) {
     count = 1;
-    spin_pairs[0] = (PairSpin *) force->pair_match("spin",0,0);
+    spin_pairs[0] = (PairSpin *) force->pair_match("^spin",0,0);
   } else if (npairspin > 1) {
     for (int i = 0; i<npairs; i++) {
-      if (force->pair_match("spin",0,i)) {
-        spin_pairs[count] = (PairSpin *) force->pair_match("spin",0,i);
+      if (force->pair_match("^spin",0,i)) {
+        spin_pairs[count] = (PairSpin *) force->pair_match("^spin",0,i);
         count++;
       }
     }
   }
 
   if (count != npairspin)
-    error->all(FLERR,"Incorrect number of spin pairs");
+    error->all(FLERR,"Incorrect number of spin pair styles");
 
   // set pair/spin and long/spin flags
 
   if (npairspin >= 1) pair_spin_flag = 1;
 
   for (int i = 0; i<npairs; i++) {
-    if (force->pair_match("spin/long",0,i)) {
+    if (force->pair_match("^spin/long",0,i)) {
       long_spin_flag = 1;
     }
   }
@@ -137,7 +139,7 @@ void ComputeSpin::init()
 
   int iforce;
   for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (strstr(modify->fix[iforce]->style,"precession/spin")) {
+    if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
       precession_spin_flag = 1;
       lockprecessionspin = (FixPrecessionSpin *) modify->fix[iforce];
     }

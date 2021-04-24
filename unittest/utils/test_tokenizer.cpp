@@ -53,6 +53,11 @@ TEST(Tokenizer, skip)
     ASSERT_FALSE(t.has_next());
     ASSERT_EQ(t.count(), 2);
     ASSERT_THROW(t.skip(), TokenizerException);
+    try {
+        t.skip();
+    } catch (TokenizerException &e) {
+        ASSERT_STREQ(e.what(), "No more tokens");
+    }
 }
 
 TEST(Tokenizer, prefix_separators)
@@ -85,6 +90,15 @@ TEST(Tokenizer, copy_constructor)
     ASSERT_THAT(u.next(), Eq("test"));
     ASSERT_THAT(u.next(), Eq("word"));
     ASSERT_EQ(u.count(), 2);
+}
+
+TEST(Tokenizer, rvalue)
+{
+    auto u = Tokenizer("  test new word   ", " ");
+    ASSERT_THAT(u.next(), Eq("test"));
+    ASSERT_THAT(u.next(), Eq("new"));
+    ASSERT_THAT(u.next(), Eq("word"));
+    ASSERT_EQ(u.count(), 3);
 }
 
 TEST(Tokenizer, no_separator_path)
@@ -181,12 +195,40 @@ TEST(ValueTokenizer, skip)
     ASSERT_FALSE(t.has_next());
     ASSERT_EQ(t.count(), 2);
     ASSERT_THROW(t.skip(), TokenizerException);
+    try {
+        t.skip();
+    } catch (TokenizerException &e) {
+        ASSERT_STREQ(e.what(), "No more tokens");
+    }
+}
+
+TEST(ValueTokenizer, copy_constructor)
+{
+    ValueTokenizer t("  test word   ", " ");
+    ASSERT_THAT(t.next_string(), Eq("test"));
+    ASSERT_THAT(t.next_string(), Eq("word"));
+    ASSERT_EQ(t.count(), 2);
+    ValueTokenizer u(t);
+    ASSERT_THAT(u.next_string(), Eq("test"));
+    ASSERT_THAT(u.next_string(), Eq("word"));
+    ASSERT_EQ(u.count(), 2);
+}
+
+TEST(ValueTokenizer, rvalue)
+{
+    auto u = ValueTokenizer("  test new word   ", " ");
+    ASSERT_THAT(u.next_string(), Eq("test"));
+    ASSERT_THAT(u.next_string(), Eq("new"));
+    ASSERT_THAT(u.next_string(), Eq("word"));
+    ASSERT_EQ(u.count(), 3);
 }
 
 TEST(ValueTokenizer, bad_integer)
 {
-    ValueTokenizer values("f10");
+    ValueTokenizer values("f10 f11 f12");
     ASSERT_THROW(values.next_int(), InvalidIntegerException);
+    ASSERT_THROW(values.next_bigint(), InvalidIntegerException);
+    ASSERT_THROW(values.next_tagint(), InvalidIntegerException);
 }
 
 TEST(ValueTokenizer, bad_double)

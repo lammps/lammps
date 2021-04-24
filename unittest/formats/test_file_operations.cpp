@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "../testing/core.h"
+#include "../testing/utils.h"
 #include "atom.h"
 #include "domain.h"
 #include "info.h"
@@ -45,26 +46,16 @@ protected:
         LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
 
-        FILE *fp = fopen("safe_file_read_test.txt", "wb");
-        ASSERT_NE(fp, nullptr);
-        fputs("one line\n", fp);
-        fputs("two_lines\n", fp);
-        fputs("\n", fp);
-        fputs("no newline", fp);
-        fclose(fp);
+        std::ofstream out("safe_file_read_test.txt", std::ios_base::out | std::ios_base::binary);
+        ASSERT_TRUE(out.good());
+        out << "one line\ntwo_lines\n\nno newline";
+        out.close();
     }
 
     void TearDown() override
     {
         LAMMPSTest::TearDown();
         remove("safe_file_read_test.txt");
-    }
-
-    bool file_exists(const char *file)
-    {
-        FILE *fp = fopen(file, "r");
-        fclose(fp);
-        return fp ? true : false;
     }
 };
 
@@ -73,7 +64,7 @@ TEST_F(FileOperationsTest, safe_fgets)
 {
     char buf[MAX_BUF_SIZE];
 
-    FILE *fp = fopen("safe_file_read_test.txt", "r");
+    FILE *fp = fopen("safe_file_read_test.txt", "rb");
     ASSERT_NE(fp, nullptr);
 
     memset(buf, 0, MAX_BUF_SIZE);
@@ -109,7 +100,7 @@ TEST_F(FileOperationsTest, safe_fread)
 {
     char buf[MAX_BUF_SIZE];
 
-    FILE *fp = fopen("safe_file_read_test.txt", "r");
+    FILE *fp = fopen("safe_file_read_test.txt", "rb");
     ASSERT_NE(fp, nullptr);
 
     memset(buf, 0, MAX_BUF_SIZE);
@@ -154,7 +145,7 @@ TEST_F(FileOperationsTest, logmesg)
     remove("test_logmesg.log");
 }
 
-TEST_F(FileOperationsTest, restart)
+TEST_F(FileOperationsTest, write_restart)
 {
     BEGIN_HIDE_OUTPUT();
     command("echo none");
@@ -179,16 +170,16 @@ TEST_F(FileOperationsTest, restart)
     if (info->has_package("MPIIO")) command("write_restart test.restart.mpiio");
     END_HIDE_OUTPUT();
 
-    ASSERT_TRUE(file_exists("noinit.restart"));
-    ASSERT_TRUE(file_exists("test.restart"));
-    ASSERT_TRUE(file_exists("step333.restart"));
-    ASSERT_TRUE(file_exists("multi-base.restart"));
-    ASSERT_TRUE(file_exists("multi-0.restart"));
-    ASSERT_TRUE(file_exists("multi2-base.restart"));
-    ASSERT_TRUE(file_exists("multi2-0.restart"));
-    ASSERT_TRUE(file_exists("multi3-base.restart"));
-    ASSERT_TRUE(file_exists("multi3-0.restart"));
-    if (info->has_package("MPIIO")) ASSERT_TRUE(file_exists("test.restart.mpiio"));
+    ASSERT_FILE_EXISTS("noinit.restart");
+    ASSERT_FILE_EXISTS("test.restart");
+    ASSERT_FILE_EXISTS("step333.restart");
+    ASSERT_FILE_EXISTS("multi-base.restart");
+    ASSERT_FILE_EXISTS("multi-0.restart");
+    ASSERT_FILE_EXISTS("multi2-base.restart");
+    ASSERT_FILE_EXISTS("multi2-0.restart");
+    ASSERT_FILE_EXISTS("multi3-base.restart");
+    ASSERT_FILE_EXISTS("multi3-0.restart");
+    if (info->has_package("MPIIO")) ASSERT_FILE_EXISTS("test.restart.mpiio");
 
     if (!info->has_package("MPIIO")) {
         TEST_FAILURE(".*ERROR: Illegal write_restart command.*",
@@ -237,17 +228,105 @@ TEST_F(FileOperationsTest, restart)
     ASSERT_EQ(lmp->domain->triclinic, 1);
 
     // clean up
-    unlink("noinit.restart");
-    unlink("test.restart");
-    unlink("step333.restart");
-    unlink("multi-base.restart");
-    unlink("multi-0.restart");
-    unlink("multi2-base.restart");
-    unlink("multi2-0.restart");
-    unlink("multi3-base.restart");
-    unlink("multi3-0.restart");
-    unlink("triclinic.restart");
-    if (info->has_package("MPIIO")) unlink("test.restart.mpiio");
+    delete_file("noinit.restart");
+    delete_file("test.restart");
+    delete_file("step333.restart");
+    delete_file("multi-base.restart");
+    delete_file("multi-0.restart");
+    delete_file("multi2-base.restart");
+    delete_file("multi2-0.restart");
+    delete_file("multi3-base.restart");
+    delete_file("multi3-0.restart");
+    delete_file("triclinic.restart");
+    if (info->has_package("MPIIO")) delete_file("test.restart.mpiio");
+}
+
+TEST_F(FileOperationsTest, write_data)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Write_data command before simulation box is defined.*",
+                 command("write_data test.data"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 2 box");
+    command("create_atoms 1 single 0.5 0.0 0.0");
+    command("pair_style zero 1.0");
+    command("pair_coeff * *");
+    command("mass * 1.0");
+    command("reset_timestep 333");
+    command("write_data noinit.data");
+    command("write_data nocoeff.data nocoeff");
+    command("run 0 post no");
+    command("write_data test.data");
+    command("write_data step*.data pair ij");
+    command("fix q all property/atom q");
+    command("set type 1 charge -0.5");
+    command("write_data charge.data");
+    command("write_data nofix.data nofix");
+    END_HIDE_OUTPUT();
+
+    ASSERT_FILE_EXISTS("noinit.data");
+    ASSERT_EQ(count_lines("noinit.data"), 26);
+    ASSERT_FILE_EXISTS("test.data");
+    ASSERT_EQ(count_lines("test.data"), 26);
+    ASSERT_FILE_EXISTS("step333.data");
+    ASSERT_EQ(count_lines("step333.data"), 27);
+    ASSERT_FILE_EXISTS("nocoeff.data");
+    ASSERT_EQ(count_lines("nocoeff.data"), 21);
+    ASSERT_FILE_EXISTS("nofix.data");
+    ASSERT_EQ(count_lines("nofix.data"), 26);
+    ASSERT_FILE_EXISTS("charge.data");
+    ASSERT_EQ(count_lines("charge.data"), 30);
+
+    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data"););
+    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data test.data xxxx"););
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open data file some_crazy_dir/test.data:"
+                 " No such file or directory.*",
+                 command("write_data some_crazy_dir/test.data"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->domain->box_exist, 0);
+    ASSERT_EQ(lmp->atom->natoms, 0);
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    TEST_FAILURE(".*ERROR: Cannot open file noexist.data: No such file or directory.*",
+                 command("read_data noexist.data"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style zero 1.0");
+    command("read_data step333.data");
+    command("change_box all triclinic");
+    command("write_data triclinic.data");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->atom->natoms, 1);
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->domain->triclinic, 1);
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->atom->natoms, 0);
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style zero 1.0");
+    command("read_data triclinic.data");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->atom->natoms, 1);
+    ASSERT_EQ(lmp->domain->triclinic, 1);
+
+    // clean up
+    delete_file("charge.data");
+    delete_file("nocoeff.data");
+    delete_file("noinit.data");
+    delete_file("nofix.data");
+    delete_file("test.data");
+    delete_file("step333.data");
+    delete_file("triclinic.data");
 }
 
 int main(int argc, char **argv)

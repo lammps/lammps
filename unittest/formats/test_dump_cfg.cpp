@@ -96,6 +96,8 @@ TEST_F(DumpCfgTest, write_dump)
     ASSERT_EQ(lines.size(), 124);
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
     delete_file("dump_cfg0.melt.cfg");
+
+    TEST_FAILURE(".*ERROR: Unrecognized dump style 'xxx'.*", command("write_dump all xxx test.xxx"););
 }
 
 TEST_F(DumpCfgTest, unwrap_run0)

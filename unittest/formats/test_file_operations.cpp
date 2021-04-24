@@ -257,7 +257,7 @@ TEST_F(FileOperationsTest, write_data)
     command("pair_coeff * *");
     command("mass * 1.0");
     command("reset_timestep 333");
-    command("write_data noinit.data");
+    command("write_data noinit.data noinit");
     command("write_data nocoeff.data nocoeff");
     command("run 0 post no");
     command("write_data test.data");
@@ -283,6 +283,7 @@ TEST_F(FileOperationsTest, write_data)
 
     TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data"););
     TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data test.data xxxx"););
+    TEST_FAILURE(".*ERROR: Illegal write_data command.*", command("write_data test.data pair xx"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open data file some_crazy_dir/test.data:"
                  " No such file or directory.*",
                  command("write_data some_crazy_dir/test.data"););

@@ -304,6 +304,12 @@ void ReadData::command(int narg, char **arg)
        extra_dihedral_types || extra_improper_types))
     error->all(FLERR,"Cannot use read_data extra with add flag");
 
+  // check if data file is available and readable
+
+  if (!utils::file_is_readable(arg[0]))
+    error->all(FLERR,fmt::format("Cannot open file {}: {}",
+                                 arg[0], utils::getsyserror()));
+
   // first time system initialization
 
   if (addflag == NONE) {

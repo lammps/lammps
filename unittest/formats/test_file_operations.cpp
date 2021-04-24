@@ -11,13 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
+#include "atom.h"
+#include "domain.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
-#include "utils.h"
+#include "update.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstdio>
 #include <mpi.h>
@@ -56,6 +58,13 @@ protected:
     {
         LAMMPSTest::TearDown();
         remove("safe_file_read_test.txt");
+    }
+
+    bool file_exists(const char *file)
+    {
+        FILE *fp = fopen(file, "r");
+        fclose(fp);
+        return fp ? true : false;
     }
 };
 
@@ -143,6 +152,102 @@ TEST_F(FileOperationsTest, logmesg)
     ASSERT_THAT(out, StrEq("one\ntwo\n"));
     ASSERT_THAT(buf, StrEq("two\n"));
     remove("test_logmesg.log");
+}
+
+TEST_F(FileOperationsTest, restart)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Write_restart command before simulation box is defined.*",
+                 command("write_restart test.restart"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0");
+    command("mass 1 1.0");
+    command("reset_timestep 333");
+    command("comm_modify cutoff 0.2");
+    command("write_restart noinit.restart noinit");
+    command("run 0 post no");
+    command("write_restart test.restart");
+    command("write_restart step*.restart");
+    command("write_restart multi-%.restart");
+    command("write_restart multi2-%.restart fileper 2");
+    command("write_restart multi3-%.restart nfile 1");
+    if (info->has_package("MPIIO")) command("write_restart test.restart.mpiio");
+    END_HIDE_OUTPUT();
+
+    ASSERT_TRUE(file_exists("noinit.restart"));
+    ASSERT_TRUE(file_exists("test.restart"));
+    ASSERT_TRUE(file_exists("step333.restart"));
+    ASSERT_TRUE(file_exists("multi-base.restart"));
+    ASSERT_TRUE(file_exists("multi-0.restart"));
+    ASSERT_TRUE(file_exists("multi2-base.restart"));
+    ASSERT_TRUE(file_exists("multi2-0.restart"));
+    ASSERT_TRUE(file_exists("multi3-base.restart"));
+    ASSERT_TRUE(file_exists("multi3-0.restart"));
+    if (info->has_package("MPIIO")) ASSERT_TRUE(file_exists("test.restart.mpiio"));
+
+    if (!info->has_package("MPIIO")) {
+        TEST_FAILURE(".*ERROR: Illegal write_restart command.*",
+                     command("write_restart test.restart.mpiio"););
+    } else {
+        TEST_FAILURE(".*ERROR: Restart file MPI-IO output not allowed with % in filename.*",
+                     command("write_restart test.restart-%.mpiio"););
+    }
+
+    TEST_FAILURE(".*ERROR: Illegal write_restart command.*", command("write_restart"););
+    TEST_FAILURE(".*ERROR: Illegal write_restart command.*",
+                 command("write_restart test.restart xxxx"););
+    TEST_FAILURE(".*ERROR on proc 0: Cannot open restart file some_crazy_dir/test.restart:"
+                 " No such file or directory.*",
+                 command("write_restart some_crazy_dir/test.restart"););
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->atom->natoms, 0);
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+
+    TEST_FAILURE(
+        ".*ERROR on proc 0: Cannot open restart file noexist.restart: No such file or directory.*",
+        command("read_restart noexist.restart"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("read_restart step333.restart");
+    command("change_box all triclinic");
+    command("write_restart triclinic.restart");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->atom->natoms, 1);
+    ASSERT_EQ(lmp->update->ntimestep, 333);
+    ASSERT_EQ(lmp->domain->triclinic, 1);
+    BEGIN_HIDE_OUTPUT();
+    command("clear");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->atom->natoms, 0);
+    ASSERT_EQ(lmp->update->ntimestep, 0);
+    ASSERT_EQ(lmp->domain->triclinic, 0);
+    BEGIN_HIDE_OUTPUT();
+    command("read_restart triclinic.restart");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->atom->natoms, 1);
+    ASSERT_EQ(lmp->update->ntimestep, 333);
+    ASSERT_EQ(lmp->domain->triclinic, 1);
+
+    // clean up
+    unlink("noinit.restart");
+    unlink("test.restart");
+    unlink("step333.restart");
+    unlink("multi-base.restart");
+    unlink("multi-0.restart");
+    unlink("multi2-base.restart");
+    unlink("multi2-0.restart");
+    unlink("multi3-base.restart");
+    unlink("multi3-0.restart");
+    unlink("triclinic.restart");
+    if (info->has_package("MPIIO")) unlink("test.restart.mpiio");
 }
 
 int main(int argc, char **argv)

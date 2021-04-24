@@ -23,6 +23,7 @@ PairStyle(eim,PairEIM)
 #include "pair.h"
 
 #include <map>
+#include <utility>
 
 namespace LAMMPS_NS {
 

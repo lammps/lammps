@@ -29,7 +29,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 #include <fstream>  // IWYU pragma: keep
 #include <sstream>  // IWYU pragma: keep
 

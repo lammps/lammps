@@ -21,8 +21,6 @@
 #include "group.h"
 #include "modify.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 

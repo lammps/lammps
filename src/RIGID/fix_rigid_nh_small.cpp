@@ -31,7 +31,6 @@
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
-#include "molecule.h"
 #include "rigid_const.h"
 #include "update.h"
 

@@ -15,23 +15,18 @@
    Contributing author: Mike Brown (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lj_charmm_coul_charmm_gpu.h"
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -205,8 +200,8 @@ double PairLJCharmmCoulCharmmGPU::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 void PairLJCharmmCoulCharmmGPU::cpu_compute(int start, int inum, int eflag,
-                                          int vflag, int *ilist,
-                                          int *numneigh, int **firstneigh)
+                                            int /* vflag */, int *ilist,
+                                            int *numneigh, int **firstneigh)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;

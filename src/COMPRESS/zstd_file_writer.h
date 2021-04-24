@@ -21,9 +21,9 @@
 #define LMP_ZSTD_FILE_WRITER_H
 
 #include "file_writer.h"
+
 #include <string>
 #include <zstd.h>
-#include <exception>
 
 namespace LAMMPS_NS {
 
@@ -47,8 +47,6 @@ public:
     void setCompressionLevel(int level);
     void setChecksum(bool enabled);
 };
-
-
 }
 
 #endif

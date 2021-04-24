@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "remap.h"
-#include <mpi.h>
-#include <cstdio>
+
 #include <cstdlib>
 
 #define PACK_DATA FFT_SCALAR

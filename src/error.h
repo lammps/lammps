@@ -33,12 +33,12 @@ class Error : protected Pointers {
   [[ noreturn ]] void all(const std::string &, int, const std::string &);
   [[ noreturn ]] void one(const std::string &, int, const std::string &);
   template <typename S, typename... Args>
-  [[ noreturn ]] void all(const std::string &file, int line, const S &format,
+  void all(const std::string &file, int line, const S &format,
                           Args&&... args) {
     _all(file, line, format, fmt::make_args_checked<Args...>(format, args...));
   }
   template <typename S, typename... Args>
-  [[ noreturn ]] void one(const std::string &file, int line, const S &format,
+  void one(const std::string &file, int line, const S &format,
                           Args&&... args) {
     _one(file, line, format, fmt::make_args_checked<Args...>(format, args...));
   }

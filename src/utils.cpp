@@ -226,7 +226,7 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
 /* ------------------------------------------------------------------ */
 
 /* read N lines and broadcast */
-int utils::read_lines_from_file(FILE *fp, int nlines, int maxline,
+int utils::read_lines_from_file(FILE *fp, int nlines, int nmax,
                                 char *buffer, int me, MPI_Comm comm)
 {
   char *ptr = buffer;
@@ -235,7 +235,7 @@ int utils::read_lines_from_file(FILE *fp, int nlines, int maxline,
   if (me == 0) {
     if (fp) {
       for (int i = 0; i < nlines; i++) {
-        ptr = fgets(ptr,maxline,fp);
+        ptr = fgets(ptr,nmax,fp);
         if (!ptr) break; // EOF?
         // advance ptr to end of string and append newline char if needed.
         ptr += strlen(ptr);

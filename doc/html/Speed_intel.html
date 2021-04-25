@@ -1,0 +1,775 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>7.4.2. USER-INTEL package &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="7.4.3. KOKKOS package" href="Speed_kokkos.html" />
+    <link rel="prev" title="7.4.1. GPU package" href="Speed_gpu.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Speed.html">7. Accelerate performance</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Speed_bench.html">7.1. Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_measure.html">7.2. Measuring performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_tips.html">7.3. General tips</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Speed_packages.html">7.4. Accelerator packages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Speed_gpu.html">7.4.1. GPU package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">7.4.2. USER-INTEL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_kokkos.html">7.4.3. KOKKOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_omp.html">7.4.4. USER-OMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_opt.html">7.4.5. OPT package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_compare.html">7.5. Comparison of various accelerator packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Speed.html"><span class="section-number">7. </span>Accelerate performance</a> &raquo;</li>
+        
+          <li><a href="Speed_packages.html"><span class="section-number">7.4. </span>Accelerator packages</a> &raquo;</li>
+        
+      <li><span class="section-number">7.4.2. </span>USER-INTEL package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Speed_kokkos.html" class="btn btn-neutral float-right" title="7.4.3. KOKKOS package" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Speed_gpu.html" class="btn btn-neutral float-left" title="7.4.1. GPU package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="user-intel-package">
+<h1><span class="section-number">7.4.2. </span>USER-INTEL package<a class="headerlink" href="#user-intel-package" title="Permalink to this headline">¶</a></h1>
+<p>The USER-INTEL package is maintained by Mike Brown at Intel
+Corporation.  It provides two methods for accelerating simulations,
+depending on the hardware you have.  The first is acceleration on
+Intel CPUs by running in single, mixed, or double precision with
+vectorization.  The second is acceleration on Intel Xeon Phi
+co-processors via offloading neighbor list and non-bonded force
+calculations to the Phi.  The same C++ code is used in both cases.
+When offloading to a co-processor from a CPU, the same routine is run
+twice, once on the CPU and once with an offload flag. This allows
+LAMMPS to run on the CPU cores and co-processor cores simultaneously.</p>
+<div class="section" id="currently-available-user-intel-styles">
+<h2>Currently Available USER-INTEL Styles<a class="headerlink" href="#currently-available-user-intel-styles" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Angle Styles: charmm, harmonic</p></li>
+<li><p>Bond Styles: fene, fourier, harmonic</p></li>
+<li><p>Dihedral Styles: charmm, fourier, harmonic, opls</p></li>
+<li><p>Fixes: nve, npt, nvt, nvt/sllod, nve/asphere</p></li>
+<li><p>Improper Styles: cvff, harmonic</p></li>
+<li><p>Pair Styles: airebo, airebo/morse, buck/coul/cut, buck/coul/long,
+buck, dpd, eam, eam/alloy, eam/fs, gayberne, lj/charmm/coul/charmm,
+lj/charmm/coul/long, lj/cut, lj/cut/coul/long, lj/long/coul/long,
+rebo, sw, tersoff</p></li>
+<li><p>K-Space Styles: pppm, pppm/disp</p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>None of the styles in the USER-INTEL package currently
+support computing per-atom stress.  If any compute or fix in your
+input requires it, LAMMPS will abort with an error message.</p>
+</div>
+</div>
+<div class="section" id="speed-up-to-expect">
+<h2>Speed-up to expect<a class="headerlink" href="#speed-up-to-expect" title="Permalink to this headline">¶</a></h2>
+<p>The speedup will depend on your simulation, the hardware, which
+styles are used, the number of atoms, and the floating-point
+precision mode. Performance improvements are shown compared to
+LAMMPS <em>without using other acceleration packages</em> as these are
+under active development (and subject to performance changes). The
+measurements were performed using the input files available in
+the src/USER-INTEL/TEST directory with the provided run script.
+These are scalable in size; the results given are with 512K
+particles (524K for Liquid Crystal). Most of the simulations are
+standard LAMMPS benchmarks (indicated by the filename extension in
+parenthesis) with modifications to the run length and to add a
+warm-up run (for use with offload benchmarks).</p>
+<img alt="_images/user_intel.png" class="align-center" src="_images/user_intel.png" />
+<p>Results are speedups obtained on Intel Xeon E5-2697v4 processors
+(code-named Broadwell), Intel Xeon Phi 7250 processors (code-named
+Knights Landing), and Intel Xeon Gold 6148 processors (code-named
+Skylake) with “June 2017” LAMMPS built with Intel Parallel Studio
+2017 update 2. Results are with 1 MPI task per physical core. See
+<em>src/USER-INTEL/TEST/README</em> for the raw simulation rates and
+instructions to reproduce.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="accuracy-and-order-of-operations">
+<h2>Accuracy and order of operations<a class="headerlink" href="#accuracy-and-order-of-operations" title="Permalink to this headline">¶</a></h2>
+<p>In most molecular dynamics software, parallelization parameters
+(# of MPI, OpenMP, and vectorization) can change the results due
+to changing the order of operations with finite-precision
+calculations. The USER-INTEL package is deterministic. This means
+that the results should be reproducible from run to run with the
+<em>same</em> parallel configurations and when using deterministic
+libraries or library settings (MPI, OpenMP, FFT). However, there
+are differences in the USER-INTEL package that can change the
+order of operations compared to LAMMPS without acceleration:</p>
+<ul class="simple">
+<li><p>Neighbor lists can be created in a different order</p></li>
+<li><p>Bins used for sorting atoms can be oriented differently</p></li>
+<li><p>The default stencil order for PPPM is 7. By default, LAMMPS will
+calculate other PPPM parameters to fit the desired accuracy with
+this order</p></li>
+<li><p>The <em>newton</em> setting applies to all atoms, not just atoms shared
+between MPI tasks</p></li>
+<li><p>Vectorization can change the order for adding pairwise forces</p></li>
+<li><p>When using the -DLMP_USE_MKL_RNG define (all included intel optimized
+makefiles do) at build time, the random number generator for
+dissipative particle dynamics (pair style dpd/intel) uses the Mersenne
+Twister generator included in the Intel MKL library (that should be
+more robust than the default Masaglia random number generator)</p></li>
+</ul>
+<p>The precision mode (described below) used with the USER-INTEL
+package can change the <em>accuracy</em> of the calculations. For the
+default <em>mixed</em> precision option, calculations between pairs or
+triplets of atoms are performed in single precision, intended to
+be within the inherent error of MD simulations. All accumulation
+is performed in double precision to prevent the error from growing
+with the number of atoms in the simulation. <em>Single</em> precision
+mode should not be used without appropriate validation.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="quick-start-for-experienced-users">
+<h2>Quick Start for Experienced Users<a class="headerlink" href="#quick-start-for-experienced-users" title="Permalink to this headline">¶</a></h2>
+<p>LAMMPS should be built with the USER-INTEL package installed.
+Simulations should be run with 1 MPI task per physical <em>core</em>,
+not <em>hardware thread</em>.</p>
+<ul class="simple">
+<li><p>Edit src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi as necessary.</p></li>
+<li><p>Set the environment variable KMP_BLOCKTIME=0</p></li>
+<li><p>“-pk intel 0 omp $t -sf intel” added to LAMMPS command-line</p></li>
+<li><p>$t should be 2 for Intel Xeon CPUs and 2 or 4 for Intel Xeon Phi</p></li>
+<li><p>For some of the simple 2-body potentials without long-range
+electrostatics, performance and scalability can be better with
+the “newton off” setting added to the input script</p></li>
+<li><p>For simulations on higher node counts, add “processors * * * grid
+numa” to the beginning of the input script for better scalability</p></li>
+<li><p>If using <em>kspace_style pppm</em> in the input script, add
+“kspace_modify diff ad” for better performance</p></li>
+</ul>
+<p>For Intel Xeon Phi CPUs:</p>
+<ul class="simple">
+<li><p>Runs should be performed using MCDRAM.</p></li>
+</ul>
+<p>For simulations using <em>kspace_style pppm</em> on Intel CPUs supporting
+AVX-512:</p>
+<ul class="simple">
+<li><p>Add “kspace_modify diff ad” to the input script</p></li>
+<li><p>The command-line option should be changed to
+“-pk intel 0 omp $r lrt yes -sf intel” where $r is the number of
+threads minus 1.</p></li>
+<li><p>Do not use thread affinity (set KMP_AFFINITY=none)</p></li>
+<li><p>The “newton off” setting may provide better scalability</p></li>
+</ul>
+<p>For Intel Xeon Phi co-processors (Offload):</p>
+<ul class="simple">
+<li><p>Edit src/MAKE/OPTIONS/Makefile.intel_co-processor as necessary</p></li>
+<li><p>“-pk intel N omp 1” added to command-line where N is the number of
+co-processors per node.</p></li>
+</ul>
+</div>
+<hr class="docutils" />
+<div class="section" id="required-hardware-software">
+<h2>Required hardware/software<a class="headerlink" href="#required-hardware-software" title="Permalink to this headline">¶</a></h2>
+<p>When using Intel compilers version 16.0 or later is required.</p>
+<p>In order to use offload to co-processors, an Intel Xeon Phi
+co-processor and an Intel compiler are required.</p>
+<p>Although any compiler can be used with the USER-INTEL package,
+currently, vectorization directives are disabled by default when
+not using Intel compilers due to lack of standard support and
+observations of decreased performance. The OpenMP standard now
+supports directives for vectorization and we plan to transition the
+code to this standard once it is available in most compilers. We
+expect this to allow improved performance and support with other
+compilers.</p>
+<p>For Intel Xeon Phi x200 series processors (code-named Knights
+Landing), there are multiple configuration options for the hardware.
+For best performance, we recommend that the MCDRAM is configured in
+“Flat” mode and with the cluster mode set to “Quadrant” or “SNC4”.
+“Cache” mode can also be used, although the performance might be
+slightly lower.</p>
+</div>
+<div class="section" id="notes-about-simultaneous-multithreading">
+<h2>Notes about Simultaneous Multithreading<a class="headerlink" href="#notes-about-simultaneous-multithreading" title="Permalink to this headline">¶</a></h2>
+<p>Modern CPUs often support Simultaneous Multithreading (SMT). On
+Intel processors, this is called Hyper-Threading (HT) technology.
+SMT is hardware support for running multiple threads efficiently on
+a single core. <em>Hardware threads</em> or <em>logical cores</em> are often used
+to refer to the number of threads that are supported in hardware.
+For example, the Intel Xeon E5-2697v4 processor is described
+as having 36 cores and 72 threads. This means that 36 MPI processes
+or OpenMP threads can run simultaneously on separate cores, but that
+up to 72 MPI processes or OpenMP threads can be running on the CPU
+without costly operating system context switches.</p>
+<p>Molecular dynamics simulations will often run faster when making use
+of SMT. If a thread becomes stalled, for example because it is
+waiting on data that has not yet arrived from memory, another thread
+can start running so that the CPU pipeline is still being used
+efficiently. Although benefits can be seen by launching a MPI task
+for every hardware thread, for multinode simulations, we recommend
+that OpenMP threads are used for SMT instead, either with the
+USER-INTEL package, <a class="reference internal" href="Speed_omp.html"><span class="doc">USER-OMP package</span></a>, or
+<a class="reference internal" href="Speed_kokkos.html"><span class="doc">KOKKOS package</span></a>. In the example above, up
+to 36X speedups can be observed by using all 36 physical cores with
+LAMMPS. By using all 72 hardware threads, an additional 10-30%
+performance gain can be achieved.</p>
+<p>The BIOS on many platforms allows SMT to be disabled, however, we do
+not recommend this on modern processors as there is little to no
+benefit for any software package in most cases. The operating system
+will report every hardware thread as a separate core allowing one to
+determine the number of hardware threads available. On Linux systems,
+this information can normally be obtained with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cat /proc/cpuinfo
+</pre></div>
+</div>
+</div>
+<div class="section" id="building-lammps-with-the-user-intel-package">
+<h2>Building LAMMPS with the USER-INTEL package<a class="headerlink" href="#building-lammps-with-the-user-intel-package" title="Permalink to this headline">¶</a></h2>
+<p>See the <a class="reference internal" href="Build_extras.html#user-intel"><span class="std std-ref">Build extras</span></a> doc page for
+instructions.  Some additional details are covered here.</p>
+<p>For building with make, several example Makefiles for building with
+the Intel compiler are included with LAMMPS in the src/MAKE/OPTIONS/
+directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Makefile.intel_cpu_intelmpi <span class="c1"># Intel Compiler, Intel MPI, No Offload</span>
+Makefile.knl                <span class="c1"># Intel Compiler, Intel MPI, No Offload</span>
+Makefile.intel_cpu_mpich    <span class="c1"># Intel Compiler, MPICH, No Offload</span>
+Makefile.intel_cpu_openpmi  <span class="c1"># Intel Compiler, OpenMPI, No Offload</span>
+Makefile.intel_co-processor  <span class="c1"># Intel Compiler, Intel MPI, Offload</span>
+</pre></div>
+</div>
+<p>Makefile.knl is identical to Makefile.intel_cpu_intelmpi except that
+it explicitly specifies that vectorization should be for Intel Xeon
+Phi x200 processors making it easier to cross-compile. For users with
+recent installations of Intel Parallel Studio, the process can be as
+simple as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make yes-user-intel
+<span class="nb">source</span> /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh
+<span class="c1"># or psxevars.csh for C-shell</span>
+make intel_cpu_intelmpi
+</pre></div>
+</div>
+<p>Note that if you build with support for a Phi co-processor, the same
+binary can be used on nodes with or without co-processors installed.
+However, if you do not have co-processors on your system, building
+without offload support will produce a smaller binary.</p>
+<p>The general requirements for Makefiles with the USER-INTEL package
+are as follows. When using Intel compilers, “-restrict” is required
+and “-qopenmp” is highly recommended for CCFLAGS and LINKFLAGS.
+CCFLAGS should include “-DLMP_INTEL_USELRT” (unless POSIX Threads
+are not supported in the build environment) and “-DLMP_USE_MKL_RNG”
+(unless Intel Math Kernel Library (MKL) is not available in the build
+environment). For Intel compilers, LIB should include “-ltbbmalloc”
+or if the library is not available, “-DLMP_INTEL_NO_TBB” can be added
+to CCFLAGS. For builds supporting offload, “-DLMP_INTEL_OFFLOAD” is
+required for CCFLAGS and “-qoffload” is required for LINKFLAGS. Other
+recommended CCFLAG options for best performance are “-O2 -fno-alias
+-ansi-alias -qoverride-limits fp-model fast=2 -no-prec-div”.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See the src/USER-INTEL/README file for additional flags that
+might be needed for best performance on Intel server processors
+code-named “Skylake”.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The vectorization and math capabilities can differ depending on
+the CPU. For Intel compilers, the “-x” flag specifies the type of
+processor for which to optimize. “-xHost” specifies that the compiler
+should build for the processor used for compiling. For Intel Xeon Phi
+x200 series processors, this option is “-xMIC-AVX512”. For fourth
+generation Intel Xeon (v4/Broadwell) processors, “-xCORE-AVX2” should
+be used. For older Intel Xeon processors, “-xAVX” will perform best
+in general for the different simulations in LAMMPS. The default
+in most of the example Makefiles is to use “-xHost”, however this
+should not be used when cross-compiling.</p>
+</div>
+</div>
+<div class="section" id="running-lammps-with-the-user-intel-package">
+<h2>Running LAMMPS with the USER-INTEL package<a class="headerlink" href="#running-lammps-with-the-user-intel-package" title="Permalink to this headline">¶</a></h2>
+<p>Running LAMMPS with the USER-INTEL package is similar to normal use
+with the exceptions that one should 1) specify that LAMMPS should use
+the USER-INTEL package, 2) specify the number of OpenMP threads, and
+3) optionally specify the specific LAMMPS styles that should use the
+USER-INTEL package. 1) and 2) can be performed from the command-line
+or by editing the input script. 3) requires editing the input script.
+Advanced performance tuning options are also described below to get
+the best performance.</p>
+<p>When running on a single node (including runs using offload to a
+co-processor), best performance is normally obtained by using 1 MPI
+task per physical core and additional OpenMP threads with SMT. For
+Intel Xeon processors, 2 OpenMP threads should be used for SMT.
+For Intel Xeon Phi CPUs, 2 or 4 OpenMP threads should be used
+(best choice depends on the simulation). In cases where the user
+specifies that LRT mode is used (described below), 1 or 3 OpenMP
+threads should be used. For multi-node runs, using 1 MPI task per
+physical core will often perform best, however, depending on the
+machine and scale, users might get better performance by decreasing
+the number of MPI tasks and using more OpenMP threads. For
+performance, the product of the number of MPI tasks and OpenMP
+threads should not exceed the number of available hardware threads in
+almost all cases.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Setting core affinity is often used to pin MPI tasks and OpenMP
+threads to a core or group of cores so that memory access can be
+uniform. Unless disabled at build time, affinity for MPI tasks and
+OpenMP threads on the host (CPU) will be set by default on the host
+<em>when using offload to a co-processor</em>. In this case, it is unnecessary
+to use other methods to control affinity (e.g. taskset, numactl,
+I_MPI_PIN_DOMAIN, etc.). This can be disabled with the <em>no_affinity</em>
+option to the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command or by disabling the
+option at build time (by adding -DINTEL_OFFLOAD_NOAFFINITY to the
+CCFLAGS line of your Makefile). Disabling this option is not
+recommended, especially when running on a machine with Intel
+Hyper-Threading technology disabled.</p>
+</div>
+</div>
+<div class="section" id="run-with-the-user-intel-package-from-the-command-line">
+<h2>Run with the USER-INTEL package from the command line<a class="headerlink" href="#run-with-the-user-intel-package-from-the-command-line" title="Permalink to this headline">¶</a></h2>
+<p>To enable USER-INTEL optimizations for all available styles used in
+the input script, the “-sf intel” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> can be used without any requirement for
+editing the input script. This switch will automatically append
+“intel” to styles that support it. It also invokes a default command:
+<a class="reference internal" href="package.html"><span class="doc">package intel 1</span></a>. This package command is used to set
+options for the USER-INTEL package.  The default package command will
+specify that USER-INTEL calculations are performed in mixed precision,
+that the number of OpenMP threads is specified by the OMP_NUM_THREADS
+environment variable, and that if co-processors are present and the
+binary was built with offload support, that 1 co-processor per node
+will be used with automatic balancing of work between the CPU and the
+co-processor.</p>
+<p>You can specify different options for the USER-INTEL package by using
+the “-pk intel Nphi” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> with
+keyword/value pairs as specified in the documentation. Here, Nphi = #
+of Xeon Phi co-processors/node (ignored without offload
+support). Common options to the USER-INTEL package include <em>omp</em> to
+override any OMP_NUM_THREADS setting and specify the number of OpenMP
+threads, <em>mode</em> to set the floating-point precision mode, and <em>lrt</em> to
+enable Long-Range Thread mode as described below. See the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command for details, including the default values
+used for all its options if not specified, and how to set the number
+of OpenMP threads via the OMP_NUM_THREADS environment variable if
+desired.</p>
+<p>Examples (see documentation for your MPI/Machine for differences in
+launching MPI applications):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun -np <span class="m">72</span> -ppn <span class="m">36</span> lmp_machine -sf intel -in <span class="k">in</span>.script                                 <span class="c1"># 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads</span>
+mpirun -np <span class="m">72</span> -ppn <span class="m">36</span> lmp_machine -sf intel -in <span class="k">in</span>.script -pk intel <span class="m">0</span> omp <span class="m">2</span> mode double   <span class="c1"># Don&#39;t use any co-processors that might be available, use 2 OpenMP threads for each task, use double precision</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="or-run-with-the-user-intel-package-by-editing-an-input-script">
+<h2>Or run with the USER-INTEL package by editing an input script<a class="headerlink" href="#or-run-with-the-user-intel-package-by-editing-an-input-script" title="Permalink to this headline">¶</a></h2>
+<p>As an alternative to adding command-line arguments, the input script
+can be edited to enable the USER-INTEL package. This requires adding
+the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command to the top of the input
+script. For the second example above, this would be:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">package</span><span class="w"> </span><span class="n">intel</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">omp</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">mode</span><span class="w"> </span><span class="n">double</span><span class="w"></span>
+</pre></div>
+</div>
+<p>To enable the USER-INTEL package only for individual styles, you can
+add an “intel” suffix to the individual style, e.g.:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">intel</span><span class="w"> </span><span class="m">2.5</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Alternatively, the <a class="reference internal" href="suffix.html"><span class="doc">suffix intel</span></a> command can be added to
+the input script to enable USER-INTEL styles for the commands that
+follow in the input script.</p>
+</div>
+<div class="section" id="tuning-for-performance">
+<h2>Tuning for Performance<a class="headerlink" href="#tuning-for-performance" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The USER-INTEL package will perform better with modifications
+to the input script when <a class="reference internal" href="kspace_style.html"><span class="doc">PPPM</span></a> is used:
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify diff ad</span></a> should be added to the
+input script.</p>
+</div>
+<p>Long-Range Thread (LRT) mode is an option to the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command that can improve performance when using
+<a class="reference internal" href="kspace_style.html"><span class="doc">PPPM</span></a> for long-range electrostatics on processors
+with SMT. It generates an extra pthread for each MPI task. The thread
+is dedicated to performing some of the PPPM calculations and MPI
+communications. This feature requires setting the pre-processor flag
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS. It is unset
+in the default makefiles (<em>Makefile.mpi</em> and <em>Makefile.serial</em>) but
+it is set in all makefiles tuned for the USER-INTEL package.  On Intel
+Xeon Phi x200 series CPUs, the LRT feature will likely improve
+performance, even on a single node. On Intel Xeon processors, using
+this mode might result in better performance when using multiple nodes,
+depending on the specific machine configuration. To enable LRT mode,
+specify that the number of OpenMP threads is one less than would
+normally be used for the run and add the “lrt yes” option to the “-pk”
+command-line suffix or “package intel” command. For example, if a run
+would normally perform best with “-pk intel 0 omp 4”, instead use
+“-pk intel 0 omp 3 lrt yes”. When using LRT, you should set the
+environment variable “KMP_AFFINITY=none”. LRT mode is not supported
+when using offload.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Changing the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> setting to off can improve
+performance and/or scalability for simple 2-body potentials such as
+lj/cut or when using LRT mode on processors supporting AVX-512.</p>
+</div>
+<p>Not all styles are supported in the USER-INTEL package. You can mix
+the USER-INTEL package with styles from the <a class="reference internal" href="Speed_opt.html"><span class="doc">OPT</span></a>
+package or the <a class="reference internal" href="Speed_omp.html"><span class="doc">USER-OMP package</span></a>. Of course, this
+requires that these packages were installed at build time. This can
+performed automatically by using “-sf hybrid intel opt” or “-sf hybrid
+intel omp” command-line options. Alternatively, the “opt” and “omp”
+suffixes can be appended manually in the input script. For the latter,
+the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command must be in the input script or
+the “-pk omp Nt” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> must be used
+where Nt is the number of OpenMP threads. The number of OpenMP threads
+should not be set differently for the different packages. Note that
+the <a class="reference internal" href="suffix.html"><span class="doc">suffix hybrid intel omp</span></a> command can also be used
+within the input script to automatically append the “omp” suffix to
+styles when USER-INTEL styles are not available.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For simulations on higher node counts, add <a class="reference internal" href="processors.html"><span class="doc">processors * * * grid numa</span></a> to the beginning of the input script for
+better scalability.</p>
+</div>
+<p>When running on many nodes, performance might be better when using
+fewer OpenMP threads and more MPI tasks. This will depend on the
+simulation and the machine. Using the <a class="reference internal" href="run_style.html"><span class="doc">verlet/split</span></a>
+run style might also give better performance for simulations with
+<a class="reference internal" href="kspace_style.html"><span class="doc">PPPM</span></a> electrostatics. Note that this is an
+alternative to LRT mode and the two cannot be used together.</p>
+<p>Currently, when using Intel MPI with Intel Xeon Phi x200 series
+CPUs, better performance might be obtained by setting the
+environment variable “I_MPI_SHM_LMT=shm” for Linux kernels that do
+not yet have full support for AVX-512. Runs on Intel Xeon Phi x200
+series processors will always perform better using MCDRAM. Please
+consult your system documentation for the best approach to specify
+that MPI runs are performed in MCDRAM.</p>
+</div>
+<div class="section" id="tuning-for-offload-performance">
+<h2>Tuning for Offload Performance<a class="headerlink" href="#tuning-for-offload-performance" title="Permalink to this headline">¶</a></h2>
+<p>The default settings for offload should give good performance.</p>
+<p>When using LAMMPS with offload to Intel co-processors, best performance
+will typically be achieved with concurrent calculations performed on
+both the CPU and the co-processor. This is achieved by offloading only
+a fraction of the neighbor and pair computations to the co-processor or
+using <a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid</span></a> pair styles where only one style uses
+the “intel” suffix. For simulations with long-range electrostatics or
+bond, angle, dihedral, improper calculations, computation and data
+transfer to the co-processor will run concurrently with computations
+and MPI communications for these calculations on the host CPU. This
+is illustrated in the figure below for the rhodopsin protein benchmark
+running on E5-2697v2 processors with a Intel Xeon Phi 7120p
+co-processor. In this plot, the vertical access is time and routines
+running at the same time are running concurrently on both the host and
+the co-processor.</p>
+<img alt="_images/offload_knc.png" class="align-center" src="_images/offload_knc.png" />
+<p>The fraction of the offloaded work is controlled by the <em>balance</em>
+keyword in the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command. A balance of 0
+runs all calculations on the CPU.  A balance of 1 runs all
+supported calculations on the co-processor.  A balance of 0.5 runs half
+of the calculations on the co-processor.  Setting the balance to -1
+(the default) will enable dynamic load balancing that continuously
+adjusts the fraction of offloaded work throughout the simulation.
+Because data transfer cannot be timed, this option typically produces
+results within 5 to 10 percent of the optimal fixed balance.</p>
+<p>If running short benchmark runs with dynamic load balancing, adding a
+short warm-up run (10-20 steps) will allow the load-balancer to find a
+near-optimal setting that will carry over to additional runs.</p>
+<p>The default for the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command is to have
+all the MPI tasks on a given compute node use a single Xeon Phi
+co-processor.  In general, running with a large number of MPI tasks on
+each node will perform best with offload.  Each MPI task will
+automatically get affinity to a subset of the hardware threads
+available on the co-processor.  For example, if your card has 61 cores,
+with 60 cores available for offload and 4 hardware threads per core
+(240 total threads), running with 24 MPI tasks per node will cause
+each MPI task to use a subset of 10 threads on the co-processor.  Fine
+tuning of the number of threads to use per MPI task or the number of
+threads to use per core can be accomplished with keyword settings of
+the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command.</p>
+<p>The USER-INTEL package has two modes for deciding which atoms will be
+handled by the co-processor.  This choice is controlled with the <em>ghost</em>
+keyword of the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command.  When set to 0,
+ghost atoms (atoms at the borders between MPI tasks) are not offloaded
+to the card.  This allows for overlap of MPI communication of forces
+with computation on the co-processor when the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a>
+setting is “on”.  The default is dependent on the style being used,
+however, better performance may be achieved by setting this option
+explicitly.</p>
+<p>When using offload with CPU Hyper-Threading disabled, it may help
+performance to use fewer MPI tasks and OpenMP threads than available
+cores.  This is due to the fact that additional threads are generated
+internally to handle the asynchronous offload tasks.</p>
+<p>If pair computations are being offloaded to an Intel Xeon Phi
+co-processor, a diagnostic line is printed to the screen (not to the
+log file), during the setup phase of a run, indicating that offload
+mode is being used and indicating the number of co-processor threads
+per MPI task.  Additionally, an offload timing summary is printed at
+the end of each run.  When offloading, the frequency for <a class="reference internal" href="atom_modify.html"><span class="doc">atom sorting</span></a> is changed to 1 so that the per-atom data is
+effectively sorted at every rebuild of the neighbor lists. All the
+available co-processor threads on each Phi will be divided among MPI
+tasks, unless the <em>tptask</em> option of the “-pk intel” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> is used to limit the co-processor threads per
+MPI task.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>When offloading to a co-processor, <a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid</span></a> styles
+that require skip lists for neighbor builds cannot be offloaded.
+Using <a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid/overlay</span></a> is allowed.  Only one intel
+accelerated style may be used with hybrid styles when offloading.
+<a class="reference internal" href="special_bonds.html"><span class="doc">Special_bonds</span></a> exclusion lists are not currently
+supported with offload, however, the same effect can often be
+accomplished by setting cutoffs for excluded atom types to 0.  None of
+the pair styles in the USER-INTEL package currently support the
+“inner”, “middle”, “outer” options for rRESPA integration via the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command; only the “pair” option is
+supported.</p>
+</div>
+<div class="section" id="references">
+<h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p>Brown, W.M., Carrillo, J.-M.Y., Mishra, B., Gavhane, N., Thakkar, F.M., De Kraker, A.R., Yamada, M., Ang, J.A., Plimpton, S.J., “Optimizing Classical Molecular Dynamics in LAMMPS,” in Intel Xeon Phi Processor High Performance Programming: Knights Landing Edition, J. Jeffers, J. Reinders, A. Sodani, Eds. Morgan Kaufmann.</p></li>
+<li><p>Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. <a class="reference external" href="http://dl.acm.org/citation.cfm?id=3014915">Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency.</a> 2016 High Performance Computing, Networking, Storage and Analysis, SC16: International Conference (pp. 82-95).</p></li>
+<li><p>Brown, W.M., Carrillo, J.-M.Y., Gavhane, N., Thakkar, F.M., Plimpton, S.J. Optimizing Legacy Molecular Dynamics Software with Directive-Based Offload. Computer Physics Communications. 2015. 195: p. 95-101.</p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Speed_kokkos.html" class="btn btn-neutral float-right" title="7.4.3. KOKKOS package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Speed_gpu.html" class="btn btn-neutral float-left" title="7.4.1. GPU package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

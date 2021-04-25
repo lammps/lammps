@@ -1,0 +1,2036 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2.4. The lammps Python module &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2.5. Extending the Python interface" href="Python_ext.html" />
+    <link rel="prev" title="2.3.11. Configuration information" href="Python_config.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Python_overview.html">2.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_install.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_run.html">2.3. Run LAMMPS from Python</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.4. The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> Python module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-lammps-class-api">2.4.1. The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> class API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-pylammps-class-api">2.4.2. The <code class="docutils literal notranslate"><span class="pre">PyLammps</span></code> class API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-ipylammps-class-api">2.4.3. The <code class="docutils literal notranslate"><span class="pre">IPyLammps</span></code> class API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#additional-components-of-the-lammps-module">2.4.4. Additional components of the <code class="docutils literal notranslate"><span class="pre">lammps</span></code> module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Python_ext.html">2.5. Extending the Python interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_call.html">2.6. Calling Python from LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_examples.html">2.7. Example Python scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_error.html">2.8. Handling LAMMPS errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_trouble.html">2.9. Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Python_head.html"><span class="section-number">2. </span>Use Python with LAMMPS</a> &raquo;</li>
+        
+      <li><span class="section-number">2.4. </span>The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> Python module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Python_ext.html" class="btn btn-neutral float-right" title="2.5. Extending the Python interface" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Python_config.html" class="btn btn-neutral float-left" title="2.3.11. Configuration information" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-lammps">
+<span id="the-lammps-python-module"></span><h1><span class="section-number">2.4. </span>The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> Python module<a class="headerlink" href="#module-lammps" title="Permalink to this headline">¶</a></h1>
+<p>The LAMMPS Python interface is implemented as a module called <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a>
+which is defined in the <code class="docutils literal notranslate"><span class="pre">lammps</span></code> package in the <code class="docutils literal notranslate"><span class="pre">python</span></code> folder of the
+LAMMPS source code distribution.  After compilation of LAMMPS, the module can
+be installed into a Python system folder or a user folder with <code class="docutils literal notranslate"><span class="pre">make</span>
+<span class="pre">install-python</span></code>.  Components of the module can then loaded into a Python
+session with the <code class="docutils literal notranslate"><span class="pre">import</span></code> command.</p>
+<p>There are multiple Python interface classes in the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module:</p>
+<ul class="simple">
+<li><p>the <a class="reference internal" href="#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> class. This is a wrapper around
+the C-library interface and its member functions try to replicate the
+<a class="reference internal" href="Library.html#lammps-c-api"><span class="std std-ref">C-library API</span></a> closely.  This is the most
+feature-complete Python API.</p></li>
+<li><p>the <a class="reference internal" href="#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a> class. This is a more high-level
+and more Python style class implemented on top of the
+<a class="reference internal" href="#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> class.</p></li>
+<li><p>the <a class="reference internal" href="#lammps.IPyLammps" title="lammps.IPyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">IPyLammps</span></code></a> class is derived from
+<a class="reference internal" href="#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a> and adds embedded graphics
+features to conveniently include LAMMPS into <a class="reference external" href="https://jupyter.org/">Jupyter</a> notebooks.</p></li>
+</ul>
+<hr class="docutils" />
+<div class="section" id="the-lammps-class-api">
+<h2><span class="section-number">2.4.1. </span>The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> class API<a class="headerlink" href="#the-lammps-class-api" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> class is the core of the LAMMPS
+Python interfaces.  It is a wrapper around the <a class="reference internal" href="Library.html#lammps-c-api"><span class="std std-ref">LAMMPS C library
+API</span></a> using the <a class="reference external" href="https://docs.python.org/3/library/ctypes.html">Python ctypes module</a> and a shared library
+compiled from the LAMMPS sources code.  The individual methods in this
+class try to closely follow the corresponding C functions.  The handle
+argument that needs to be passed to the C functions is stored internally
+in the class and automatically added when calling the C library
+functions. Below is a detailed documentation of the API.</p>
+<dl class="py class">
+<dt id="lammps.lammps">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.</span></code><code class="sig-name descname"><span class="pre">lammps</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmdargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an instance of the LAMMPS Python class.</p>
+<p>This is a Python wrapper class that exposes the LAMMPS C-library
+interface to Python.  It either requires that LAMMPS has been compiled
+as shared library which is then dynamically loaded via the ctypes
+Python module or that this module called from a Python function that
+is called from a Python interpreter embedded into a LAMMPS executable,
+for example through the <a class="reference internal" href="python.html"><span class="doc">python invoke</span></a> command.
+When the class is instantiated it calls the <a class="reference internal" href="Library_create.html#_CPPv411lammps_openiPPc8MPI_CommPPv" title="lammps_open"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_open()</span></code></a>
+function of the LAMMPS C-library interface, which in
+turn will create an instance of the <a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS6LAMMPSE" title="LAMMPS_NS::LAMMPS"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS</span></code></a>
+C++ class.  The handle to this C++ class is stored internally
+and automatically passed to the calls to the C library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – “machine” name of the shared LAMMPS library (“mpi” loads <code class="docutils literal notranslate"><span class="pre">liblammps_mpi.so</span></code>, “” loads <code class="docutils literal notranslate"><span class="pre">liblammps.so</span></code>)</p></li>
+<li><p><strong>cmdargs</strong> (<em>list</em>) – list of command line arguments to be passed to the <a class="reference internal" href="Library_create.html#_CPPv411lammps_openiPPc8MPI_CommPPv" title="lammps_open"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_open()</span></code></a> function.  The executable name is automatically added.</p></li>
+<li><p><strong>ptr</strong> (<em>pointer</em>) – pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter.  None means load symbols from shared library.</p></li>
+<li><p><strong>comm</strong> (<em>MPI_Comm</em>) – MPI communicator (as provided by <a class="reference external" href="https://mpi4py.readthedocs.io/">mpi4py</a>). <code class="docutils literal notranslate"><span class="pre">None</span></code> means use <code class="docutils literal notranslate"><span class="pre">MPI_COMM_WORLD</span></code> implicitly.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="lammps.lammps.numpy">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">numpy</span></code><a class="headerlink" href="#lammps.lammps.numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return object to access numpy versions of API</p>
+<p>It provides alternative implementations of API functions that
+return numpy arrays instead of ctypes pointers. If numpy is not installed,
+accessing this property will lead to an ImportError.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>instance of numpy wrapper object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#lammps.numpy.numpy_wrapper" title="lammps.numpy.numpy_wrapper">numpy_wrapper</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.close">
+<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Explicitly delete a LAMMPS instance through the C-library interface.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_create.html#_CPPv412lammps_closePv" title="lammps_close"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_close()</span></code></a> function of the C-library interface.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.finalize">
+<code class="sig-name descname"><span class="pre">finalize</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.finalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shut down the MPI communication through the library interface by calling <code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_finalize()</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.version">
+<code class="sig-name descname"><span class="pre">version</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a numerical representation of the LAMMPS version in use.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_config.html#_CPPv414lammps_versionPv" title="lammps_version"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_version()</span></code></a> function of the C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>version number</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.get_os_info">
+<code class="sig-name descname"><span class="pre">get_os_info</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.get_os_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string with information about the OS and compiler runtime</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_config.html#_CPPv418lammps_get_os_infoPci" title="lammps_get_os_info"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_os_info()</span></code></a> function of the C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>OS info string</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.get_mpi_comm">
+<code class="sig-name descname"><span class="pre">get_mpi_comm</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.get_mpi_comm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the MPI communicator in use by the current LAMMPS instance</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_properties.html#_CPPv419lammps_get_mpi_commPv" title="lammps_get_mpi_comm"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_mpi_comm()</span></code></a> function
+of the C-library interface.  It will return <code class="docutils literal notranslate"><span class="pre">None</span></code> if either the
+LAMMPS library was compiled without MPI support or the mpi4py
+Python module is not available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>MPI communicator</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>MPI_Comm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.file">
+<code class="sig-name descname"><span class="pre">file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read LAMMPS commands from a file.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_execute.html#_CPPv411lammps_filePvPKc" title="lammps_file"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_file()</span></code></a> function of the C-library interface.
+It will open the file with the name/path <cite>file</cite> and process the LAMMPS commands line by line until
+the end. The function will return when the end of the file is reached.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>string</em>) – Name of the file/path with LAMMPS commands</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.command">
+<code class="sig-name descname"><span class="pre">command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single LAMMPS input command from a string.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_execute.html#_CPPv414lammps_commandPvPKc" title="lammps_command"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_command()</span></code></a>
+function of the C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmd</strong> (<em>string</em>) – a single lammps command</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.commands_list">
+<code class="sig-name descname"><span class="pre">commands_list</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmdlist</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.commands_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process multiple LAMMPS input commands from a list of strings.</p>
+<p>This is a wrapper around the
+<a class="reference internal" href="Library_execute.html#_CPPv420lammps_commands_listPviPPKc" title="lammps_commands_list"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_commands_list()</span></code></a> function of
+the C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmdlist</strong> (<em>list of strings</em>) – a single lammps command</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.commands_string">
+<code class="sig-name descname"><span class="pre">commands_string</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">multicmd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.commands_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a block of LAMMPS input commands from a string.</p>
+<p>This is a wrapper around the
+<a class="reference internal" href="Library_execute.html#_CPPv422lammps_commands_stringPvPKc" title="lammps_commands_string"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_commands_string()</span></code></a>
+function of the C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>multicmd</strong> (<em>string</em>) – text block of lammps commands</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.get_natoms">
+<code class="sig-name descname"><span class="pre">get_natoms</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.get_natoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the total number of atoms in the LAMMPS instance.</p>
+<p>Will be precise up to 53-bit signed integer due to the
+underlying <a class="reference internal" href="Library_properties.html#_CPPv417lammps_get_natomsPv" title="lammps_get_natoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_natoms()</span></code></a> function returning a double.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>number of atoms</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_box">
+<code class="sig-name descname"><span class="pre">extract_box</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract simulation box parameters</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_properties.html#_CPPv418lammps_extract_boxPvPdPdPdPdPdPiPi" title="lammps_extract_box"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_box()</span></code></a> function
+of the C-library interface.  Unlike in the C function, the result is
+returned as a list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>list of the extracted data: boxlo, boxhi, xy, yz, xz, periodicity, box_change</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>[ 3*double, 3*double, double, double, 3*int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.reset_box">
+<code class="sig-name descname"><span class="pre">reset_box</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">boxlo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxhi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.reset_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset simulation box parameters</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_properties.html#_CPPv416lammps_reset_boxPvPdPdddd" title="lammps_reset_box"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_reset_box()</span></code></a> function
+of the C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>boxlo</strong> (<em>list of 3 floating point numbers</em>) – new lower box boundaries</p></li>
+<li><p><strong>boxhi</strong> (<em>list of 3 floating point numbers</em>) – new upper box boundaries</p></li>
+<li><p><strong>xy</strong> (<em>float</em>) – xy tilt factor</p></li>
+<li><p><strong>yz</strong> (<em>float</em>) – yz tilt factor</p></li>
+<li><p><strong>xz</strong> (<em>float</em>) – xz tilt factor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.get_thermo">
+<code class="sig-name descname"><span class="pre">get_thermo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.get_thermo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get current value of a thermo keyword</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_properties.html#_CPPv417lammps_get_thermoPvPKc" title="lammps_get_thermo"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_thermo()</span></code></a>
+function of the C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>string</em>) – name of thermo keyword</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of thermo keyword</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>double or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_setting">
+<code class="sig-name descname"><span class="pre">extract_setting</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_setting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query LAMMPS about global settings that can be expressed as an integer.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a>
+function of the C-library interface.  Its documentation includes
+a list of the supported keywords.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>string</em>) – name of the setting</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of the setting</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_global_datatype">
+<code class="sig-name descname"><span class="pre">extract_global_datatype</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_global_datatype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve global property datatype from LAMMPS</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_properties.html#_CPPv430lammps_extract_global_datatypePvPKc" title="lammps_extract_global_datatype"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global_datatype()</span></code></a>
+function of the C-library interface. Its documentation includes a
+list of the supported keywords.
+This function returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if the keyword is not
+recognized. Otherwise it will return a positive integer value that
+corresponds to one of the <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">data type</span></a>
+constants define in the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>string</em>) – name of the property</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>data type of global property, see <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">Data Types</span></a></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_global">
+<code class="sig-name descname"><span class="pre">extract_global</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_global" title="Permalink to this definition">¶</a></dt>
+<dd><p>Query LAMMPS about global settings of different types.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_properties.html#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a>
+function of the C-library interface.  Unlike the C function
+this method returns the value and not a pointer and thus can
+only return the first value for keywords representing a list
+of values.  The <a class="reference internal" href="Library_properties.html#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a> documentation
+includes a list of the supported keywords and their data types.
+Since Python needs to know the data type to be able to interpret
+the result, by default, this function will try to auto-detect the data type
+by asking the library. You can also force a specific data type.  For that
+purpose the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module contains <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">data type</span></a>
+constants. This function returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if either the keyword is not recognized,
+or an invalid data type constant is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name of the property</p></li>
+<li><p><strong>dtype</strong> (<em>int</em><em>, </em><em>optional</em>) – data type of the returned data (see <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">Data Types</span></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of the property or None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int, float, or NoneType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_atom_datatype">
+<code class="sig-name descname"><span class="pre">extract_atom_datatype</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_atom_datatype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve per-atom property datatype from LAMMPS</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_atoms.html#_CPPv428lammps_extract_atom_datatypePvPKc" title="lammps_extract_atom_datatype"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_atom_datatype()</span></code></a>
+function of the C-library interface. Its documentation includes a
+list of the supported keywords.
+This function returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if the keyword is not
+recognized. Otherwise it will return an integer value that
+corresponds to one of the <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">data type</span></a> constants
+defined in the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>string</em>) – name of the property</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>data type of per-atom property (see <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">Data Types</span></a>)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_atom">
+<code class="sig-name descname"><span class="pre">extract_atom</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve per-atom properties from LAMMPS</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_atoms.html#_CPPv419lammps_extract_atomPvPKc" title="lammps_extract_atom"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_atom()</span></code></a>
+function of the C-library interface. Its documentation includes a
+list of the supported keywords and their data types.
+Since Python needs to know the data type to be able to interpret
+the result, by default, this function will try to auto-detect the data type
+by asking the library. You can also force a specific data type by setting <code class="docutils literal notranslate"><span class="pre">dtype</span></code>
+to one of the <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">data type</span></a> constants defined in the
+<a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module.
+This function returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if either the keyword is not
+recognized, or an invalid data type constant is used.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While the returned arrays of per-atom data are dimensioned
+for the range [0:nmax] - as is the underlying storage -
+the data is usually only valid for the range of [0:nlocal],
+unless the property of interest is also updated for ghost
+atoms.  In some cases, this depends on a LAMMPS setting, see
+for example <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel yes</span></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name of the property</p></li>
+<li><p><strong>dtype</strong> (<em>int</em><em>, </em><em>optional</em>) – data type of the returned data (see <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">Data Types</span></a>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>requested data or <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ctypes.POINTER(ctypes.c_int32), ctypes.POINTER(ctypes.POINTER(ctypes.c_int32)),
+ctypes.POINTER(ctypes.c_int64), ctypes.POINTER(ctypes.POINTER(ctypes.c_int64)),
+ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.POINTER(ctypes.c_double)),
+or NoneType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_compute">
+<code class="sig-name descname"><span class="pre">extract_compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve data from a LAMMPS compute</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_objects.html#_CPPv422lammps_extract_computePvPcii" title="lammps_extract_compute"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_compute()</span></code></a>
+function of the C-library interface.
+This function returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if either the compute id is not
+recognized, or an invalid combination of <a class="reference internal" href="#py-style-constants"><span class="std std-ref">style</span></a>
+and <a class="reference internal" href="#py-type-constants"><span class="std std-ref">type</span></a> constants is used. The
+names and functionality of the constants are the same as for
+the corresponding C-library function.  For requests to return
+a scalar or a size, the value is returned, otherwise a pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>string</em>) – compute ID</p></li>
+<li><p><strong>style</strong> (<em>int</em>) – style of the data retrieve (global, atom, or local), see <a class="reference internal" href="#py-style-constants"><span class="std std-ref">Style Constants</span></a></p></li>
+<li><p><strong>type</strong> (<em>int</em>) – type or size of the returned data (scalar, vector, or array), see <a class="reference internal" href="#py-type-constants"><span class="std std-ref">Type Constants</span></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>requested data as scalar, pointer to 1d or 2d double array, or None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_fix">
+<code class="sig-name descname"><span class="pre">extract_fix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_fix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve data from a LAMMPS fix</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_objects.html#_CPPv418lammps_extract_fixPvPciiii" title="lammps_extract_fix"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_fix()</span></code></a>
+function of the C-library interface.
+This function returns <code class="docutils literal notranslate"><span class="pre">None</span></code> if either the fix id is not
+recognized, or an invalid combination of <a class="reference internal" href="#py-style-constants"><span class="std std-ref">style</span></a>
+and <a class="reference internal" href="#py-type-constants"><span class="std std-ref">type</span></a> constants is used. The
+names and functionality of the constants are the same as for
+the corresponding C-library function.  For requests to return
+a scalar or a size, the value is returned, also when accessing
+global vectors or arrays, otherwise a pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>string</em>) – fix ID</p></li>
+<li><p><strong>style</strong> (<em>int</em>) – style of the data retrieve (global, atom, or local), see <a class="reference internal" href="#py-style-constants"><span class="std std-ref">Style Constants</span></a></p></li>
+<li><p><strong>type</strong> (<em>int</em>) – type or size of the returned data (scalar, vector, or array), see <a class="reference internal" href="#py-type-constants"><span class="std std-ref">Type Constants</span></a></p></li>
+<li><p><strong>nrow</strong> (<em>int</em>) – index of global vector element or row index of global array element</p></li>
+<li><p><strong>ncol</strong> (<em>int</em>) – column index of global array element</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>requested data or None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>c_double, ctypes.POINTER(c_double), ctypes.POINTER(ctypes.POINTER(c_double)), or NoneType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.extract_variable">
+<code class="sig-name descname"><span class="pre">extract_variable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vartype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.extract_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a LAMMPS variable and return its data</p>
+<p>This function is a wrapper around the function
+<a class="reference internal" href="Library_objects.html#_CPPv423lammps_extract_variablePvPKcPKc" title="lammps_extract_variable"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_variable()</span></code></a> of the C-library interface,
+evaluates variable name and returns a copy of the computed data.
+The memory temporarily allocated by the C-interface is deleted
+after the data is copied to a Python variable or list.
+The variable must be either an equal-style (or equivalent)
+variable or an atom-style variable. The variable type has to
+provided as <code class="docutils literal notranslate"><span class="pre">vartype</span></code> parameter which may be one of two constants:
+<code class="docutils literal notranslate"><span class="pre">LMP_VAR_EQUAL</span></code> or <code class="docutils literal notranslate"><span class="pre">LMP_VAR_ATOM</span></code>; it defaults to
+equal-style variables.
+The group parameter is only used for atom-style variables and
+defaults to the group “all” if set to <code class="docutils literal notranslate"><span class="pre">None</span></code>, which is the default.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name of the variable to execute</p></li>
+<li><p><strong>group</strong> (<em>string</em><em>, </em><em>only for atom-style variables</em>) – name of group for atom-style variable</p></li>
+<li><p><strong>vartype</strong> (<em>int</em>) – type of variable, see <a class="reference internal" href="#py-vartype-constants"><span class="std std-ref">Variable Type Constants</span></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the requested data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>c_double, (c_double), or NoneType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.set_variable">
+<code class="sig-name descname"><span class="pre">set_variable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.set_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a new value for a LAMMPS string style variable</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_objects.html#_CPPv419lammps_set_variablePvPcPc" title="lammps_set_variable"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_variable()</span></code></a>
+function of the C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name of the variable</p></li>
+<li><p><strong>value</strong> (<em>any. will be converted to a string</em>) – new variable value</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>either 0 on success or -1 on failure</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.encode_image_flags">
+<code class="sig-name descname"><span class="pre">encode_image_flags</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.encode_image_flags" title="Permalink to this definition">¶</a></dt>
+<dd><p>convert 3 integers with image flags for x-, y-, and z-direction
+into a single integer like it is used internally in LAMMPS</p>
+<p>This method is a wrapper around the <a class="reference internal" href="Library_utility.html#_CPPv425lammps_encode_image_flagsiii" title="lammps_encode_image_flags"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_encode_image_flags()</span></code></a>
+function of library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ix</strong> (<em>int</em>) – x-direction image flag</p></li>
+<li><p><strong>iy</strong> (<em>int</em>) – y-direction image flag</p></li>
+<li><p><strong>iz</strong> (<em>int</em>) – z-direction image flag</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>encoded image flags</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>lammps.c_imageint</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.decode_image_flags">
+<code class="sig-name descname"><span class="pre">decode_image_flags</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.decode_image_flags" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert encoded image flag integer into list of three regular integers.</p>
+<p>This method is a wrapper around the <a class="reference internal" href="Library_utility.html#_CPPv425lammps_decode_image_flagsiPi" title="lammps_decode_image_flags"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_decode_image_flags()</span></code></a>
+function of library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>image</strong> (<em>lammps.c_imageint</em>) – encoded image flags</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of three image flags in x-, y-, and z- direction</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of 3 int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.create_atoms">
+<code class="sig-name descname"><span class="pre">create_atoms</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shrinkexceed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.create_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create N atoms from list of coordinates and properties</p>
+<p>This function is a wrapper around the <a class="reference internal" href="Library_scatter.html#_CPPv419lammps_create_atomsPviPiPiPdPdPii" title="lammps_create_atoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_create_atoms()</span></code></a>
+function of the C-library interface, and the behavior is similar except
+that the <em>v</em>, <em>image</em>, and <em>shrinkexceed</em> arguments are optional and
+default to <em>None</em>, <em>None</em>, and <em>False</em>, respectively. With none being
+equivalent to a <code class="docutils literal notranslate"><span class="pre">NULL</span></code> pointer in C.</p>
+<p>The lists of coordinates, types, atom IDs, velocities, image flags can
+be provided in any format that may be converted into the required
+internal data types.  Also the list may contain more than <em>N</em> entries,
+but not fewer.  In the latter case, the function will return without
+attempting to create atoms.  You may use the <a class="reference internal" href="#lammps.lammps.encode_image_flags" title="lammps.lammps.encode_image_flags"><code class="xref py py-func docutils literal notranslate"><span class="pre">encode_image_flags</span></code></a> method to properly combine three integers
+with image flags into a single integer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – number of atoms for which data is provided</p></li>
+<li><p><strong>id</strong> (<em>list of lammps.tagint</em>) – list of atom IDs with at least n elements or None</p></li>
+<li><p><strong>type</strong> (<em>list of int</em>) – list of atom types</p></li>
+<li><p><strong>x</strong> (<em>list of float</em>) – list of coordinates for x-, y-, and z (flat list of 3n entries)</p></li>
+<li><p><strong>v</strong> (<em>list of float</em>) – list of velocities for x-, y-, and z (flat list of 3n entries) or None (optional)</p></li>
+<li><p><strong>image</strong> (<em>list of lammps.imageint</em>) – list of encoded image flags (optional)</p></li>
+<li><p><strong>shrinkexceed</strong> (<em>bool</em>) – whether to expand shrink-wrap boundaries if atoms are outside the box (optional)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>number of atoms created. 0 if insufficient or invalid data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.has_mpi_support">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">has_mpi_support</span></code><a class="headerlink" href="#lammps.lammps.has_mpi_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report whether the LAMMPS shared library was compiled with a
+real MPI library or in serial.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_config.html#_CPPv429lammps_config_has_mpi_supportv" title="lammps_config_has_mpi_support"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_config_has_mpi_support()</span></code></a>
+function of the library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>False when compiled with MPI STUBS, otherwise True</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.is_running">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_running</span></code><a class="headerlink" href="#lammps.lammps.is_running" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report whether being called from a function during a run or a minimization</p>
+<p>Various LAMMPS commands must not be called during an ongoing
+run or minimization.  This property allows to check for that.
+This is a wrapper around the <a class="reference internal" href="Library_utility.html#_CPPv417lammps_is_runningPv" title="lammps_is_running"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_is_running()</span></code></a>
+function of the library interface.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 9Oct2020.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>True when called during a run otherwise false</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.force_timeout">
+<code class="sig-name descname"><span class="pre">force_timeout</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.force_timeout" title="Permalink to this definition">¶</a></dt>
+<dd><p>Trigger an immediate timeout, i.e. a “soft stop” of a run.</p>
+<p>This function allows to cleanly stop an ongoing run or minimization
+at the next loop iteration.
+This is a wrapper around the <a class="reference internal" href="Library_utility.html#_CPPv420lammps_force_timeoutPv" title="lammps_force_timeout"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_force_timeout()</span></code></a>
+function of the library interface.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 9Oct2020.</span></p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.has_exceptions">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">has_exceptions</span></code><a class="headerlink" href="#lammps.lammps.has_exceptions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report whether the LAMMPS shared library was compiled with C++
+exceptions handling enabled</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_config.html#_CPPv428lammps_config_has_exceptionsv" title="lammps_config_has_exceptions"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_config_has_exceptions()</span></code></a>
+function of the library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>state of C++ exception support</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.has_gzip_support">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">has_gzip_support</span></code><a class="headerlink" href="#lammps.lammps.has_gzip_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report whether the LAMMPS shared library was compiled with support
+for reading and writing compressed files through <code class="docutils literal notranslate"><span class="pre">gzip</span></code>.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_config.html#_CPPv430lammps_config_has_gzip_supportv" title="lammps_config_has_gzip_support"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_config_has_gzip_support()</span></code></a>
+function of the library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>state of gzip support</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.has_png_support">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">has_png_support</span></code><a class="headerlink" href="#lammps.lammps.has_png_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report whether the LAMMPS shared library was compiled with support
+for writing images in PNG format.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_config.html#_CPPv429lammps_config_has_png_supportv" title="lammps_config_has_png_support"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_config_has_png_support()</span></code></a>
+function of the library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>state of PNG support</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.has_jpeg_support">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">has_jpeg_support</span></code><a class="headerlink" href="#lammps.lammps.has_jpeg_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Report whether the LAMMPS shared library was compiled with support
+for writing images in JPEG format.</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_config.html#_CPPv430lammps_config_has_jpeg_supportv" title="lammps_config_has_jpeg_support"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_config_has_jpeg_support()</span></code></a>
+function of the library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>state of JPEG support</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.has_ffmpeg_support">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">has_ffmpeg_support</span></code><a class="headerlink" href="#lammps.lammps.has_ffmpeg_support" title="Permalink to this definition">¶</a></dt>
+<dd><p>State of support for writing movies with <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> in the LAMMPS shared library</p>
+<p>This is a wrapper around the <a class="reference internal" href="Library_config.html#_CPPv432lammps_config_has_ffmpeg_supportv" title="lammps_config_has_ffmpeg_support"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_config_has_ffmpeg_support()</span></code></a>
+function of the library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>state of ffmpeg support</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.installed_packages">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">installed_packages</span></code><a class="headerlink" href="#lammps.lammps.installed_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of the names of enabled packages in the LAMMPS shared library</p>
+<p>This is a wrapper around the functions <a class="reference internal" href="Library_config.html#_CPPv427lammps_config_package_countv" title="lammps_config_package_count"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_config_package_count()</span></code></a>
+and :cpp:func`lammps_config_package_name` of the library interface.</p>
+<p>:return</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.has_style">
+<code class="sig-name descname"><span class="pre">has_style</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.has_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether a given style name is available in a given category</p>
+<p>This is a wrapper around the function <a class="reference internal" href="Library_config.html#_CPPv416lammps_has_stylePvPKcPKc" title="lammps_has_style"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_has_style()</span></code></a>
+of the library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>category</strong> (<em>string</em>) – name of category</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – name of the style</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>true if style is available in given category</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.available_styles">
+<code class="sig-name descname"><span class="pre">available_styles</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.available_styles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of styles available for a given category</p>
+<p>This is a wrapper around the functions <a class="reference internal" href="Library_config.html#_CPPv418lammps_style_countPvPKc" title="lammps_style_count"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_style_count()</span></code></a>
+and <a class="reference internal" href="Library_config.html#_CPPv417lammps_style_namePvPKciPci" title="lammps_style_name"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_style_name()</span></code></a> of the library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>category</strong> (<em>string</em>) – name of category</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of style names in given category</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.has_id">
+<code class="sig-name descname"><span class="pre">has_id</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.has_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns whether a given ID name is available in a given category</p>
+<p>This is a wrapper around the function <a class="reference internal" href="Library_config.html#_CPPv413lammps_has_idPvPKcPKc" title="lammps_has_id"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_has_id()</span></code></a>
+of the library interface.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 9Oct2020.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>category</strong> (<em>string</em>) – name of category</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – name of the ID</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>true if ID is available in given category</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.available_ids">
+<code class="sig-name descname"><span class="pre">available_ids</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">category</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.available_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of IDs available for a given category</p>
+<p>This is a wrapper around the functions <a class="reference internal" href="Library_config.html#_CPPv415lammps_id_countPvPKc" title="lammps_id_count"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_id_count()</span></code></a>
+and <a class="reference internal" href="Library_config.html#_CPPv414lammps_id_namePvPKciPci" title="lammps_id_name"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_id_name()</span></code></a> of the library interface.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 9Oct2020.</span></p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>category</strong> (<em>string</em>) – name of category</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of id names in given category</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.get_neighlist">
+<code class="sig-name descname"><span class="pre">get_neighlist</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.get_neighlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance of <a class="reference internal" href="#lammps.NeighList" title="lammps.NeighList"><code class="xref py py-class docutils literal notranslate"><span class="pre">NeighList</span></code></a> which wraps access to the neighbor list with the given index</p>
+<p>See <code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.numpy.get_neighlist()</span></code> if you want to use
+NumPy arrays instead of <code class="docutils literal notranslate"><span class="pre">c_int</span></code> pointers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – index of neighbor list</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an instance of <a class="reference internal" href="#lammps.NeighList" title="lammps.NeighList"><code class="xref py py-class docutils literal notranslate"><span class="pre">NeighList</span></code></a> wrapping access to neighbor list data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#lammps.NeighList" title="lammps.NeighList">NeighList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.get_neighlist_size">
+<code class="sig-name descname"><span class="pre">get_neighlist_size</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.get_neighlist_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of elements in neighbor list with the given index</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – neighbor list index</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>number of elements in neighbor list with index idx</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.get_neighlist_element_neighbors">
+<code class="sig-name descname"><span class="pre">get_neighlist_element_neighbors</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.get_neighlist_element_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data of neighbor list entry</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> (<em>int</em>) – neighbor list index</p></li>
+<li><p><strong>element</strong> – neighbor list element index</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple with atom local index, number of neighbors and array of neighbor local atom indices</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(int, int, POINTER(c_int))</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.find_pair_neighlist">
+<code class="sig-name descname"><span class="pre">find_pair_neighlist</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exact</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsub</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.find_pair_neighlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find neighbor list index of pair style neighbor list</p>
+<p>Try finding pair instance that matches style. If exact is set, the pair must
+match style exactly. If exact is 0, style must only be contained. If pair is
+of style pair/hybrid, style is instead matched the nsub-th hybrid sub-style.</p>
+<p>Once the pair instance has been identified, multiple neighbor list requests
+may be found. Every neighbor list is uniquely identified by its request
+index. Thus, providing this request index ensures that the correct neighbor
+list index is returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>style</strong> (<em>string</em>) – name of pair style that should be searched for</p></li>
+<li><p><strong>exact</strong> (<em>bool</em><em>, </em><em>optional</em>) – controls whether style should match exactly or only must be contained in pair style name, defaults to True</p></li>
+<li><p><strong>nsub</strong> (<em>int</em><em>, </em><em>optional</em>) – match nsub-th hybrid sub-style, defaults to 0</p></li>
+<li><p><strong>request</strong> (<em>int</em><em>, </em><em>optional</em>) – index of neighbor list request, in case there are more than one, defaults to 0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>neighbor list index if found, otherwise -1</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.find_fix_neighlist">
+<code class="sig-name descname"><span class="pre">find_fix_neighlist</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fixid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.find_fix_neighlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find neighbor list index of fix neighbor list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fixid</strong> (<em>string</em>) – name of fix</p></li>
+<li><p><strong>request</strong> (<em>int</em><em>, </em><em>optional</em>) – index of neighbor list request, in case there are more than one, defaults to 0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>neighbor list index if found, otherwise -1</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.lammps.find_compute_neighlist">
+<code class="sig-name descname"><span class="pre">find_compute_neighlist</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">computeid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.lammps.find_compute_neighlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find neighbor list index of compute neighbor list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>computeid</strong> (<em>string</em>) – name of compute</p></li>
+<li><p><strong>request</strong> (<em>int</em><em>, </em><em>optional</em>) – index of neighbor list request, in case there are more than one, defaults to 0</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>neighbor list index if found, otherwise -1</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="lammps.numpy.numpy_wrapper">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.numpy.</span></code><code class="sig-name descname"><span class="pre">numpy_wrapper</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmp</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.numpy_wrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>lammps API NumPy Wrapper</p>
+<p>This is a wrapper class that provides additional methods on top of an
+existing <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> instance. The methods transform raw ctypes
+pointers into NumPy arrays, which give direct access to the
+original data while protecting against out-of-bounds accesses.</p>
+<p>There is no need to explicitly instantiate this class. Each instance
+of <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> has a <code class="xref py py-attr docutils literal notranslate"><span class="pre">numpy</span></code> property
+that returns an instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>lmp</strong> (<a class="reference internal" href="#lammps.lammps" title="lammps.lammps"><em>lammps</em></a>) – instance of the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> class</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="lammps.numpy.numpy_wrapper.extract_atom">
+<code class="sig-name descname"><span class="pre">extract_atom</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nelem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.numpy_wrapper.extract_atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve per-atom properties from LAMMPS as NumPy arrays</p>
+<p>This is a wrapper around the <code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_atom()</span></code> method.
+It behaves the same as the original method, but returns NumPy arrays
+instead of <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> pointers.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While the returned arrays of per-atom data are dimensioned
+for the range [0:nmax] - as is the underlying storage -
+the data is usually only valid for the range of [0:nlocal],
+unless the property of interest is also updated for ghost
+atoms.  In some cases, this depends on a LAMMPS setting, see
+for example <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel yes</span></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name of the property</p></li>
+<li><p><strong>dtype</strong> (<em>int</em><em>, </em><em>optional</em>) – type of the returned data (see <a class="reference internal" href="#py-datatype-constants"><span class="std std-ref">Data Types</span></a>)</p></li>
+<li><p><strong>nelem</strong> (<em>int</em><em>, </em><em>optional</em>) – number of elements in array</p></li>
+<li><p><strong>dim</strong> (<em>int</em><em>, </em><em>optional</em>) – dimension of each element</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>requested data as NumPy array with direct access to C data or None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy.array or NoneType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.numpy.numpy_wrapper.extract_compute">
+<code class="sig-name descname"><span class="pre">extract_compute</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.numpy_wrapper.extract_compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve data from a LAMMPS compute</p>
+<p>This is a wrapper around the
+<a class="reference internal" href="#lammps.lammps.extract_compute" title="lammps.lammps.extract_compute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_compute()</span></code></a> method.
+It behaves the same as the original method, but returns NumPy arrays
+instead of <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> pointers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>string</em>) – compute ID</p></li>
+<li><p><strong>style</strong> (<em>int</em>) – style of the data retrieve (global, atom, or local), see <a class="reference internal" href="#py-style-constants"><span class="std std-ref">Style Constants</span></a></p></li>
+<li><p><strong>type</strong> (<em>int</em>) – type of the returned data (scalar, vector, or array), see <a class="reference internal" href="#py-type-constants"><span class="std std-ref">Type Constants</span></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>requested data either as float, as NumPy array with direct access to C data, or None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float, numpy.array, or NoneType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.numpy.numpy_wrapper.extract_fix">
+<code class="sig-name descname"><span class="pre">extract_fix</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nrow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.numpy_wrapper.extract_fix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve data from a LAMMPS fix</p>
+<p>This is a wrapper around the <a class="reference internal" href="#lammps.lammps.extract_fix" title="lammps.lammps.extract_fix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_fix()</span></code></a> method.
+It behaves the same as the original method, but returns NumPy arrays
+instead of <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> pointers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id</strong> (<em>string</em>) – fix ID</p></li>
+<li><p><strong>style</strong> (<em>int</em>) – style of the data retrieve (global, atom, or local), see <a class="reference internal" href="#py-style-constants"><span class="std std-ref">Style Constants</span></a></p></li>
+<li><p><strong>type</strong> (<em>int</em>) – type or size of the returned data (scalar, vector, or array), see <a class="reference internal" href="#py-type-constants"><span class="std std-ref">Type Constants</span></a></p></li>
+<li><p><strong>nrow</strong> (<em>int</em>) – index of global vector element or row index of global array element</p></li>
+<li><p><strong>ncol</strong> (<em>int</em>) – column index of global array element</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>requested data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>integer or double value, pointer to 1d or 2d double array  or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.numpy.numpy_wrapper.extract_variable">
+<code class="sig-name descname"><span class="pre">extract_variable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vartype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.numpy_wrapper.extract_variable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate a LAMMPS variable and return its data</p>
+<p>This function is a wrapper around the function
+<a class="reference internal" href="#lammps.lammps.extract_variable" title="lammps.lammps.extract_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_variable()</span></code></a>
+method. It behaves the same as the original method, but returns NumPy arrays
+instead of <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> pointers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – name of the variable to execute</p></li>
+<li><p><strong>group</strong> (<em>string</em>) – name of group for atom-style variable (ignored for equal-style variables)</p></li>
+<li><p><strong>vartype</strong> (<em>int</em>) – type of variable, see <a class="reference internal" href="#py-vartype-constants"><span class="std std-ref">Variable Type Constants</span></a></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the requested data or None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>c_double, numpy.array, or NoneType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.numpy.numpy_wrapper.get_neighlist">
+<code class="sig-name descname"><span class="pre">get_neighlist</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.numpy_wrapper.get_neighlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an instance of <a class="reference internal" href="#lammps.numpy.NumPyNeighList" title="lammps.numpy.NumPyNeighList"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumPyNeighList</span></code></a> which wraps access to the neighbor list with the given index</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – index of neighbor list</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>an instance of <a class="reference internal" href="#lammps.numpy.NumPyNeighList" title="lammps.numpy.NumPyNeighList"><code class="xref py py-class docutils literal notranslate"><span class="pre">NumPyNeighList</span></code></a> wrapping access to neighbor list data</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#lammps.numpy.NumPyNeighList" title="lammps.numpy.NumPyNeighList">NumPyNeighList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.numpy.numpy_wrapper.get_neighlist_element_neighbors">
+<code class="sig-name descname"><span class="pre">get_neighlist_element_neighbors</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.numpy_wrapper.get_neighlist_element_neighbors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data of neighbor list entry</p>
+<p>This function is a wrapper around the function
+<a class="reference internal" href="#lammps.lammps.get_neighlist_element_neighbors" title="lammps.lammps.get_neighlist_element_neighbors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.get_neighlist_element_neighbors()</span></code></a>
+method. It behaves the same as the original method, but returns a NumPy array containing the neighbors
+instead of a <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> pointer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>element</strong> (<em>int</em>) – neighbor list index</p></li>
+<li><p><strong>element</strong> – neighbor list element index</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>tuple with atom local index and numpy array of neighbor local atom indices</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>(int, numpy.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<hr class="docutils" />
+<div class="section" id="the-pylammps-class-api">
+<h2><span class="section-number">2.4.2. </span>The <code class="docutils literal notranslate"><span class="pre">PyLammps</span></code> class API<a class="headerlink" href="#the-pylammps-class-api" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a> class is a wrapper that creates a
+simpler, more “Pythonic” interface to common LAMMPS functionality. LAMMPS
+data structures are exposed through objects and properties. This makes Python
+scripts shorter and more concise. See the <a class="reference internal" href="Howto_pylammps.html"><span class="doc">PyLammps Tutorial</span></a> for an introduction on how to use this interface.</p>
+<dl class="py class">
+<dt id="lammps.PyLammps">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.</span></code><code class="sig-name descname"><span class="pre">PyLammps</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmdargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a Python wrapper class around the lower-level
+<a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> class, exposing a more Python-like,
+object-oriented interface for prototyping system inside of IPython and
+Jupyter notebooks.</p>
+<p>It either creates its own instance of <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> or can be
+initialized with an existing instance. The arguments are the same of the
+lower-level interface. The original interface can still be accessed via
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">PyLammps.lmp</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – “machine” name of the shared LAMMPS library (“mpi” loads <code class="docutils literal notranslate"><span class="pre">liblammps_mpi.so</span></code>, “” loads <code class="docutils literal notranslate"><span class="pre">liblammps.so</span></code>)</p></li>
+<li><p><strong>cmdargs</strong> (<em>list</em>) – list of command line arguments to be passed to the <a class="reference internal" href="Library_create.html#_CPPv411lammps_openiPPc8MPI_CommPPv" title="lammps_open"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_open()</span></code></a> function.  The executable name is automatically added.</p></li>
+<li><p><strong>ptr</strong> (<em>pointer</em>) – pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter.  None means load symbols from shared library.</p></li>
+<li><p><strong>comm</strong> (<em>MPI_Comm</em>) – MPI communicator (as provided by <a class="reference external" href="https://mpi4py.readthedocs.io/">mpi4py</a>). <code class="docutils literal notranslate"><span class="pre">None</span></code> means use <code class="docutils literal notranslate"><span class="pre">MPI_COMM_WORLD</span></code> implicitly.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>lmp</strong> (<a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a>) – instance of original LAMMPS Python interface</p></li>
+<li><p><strong>runs</strong> – list of completed runs, each storing the thermo output</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="lammps.PyLammps.close">
+<code class="sig-name descname"><span class="pre">close</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps.close" title="Permalink to this definition">¶</a></dt>
+<dd><p>Explicitly delete a LAMMPS instance</p>
+<p>This is a wrapper around the <a class="reference internal" href="#lammps.lammps.close" title="lammps.lammps.close"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.close()</span></code></a> of the Python interface.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.version">
+<code class="sig-name descname"><span class="pre">version</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps.version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a numerical representation of the LAMMPS version in use.</p>
+<p>This is a wrapper around the <a class="reference internal" href="#lammps.lammps.version" title="lammps.lammps.version"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.version()</span></code></a> function of the Python interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>version number</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.file">
+<code class="sig-name descname"><span class="pre">file</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps.file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read LAMMPS commands from a file.</p>
+<p>This is a wrapper around the <a class="reference internal" href="#lammps.lammps.file" title="lammps.lammps.file"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.file()</span></code></a> function of the Python interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>string</em>) – Name of the file/path with LAMMPS commands</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.write_script">
+<code class="sig-name descname"><span class="pre">write_script</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps.write_script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write LAMMPS script file containing all commands executed up until now</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<em>string</em>) – path to script file that should be written</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.command">
+<code class="sig-name descname"><span class="pre">command</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps.command" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute LAMMPS command</p>
+<p>All commands executed will be stored in a command history which can be
+written to a file using <a class="reference internal" href="#lammps.PyLammps.write_script" title="lammps.PyLammps.write_script"><code class="xref py py-meth docutils literal notranslate"><span class="pre">PyLammps.write_script()</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmd</strong> – command string that should be executed</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>cmd: string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.run">
+<code class="sig-name descname"><span class="pre">run</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Execute LAMMPS run command with given arguments</p>
+<p>All thermo output during the run is captured and saved as new entry in
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">PyLammps.runs</span></code>. The latest run can be retrieved by
+<a class="reference internal" href="#lammps.PyLammps.last_run" title="lammps.PyLammps.last_run"><code class="xref py py-attr docutils literal notranslate"><span class="pre">PyLammps.last_run</span></code></a>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.last_run">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">last_run</span></code><a class="headerlink" href="#lammps.PyLammps.last_run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return data produced of last completed run command</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns an object containing information about the last run command</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.atoms">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">atoms</span></code><a class="headerlink" href="#lammps.PyLammps.atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>All atoms of this LAMMPS instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns a list of atoms currently in the system</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#lammps.AtomList" title="lammps.AtomList">AtomList</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.system">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">system</span></code><a class="headerlink" href="#lammps.PyLammps.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>The system state of this LAMMPS instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns an object with properties storing the current system state</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>namedtuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.communication">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">communication</span></code><a class="headerlink" href="#lammps.PyLammps.communication" title="Permalink to this definition">¶</a></dt>
+<dd><p>The communication state of this LAMMPS instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns an object with properties storing the current communication state</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>namedtuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.computes">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">computes</span></code><a class="headerlink" href="#lammps.PyLammps.computes" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of active computes of this LAMMPS instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns a list of computes that are currently active in this LAMMPS instance</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.dumps">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">dumps</span></code><a class="headerlink" href="#lammps.PyLammps.dumps" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of active dumps of this LAMMPS instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns a list of dumps that are currently active in this LAMMPS instance</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.fixes">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">fixes</span></code><a class="headerlink" href="#lammps.PyLammps.fixes" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of active fixes of this LAMMPS instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns a list of fixes that are currently active in this LAMMPS instance</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.groups">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">groups</span></code><a class="headerlink" href="#lammps.PyLammps.groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>The list of active atom groups of this LAMMPS instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns a list of atom groups that are currently active in this LAMMPS instance</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.variables">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">variables</span></code><a class="headerlink" href="#lammps.PyLammps.variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dictionary of all variables defined in the current LAMMPS instance</p>
+<dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Returns a dictionary of all variables that are defined in this LAMMPS instance</p>
+</dd>
+<dt class="field-even">Type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.eval">
+<code class="sig-name descname"><span class="pre">eval</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps.eval" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate expression</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>expr</strong> (<em>string</em>) – the expression string that should be evaluated inside of LAMMPS</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the value of the evaluated expression</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>float if numeric, string otherwise</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.PyLammps.lmp_print">
+<code class="sig-name descname"><span class="pre">lmp_print</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.PyLammps.lmp_print" title="Permalink to this definition">¶</a></dt>
+<dd><p>needed for Python2 compatibility, since print is a reserved keyword</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="lammps.AtomList">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.</span></code><code class="sig-name descname"><span class="pre">AtomList</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pylammps_instance</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.AtomList" title="Permalink to this definition">¶</a></dt>
+<dd><p>A dynamic list of atoms that returns either an <a class="reference internal" href="#lammps.Atom" title="lammps.Atom"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></a> or
+<a class="reference internal" href="#lammps.Atom2D" title="lammps.Atom2D"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom2D</span></code></a> instance for each atom. Instances are only allocated
+when accessed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>natoms</strong> – total number of atoms</p></li>
+<li><p><strong>dimensions</strong> – number of dimensions in system</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="lammps.Atom">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.</span></code><code class="sig-name descname"><span class="pre">Atom</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pylammps_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper class then represents a single atom inside of LAMMPS</p>
+<p>It provides access to properties of the atom and allows you to change some of them.</p>
+<dl class="py method">
+<dt id="lammps.Atom.id">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">id</span></code><a class="headerlink" href="#lammps.Atom.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the atom ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.Atom.type">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">type</span></code><a class="headerlink" href="#lammps.Atom.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the atom type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.Atom.mol">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">mol</span></code><a class="headerlink" href="#lammps.Atom.mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the atom molecule index</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.Atom.mass">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">mass</span></code><a class="headerlink" href="#lammps.Atom.mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the atom mass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.Atom.position">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">position</span></code><a class="headerlink" href="#lammps.Atom.position" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Return position of atom</p>
+</dd>
+<dt class="field-even">Setter</dt>
+<dd class="field-even"><p>Set position of atom</p>
+</dd>
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple (float, float, float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.Atom.force">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">force</span></code><a class="headerlink" href="#lammps.Atom.force" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the total force acting on the atom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple (float, float, float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.Atom.charge">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">charge</span></code><a class="headerlink" href="#lammps.Atom.charge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the atom charge</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="lammps.Atom2D">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.</span></code><code class="sig-name descname"><span class="pre">Atom2D</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pylammps_instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.Atom2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>A wrapper class then represents a single 2D atom inside of LAMMPS</p>
+<p>Inherits all properties from the <a class="reference internal" href="#lammps.Atom" title="lammps.Atom"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></a> class, but returns 2D versions
+of position, velocity, and force.</p>
+<p>It provides access to properties of the atom and allows you to change some of them.</p>
+<dl class="py method">
+<dt id="lammps.Atom2D.position">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">position</span></code><a class="headerlink" href="#lammps.Atom2D.position" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Return position of atom</p>
+</dd>
+<dt class="field-even">Setter</dt>
+<dd class="field-even"><p>Set position of atom</p>
+</dd>
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple (float, float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.Atom2D.velocity">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">velocity</span></code><a class="headerlink" href="#lammps.Atom2D.velocity" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Getter</dt>
+<dd class="field-odd"><p>Return velocity of atom</p>
+</dd>
+<dt class="field-even">Setter</dt>
+<dd class="field-even"><p>Set velocity of atom</p>
+</dd>
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple (float, float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.Atom2D.force">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">force</span></code><a class="headerlink" href="#lammps.Atom2D.force" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the total force acting on the atom</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple (float, float)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<hr class="docutils" />
+<div class="section" id="the-ipylammps-class-api">
+<h2><span class="section-number">2.4.3. </span>The <code class="docutils literal notranslate"><span class="pre">IPyLammps</span></code> class API<a class="headerlink" href="#the-ipylammps-class-api" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">IPyLammps</span></code></a> class is an extension of
+<a class="reference internal" href="#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a>, adding additional functions to
+quickly display visualizations such as images and videos inside of IPython.
+See the <a class="reference internal" href="Howto_pylammps.html"><span class="doc">PyLammps Tutorial</span></a> for examples.</p>
+<dl class="py class">
+<dt id="lammps.IPyLammps">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.</span></code><code class="sig-name descname"><span class="pre">IPyLammps</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmdargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ptr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.IPyLammps" title="Permalink to this definition">¶</a></dt>
+<dd><p>IPython wrapper for LAMMPS which adds embedded graphics capabilities to PyLammmps interface</p>
+<p>It either creates its own instance of <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> or can be
+initialized with an existing instance. The arguments are the same of the
+lower-level interface. The original interface can still be accessed via
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">PyLammps.lmp</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – “machine” name of the shared LAMMPS library (“mpi” loads <code class="docutils literal notranslate"><span class="pre">liblammps_mpi.so</span></code>, “” loads <code class="docutils literal notranslate"><span class="pre">liblammps.so</span></code>)</p></li>
+<li><p><strong>cmdargs</strong> (<em>list</em>) – list of command line arguments to be passed to the <a class="reference internal" href="Library_create.html#_CPPv411lammps_openiPPc8MPI_CommPPv" title="lammps_open"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_open()</span></code></a> function.  The executable name is automatically added.</p></li>
+<li><p><strong>ptr</strong> (<em>pointer</em>) – pointer to a LAMMPS C++ class instance when called from an embedded Python interpreter.  None means load symbols from shared library.</p></li>
+<li><p><strong>comm</strong> (<em>MPI_Comm</em>) – MPI communicator (as provided by <a class="reference external" href="https://mpi4py.readthedocs.io/">mpi4py</a>). <code class="docutils literal notranslate"><span class="pre">None</span></code> means use <code class="docutils literal notranslate"><span class="pre">MPI_COMM_WORLD</span></code> implicitly.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="lammps.IPyLammps.image">
+<code class="sig-name descname"><span class="pre">image</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'snapshot.png'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'type'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diameter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'type'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zoom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">background_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'white'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.IPyLammps.image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate image using write_dump command and display it</p>
+<p>See <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> for more information.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>string</em>) – Name of the image file that should be generated. The extension determines whether it is PNG or JPEG</p></li>
+<li><p><strong>group</strong> (<em>string</em>) – the group of atoms write_image should use</p></li>
+<li><p><strong>color</strong> (<em>string</em>) – name of property used to determine color</p></li>
+<li><p><strong>diameter</strong> (<em>string</em>) – name of property used to determine atom diameter</p></li>
+<li><p><strong>size</strong> (<em>tuple</em><em> (</em><em>width</em><em>, </em><em>height</em><em>)</em>) – dimensions of image</p></li>
+<li><p><strong>view</strong> (<em>tuple</em><em> (</em><em>theta</em><em>, </em><em>phi</em><em>)</em>) – view parameters</p></li>
+<li><p><strong>center</strong> (<em>tuple</em><em> (</em><em>flag</em><em>, </em><em>center_x</em><em>, </em><em>center_y</em><em>, </em><em>center_z</em><em>)</em>) – center parameters</p></li>
+<li><p><strong>up</strong> (<em>tuple</em><em> (</em><em>up_x</em><em>, </em><em>up_y</em><em>, </em><em>up_z</em><em>)</em>) – vector pointing to up direction</p></li>
+<li><p><strong>zoom</strong> (<em>float</em>) – zoom factor</p></li>
+<li><p><strong>background_color</strong> (<em>string</em>) – background color of scene</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Image instance used to display image in notebook</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">IPython.core.display.Image</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.IPyLammps.video">
+<code class="sig-name descname"><span class="pre">video</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.IPyLammps.video" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load video from file</p>
+<p>Can be used to visualize videos from <a class="reference internal" href="dump_image.html"><span class="doc">dump movie</span></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>string</em>) – Path to video file</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>HTML Video Tag used by notebook to embed a video</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">IPython.display.HTML</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<hr class="docutils" />
+<div class="section" id="additional-components-of-the-lammps-module">
+<h2><span class="section-number">2.4.4. </span>Additional components of the <code class="docutils literal notranslate"><span class="pre">lammps</span></code> module<a class="headerlink" href="#additional-components-of-the-lammps-module" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module additionally contains several constants
+and the <a class="reference internal" href="#lammps.NeighList" title="lammps.NeighList"><code class="xref py py-class docutils literal notranslate"><span class="pre">NeighList</span></code></a> class:</p>
+<div class="section" id="data-types">
+<span id="py-datatype-constants"></span><h3>Data Types<a class="headerlink" href="#data-types" title="Permalink to this headline">¶</a></h3>
+<dl class="py data">
+<dt>
+<code class="sig-name descname"><span class="pre">LAMMPS_INT,</span> <span class="pre">LAMMPS_INT_2D,</span> <span class="pre">LAMMPS_DOUBLE,</span> <span class="pre">LAMMPS_DOUBLE_2D,</span> <span class="pre">LAMMPS_INT64,</span> <span class="pre">LAMMPS_INT64_2D,</span> <span class="pre">LAMMPS_STRING</span></code></dt>
+<dd><p>Constants in the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module to indicate how to
+cast data when the C library function returns a void pointer.
+Used in <a class="reference internal" href="#lammps.lammps.extract_global" title="lammps.lammps.extract_global"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.extract_global()</span></code></a> and <a class="reference internal" href="#lammps.lammps.extract_atom" title="lammps.lammps.extract_atom"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.extract_atom()</span></code></a>.
+See <a class="reference internal" href="Library_objects.html#_CPPv419_LMP_DATATYPE_CONST" title="_LMP_DATATYPE_CONST"><code class="xref cpp cpp-enum docutils literal notranslate"><span class="pre">_LMP_DATATYPE_CONST</span></code></a> for the equivalent constants in the
+C library interface.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="style-constants">
+<span id="py-style-constants"></span><h3>Style Constants<a class="headerlink" href="#style-constants" title="Permalink to this headline">¶</a></h3>
+<dl class="py data">
+<dt>
+<code class="sig-name descname"><span class="pre">LMP_STYLE_GLOBAL,</span> <span class="pre">LMP_STYLE_ATOM,</span> <span class="pre">LMP_STYLE_LOCAL</span></code></dt>
+<dd><p>Constants in the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module to select what style of data
+to request from computes or fixes. See <a class="reference internal" href="Library_objects.html#_CPPv416_LMP_STYLE_CONST" title="_LMP_STYLE_CONST"><code class="xref cpp cpp-enum docutils literal notranslate"><span class="pre">_LMP_STYLE_CONST</span></code></a>
+for the equivalent constants in the C library interface. Used in
+<a class="reference internal" href="#lammps.lammps.extract_compute" title="lammps.lammps.extract_compute"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.extract_compute()</span></code></a>, <a class="reference internal" href="#lammps.lammps.extract_fix" title="lammps.lammps.extract_fix"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.extract_fix()</span></code></a>, and their NumPy variants
+<a class="reference internal" href="#lammps.numpy.numpy_wrapper.extract_compute" title="lammps.numpy.numpy_wrapper.extract_compute"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.numpy.extract_compute()</span></code></a> and
+<a class="reference internal" href="#lammps.numpy.numpy_wrapper.extract_fix" title="lammps.numpy.numpy_wrapper.extract_fix"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.numpy.extract_fix()</span></code></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="type-constants">
+<span id="py-type-constants"></span><h3>Type Constants<a class="headerlink" href="#type-constants" title="Permalink to this headline">¶</a></h3>
+<dl class="py data">
+<dt>
+<code class="sig-name descname"><span class="pre">LMP_TYPE_SCALAR,</span> <span class="pre">LMP_TYLE_VECTOR,</span> <span class="pre">LMP_TYPE_ARRAY,</span> <span class="pre">LMP_SIZE_VECTOR,</span> <span class="pre">LMP_SIZE_ROWS,</span> <span class="pre">LMP_SIZE_COLS</span></code></dt>
+<dd><p>Constants in the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module to select what type of data
+to request  from computes  or fixes.  See <a class="reference internal" href="Library_objects.html#_CPPv415_LMP_TYPE_CONST" title="_LMP_TYPE_CONST"><code class="xref cpp cpp-enum docutils literal notranslate"><span class="pre">_LMP_TYPE_CONST</span></code></a>
+for the equivalent constants in the C library interface. Used in
+<a class="reference internal" href="#lammps.lammps.extract_compute" title="lammps.lammps.extract_compute"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.extract_compute()</span></code></a>, <a class="reference internal" href="#lammps.lammps.extract_fix" title="lammps.lammps.extract_fix"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.extract_fix()</span></code></a>, and their NumPy variants
+<a class="reference internal" href="#lammps.numpy.numpy_wrapper.extract_compute" title="lammps.numpy.numpy_wrapper.extract_compute"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.numpy.extract_compute()</span></code></a> and
+<a class="reference internal" href="#lammps.numpy.numpy_wrapper.extract_fix" title="lammps.numpy.numpy_wrapper.extract_fix"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.numpy.extract_fix()</span></code></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="variable-type-constants">
+<span id="py-vartype-constants"></span><h3>Variable Type Constants<a class="headerlink" href="#variable-type-constants" title="Permalink to this headline">¶</a></h3>
+<dl class="py data">
+<dt>
+<code class="sig-name descname"><span class="pre">LMP_VAR_EQUAL,</span> <span class="pre">LMP_VAR_ATOM</span></code></dt>
+<dd><p>Constants in the <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module to select what type of
+variable to query when calling <a class="reference internal" href="#lammps.lammps.extract_variable" title="lammps.lammps.extract_variable"><code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.extract_variable()</span></code></a>. See also: <a class="reference internal" href="variable.html"><span class="doc">variable command</span></a>.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="classes-representing-internal-objects">
+<h3>Classes representing internal objects<a class="headerlink" href="#classes-representing-internal-objects" title="Permalink to this headline">¶</a></h3>
+<dl class="py class">
+<dt id="lammps.NeighList">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.</span></code><code class="sig-name descname"><span class="pre">NeighList</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.NeighList" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a wrapper class that exposes the contents of a neighbor list.</p>
+<p>It can be used like a regular Python list. Each element is a tuple of:</p>
+<ul class="simple">
+<li><p>the atom local index</p></li>
+<li><p>its number of neighbors</p></li>
+<li><p>and a pointer to an c_int array containing local atom indices of its
+neighbors</p></li>
+</ul>
+<p>Internally it uses the lower-level LAMMPS C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmp</strong> (<a class="reference internal" href="#lammps.lammps" title="lammps.lammps"><em>lammps</em></a>) – reference to instance of <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a></p></li>
+<li><p><strong>idx</strong> (<em>int</em>) – neighbor list index</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="lammps.NeighList.size">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">size</span></code><a class="headerlink" href="#lammps.NeighList.size" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>number of elements in neighbor list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="lammps.NeighList.get">
+<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.NeighList.get" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple with atom local index, numpy array of neighbor local atom indices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(int, int, ctypes.POINTER(c_int))</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="lammps.numpy.NumPyNeighList">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">lammps.numpy.</span></code><code class="sig-name descname"><span class="pre">NumPyNeighList</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lmp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.NumPyNeighList" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a wrapper class that exposes the contents of a neighbor list.</p>
+<p>It can be used like a regular Python list. Each element is a tuple of:</p>
+<ul class="simple">
+<li><p>the atom local index</p></li>
+<li><p>a NumPy array containing the local atom indices of its neighbors</p></li>
+</ul>
+<p>Internally it uses the lower-level LAMMPS C-library interface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmp</strong> (<a class="reference internal" href="#lammps.lammps" title="lammps.lammps"><em>lammps</em></a>) – reference to instance of <a class="reference internal" href="#module-lammps" title="lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a></p></li>
+<li><p><strong>idx</strong> (<em>int</em>) – neighbor list index</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="lammps.numpy.NumPyNeighList.get">
+<code class="sig-name descname"><span class="pre">get</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#lammps.numpy.NumPyNeighList.get" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple with atom local index, numpy array of neighbor local atom indices</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>(int, numpy.array)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Python_ext.html" class="btn btn-neutral float-right" title="2.5. Extending the Python interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Python_config.html" class="btn btn-neutral float-left" title="2.3.11. Configuration information" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

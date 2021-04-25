@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dihedral_style multi/harmonic command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="_static/mathjax/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dihedral_style nharmonic command" href="dihedral_nharmonic.html" />
+    <link rel="prev" title="dihedral_style hybrid command" href="dihedral_hybrid.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dihedral_charmm.html">dihedral_style charmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_charmm.html#dihedral-style-charmmfsw-command">dihedral_style charmmfsw command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_class2.html">dihedral_style class2 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_cosine_shift_exp.html">dihedral_style cosine/shift/exp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_fourier.html">dihedral_style fourier command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_harmonic.html">dihedral_style harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_helix.html">dihedral_style helix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_hybrid.html">dihedral_style hybrid command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">dihedral_style multi/harmonic command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_nharmonic.html">dihedral_style nharmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_none.html">dihedral_style none command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_opls.html">dihedral_style opls command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_quadratic.html">dihedral_style quadratic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_spherical.html">dihedral_style spherical command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_table.html">dihedral_style table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_table_cut.html">dihedral_style table/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_zero.html">dihedral_style zero command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="dihedrals.html">Dihedral Styles</a> &raquo;</li>
+        
+      <li>dihedral_style multi/harmonic command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="dihedral_nharmonic.html" class="btn btn-neutral float-right" title="dihedral_style nharmonic command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dihedral_hybrid.html" class="btn btn-neutral float-left" title="dihedral_style hybrid command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="index-0"></span><div class="section" id="dihedral-style-multi-harmonic-command">
+<span id="index-1"></span><h1>dihedral_style multi/harmonic command<a class="headerlink" href="#dihedral-style-multi-harmonic-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>multi/harmonic/omp</em></p>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dihedral_style</span><span class="w"> </span><span class="n">multi</span><span class="o">/</span><span class="n">harmonic</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dihedral_style</span><span class="w"> </span><span class="n">multi</span><span class="o">/</span><span class="n">harmonic</span><span class="w"></span>
+<span class="k">dihedral_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">20</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <em>multi/harmonic</em> dihedral style uses the potential</p>
+<div class="math notranslate nohighlight">
+\[E = \sum_{n=1,5} A_n  \cos^{n-1}(\phi)\]</div>
+<p>The following coefficients must be defined for each dihedral type via the
+<a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a> command as in the example above, or in
+the data file or restart files read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>
+or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> commands:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(A_1\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(A_2\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(A_3\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(A_4\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(A_5\)</span> (energy)</p></li>
+</ul>
+<hr class="docutils" />
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the <a class="reference internal" href="Speed_packages.html"><span class="doc">Speed packages</span></a> doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc page for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Run_options.html"><span class="doc">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can use the
+<a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See the <a class="reference internal" href="Speed_packages.html"><span class="doc">Speed packages</span></a> doc page for more
+instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This dihedral style can only be used if LAMMPS was built with the
+MOLECULE package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc page
+for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>none</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dihedral_nharmonic.html" class="btn btn-neutral float-right" title="dihedral_style nharmonic command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dihedral_hybrid.html" class="btn btn-neutral float-left" title="dihedral_style hybrid command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

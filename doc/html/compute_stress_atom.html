@@ -1,0 +1,638 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>compute stress/atom command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="_static/mathjax/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="compute stress/mop command" href="compute_stress_mop.html" />
+    <link rel="prev" title="compute spin command" href="compute_spin.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="computes.html">Computes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute_ackland_atom.html">compute ackland/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_adf.html">compute adf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_angle.html">compute angle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_angle_local.html">compute angle/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_angmom_chunk.html">compute angmom/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_basal_atom.html">compute basal/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_body_local.html">compute body/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_bond.html">compute bond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_bond_local.html">compute bond/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_centro_atom.html">compute centro/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_chunk_atom.html">compute chunk/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_chunk_spread_atom.html">compute chunk/spread/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cluster_atom.html">compute cluster/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cluster_atom.html#compute-fragment-atom-command">compute fragment/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cluster_atom.html#compute-aggregate-atom-command">compute aggregate/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cna_atom.html">compute cna/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cnp_atom.html">compute cnp/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_com.html">compute com command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_com_chunk.html">compute com/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_contact_atom.html">compute contact/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_coord_atom.html">compute coord/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_damage_atom.html">compute damage/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dihedral.html">compute dihedral command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dihedral_local.html">compute dihedral/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dilatation_atom.html">compute dilatation/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dipole_chunk.html">compute dipole/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_displace_atom.html">compute displace/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dpd.html">compute dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dpd_atom.html">compute dpd/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_edpd_temp_atom.html">compute edpd/temp/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_entropy_atom.html">compute entropy/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_erotate_asphere.html">compute erotate/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_erotate_rigid.html">compute erotate/rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_erotate_sphere.html">compute erotate/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_erotate_sphere_atom.html">compute erotate/sphere/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_event_displace.html">compute event/displace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_fep.html">compute fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_global_atom.html">compute global/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_group_group.html">compute group/group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gyration.html">compute gyration command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gyration_chunk.html">compute gyration/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gyration_shape.html">compute gyration/shape command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gyration_shape_chunk.html">compute gyration/shape/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_heat_flux.html">compute heat/flux command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_hexorder_atom.html">compute hexorder/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_hma.html">compute hma command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_improper.html">compute improper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_improper_local.html">compute improper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_inertia_chunk.html">compute inertia/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke.html">compute ke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke_atom.html">compute ke/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke_atom_eff.html">compute ke/atom/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke_eff.html">compute ke/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke_rigid.html">compute ke/rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_mesont.html">compute mesont command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_mliap.html">compute mliap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_momentum.html">compute momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_msd.html">compute msd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_msd_chunk.html">compute msd/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_msd_nongauss.html">compute msd/nongauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_omega_chunk.html">compute omega/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_orientorder_atom.html">compute orientorder/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pair.html">compute pair command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pair_local.html">compute pair/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pe.html">compute pe command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pe_atom.html">compute pe/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_plasticity_atom.html">compute plasticity/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pressure.html">compute pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pressure_cylinder.html">compute pressure/cylinder command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pressure_uef.html">compute pressure/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_property_atom.html">compute property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_property_chunk.html">compute property/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_property_local.html">compute property/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ptm_atom.html">compute ptm/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_rdf.html">compute rdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_reduce.html">compute reduce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_reduce.html#compute-reduce-region-command">compute reduce/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_reduce_chunk.html">compute reduce/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_rigid_local.html">compute rigid/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_saed.html">compute saed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_slice.html">compute slice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_contact_radius.html">compute smd/contact/radius command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_damage.html">compute smd/damage command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_hourglass_error.html">compute smd/hourglass/error command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_internal_energy.html">compute smd/internal/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_plastic_strain.html">compute smd/plastic/strain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_plastic_strain_rate.html">compute smd/plastic/strain/rate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_rho.html">compute smd/rho command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_defgrad.html">compute smd/tlsph/defgrad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_dt.html">compute smd/tlsph/dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_num_neighs.html">compute smd/tlsph/num/neighs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_shape.html">compute smd/tlsph/shape command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_strain.html">compute smd/tlsph/strain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_strain_rate.html">compute smd/tlsph/strain/rate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_stress.html">compute smd/tlsph/stress command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_triangle_vertices.html">compute smd/triangle/vertices command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_effm.html">compute smd/ulsph/effm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_num_neighs.html">compute smd/ulsph/num/neighs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_strain.html">compute smd/ulsph/strain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_strain_rate.html">compute smd/ulsph/strain/rate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_stress.html">compute smd/ulsph/stress command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_vol.html">compute smd/vol command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html">compute sna/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html#compute-snad-atom-command">compute snad/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html#compute-snav-atom-command">compute snav/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html#compute-snap-command">compute snap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sph_e_atom.html">compute sph/e/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sph_rho_atom.html">compute sph/rho/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sph_t_atom.html">compute sph/t/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_spin.html">compute spin command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">compute stress/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compute-centroid-stress-atom-command">compute centroid/stress/atom command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-info">Output info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_mop.html">compute stress/mop command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_mop.html#compute-stress-mop-profile-command">compute stress/mop/profile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html">compute force/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-heat-flux-tally-command">compute heat/flux/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-pe-tally-command">compute pe/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-pe-mol-tally-command">compute pe/mol/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-stress-tally-command">compute stress/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tdpd_cc_atom.html">compute tdpd/cc/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp.html">compute temp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_asphere.html">compute temp/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_body.html">compute temp/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_chunk.html">compute temp/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_com.html">compute temp/com command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_cs.html">compute temp/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_deform.html">compute temp/deform command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_deform_eff.html">compute temp/deform/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_drude.html">compute temp/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_eff.html">compute temp/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_partial.html">compute temp/partial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_profile.html">compute temp/profile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_ramp.html">compute temp/ramp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_region.html">compute temp/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_region_eff.html">compute temp/region/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_rotate.html">compute temp/rotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_sphere.html">compute temp/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_uef.html">compute temp/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ti.html">compute ti command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_torque_chunk.html">compute torque/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_vacf.html">compute vacf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_vcm_chunk.html">compute vcm/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_viscosity_cos.html">compute viscosity/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_voronoi_atom.html">compute voronoi/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_xrd.html">compute xrd command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="computes.html">Computes</a> &raquo;</li>
+        
+      <li>compute stress/atom command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="compute_stress_mop.html" class="btn btn-neutral float-right" title="compute stress/mop command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="compute_spin.html" class="btn btn-neutral float-left" title="compute spin command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="index-0"></span><div class="section" id="compute-stress-atom-command">
+<span id="index-1"></span><h1>compute stress/atom command<a class="headerlink" href="#compute-stress-atom-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="compute-centroid-stress-atom-command">
+<h1>compute centroid/stress/atom command<a class="headerlink" href="#compute-centroid-stress-atom-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>compute ID group-ID style temp-ID keyword ...
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>ID, group-ID are documented in <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</p></li>
+<li><p>style = <em>stress/atom</em> or <em>centroid/stress/atom</em></p></li>
+<li><p>temp-ID = ID of compute that calculates temperature, can be NULL if not needed</p></li>
+<li><p>zero or more keywords may be appended</p></li>
+<li><p>keyword = <em>ke</em> or <em>pair</em> or <em>bond</em> or <em>angle</em> or <em>dihedral</em> or <em>improper</em> or <em>kspace</em> or <em>fix</em> or <em>virial</em></p></li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">mobile</span><span class="w"> </span><span class="n">stress</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">NULL</span><span class="w"></span>
+<span class="k">compute </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">mobile</span><span class="w"> </span><span class="n">stress</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">myRamp</span><span class="w"></span>
+<span class="k">compute </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">stress</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">NULL</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="n">bond</span><span class="w"></span>
+<span class="k">compute </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">centroid</span><span class="o">/</span><span class="n">stress</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">NULL</span><span class="w"> </span><span class="n">bond</span><span class="w"> </span><span class="n">dihedral</span><span class="w"> </span><span class="n">improper</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a computation that computes per-atom stress tensor for each
+atom in a group.  In case of compute <em>stress/atom</em>, the tensor for
+each atom is symmetric with 6 components and is stored as a 6-element
+vector in the following order: <span class="math notranslate nohighlight">\(xx\)</span>, <span class="math notranslate nohighlight">\(yy\)</span>, <span class="math notranslate nohighlight">\(zz\)</span>,
+<span class="math notranslate nohighlight">\(xy\)</span>, <span class="math notranslate nohighlight">\(xz\)</span>, <span class="math notranslate nohighlight">\(yz\)</span>.  In case of compute
+<em>centroid/stress/atom</em>, the tensor for each atom is asymmetric with 9
+components and is stored as a 9-element vector in the following order:
+<span class="math notranslate nohighlight">\(xx\)</span>, <span class="math notranslate nohighlight">\(yy\)</span>, <span class="math notranslate nohighlight">\(zz\)</span>, <span class="math notranslate nohighlight">\(xy\)</span>, <span class="math notranslate nohighlight">\(xz\)</span>,
+<span class="math notranslate nohighlight">\(yz\)</span>, <span class="math notranslate nohighlight">\(yx\)</span>, <span class="math notranslate nohighlight">\(zx\)</span>, <span class="math notranslate nohighlight">\(zy\)</span>.  See the <a class="reference internal" href="compute_pressure.html"><span class="doc">compute
+pressure</span></a> command if you want the stress tensor
+(pressure) of the entire system.</p>
+<p>The stress tensor for atom <span class="math notranslate nohighlight">\(I\)</span> is given by the following
+formula, where <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> take on values <span class="math notranslate nohighlight">\(x\)</span>,
+<span class="math notranslate nohighlight">\(y\)</span>, <span class="math notranslate nohighlight">\(z\)</span> to generate the components of the tensor:</p>
+<div class="math notranslate nohighlight">
+\[S_{ab}  =  - m v_a v_b - W_{ab}\]</div>
+<p>The first term is a kinetic energy contribution for atom <span class="math notranslate nohighlight">\(I\)</span>.
+See details below on how the specified <em>temp-ID</em> can affect the
+velocities used in this calculation. The second term is the virial
+contribution due to intra and intermolecular interactions, where the
+exact computation details are determined by the compute style.</p>
+<p>In case of compute <em>stress/atom</em>, the virial contribution is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} W_{ab} &amp; = \frac{1}{2} \sum_{n = 1}^{N_p} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b}) + \frac{1}{2} \sum_{n = 1}^{N_b} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b})  \\
+&amp; + \frac{1}{3} \sum_{n = 1}^{N_a} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b}) + \frac{1}{4} \sum_{n = 1}^{N_d} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b} + r_{4_a} F_{4_b}) \\
+&amp; + \frac{1}{4} \sum_{n = 1}^{N_i} (r_{1_a} F_{1_b} + r_{2_a} F_{2_b} + r_{3_a} F_{3_b} + r_{4_a} F_{4_b}) + {\rm Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}\end{split}\]</div>
+<p>The first term is a pairwise energy contribution where <span class="math notranslate nohighlight">\(n\)</span> loops
+over the <span class="math notranslate nohighlight">\(N_p\)</span> neighbors of atom <span class="math notranslate nohighlight">\(I\)</span>, <span class="math notranslate nohighlight">\(\mathbf{r}_1\)</span>
+and <span class="math notranslate nohighlight">\(\mathbf{r}_2\)</span> are the positions of the 2 atoms in the
+pairwise interaction, and <span class="math notranslate nohighlight">\(\mathbf{F}_1\)</span> and
+<span class="math notranslate nohighlight">\(\mathbf{F}_2\)</span> are the forces on the 2 atoms resulting from the
+pairwise interaction.  The second term is a bond contribution of
+similar form for the <span class="math notranslate nohighlight">\(N_b\)</span> bonds which atom <span class="math notranslate nohighlight">\(I\)</span> is part
+of.  There are similar terms for the <span class="math notranslate nohighlight">\(N_a\)</span> angle, <span class="math notranslate nohighlight">\(N_d\)</span>
+dihedral, and <span class="math notranslate nohighlight">\(N_i\)</span> improper interactions atom <span class="math notranslate nohighlight">\(I\)</span> is part
+of.  There is also a term for the KSpace contribution from long-range
+Coulombic interactions, if defined.  Finally, there is a term for the
+<span class="math notranslate nohighlight">\(N_f\)</span> <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> that apply internal constraint forces
+to atom <span class="math notranslate nohighlight">\(I\)</span>. Currently, only the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>
+and <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> commands contribute to this term.  As
+the coefficients in the formula imply, a virial contribution produced
+by a small set of atoms (e.g. 4 atoms in a dihedral or 3 atoms in a
+Tersoff 3-body interaction) is assigned in equal portions to each atom
+in the set.  E.g. 1/4 of the dihedral virial to each of the 4 atoms,
+or 1/3 of the fix virial due to SHAKE constraints applied to atoms in
+a water molecule via the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> command.</p>
+<p>In case of compute <em>centroid/stress/atom</em>, the virial contribution is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split} W_{ab} &amp; = \sum_{n = 1}^{N_p} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_b} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_a} r_{I0_a}  F_{I_b} + \sum_{n = 1}^{N_d} r_{I0_a} F_{I_b} + \sum_{n = 1}^{N_i} r_{I0_a} F_{I_b} \\
+&amp; + {\rm Kspace}(r_{i_a},F_{i_b}) + \sum_{n = 1}^{N_f} r_{i_a} F_{i_b}\end{split}\]</div>
+<p>As with compute <em>stress/atom</em>, the first, second, third, fourth and
+fifth terms are pairwise, bond, angle, dihedral and improper
+contributions, but instead of assigning the virial contribution
+equally to each atom, only the force <span class="math notranslate nohighlight">\(\mathbf{F}_I\)</span> acting on
+atom <span class="math notranslate nohighlight">\(I\)</span> due to the interaction and the relative position
+<span class="math notranslate nohighlight">\(\mathbf{r}_{I0}\)</span> of the atom <span class="math notranslate nohighlight">\(I\)</span> to the geometric center
+of the interacting atoms, i.e. centroid, is used.  As the geometric
+center is different for each interaction, the <span class="math notranslate nohighlight">\(\mathbf{r}_{I0}\)</span>
+also differs.  The sixth and seventh terms, Kspace and <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> contribution respectively, are computed identical to compute
+<em>stress/atom</em>.  Although the total system virial is the same as
+compute <em>stress/atom</em>, compute <em>centroid/stress/atom</em> is know to
+result in more consistent heat flux values for angle, dihedrals and
+improper contributions when computed via <a class="reference internal" href="compute_heat_flux.html"><span class="doc">compute heat/flux</span></a>.</p>
+<p>If no extra keywords are listed, the kinetic contribution all of the
+virial contribution terms are included in the per-atom stress tensor.
+If any extra keywords are listed, only those terms are summed to
+compute the tensor.  The <em>virial</em> keyword means include all terms
+except the kinetic energy <em>ke</em>.</p>
+<p>Note that the stress for each atom is due to its interaction with all
+other atoms in the simulation, not just with other atoms in the group.</p>
+<p>Details of how compute <em>stress/atom</em> obtains the virial for individual
+atoms for either pairwise or many-body potentials, and including the
+effects of periodic boundary conditions is discussed in
+<a class="reference internal" href="#thompson2"><span class="std std-ref">(Thompson)</span></a>.  The basic idea for many-body
+potentials is to treat each component of the force computation between
+a small cluster of atoms in the same manner as in the formula above
+for bond, angle, dihedral, etc interactions.  Namely the quantity
+<span class="math notranslate nohighlight">\(\mathbf{r} \cdot \mathbf{F}\)</span> is summed over the atoms in the
+interaction, with the <span class="math notranslate nohighlight">\(r\)</span> vectors unwrapped by periodic
+boundaries so that the cluster of atoms is close together.  The total
+contribution for the cluster interaction is divided evenly among those
+atoms.</p>
+<p>Details of how compute <em>centroid/stress/atom</em> obtains the virial for
+individual atoms is given in <a class="reference internal" href="#surblys1"><span class="std std-ref">(Surblys)</span></a>, where the
+idea is that the virial of the atom <span class="math notranslate nohighlight">\(I\)</span> is the result of only
+the force <span class="math notranslate nohighlight">\(\mathbf{F}_I\)</span> on the atom due to the interaction and
+its positional vector <span class="math notranslate nohighlight">\(\mathbf{r}_{I0}\)</span>, relative to the
+geometric center of the interacting atoms, regardless of the number of
+participating atoms.  The periodic boundary treatment is identical to
+that of compute <em>stress/atom</em>, and both of them reduce to identical
+expressions for two-body interactions, i.e. computed values for
+contributions from bonds and two-body pair styles, such as
+<a class="reference internal" href="pair_lj.html"><span class="doc">Lennard-Jones</span></a>, will be the same, while contributions
+from angles, dihedrals and impropers will be different.</p>
+<p>The <a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral_style charmm</span></a> style calculates
+pairwise interactions between 1-4 atoms.  The virial contribution of
+these terms is included in the pair virial, not the dihedral virial.</p>
+<p>The KSpace contribution is calculated using the method in
+<a class="reference internal" href="#heyes2"><span class="std std-ref">(Heyes)</span></a> for the Ewald method and by the methodology
+described in <a class="reference internal" href="#sirk1"><span class="std std-ref">(Sirk)</span></a> for PPPM.  The choice of KSpace
+solver is specified by the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a>
+command.  Note that for PPPM, the calculation requires 6 extra FFTs
+each timestep that per-atom stress is calculated.  Thus it can
+significantly increase the cost of the PPPM calculation if it is
+needed on a large fraction of the simulation timesteps.</p>
+<p>The <em>temp-ID</em> argument can be used to affect the per-atom velocities
+used in the kinetic energy contribution to the total stress.  If the
+kinetic energy is not included in the stress, than the temperature
+compute is not used and can be specified as NULL.  If the kinetic
+energy is included and you wish to use atom velocities as-is, then
+<em>temp-ID</em> can also be specified as NULL.  If desired, the specified
+temperature compute can be one that subtracts off a bias to leave each
+atom with only a thermal velocity to use in the formula above, e.g. by
+subtracting a background streaming velocity.  See the doc pages for
+individual <a class="reference internal" href="compute.html"><span class="doc">compute commands</span></a> to determine which ones
+include a bias.</p>
+<hr class="docutils" />
+<p>Note that as defined in the formula, per-atom stress is the negative
+of the per-atom pressure tensor.  It is also really a stress*volume
+formulation, meaning the computed quantity is in units of
+pressure*volume.  It would need to be divided by a per-atom volume to
+have units of stress (pressure), but an individual atom’s volume is
+not well defined or easy to compute in a deformed solid or a liquid.
+See the <a class="reference internal" href="compute_voronoi_atom.html"><span class="doc">compute voronoi/atom</span></a> command for
+one possible way to estimate a per-atom volume.</p>
+<p>Thus, if the diagonal components of the per-atom stress tensor are
+summed for all atoms in the system and the sum is divided by
+<span class="math notranslate nohighlight">\(dV\)</span>, where <span class="math notranslate nohighlight">\(d\)</span> = dimension and <span class="math notranslate nohighlight">\(V\)</span> is the volume of
+the system, the result should be <span class="math notranslate nohighlight">\(-P\)</span>, where <span class="math notranslate nohighlight">\(P\)</span> is the
+total pressure of the system.</p>
+<p>These lines in an input script for a 3d system should yield that
+result. I.e. the last 2 columns of thermo output will be the same:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute        </span><span class="nv nv-Identifier">peratom</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">stress</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">NULL</span><span class="w"></span>
+<span class="k">compute        </span><span class="nv nv-Identifier">p</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">reduce</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="n">c_peratom[1]</span><span class="w"> </span><span class="n">c_peratom[2]</span><span class="w"> </span><span class="n">c_peratom[3]</span><span class="w"></span>
+<span class="k">variable       </span><span class="nv nv-Identifier">press</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="o">-</span><span class="nv">(c_p[1]+c_p[2]+c_p[3])</span><span class="o">/</span><span class="nv">(3*vol)</span><span class="w"></span>
+<span class="k">thermo_style</span><span class="w">   </span><span class="n">custom</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="n">etotal</span><span class="w"> </span><span class="n">press</span><span class="w"> </span><span class="n">v_press</span><span class="w"></span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The per-atom stress does not include any Lennard-Jones tail
+corrections to the pressure added by the <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify tail yes</span></a> command, since those are contributions to the global
+system pressure.</p>
+</div>
+</div>
+<div class="section" id="output-info">
+<h2>Output info<a class="headerlink" href="#output-info" title="Permalink to this headline">¶</a></h2>
+<p>Compute <em>stress/atom</em> calculates a per-atom array with 6 columns,
+which can be accessed by indices 1-6 by any command that uses per-atom
+values from a compute as input.  Compute <em>centroid/stress/atom</em>
+produces a per-atom array with 9 columns, but otherwise can be used in
+an identical manner to compute <em>stress/atom</em>.  See the <a class="reference internal" href="Howto_output.html"><span class="doc">Howto
+output</span></a> doc page for an overview of LAMMPS output
+options.</p>
+<p>The per-atom array values will be in pressure*volume <a class="reference internal" href="units.html"><span class="doc">units</span></a> as discussed above.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Currently, compute <em>centroid/stress/atom</em> does not support pair styles
+with many-body interactions (<a class="reference internal" href="pair_eam.html"><span class="doc">EAM</span></a> is an exception,
+since its computations are performed pairwise), nor granular pair
+styles with pairwise forces which are not aligned with the vector
+between the pair of particles.  All bond styles are supported.  All
+angle, dihedral, improper styles are supported with the exception of
+USER-INTEL and KOKKOS variants of specific styles.  It also does not
+support models with long-range Coulombic or dispersion forces,
+i.e. the kspace_style command in LAMMPS.  It also does not support the
+following fixes which add rigid-body constraints: <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>, <a class="reference internal" href="fix_shake.html"><span class="doc">fix rattle</span></a>, <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a>, <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/small</span></a>.</p>
+<p>LAMMPS will generate an error if one of these options is included in
+your model.  Extension of centroid stress calculations to these force
+and fix styles is planned for the future.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="compute_pe.html"><span class="doc">compute pe</span></a>, <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>none</p>
+<hr class="docutils" />
+<p id="heyes2"><strong>(Heyes)</strong> Heyes, Phys Rev B, 49, 755 (1994).</p>
+<p id="sirk1"><strong>(Sirk)</strong> Sirk, Moore, Brown, J Chem Phys, 138, 064505 (2013).</p>
+<p id="thompson2"><strong>(Thompson)</strong> Thompson, Plimpton, Mattson, J Chem Phys, 131, 154107 (2009).</p>
+<p id="surblys1"><strong>(Surblys)</strong> Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="compute_stress_mop.html" class="btn btn-neutral float-right" title="compute stress/mop command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="compute_spin.html" class="btn btn-neutral float-left" title="compute spin command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

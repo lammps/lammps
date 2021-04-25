@@ -1,0 +1,901 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>11.5. Warning messages &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="1. LAMMPS Library Interfaces" href="Library.html" />
+    <link rel="prev" title="11.4. Error messages" href="Errors_messages.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Errors.html">11. Errors</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Errors_common.html">11.1. Common problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_bugs.html">11.2. Reporting bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_debug.html">11.3. Debugging crashes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_messages.html">11.4. Error messages</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">11.5. Warning messages</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Errors.html"><span class="section-number">11. </span>Errors</a> &raquo;</li>
+        
+      <li><span class="section-number">11.5. </span>Warning messages</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Library.html" class="btn btn-neutral float-right" title="1. LAMMPS Library Interfaces" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Errors_messages.html" class="btn btn-neutral float-left" title="11.4. Error messages" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="warning-messages">
+<h1><span class="section-number">11.5. </span>Warning messages<a class="headerlink" href="#warning-messages" title="Permalink to this headline">¶</a></h1>
+<p>This is an alphabetic list of the WARNING messages LAMMPS prints out
+and the reason why.  If the explanation here is not sufficient, the
+documentation for the offending command may help.  Warning messages
+also list the source file and line number where the warning was
+generated.  For example, a message like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>WARNING: Bond atom missing in box size check (domain.cpp:187)
+</pre></div>
+</div>
+<p>means that line #187 in the file src/domain.cpp generated the error.
+Looking in the source code may help you figure out what went wrong.</p>
+<p>Note that warning messages from <a class="reference internal" href="Packages_user.html"><span class="doc">user-contributed packages</span></a> are not listed here.  If such a warning
+occurs and is not self-explanatory, you will need to look in the source
+code or contact the author of the package.</p>
+<p>Doc page with <a class="reference internal" href="Errors_messages.html"><span class="doc">ERROR messages</span></a></p>
+<hr class="docutils" />
+<dl class="simple">
+<dt><em>Adjusting Coulombic cutoff for MSM, new cutoff = %g</em></dt><dd><p>The adjust/cutoff command is turned on and the Coulombic cutoff has been
+adjusted to match the user-specified accuracy.</p>
+</dd>
+<dt><em>Angle atoms missing at step %ld</em></dt><dd><p>One or more of 3 atoms needed to compute a particular angle are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the angle has blown apart and an atom is
+too far away.</p>
+</dd>
+<dt><em>Angle style in data file differs from currently defined angle style</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Angles are defined but no angle style is set</em></dt><dd><p>The topology contains angles, but there are no angle forces computed
+since there was no angle_style command.</p>
+</dd>
+<dt><em>Atom style in data file differs from currently defined atom style</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Bond atom missing in box size check</em></dt><dd><p>The second atom needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away.</p>
+</dd>
+<dt><em>Bond atom missing in image check</em></dt><dd><p>The second atom in a particular bond is missing on this processor.
+Typically this is because the pairwise cutoff is set too short or the
+bond has blown apart and an atom is too far away.</p>
+</dd>
+<dt><em>Bond atoms missing at step %ld</em></dt><dd><p>The second atom needed to compute a particular bond is missing on this
+processor.  Typically this is because the pairwise cutoff is set too
+short or the bond has blown apart and an atom is too far away.</p>
+</dd>
+<dt><em>Bond style in data file differs from currently defined bond style</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Bonds are defined but no bond style is set</em></dt><dd><p>The topology contains bonds, but there are no bond forces computed
+since there was no bond_style command.</p>
+</dd>
+<dt><em>Bond/angle/dihedral extent &gt; half of periodic box length</em></dt><dd><p>This is a restriction because LAMMPS can be confused about which image
+of an atom in the bonded interaction is the correct one to use.
+“Extent” in this context means the maximum end-to-end length of the
+bond/angle/dihedral.  LAMMPS computes this by taking the maximum bond
+length, multiplying by the number of bonds in the interaction (e.g. 3
+for a dihedral) and adding a small amount of stretch.</p>
+</dd>
+<dt><em>Bond/react: Atom affected by reaction too close to template edge</em></dt><dd><p>This means an atom which changes type or connectivity during the
+reaction is too close to an ‘edge’ atom defined in the superimpose
+file. This could cause incorrect assignment of bonds, angle, etc.
+Generally, this means you must include more atoms in your templates,
+such that there are at least two atoms between each atom involved in
+the reaction and an edge atom.</p>
+</dd>
+<dt><em>Both groups in compute group/group have a net charge; the Kspace boundary correction to energy will be non-zero</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Calling write_dump before a full system init.</em></dt><dd><p>The write_dump command is used before the system has been fully
+initialized as part of a ‘run’ or ‘minimize’ command. Not all dump
+styles and features are fully supported at this point and thus the
+command may fail or produce incomplete or incorrect output. Insert
+a “run 0” command, if a full system init is required.</p>
+</dd>
+<dt><em>Cannot count rigid body degrees-of-freedom before bodies are fully initialized</em></dt><dd><p>This means the temperature associated with the rigid bodies may be
+incorrect on this timestep.</p>
+</dd>
+<dt><em>Cannot count rigid body degrees-of-freedom before bodies are initialized</em></dt><dd><p>This means the temperature associated with the rigid bodies may be
+incorrect on this timestep.</p>
+</dd>
+<dt><em>Cannot include log terms without 1/r terms; setting flagHI to 1</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Cannot include log terms without 1/r terms; setting flagHI to 1.</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Charges are set, but coulombic solver is not used</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Charges did not converge at step %ld: %lg</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost</em></dt><dd><p>The communication cutoff defaults to the maximum of what is inferred from
+pair and bond styles (will be zero, if none are defined) and what is specified
+via <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a> (defaults to 0.0).  If this results
+to 0.0, no ghost atoms will be generated and LAMMPS may lose atoms or use
+incorrect periodic images of atoms in interaction lists.  To avoid, either use
+<a class="reference internal" href="pair_zero.html"><span class="doc">pair style zero</span></a> with a suitable cutoff or use <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a>.</p>
+</dd>
+<dt><em>Communication cutoff is shorter than a bond length based estimate. This may lead to errors.</em></dt><dd><p>Since LAMMPS stores topology data with individual atoms, all atoms
+comprising a bond, angle, dihedral or improper must be present on any
+sub-domain that “owns” the atom with the information, either as a
+local or a ghost atom. The communication cutoff is what determines up
+to what distance from a sub-domain boundary ghost atoms are created.
+The communication cutoff is by default the largest non-bonded cutoff
+plus the neighbor skin distance, but for short or non-bonded cutoffs
+and/or long bonds, this may not be sufficient. This warning indicates
+that there is an increased risk of a simulation stopping unexpectedly
+because of Bond/Angle/Dihedral/Improper atoms missing.  It can be
+silenced by manually setting the communication cutoff via
+<a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a>.  However, since the
+heuristic used to determine the estimate is not always accurate, it
+is not changed automatically and the warning may be ignored depending
+on the specific system being simulated.</p>
+</dd>
+<dt><em>Communication cutoff is too small for SNAP micro load balancing, increased to %lf</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Compute cna/atom cutoff may be too large to find ghost atom neighbors</em></dt><dd><p>The neighbor cutoff used may not encompass enough ghost atoms
+to perform this operation correctly.</p>
+</dd>
+<dt><em>Computing temperature of portions of rigid bodies</em></dt><dd><p>The group defined by the temperature compute does not encompass all
+the atoms in one or more rigid bodies, so the change in
+degrees-of-freedom for the atoms in those partial rigid bodies will
+not be accounted for.</p>
+</dd>
+<dt><em>Create_bonds max distance &gt; minimum neighbor cutoff</em></dt><dd><p>This means atom pairs for some atom types may not be in the neighbor
+list and thus no bond can be created between them.</p>
+</dd>
+<dt><em>Delete_atoms cutoff &gt; minimum neighbor cutoff</em></dt><dd><p>This means atom pairs for some atom types may not be in the neighbor
+list and thus an atom in that pair cannot be deleted.</p>
+</dd>
+<dt><em>Dihedral atoms missing at step %ld</em></dt><dd><p>One or more of 4 atoms needed to compute a particular dihedral are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the dihedral has blown apart and an atom is
+too far away.</p>
+</dd>
+<dt><em>Dihedral problem</em></dt><dd><p>Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry.</p>
+</dd>
+<dt><em>Dihedral problem: %d %ld %d %d %d %d</em></dt><dd><p>Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry.</p>
+</dd>
+<dt><em>Dihedral style in data file differs from currently defined dihedral style</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Dihedrals are defined but no dihedral style is set</em></dt><dd><p>The topology contains dihedrals, but there are no dihedral forces computed
+since there was no dihedral_style command.</p>
+</dd>
+<dt><em>Dump dcd/xtc timestamp may be wrong with fix dt/reset</em></dt><dd><p>If the fix changes the timestep, the dump dcd file will not
+reflect the change.</p>
+</dd>
+<dt><em>Energy due to X extra global DOFs will be included in minimizer energies</em></dt><dd><p>When using fixes like box/relax, the potential energy used by the minimizer
+is augmented by an additional energy provided by the fix. Thus the printed
+converged energy may be different from the total potential energy.</p>
+</dd>
+<dt><em>Estimated error in splitting of dispersion coeffs is %g</em></dt><dd><p>Error is greater than 0.0001 percent.</p>
+</dd>
+<dt><em>Ewald/disp Newton solver failed, using old method to estimate g_ewald</em></dt><dd><p>Self-explanatory. Choosing a different cutoff value may help.</p>
+</dd>
+<dt><em>FENE bond too long</em></dt><dd><p>A FENE bond has stretched dangerously far.  It’s interaction strength
+will be truncated to attempt to prevent the bond from blowing up.</p>
+</dd>
+<dt><em>FENE bond too long: %ld %d %d %g</em></dt><dd><p>A FENE bond has stretched dangerously far.  It’s interaction strength
+will be truncated to attempt to prevent the bond from blowing up.</p>
+</dd>
+<dt><em>FENE bond too long: %ld %g</em></dt><dd><p>A FENE bond has stretched dangerously far.  It’s interaction strength
+will be truncated to attempt to prevent the bond from blowing up.</p>
+</dd>
+<dt><em>Fix halt condition for fix-id %s met on step %ld with value %g</em></dt><dd><p>Self explanatory.</p>
+</dd>
+<dt><em>Fix SRD walls overlap but fix srd overlap not set</em></dt><dd><p>You likely want to set this in your input script.</p>
+</dd>
+</dl>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Fix bond/create is used multiple times or with fix bond/break - may not work as expected*</dt><dd><p>When using fix bond/create multiple times or in combination with
+fix bond/break, the individual fix instances do not share information
+about changes they made at the same time step and thus it may result
+in unexpected behavior.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="simple">
+<dt><em>Fix bond/swap will ignore defined angles</em></dt><dd><p>See the doc page for fix bond/swap for more info on this
+restriction.</p>
+</dd>
+<dt><em>Fix deposit near setting &lt; possible overlap separation %g</em></dt><dd><p>This test is performed for finite size particles with a diameter, not
+for point particles.  The near setting is smaller than the particle
+diameter which can lead to overlaps.</p>
+</dd>
+<dt><em>Fix evaporate may delete atom with non-zero molecule ID</em></dt><dd><p>This is probably an error, since you should not delete only one atom
+of a molecule.</p>
+</dd>
+<dt><em>Fix gcmc using full_energy option</em></dt><dd><p>Fix gcmc has automatically turned on the full_energy option since it
+is required for systems like the one specified by the user. User input
+included one or more of the following: kspace, triclinic, a hybrid
+pair style, an eam pair style, or no “single” function for the pair
+style.</p>
+</dd>
+</dl>
+<p><em>Fix langevin gjf using random gaussians is not implemented with kokkos</em>
+This will most likely cause errors in kinetic fluctuations.</p>
+<dl class="simple">
+<dt><em>Fix property/atom mol or charge w/out ghost communication</em></dt><dd><p>A model typically needs these properties defined for ghost atoms.</p>
+</dd>
+<dt><em>Fix qeq CG convergence failed (%g) after %d iterations at %ld step</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Fix qeq has non-zero lower Taper radius cutoff</em></dt><dd><p>Absolute value must be &lt;= 0.01.</p>
+</dd>
+<dt><em>Fix qeq has very low Taper radius cutoff</em></dt><dd><p>Value should typically be &gt;= 5.0.</p>
+</dd>
+<dt><em>Fix qeq/dynamic tolerance may be too small for damped dynamics</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Fix qeq/fire tolerance may be too small for damped fires</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Fix rattle should come after all other integration fixes</em></dt><dd><p>This fix is designed to work after all other integration fixes change
+atom positions.  Thus it should be the last integration fix specified.
+If not, it will not satisfy the desired constraints as well as it
+otherwise would.</p>
+</dd>
+<dt><em>Fix recenter should come after all other integration fixes</em></dt><dd><p>Other fixes may change the position of the center-of-mass, so
+fix recenter should come last.</p>
+</dd>
+<dt><em>Fix srd SRD moves may trigger frequent reneighboring</em></dt><dd><p>This is because the SRD particles may move long distances.</p>
+</dd>
+<dt><em>Fix srd grid size &gt; 1/4 of big particle diameter</em></dt><dd><p>This may cause accuracy problems.</p>
+</dd>
+<dt><em>Fix srd particle moved outside valid domain</em></dt><dd><p>This may indicate a problem with your simulation parameters.</p>
+</dd>
+<dt><em>Fix srd particles may move &gt; big particle diameter</em></dt><dd><p>This may cause accuracy problems.</p>
+</dd>
+<dt><em>Fix srd viscosity &lt; 0.0 due to low SRD density</em></dt><dd><p>This may cause accuracy problems.</p>
+</dd>
+<dt><em>Fixes cannot send data in Kokkos communication, switching to classic communication</em></dt><dd><p>This is current restriction with Kokkos.</p>
+</dd>
+<dt><em>For better accuracy use ‘pair_modify table 0’</em></dt><dd><p>The user-specified force accuracy cannot be achieved unless the table
+feature is disabled by using ‘pair_modify table 0’.</p>
+</dd>
+<dt><em>Geometric mixing assumed for 1/r^6 coefficients</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Group for fix_modify temp != fix group</em></dt><dd><p>The fix_modify command is specifying a temperature computation that
+computes a temperature on a different group of atoms than the fix
+itself operates on.  This is probably not what you want to do.</p>
+</dd>
+<dt><em>H matrix size has been exceeded: m_fill=%d H.m=%dn</em></dt><dd><p>This is the size of the matrix.</p>
+</dd>
+<dt><em>Ignoring unknown or incorrect info command flag</em></dt><dd><p>Self-explanatory.  An unknown argument was given to the info command.
+Compare your input with the documentation.</p>
+</dd>
+<dt><em>Improper atoms missing at step %ld</em></dt><dd><p>One or more of 4 atoms needed to compute a particular improper are
+missing on this processor.  Typically this is because the pairwise
+cutoff is set too short or the improper has blown apart and an atom is
+too far away.</p>
+</dd>
+<dt><em>Improper problem: %d %ld %d %d %d %d</em></dt><dd><p>Conformation of the 4 listed improper atoms is extreme; you may want
+to check your simulation geometry.</p>
+</dd>
+<dt><em>Improper style in data file differs from currently defined improper style</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Impropers are defined but no improper style is set</em></dt><dd><p>The topology contains impropers, but there are no improper forces computed
+since there was no improper_style command.</p>
+</dd>
+<dt><em>Inconsistent image flags</em></dt><dd><p>The image flags for a pair on bonded atoms appear to be inconsistent.
+Inconsistent means that when the coordinates of the two atoms are
+unwrapped using the image flags, the two atoms are far apart.
+Specifically they are further apart than half a periodic box length.
+Or they are more than a box length apart in a non-periodic dimension.
+This is usually due to the initial data file not having correct image
+flags for the 2 atoms in a bond that straddles a periodic boundary.
+They should be different by 1 in that case.  This is a warning because
+inconsistent image flags will not cause problems for dynamics or most
+LAMMPS simulations.  However they can cause problems when such atoms
+are used with the fix rigid or replicate commands.  Note that if you
+have an infinite periodic crystal with bonds then it is impossible to
+have fully consistent image flags, since some bonds will cross
+periodic boundaries and connect two atoms with the same image
+flag.</p>
+</dd>
+<dt><em>Increasing communication cutoff for GPU style</em></dt><dd><p>The pair style has increased the communication cutoff to be consistent with
+the communication cutoff requirements for this pair style when run on the GPU.</p>
+</dd>
+<dt><em>KIM Model does not provide ‘energy’; Potential energy will be zero</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>KIM Model does not provide ‘forces’; Forces will be zero</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>KIM Model does not provide ‘particleEnergy’; energy per atom will be zero</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>KIM Model does not provide ‘particleVirial’; virial per atom will be zero</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Kspace_modify slab param &lt; 2.0 may cause unphysical behavior</em></dt><dd><p>The kspace_modify slab parameter should be larger to insure periodic
+grids padded with empty space do not overlap.</p>
+</dd>
+<dt><em>Less insertions than requested</em></dt><dd><p>The fix pour command was unsuccessful at finding open space
+for as many particles as it tried to insert.</p>
+</dd>
+<dt><em>Library error in lammps_gather_atoms</em></dt><dd><p>This library function cannot be used if atom IDs are not defined
+or are not consecutively numbered.</p>
+</dd>
+<dt><em>Library error in lammps_scatter_atoms</em></dt><dd><p>This library function cannot be used if atom IDs are not defined or
+are not consecutively numbered, or if no atom map is defined.  See the
+atom_modify command for details about atom maps.</p>
+</dd>
+<dt><em>Likewise 1-2 special neighbor interactions != 1.0</em></dt><dd><p>The topology contains bonds, but there is no bond style defined
+and a 1-2 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the bond style.</p>
+</dd>
+<dt><em>Likewise 1-3 special neighbor interactions != 1.0</em></dt><dd><p>The topology contains angles, but there is no angle style defined
+and a 1-3 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the angle style.</p>
+</dd>
+<dt><em>Likewise 1-4 special neighbor interactions != 1.0</em></dt><dd><p>The topology contains dihedrals, but there is no dihedral style defined
+and a 1-4 special neighbor scaling factor was not 1.0. This
+means that pair style interactions may have scaled or missing
+pairs in the neighbor list in expectation of interactions for
+those pairs being computed from the dihedral style.</p>
+</dd>
+<dt><em>Lost atoms via change_box: original %ld current %ld</em></dt><dd><p>The command options you have used caused atoms to be lost.</p>
+</dd>
+<dt><em>Lost atoms via displace_atoms: original %ld current %ld</em></dt><dd><p>The command options you have used caused atoms to be lost.</p>
+</dd>
+<dt><em>Lost atoms: original %ld current %ld</em></dt><dd><p>Lost atoms are checked for each time thermo output is done.  See the
+thermo_modify lost command for options.  Lost atoms usually indicate
+bad dynamics, e.g. atoms have been blown far out of the simulation
+box, or moved further than one processor’s sub-domain away before
+reneighboring.</p>
+</dd>
+<dt><em>MSM mesh too small, increasing to 2 points in each direction</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Mismatch between velocity and compute groups</em></dt><dd><p>The temperature computation used by the velocity command will not be
+on the same group of atoms that velocities are being set for.</p>
+</dd>
+<dt><em>Mixing forced for lj coefficients</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Molecule attributes do not match system attributes</em></dt><dd><p>An attribute is specified (e.g. diameter, charge) that is
+not defined for the specified atom style.</p>
+</dd>
+<dt><em>Molecule has bond topology but no special bond settings</em></dt><dd><p>This means the bonded atoms will not be excluded in pair-wise
+interactions.</p>
+</dd>
+<dt><em>Molecule template for create_atoms has multiple molecules</em></dt><dd><p>The create_atoms command will only create molecules of a single type,
+i.e. the first molecule in the template.</p>
+</dd>
+<dt><em>Molecule template for fix gcmc has multiple molecules</em></dt><dd><p>The fix gcmc command will only create molecules of a single type,
+i.e. the first molecule in the template.</p>
+</dd>
+<dt><em>Molecule template for fix shake has multiple molecules</em></dt><dd><p>The fix shake command will only recognize molecules of a single
+type, i.e. the first molecule in the template.</p>
+</dd>
+<dt><em>More than one compute centro/atom</em></dt><dd><p>It is not efficient to use compute centro/atom more than once.</p>
+</dd>
+<dt><em>More than one compute cluster/atom</em></dt><dd><p>It is not efficient to use compute cluster/atom  more than once.</p>
+</dd>
+<dt><em>More than one compute cna/atom defined</em></dt><dd><p>It is not efficient to use compute cna/atom  more than once.</p>
+</dd>
+<dt><em>More than one compute contact/atom</em></dt><dd><p>It is not efficient to use compute contact/atom more than once.</p>
+</dd>
+<dt><em>More than one compute coord/atom</em></dt><dd><p>It is not efficient to use compute coord/atom more than once.</p>
+</dd>
+<dt><em>More than one compute damage/atom</em></dt><dd><p>It is not efficient to use compute ke/atom more than once.</p>
+</dd>
+<dt><em>More than one compute dilatation/atom</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>More than one compute erotate/sphere/atom</em></dt><dd><p>It is not efficient to use compute erorate/sphere/atom more than once.</p>
+</dd>
+<dt><em>More than one compute hexorder/atom</em></dt><dd><p>It is not efficient to use compute hexorder/atom more than once.</p>
+</dd>
+<dt><em>More than one compute ke/atom</em></dt><dd><p>It is not efficient to use compute ke/atom more than once.</p>
+</dd>
+<dt><em>More than one compute orientorder/atom</em></dt><dd><p>It is not efficient to use compute orientorder/atom more than once.</p>
+</dd>
+<dt><em>More than one compute plasticity/atom</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>More than one compute sna/atom</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>More than one compute snad/atom</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>More than one compute snav/atom</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>More than one fix poems</em></dt><dd><p>It is not efficient to use fix poems more than once.</p>
+</dd>
+<dt><em>More than one fix rigid</em></dt><dd><p>It is not efficient to use fix rigid more than once.</p>
+</dd>
+<dt><em>Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies</em></dt><dd><p>This is because excluding specific pair interactions also excludes
+them from long-range interactions which may not be the desired effect.
+The special_bonds command handles this consistently by insuring
+excluded (or weighted) 1-2, 1-3, 1-4 interactions are treated
+consistently by both the short-range pair style and the long-range
+solver.  This is not done for exclusions of charged atom pairs via the
+neigh_modify exclude command.</p>
+</dd>
+<dt><em>New thermo_style command, previous thermo_modify settings will be lost</em></dt><dd><p>If a thermo_style command is used after a thermo_modify command, the
+settings changed by the thermo_modify command will be reset to their
+default values.  This is because the thermo_modify command acts on
+the currently defined thermo style, and a thermo_style command creates
+a new style.</p>
+</dd>
+<dt><em>No Kspace calculation with verlet/split</em></dt><dd><p>The second partition performs a kspace calculation so the kspace_style
+command must be used.</p>
+</dd>
+<dt><em>No automatic unit conversion to XTC file format conventions possible for units lj</em></dt><dd><p>This means no scaling will be performed.</p>
+</dd>
+<dt><em>No fixes defined, atoms won’t move</em></dt><dd><p>If you are not using a fix like nve, nvt, npt then atom velocities and
+coordinates will not be updated during timestepping.</p>
+</dd>
+<dt><em>No joints between rigid bodies, use fix rigid instead</em></dt><dd><p>The bodies defined by fix poems are not connected by joints.  POEMS
+will integrate the body motion, but it would be more efficient to use
+fix rigid.</p>
+</dd>
+<dt><em>Not using real units with pair reax</em></dt><dd><p>This is most likely an error, unless you have created your own ReaxFF
+parameter file in a different set of units.</p>
+</dd>
+<dt><em>Number of MSM mesh points changed to be a multiple of 2</em></dt><dd><p>MSM requires that the number of grid points in each direction be a multiple
+of two and the number of grid points in one or more directions have been
+adjusted to meet this requirement.</p>
+</dd>
+<dt><em>OMP_NUM_THREADS environment is not set.</em></dt><dd><p>This environment variable must be set appropriately to use the
+USER-OMP package.</p>
+</dd>
+<dt><em>One or more atoms are time integrated more than once</em></dt><dd><p>This is probably an error since you typically do not want to
+advance the positions or velocities of an atom more than once
+per timestep.</p>
+</dd>
+<dt><em>One or more chunks do not contain all atoms in molecule</em></dt><dd><p>This may not be what you intended.</p>
+</dd>
+<dt><em>One or more dynamic groups may not be updated at correct point in timestep</em></dt><dd><p>If there are other fixes that act immediately after the initial stage
+of time integration within a timestep (i.e. after atoms move), then
+the command that sets up the dynamic group should appear after those
+fixes.  This will insure that dynamic group assignments are made
+after all atoms have moved.</p>
+</dd>
+<dt><em>One or more respa levels compute no forces</em></dt><dd><p>This is computationally inefficient.</p>
+</dd>
+<dt><em>Pair COMB charge %.10f with force %.10f hit max barrier</em></dt><dd><p>Something is possibly wrong with your model.</p>
+</dd>
+<dt><em>Pair COMB charge %.10f with force %.10f hit min barrier</em></dt><dd><p>Something is possibly wrong with your model.</p>
+</dd>
+<dt><em>Pair brownian needs newton pair on for momentum conservation</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Pair dpd needs newton pair on for momentum conservation</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Pair dsmc: num_of_collisions &gt; number_of_A</em></dt><dd><p>Collision model in DSMC is breaking down.</p>
+</dd>
+<dt><em>Pair dsmc: num_of_collisions &gt; number_of_B</em></dt><dd><p>Collision model in DSMC is breaking down.</p>
+</dd>
+<dt><em>Pair style in data file differs from currently defined pair style</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Pair style restartinfo set but has no restart support</em></dt><dd><p>This pair style has a bug, where it does not support reading and
+writing information to a restart file, but does not set the member
+variable “restartinfo” to 0 as required in that case.</p>
+</dd>
+<dt><em>Particle deposition was unsuccessful</em></dt><dd><p>The fix deposit command was not able to insert as many atoms as
+needed.  The requested volume fraction may be too high, or other atoms
+may be in the insertion region.</p>
+</dd>
+<dt><em>Proc sub-domain size &lt; neighbor skin, could lead to lost atoms</em></dt><dd><p>The decomposition of the physical domain (likely due to load
+balancing) has led to a processor’s sub-domain being smaller than the
+neighbor skin in one or more dimensions.  Since reneighboring is
+triggered by atoms moving the skin distance, this may lead to lost
+atoms, if an atom moves all the way across a neighboring processor’s
+sub-domain before reneighboring is triggered.</p>
+</dd>
+<dt><em>Reducing PPPM order b/c stencil extends beyond nearest neighbor processor</em></dt><dd><p>This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the PPPM order.</p>
+</dd>
+<dt><em>Reducing PPPMDisp Coulomb order b/c stencil extends beyond neighbor processor</em></dt><dd><p>This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the PPPM order.</p>
+</dd>
+<dt><em>Reducing PPPMDisp dispersion order b/c stencil extends beyond neighbor processor</em></dt><dd><p>This may lead to a larger grid than desired.  See the kspace_modify overlap
+command to prevent changing of the PPPM order.</p>
+</dd>
+<dt><em>Replacing a fix, but new group != old group</em></dt><dd><p>The ID and style of a fix match for a fix you are changing with a fix
+command, but the new group you are specifying does not match the old
+group.</p>
+</dd>
+<dt><em>Replicating in a non-periodic dimension</em></dt><dd><p>The parameters for a replicate command will cause a non-periodic
+dimension to be replicated; this may cause unwanted behavior.</p>
+</dd>
+<dt><em>Resetting reneighboring criteria during PRD</em></dt><dd><p>A PRD simulation requires that neigh_modify settings be delay = 0,
+every = 1, check = yes.  Since these settings were not in place,
+LAMMPS changed them and will restore them to their original values
+after the PRD simulation.</p>
+</dd>
+<dt><em>Resetting reneighboring criteria during TAD</em></dt><dd><p>A TAD simulation requires that neigh_modify settings be delay = 0,
+every = 1, check = yes.  Since these settings were not in place,
+LAMMPS changed them and will restore them to their original values
+after the PRD simulation.</p>
+</dd>
+<dt><em>Resetting reneighboring criteria during minimization</em></dt><dd><p>Minimization requires that neigh_modify settings be delay = 0, every =
+1, check = yes.  Since these settings were not in place, LAMMPS
+changed them and will restore them to their original values after the
+minimization.</p>
+</dd>
+<dt><em>Restart file used different # of processors</em></dt><dd><p>The restart file was written out by a LAMMPS simulation running on a
+different number of processors.  Due to round-off, the trajectories of
+your restarted simulation may diverge a little more quickly than if
+you ran on the same # of processors.</p>
+</dd>
+<dt><em>Restart file used different 3d processor grid</em></dt><dd><p>The restart file was written out by a LAMMPS simulation running on a
+different 3d grid of processors.  Due to round-off, the trajectories
+of your restarted simulation may diverge a little more quickly than if
+you ran on the same # of processors.</p>
+</dd>
+<dt><em>Restart file used different boundary settings, using restart file values</em></dt><dd><p>Your input script cannot change these restart file settings.</p>
+</dd>
+<dt><em>Restart file used different newton bond setting, using restart file value</em></dt><dd><p>The restart file value will override the setting in the input script.</p>
+</dd>
+<dt><em>Restart file used different newton pair setting, using input script value</em></dt><dd><p>The input script value will override the setting in the restart file.</p>
+</dd>
+<dt><em>Restrain problem: %d %ld %d %d %d %d</em></dt><dd><p>Conformation of the 4 listed dihedral atoms is extreme; you may want
+to check your simulation geometry.</p>
+</dd>
+<dt><em>Running PRD with only one replica</em></dt><dd><p>This is allowed, but you will get no parallel speed-up.</p>
+</dd>
+<dt><em>SRD bin shifting turned on due to small lamda</em></dt><dd><p>This is done to try to preserve accuracy.</p>
+</dd>
+<dt><em>SRD bin size for fix srd differs from user request</em></dt><dd><p>Fix SRD had to adjust the bin size to fit the simulation box.  See the
+cubic keyword if you want this message to be an error vs warning.</p>
+</dd>
+<dt><em>SRD bins for fix srd are not cubic enough</em></dt><dd><p>The bin shape is not within tolerance of cubic.  See the cubic
+keyword if you want this message to be an error vs warning.</p>
+</dd>
+<dt><em>SRD particle %d started inside big particle %d on step %ld bounce %d</em></dt><dd><p>See the inside keyword if you want this message to be an error vs
+warning.</p>
+</dd>
+<dt><em>SRD particle %d started inside wall %d on step %ld bounce %d</em></dt><dd><p>See the inside keyword if you want this message to be an error vs
+warning.</p>
+</dd>
+<dt><em>Shake determinant &lt; 0.0</em></dt><dd><p>The determinant of the quadratic equation being solved for a single
+cluster specified by the fix shake command is numerically suspect.  LAMMPS
+will set it to 0.0 and continue.</p>
+</dd>
+<dt><em>Shell command ‘%s’ failed with error ‘%s’</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Shell command returned with non-zero status</em></dt><dd><p>This may indicate the shell command did not operate as expected.</p>
+</dd>
+<dt><em>Should not allow rigid bodies to bounce off reflecting walls</em></dt><dd><p>LAMMPS allows this, but their dynamics are not computed correctly.</p>
+</dd>
+<dt><em>Should not use fix nve/limit with fix shake or fix rattle</em></dt><dd><p>This will lead to invalid constraint forces in the SHAKE/RATTLE
+computation.</p>
+</dd>
+<dt><em>Simulations might be very slow because of large number of structure factors</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Slab correction not needed for MSM</em></dt><dd><p>Slab correction is intended to be used with Ewald or PPPM and is not needed by MSM.</p>
+</dd>
+<dt><em>Specifying an ‘subset’ value of ‘0’ is equivalent to no ‘subset’ keyword</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>System is not charge neutral, net charge = %g</em></dt><dd><p>The total charge on all atoms on the system is not 0.0.
+For some KSpace solvers this is only a warning.</p>
+</dd>
+<dt><em>Table inner cutoff &gt;= outer cutoff</em></dt><dd><p>You specified an inner cutoff for a Coulombic table that is longer
+than the global cutoff.  Probably not what you wanted.</p>
+</dd>
+<dt><em>Temperature for MSST is not for group all</em></dt><dd><p>User-assigned temperature to MSST fix does not compute temperature for
+all atoms.  Since MSST computes a global pressure, the kinetic energy
+contribution from the temperature is assumed to also be for all atoms.
+Thus the pressure used by MSST could be inaccurate.</p>
+</dd>
+<dt><em>Temperature for NPT is not for group all</em></dt><dd><p>User-assigned temperature to NPT fix does not compute temperature for
+all atoms.  Since NPT computes a global pressure, the kinetic energy
+contribution from the temperature is assumed to also be for all atoms.
+Thus the pressure used by NPT could be inaccurate.</p>
+</dd>
+<dt><em>Temperature for fix modify is not for group all</em></dt><dd><p>The temperature compute is being used with a pressure calculation
+which does operate on group all, so this may be inconsistent.</p>
+</dd>
+<dt><em>Temperature for thermo pressure is not for group all</em></dt><dd><p>User-assigned temperature to thermo via the thermo_modify command does
+not compute temperature for all atoms.  Since thermo computes a global
+pressure, the kinetic energy contribution from the temperature is
+assumed to also be for all atoms.  Thus the pressure printed by thermo
+could be inaccurate.</p>
+</dd>
+<dt><em>The fix ave/spatial command has been replaced by the more flexible fix ave/chunk and compute chunk/atom commands – fix ave/spatial will be removed in the summer of 2015</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>The minimizer does not re-orient dipoles when using fix efield</em></dt><dd><p>This means that only the atom coordinates will be minimized,
+not the orientation of the dipoles.</p>
+</dd>
+<dt><em>Too many common neighbors in CNA %d times</em></dt><dd><p>More than the maximum # of neighbors was found multiple times.  This
+was unexpected.</p>
+</dd>
+<dt><em>Too many inner timesteps in fix ttm</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Too many neighbors in CNA for %d atoms</em></dt><dd><p>More than the maximum # of neighbors was found multiple times.  This
+was unexpected.</p>
+</dd>
+<dt><em>Triclinic box skew is large</em></dt><dd><p>The displacement in a skewed direction is normally required to be less
+than half the box length in that dimension.  E.g. the xy tilt must be
+between -half and +half of the x box length.  You have relaxed the
+constraint using the box tilt command, but the warning means that a
+LAMMPS simulation may be inefficient as a result.</p>
+</dd>
+<dt><em>Use special bonds = 0,1,1 with bond style fene</em></dt><dd><p>Most FENE models need this setting for the special_bonds command.</p>
+</dd>
+<dt><em>Use special bonds = 0,1,1 with bond style fene/expand</em></dt><dd><p>Most FENE models need this setting for the special_bonds command.</p>
+</dd>
+<dt><em>Using a many-body potential with bonds/angles/dihedrals and special_bond exclusions</em></dt><dd><p>This is likely not what you want to do.  The exclusion settings will
+eliminate neighbors in the neighbor list, which the many-body potential
+needs to calculated its terms correctly.</p>
+</dd>
+<dt><em>Using compute temp/deform with inconsistent fix deform remap option</em></dt><dd><p>Fix nvt/sllod assumes deforming atoms have a velocity profile provided
+by “remap v” or “remap none” as a fix deform option.</p>
+</dd>
+<dt><em>Using compute temp/deform with no fix deform defined</em></dt><dd><p>This is probably an error, since it makes little sense to use
+compute temp/deform in this case.</p>
+</dd>
+<dt><em>Using fix srd with box deformation but no SRD thermostat</em></dt><dd><p>The deformation will heat the SRD particles so this can
+be dangerous.</p>
+</dd>
+<dt><em>Using kspace solver on system with no charge</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Using largest cut-off for lj/long/dipole/long long long</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Using largest cutoff for buck/long/coul/long</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Using largest cutoff for lj/long/coul/long</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Using largest cutoff for pair_style lj/long/tip4p/long</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Using package gpu without any pair style defined</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+<dt><em>Using pair potential shift with pair_modify compute no</em></dt><dd><p>The shift effects will thus not be computed.</p>
+</dd>
+<dt><em>Using pair tail corrections with nonperiodic system</em></dt><dd><p>This is probably a bogus thing to do, since tail corrections are
+computed by integrating the density of a periodic system out to
+infinity.</p>
+</dd>
+<dt><em>Using pair tail corrections with pair_modify compute no</em></dt><dd><p>The tail corrections will thus not be computed.</p>
+</dd>
+<dt><em>pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c</em></dt><dd><p>Self-explanatory.</p>
+</dd>
+</dl>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Library.html" class="btn btn-neutral float-right" title="1. LAMMPS Library Interfaces" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Errors_messages.html" class="btn btn-neutral float-left" title="11.4. Error messages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

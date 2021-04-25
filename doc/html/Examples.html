@@ -1,0 +1,553 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>9. Example scripts &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10. Auxiliary tools" href="Tools.html" />
+    <link rel="prev" title="8.6.4. Using LAMMPS on Windows 10 with WSL" href="Howto_wsl.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">9. Example scripts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#lowercase-directories">9.1. Lowercase directories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#uppercase-directories">9.2. Uppercase directories</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li><span class="section-number">9. </span>Example scripts</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Tools.html" class="btn btn-neutral float-right" title="10. Auxiliary tools" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Howto_wsl.html" class="btn btn-neutral float-left" title="8.6.4. Using LAMMPS on Windows 10 with WSL" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="example-scripts">
+<h1><span class="section-number">9. </span>Example scripts<a class="headerlink" href="#example-scripts" title="Permalink to this headline">¶</a></h1>
+<p>The LAMMPS distribution includes an examples sub-directory with many
+sample problems.  Many are 2d models that run quickly and are
+straightforward to visualize, requiring at most a couple of minutes to
+run on a desktop machine.  Each problem has an input script (in.*) and
+produces a log file (log.*) when it runs.  Some use a data file
+(data.*) of initial coordinates as additional input.  A few sample log
+file run on different machines and different numbers of processors are
+included in the directories to compare your answers to.  E.g. a log
+file like log.date.crack.foo.P means the “crack” example was run on P
+processors of machine “foo” on that date (i.e. with that version of
+LAMMPS).</p>
+<p>Many of the input files have commented-out lines for creating dump
+files and image files.</p>
+<p>If you uncomment the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> command in the input script, a
+text dump file will be produced, which can be animated by various
+<a class="reference external" href="https://lammps.sandia.gov/viz.html">visualization programs</a>.</p>
+<p>If you uncomment the <a class="reference internal" href="dump.html"><span class="doc">dump image</span></a> command in the input
+script, and assuming you have built LAMMPS with a JPG library, JPG
+snapshot images will be produced when the simulation runs.  They can
+be quickly post-processed into a movie using commands described on the
+<a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> doc page.</p>
+<p>Animations of many of the examples can be viewed on the Movies section
+of the <a class="reference external" href="https://lammps.sandia.gov/movies.html">LAMMPS web site</a>.</p>
+<p>There are two kinds of sub-directories in the examples folder.  Lower
+case named directories contain one or a few simple, quick-to-run
+problems.  Upper case named directories contain up to several complex
+scripts that illustrate a particular kind of simulation method or
+model.  Some of these run for longer times, e.g. to measure a
+particular quantity.</p>
+<p>Lists of both kinds of directories are given below.</p>
+<hr class="docutils" />
+<div class="section" id="lowercase-directories">
+<h2><span class="section-number">9.1. </span>Lowercase directories<a class="headerlink" href="#lowercase-directories" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 84%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>accelerate</p></td>
+<td><p>run with various acceleration options (OpenMP, GPU, Phi)</p></td>
+</tr>
+<tr class="row-even"><td><p>airebo</p></td>
+<td><p>polyethylene with AIREBO potential</p></td>
+</tr>
+<tr class="row-odd"><td><p>atm</p></td>
+<td><p>Axilrod-Teller-Muto potential example</p></td>
+</tr>
+<tr class="row-even"><td><p>balance</p></td>
+<td><p>dynamic load balancing, 2d system</p></td>
+</tr>
+<tr class="row-odd"><td><p>body</p></td>
+<td><p>body particles, 2d system</p></td>
+</tr>
+<tr class="row-even"><td><p>cmap</p></td>
+<td><p>CMAP 5-body contributions to CHARMM force field</p></td>
+</tr>
+<tr class="row-odd"><td><p>colloid</p></td>
+<td><p>big colloid particles in a small particle solvent, 2d system</p></td>
+</tr>
+<tr class="row-even"><td><p>comb</p></td>
+<td><p>models using the COMB potential</p></td>
+</tr>
+<tr class="row-odd"><td><p>controller</p></td>
+<td><p>use of fix controller as a thermostat</p></td>
+</tr>
+<tr class="row-even"><td><p>coreshell</p></td>
+<td><p>core/shell model using CORESHELL package</p></td>
+</tr>
+<tr class="row-odd"><td><p>crack</p></td>
+<td><p>crack propagation in a 2d solid</p></td>
+</tr>
+<tr class="row-even"><td><p>deposit</p></td>
+<td><p>deposit atoms and molecules on a surface</p></td>
+</tr>
+<tr class="row-odd"><td><p>dipole</p></td>
+<td><p>point dipolar particles, 2d system</p></td>
+</tr>
+<tr class="row-even"><td><p>dreiding</p></td>
+<td><p>methanol via Dreiding FF</p></td>
+</tr>
+<tr class="row-odd"><td><p>eim</p></td>
+<td><p>NaCl using the EIM potential</p></td>
+</tr>
+<tr class="row-even"><td><p>ellipse</p></td>
+<td><p>ellipsoidal particles in spherical solvent, 2d system</p></td>
+</tr>
+<tr class="row-odd"><td><p>flow</p></td>
+<td><p>Couette and Poiseuille flow in a 2d channel</p></td>
+</tr>
+<tr class="row-even"><td><p>friction</p></td>
+<td><p>frictional contact of spherical asperities between 2d surfaces</p></td>
+</tr>
+<tr class="row-odd"><td><p>gcmc</p></td>
+<td><p>Grand Canonical Monte Carlo (GCMC) via the fix gcmc command</p></td>
+</tr>
+<tr class="row-even"><td><p>granregion</p></td>
+<td><p>use of fix wall/region/gran as boundary on granular particles</p></td>
+</tr>
+<tr class="row-odd"><td><p>hugoniostat</p></td>
+<td><p>Hugoniostat shock dynamics</p></td>
+</tr>
+<tr class="row-even"><td><p>hyper</p></td>
+<td><p>global and local hyperdynamics of diffusion on Pt surface</p></td>
+</tr>
+<tr class="row-odd"><td><p>indent</p></td>
+<td><p>spherical indenter into a 2d solid</p></td>
+</tr>
+<tr class="row-even"><td><p>kim</p></td>
+<td><p>use of potentials from the <a class="reference external" href="https://openkim.org">OpenKIM Repository</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>latte</p></td>
+<td><p>examples for using fix latte for DFTB via the LATTE library</p></td>
+</tr>
+<tr class="row-even"><td><p>meam</p></td>
+<td><p>MEAM test for SiC and shear (same as shear examples)</p></td>
+</tr>
+<tr class="row-odd"><td><p>melt</p></td>
+<td><p>rapid melt of 3d LJ system</p></td>
+</tr>
+<tr class="row-even"><td><p>message</p></td>
+<td><p>demos for LAMMPS client/server coupling with the MESSAGE package</p></td>
+</tr>
+<tr class="row-odd"><td><p>micelle</p></td>
+<td><p>self-assembly of small lipid-like molecules into 2d bilayers</p></td>
+</tr>
+<tr class="row-even"><td><p>min</p></td>
+<td><p>energy minimization of 2d LJ melt</p></td>
+</tr>
+<tr class="row-odd"><td><p>mscg</p></td>
+<td><p>parameterize a multi-scale coarse-graining (MSCG) model</p></td>
+</tr>
+<tr class="row-even"><td><p>msst</p></td>
+<td><p>MSST shock dynamics</p></td>
+</tr>
+<tr class="row-odd"><td><p>nb3b</p></td>
+<td><p>use of non-bonded 3-body harmonic pair style</p></td>
+</tr>
+<tr class="row-even"><td><p>neb</p></td>
+<td><p>nudged elastic band (NEB) calculation for barrier finding</p></td>
+</tr>
+<tr class="row-odd"><td><p>nemd</p></td>
+<td><p>non-equilibrium MD of 2d sheared system</p></td>
+</tr>
+<tr class="row-even"><td><p>obstacle</p></td>
+<td><p>flow around two voids in a 2d channel</p></td>
+</tr>
+<tr class="row-odd"><td><p>peptide</p></td>
+<td><p>dynamics of a small solvated peptide chain (5-mer)</p></td>
+</tr>
+<tr class="row-even"><td><p>peri</p></td>
+<td><p>Peridynamic model of cylinder impacted by indenter</p></td>
+</tr>
+<tr class="row-odd"><td><p>pour</p></td>
+<td><p>pouring of granular particles into a 3d box, then chute flow</p></td>
+</tr>
+<tr class="row-even"><td><p>prd</p></td>
+<td><p>parallel replica dynamics of vacancy diffusion in bulk Si</p></td>
+</tr>
+<tr class="row-odd"><td><p>python</p></td>
+<td><p>using embedded Python in a LAMMPS input script</p></td>
+</tr>
+<tr class="row-even"><td><p>qeq</p></td>
+<td><p>use of the QEQ package for charge equilibration</p></td>
+</tr>
+<tr class="row-odd"><td><p>rdf-adf</p></td>
+<td><p>computing radial and angle distribution functions for water</p></td>
+</tr>
+<tr class="row-even"><td><p>reax</p></td>
+<td><p>RDX and TATB models using the ReaxFF</p></td>
+</tr>
+<tr class="row-odd"><td><p>rerun</p></td>
+<td><p>use of rerun and read_dump commands</p></td>
+</tr>
+<tr class="row-even"><td><p>rigid</p></td>
+<td><p>rigid bodies modeled as independent or coupled</p></td>
+</tr>
+<tr class="row-odd"><td><p>shear</p></td>
+<td><p>sideways shear applied to 2d solid, with and without a void</p></td>
+</tr>
+<tr class="row-even"><td><p>snap</p></td>
+<td><p>NVE dynamics for BCC tantalum crystal using SNAP potential</p></td>
+</tr>
+<tr class="row-odd"><td><p>srd</p></td>
+<td><p>stochastic rotation dynamics (SRD) particles as solvent</p></td>
+</tr>
+<tr class="row-even"><td><p>streitz</p></td>
+<td><p>use of Streitz/Mintmire potential with charge equilibration</p></td>
+</tr>
+<tr class="row-odd"><td><p>tad</p></td>
+<td><p>temperature-accelerated dynamics of vacancy diffusion in bulk Si</p></td>
+</tr>
+<tr class="row-even"><td><p>threebody</p></td>
+<td><p>regression test input for a variety of manybody potentials</p></td>
+</tr>
+<tr class="row-odd"><td><p>vashishta</p></td>
+<td><p>use of the Vashishta potential</p></td>
+</tr>
+<tr class="row-even"><td><p>voronoi</p></td>
+<td><p>Voronoi tesselation via compute voronoi/atom command</p></td>
+</tr>
+</tbody>
+</table>
+<p>Here is how you can run and visualize one of the sample problems:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> indent
+cp ../../src/lmp_linux .           <span class="c1"># copy LAMMPS executable to this dir</span>
+lmp_linux -in <span class="k">in</span>.indent            <span class="c1"># run the problem</span>
+</pre></div>
+</div>
+<p>Running the simulation produces the files <em>dump.indent</em> and
+<em>log.lammps</em>.  You can visualize the dump file of snapshots with a
+variety of third-party tools highlighted on the
+<a class="reference external" href="https://lammps.sandia.gov/viz.html">Visualization</a> page of the LAMMPS
+web site.</p>
+<p>If you uncomment the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> line(s) in the input
+script a series of JPG images will be produced by the run (assuming
+you built LAMMPS with JPG support; see the
+<a class="reference internal" href="Build_settings.html"><span class="doc">Build_settings</span></a> doc page for details).  These can
+be viewed individually or turned into a movie or animated by tools
+like ImageMagick or QuickTime or various Windows-based tools.  See the
+<a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> doc page for more details.  E.g. this
+Imagemagick command would create a GIF file suitable for viewing in a
+browser.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>% convert -loop <span class="m">1</span> *.jpg foo.gif
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="uppercase-directories">
+<h2><span class="section-number">9.2. </span>Uppercase directories<a class="headerlink" href="#uppercase-directories" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 89%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>ASPHERE</p></td>
+<td><p>various aspherical particle models, using ellipsoids, rigid bodies, line/triangle particles, etc</p></td>
+</tr>
+<tr class="row-even"><td><p>COUPLE</p></td>
+<td><p>examples of how to use LAMMPS as a library</p></td>
+</tr>
+<tr class="row-odd"><td><p>DIFFUSE</p></td>
+<td><p>compute diffusion coefficients via several methods</p></td>
+</tr>
+<tr class="row-even"><td><p>ELASTIC</p></td>
+<td><p>compute elastic constants at zero temperature</p></td>
+</tr>
+<tr class="row-odd"><td><p>ELASTIC_T</p></td>
+<td><p>compute elastic constants at finite temperature</p></td>
+</tr>
+<tr class="row-even"><td><p>HEAT</p></td>
+<td><p>compute thermal conductivity for LJ and water via fix ehex</p></td>
+</tr>
+<tr class="row-odd"><td><p>KAPPA</p></td>
+<td><p>compute thermal conductivity via several methods</p></td>
+</tr>
+<tr class="row-even"><td><p>MC</p></td>
+<td><p>using LAMMPS in a Monte Carlo mode to relax the energy of a system</p></td>
+</tr>
+<tr class="row-odd"><td><p>SPIN</p></td>
+<td><p>examples for features of the SPIN package</p></td>
+</tr>
+<tr class="row-even"><td><p>UNITS</p></td>
+<td><p>examples that run the same simulation in lj, real, metal units</p></td>
+</tr>
+<tr class="row-odd"><td><p>USER</p></td>
+<td><p>examples for USER packages and USER-contributed commands</p></td>
+</tr>
+<tr class="row-even"><td><p>VISCOSITY</p></td>
+<td><p>compute viscosity via several methods</p></td>
+</tr>
+</tbody>
+</table>
+<p>Nearly all of these directories have README files which give more
+details on how to understand and use their contents.</p>
+<p>The USER directory has a large number of sub-directories which
+correspond by name to a USER package.  They contain scripts that
+illustrate how to use the command(s) provided in that package.  Many
+of the sub-directories have their own README files which give further
+instructions.  See the <a class="reference internal" href="Packages_details.html"><span class="doc">Packages_details</span></a> doc
+page for more info on specific USER packages.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Tools.html" class="btn btn-neutral float-right" title="10. Auxiliary tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Howto_wsl.html" class="btn btn-neutral float-left" title="8.6.4. Using LAMMPS on Windows 10 with WSL" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

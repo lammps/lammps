@@ -1,0 +1,399 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2.3.5. Executing commands &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/tabs.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2.3.6. System properties" href="Python_properties.html" />
+    <link rel="prev" title="2.3.4. Creating or deleting a LAMMPS object" href="Python_create.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Python_overview.html">2.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_install.html">2.2. Installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Python_run.html">2.3. Run LAMMPS from Python</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html">2.3.1. Running LAMMPS and Python in serial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html#running-lammps-and-python-in-parallel-with-mpi">2.3.2. Running LAMMPS and Python in parallel with MPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html#running-python-scripts">2.3.3. Running Python scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_create.html">2.3.4. Creating or deleting a LAMMPS object</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.3.5. Executing commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_properties.html">2.3.6. System properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_atoms.html">2.3.7. Per-atom properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_objects.html">2.3.8. Compute, fixes, variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_scatter.html">2.3.9. Scatter/gather operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_neighbor.html">2.3.10. Neighbor list access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_config.html">2.3.11. Configuration information</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Python_module.html">2.4. The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> Python module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_ext.html">2.5. Extending the Python interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_call.html">2.6. Calling Python from LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_examples.html">2.7. Example Python scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_error.html">2.8. Handling LAMMPS errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_trouble.html">2.9. Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Python_head.html"><span class="section-number">2. </span>Use Python with LAMMPS</a> &raquo;</li>
+        
+          <li><a href="Python_run.html"><span class="section-number">2.3. </span>Run LAMMPS from Python</a> &raquo;</li>
+        
+      <li><span class="section-number">2.3.5. </span>Executing commands</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Python_properties.html" class="btn btn-neutral float-right" title="2.3.6. System properties" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Python_create.html" class="btn btn-neutral float-left" title="2.3.4. Creating or deleting a LAMMPS object" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="executing-commands">
+<h1><span class="section-number">2.3.5. </span>Executing commands<a class="headerlink" href="#executing-commands" title="Permalink to this headline">¶</a></h1>
+<p>Once an instance of the <a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a>,
+<a class="reference internal" href="Python_module.html#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a>, or
+<a class="reference internal" href="Python_module.html#lammps.IPyLammps" title="lammps.IPyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">IPyLammps</span></code></a> class is created, there are
+multiple ways to “feed” it commands. In a way that is not very different from
+running a LAMMPS input script, except that Python has many more facilities
+for structured programming than the LAMMPS input script syntax. Furthermore
+it is possible to “compute” what the next LAMMPS command should be.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">lammps API</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">PyLammps/IPyLammps API</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><p>Same as in the equivalent
+<a class="reference internal" href="Library_execute.html"><span class="doc">C library functions</span></a>, commands can be read from a file, a
+single string, a list of strings and a block of commands in a single
+multi-line string. They are processed under the same boundary conditions
+as the C library counterparts.  The example below demonstrates the use
+of <code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.file()</span></code>, <code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.command()</span></code>,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.commands_list()</span></code>, and <code class="xref py py-func docutils literal notranslate"><span class="pre">lammps.commands_string()</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
+
+<span class="c1"># read commands from file &#39;in.melt&#39;</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s1">&#39;in.melt&#39;</span><span class="p">)</span>
+
+<span class="c1"># issue a single command</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;variable zpos index 1.0&#39;</span><span class="p">)</span>
+
+<span class="c1"># create 10 groups with 10 atoms each</span>
+<span class="n">cmds</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;group g</span><span class="si">{}</span><span class="s2"> id </span><span class="si">{}</span><span class="s2">:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="mi">10</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="mi">10</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">commands_list</span><span class="p">(</span><span class="n">cmds</span><span class="p">)</span>
+
+<span class="c1"># run commands from a multi-line string</span>
+<span class="n">block</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">clear</span>
+<span class="s2">region  box block 0 2 0 2 0 2</span>
+<span class="s2">create_box 1 box</span>
+<span class="s2">create_atoms 1 single 1.0 1.0 $</span><span class="si">{zpos}</span><span class="s2"></span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">commands_string</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><p>Unlike the lammps API, the PyLammps/IPyLammps APIs allow running LAMMPS
+commands by calling equivalent member functions of <a class="reference internal" href="Python_module.html#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a>
+and <a class="reference internal" href="Python_module.html#lammps.IPyLammps" title="lammps.IPyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">IPyLammps</span></code></a> instances.</p>
+<p>For instance, the following LAMMPS command</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">region </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">-</span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"></span>
+</pre></div>
+</div>
+<p>can be executed using with the lammps API with the following Python code if <code class="docutils literal notranslate"><span class="pre">lmp</span></code> is an
+instance of <a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a>:</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+
+<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;region box block 0 10 0 5 -0.5 0.5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With the PyLammps interface, any LAMMPS command can be split up into arbitrary parts.
+These parts are then passed to a member function with the name of the <a class="reference internal" href="Commands_all.html"><span class="doc">command</span></a>.
+For the <a class="reference internal" href="region.html"><span class="doc">region</span></a> command that means the <code class="code docutils literal notranslate"><span class="pre">region()</span></code> method can be called.
+The arguments of the command can be passed as one string, or
+individually.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">PyLammps</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="n">PyLammps</span><span class="p">()</span>
+
+<span class="c1"># pass command parameters as one string</span>
+<span class="n">L</span><span class="o">.</span><span class="n">region</span><span class="p">(</span><span class="s2">&quot;box block 0 10 0 5 -0.5 0.5&quot;</span><span class="p">)</span>
+
+<span class="c1"># OR pass them individually</span>
+<span class="n">L</span><span class="o">.</span><span class="n">region</span><span class="p">(</span><span class="s2">&quot;box block&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the latter example, all parameters except the first are Python floating-point literals. The
+member function takes the entire parameter list and transparently merges it to a single command
+string.</p>
+<p>The benefit of this approach is avoiding redundant command calls and easier
+parameterization. In the lammps API parameterization needed to be done
+manually by creating formatted command strings.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;region box block </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">xlo</span><span class="p">,</span> <span class="n">xhi</span><span class="p">,</span> <span class="n">ylo</span><span class="p">,</span> <span class="n">yhi</span><span class="p">,</span> <span class="n">zlo</span><span class="p">,</span> <span class="n">zhi</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>In contrast, methods of PyLammps accept parameters directly and will convert
+them automatically to a final command string.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="o">.</span><span class="n">region</span><span class="p">(</span><span class="s2">&quot;box block&quot;</span><span class="p">,</span> <span class="n">xlo</span><span class="p">,</span> <span class="n">xhi</span><span class="p">,</span> <span class="n">ylo</span><span class="p">,</span> <span class="n">yhi</span><span class="p">,</span> <span class="n">zlo</span><span class="p">,</span> <span class="n">zhi</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Using these facilities, the example shown for the lammps API can be rewritten as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">PyLammps</span>
+<span class="n">L</span> <span class="o">=</span> <span class="n">PyLammps</span><span class="p">()</span>
+
+<span class="c1"># read commands from file &#39;in.melt&#39;</span>
+<span class="n">L</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s1">&#39;in.melt&#39;</span><span class="p">)</span>
+
+<span class="c1"># issue a single command</span>
+<span class="n">L</span><span class="o">.</span><span class="n">variable</span><span class="p">(</span><span class="s1">&#39;zpos&#39;</span><span class="p">,</span> <span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+<span class="c1"># create 10 groups with 10 atoms each</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+   <span class="n">L</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;g</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="mi">10</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="mi">10</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">L</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+<span class="n">L</span><span class="o">.</span><span class="n">region</span><span class="p">(</span><span class="s2">&quot;box block&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">L</span><span class="o">.</span><span class="n">create_box</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;box&quot;</span><span class="p">)</span>
+<span class="n">L</span><span class="o">.</span><span class="n">create_atoms</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;single&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;$</span><span class="si">{zpos}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Python_properties.html" class="btn btn-neutral float-right" title="2.3.6. System properties" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Python_create.html" class="btn btn-neutral float-left" title="2.3.4. Creating or deleting a LAMMPS object" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,335 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>8.5.9. Magnetic spins &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="8.6.1. Using CMake with LAMMPS tutorial" href="Howto_cmake.html" />
+    <link rel="prev" title="8.5.8. Manifolds (surfaces)" href="Howto_manifold.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">8. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">8.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">8.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">8.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">8.4. Force fields howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#packages-howto">8.5. Packages howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_spherical.html">8.5.1. Finite-size spherical and aspherical particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular.html">8.5.2. Granular models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_body.html">8.5.3. Body particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_polarizable.html">8.5.4. Polarizable models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_coreshell.html">8.5.5. Adiabatic core/shell model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude.html">8.5.6. Drude induced dipoles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude2.html">8.5.7. Tutorial for Thermalized Drude oscillators in LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_manifold.html">8.5.8. Manifolds (surfaces)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">8.5.9. Magnetic spins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">8.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Howto.html"><span class="section-number">8. </span>Howto discussions</a> &raquo;</li>
+        
+      <li><span class="section-number">8.5.9. </span>Magnetic spins</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Howto_cmake.html" class="btn btn-neutral float-right" title="8.6.1. Using CMake with LAMMPS tutorial" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Howto_manifold.html" class="btn btn-neutral float-left" title="8.5.8. Manifolds (surfaces)" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="magnetic-spins">
+<h1><span class="section-number">8.5.9. </span>Magnetic spins<a class="headerlink" href="#magnetic-spins" title="Permalink to this headline">¶</a></h1>
+<p>The magnetic spin simulations are enabled by the SPIN package, whose
+implementation is detailed in <a class="reference internal" href="#tranchida"><span class="std std-ref">Tranchida</span></a>.</p>
+<p>The model represents the simulation of atomic magnetic spins coupled
+to lattice vibrations. The dynamics of those magnetic spins can be used
+to simulate a broad range a phenomena related to magneto-elasticity, or
+or to study the influence of defects on the magnetic properties of
+materials.</p>
+<p>The magnetic spins are interacting with each others and with the
+lattice via pair interactions. Typically, the magnetic exchange
+interaction can be defined using the
+<a class="reference internal" href="pair_spin_exchange.html"><span class="doc">pair/spin/exchange</span></a> command. This exchange
+applies a magnetic torque to a given spin, considering the orientation
+of its neighboring spins and their relative distances.
+It also applies a force on the atoms as a function of the spin
+orientations and their associated inter-atomic distances.</p>
+<p>The command <a class="reference internal" href="fix_precession_spin.html"><span class="doc">fix precession/spin</span></a> allows to
+apply a constant magnetic torque on all the spins in the system. This
+torque can be an external magnetic field (Zeeman interaction), or an
+uniaxial magnetic anisotropy.</p>
+<p>A Langevin thermostat can be applied to those magnetic spins using
+<a class="reference internal" href="fix_langevin_spin.html"><span class="doc">fix langevin/spin</span></a>. Typically, this thermostat
+can be coupled to another Langevin thermostat applied to the atoms
+using <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> in order to simulate
+thermostatted spin-lattice systems.</p>
+<p>The magnetic Gilbert damping can also be applied using <a class="reference internal" href="fix_langevin_spin.html"><span class="doc">fix langevin/spin</span></a>. It allows to either dissipate
+the thermal energy of the Langevin thermostat, or to perform a
+relaxation of the magnetic configuration toward an equilibrium state.</p>
+<p>The command <a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce/spin</span></a> allows to set the
+components of the magnetic precession vectors (while erasing and
+replacing the previously computed magnetic precession vectors on
+the atom).
+This command can be used to freeze the magnetic moment of certain
+atoms in the simulation by zeroing their precession vector.</p>
+<p>The command <a class="reference internal" href="fix_nve_spin.html"><span class="doc">fix nve/spin</span></a> can be used to
+perform a symplectic integration of the combined dynamics of spins
+and atomic motions.</p>
+<p>The minimization style <a class="reference internal" href="min_spin.html"><span class="doc">min/spin</span></a> can be applied
+to the spins to perform a minimization of the spin configuration.</p>
+<p>All the computed magnetic properties can be output by two main
+commands. The first one is <a class="reference internal" href="compute_spin.html"><span class="doc">compute spin</span></a>, that
+enables to evaluate magnetic averaged quantities, such as the total
+magnetization of the system along x, y, or z, the spin temperature, or
+the magnetic energy. The second command is <a class="reference internal" href="compute_property_atom.html"><span class="doc">compute property/atom</span></a>. It enables to output all the
+per atom magnetic quantities. Typically, the orientation of a given
+magnetic spin, or the magnetic force acting on this spin.</p>
+<hr class="docutils" />
+<p id="tranchida"><strong>(Tranchida)</strong> Tranchida, Plimpton, Thibaudeau and Thompson,
+Journal of Computational Physics, 372, 406-425, (2018).</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Howto_cmake.html" class="btn btn-neutral float-right" title="8.6.1. Using CMake with LAMMPS tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Howto_manifold.html" class="btn btn-neutral float-left" title="8.5.8. Manifolds (surfaces)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

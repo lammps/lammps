@@ -1,0 +1,1068 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>1.1.3. System properties &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="_static/mathjax/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="1.1.4. Per-atom properties" href="Library_atoms.html" />
+    <link rel="prev" title="1.1.2. Executing commands" href="Library_execute.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Library.html#lammps-c-library-api">1.1. LAMMPS C Library API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Library_create.html">1.1.1. Creating or deleting a LAMMPS object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_execute.html">1.1.2. Executing commands</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">1.1.3. System properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_atoms.html">1.1.4. Per-atom properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_objects.html">1.1.5. Compute, fixes, variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_scatter.html">1.1.6. Scatter/gather operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_neighbor.html">1.1.7. Neighbor list access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_config.html">1.1.8. Configuration information</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_utility.html">1.1.9. Utility functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_add.html">1.1.10. Extending the C API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-python-apis">1.2. LAMMPS Python APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-fortran-api">1.3. LAMMPS Fortran API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-cplusplus-api">1.4. LAMMPS C++ API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Library.html"><span class="section-number">1. </span>LAMMPS Library Interfaces</a> &raquo;</li>
+        
+      <li><span class="section-number">1.1.3. </span>System properties</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Library_atoms.html" class="btn btn-neutral float-right" title="1.1.4. Per-atom properties" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Library_execute.html" class="btn btn-neutral float-left" title="1.1.2. Executing commands" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="system-properties">
+<h1><span class="section-number">1.1.3. </span>System properties<a class="headerlink" href="#system-properties" title="Permalink to this headline">¶</a></h1>
+<p>This section documents the following functions:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#_CPPv417lammps_get_natomsPv" title="lammps_get_natoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_natoms()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv417lammps_get_thermoPvPKc" title="lammps_get_thermo"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_thermo()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv418lammps_extract_boxPvPdPdPdPdPdPiPi" title="lammps_extract_box"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_box()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv416lammps_reset_boxPvPdPdddd" title="lammps_reset_box"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_reset_box()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv419lammps_memory_usagePvPd" title="lammps_memory_usage"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_memory_usage()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv419lammps_get_mpi_commPv" title="lammps_get_mpi_comm"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_mpi_comm()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv430lammps_extract_global_datatypePvPKc" title="lammps_extract_global_datatype"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global_datatype()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a></p></li>
+</ul>
+<hr class="docutils" />
+<p>The library interface allows extraction of different kinds of
+information about the active simulation instance and also
+modifications to it.  This enables combining of a LAMMPS simulation
+with other processing and simulation methods computed by the calling
+code, or by another code that is coupled to LAMMPS via the library
+interface.  In some cases the data returned is direct reference to the
+original data inside LAMMPS, cast to a void pointer.  In that case the
+data needs to be cast to a suitable pointer for the calling program to
+access it, and you may need to know the correct dimensions and
+lengths.  This also means you can directly change those value(s) from
+the calling program, e.g. to modify atom positions.  Of course, this
+should be done with care.  When accessing per-atom data, please note
+that this data is the per-processor <strong>local</strong> data and is indexed
+accordingly. Per-atom data can change sizes and ordering at every
+neighbor list rebuild or atom sort event as atoms migrate between
+sub-domains and processors.</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span> <span class="cpf">&quot;library.h&quot;</span><span class="cp"></span>
+<span class="cp">#include</span> <span class="cpf">&lt;stdio.h&gt;</span><span class="cp"></span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="kt">void</span> <span class="o">*</span><span class="n">handle</span><span class="p">;</span>
+  <span class="kt">int</span> <span class="n">i</span><span class="p">;</span>
+
+  <span class="n">handle</span> <span class="o">=</span> <span class="n">lammps_open_no_mpi</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+  <span class="n">lammps_file</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;in.sysinit&quot;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Running a simulation with %g atoms.</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+         <span class="n">lammps_get_natoms</span><span class="p">(</span><span class="n">handle</span><span class="p">));</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot; %d local and %d ghost atoms. %d atom types</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+         <span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;nlocal&quot;</span><span class="p">),</span>
+         <span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;nghost&quot;</span><span class="p">),</span>
+         <span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;ntypes&quot;</span><span class="p">));</span>
+
+  <span class="kt">double</span>  <span class="o">*</span><span class="n">dt</span> <span class="o">=</span> <span class="p">(</span><span class="kt">double</span> <span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;dt&quot;</span><span class="p">);</span>
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Changing timestep from %g to 0.5</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="o">*</span><span class="n">dt</span><span class="p">);</span>
+  <span class="o">*</span><span class="n">dt</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">;</span>
+
+  <span class="n">lammps_command</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;run 1000 post no&quot;</span><span class="p">);</span>
+
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">;</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">lammps_command</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;run 100 pre no post no&quot;</span><span class="p">);</span>
+    <span class="n">printf</span><span class="p">(</span><span class="s">&quot;PE = %g</span><span class="se">\n</span><span class="s">KE = %g</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+           <span class="n">lammps_get_thermo</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;pe&quot;</span><span class="p">),</span>
+           <span class="n">lammps_get_thermo</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;ke&quot;</span><span class="p">));</span>
+  <span class="p">}</span>
+  <span class="n">lammps_close</span><span class="p">(</span><span class="n">handle</span><span class="p">);</span>
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv417lammps_get_natomsPv">
+<span id="_CPPv317lammps_get_natomsPv"></span><span id="_CPPv217lammps_get_natomsPv"></span><span id="lammps_get_natoms__voidP"></span><span class="target" id="library_8h_1aa7d4ad0dc261c21fa41cffa38ea3ac21"></span><span class="pre">double</span> <code class="sig-name descname"><span class="pre">lammps_get_natoms</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417lammps_get_natomsPv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Return the total number of atoms in the system.</p>
+<p><p>This number may be very large when running large simulations across
+multiple processors.  Depending on compile time choices, LAMMPS may be
+using either 32-bit or a 64-bit integer to store this number. For
+portability this function returns thus a double precision
+floating point number, which can represent up to a 53-bit signed
+integer exactly (<span class="math notranslate nohighlight">\(\approx 10^{16}\)</span>).</p>
+<p>As an alternative, you can use <a class="reference internal" href="#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a>
+and cast the resulting pointer to an integer pointer of the correct
+size and dereference it.  The size of that integer (in bytes) can be
+queried by calling <a class="reference internal" href="#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a> to return
+the size of a <code class="docutils literal notranslate"><span class="pre">bigint</span></code> integer.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 18Sep2020: </span>The type of the return value was changed from <code class="docutils literal notranslate"><span class="pre">int</span></code> to <code class="docutils literal notranslate"><span class="pre">double</span></code>
+to accommodate reporting atom counts for larger systems that would
+overflow a 32-bit int without having to depend on a 64-bit bit
+integer type definition.</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>total number of atoms or 0 if value is too large </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv417lammps_get_thermoPvPKc">
+<span id="_CPPv317lammps_get_thermoPvPKc"></span><span id="_CPPv217lammps_get_thermoPvPKc"></span><span id="lammps_get_thermo__voidP.cCP"></span><span class="target" id="library_8h_1a5f54fbac6f7be9c20605c0faf71ec77a"></span><span class="pre">double</span> <code class="sig-name descname"><span class="pre">lammps_get_thermo</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">keyword</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417lammps_get_thermoPvPKc" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get current value of a thermo keyword.</p>
+<p>This function returns the current value of a <a class="reference internal" href="thermo_style.html"><span class="doc">thermo keyword</span></a>.  Unlike <a class="reference internal" href="#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a> it does not
+give access to the storage of the desired data but returns its value as
+a <code class="docutils literal notranslate"><span class="pre">double</span></code>, so it can also return information that is computed on-the-fly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p></li>
+<li><p><strong>keyword</strong> – string with the name of the thermo keyword </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of the requested thermo property or 0.0 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv418lammps_extract_boxPvPdPdPdPdPdPiPi">
+<span id="_CPPv318lammps_extract_boxPvPdPdPdPdPdPiPi"></span><span id="_CPPv218lammps_extract_boxPvPdPdPdPdPdPiPi"></span><span id="lammps_extract_box__voidP.doubleP.doubleP.doubleP.doubleP.doubleP.iP.iP"></span><span class="target" id="library_8h_1a5280ea3a305969261faa1a0258b9c7f9"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">lammps_extract_box</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">boxlo</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">boxhi</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">xy</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">yz</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">xz</span></em>, <span class="pre">int</span> <span class="pre">*</span><em><span class="pre">pflags</span></em>, <span class="pre">int</span> <span class="pre">*</span><em><span class="pre">boxflag</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv418lammps_extract_boxPvPdPdPdPdPdPiPi" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Extract simulation box parameters.</p>
+<p>This function (re-)initializes the simulation box and boundary
+information and then assign the designated data to the locations in the
+pointers passed as arguments. Any argument (except the first) may be
+a NULL pointer and then will not be assigned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p></li>
+<li><p><strong>boxlo</strong> – pointer to 3 doubles where the lower box boundary is stored </p></li>
+<li><p><strong>boxhi</strong> – pointer to 3 doubles where the upper box boundary is stored </p></li>
+<li><p><strong>xy</strong> – pointer to a double where the xy tilt factor is stored </p></li>
+<li><p><strong>yz</strong> – pointer to a double where the yz tilt factor is stored </p></li>
+<li><p><strong>xz</strong> – pointer to a double where the xz tilt factor is stored </p></li>
+<li><p><strong>pflags</strong> – pointer to 3 ints, set to 1 for periodic boundaries and 0 for non-periodic </p></li>
+<li><p><strong>boxflag</strong> – pointer to an int, which is set to 1 if the box will be changed during a simulation by a fix and 0 if not. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv416lammps_reset_boxPvPdPdddd">
+<span id="_CPPv316lammps_reset_boxPvPdPdddd"></span><span id="_CPPv216lammps_reset_boxPvPdPdddd"></span><span id="lammps_reset_box__voidP.doubleP.doubleP.double.double.double"></span><span class="target" id="library_8h_1ada23ca4aacdcc9b5991af9968e0369e8"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">lammps_reset_box</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">boxlo</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">boxhi</span></em>, <span class="pre">double</span> <em><span class="pre">xy</span></em>, <span class="pre">double</span> <em><span class="pre">yz</span></em>, <span class="pre">double</span> <em><span class="pre">xz</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416lammps_reset_boxPvPdPdddd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Reset simulation box parameters.</p>
+<p>This function sets the simulation box dimensions (upper and lower bounds
+and tilt factors) from the provided data and then re-initializes the box
+information and all derived settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p></li>
+<li><p><strong>boxlo</strong> – pointer to 3 doubles containing the lower box boundary </p></li>
+<li><p><strong>boxhi</strong> – pointer to 3 doubles containing the upper box boundary </p></li>
+<li><p><strong>xy</strong> – xy tilt factor </p></li>
+<li><p><strong>yz</strong> – yz tilt factor </p></li>
+<li><p><strong>xz</strong> – xz tilt factor </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv419lammps_memory_usagePvPd">
+<span id="_CPPv319lammps_memory_usagePvPd"></span><span id="_CPPv219lammps_memory_usagePvPd"></span><span id="lammps_memory_usage__voidP.doubleP"></span><span class="target" id="library_8h_1ab1a5d06bc29dd1233cde03c857ff0821"></span><span class="pre">void</span> <code class="sig-name descname"><span class="pre">lammps_memory_usage</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em>, <span class="pre">double</span> <span class="pre">*</span><em><span class="pre">meminfo</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419lammps_memory_usagePvPd" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get memory usage information</p>
+<p><p>This function will retrieve memory usage information for the current
+LAMMPS instance or process.  The <em>meminfo</em> buffer will be filled with
+3 different numbers (if supported by the operating system).  The first
+is the tally (in MBytes) of all large memory allocations made by LAMMPS.
+This is a lower boundary of how much memory is requested and does not
+account for memory allocated on the stack or allocations via <code class="docutils literal notranslate"><span class="pre">new</span></code>.
+The second number is the current memory allocation of the current process
+as returned by a memory allocation reporting in the system library.  The
+third number is the maximum amount of RAM (not swap) used by the process
+so far. If any of the two latter parameters is not supported by the operating
+system it will be set to zero.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 18Sep2020.</span></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p></li>
+<li><p><strong>meminfo</strong> – buffer with space for at least 3 double to store data in. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv419lammps_get_mpi_commPv">
+<span id="_CPPv319lammps_get_mpi_commPv"></span><span id="_CPPv219lammps_get_mpi_commPv"></span><span id="lammps_get_mpi_comm__voidP"></span><span class="target" id="library_8h_1a27501b4b00aa53f6621e996e3eeeb149"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">lammps_get_mpi_comm</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419lammps_get_mpi_commPv" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Return current LAMMPS world communicator as integer</p>
+<p><p>This will take the LAMMPS “world” communicator and convert it to an
+integer using <code class="docutils literal notranslate"><span class="pre">MPI_Comm_c2f()</span></code>, so it is equivalent to the
+corresponding MPI communicator in Fortran. This way it can be safely
+passed around between different programming languages.  To convert it
+to the C language representation use <code class="docutils literal notranslate"><span class="pre">MPI_Comm_f2c()</span></code>.</p>
+<p>If LAMMPS was compiled with MPI_STUBS, this function returns -1.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 18Sep2020.</span></p>
+</div>
+<dl class="simple">
+<dt><em>See also</em></dt><dd><p><a class="reference internal" href="Library_create.html#_CPPv419lammps_open_fortraniPPci" title="lammps_open_fortran"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_open_fortran()</span></code></a></p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Fortran representation of the LAMMPS world communicator </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv422lammps_extract_settingPvPKc">
+<span id="_CPPv322lammps_extract_settingPvPKc"></span><span id="_CPPv222lammps_extract_settingPvPKc"></span><span id="lammps_extract_setting__voidP.cCP"></span><span class="target" id="library_8h_1aec668a9f577e41295afb673f7edc99da"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">lammps_extract_setting</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">keyword</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv422lammps_extract_settingPvPKc" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Query LAMMPS about global settings.</p>
+<p><p>This function will retrieve or compute global properties. In contrast to
+<a class="reference internal" href="#_CPPv417lammps_get_thermoPvPKc" title="lammps_get_thermo"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_thermo()</span></code></a> this function returns an <code class="docutils literal notranslate"><span class="pre">int</span></code>.  The
+following tables list the currently supported keyword.  If a keyword is
+not recognized, the function returns -1.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#extract-integer-sizes"><span class="std std-ref">Integer sizes</span></a></p></li>
+<li><p><a class="reference internal" href="#extract-system-status"><span class="std std-ref">System status</span></a></p></li>
+<li><p><a class="reference internal" href="#extract-system-sizes"><span class="std std-ref">System sizes</span></a></p></li>
+<li><p><a class="reference internal" href="#extract-atom-flags"><span class="std std-ref">Atom style flags</span></a></p></li>
+</ul>
+<span class="target" id="extract-integer-sizes"></span><p><strong>Integer sizes</strong></p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Keyword</p></th>
+<th class="head"><p>Description / Return value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>bigint</p></td>
+<td><p>size of the <code class="docutils literal notranslate"><span class="pre">bigint</span></code> integer type, 4 or 8 bytes.
+Set at <a class="reference internal" href="Build_settings.html#size"><span class="std std-ref">compile time</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>tagint</p></td>
+<td><p>size of the <code class="docutils literal notranslate"><span class="pre">tagint</span></code> integer type, 4 or 8 bytes.
+Set at <a class="reference internal" href="Build_settings.html#size"><span class="std std-ref">compile time</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>imageint</p></td>
+<td><p>size of the <code class="docutils literal notranslate"><span class="pre">imageint</span></code> integer type, 4 or 8 bytes.
+Set at <a class="reference internal" href="Build_settings.html#size"><span class="std std-ref">compile time</span></a>.</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="extract-system-status"></span><p><strong>System status</strong></p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Keyword</p></th>
+<th class="head"><p>Description / Return value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>dimension</p></td>
+<td><p>Number of dimensions: 2 or 3. See <a class="reference internal" href="dimension.html"><span class="doc">dimension command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>box_exist</p></td>
+<td><p>1 if the simulation box is defined, 0 if not.
+See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>nthreads</p></td>
+<td><p>Number of requested OpenMP threads for LAMMPS’ execution</p></td>
+</tr>
+<tr class="row-odd"><td><p>newton_bond</p></td>
+<td><p>1 if Newton’s 3rd law is applied to bonded interactions, 0 if not.</p></td>
+</tr>
+<tr class="row-even"><td><p>newton_pair</p></td>
+<td><p>1 if Newton’s 3rd law is applied to non-bonded interactions, 0 if not.</p></td>
+</tr>
+<tr class="row-odd"><td><p>triclinic</p></td>
+<td><p>1 if the the simulation box is triclinic, 0 if orthogonal.
+See <a class="reference internal" href="change_box.html"><span class="doc">change_box command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>universe_rank</p></td>
+<td><p>MPI rank on LAMMPS’ universe communicator (0 &lt;= universe_rank &lt; universe_size)</p></td>
+</tr>
+<tr class="row-odd"><td><p>universe_size</p></td>
+<td><p>Number of ranks on LAMMPS’ universe communicator (world_size &lt;= universe_size)</p></td>
+</tr>
+<tr class="row-even"><td><p>world_rank</p></td>
+<td><p>MPI rank on LAMMPS’ world communicator (0 &lt;= world_rank &lt; world_size)</p></td>
+</tr>
+<tr class="row-odd"><td><p>world_size</p></td>
+<td><p>Number of ranks on LAMMPS’ world communicator</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="extract-system-sizes"></span><p><strong>System sizes</strong></p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Keyword</p></th>
+<th class="head"><p>Description / Return value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>nlocal</p></td>
+<td><p>number of “owned” atoms of the current MPI rank.</p></td>
+</tr>
+<tr class="row-odd"><td><p>nghost</p></td>
+<td><p>number of “ghost” atoms of the current MPI rank.</p></td>
+</tr>
+<tr class="row-even"><td><p>nall</p></td>
+<td><p>number of all “owned” and “ghost” atoms of the current MPI rank.</p></td>
+</tr>
+<tr class="row-odd"><td><p>nmax</p></td>
+<td><p>maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).</p></td>
+</tr>
+<tr class="row-even"><td><p>ntypes</p></td>
+<td><p>number of atom types</p></td>
+</tr>
+<tr class="row-odd"><td><p>nbondtypes</p></td>
+<td><p>number of bond types</p></td>
+</tr>
+<tr class="row-even"><td><p>nangletypes</p></td>
+<td><p>number of angle types</p></td>
+</tr>
+<tr class="row-odd"><td><p>ndihedraltypes</p></td>
+<td><p>number of dihedral types</p></td>
+</tr>
+<tr class="row-even"><td><p>nimpropertypes</p></td>
+<td><p>number of improper types</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="extract-atom-flags"></span><p><strong>Atom style flags</strong></p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Keyword</p></th>
+<th class="head"><p>Description / Return value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>molecule_flag</p></td>
+<td><p>1 if the atom style includes molecular topology data. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>q_flag</p></td>
+<td><p>1 if the atom style includes point charges. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>mu_flag</p></td>
+<td><p>1 if the atom style includes point dipoles. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>rmass_flag</p></td>
+<td><p>1 if the atom style includes per-atom masses, 0 if there are per-type masses. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>radius_flag</p></td>
+<td><p>1 if the atom style includes a per-atom radius. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>sphere_flag</p></td>
+<td><p>1 if the atom style describes extended particles that can rotate. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>ellipsoid_flag</p></td>
+<td><p>1 if the atom style describes extended particles that may be ellipsoidal. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>omega_flag</p></td>
+<td><p>1 if the atom style can store per-atom rotational velocities. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>torque_flag</p></td>
+<td><p>1 if the atom style can store per-atom torques. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>angmom_flag</p></td>
+<td><p>1 if the atom style can store per-atom angular momentum. See <a class="reference internal" href="atom_style.html"><span class="doc">atom_style command</span></a>.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="simple">
+<dt><em>See also</em></dt><dd><p><a class="reference internal" href="#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a></p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p></li>
+<li><p><strong>keyword</strong> – string with the name of the thermo keyword </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>value of the queried setting or -1 if unknown </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv430lammps_extract_global_datatypePvPKc">
+<span id="_CPPv330lammps_extract_global_datatypePvPKc"></span><span id="_CPPv230lammps_extract_global_datatypePvPKc"></span><span id="lammps_extract_global_datatype__voidP.cCP"></span><span class="target" id="library_8h_1a7a5da49a662d7cc3e8eaa79d7cc344e0"></span><span class="pre">int</span> <code class="sig-name descname"><span class="pre">lammps_extract_global_datatype</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv430lammps_extract_global_datatypePvPKc" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get data type of internal global LAMMPS variables or arrays.</p>
+<p><p>This function returns an integer that encodes the data type of the global
+property with the specified name. See <a class="reference internal" href="Library_objects.html#_CPPv419_LMP_DATATYPE_CONST" title="_LMP_DATATYPE_CONST"><code class="xref cpp cpp-enum docutils literal notranslate"><span class="pre">_LMP_DATATYPE_CONST</span></code></a> for valid
+values. Callers of <a class="reference internal" href="#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a> can use this information
+to then decide how to cast the (void*) pointer and access the data.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">New in version 18Sep2020.</span></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p></li>
+<li><p><strong>name</strong> – string with the name of the extracted property </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>integer constant encoding the data type of the property or -1 if not found. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt id="_CPPv421lammps_extract_globalPvPKc">
+<span id="_CPPv321lammps_extract_globalPvPKc"></span><span id="_CPPv221lammps_extract_globalPvPKc"></span><span id="lammps_extract_global__voidP.cCP"></span><span class="target" id="library_8h_1a67d3bbc188b284fc94a5df6f32d5b028"></span><span class="pre">void</span> <span class="pre">*</span><code class="sig-name descname"><span class="pre">lammps_extract_global</span></code><span class="sig-paren">(</span><span class="pre">void</span> <span class="pre">*</span><em><span class="pre">handle</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv421lammps_extract_globalPvPKc" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Get pointer to internal global LAMMPS variables or arrays.</p>
+<p><p>This function returns a pointer to the location of some global property
+stored in one of the constituent classes of a LAMMPS instance.  The
+returned pointer is cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code> and needs to be cast to a pointer
+of the type that the entity represents. The pointers returned by this
+function are generally persistent; therefore it is not necessary to call
+the function again, unless a <a class="reference internal" href="clear.html"><span class="doc">clear command</span></a> command is issued which wipes
+out and recreates the contents of the <a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS6LAMMPSE" title="LAMMPS_NS::LAMMPS"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS</span></code></a> class.</p>
+<p>Please also see <a class="reference internal" href="#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a>,
+<a class="reference internal" href="#_CPPv417lammps_get_thermoPvPKc" title="lammps_get_thermo"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_thermo()</span></code></a>, and <a class="reference internal" href="#_CPPv418lammps_extract_boxPvPdPdPdPdPdPiPi" title="lammps_extract_box"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_box()</span></code></a>.</p>
+<p>The following tables list the supported names, their data types, length
+of the data area, and a short description.  The data type can also be
+queried through calling <a class="reference internal" href="#_CPPv430lammps_extract_global_datatypePvPKc" title="lammps_extract_global_datatype"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global_datatype()</span></code></a>.
+The <code class="docutils literal notranslate"><span class="pre">bigint</span></code> type may be defined to be either an <code class="docutils literal notranslate"><span class="pre">int</span></code> or an
+<code class="docutils literal notranslate"><span class="pre">int64_t</span></code>.  This is set at <a class="reference internal" href="Build_settings.html#size"><span class="std std-ref">compile time</span></a> of the LAMMPS
+library and can be queried through calling
+<a class="reference internal" href="#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a>.
+The function <a class="reference internal" href="#_CPPv430lammps_extract_global_datatypePvPKc" title="lammps_extract_global_datatype"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global_datatype()</span></code></a> will directly
+report the “native” data type.  The following tables are provided:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#extract-timestep-settings"><span class="std std-ref">Timestep settings</span></a></p></li>
+<li><p><a class="reference internal" href="#extract-box-settings"><span class="std std-ref">Simulation box settings</span></a></p></li>
+<li><p><a class="reference internal" href="#extract-system-settings"><span class="std std-ref">System property settings</span></a></p></li>
+<li><p><a class="reference internal" href="#extract-unit-settings"><span class="std std-ref">Unit settings</span></a></p></li>
+</ul>
+<span class="target" id="extract-timestep-settings"></span><p><strong>Timestep settings</strong></p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Length</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>dt</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>length of the time step. See <a class="reference internal" href="timestep.html"><span class="doc">timestep command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ntimestep</p></td>
+<td><p>bigint</p></td>
+<td><p>1</p></td>
+<td><p>current time step number. See <a class="reference internal" href="reset_timestep.html"><span class="doc">reset_timestep command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>atime</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>accumulated simulation time in time units.</p></td>
+</tr>
+<tr class="row-odd"><td><p>atimestep</p></td>
+<td><p>bigint</p></td>
+<td><p>1</p></td>
+<td><p>the number of the timestep when “atime” was last updated.</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="extract-box-settings"></span><p><strong>Simulation box settings</strong></p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Length</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>boxlo</p></td>
+<td><p>double</p></td>
+<td><p>3</p></td>
+<td><p>lower box boundaries. See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>boxhi</p></td>
+<td><p>double</p></td>
+<td><p>3</p></td>
+<td><p>upper box boundaries. See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>boxxlo</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>lower box boundary in x-direction. See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>boxxhi</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>upper box boundary in x-direction. See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>boxylo</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>lower box boundary in y-direction. See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>boxyhi</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>upper box boundary in y-direction. See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>boxzlo</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>lower box boundary in z-direction. See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>boxzhi</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>upper box boundary in z-direction. See <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>sublo</p></td>
+<td><p>double</p></td>
+<td><p>3</p></td>
+<td><p>subbox lower boundaries</p></td>
+</tr>
+<tr class="row-odd"><td><p>subhi</p></td>
+<td><p>double</p></td>
+<td><p>3</p></td>
+<td><p>subbox upper boundaries</p></td>
+</tr>
+<tr class="row-even"><td><p>sublo_lambda</p></td>
+<td><p>double</p></td>
+<td><p>3</p></td>
+<td><p>subbox lower boundaries in fractional coordinates (for triclinic cells)</p></td>
+</tr>
+<tr class="row-odd"><td><p>subhi_lambda</p></td>
+<td><p>double</p></td>
+<td><p>3</p></td>
+<td><p>subbox upper boundaries in fractional coordinates (for triclinic cells)</p></td>
+</tr>
+<tr class="row-even"><td><p>periodicity</p></td>
+<td><p>int</p></td>
+<td><p>3</p></td>
+<td><p>0 if non-periodic, 1 if periodic for x, y, and z;
+See <a class="reference internal" href="boundary.html"><span class="doc">boundary command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>triclinic</p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>1 if the the simulation box is triclinic, 0 if orthogonal;
+See <a class="reference internal" href="change_box.html"><span class="doc">change_box command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>xy</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>triclinic tilt factor. See <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Triclinic (non-orthogonal) simulation boxes</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>yz</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>triclinic tilt factor. See <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Triclinic (non-orthogonal) simulation boxes</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>xz</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>triclinic tilt factor. See <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Triclinic (non-orthogonal) simulation boxes</span></a>.</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="extract-system-settings"></span><p><strong>System property settings</strong></p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Length</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ntypes</p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>number of atom types</p></td>
+</tr>
+<tr class="row-odd"><td><p>nbonds</p></td>
+<td><p>bigint</p></td>
+<td><p>1</p></td>
+<td><p>total number of bonds in the simulation.</p></td>
+</tr>
+<tr class="row-even"><td><p>nangles</p></td>
+<td><p>bigint</p></td>
+<td><p>1</p></td>
+<td><p>total number of angles in the simulation.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ndihedrals</p></td>
+<td><p>bigint</p></td>
+<td><p>1</p></td>
+<td><p>total number of dihedrals in the simulation.</p></td>
+</tr>
+<tr class="row-even"><td><p>nimpropers</p></td>
+<td><p>bigint</p></td>
+<td><p>1</p></td>
+<td><p>total number of impropers in the simulation.</p></td>
+</tr>
+<tr class="row-odd"><td><p>natoms</p></td>
+<td><p>bigint</p></td>
+<td><p>1</p></td>
+<td><p>total number of atoms in the simulation.</p></td>
+</tr>
+<tr class="row-even"><td><p>nlocal</p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>number of “owned” atoms of the current MPI rank.</p></td>
+</tr>
+<tr class="row-odd"><td><p>nghost</p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>number of “ghost” atoms of the current MPI rank.</p></td>
+</tr>
+<tr class="row-even"><td><p>nmax</p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p>maximum of nlocal+nghost across all MPI ranks (for per-atom data array size).</p></td>
+</tr>
+<tr class="row-odd"><td><p>q_flag</p></td>
+<td><p>int</p></td>
+<td><p>1</p></td>
+<td><p><strong>deprecated</strong>. Use <a class="reference internal" href="#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a> instead.</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="extract-unit-settings"></span><p><strong>Unit settings</strong></p>
+<table class="colwidths-auto docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Length</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>units</p></td>
+<td><p>char *</p></td>
+<td><p>1</p></td>
+<td><p>string with the current unit style. See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>boltz</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>value of the “boltz” constant. See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>hplanck</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>value of the “hplanck” constant. See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>mvv2e</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>factor to convert <span class="math notranslate nohighlight">\(\frac{1}{2}mv^2\)</span> for a particle to
+the current energy unit; See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>ftm2v</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>mv2d</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>nktv2p</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>qqr2e</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>factor to convert <span class="math notranslate nohighlight">\(\frac{q_i q_j}{r}\)</span> to energy units;
+See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>qe2f</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>vxmu2f</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>xxt2kmu</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>dielectric</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>value of the dielectric constant. See <a class="reference internal" href="dielectric.html"><span class="doc">dielectric command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>qqrd2e</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>e_mass</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>hhmrr2e</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>mvh2r</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>angstrom</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>constant to convert current length unit to angstroms;
+1.0 for reduced (aka “lj”) units. See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>femtosecond</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>constant to convert current time unit to femtoseconds;
+1.0 for reduced (aka “lj”) units</p></td>
+</tr>
+<tr class="row-even"><td><p>qelectron</p></td>
+<td><p>double</p></td>
+<td><p>1</p></td>
+<td><p>(description missing) See <a class="reference internal" href="units.html"><span class="doc">units command</span></a>.</p></td>
+</tr>
+</tbody>
+</table>
+</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Modifying the data in the location pointed to by the returned pointer
+may lead to inconsistent internal data and thus may cause failures or
+crashes or bogus simulations.  In general it is thus usually better
+to use a LAMMPS input command that sets or changes these parameters.
+Those will takes care of all side effects and necessary updates of
+settings derived from such settings.  Where possible a reference to
+such a command or a relevant section of the manual is given below.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created LAMMPS instance </p></li>
+<li><p><strong>name</strong> – string with the name of the extracted property </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>pointer (cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>) to the location of the requested property. NULL if name is not known. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Library_atoms.html" class="btn btn-neutral float-right" title="1.1.4. Per-atom properties" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Library_execute.html" class="btn btn-neutral float-left" title="1.1.2. Executing commands" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,819 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>kspace_modify command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="kspace_style command" href="kspace_style.html" />
+    <link rel="prev" title="kim_init command" href="kim_commands.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="box.html">box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html">dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-vtk-command"><span class="xref std std-doc">dump vtk</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-h5md-command"><span class="xref std std-doc">dump h5md</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-molfile-command"><span class="xref std std-doc">dump molfile</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-netcdf-command"><span class="xref std std-doc">dump netcdf</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-image-command"><span class="xref std std-doc">dump image</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-movie-command"><span class="xref std std-doc">dump movie</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-atom-adios-command"><span class="xref std std-doc">dump atom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-custom-adios-command"><span class="xref std std-doc">dump custom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html">dump atom/adios  command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html#dump-custom-adios-command">dump custom/adios command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_cfg_uef.html">dump cfg/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_h5md.html">dump h5md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html">dump image command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-movie-command">dump movie command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html">dump_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_molfile.html">dump molfile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html">dump netcdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html#dump-netcdf-mpiio-command">dump netcdf/mpiio command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_vtk.html">dump vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html"><span class="xref std std-ref">kim_init</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-interactions-command"><span class="xref std std-ref">kim_interactions</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-query-command"><span class="xref std std-ref">kim_query</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-param-command"><span class="xref std std-ref">kim_param</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-property-command"><span class="xref std std-ref">kim_property</span> command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">kspace_modify command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="message.html">message command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html#minimize-kk-command">minimize/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atom_ids.html">reset_atom_ids command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_mol_ids.html">reset_mol_ids command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html">server command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server_mc.html">server mc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server_md.html">server md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="commands_list.html">Commands</a> &raquo;</li>
+        
+      <li>kspace_modify command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="kspace_style.html" class="btn btn-neutral float-right" title="kspace_style command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kim_commands.html" class="btn btn-neutral float-left" title="kim_init command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="kspace-modify-command">
+<span id="index-0"></span><h1>kspace_modify command<a class="headerlink" href="#kspace-modify-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">kspace_modify</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span><span class="w"></span>
+</pre></div>
+</div>
+<ul>
+<li><p>one or more keyword/value pairs may be listed</p></li>
+<li><p>keyword = <em>collective</em> or <em>compute</em> or <em>cutoff/adjust</em> or <em>diff</em> or <em>disp/auto</em> or <em>fftbench</em> or <em>force/disp/kspace</em> or <em>force/disp/real</em> or <em>force</em> or <em>gewald/disp</em> or <em>gewald</em> or <em>kmax/ewald</em> or <em>mesh</em> or <em>minorder</em> or <em>mix/disp</em> or <em>order/disp</em> or <em>order</em> or <em>overlap</em> or <em>scafacos</em> or <em>slab</em> or <em>splittol</em></p>
+<pre class="literal-block"><em>collective</em> value = <em>yes</em> or <em>no</em>
+<em>compute</em> value = <em>yes</em> or <em>no</em>
+<em>cutoff/adjust</em> value = <em>yes</em> or <em>no</em>
+<em>diff</em> value = <em>ad</em> or <em>ik</em> = 2 or 4 FFTs for PPPM in smoothed or non-smoothed mode
+<em>disp/auto</em> value = yes or no
+<em>fftbench</em> value = <em>yes</em> or <em>no</em>
+<em>force/disp/real</em> value = accuracy (force units)
+<em>force/disp/kspace</em> value = accuracy (force units)
+<em>force</em> value = accuracy (force units)
+<em>gewald</em> value = rinv (1/distance units)
+  rinv = G-ewald parameter for Coulombics
+<em>gewald/disp</em> value = rinv (1/distance units)
+  rinv = G-ewald parameter for dispersion
+<em>kmax/ewald</em> value = kx ky kz
+  kx,ky,kz = number of Ewald sum kspace vectors in each dimension
+<em>mesh</em> value = x y z
+  x,y,z = grid size in each dimension for long-range Coulombics
+<em>mesh/disp</em> value = x y z
+  x,y,z = grid size in each dimension for 1/r^6 dispersion
+<em>minorder</em> value = M
+  M = min allowed extent of Gaussian when auto-adjusting to minimize grid communication
+<em>mix/disp</em> value = <em>pair</em> or <em>geom</em> or <em>none</em>
+<em>order</em> value = N
+  N = extent of Gaussian for PPPM or MSM mapping of charge to grid
+<em>order/disp</em> value = N
+  N = extent of Gaussian for PPPM mapping of dispersion term to grid
+<em>overlap</em> = <em>yes</em> or <em>no</em> = whether the grid stencil for PPPM is allowed to overlap into more than the nearest-neighbor processor
+<em>pressure/scalar</em> value = <em>yes</em> or <em>no</em>
+<em>scafacos</em> values = option value1 value2 ...
+  option = <em>tolerance</em>
+    value = <em>energy</em> or <em>energy_rel</em> or <em>field</em> or <em>field_rel</em> or <em>potential</em> or <em>potential_rel</em>
+  option = <em>fmm_tuning</em>
+    value = <em>0</em> or <em>1</em>
+<em>slab</em> value = volfactor or <em>nozforce</em>
+  volfactor = ratio of the total extended volume used in the
+    2d approximation compared with the volume of the simulation domain
+  <em>nozforce</em> turns off kspace forces in the z direction
+<em>splittol</em> value = tol
+  tol = relative size of two eigenvalues (see discussion below)</pre>
+</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">kspace_modify</span><span class="w"> </span><span class="n">mesh</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="n">order</span><span class="w"> </span><span class="m">6</span><span class="w"></span>
+<span class="k">kspace_modify</span><span class="w"> </span><span class="n">slab</span><span class="w"> </span><span class="m">3.0</span><span class="w"></span>
+<span class="k">kspace_modify</span><span class="w"> </span><span class="n">scafacos</span><span class="w"> </span><span class="n">tolerance</span><span class="w"> </span><span class="n">energy</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Set parameters used by the kspace solvers defined by the
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command.  Not all parameters are
+relevant to all kspace styles.</p>
+<hr class="docutils" />
+<p>The <em>collective</em> keyword applies only to PPPM.  It is set to <em>no</em> by
+default, except on IBM BlueGene machines.  If this option is set to
+<em>yes</em>, LAMMPS will use MPI collective operations to remap data for
+3d-FFT operations instead of the default point-to-point communication.
+This is faster on IBM BlueGene machines, and may also be faster on
+other machines if they have an efficient implementation of MPI
+collective operations and adequate hardware.</p>
+<hr class="docutils" />
+<p>The <em>compute</em> keyword allows Kspace computations to be turned off,
+even though a <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> is defined.  This is
+not useful for running a real simulation, but can be useful for
+debugging purposes or for computing only partial forces that do not
+include the Kspace contribution.  You can also do this by simply not
+defining a <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>, but a Kspace-compatible
+<a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> requires a kspace style to be defined.
+This keyword gives you that option.</p>
+<hr class="docutils" />
+<p>The <em>cutoff/adjust</em> keyword applies only to MSM. If this option is
+turned on, the Coulombic cutoff will be automatically adjusted at the
+beginning of the run to give the desired estimated error. Other
+cutoffs such as LJ will not be affected. If the grid is not set using
+the <em>mesh</em> command, this command will also attempt to use the optimal
+grid that minimizes cost using an estimate given by
+<a class="reference internal" href="#hardy1"><span class="std std-ref">(Hardy)</span></a>. Note that this cost estimate is not exact, somewhat
+experimental, and still may not yield the optimal parameters.</p>
+<hr class="docutils" />
+<p>The <em>diff</em> keyword specifies the differentiation scheme used by the
+PPPM method to compute forces on particles given electrostatic
+potentials on the PPPM mesh.  The <em>ik</em> approach is the default for
+PPPM and is the original formulation used in <a class="reference internal" href="#hockney1"><span class="std std-ref">(Hockney)</span></a>.  It
+performs differentiation in Kspace, and uses 3 FFTs to transfer each
+component of the computed fields back to real space for total of 4
+FFTs per timestep.</p>
+<p>The analytic differentiation <em>ad</em> approach uses only 1 FFT to transfer
+information back to real space for a total of 2 FFTs per timestep.  It
+then performs analytic differentiation on the single quantity to
+generate the 3 components of the electric field at each grid point.
+This is sometimes referred to as “smoothed” PPPM.  This approach
+requires a somewhat larger PPPM mesh to achieve the same accuracy as
+the <em>ik</em> method. Currently, only the <em>ik</em> method (default) can be
+used for a triclinic simulation cell with PPPM. The <em>ad</em> method is
+always used for MSM.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently, not all PPPM styles support the <em>ad</em> option.  Support
+for those PPPM variants will be added later.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>disp/auto</em> option controls whether the pppm/disp is allowed to
+generate PPPM parameters automatically. If set to <em>no</em>, parameters have
+to be specified using the <em>gewald/disp</em>, <em>mesh/disp</em>,
+<em>force/disp/real</em> or <em>force/disp/kspace</em> keywords, or
+the code will stop with an error message. When this option is set to
+<em>yes</em>, the error message will not appear and the simulation will start.
+For a typical application, using the automatic parameter generation
+will provide simulations that are either inaccurate or slow. Using this
+option is thus not recommended. For guidelines on how to obtain good
+parameters, see the <a class="reference internal" href="Howto_dispersion.html"><span class="doc">How-To</span></a> discussion.</p>
+<hr class="docutils" />
+<p>The <em>fftbench</em> keyword applies only to PPPM. It is off by default. If
+this option is turned on, LAMMPS will perform a short FFT benchmark
+computation and report its timings, and will thus finish some seconds
+later than it would if this option were off.</p>
+<hr class="docutils" />
+<p>The <em>force/disp/real</em> and <em>force/disp/kspace</em> keywords set the force
+accuracy for the real and reciprocal space computations for the dispersion
+part of pppm/disp. As shown in <a class="reference internal" href="#isele-holder1"><span class="std std-ref">(Isele-Holder)</span></a>,
+optimal performance and accuracy in the results is obtained when these
+values are different.</p>
+<hr class="docutils" />
+<p>The <em>force</em> keyword overrides the relative accuracy parameter set by
+the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command with an absolute
+accuracy.  The accuracy determines the RMS error in per-atom forces
+calculated by the long-range solver and is thus specified in force
+units.  A negative value for the accuracy setting means to use the
+relative accuracy parameter.  The accuracy setting is used in
+conjunction with the pairwise cutoff to determine the number of
+K-space vectors for style <em>ewald</em>, the FFT grid size for style
+<em>pppm</em>, or the real space grid size for style <em>msm</em>.</p>
+<hr class="docutils" />
+<p>The <em>gewald</em> keyword sets the value of the Ewald or PPPM G-ewald
+parameter for charge as <em>rinv</em> in reciprocal distance units.  Without
+this setting, LAMMPS chooses the parameter automatically as a function
+of cutoff, precision, grid spacing, etc.  This means it can vary from
+one simulation to the next which may not be desirable for matching a
+KSpace solver to a pre-tabulated pairwise potential.  This setting can
+also be useful if Ewald or PPPM fails to choose a good grid spacing
+and G-ewald parameter automatically.  If the value is set to 0.0,
+LAMMPS will choose the G-ewald parameter automatically.  MSM does not
+use the <em>gewald</em> parameter.</p>
+<hr class="docutils" />
+<p>The <em>gewald/disp</em> keyword sets the value of the Ewald or PPPM G-ewald
+parameter for dispersion as <em>rinv</em> in reciprocal distance units.  It
+has the same meaning as the <em>gewald</em> setting for Coulombics.</p>
+<hr class="docutils" />
+<p>The <em>kmax/ewald</em> keyword sets the number of kspace vectors in each
+dimension for kspace style <em>ewald</em>.  The three values must be positive
+integers, or else (0,0,0), which unsets the option.  When this option
+is not set, the Ewald sum scheme chooses its own kspace vectors,
+consistent with the user-specified accuracy and pairwise cutoff. In
+any case, if kspace style <em>ewald</em> is invoked, the values used are
+printed to the screen and the log file at the start of the run.</p>
+<hr class="docutils" />
+<p>The <em>mesh</em> keyword sets the grid size for kspace style <em>pppm</em> or
+<em>msm</em>.  In the case of PPPM, this is the FFT mesh, and each dimension
+must be factorizable into powers of 2, 3, and 5.  In the case of MSM,
+this is the finest scale real-space mesh, and each dimension must be
+factorizable into powers of 2.  When this option is not set, the PPPM
+or MSM solver chooses its own grid size, consistent with the
+user-specified accuracy and pairwise cutoff.  Values for x,y,z of
+0,0,0 unset the option.</p>
+<hr class="docutils" />
+<p>The <em>mesh/disp</em> keyword sets the grid size for kspace style
+<em>pppm/disp</em>.  This is the FFT mesh for long-range dispersion and ach
+dimension must be factorizable into powers of 2, 3, and 5.  When this
+option is not set, the PPPM solver chooses its own grid size,
+consistent with the user-specified accuracy and pairwise cutoff.
+Values for x,y,z of 0,0,0 unset the option.</p>
+<hr class="docutils" />
+<p>The <em>minorder</em> keyword allows LAMMPS to reduce the <em>order</em> setting if
+necessary to keep the communication of ghost grid point limited to
+exchanges between nearest-neighbor processors.  See the discussion of
+the <em>overlap</em> keyword for details.  If the <em>overlap</em> keyword is set to
+<em>yes</em>, which is the default, this is never needed.  If it set to <em>no</em>
+and overlap occurs, then LAMMPS will reduce the order setting, one
+step at a time, until the ghost grid overlap only extends to nearest
+neighbor processors.  The <em>minorder</em> keyword limits how small the
+<em>order</em> setting can become.  The minimum allowed value for PPPM is 2,
+which is the default.  If <em>minorder</em> is set to the same value as
+<em>order</em> then no reduction is allowed, and LAMMPS will generate an
+error if the grid communication is non-nearest-neighbor and <em>overlap</em>
+is set to <em>no</em>. The <em>minorder</em> keyword is not currently supported in
+MSM.</p>
+<hr class="docutils" />
+<p>The <em>mix/disp</em> keyword selects the mixing rule for the dispersion
+coefficients.  With <em>pair</em>, the dispersion coefficients of unlike
+types are computed as indicated with <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a>.
+With <em>geom</em>, geometric mixing is enforced on the dispersion
+coefficients in the kspace coefficients. When using the arithmetic
+mixing rule, this will speed-up the simulations but introduces some
+error in the force computations, as shown in <a class="reference internal" href="#wennberg"><span class="std std-ref">(Wennberg)</span></a>.
+With <em>none</em>, it is assumed that no mixing rule is
+applicable. Splitting of the dispersion coefficients will be performed
+as described in <a class="reference internal" href="#isele-holder1"><span class="std std-ref">(Isele-Holder)</span></a>.</p>
+<p>This splitting can be influenced with the <em>splittol</em> keywords.  Only
+the eigenvalues that are larger than tol compared to the largest
+eigenvalues are included. Using this keywords the original matrix of
+dispersion coefficients is approximated. This leads to faster
+computations, but the accuracy in the reciprocal space computations of
+the dispersion part is decreased.</p>
+<hr class="docutils" />
+<p>The <em>order</em> keyword determines how many grid spacings an atom’s charge
+extends when it is mapped to the grid in kspace style <em>pppm</em> or <em>msm</em>.
+The default for this parameter is 5 for PPPM and 8 for MSM, which
+means each charge spans 5 or 8 grid cells in each dimension,
+respectively.  For the LAMMPS implementation of MSM, the order can
+range from 4 to 10 and must be even. For PPPM, the minimum allowed
+setting is 2 and the maximum allowed setting is 7.  The larger the
+value of this parameter, the smaller that LAMMPS will set the grid
+size, to achieve the requested accuracy.  Conversely, the smaller the
+order value, the larger the grid size will be.  Note that there is an
+inherent trade-off involved: a small grid will lower the cost of FFTs
+or MSM direct sum, but a larger order parameter will increase the cost
+of interpolating charge/fields to/from the grid.</p>
+<p>The PPPM order parameter may be reset by LAMMPS when it sets up the
+FFT grid if the implied grid stencil extends beyond the grid cells
+owned by neighboring processors.  Typically this will only occur when
+small problems are run on large numbers of processors.  A warning will
+be generated indicating the order parameter is being reduced to allow
+LAMMPS to run the problem. Automatic adjustment of the order parameter
+is not supported in MSM.</p>
+<hr class="docutils" />
+<p>The <em>order/disp</em> keyword determines how many grid spacings an atom’s
+dispersion term extends when it is mapped to the grid in kspace style
+<em>pppm/disp</em>.  It has the same meaning as the <em>order</em> setting for
+Coulombics.</p>
+<hr class="docutils" />
+<p>The <em>overlap</em> keyword can be used in conjunction with the <em>minorder</em>
+keyword with the PPPM styles to adjust the amount of communication
+that occurs when values on the FFT grid are exchanged between
+processors.  This communication is distinct from the communication
+inherent in the parallel FFTs themselves, and is required because
+processors interpolate charge and field values using grid point values
+owned by neighboring processors (i.e. ghost point communication).  If
+the <em>overlap</em> keyword is set to <em>yes</em> then this communication is
+allowed to extend beyond nearest-neighbor processors, e.g. when using
+lots of processors on a small problem.  If it is set to <em>no</em> then the
+communication will be limited to nearest-neighbor processors and the
+<em>order</em> setting will be reduced if necessary, as explained by the
+<em>minorder</em> keyword discussion. The <em>overlap</em> keyword is always set to
+<em>yes</em> in MSM.</p>
+<hr class="docutils" />
+<p>The <em>pressure/scalar</em> keyword applies only to MSM. If this option is
+turned on, only the scalar pressure (i.e. (Pxx + Pyy + Pzz)/3.0) will
+be computed, which can be used, for example, to run an isotropic barostat.
+Computing the full pressure tensor with MSM is expensive, and this option
+provides a faster alternative. The scalar pressure is computed using a
+relationship between the Coulombic energy and pressure <a class="reference internal" href="#hummer"><span class="std std-ref">(Hummer)</span></a>
+instead of using the virial equation. This option cannot be used to access
+individual components of the pressure tensor, to compute per-atom virial,
+or with suffix kspace/pair styles of MSM, like OMP or GPU.</p>
+<hr class="docutils" />
+<p>The <em>scafacos</em> keyword is used for settings that are passed to the
+ScaFaCoS library when using <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style scafacos</span></a>.</p>
+<p>The <em>tolerance</em> option affects how the <em>accuracy</em> specified with the
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command is interpreted by ScaFaCoS.
+The following values may be used:</p>
+<ul class="simple">
+<li><p>energy = absolute accuracy in total Coulombic energy</p></li>
+<li><p>energy_rel = relative accuracy in total Coulombic energy</p></li>
+<li><p>potential = absolute accuracy in total Coulombic potential</p></li>
+<li><p>potential_rel = relative accuracy in total Coulombic potential</p></li>
+<li><p>field = absolute accuracy in electric field</p></li>
+<li><p>field_rel = relative accuracy in electric field</p></li>
+</ul>
+<p>The values with suffix _rel indicate the tolerance is a relative
+tolerance; the other values impose an absolute tolerance on the given
+quantity. Absolute tolerance in this case means, that for a given
+quantity q and a given absolute tolerance of t_a the result should
+be between q-t_a and q+t_a. For a relative tolerance t_r the relative
+error should not be greater than t_r, i.e. abs(1 - (result/q)) &lt; t_r.
+As a consequence of this, the tolerance type should be checked, when
+performing computations with a high absolute field / energy. E.g.
+if the total energy in the system is 1000000.0 an absolute tolerance
+of 1e-3 would mean that the result has to be between 999999.999 and
+1000000.001, which would be equivalent to a relative tolerance of
+1e-9.</p>
+<p>The energy and energy_rel values, set a tolerance based on the total
+Coulombic energy of the system.  The potential and potential_rel set a
+tolerance based on the per-atom Coulombic energy.  The field and
+field_rel tolerance types set a tolerance based on the electric field
+values computed by ScaFaCoS.  Since per-atom forces are derived from
+the per-atom electric field, this effectively sets a tolerance on the
+forces, similar to other LAMMPS KSpace styles, as explained on the
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> doc page.</p>
+<p>Note that not all ScaFaCoS solvers support all tolerance types.
+These are the allowed values for each method:</p>
+<ul class="simple">
+<li><p>fmm = energy and energy_rel</p></li>
+<li><p>p2nfft = field (1d-,2d-,3d-periodic systems) or potential (0d-periodic)</p></li>
+<li><p>p3m = field</p></li>
+<li><p>ewald = field</p></li>
+<li><p>direct = has no tolerance tuning</p></li>
+</ul>
+<p>If the tolerance type is not changed, the default values for the
+tolerance type are the first values in the above list, e.g. energy
+is the default tolerance type for the fmm solver.</p>
+<p>The <em>fmm_tuning</em> option is only relevant when using the FMM method.
+It activates (value=1) or deactivates (value=0) an internal tuning
+mechanism for the FMM solver.  The tuning operation runs sequentially
+and can be very time-consuming.  Usually it is not needed for systems
+with a homogeneous charge distribution. The default for this option is
+therefore <em>0</em>. The FMM internal tuning is performed once, when the
+solver is set up.</p>
+<hr class="docutils" />
+<p>The <em>slab</em> keyword allows an Ewald or PPPM solver to be used for a
+systems that are periodic in x,y but non-periodic in z - a
+<a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> setting of “boundary p p f”.  This is done by
+treating the system as if it were periodic in z, but inserting empty
+volume between atom slabs and removing dipole inter-slab interactions
+so that slab-slab interactions are effectively turned off.  The
+volfactor value sets the ratio of the extended dimension in z divided
+by the actual dimension in z.  The recommended value is 3.0.  A larger
+value is inefficient; a smaller value introduces unwanted slab-slab
+interactions.  The use of fixed boundaries in z means that the user
+must prevent particle migration beyond the initial z-bounds, typically
+by providing a wall-style fix.  The methodology behind the <em>slab</em>
+option is explained in the paper by <a class="reference internal" href="#yeh"><span class="std std-ref">(Yeh)</span></a>.  The <em>slab</em> option
+is also extended to non-neutral systems <a class="reference internal" href="#ballenegger"><span class="std std-ref">(Ballenegger)</span></a>.</p>
+<p>An alternative slab option can be invoked with the <em>nozforce</em> keyword
+in lieu of the volfactor.  This turns off all kspace forces in the z
+direction.  The <em>nozforce</em> option is not supported by MSM. For MSM,
+any combination of periodic, non-periodic, or shrink-wrapped
+boundaries can be set using <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> (the slab
+approximation in not needed).  The <em>slab</em> keyword is not currently
+supported by Ewald or PPPM when using a triclinic simulation cell. The
+slab correction has also been extended to point dipole interactions
+<a class="reference internal" href="#klapp"><span class="std std-ref">(Klapp)</span></a> in <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> <em>ewald/disp</em>,
+<em>ewald/dipole</em>, and <em>pppm/dipole</em>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you wish to apply an electric field in the Z-direction, in
+conjunction with the <em>slab</em> keyword, you should do it by adding
+explicit charged particles to the +/- Z surfaces.  If you do it via
+the <a class="reference internal" href="fix_efield.html"><span class="doc">fix efield</span></a> command, it will not give the correct
+dielectric constant due to the Yeh/Berkowitz <a class="reference internal" href="#yeh"><span class="std std-ref">(Yeh)</span></a> correction
+not being compatible with how <a class="reference internal" href="fix_efield.html"><span class="doc">fix efield</span></a> works.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>force/disp/real</em> and <em>force/disp/kspace</em> keywords set the force
+accuracy for the real and reciprocal space computations for the dispersion
+part of pppm/disp. As shown in <a class="reference internal" href="#isele-holder1"><span class="std std-ref">(Isele-Holder)</span></a>,
+optimal performance and accuracy in the results is obtained when these
+values are different.</p>
+<p>The <em>disp/auto</em> option controls whether the pppm/disp is allowed to
+generate PPPM parameters automatically. If set to <em>no</em>, parameters
+have to be specified using the <em>gewald/disp</em>, <em>mesh/disp</em>,
+<em>force/disp/real</em> or <em>force/disp/kspace</em> keywords, or the code will
+stop with an error message. When this option is set to <em>yes</em>, the
+error message will not appear and the simulation will start.  For a
+typical application, using the automatic parameter generation will
+provide simulations that are either inaccurate or slow. Using this
+option is thus not recommended.  For guidelines on how to obtain good
+parameters, see the <a class="reference internal" href="Howto_dispersion.html"><span class="doc">Howto dispersion</span></a> doc page.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>none</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>, <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
+5 (PPPM), order = 10 (MSM), minorder = 2, overlap = yes, force = -1.0,
+gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
+yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff =
+ik (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace
+= -1.0, split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel,
+order = order/disp = 7.  For scafacos settings, the scafacos tolerance
+option depends on the method chosen, as documented above.  The
+scafacos fmm_tuning default = 0.</p>
+<hr class="docutils" />
+<p id="hockney1"><strong>(Hockney)</strong> Hockney and Eastwood, Computer Simulation Using Particles,
+Adam Hilger, NY (1989).</p>
+<p id="yeh"><strong>(Yeh)</strong> Yeh and Berkowitz, J Chem Phys, 111, 3155 (1999).</p>
+<p id="ballenegger"><strong>(Ballenegger)</strong> Ballenegger, Arnold, Cerda, J Chem Phys, 131, 094107
+(2009).</p>
+<p id="klapp"><strong>(Klapp)</strong> Klapp, Schoen, J Chem Phys, 117, 8050 (2002).</p>
+<p id="hardy1"><strong>(Hardy)</strong> David Hardy thesis: Multilevel Summation for the Fast
+Evaluation of Forces for the Simulation of Biomolecules, University of
+Illinois at Urbana-Champaign, (2006).</p>
+<p id="hummer"><strong>(Hummer)</strong> Hummer, Gronbech-Jensen, Neumann, J Chem Phys, 109, 2791 (1998)</p>
+<p id="isele-holder1"><strong>(Isele-Holder)</strong> Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
+Chem Theory Comput, 9, 5412 (2013).</p>
+<p id="wennberg"><strong>(Wennberg)</strong> Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
+9, 3527 (2013).</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="kspace_style.html" class="btn btn-neutral float-right" title="kspace_style command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="kim_commands.html" class="btn btn-neutral float-left" title="kim_init command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

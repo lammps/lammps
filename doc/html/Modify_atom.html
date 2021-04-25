@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3.3. Atom styles &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.4. Pair styles" href="Modify_pair.html" />
+    <link rel="prev" title="3.2. Submitting new features for inclusion in LAMMPS" href="Modify_contribute.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Modify_overview.html">3.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_contribute.html">3.2. Submitting new features for inclusion in LAMMPS</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.3. Atom styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_pair.html">3.4. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_bond.html">3.5. Bond, angle, dihedral, improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_compute.html">3.6. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_fix.html">3.7. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_command.html">3.8. Input script command style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_dump.html">3.9. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_kspace.html">3.10. Kspace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_min.html">3.11. Minimization styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_region.html">3.12. Region styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_body.html">3.13. Body styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_thermo.html">3.14. Thermodynamic output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_variable.html">3.15. Variable options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Modify.html"><span class="section-number">3. </span>Modifying &amp; extending LAMMPS</a> &raquo;</li>
+        
+      <li><span class="section-number">3.3. </span>Atom styles</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Modify_pair.html" class="btn btn-neutral float-right" title="3.4. Pair styles" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Modify_contribute.html" class="btn btn-neutral float-left" title="3.2. Submitting new features for inclusion in LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="atom-styles">
+<h1><span class="section-number">3.3. </span>Atom styles<a class="headerlink" href="#atom-styles" title="Permalink to this headline">¶</a></h1>
+<p>Classes that define an <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> are derived from
+the AtomVec class and managed by the Atom class.  The atom style
+determines what attributes are associated with an atom and
+communicated when it is a ghost atom or migrates to a new processor.
+A new atom style can be created if one of the existing atom styles
+does not define all the attributes you need to store and communicate
+with atoms.</p>
+<p>Atom_vec_atomic.cpp is the simplest example of an atom style.
+Examining the code for others will make these instructions more clear.</p>
+<p>Note that the <a class="reference internal" href="atom_style.html"><span class="doc">atom style hybrid</span></a> command can be
+used to define atoms or particles which have the union of properties
+of individual styles.  Also the <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a>
+command can be used to add a single property (e.g. charge
+or a molecule ID) to a style that does not have it.  It can also be
+used to add custom properties to an atom, with options to communicate
+them with ghost atoms or read them from a data file.  Other LAMMPS
+commands can access these custom properties, as can new pair, fix,
+compute styles that are written to work with these properties.  For
+example, the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command can be used to set the values of
+custom per-atom properties from an input script.  All of these methods
+are less work than writing code for a new atom style.</p>
+<p>If you follow these directions your new style will automatically work
+in tandem with others via the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style hybrid</span></a>
+command.</p>
+<p>The first step is to define a set of strings in the constructor of the
+new derived class.  Each string will have zero or more space-separated
+variable names which are identical to those used in the atom.h header
+file for per-atom properties.  Note that some represent per-atom
+vectors (q, molecule) while other are per-atom arrays (x,v).  For all
+but the last 2 strings you do not need to specify any of
+(id,type,x,v,f).  Those are included automatically as needed in the
+other strings.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>fields_grow</p></td>
+<td><p>full list of properties which is allocated and stored</p></td>
+</tr>
+<tr class="row-even"><td><p>fields_copy</p></td>
+<td><p>list of properties to copy atoms are rearranged on-processor</p></td>
+</tr>
+<tr class="row-odd"><td><p>fields_comm</p></td>
+<td><p>list of properties communicated to ghost atoms every step</p></td>
+</tr>
+<tr class="row-even"><td><p>fields_comm_vel</p></td>
+<td><p>additional properties communicated if <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel</span></a> is used</p></td>
+</tr>
+<tr class="row-odd"><td><p>fields_reverse</p></td>
+<td><p>list of properties summed from ghost atoms every step</p></td>
+</tr>
+<tr class="row-even"><td><p>fields_border</p></td>
+<td><p>list of properties communicated with ghost atoms every reneighboring step</p></td>
+</tr>
+<tr class="row-odd"><td><p>fields_border_vel</p></td>
+<td><p>additional properties communicated if <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel</span></a> is used</p></td>
+</tr>
+<tr class="row-even"><td><p>fields_exchange</p></td>
+<td><p>list of properties communicated when an atom migrates to another processor</p></td>
+</tr>
+<tr class="row-odd"><td><p>fields_restart</p></td>
+<td><p>list of properties written/read to/from a restart file</p></td>
+</tr>
+<tr class="row-even"><td><p>fields_create</p></td>
+<td><p>list of properties defined when an atom is created by <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>fields_data_atom</p></td>
+<td><p>list of properties (in order) in the Atoms section of a data file, as read by <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p>fields_data_vel</p></td>
+<td><p>list of properties (in order) in the Velocities section of a data file, as read by <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<p>In these strings you can list variable names which LAMMPS already
+defines (in some other atom style), or you can create new variable
+names.  You should not re-use a LAMMPS variable for something with
+different meaning in your atom style.  If the meaning is related, but
+interpreted differently by your atom style, then using the same
+variable name means a user should not use your style and the other
+style together in a <a class="reference internal" href="atom_style.html"><span class="doc">atom_style hybrid</span></a> command.
+Because there will only be one value of the variable and different
+parts of LAMMPS will then likely use it differently.  LAMMPS has
+no way of checking for this.</p>
+<p>If you are defining new variable names then make them descriptive and
+unique to your new atom style.  For example choosing “e” for energy is
+a bad choice; it is too generic.  A better choice would be “e_foo”,
+where “foo” is specific to your style.</p>
+<p>If any of the variable names in your new atom style do not exist in
+LAMMPS, you need to add them to the src/atom.h and atom.cpp files.</p>
+<p>Search for the word “customize” or “customization” in these 2 files to
+see where to add your variable.  Adding a flag to the 2nd
+customization section in atom.h is only necessary if your code (e.g. a
+pair style) needs to check that a per-atom property is defined.  These
+flags should also be set in the constructor of the atom style child
+class.</p>
+<p>In atom.cpp, aside from the constructor and destructor, there are 3
+methods that a new variable name or flag needs to be added to.</p>
+<p>In Atom::peratom_create() when using the add_peratom() method, a
+final length argument of 0 is for per-atom vectors, a length &gt; 1 is
+for per-atom arrays.  Note the use of an extra per-thread flag and the
+add_peratom_vary() method when last dimension of the array is
+variable-length.</p>
+<p>Adding the variable name to Atom::extract() enable the per-atom data
+to be accessed through the <a class="reference internal" href="Howto_library.html"><span class="doc">LAMMPS library interface</span></a> by a calling code, including from <a class="reference internal" href="Python_head.html"><span class="doc">Python</span></a>.</p>
+<p>The constructor of the new atom style will also typically set a few
+flags which are defined at the top of atom_vec.h.  If these are
+unclear, see how other atom styles use them.</p>
+<p>The grow_pointers() method is also required to make
+a copy of peratom data pointers, as explained in the code.</p>
+<p>There are a number of other optional methods which your atom style can
+implement.  These are only needed if you need to do something
+out-of-the-ordinary which the default operation of the AtomVec parent
+class does not take care of.  The best way to figure out why they are
+sometimes useful is to look at how other atom styles use them.</p>
+<ul class="simple">
+<li><p>process_args = use if the atom style has arguments</p></li>
+<li><p>init = called before each run</p></li>
+<li><p>force_clear = called before force computations each timestep</p></li>
+</ul>
+<p>A few atom styles define “bonus” data associated with some or all of
+their particles, such as <a class="reference internal" href="atom_style.html"><span class="doc">atom_style ellipsoid or tri</span></a>.  These methods work with that data:</p>
+<ul class="simple">
+<li><p>copy_bonus</p></li>
+<li><p>clear_bonus</p></li>
+<li><p>pack_comm_bonus</p></li>
+<li><p>unpack_comm_bonus</p></li>
+<li><p>pack_border_bonus</p></li>
+<li><p>unpack_border_bonus</p></li>
+<li><p>pack_exchange_bonus</p></li>
+<li><p>unpack_exchange_bonus</p></li>
+<li><p>size_restart_bonus</p></li>
+<li><p>pack_restart_bonus</p></li>
+<li><p>unpack_restart_bonus</p></li>
+<li><p>data_atom_bonus</p></li>
+<li><p>memory_usage_bonus</p></li>
+</ul>
+<p>The <a class="reference internal" href="atom_style.html"><span class="doc">atom_style body</span></a> command can define a particle
+geometry with an arbitrary number of values.  This method reads it
+from a data file:</p>
+<ul class="simple">
+<li><p>data_body</p></li>
+</ul>
+<p>These methods are called before or after operations handled by the
+parent AtomVec class.  They allow an atom style to do customized
+operations on the per-atom values.  For example <a class="reference internal" href="atom_style.html"><span class="doc">atom_style
+sphere</span></a> reads a diameter and density of each particle
+from a data file.  But these need to be converted internally to a
+radius and mass.  That operation is done in the data_atom_post()
+method.</p>
+<ul class="simple">
+<li><p>pack_restart_pre</p></li>
+<li><p>pack_restart_post</p></li>
+<li><p>unpack_restart_init</p></li>
+<li><p>create_atom_post</p></li>
+<li><p>data_atom_post</p></li>
+<li><p>pack_data_pre</p></li>
+<li><p>pack_data_post</p></li>
+</ul>
+<p>These methods enable the <a class="reference internal" href="compute_property_atom.html"><span class="doc">compute property/atom</span></a>
+command to access per-atom variables it does not
+already define as arguments, so that they can be written to a dump
+file or used by other LAMMPS commands.</p>
+<ul class="simple">
+<li><p>property_atom</p></li>
+<li><p>pack_property_atom</p></li>
+</ul>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Modify_pair.html" class="btn btn-neutral float-right" title="3.4. Pair styles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Modify_contribute.html" class="btn btn-neutral float-left" title="3.2. Submitting new features for inclusion in LAMMPS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>8.4.1. CHARMM, AMBER, COMPASS, and DREIDING force fields &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="8.4.2. TIP3P water model" href="Howto_tip3p.html" />
+    <link rel="prev" title="8.3.7. Calculate diffusion coefficients" href="Howto_diffusion.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">8. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">8.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">8.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">8.3. Analysis howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#force-fields-howto">8.4. Force fields howto</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">8.4.1. CHARMM, AMBER, COMPASS, and DREIDING force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip3p.html">8.4.2. TIP3P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip4p.html">8.4.3. TIP4P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spc.html">8.4.4. SPC water model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">8.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">8.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Howto.html"><span class="section-number">8. </span>Howto discussions</a> &raquo;</li>
+        
+      <li><span class="section-number">8.4.1. </span>CHARMM, AMBER, COMPASS, and DREIDING force fields</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Howto_tip3p.html" class="btn btn-neutral float-right" title="8.4.2. TIP3P water model" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Howto_diffusion.html" class="btn btn-neutral float-left" title="8.3.7. Calculate diffusion coefficients" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="charmm-amber-compass-and-dreiding-force-fields">
+<h1><span class="section-number">8.4.1. </span>CHARMM, AMBER, COMPASS, and DREIDING force fields<a class="headerlink" href="#charmm-amber-compass-and-dreiding-force-fields" title="Permalink to this headline">¶</a></h1>
+<p>A force field has 2 parts: the formulas that define it and the
+coefficients used for a particular system.  Here we only discuss
+formulas implemented in LAMMPS that correspond to formulas commonly
+used in the CHARMM, AMBER, COMPASS, and DREIDING force fields.  Setting
+coefficients is done either from special sections in an input data file
+via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command or in the input script with
+commands like <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> or
+<a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a> and so on.  See the <a class="reference internal" href="Tools.html"><span class="doc">Tools</span></a> doc
+page for additional tools that can use CHARMM, AMBER, or Materials
+Studio generated files to assign force field coefficients and convert
+their output into LAMMPS input.</p>
+<p>See <a class="reference internal" href="#howto-mackerell"><span class="std std-ref">(MacKerell)</span></a> for a description of the CHARMM force
+field.  See <a class="reference internal" href="#howto-cornell"><span class="std std-ref">(Cornell)</span></a> for a description of the AMBER
+force field.  See <a class="reference internal" href="#howto-sun"><span class="std std-ref">(Sun)</span></a> for a description of the COMPASS
+force field.</p>
+<p>The interaction styles listed below compute force field formulas that
+are consistent with common options in CHARMM or AMBER.  See each
+command’s documentation for the formula it computes.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_harmonic.html"><span class="doc">bond_style</span></a> harmonic</p></li>
+<li><p><a class="reference internal" href="angle_charmm.html"><span class="doc">angle_style</span></a> charmm</p></li>
+<li><p><a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral_style</span></a> charmmfsh</p></li>
+<li><p><a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral_style</span></a> charmm</p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style</span></a> lj/charmmfsw/coul/charmmfsh</p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style</span></a> lj/charmmfsw/coul/long</p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style</span></a> lj/charmm/coul/charmm</p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style</span></a> lj/charmm/coul/charmm/implicit</p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style</span></a> lj/charmm/coul/long</p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> charmm</p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> amber</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For CHARMM, newer <em>charmmfsw</em> or <em>charmmfsh</em> styles were released
+in March 2017.  We recommend they be used instead of the older <em>charmm</em>
+styles.  See discussion of the differences on the <a class="reference internal" href="pair_charmm.html"><span class="doc">pair charmm</span></a> and <a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral charmm</span></a> doc
+pages.</p>
+</div>
+<p>COMPASS is a general force field for atomistic simulation of common
+organic molecules, inorganic small molecules, and polymers which was
+developed using ab initio and empirical parameterization techniques.
+See the <a class="reference internal" href="Tools.html"><span class="doc">Tools</span></a> doc page for the msi2lmp tool for creating
+LAMMPS template input and data files from BIOVIA’s Materials Studio
+files.  Please note that the msi2lmp tool is very old and largely
+unmaintained, so it does not support all features of Materials Studio
+provided force field files, especially additions during the last decade.
+You should watch the output carefully and compare results, where
+possible.  See <a class="reference internal" href="#howto-sun"><span class="std std-ref">(Sun)</span></a> for a description of the COMPASS force
+field.</p>
+<p>These interaction styles listed below compute force field formulas that
+are consistent with the COMPASS force field.  See each command’s
+documentation for the formula it computes.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_class2.html"><span class="doc">bond_style</span></a> class2</p></li>
+<li><p><a class="reference internal" href="angle_class2.html"><span class="doc">angle_style</span></a> class2</p></li>
+<li><p><a class="reference internal" href="dihedral_class2.html"><span class="doc">dihedral_style</span></a> class2</p></li>
+<li><p><a class="reference internal" href="improper_class2.html"><span class="doc">improper_style</span></a> class2</p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style</span></a> lj/class2</p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style</span></a> lj/class2/coul/cut</p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style</span></a> lj/class2/coul/long</p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> lj/coul 0 0 1</p></li>
+</ul>
+<p>DREIDING is a generic force field developed by the <a class="reference external" href="http://www.wag.caltech.edu">Goddard group</a> at Caltech and is useful for
+predicting structures and dynamics of organic, biological and main-group
+inorganic molecules. The philosophy in DREIDING is to use general force
+constants and geometry parameters based on simple hybridization
+considerations, rather than individual force constants and geometric
+parameters that depend on the particular combinations of atoms involved
+in the bond, angle, or torsion terms. DREIDING has an <a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">explicit hydrogen bond term</span></a> to describe interactions involving a
+hydrogen atom on very electronegative atoms (N, O, F).</p>
+<p>See <a class="reference internal" href="#howto-mayo"><span class="std std-ref">(Mayo)</span></a> for a description of the DREIDING force field</p>
+<p>The interaction styles listed below compute force field formulas that
+are consistent with the DREIDING force field.  See each command’s
+documentation for the formula it computes.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_harmonic.html"><span class="doc">bond_style</span></a> harmonic</p></li>
+<li><p><a class="reference internal" href="bond_morse.html"><span class="doc">bond_style</span></a> morse</p></li>
+<li><p><a class="reference internal" href="angle_harmonic.html"><span class="doc">angle_style</span></a> harmonic</p></li>
+<li><p><a class="reference internal" href="angle_cosine.html"><span class="doc">angle_style</span></a> cosine</p></li>
+<li><p><a class="reference internal" href="angle_cosine_periodic.html"><span class="doc">angle_style</span></a> cosine/periodic</p></li>
+<li><p><a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral_style</span></a> charmm</p></li>
+<li><p><a class="reference internal" href="improper_umbrella.html"><span class="doc">improper_style</span></a> umbrella</p></li>
+<li><p><a class="reference internal" href="pair_buck.html"><span class="doc">pair_style</span></a> buck</p></li>
+<li><p><a class="reference internal" href="pair_buck.html"><span class="doc">pair_style</span></a> buck/coul/cut</p></li>
+<li><p><a class="reference internal" href="pair_buck.html"><span class="doc">pair_style</span></a> buck/coul/long</p></li>
+<li><p><a class="reference internal" href="pair_lj.html"><span class="doc">pair_style</span></a> lj/cut</p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">pair_style</span></a> lj/cut/coul/cut</p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">pair_style</span></a> lj/cut/coul/long</p></li>
+<li><p><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">pair_style</span></a> hbond/dreiding/lj</p></li>
+<li><p><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">pair_style</span></a> hbond/dreiding/morse</p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> dreiding</p></li>
+</ul>
+<hr class="docutils" />
+<p id="howto-mackerell"><strong>(MacKerell)</strong> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field,
+Fischer, Gao, Guo, Ha, et al, J Phys Chem, 102, 3586 (1998).</p>
+<p id="howto-cornell"><strong>(Cornell)</strong> Cornell, Cieplak, Bayly, Gould, Merz, Ferguson,
+Spellmeyer, Fox, Caldwell, Kollman, JACS 117, 5179-5197 (1995).</p>
+<p id="howto-sun"><strong>(Sun)</strong> Sun, J. Phys. Chem. B, 102, 7338-7364 (1998).</p>
+<p id="howto-mayo"><strong>(Mayo)</strong> Mayo, Olfason, Goddard III, J Phys Chem, 94, 8897-8909
+(1990).</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Howto_tip3p.html" class="btn btn-neutral float-right" title="8.4.2. TIP3P water model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Howto_diffusion.html" class="btn btn-neutral float-left" title="8.3.7. Calculate diffusion coefficients" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

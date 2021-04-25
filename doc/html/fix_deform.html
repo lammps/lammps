@@ -1,0 +1,1028 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix deform command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix deposit command" href="fix_deposit.html" />
+    <link rel="prev" title="fix controller command" href="fix_controller.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="fixes.html">Fixes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fix_accelerate_cos.html">fix accelerate/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt.html">fix adapt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt_fep.html">fix adapt/fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addforce.html">fix addforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque.html">fix addtorque command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_append_atoms.html">fix append/atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atc.html">fix atc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_swap.html">fix atom/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_atom.html">fix ave/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_chunk.html">fix ave/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate.html">fix ave/correlate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate_long.html">fix ave/correlate/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html">fix ave/histo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html#fix-ave-histo-weight-command">fix ave/histo/weight command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_time.html">fix ave/time command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_aveforce.html">fix aveforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_balance.html">fix balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bocs.html">fix bocs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_break.html">fix bond/break command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html">fix bond/create command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html#fix-bond-create-angle-command">fix bond/create/angle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_react.html">fix bond/react command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_swap.html">fix bond/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_box_relax.html">fix box/relax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_client_md.html">fix client/md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_cmap.html">fix cmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_colvars.html">fix colvars command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_controller.html">fix controller command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">fix deform command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-fix-modify-output-run-start-stop-minimize-info">Restart, fix_modify, output, run start/stop, minimize info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deposit.html">fix deposit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_energy.html">fix dpd/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html">fix edpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html#fix-tdpd-source-command">fix tdpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drag.html">fix drag command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude.html">fix drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html">fix drude/transform/direct command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html#fix-drude-transform-inverse-command">fix drude/transform/inverse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dt_reset.html">fix dt/reset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html">fix efield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ehex.html">fix ehex command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html">fix electron/stopping command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html#fix-electron-stopping-fit-command">fix electron/stopping/fit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_enforce2d.html">fix enforce2d command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_cv.html">fix eos/cv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table.html">fix eos/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table_rx.html">fix eos/table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_evaporate.html">fix evaporate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_external.html">fix external command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ffl.html">fix ffl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_filter_corotate.html">fix filter/corotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_flow_gauss.html">fix flow/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_freeze.html">fix freeze command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gcmc.html">fix gcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gld.html">fix gld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gle.html">fix gle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gravity.html">fix gravity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_grem.html">fix grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_halt.html">fix halt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat.html">fix heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_global.html">fix hyper/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_local.html">fix hyper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_imd.html">fix imd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_indent.html">fix indent command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ipi.html">fix ipi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin.html">fix langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_drude.html">fix langevin/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_eff.html">fix langevin/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_spin.html">fix langevin/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_latte.html">fix latte command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_fluid.html">fix lb/fluid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_momentum.html">fix lb/momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_pc.html">fix lb/pc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_rigid_pc_sphere.html">fix lb/rigid/pc/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_viscous.html">fix lb/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lineforce.html">fix lineforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_manifoldforce.html">fix manifoldforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_meso_move.html">fix meso/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html">fix momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html#fix-momentum-chunk-command">fix momentum/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_move.html">fix move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mscg.html">fix mscg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_msst.html">fix msst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html">fix mvv/dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-edpd-command">fix mvv/edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-tdpd-command">fix mvv/tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb.html">fix neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb_spin.html">fix neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html">fix nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-npt-command">fix npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-nph-command">fix nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html">fix nvt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-npt-eff-command">fix npt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-nph-eff-command">fix nph/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html">fix nvt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html#fix-npt-uef-command">fix npt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_asphere.html">fix nph/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_body.html">fix nph/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_sphere.html">fix nph/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nphug.html">fix nphug command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_asphere.html">fix npt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_body.html">fix npt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_cauchy.html">fix npt/cauchy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_sphere.html">fix npt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff.html">fix numdiff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve.html">fix nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere.html">fix nve/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere_noforce.html">fix nve/asphere/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_awpmd.html">fix nve/awpmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_body.html">fix nve/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dot.html">fix nve/dot command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dotc_langevin.html">fix nve/dotc/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_eff.html">fix nve/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_limit.html">fix nve/limit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_line.html">fix nve/line command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_manifold_rattle.html">fix nve/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_noforce.html">fix nve/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_sphere.html">fix nve/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_spin.html">fix nve/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_tri.html">fix nve/tri command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvk.html">fix nvk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_asphere.html">fix nvt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_body.html">fix nvt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_manifold_rattle.html">fix nvt/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod.html">fix nvt/sllod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod_eff.html">fix nvt/sllod/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sphere.html">fix nvt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_oneway.html">fix oneway command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html">fix orient/fcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html#fix-orient-bcc-command">fix orient/bcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient_eco.html">fix orient/eco command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pafi.html">fix pafi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_phonon.html">fix phonon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html">fix pimd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd4.html">fix pimd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_planeforce.html">fix planeforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_plumed.html">fix plumed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_poems.html">fix poems command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pour.html">fix pour command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_precession_spin.html">fix precession/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_berendsen.html">fix press/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_print.html">fix print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_propel_self.html">fix propel/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_property_atom.html">fix property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_invoke.html">fix python/invoke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_move.html">fix python/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qbmsst.html">fix qbmsst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html">fix qeq/point command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-shielded-command">fix qeq/shielded command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-slater-command">fix qeq/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-dynamic-command">fix qeq/dynamic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-fire-command">fix qeq/fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_comb.html">fix qeq/comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_reax.html">fix qeq/reax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qmmm.html">fix qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtb.html">fix qtb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxc_bonds.html">fix reax/c/bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxc_species.html">fix reax/c/species command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_recenter.html">fix recenter command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_restrain.html">fix restrain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rhok.html">fix rhok command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html">fix rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-command">fix rigid/nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-command">fix rigid/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-command">fix rigid/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-command">fix rigid/nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-small-command">fix rigid/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-small-command">fix rigid/nve/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-small-command">fix rigid/nvt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-small-command">fix rigid/npt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-small-command">fix rigid/nph/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid_meso.html">fix rigid/meso command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rx.html">fix rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_saed_vtk.html">fix saed/vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html">fix setforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html#fix-setforce-spin-command">fix setforce/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html">fix shake command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html#fix-rattle-command">fix rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shardlow.html">fix shardlow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd.html">fix smd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_adjust_dt.html">fix smd/adjust_dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_tlsph.html">fix smd/integrate_tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_ulsph.html">fix smd/integrate_ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_move_triangulated_surface.html">fix smd/move_tri_surf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_setvel.html">fix smd/setvel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_wall_surface.html">fix smd/wall_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph.html">fix sph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph_stationary.html">fix sph/stationary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring.html">fix spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_chunk.html">fix spring/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_rg.html">fix spring/rg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_self.html">fix spring/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_srd.html">fix srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_force.html">fix store/force command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_state.html">fix store/state command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_berendsen.html">fix temp/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html">fix temp/csvr command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html#fix-temp-csld-command">fix temp/csld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale.html">fix temp/rescale command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html">fix tgnvt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html#fix-tgnpt-drude-command">fix tgnpt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-mod-command">fix ttm/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tune_kspace.html">fix tune/kspace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_vector.html">fix vector command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscosity.html">fix viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous.html">fix viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html">fix wall/lj93 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj126-command">fix wall/lj126 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj1043-command">fix wall/lj1043 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-colloid-command">fix wall/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-command">fix wall/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-morse-command">fix wall/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polygon.html">fix wall/body/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polyhedron.html">fix wall/body/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html">fix wall/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html#fix-wall-region-ees-command">fix wall/region/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran.html">fix wall/gran command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran_region.html">fix wall/gran/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_piston.html">fix wall/piston command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect.html">fix wall/reflect command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect_stochastic.html">fix wall/reflect/stochastic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_region.html">fix wall/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_srd.html">fix wall/srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_widom.html">fix widom command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="fixes.html">Fixes</a> &raquo;</li>
+        
+      <li>fix deform command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="fix_deposit.html" class="btn btn-neutral float-right" title="fix deposit command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fix_controller.html" class="btn btn-neutral float-left" title="fix controller command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="index-0"></span><div class="section" id="fix-deform-command">
+<span id="index-1"></span><h1>fix deform command<a class="headerlink" href="#fix-deform-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>deform/kk</em></p>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>fix ID group-ID deform N parameter args ... keyword value ...
+</pre></div>
+</div>
+<ul>
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p></li>
+<li><p>deform = style name of this fix command</p></li>
+<li><p>N = perform box deformation every this many timesteps</p></li>
+<li><p>one or more parameter/arg pairs may be appended</p>
+<pre class="literal-block">parameter = <em>x</em> or <em>y</em> or <em>z</em> or <em>xy</em> or <em>xz</em> or <em>yz</em>
+  <em>x</em>, <em>y</em>, <em>z</em> args = style value(s)
+    style = <em>final</em> or <em>delta</em> or <em>scale</em> or <em>vel</em> or <em>erate</em> or <em>trate</em> or <em>volume</em> or <em>wiggle</em> or <em>variable</em>
+      <em>final</em> values = lo hi
+        lo hi = box boundaries at end of run (distance units)
+      <em>delta</em> values = dlo dhi
+        dlo dhi = change in box boundaries at end of run (distance units)
+      <em>scale</em> values = factor
+        factor = multiplicative factor for change in box length at end of run
+      <em>vel</em> value = V
+        V = change box length at this velocity (distance/time units),
+            effectively an engineering strain rate
+      <em>erate</em> value = R
+        R = engineering strain rate (1/time units)
+      <em>trate</em> value = R
+        R = true strain rate (1/time units)
+      <em>volume</em> value = none = adjust this dim to preserve volume of system
+      <em>wiggle</em> values = A Tp
+        A = amplitude of oscillation (distance units)
+        Tp = period of oscillation (time units)
+      <em>variable</em> values = v_name1 v_name2
+        v_name1 = variable with name1 for box length change as function of time
+        v_name2 = variable with name2 for change rate as function of time
+  <em>xy</em>, <em>xz</em>, <em>yz</em> args = style value
+    style = <em>final</em> or <em>delta</em> or <em>vel</em> or <em>erate</em> or <em>trate</em> or <em>wiggle</em>
+      <em>final</em> value = tilt
+        tilt = tilt factor at end of run (distance units)
+      <em>delta</em> value = dtilt
+        dtilt = change in tilt factor at end of run (distance units)
+      <em>vel</em> value = V
+        V = change tilt factor at this velocity (distance/time units),
+            effectively an engineering shear strain rate
+      <em>erate</em> value = R
+        R = engineering shear strain rate (1/time units)
+      <em>trate</em> value = R
+        R = true shear strain rate (1/time units)
+      <em>wiggle</em> values = A Tp
+        A = amplitude of oscillation (distance units)
+        Tp = period of oscillation (time units)
+      <em>variable</em> values = v_name1 v_name2
+        v_name1 = variable with name1 for tilt change as function of time
+        v_name2 = variable with name2 for change rate as function of time</pre>
+</li>
+<li><p>zero or more keyword/value pairs may be appended</p></li>
+<li><p>keyword = <em>remap</em> or <em>flip</em> or <em>units</em></p>
+<pre class="literal-block"><em>remap</em> value = <em>x</em> or <em>v</em> or <em>none</em>
+  x = remap coords of atoms in group into deforming box
+  v = remap velocities of all atoms when they cross periodic boundaries
+  none = no remapping of x or v
+<em>flip</em> value = <em>yes</em> or <em>no</em>
+  allow or disallow box flips when it becomes highly skewed
+<em>units</em> value = <em>lattice</em> or <em>box</em>
+  lattice = distances are defined in lattice units
+  box = distances are defined in simulation box units</pre>
+</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">deform</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">final</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">9.0</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">final</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">deform</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">trate</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">volume</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">volume</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">deform</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">xy</span><span class="w"> </span><span class="n">erate</span><span class="w"> </span><span class="m">0.001</span><span class="w"> </span><span class="n">remap</span><span class="w"> </span><span class="n">v</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">deform</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">delta</span><span class="w"> </span><span class="o">-</span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">xz</span><span class="w"> </span><span class="n">vel</span><span class="w"> </span><span class="m">1.0</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Change the volume and/or shape of the simulation box during a dynamics
+run.  Orthogonal simulation boxes have 3 adjustable parameters
+(x,y,z).  Triclinic (non-orthogonal) simulation boxes have 6
+adjustable parameters (x,y,z,xy,xz,yz).  Any or all of them can be
+adjusted independently and simultaneously by this command.</p>
+<p>This fix can be used to perform non-equilibrium MD (NEMD) simulations
+of a continuously strained system.  See the <a class="reference internal" href="fix_nvt_sllod.html"><span class="doc">fix nvt/sllod</span></a> and <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a> commands for more details.  Note
+that simulation of a continuously extended system (extensional flow)
+can be modeled using the <a class="reference internal" href="Packages_details.html#pkg-user-uef"><span class="std std-ref">USER-UEF package</span></a> and its <a class="reference internal" href="fix_nh_uef.html"><span class="doc">fix commands</span></a>.</p>
+<p>For the <em>x</em>, <em>y</em>, <em>z</em> parameters, the associated dimension cannot be
+shrink-wrapped.  For the <em>xy</em>, <em>yz</em>, <em>xz</em> parameters, the associated
+second dimension cannot be shrink-wrapped.  Dimensions not varied by this
+command can be periodic or non-periodic.  Dimensions corresponding to
+unspecified parameters can also be controlled by a <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a> command.</p>
+<p>The size and shape of the simulation box at the beginning of the
+simulation run were either specified by the
+<a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> or <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command used to setup the simulation
+initially if it is the first run, or they are the values from the end
+of the previous run.  The <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>, <a class="reference internal" href="read_data.html"><span class="doc">read data</span></a>, and <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> commands
+specify whether the simulation box is orthogonal or non-orthogonal
+(triclinic) and explain the meaning of the xy,xz,yz tilt factors.  If
+fix deform changes the xy,xz,yz tilt factors, then the simulation box
+must be triclinic, even if its initial tilt factors are 0.0.</p>
+<p>As described below, the desired simulation box size and shape at the
+end of the run are determined by the parameters of the fix deform
+command.  Every Nth timestep during the run, the simulation box is
+expanded, contracted, or tilted to ramped values between the initial
+and final values.</p>
+<hr class="docutils" />
+<p>For the <em>x</em>, <em>y</em>, and <em>z</em> parameters, this is the meaning of their
+styles and values.</p>
+<p>The <em>final</em>, <em>delta</em>, <em>scale</em>, <em>vel</em>, and <em>erate</em> styles all change
+the specified dimension of the box via “constant displacement” which
+is effectively a “constant engineering strain rate”.  This means the
+box dimension changes linearly with time from its initial to final
+value.</p>
+<p>For style <em>final</em>, the final lo and hi box boundaries of a dimension
+are specified.  The values can be in lattice or box distance units.
+See the discussion of the units keyword below.</p>
+<p>For style <em>delta</em>, plus or minus changes in the lo/hi box boundaries
+of a dimension are specified.  The values can be in lattice or box
+distance units.  See the discussion of the units keyword below.</p>
+<p>For style <em>scale</em>, a multiplicative factor to apply to the box length
+of a dimension is specified.  For example, if the initial box length
+is 10, and the factor is 1.1, then the final box length will be 11.  A
+factor less than 1.0 means compression.</p>
+<p>For style <em>vel</em>, a velocity at which the box length changes is
+specified in units of distance/time.  This is effectively a “constant
+engineering strain rate”, where rate = V/L0 and L0 is the initial box
+length.  The distance can be in lattice or box distance units.  See
+the discussion of the units keyword below.  For example, if the
+initial box length is 100 Angstroms, and V is 10 Angstroms/ps, then
+after 10 ps, the box length will have doubled.  After 20 ps, it
+will have tripled.</p>
+<p>The <em>erate</em> style changes a dimension of the box at a “constant
+engineering strain rate”.  The units of the specified strain rate are
+1/time.  See the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command for the time units
+associated with different choices of simulation units,
+e.g. picoseconds for “metal” units).  Tensile strain is unitless and
+is defined as delta/L0, where L0 is the original box length and delta
+is the change relative to the original length.  The box length L as a
+function of time will change as</p>
+<pre class="literal-block">L(t) = L0 (1 + erate*dt)</pre>
+<p>where dt is the elapsed time (in time units).  Thus if <em>erate</em> R is
+specified as 0.1 and time units are picoseconds, this means the box
+length will increase by 10% of its original length every picosecond.
+I.e. strain after 1 ps = 0.1, strain after 2 ps = 0.2, etc.  R =
+-0.01 means the box length will shrink by 1% of its original length
+every picosecond.  Note that for an “engineering” rate the change is
+based on the original box length, so running with R = 1 for 10
+picoseconds expands the box length by a factor of 11 (strain of 10),
+which is different that what the <em>trate</em> style would induce.</p>
+<p>The <em>trate</em> style changes a dimension of the box at a “constant true
+strain rate”.  Note that this is not an “engineering strain rate”, as
+the other styles are.  Rather, for a “true” rate, the rate of change
+is constant, which means the box dimension changes non-linearly with
+time from its initial to final value.  The units of the specified
+strain rate are 1/time.  See the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command for the
+time units associated with different choices of simulation units,
+e.g. picoseconds for “metal” units).  Tensile strain is unitless and
+is defined as delta/L0, where L0 is the original box length and delta
+is the change relative to the original length.</p>
+<p>The box length L as a function of time will change as</p>
+<pre class="literal-block">L(t) = L0 exp(trate*dt)</pre>
+<p>where dt is the elapsed time (in time units).  Thus if <em>trate</em> R is
+specified as ln(1.1) and time units are picoseconds, this means the
+box length will increase by 10% of its current (not original) length
+every picosecond.  I.e. strain after 1 ps = 0.1, strain after 2 ps
+= 0.21, etc.  R = ln(2) or ln(3) means the box length will double or
+triple every picosecond.  R = ln(0.99) means the box length will
+shrink by 1% of its current length every picosecond.  Note that for a
+“true” rate the change is continuous and based on the current length,
+so running with R = ln(2) for 10 picoseconds does not expand the box
+length by a factor of 11 as it would with <em>erate</em>, but by a factor of
+1024 since the box length will double every picosecond.</p>
+<p>Note that to change the volume (or cross-sectional area) of the
+simulation box at a constant rate, you can change multiple dimensions
+via <em>erate</em> or <em>trate</em>.  E.g. to double the box volume in a picosecond
+picosecond, you could set “x erate M”, “y erate M”, “z erate M”, with
+M = pow(2,1/3) - 1 = 0.26, since if each box dimension grows by 26%,
+the box volume doubles.  Or you could set “x trate M”, “y trate M”, “z
+trate M”, with M = ln(1.26) = 0.231, and the box volume would double
+every picosecond.</p>
+<p>The <em>volume</em> style changes the specified dimension in such a way that
+the box volume remains constant while other box dimensions are changed
+explicitly via the styles discussed above.  For example, “x scale 1.1
+y scale 1.1 z volume” will shrink the z box length as the x,y box
+lengths increase, to keep the volume constant (product of x,y,z
+lengths).  If “x scale 1.1 z volume” is specified and parameter <em>y</em> is
+unspecified, then the z box length will shrink as x increases to keep
+the product of x,z lengths constant.  If “x scale 1.1 y volume z
+volume” is specified, then both the y,z box lengths will shrink as x
+increases to keep the volume constant (product of x,y,z lengths).  In
+this case, the y,z box lengths shrink so as to keep their relative
+aspect ratio constant.</p>
+<p>For solids or liquids, note that when one dimension of the box is
+expanded via fix deform (i.e. tensile strain), it may be physically
+undesirable to hold the other 2 box lengths constant (unspecified by
+fix deform) since that implies a density change.  Using the <em>volume</em>
+style for those 2 dimensions to keep the box volume constant may make
+more physical sense, but may also not be correct for materials and
+potentials whose Poisson ratio is not 0.5.  An alternative is to use
+<a class="reference internal" href="fix_nh.html"><span class="doc">fix npt aniso</span></a> with zero applied pressure on those 2
+dimensions, so that they respond to the tensile strain dynamically.</p>
+<p>The <em>wiggle</em> style oscillates the specified box length dimension
+sinusoidally with the specified amplitude and period.  I.e. the box
+length L as a function of time is given by</p>
+<pre class="literal-block">L(t) = L0 + A sin(2*pi t/Tp)</pre>
+<p>where L0 is its initial length.  If the amplitude A is a positive
+number the box initially expands, then contracts, etc.  If A is
+negative then the box initially contracts, then expands, etc.  The
+amplitude can be in lattice or box distance units.  See the discussion
+of the units keyword below.</p>
+<p>The <em>variable</em> style changes the specified box length dimension by
+evaluating a variable, which presumably is a function of time.  The
+variable with <em>name1</em> must be an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>
+and should calculate a change in box length in units of distance.
+Note that this distance is in box units, not lattice units; see the
+discussion of the <em>units</em> keyword below.  The formula associated with
+variable <em>name1</em> can reference the current timestep.  Note that it
+should return the “change” in box length, not the absolute box length.
+This means it should evaluate to 0.0 when invoked on the initial
+timestep of the run following the definition of fix deform.  It should
+evaluate to a value &gt; 0.0 to dilate the box at future times, or a
+value &lt; 0.0 to compress the box.</p>
+<p>The variable <em>name2</em> must also be an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> and should calculate the rate of box length
+change, in units of distance/time, i.e. the time-derivative of the
+<em>name1</em> variable.  This quantity is used internally by LAMMPS to reset
+atom velocities when they cross periodic boundaries.  It is computed
+internally for the other styles, but you must provide it when using an
+arbitrary variable.</p>
+<p>Here is an example of using the <em>variable</em> style to perform the same
+box deformation as the <em>wiggle</em> style formula listed above, where we
+assume that the current timestep = 0.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">A</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">5.0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">Tp</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">10.0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">displace</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;v_A * sin(2*PI * step*dt/v_Tp)&quot;</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">rate</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)&quot;</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">deform</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="k">variable </span><span class="nv nv-Identifier">v_displace</span><span class="w"> </span><span class="n">v_rate</span><span class="w"> </span><span class="n">remap</span><span class="w"> </span><span class="n">v</span><span class="w"></span>
+</pre></div>
+</div>
+<p>For the <em>scale</em>, <em>vel</em>, <em>erate</em>, <em>trate</em>, <em>volume</em>, <em>wiggle</em>, and
+<em>variable</em> styles, the box length is expanded or compressed around its
+mid point.</p>
+<hr class="docutils" />
+<p>For the <em>xy</em>, <em>xz</em>, and <em>yz</em> parameters, this is the meaning of their
+styles and values.  Note that changing the tilt factors of a triclinic
+box does not change its volume.</p>
+<p>The <em>final</em>, <em>delta</em>, <em>vel</em>, and <em>erate</em> styles all change the shear
+strain at a “constant engineering shear strain rate”.  This means the
+tilt factor changes linearly with time from its initial to final
+value.</p>
+<p>For style <em>final</em>, the final tilt factor is specified.  The value
+can be in lattice or box distance units.  See the discussion of the
+units keyword below.</p>
+<p>For style <em>delta</em>, a plus or minus change in the tilt factor is
+specified.  The value can be in lattice or box distance units.  See
+the discussion of the units keyword below.</p>
+<p>For style <em>vel</em>, a velocity at which the tilt factor changes is
+specified in units of distance/time.  This is effectively an
+“engineering shear strain rate”, where rate = V/L0 and L0 is the
+initial box length perpendicular to the direction of shear.  The
+distance can be in lattice or box distance units.  See the discussion
+of the units keyword below.  For example, if the initial tilt factor
+is 5 Angstroms, and the V is 10 Angstroms/ps, then after 1 ps, the
+tilt factor will be 15 Angstroms.  After 2 ps, it will be 25
+Angstroms.</p>
+<p>The <em>erate</em> style changes a tilt factor at a “constant engineering
+shear strain rate”.  The units of the specified shear strain rate are
+1/time.  See the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command for the time units
+associated with different choices of simulation units,
+e.g. picoseconds for “metal” units).  Shear strain is unitless and is
+defined as offset/length, where length is the box length perpendicular
+to the shear direction (e.g. y box length for xy deformation) and
+offset is the displacement distance in the shear direction (e.g. x
+direction for xy deformation) from the unstrained orientation.</p>
+<p>The tilt factor T as a function of time will change as</p>
+<pre class="literal-block">T(t) = T0 + L0*erate*dt</pre>
+<p>where T0 is the initial tilt factor, L0 is the original length of the
+box perpendicular to the shear direction (e.g. y box length for xy
+deformation), and dt is the elapsed time (in time units).  Thus if
+<em>erate</em> R is specified as 0.1 and time units are picoseconds, this
+means the shear strain will increase by 0.1 every picosecond.  I.e. if
+the xy shear strain was initially 0.0, then strain after 1 ps = 0.1,
+strain after 2 ps = 0.2, etc.  Thus the tilt factor would be 0.0 at
+time 0, 0.1*ybox at 1 ps, 0.2*ybox at 2 ps, etc, where ybox is the
+original y box length.  R = 1 or 2 means the tilt factor will increase
+by 1 or 2 every picosecond.  R = -0.01 means a decrease in shear
+strain by 0.01 every picosecond.</p>
+<p>The <em>trate</em> style changes a tilt factor at a “constant true shear
+strain rate”.  Note that this is not an “engineering shear strain
+rate”, as the other styles are.  Rather, for a “true” rate, the rate
+of change is constant, which means the tilt factor changes
+non-linearly with time from its initial to final value.  The units of
+the specified shear strain rate are 1/time.  See the
+<a class="reference internal" href="units.html"><span class="doc">units</span></a> command for the time units associated with
+different choices of simulation units, e.g. picoseconds for “metal”
+units).  Shear strain is unitless and is defined as offset/length,
+where length is the box length perpendicular to the shear direction
+(e.g. y box length for xy deformation) and offset is the displacement
+distance in the shear direction (e.g. x direction for xy deformation)
+from the unstrained orientation.</p>
+<p>The tilt factor T as a function of time will change as</p>
+<pre class="literal-block">T(t) = T0 exp(trate*dt)</pre>
+<p>where T0 is the initial tilt factor and dt is the elapsed time (in
+time units).  Thus if <em>trate</em> R is specified as ln(1.1) and time units
+are picoseconds, this means the shear strain or tilt factor will
+increase by 10% every picosecond.  I.e. if the xy shear strain was
+initially 0.1, then strain after 1 ps = 0.11, strain after 2 ps =
+0.121, etc.  R = ln(2) or ln(3) means the tilt factor will double or
+triple every picosecond.  R = ln(0.99) means the tilt factor will
+shrink by 1% every picosecond.  Note that the change is continuous, so
+running with R = ln(2) for 10 picoseconds does not change the tilt
+factor by a factor of 10, but by a factor of 1024 since it doubles
+every picosecond.  Note that the initial tilt factor must be non-zero
+to use the <em>trate</em> option.</p>
+<p>Note that shear strain is defined as the tilt factor divided by the
+perpendicular box length.  The <em>erate</em> and <em>trate</em> styles control the
+tilt factor, but assume the perpendicular box length remains constant.
+If this is not the case (e.g. it changes due to another fix deform
+parameter), then this effect on the shear strain is ignored.</p>
+<p>The <em>wiggle</em> style oscillates the specified tilt factor sinusoidally
+with the specified amplitude and period.  I.e. the tilt factor T as a
+function of time is given by</p>
+<pre class="literal-block">T(t) = T0 + A sin(2*pi t/Tp)</pre>
+<p>where T0 is its initial value.  If the amplitude A is a positive
+number the tilt factor initially becomes more positive, then more
+negative, etc.  If A is negative then the tilt factor initially
+becomes more negative, then more positive, etc.  The amplitude can be
+in lattice or box distance units.  See the discussion of the units
+keyword below.</p>
+<p>The <em>variable</em> style changes the specified tilt factor by evaluating a
+variable, which presumably is a function of time.  The variable with
+<em>name1</em> must be an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> and should
+calculate a change in tilt in units of distance.  Note that this
+distance is in box units, not lattice units; see the discussion of the
+<em>units</em> keyword below.  The formula associated with variable <em>name1</em>
+can reference the current timestep.  Note that it should return the
+“change” in tilt factor, not the absolute tilt factor.  This means it
+should evaluate to 0.0 when invoked on the initial timestep of the run
+following the definition of fix deform.</p>
+<p>The variable <em>name2</em> must also be an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> and should calculate the rate of tilt change,
+in units of distance/time, i.e. the time-derivative of the <em>name1</em>
+variable.  This quantity is used internally by LAMMPS to reset atom
+velocities when they cross periodic boundaries.  It is computed
+internally for the other styles, but you must provide it when using an
+arbitrary variable.</p>
+<p>Here is an example of using the <em>variable</em> style to perform the same
+box deformation as the <em>wiggle</em> style formula listed above, where we
+assume that the current timestep = 0.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">A</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">5.0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">Tp</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">10.0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">displace</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;v_A * sin(2*PI * step*dt/v_Tp)&quot;</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">rate</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;2*PI*v_A/v_Tp * cos(2*PI * step*dt/v_Tp)&quot;</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">deform</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">xy</span><span class="w"> </span><span class="k">variable </span><span class="nv nv-Identifier">v_displace</span><span class="w"> </span><span class="n">v_rate</span><span class="w"> </span><span class="n">remap</span><span class="w"> </span><span class="n">v</span><span class="w"></span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>All of the tilt styles change the xy, xz, yz tilt factors during a
+simulation.  In LAMMPS, tilt factors (xy,xz,yz) for triclinic boxes
+are normally bounded by half the distance of the parallel box length.
+See the discussion of the <em>flip</em> keyword below, to allow this bound to
+be exceeded, if desired.</p>
+<p>For example, if xlo = 2 and xhi = 12, then the x box length is 10 and
+the xy tilt factor must be between -5 and 5.  Similarly, both xz and
+yz must be between -(xhi-xlo)/2 and +(yhi-ylo)/2.  Note that this is
+not a limitation, since if the maximum tilt factor is 5 (as in this
+example), then configurations with tilt = …, -15, -5, 5, 15, 25,
+… are all equivalent.</p>
+<p>To obey this constraint and allow for large shear deformations to be
+applied via the <em>xy</em>, <em>xz</em>, or <em>yz</em> parameters, the following
+algorithm is used.  If <em>prd</em> is the associated parallel box length (10
+in the example above), then if the tilt factor exceeds the accepted
+range of -5 to 5 during the simulation, then the box is flipped to the
+other limit (an equivalent box) and the simulation continues.  Thus
+for this example, if the initial xy tilt factor was 0.0 and “xy final
+100.0” was specified, then during the simulation the xy tilt factor
+would increase from 0.0 to 5.0, the box would be flipped so that the
+tilt factor becomes -5.0, the tilt factor would increase from -5.0 to
+5.0, the box would be flipped again, etc.  The flip occurs 10 times
+and the final tilt factor at the end of the simulation would be 0.0.
+During each flip event, atoms are remapped into the new box in the
+appropriate manner.</p>
+<p>The one exception to this rule is if the first dimension in the tilt
+factor (x for xy) is non-periodic.  In that case, the limits on the
+tilt factor are not enforced, since flipping the box in that dimension
+does not change the atom positions due to non-periodicity.  In this
+mode, if you tilt the system to extreme angles, the simulation will
+simply become inefficient due to the highly skewed simulation box.</p>
+<hr class="docutils" />
+<p>Each time the box size or shape is changed, the <em>remap</em> keyword
+determines whether atom positions are remapped to the new box.  If
+<em>remap</em> is set to <em>x</em> (the default), atoms in the fix group are
+remapped; otherwise they are not.  Note that their velocities are not
+changed, just their positions are altered.  If <em>remap</em> is set to <em>v</em>,
+then any atom in the fix group that crosses a periodic boundary will
+have a delta added to its velocity equal to the difference in
+velocities between the lo and hi boundaries.  Note that this velocity
+difference can include tilt components, e.g. a delta in the x velocity
+when an atom crosses the y periodic boundary.  If <em>remap</em> is set to
+<em>none</em>, then neither of these remappings take place.</p>
+<p>Conceptually, setting <em>remap</em> to <em>x</em> forces the atoms to deform via an
+affine transformation that exactly matches the box deformation.  This
+setting is typically appropriate for solids.  Note that though the
+atoms are effectively “moving” with the box over time, it is not due
+to their having a velocity that tracks the box change, but only due to
+the remapping.  By contrast, setting <em>remap</em> to <em>v</em> is typically
+appropriate for fluids, where you want the atoms to respond to the
+change in box size/shape on their own and acquire a velocity that
+matches the box change, so that their motion will naturally track the
+box without explicit remapping of their coordinates.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When non-equilibrium MD (NEMD) simulations are performed using
+this fix, the option “remap v” should normally be used.  This is
+because <a class="reference internal" href="fix_nvt_sllod.html"><span class="doc">fix nvt/sllod</span></a> adjusts the atom positions
+and velocities to induce a velocity profile that matches the changing
+box size/shape.  Thus atom coordinates should NOT be remapped by fix
+deform, but velocities SHOULD be when atoms cross periodic boundaries,
+since that is consistent with maintaining the velocity profile already
+created by fix nvt/sllod.  LAMMPS will warn you if the <em>remap</em> setting
+is not consistent with fix nvt/sllod.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For non-equilibrium MD (NEMD) simulations using “remap v” it is
+usually desirable that the fluid (or flowing material, e.g. granular
+particles) stream with a velocity profile consistent with the
+deforming box.  As mentioned above, using a thermostat such as <a class="reference internal" href="fix_nvt_sllod.html"><span class="doc">fix nvt/sllod</span></a> or <a class="reference internal" href="fix_langevin.html"><span class="doc">fix lavgevin</span></a>
+(with a bias provided by <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a>), will typically accomplish
+that.  If you do not use a thermostat, then there is no driving force
+pushing the atoms to flow in a manner consistent with the deforming
+box.  E.g. for a shearing system the box deformation velocity may vary
+from 0 at the bottom to 10 at the top of the box.  But the stream
+velocity profile of the atoms may vary from -5 at the bottom to +5 at
+the top.  You can monitor these effects using the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>, <a class="reference internal" href="compute_temp_deform.html"><span class="doc">compute temp/deform</span></a>, and <a class="reference internal" href="compute_temp_profile.html"><span class="doc">compute temp/profile</span></a> commands.  One way to induce
+atoms to stream consistent with the box deformation is to give them an
+initial velocity profile, via the <a class="reference internal" href="velocity.html"><span class="doc">velocity ramp</span></a>
+command, that matches the box deformation rate.  This also typically
+helps the system come to equilibrium more quickly, even if a
+thermostat is used.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If a <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> is defined for rigid bodies, and
+<em>remap</em> is set to <em>x</em>, then the center-of-mass coordinates of rigid
+bodies will be remapped to the changing simulation box.  This will be
+done regardless of whether atoms in the rigid bodies are in the fix
+deform group or not.  The velocity of the centers of mass are not
+remapped even if <em>remap</em> is set to <em>v</em>, since <a class="reference internal" href="fix_nvt_sllod.html"><span class="doc">fix nvt/sllod</span></a> does not currently do anything special
+for rigid particles.  If you wish to perform a NEMD simulation of
+rigid particles, you can either thermostat them independently or
+include a background fluid and thermostat the fluid via <a class="reference internal" href="fix_nvt_sllod.html"><span class="doc">fix nvt/sllod</span></a>.</p>
+</div>
+<p>The <em>flip</em> keyword allows the tilt factors for a triclinic box to
+exceed half the distance of the parallel box length, as discussed
+above.  If the <em>flip</em> value is set to <em>yes</em>, the bound is enforced by
+flipping the box when it is exceeded.  If the <em>flip</em> value is set to
+<em>no</em>, the tilt will continue to change without flipping.  Note that if
+you apply large deformations, this means the box shape can tilt
+dramatically LAMMPS will run less efficiently, due to the large volume
+of communication needed to acquire ghost atoms around a processor’s
+irregular-shaped sub-domain.  For extreme values of tilt, LAMMPS may
+also lose atoms and generate an error.</p>
+<p>The <em>units</em> keyword determines the meaning of the distance units used
+to define various arguments.  A <em>box</em> value selects standard distance
+units as defined by the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command, e.g. Angstroms for
+units = real or metal.  A <em>lattice</em> value means the distance units are
+in lattice spacings.  The <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> command must have
+been previously used to define the lattice spacing.  Note that the
+units choice also affects the <em>vel</em> style parameters since it is
+defined in terms of distance/time.  Also note that the units keyword
+does not affect the <em>variable</em> style.  You should use the <em>xlat</em>,
+<em>ylat</em>, <em>zlat</em> keywords of the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>
+command if you want to include lattice spacings in a variable formula.</p>
+<hr class="docutils" />
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the <a class="reference internal" href="Speed_packages.html"><span class="doc">Speed packages</span></a> doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc page for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Run_options.html"><span class="doc">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can use the
+<a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See the <a class="reference internal" href="Speed_packages.html"><span class="doc">Speed packages</span></a> doc page for more
+instructions on how to use the accelerated styles effectively.</p>
+</div>
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>This fix will restore the initial box settings from <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, which allows the fix to be properly continue
+deformation, when using the start/stop options of the <a class="reference internal" href="run.html"><span class="doc">run</span></a>
+command.  None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options are
+relevant to this fix.  No global or per-atom quantities are stored by
+this fix for access by various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>.</p>
+<p>This fix can perform deformation over multiple runs, using the <em>start</em>
+and <em>stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the
+<a class="reference internal" href="run.html"><span class="doc">run</span></a> command for details of how to do this.</p>
+<p>This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>You cannot apply x, y, or z deformations to a dimension that is
+shrink-wrapped via the <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command.</p>
+<p>You cannot apply xy, yz, or xz deformations to a second dimension (y in
+xy) that is shrink-wrapped via the <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="change_box.html"><span class="doc">change_box</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are remap = x, flip = yes, and units = lattice.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="fix_deposit.html" class="btn btn-neutral float-right" title="fix deposit command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fix_controller.html" class="btn btn-neutral float-left" title="fix controller command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

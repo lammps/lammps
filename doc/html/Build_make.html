@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3.2. Build LAMMPS with make &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.3. Link LAMMPS as a library to another code" href="Build_link.html" />
+    <link rel="prev" title="3.1. Build LAMMPS with CMake" href="Build_cmake.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Build.html">3. Build LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Build_cmake.html">3.1. Build LAMMPS with CMake</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.2. Build LAMMPS with make</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#requirements">3.2.1. Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-started">3.2.2. Getting started</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#customized-builds-and-alternate-makefiles">3.2.3. Customized builds and alternate makefiles</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Build_link.html">3.3. Link LAMMPS as a library to another code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_basics.html">3.4. Basic build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_settings.html">3.5. Optional build settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_package.html">3.6. Include packages in build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_extras.html">3.7. Packages with extra build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_manual.html">3.8. Build the LAMMPS documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_windows.html">3.9. Notes for building LAMMPS on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_development.html">3.10. Development build options (CMake only)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Build.html"><span class="section-number">3. </span>Build LAMMPS</a> &raquo;</li>
+        
+      <li><span class="section-number">3.2. </span>Build LAMMPS with make</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Build_link.html" class="btn btn-neutral float-right" title="3.3. Link LAMMPS as a library to another code" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Build_cmake.html" class="btn btn-neutral float-left" title="3.1. Build LAMMPS with CMake" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="build-lammps-with-make">
+<h1><span class="section-number">3.2. </span>Build LAMMPS with make<a class="headerlink" href="#build-lammps-with-make" title="Permalink to this headline">¶</a></h1>
+<p>Building LAMMPS with traditional makefiles requires that you have a
+<code class="docutils literal notranslate"><span class="pre">Makefile.&lt;machine&gt;</span></code> file appropriate for your system in either the
+<code class="docutils literal notranslate"><span class="pre">src/MAKE</span></code>, <code class="docutils literal notranslate"><span class="pre">src/MAKE/MACHINES</span></code>, <code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/MINE</span></code> directory (see below).  It can include various options
+for customizing your LAMMPS build with a number of global compilation
+options and features.</p>
+<div class="section" id="requirements">
+<h2><span class="section-number">3.2.1. </span>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>Those makefiles are written for and tested with GNU make and may not
+be compatible with other make programs.  In most cases, if the “make”
+program is not GNU make, then there will be a GNU make program
+available under the name “gmake”.  If GNU make or a compatible make is
+not available, you may have to first install it or switch to building
+with <a class="reference internal" href="Build_cmake.html"><span class="doc">CMake</span></a>.  The makefiles of the traditional
+make based build process and the scripts they are calling expect a few
+additional tools to be available and functioning.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>a working C/C++ compiler toolchain supporting the C++11 standard; on
+Linux these are often the GNU compilers. Some older compilers
+require adding flags like <code class="docutils literal notranslate"><span class="pre">-std=c++11</span></code> to enable the C++11 mode.</p></li>
+<li><p>a Bourne shell compatible “Unix” shell program (often this is <code class="docutils literal notranslate"><span class="pre">bash</span></code>)</p></li>
+<li><p>a few shell utilities: <code class="docutils literal notranslate"><span class="pre">ls</span></code>, <code class="docutils literal notranslate"><span class="pre">mv</span></code>, <code class="docutils literal notranslate"><span class="pre">ln</span></code>, <code class="docutils literal notranslate"><span class="pre">rm</span></code>, <code class="docutils literal notranslate"><span class="pre">grep</span></code>, <code class="docutils literal notranslate"><span class="pre">sed</span></code>, <code class="docutils literal notranslate"><span class="pre">tr</span></code>, <code class="docutils literal notranslate"><span class="pre">cat</span></code>, <code class="docutils literal notranslate"><span class="pre">touch</span></code>, <code class="docutils literal notranslate"><span class="pre">diff</span></code>, <code class="docutils literal notranslate"><span class="pre">dirname</span></code></p></li>
+<li><p>python (optional, required for <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">lib-&lt;pkg&gt;</span></code> in the src folder).
+python scripts are currently tested with python 2.7 and 3.6. The procedure
+for <a class="reference internal" href="Build_manual.html"><span class="doc">building the documentation</span></a> requires python 3.5 or later.</p></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="getting-started">
+<h2><span class="section-number">3.2.2. </span>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>To include LAMMPS packages (i.e. optional commands and styles) you must
+enable (or “install”) them first, as discussed on the <a class="reference internal" href="Build_package.html"><span class="doc">Build
+package</span></a> page.  If a packages requires (provided or
+external) libraries, you must configure and build those libraries
+<strong>before</strong> building LAMMPS itself and especially <strong>before</strong> enabling
+such a package with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">yes-&lt;package&gt;</span></code>.  <a class="reference internal" href="Build_cmake.html"><span class="doc">Building LAMMPS with
+CMake</span></a> can automate much of this for many types of
+machines, especially workstations, desktops, and laptops, so we suggest
+you try it first when building LAMMPS in those cases.</p>
+<p>The commands below perform a default LAMMPS build, producing the LAMMPS
+executable <code class="docutils literal notranslate"><span class="pre">lmp_serial</span></code> and <code class="docutils literal notranslate"><span class="pre">lmp_mpi</span></code> in <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> lammps/src   <span class="c1"># change to main LAMMPS source folder</span>
+make serial     <span class="c1"># build a serial LAMMPS executable using GNU g++</span>
+make mpi        <span class="c1"># build a parallel LAMMPS executable with MPI</span>
+make            <span class="c1"># see a variety of make options</span>
+</pre></div>
+</div>
+<p>Compilation can take a long time, since LAMMPS is a large project with
+many features. If your machine has multiple CPU cores (most do these
+days), you can speed this up by compiling sources in parallel with
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">-j</span> <span class="pre">N</span></code> (with N being the maximum number of concurrently executed
+tasks).  Also installation of the <a class="reference external" href="https://ccache.dev/">ccache</a> (=
+Compiler Cache) software may speed up repeated compilation even more,
+e.g. during code development.</p>
+<p>After the initial build, whenever you edit LAMMPS source files, or add
+or remove new files to the source directory (e.g. by installing or
+uninstalling packages), you must re-compile and relink the LAMMPS
+executable with the same <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">&lt;machine&gt;</span></code> command.  The makefile’s
+dependency tracking should insure that only the necessary subset of
+files are re-compiled.  If you change settings in the makefile, you have
+to recompile <em>everything</em>.  To delete all objects you can use <code class="docutils literal notranslate"><span class="pre">make</span>
+<span class="pre">clean-&lt;machine&gt;</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Before the actual compilation starts, LAMMPS will perform several
+steps to collect information from the configuration and setup that
+is then embedded into the executable.  When you build LAMMPS for
+the first time, it will also compile a tool to quickly assemble
+a list of dependencies, that are required for the make program to
+correctly detect which parts need to be recompiled after changes
+were made to the sources.</p>
+</div>
+</div>
+<div class="section" id="customized-builds-and-alternate-makefiles">
+<h2><span class="section-number">3.2.3. </span>Customized builds and alternate makefiles<a class="headerlink" href="#customized-builds-and-alternate-makefiles" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">src/MAKE</span></code> directory tree contains the <code class="docutils literal notranslate"><span class="pre">Makefile.&lt;machine&gt;</span></code>
+files included in the LAMMPS distribution.  Typing <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">example</span></code> uses
+<code class="docutils literal notranslate"><span class="pre">Makefile.example</span></code> from one of those folders, if available.  Thus the
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">serial</span></code> and <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">mpi</span></code> lines above use
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/Makefile.serial</span></code> and <code class="docutils literal notranslate"><span class="pre">src/MAKE/Makefile.mpi</span></code>,
+respectively.  Other makefiles are in these directories:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>OPTIONS      <span class="c1"># Makefiles which enable specific options</span>
+MACHINES     <span class="c1"># Makefiles for specific machines</span>
+MINE         <span class="c1"># customized Makefiles you create (you may need to create this folder)</span>
+</pre></div>
+</div>
+<p>Simply typing <code class="docutils literal notranslate"><span class="pre">make</span></code> lists all the available <code class="docutils literal notranslate"><span class="pre">Makefile.&lt;machine&gt;</span></code>
+files with a single line description toward the end of the output.  A
+file with the same name can appear in multiple folders (not a good
+idea).  The order the directories are searched is as follows:
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/MINE</span></code>, <code class="docutils literal notranslate"><span class="pre">src/MAKE</span></code>, <code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS</span></code>,
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/MACHINES</span></code>.  This gives preference to a customized file you
+put in <code class="docutils literal notranslate"><span class="pre">src/MAKE/MINE</span></code>.  If you create your own custom makefile under
+a new name, please edit the first line with the description and machine
+name, so you will not confuse yourself, when looking at the machine
+summary.</p>
+<p>Makefiles you may wish to try include these (some require a package
+first be installed).  Many of these include specific compiler flags
+for optimized performance.  Please note, however, that some of these
+customized machine Makefile are contributed by users.  Since both
+compilers, OS configurations, and LAMMPS itself keep changing, their
+settings may become outdated:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make mac             <span class="c1"># build serial LAMMPS on a Mac</span>
+make mac_mpi         <span class="c1"># build parallel LAMMPS on a Mac</span>
+make intel_cpu       <span class="c1"># build with the USER-INTEL package optimized for CPUs</span>
+make knl             <span class="c1"># build with the USER-INTEL package optimized for KNLs</span>
+make opt             <span class="c1"># build with the OPT package optimized for CPUs</span>
+make omp             <span class="c1"># build with the USER-OMP package optimized for OpenMP</span>
+make kokkos_omp      <span class="c1"># build with the KOKKOS package for OpenMP</span>
+make kokkos_cuda_mpi <span class="c1"># build with the KOKKOS package for GPUs</span>
+make kokkos_phi      <span class="c1"># build with the KOKKOS package for KNLs</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Build_link.html" class="btn btn-neutral float-right" title="3.3. Link LAMMPS as a library to another code" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Build_cmake.html" class="btn btn-neutral float-left" title="3.1. Build LAMMPS with CMake" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

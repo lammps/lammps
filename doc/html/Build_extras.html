@@ -1,0 +1,1795 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3.7. Packages with extra build options &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/tabs.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.8. Build the LAMMPS documentation" href="Build_manual.html" />
+    <link rel="prev" title="3.6. Include packages in build" href="Build_package.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Build.html">3. Build LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Build_cmake.html">3.1. Build LAMMPS with CMake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_make.html">3.2. Build LAMMPS with make</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_link.html">3.3. Link LAMMPS as a library to another code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_basics.html">3.4. Basic build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_settings.html">3.5. Optional build settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_package.html">3.6. Include packages in build</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.7. Packages with extra build options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compress-package">3.7.1. COMPRESS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gpu-package">3.7.2. GPU package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kim-package">3.7.3. KIM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kokkos-package">3.7.4. KOKKOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#latte-package">3.7.5. LATTE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#message-package">3.7.6. MESSAGE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mliap-package">3.7.7. MLIAP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mscg-package">3.7.8. MSCG package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#opt-package">3.7.9. OPT package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#poems-package">3.7.10. POEMS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-package">3.7.11. PYTHON package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#voronoi-package">3.7.12. VORONOI package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-adios-package">3.7.13. USER-ADIOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-atc-package">3.7.14. USER-ATC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-awpmd-package">3.7.15. USER-AWPMD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-colvars-package">3.7.16. USER-COLVARS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-plumed-package">3.7.17. USER-PLUMED package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-h5md-package">3.7.18. USER-H5MD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-intel-package">3.7.19. USER-INTEL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-mesont-package">3.7.20. USER-MESONT package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-molfile-package">3.7.21. USER-MOLFILE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-netcdf-package">3.7.22. USER-NETCDF package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-omp-package">3.7.23. USER-OMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-qmmm-package">3.7.24. USER-QMMM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-quip-package">3.7.25. USER-QUIP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-scafacos-package">3.7.26. USER-SCAFACOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-smd-package">3.7.27. USER-SMD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-vtk-package">3.7.28. USER-VTK package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Build_manual.html">3.8. Build the LAMMPS documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_windows.html">3.9. Notes for building LAMMPS on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_development.html">3.10. Development build options (CMake only)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Build.html"><span class="section-number">3. </span>Build LAMMPS</a> &raquo;</li>
+        
+      <li><span class="section-number">3.7. </span>Packages with extra build options</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Build_manual.html" class="btn btn-neutral float-right" title="3.8. Build the LAMMPS documentation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Build_package.html" class="btn btn-neutral float-left" title="3.6. Include packages in build" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="packages-with-extra-build-options">
+<h1><span class="section-number">3.7. </span>Packages with extra build options<a class="headerlink" href="#packages-with-extra-build-options" title="Permalink to this headline">¶</a></h1>
+<p>When building with some packages, additional steps may be required,
+in addition to</p>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>CMake build</p></th>
+<th class="head"><p>Traditional make</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ cmake -D <span class="nv">PKG_NAME</span><span class="o">=</span>yes
+</pre></div>
+</div>
+</td>
+<td><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make yes-name
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>as described on the <a class="reference internal" href="Build_package.html"><span class="doc">Build_package</span></a> page.</p>
+<p>For a CMake build there may be additional optional or required
+variables to set.  For a build with make, a provided library under the
+lammps/lib directory may need to be built first.  Or an external
+library may need to exist on your system or be downloaded and built.
+You may need to tell LAMMPS where it is found on your system.</p>
+<p>This is the list of packages that may require additional steps.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#compress"><span class="std std-ref">COMPRESS</span></a></p></td>
+<td><p><a class="reference internal" href="#gpu"><span class="std std-ref">GPU</span></a></p></td>
+<td><p><a class="reference internal" href="#kim"><span class="std std-ref">KIM</span></a></p></td>
+<td><p><a class="reference internal" href="#kokkos"><span class="std std-ref">KOKKOS</span></a></p></td>
+<td><p><a class="reference internal" href="#latte"><span class="std std-ref">LATTE</span></a></p></td>
+<td><p><a class="reference internal" href="#message"><span class="std std-ref">MESSAGE</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#mliap"><span class="std std-ref">MLIAP</span></a></p></td>
+<td><p><a class="reference internal" href="#mscg"><span class="std std-ref">MSCG</span></a></p></td>
+<td><p><a class="reference internal" href="#opt"><span class="std std-ref">OPT</span></a></p></td>
+<td><p><a class="reference internal" href="#poems"><span class="std std-ref">POEMS</span></a></p></td>
+<td><p><a class="reference internal" href="#python"><span class="std std-ref">PYTHON</span></a></p></td>
+<td><p><a class="reference internal" href="#voronoi"><span class="std std-ref">VORONOI</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#user-adios"><span class="std std-ref">USER-ADIOS</span></a></p></td>
+<td><p><a class="reference internal" href="#user-atc"><span class="std std-ref">USER-ATC</span></a></p></td>
+<td><p><a class="reference internal" href="#user-awpmd"><span class="std std-ref">USER-AWPMD</span></a></p></td>
+<td><p><a class="reference internal" href="#user-colvars"><span class="std std-ref">USER-COLVARS</span></a></p></td>
+<td><p><a class="reference internal" href="#user-h5md"><span class="std std-ref">USER-H5MD</span></a></p></td>
+<td><p><a class="reference internal" href="#user-intel"><span class="std std-ref">USER-INTEL</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#user-mesont"><span class="std std-ref">USER-MESONT</span></a></p></td>
+<td><p><a class="reference internal" href="#user-molfile"><span class="std std-ref">USER-MOLFILE</span></a></p></td>
+<td><p><a class="reference internal" href="#user-netcdf"><span class="std std-ref">USER-NETCDF</span></a></p></td>
+<td><p><a class="reference internal" href="#user-plumed"><span class="std std-ref">USER-PLUMED</span></a></p></td>
+<td><p><a class="reference internal" href="#user-omp"><span class="std std-ref">USER-OMP</span></a></p></td>
+<td><p><a class="reference internal" href="#user-qmmm"><span class="std std-ref">USER-QMMM</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#user-quip"><span class="std std-ref">USER-QUIP</span></a></p></td>
+<td><p><a class="reference internal" href="#user-scafacos"><span class="std std-ref">USER-SCAFACOS</span></a></p></td>
+<td><p><a class="reference internal" href="#user-smd"><span class="std std-ref">USER-SMD</span></a></p></td>
+<td><p><a class="reference internal" href="#user-vtk"><span class="std std-ref">USER-VTK</span></a></p></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<div class="section" id="compress-package">
+<span id="compress"></span><h2><span class="section-number">3.7.1. </span>COMPRESS package<a class="headerlink" href="#compress-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package you must have the <a class="reference external" href="https://zlib.net">zlib compression library</a> available on your system to build dump styles with
+a ‘/gz’ suffix.  There are also styles using the
+<a class="reference external" href="https://facebook.github.io/zstd/">Zstandard</a> library which have a
+‘/zstd’ suffix.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><p>If CMake cannot find the zlib library or include files, you can set
+these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">ZLIB_INCLUDE_DIR</span><span class="o">=</span>path    <span class="c1"># path to zlib.h header file</span>
+-D <span class="nv">ZLIB_LIBRARY</span><span class="o">=</span>path        <span class="c1"># path to libz.a (.so) file</span>
+</pre></div>
+</div>
+<p>Support for Zstandard compression is auto-detected and for that
+CMake depends on the <a class="reference external" href="https://www.freedesktop.org/wiki/Software/pkg-config/">pkg-config</a> tool to
+identify the necessary flags to compile with this library, so the
+corresponding <code class="docutils literal notranslate"><span class="pre">libzstandard.pc</span></code> file must be in a folder where
+pkg-config can find it, which may require adding it to the
+<code class="docutils literal notranslate"><span class="pre">PKG_CONFIG_PATH</span></code> environment variable.</p>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><p>To include support for Zstandard compression, <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_ZSTD</span></code>
+must be added to the compiler flags.  If make cannot find the
+libraries, you can edit the file <code class="docutils literal notranslate"><span class="pre">lib/compress/Makefile.lammps</span></code>
+to specify the paths and library names.  This must be done
+<strong>before</strong> the package is installed.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="gpu-package">
+<span id="gpu"></span><h2><span class="section-number">3.7.2. </span>GPU package<a class="headerlink" href="#gpu-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, you must choose options for precision and
+which GPU hardware to build for. The GPU package currently supports
+three different types of backends: OpenCL, CUDA and HIP.</p>
+<div class="section" id="cmake-build">
+<h3>CMake build<a class="headerlink" href="#cmake-build" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">GPU_API</span><span class="o">=</span>value             <span class="c1"># value = opencl (default) or cuda or hip</span>
+-D <span class="nv">GPU_PREC</span><span class="o">=</span>value            <span class="c1"># precision setting</span>
+                             <span class="c1"># value = double or mixed (default) or single</span>
+-D <span class="nv">OCL_TUNE</span><span class="o">=</span>value            <span class="c1"># hardware choice for GPU_API=opencl</span>
+                             <span class="c1"># generic (default) or intel (Intel CPU) or fermi, kepler, cypress (NVIDIA)</span>
+-D <span class="nv">GPU_ARCH</span><span class="o">=</span>value            <span class="c1"># primary GPU hardware choice for GPU_API=cuda</span>
+                             <span class="c1"># value = sm_XX, see below</span>
+                             <span class="c1"># default is sm_50</span>
+-D <span class="nv">HIP_ARCH</span><span class="o">=</span>value            <span class="c1"># primary GPU hardware choice for GPU_API=hip</span>
+                             <span class="c1"># value depends on selected HIP_PLATFORM</span>
+                             <span class="c1"># default is &#39;gfx906&#39; for HIP_PLATFORM=hcc and &#39;sm_50&#39; for HIP_PLATFORM=nvcc</span>
+-D <span class="nv">HIP_USE_DEVICE_SORT</span><span class="o">=</span>value <span class="c1"># enables GPU sorting</span>
+                             <span class="c1"># value = yes (default) or no</span>
+-D <span class="nv">CUDPP_OPT</span><span class="o">=</span>value           <span class="c1"># optimization setting for GPU_API=cuda</span>
+                             <span class="c1"># enables CUDA Performance Primitives Optimizations</span>
+                             <span class="c1"># value = yes (default) or no</span>
+-D <span class="nv">CUDA_MPS_SUPPORT</span><span class="o">=</span>value    <span class="c1"># enables some tweaks required to run with active nvidia-cuda-mps daemon</span>
+                             <span class="c1"># value = yes or no (default)</span>
+</pre></div>
+</div>
+<p><code class="code docutils literal notranslate"><span class="pre">GPU_ARCH</span></code> settings for different GPU hardware is as follows:</p>
+<ul class="simple">
+<li><p>sm_12 or sm_13 for GT200 (supported by CUDA 3.2 until CUDA 6.5)</p></li>
+<li><p>sm_20 or sm_21 for Fermi (supported by CUDA 3.2 until CUDA 7.5)</p></li>
+<li><p>sm_30 for Kepler (supported since CUDA 5 and until CUDA 10.x)</p></li>
+<li><p>sm_35 or sm_37 for Kepler (supported since CUDA 5 and until CUDA 11.x)</p></li>
+<li><p>sm_50 or sm_52 for Maxwell (supported since CUDA 6)</p></li>
+<li><p>sm_60 or sm_61 for Pascal (supported since CUDA 8)</p></li>
+<li><p>sm_70 for Volta (supported since CUDA 9)</p></li>
+<li><p>sm_75 for Turing (supported since CUDA 10)</p></li>
+<li><p>sm_80 for Ampere (supported since CUDA 11)</p></li>
+</ul>
+<p>A more detailed list can be found, for example,
+at <a class="reference external" href="https://en.wikipedia.org/wiki/CUDA#GPUs_supported">Wikipedia’s CUDA article</a></p>
+<p>CMake can detect which version of the CUDA toolkit is used and thus will try
+to include support for <strong>all</strong> major GPU architectures supported by this toolkit.
+Thus the GPU_ARCH setting is merely an optimization, to have code for
+the preferred GPU architecture directly included rather than having to wait
+for the JIT compiler of the CUDA driver to translate it.</p>
+<p>When building with CMake, you <strong>must NOT</strong> build the GPU library in <code class="docutils literal notranslate"><span class="pre">lib/gpu</span></code>
+using the traditional build procedure. CMake will detect files generated by that
+process and will terminate with an error and a suggestion for how to remove them.</p>
+<p>If you are compiling with HIP, note that before running CMake you will have to
+set appropriate environment variables. Some variables such as
+<code class="code docutils literal notranslate"><span class="pre">HCC_AMDGPU_TARGET</span></code> or <code class="code docutils literal notranslate"><span class="pre">CUDA_PATH</span></code> are necessary for <code class="code docutils literal notranslate"><span class="pre">hipcc</span></code>
+and the linker to work correctly.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># AMDGPU target</span>
+<span class="nb">export</span> <span class="nv">HIP_PLATFORM</span><span class="o">=</span>hcc
+<span class="nb">export</span> <span class="nv">HCC_AMDGPU_TARGET</span><span class="o">=</span>gfx906
+cmake -D <span class="nv">PKG_GPU</span><span class="o">=</span>on -D <span class="nv">GPU_API</span><span class="o">=</span>HIP -D <span class="nv">HIP_ARCH</span><span class="o">=</span>gfx906 -D <span class="nv">CMAKE_CXX_COMPILER</span><span class="o">=</span>hipcc ..
+make -j <span class="m">4</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># CUDA target (not recommended, use GPU_ARCH=cuda)</span>
+<span class="c1"># !!! DO NOT set CMAKE_CXX_COMPILER !!!</span>
+<span class="nb">export</span> <span class="nv">HIP_PLATFORM</span><span class="o">=</span>nvcc
+<span class="nb">export</span> <span class="nv">CUDA_PATH</span><span class="o">=</span>/usr/local/cuda
+cmake -D <span class="nv">PKG_GPU</span><span class="o">=</span>on -D <span class="nv">GPU_API</span><span class="o">=</span>HIP -D <span class="nv">HIP_ARCH</span><span class="o">=</span>sm_70 ..
+make -j <span class="m">4</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="traditional-make">
+<h3>Traditional make<a class="headerlink" href="#traditional-make" title="Permalink to this headline">¶</a></h3>
+<p>Before building LAMMPS, you must build the GPU library in <code class="docutils literal notranslate"><span class="pre">lib/gpu</span></code>.
+You can do this manually if you prefer; follow the instructions in
+<code class="docutils literal notranslate"><span class="pre">lib/gpu/README</span></code>.  Note that the GPU library uses MPI calls, so you must
+use the same MPI library (or the STUBS library) settings as the main
+LAMMPS code.  This also applies to the <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>,
+<code class="docutils literal notranslate"><span class="pre">-DLAMMPS_SMALLBIG</span></code>, or <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_SMALLSMALL</span></code> settings in whichever
+Makefile you use.</p>
+<p>You can also build the library in one step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir,
+using a command like these, which simply invoke the <code class="docutils literal notranslate"><span class="pre">lib/gpu/Install.py</span></code>
+script with the specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-gpu               <span class="c1"># print help message</span>
+$ make lib-gpu <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b&quot;</span>     <span class="c1"># build GPU library with default Makefile.linux</span>
+$ make lib-gpu <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m xk7 -p single -o xk7.single&quot;</span>  <span class="c1"># create new Makefile.xk7.single, altered for single-precision</span>
+$ make lib-gpu <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m mpi -a sm_60 -p mixed -b&quot;</span> <span class="c1"># build GPU library with mixed precision and P100 using other settings in Makefile.mpi</span>
+</pre></div>
+</div>
+<p>Note that this procedure starts with a Makefile.machine in lib/gpu, as
+specified by the “-m” switch.  For your convenience, machine makefiles
+for “mpi” and “serial” are provided, which have the same settings as
+the corresponding machine makefiles in the main LAMMPS source
+folder. In addition you can alter 4 important settings in the
+Makefile.machine you start from via the corresponding -c, -a, -p, -e
+switches (as in the examples above), and also save a copy of the new
+Makefile if desired:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">CUDA_HOME</span></code> = where NVIDIA CUDA software is installed on your system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CUDA_ARCH</span></code> = sm_XX, what GPU hardware you have, same as CMake GPU_ARCH above</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CUDA_PRECISION</span></code> = precision (double, mixed, single)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EXTRAMAKE</span></code> = which Makefile.lammps.* file to copy to Makefile.lammps</p></li>
+</ul>
+<p>The file Makefile.linux_multi is set up to include support for multiple
+GPU architectures as supported by the CUDA toolkit in use. This is done
+through using the “–gencode ” flag, which can be used multiple times and
+thus support all GPU architectures supported by your CUDA compiler.</p>
+<p>If the library build is successful, 3 files should be created:
+<code class="docutils literal notranslate"><span class="pre">lib/gpu/libgpu.a</span></code>, <code class="docutils literal notranslate"><span class="pre">lib/gpu/nvc_get_devices</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">lib/gpu/Makefile.lammps</span></code>.  The latter has settings that enable LAMMPS
+to link with CUDA libraries.  If the settings in <code class="docutils literal notranslate"><span class="pre">Makefile.lammps</span></code> for
+your machine are not correct, the LAMMPS build will fail, and
+<code class="docutils literal notranslate"><span class="pre">lib/gpu/Makefile.lammps</span></code> may need to be edited.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you re-build the GPU library in <code class="docutils literal notranslate"><span class="pre">lib/gpu</span></code>, you should always
+un-install the GPU package in <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code>, then re-install it and
+re-build LAMMPS.  This is because the compilation of files in the GPU
+package uses the library settings from the <code class="docutils literal notranslate"><span class="pre">lib/gpu/Makefile.machine</span></code>
+used to build the GPU library.</p>
+</div>
+<hr class="docutils" />
+</div>
+</div>
+<div class="section" id="kim-package">
+<span id="kim"></span><h2><span class="section-number">3.7.3. </span>KIM package<a class="headerlink" href="#kim-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, the KIM library with API v2 must be downloaded
+and built on your system. It must include the KIM models that you want to
+use with LAMMPS.</p>
+<p>If you would like to use the <a class="reference internal" href="kim_commands.html"><span class="doc">kim_query</span></a>
+command, you also need to have libcurl installed with the matching
+development headers and the curl-config tool.</p>
+<p>If you would like to use the <a class="reference internal" href="kim_commands.html"><span class="doc">kim_property</span></a>
+command, you need to build LAMMPS with the PYTHON package installed
+and linked to Python 3.6 or later. See the <a class="reference internal" href="#python"><span class="std std-ref">PYTHON package build info</span></a>
+for more details on this. After successfully building LAMMPS with Python, you
+also need to install the kim-property Python package, which can be easily done using
+<em>pip</em> as <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">kim-property</span></code>, or from the <em>conda-forge</em> channel as
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">kim-property</span></code> if LAMMPS is built in Conda. More detailed
+information is available at:
+<a class="reference external" href="https://github.com/openkim/kim-property#installing-kim-property">kim-property installation</a>.</p>
+<p>In addition to installing the KIM API, it is also necessary to install the
+library of KIM models (interatomic potentials).
+See <a class="reference external" href="http://openkim.org/doc/usage/obtaining-models">Obtaining KIM Models</a> to
+learn how to install a pre-build binary of the OpenKIM Repository of Models.
+See the list of all KIM models here: <a class="reference external" href="https://openkim.org/browse/models">https://openkim.org/browse/models</a></p>
+<p>(Also note that when downloading and installing from source
+the KIM API library with all its models, may take a long time (tens of
+minutes to hours) to build.  Of course you only need to do that once.)</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">DOWNLOAD_KIM</span><span class="o">=</span>value           <span class="c1"># download OpenKIM API v2 for build, value = no (default) or yes</span>
+-D <span class="nv">LMP_DEBUG_CURL</span><span class="o">=</span>value         <span class="c1"># set libcurl verbose mode on/off, value = off (default) or on</span>
+-D <span class="nv">LMP_NO_SSL_CHECK</span><span class="o">=</span>value       <span class="c1"># tell libcurl to not verify the peer, value = no (default) or yes</span>
+-D <span class="nv">KIM_EXTRA_UNITTESTS</span><span class="o">=</span>value    <span class="c1"># enables extra unit tests, value = no (default) or yes</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_KIM</span></code> is set to <em>yes</em> (or <em>on</em>), the KIM API library
+will be downloaded and built inside the CMake build directory.  If
+the KIM library is already installed on your system (in a location
+where CMake cannot find it), you may need to set the
+<code class="docutils literal notranslate"><span class="pre">PKG_CONFIG_PATH</span></code> environment variable so that libkim-api can be
+found, or run the command <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">kim-api-activate</span></code>.</p>
+<p>Extra unit tests can only be available if they are explicitly requested
+(<code class="docutils literal notranslate"><span class="pre">KIM_EXTRA_UNITTESTS</span></code> is set to <em>yes</em> (or <em>on</em>)) and the prerequisites
+are met. See <a class="reference internal" href="#kim-extra-unittests"><span class="std std-ref">KIM Extra unit tests</span></a> for
+more details on this.</p>
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><p>You can download and build the KIM library manually if you prefer;
+follow the instructions in <code class="docutils literal notranslate"><span class="pre">lib/kim/README</span></code>.  You can also do
+this in one step from the lammps/src dir, using a command like
+these, which simply invoke the <code class="docutils literal notranslate"><span class="pre">lib/kim/Install.py</span></code> script with
+the specified args.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-kim              <span class="c1"># print help message</span>
+$ make lib-kim <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b &quot;</span>   <span class="c1"># (re-)install KIM API lib with only example models</span>
+$ make lib-kim <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b -a Glue_Ercolessi_Adams_Al__MO_324507536345_001&quot;</span>  <span class="c1"># ditto plus one model</span>
+$ make lib-kim <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b -a everything&quot;</span>     <span class="c1"># install KIM API lib with all models</span>
+$ make lib-kim <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-n -a EAM_Dynamo_Ackland_W__MO_141627196590_002&quot;</span>       <span class="c1"># add one model or model driver</span>
+$ make lib-kim <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p /usr/local&quot;</span> <span class="c1"># use an existing KIM API installation at the provided location</span>
+$ make lib-kim <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p /usr/local -a EAM_Dynamo_Ackland_W__MO_141627196590_002&quot;</span> <span class="c1"># ditto but add one model or driver</span>
+</pre></div>
+</div>
+<p>Settings for debugging OpenKIM web queries discussed below need to
+be applied by adding them to the <code class="docutils literal notranslate"><span class="pre">LMP_INC</span></code> variable through
+editing the <code class="docutils literal notranslate"><span class="pre">Makefile.machine</span></code> you are using.  For example:</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">LMP_INC</span> <span class="o">=</span>       -DLMP_NO_SSL_CHECK
+</pre></div>
+</div>
+</div></div>
+<div class="section" id="debugging-openkim-web-queries-in-lammps">
+<h3>Debugging OpenKIM web queries in LAMMPS<a class="headerlink" href="#debugging-openkim-web-queries-in-lammps" title="Permalink to this headline">¶</a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">LMP_DEBUG_CURL</span></code> is set, the libcurl verbose mode will be turned
+on, and any libcurl calls within the KIM web query display a lot of
+information about libcurl operations.  You hardly ever want this set in
+production use, you will almost always want this when you debug or
+report problems.</p>
+<p>The libcurl library performs peer SSL certificate verification by
+default.  This verification is done using a CA certificate store that
+the SSL library can use to make sure the peer’s server certificate is
+valid.  If SSL reports an error (“certificate verify failed”) during the
+handshake and thus refuses further communicate with that server, you can
+set <code class="docutils literal notranslate"><span class="pre">LMP_NO_SSL_CHECK</span></code> to override that behavior.  When LAMMPS is
+compiled with <code class="docutils literal notranslate"><span class="pre">LMP_NO_SSL_CHECK</span></code> set, libcurl does not verify the peer
+and connection attempts will succeed regardless of the names in the
+certificate. This option is insecure.  As an alternative, you can
+specify your own CA cert path by setting the environment variable
+<code class="docutils literal notranslate"><span class="pre">CURL_CA_BUNDLE</span></code> to the path of your choice.  A call to the KIM web
+query would get this value from the environment variable.</p>
+</div>
+<div class="section" id="kim-extra-unit-tests-cmake-only">
+<span id="kim-extra-unittests"></span><h3>KIM Extra unit tests (CMake only)<a class="headerlink" href="#kim-extra-unit-tests-cmake-only" title="Permalink to this headline">¶</a></h3>
+<p>During development, testing, or debugging, if
+<a class="reference internal" href="Build_development.html"><span class="doc">unit testing</span></a> is enabled in LAMMPS, one can also
+enable extra tests on <a class="reference internal" href="kim_commands.html"><span class="doc">KIM commands</span></a> by setting the
+<code class="docutils literal notranslate"><span class="pre">KIM_EXTRA_UNITTESTS</span></code> to <em>yes</em> (or <em>on</em>).</p>
+<p>Enabling the extra unit tests have some requirements,</p>
+<ul class="simple">
+<li><p>It requires to have internet access.</p></li>
+<li><p>It requires to have libcurl installed with the matching development headers
+and the curl-config tool.</p></li>
+<li><p>It requires to build LAMMPS with the PYTHON package installed and linked to
+Python 3.6 or later. See the <a class="reference internal" href="#python"><span class="std std-ref">PYTHON package build info</span></a> for
+more details on this.</p></li>
+<li><p>It requires to have <code class="docutils literal notranslate"><span class="pre">kim-property</span></code> Python package installed, which can be
+easily done using <em>pip</em> as <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">kim-property</span></code>, or from the
+<em>conda-forge</em> channel as <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">kim-property</span></code> if LAMMPS is built in
+Conda. More detailed information is available at:
+<a class="reference external" href="https://github.com/openkim/kim-property#installing-kim-property">kim-property installation</a>.</p></li>
+<li><p>It is also necessary to install
+<code class="docutils literal notranslate"><span class="pre">EAM_Dynamo_Mendelev_2007_Zr__MO_848899341753_000</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005</span></code> KIM models.
+See <a class="reference external" href="http://openkim.org/doc/usage/obtaining-models">Obtaining KIM Models</a>
+to learn how to install a pre-build binary of the OpenKIM Repository of
+Models or see
+<a class="reference external" href="https://openkim.org/doc/usage/obtaining-models/#installing_models">Installing KIM Models</a>
+to learn how to install the specific KIM models.</p></li>
+</ul>
+<hr class="docutils" />
+</div>
+</div>
+<div class="section" id="kokkos-package">
+<span id="kokkos"></span><h2><span class="section-number">3.7.4. </span>KOKKOS package<a class="headerlink" href="#kokkos-package" title="Permalink to this headline">¶</a></h2>
+<p>Using the KOKKOS package requires choosing several settings.  You have
+to select whether you want to compile with parallelization on the host
+and whether you want to include offloading of calculations to a device
+(e.g. a GPU).  The default setting is to have no host parallelization
+and no device offloading.  In addition, you can select the hardware
+architecture to select the instruction set.  Since most hardware is
+backward compatible, you may choose settings for an older architecture
+to have an executable that will run on this and newer architectures.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you run Kokkos on a different GPU architecture than what LAMMPS
+was compiled with, there will be a delay during device initialization
+while the just-in-time compiler is recompiling all GPU kernels for
+the new hardware.  This is, however, only supported for GPUs of the
+<strong>same</strong> major hardware version and different minor hardware versions,
+e.g. 5.0 and 5.2 but not 5.2 and 6.0.  LAMMPS will abort with an
+error message indicating a mismatch, if that happens.</p>
+</div>
+<p>The settings discussed below have been tested with LAMMPS and are
+confirmed to work.  Kokkos is an active project with ongoing improvements
+and projects working on including support for additional architectures.
+More information on Kokkos can be found on the
+<a class="reference external" href="https://github.com/kokkos">Kokkos GitHub project</a>.</p>
+<div class="section" id="available-architecture-settings">
+<h3>Available Architecture settings<a class="headerlink" href="#available-architecture-settings" title="Permalink to this headline">¶</a></h3>
+<p>These are the possible choices for the Kokkos architecture ID.
+They must be specified in uppercase.</p>
+<table class="colwidths-auto docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>Arch-ID</strong></p></td>
+<td><p><strong>HOST or GPU</strong></p></td>
+<td><p><strong>Description</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>AMDAVX</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD 64-bit x86 CPU (AVX 1)</p></td>
+</tr>
+<tr class="row-odd"><td><p>ZEN</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD Zen class CPU (AVX 2)</p></td>
+</tr>
+<tr class="row-even"><td><p>ZEN2</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD Zen2 class CPU (AVX 2)</p></td>
+</tr>
+<tr class="row-odd"><td><p>ARMV80</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8.0 Compatible CPU</p></td>
+</tr>
+<tr class="row-even"><td><p>ARMV81</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8.1 Compatible CPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>ARMV8_THUNDERX</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8 Cavium ThunderX CPU</p></td>
+</tr>
+<tr class="row-even"><td><p>ARMV8_THUNDERX2</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8 Cavium ThunderX2 CPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>WSM</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Westmere CPU (SSE 4.2)</p></td>
+</tr>
+<tr class="row-even"><td><p>SNB</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Sandy/Ivy Bridge CPU (AVX 1)</p></td>
+</tr>
+<tr class="row-odd"><td><p>HSW</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Haswell CPU (AVX 2)</p></td>
+</tr>
+<tr class="row-even"><td><p>BDW</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Broadwell Xeon E-class CPU (AVX 2 + transactional mem)</p></td>
+</tr>
+<tr class="row-odd"><td><p>SKX</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Sky Lake Xeon E-class HPC CPU (AVX512 + transactional mem)</p></td>
+</tr>
+<tr class="row-even"><td><p>KNC</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Knights Corner Xeon Phi</p></td>
+</tr>
+<tr class="row-odd"><td><p>KNL</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Knights Landing Xeon Phi</p></td>
+</tr>
+<tr class="row-even"><td><p>BGQ</p></td>
+<td><p>HOST</p></td>
+<td><p>IBM Blue Gene/Q CPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>POWER7</p></td>
+<td><p>HOST</p></td>
+<td><p>IBM POWER7 CPU</p></td>
+</tr>
+<tr class="row-even"><td><p>POWER8</p></td>
+<td><p>HOST</p></td>
+<td><p>IBM POWER8 CPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>POWER9</p></td>
+<td><p>HOST</p></td>
+<td><p>IBM POWER9 CPU</p></td>
+</tr>
+<tr class="row-even"><td><p>KEPLER30</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Kepler generation CC 3.0 GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>KEPLER32</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Kepler generation CC 3.2 GPU</p></td>
+</tr>
+<tr class="row-even"><td><p>KEPLER35</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Kepler generation CC 3.5 GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>KEPLER37</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Kepler generation CC 3.7 GPU</p></td>
+</tr>
+<tr class="row-even"><td><p>MAXWELL50</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Maxwell generation CC 5.0 GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>MAXWELL52</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Maxwell generation CC 5.2 GPU</p></td>
+</tr>
+<tr class="row-even"><td><p>MAXWELL53</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Maxwell generation CC 5.3 GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>PASCAL60</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Pascal generation CC 6.0 GPU</p></td>
+</tr>
+<tr class="row-even"><td><p>PASCAL61</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Pascal generation CC 6.1 GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>VOLTA70</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Volta generation CC 7.0 GPU</p></td>
+</tr>
+<tr class="row-even"><td><p>VOLTA72</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Volta generation CC 7.2 GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>TURING75</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Turing generation CC 7.5 GPU</p></td>
+</tr>
+<tr class="row-even"><td><p>AMPERE80</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Ampere generation CC 8.0 GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>VEGA900</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU MI25 GFX900</p></td>
+</tr>
+<tr class="row-even"><td><p>VEGA906</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU MI50/MI60 GFX906</p></td>
+</tr>
+<tr class="row-odd"><td><p>INTEL_GEN</p></td>
+<td><p>GPU</p></td>
+<td><p>Intel GPUs Gen9+</p></td>
+</tr>
+</tbody>
+</table>
+<p>This list was last updated for version 3.2 of the Kokkos library.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-2-2-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-2-2-0" name="2-0" role="tab" tabindex="0">Basic CMake build settings:</button><button aria-controls="panel-2-2-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-2-2-1" name="2-1" role="tab" tabindex="-1">Basic traditional make settings:</button></div><div aria-labelledby="tab-2-2-0" class="sphinx-tabs-panel" id="panel-2-2-0" name="2-0" role="tabpanel" tabindex="0"><p>For multicore CPUs using OpenMP, set these 2 variables.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">Kokkos_ARCH_HOSTARCH</span><span class="o">=</span>yes  <span class="c1"># HOSTARCH = HOST from list above</span>
+-D <span class="nv">Kokkos_ENABLE_OPENMP</span><span class="o">=</span>yes
+-D <span class="nv">BUILD_OMP</span><span class="o">=</span>yes
+</pre></div>
+</div>
+<p>Please note that enabling OpenMP for KOKKOS requires that OpenMP is
+also <a class="reference internal" href="Build_basics.html#serial"><span class="std std-ref">enabled for the rest of LAMMPS</span></a>.</p>
+<p>For Intel KNLs using OpenMP, set these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">Kokkos_ARCH_KNL</span><span class="o">=</span>yes
+-D <span class="nv">Kokkos_ENABLE_OPENMP</span><span class="o">=</span>yes
+</pre></div>
+</div>
+<p>For NVIDIA GPUs using CUDA, set these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">Kokkos_ARCH_HOSTARCH</span><span class="o">=</span>yes   <span class="c1"># HOSTARCH = HOST from list above</span>
+-D <span class="nv">Kokkos_ARCH_GPUARCH</span><span class="o">=</span>yes    <span class="c1"># GPUARCH = GPU from list above</span>
+-D <span class="nv">Kokkos_ENABLE_CUDA</span><span class="o">=</span>yes
+-D <span class="nv">Kokkos_ENABLE_OPENMP</span><span class="o">=</span>yes
+-D <span class="nv">CMAKE_CXX_COMPILER</span><span class="o">=</span>wrapper <span class="c1"># wrapper = full path to Cuda nvcc wrapper</span>
+</pre></div>
+</div>
+<p>This will also enable executing FFTs on the GPU, either via the
+internal KISSFFT library, or - by preference - with the cuFFT
+library bundled with the CUDA toolkit, depending on whether CMake
+can identify its location.  The <em>wrapper</em> value for
+<code class="docutils literal notranslate"><span class="pre">CMAKE_CXX_COMPILER</span></code> variable is the path to the CUDA nvcc
+compiler wrapper provided in the Kokkos library:
+<code class="docutils literal notranslate"><span class="pre">lib/kokkos/bin/nvcc_wrapper</span></code>.  The setting should include the
+full path name to the wrapper, e.g.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">CMAKE_CXX_COMPILER</span><span class="o">=</span><span class="si">${</span><span class="nv">HOME</span><span class="si">}</span>/lammps/lib/kokkos/bin/nvcc_wrapper
+</pre></div>
+</div>
+<p>To simplify compilation, three preset files are included in the
+<code class="docutils literal notranslate"><span class="pre">cmake/presets</span></code> folder, <code class="docutils literal notranslate"><span class="pre">kokkos-serial.cmake</span></code>,
+<code class="docutils literal notranslate"><span class="pre">kokkos-openmp.cmake</span></code>, and <code class="docutils literal notranslate"><span class="pre">kokkos-cuda.cmake</span></code>. They will
+enable the KOKKOS package and enable some hardware choice.  So to
+compile with OpenMP host parallelization, CUDA device
+parallelization (for GPUs with CC 5.0 and up) with some common
+packages enabled, you can do the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir build-kokkos-cuda
+<span class="nb">cd</span> build-kokkos-cuda
+cmake -C ../cmake/presets/minimal.cmake -C ../cmake/presets/kokkos-cuda.cmake ../cmake
+cmake --build .
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-2-2-1" class="sphinx-tabs-panel" hidden="true" id="panel-2-2-1" name="2-1" role="tabpanel" tabindex="0"><p>Choose which hardware to support in <code class="docutils literal notranslate"><span class="pre">Makefile.machine</span></code> via
+<code class="docutils literal notranslate"><span class="pre">KOKKOS_DEVICES</span></code> and <code class="docutils literal notranslate"><span class="pre">KOKKOS_ARCH</span></code> settings.  See the
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/Makefile.kokkos*</span></code> files for examples.</p>
+<p>For multicore CPUs using OpenMP:</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">KOKKOS_DEVICES</span> <span class="o">=</span> OpenMP
+<span class="nv">KOKKOS_ARCH</span> <span class="o">=</span> HOSTARCH          <span class="c1"># HOSTARCH = HOST from list above</span>
+</pre></div>
+</div>
+<p>For Intel KNLs using OpenMP:</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">KOKKOS_DEVICES</span> <span class="o">=</span> OpenMP
+<span class="nv">KOKKOS_ARCH</span> <span class="o">=</span> KNL
+</pre></div>
+</div>
+<p>For NVIDIA GPUs using CUDA:</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">KOKKOS_DEVICES</span> <span class="o">=</span> Cuda
+<span class="nv">KOKKOS_ARCH</span> <span class="o">=</span> HOSTARCH,GPUARCH  <span class="c1"># HOSTARCH = HOST from list above that is hosting the GPU</span>
+<span class="nv">KOKKOS_CUDA_OPTIONS</span> <span class="o">=</span> <span class="s2">&quot;enable_lambda&quot;</span>
+<span class="c">                                # GPUARCH = GPU from list above</span>
+<span class="nv">FFT_INC</span> <span class="o">=</span> -DFFT_CUFFT           <span class="c1"># enable use of cuFFT (optional)</span>
+<span class="nv">FFT_LIB</span> <span class="o">=</span> -lcufft               <span class="c1"># link to cuFFT library</span>
+</pre></div>
+</div>
+<p>For GPUs, you also need the following lines in your
+<code class="docutils literal notranslate"><span class="pre">Makefile.machine</span></code> before the CC line is defined.  They tell
+<code class="docutils literal notranslate"><span class="pre">mpicxx</span></code> to use an <code class="docutils literal notranslate"><span class="pre">nvcc</span></code> compiler wrapper, which will use
+<code class="docutils literal notranslate"><span class="pre">nvcc</span></code> for compiling CUDA files and a C++ compiler for
+non-Kokkos, non-CUDA files.</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="c"># For OpenMPI</span>
+<span class="nv">KOKKOS_ABSOLUTE_PATH</span> <span class="o">=</span> <span class="k">$(</span>shell <span class="nb">cd</span> <span class="k">$(</span>KOKKOS_PATH<span class="k">)</span><span class="p">;</span> <span class="nb">pwd</span><span class="k">)</span>
+<span class="k">export </span><span class="nv">OMPI_CXX</span> <span class="o">=</span> <span class="k">$(</span>KOKKOS_ABSOLUTE_PATH<span class="k">)</span>/config/nvcc_wrapper
+<span class="nv">CC</span> <span class="o">=</span> mpicxx
+</pre></div>
+</div>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="c"># For MPICH and derivatives</span>
+<span class="nv">KOKKOS_ABSOLUTE_PATH</span> <span class="o">=</span> <span class="k">$(</span>shell <span class="nb">cd</span> <span class="k">$(</span>KOKKOS_PATH<span class="k">)</span><span class="p">;</span> <span class="nb">pwd</span><span class="k">)</span>
+<span class="nv">CC</span> <span class="o">=</span> mpicxx -cxx<span class="o">=</span><span class="k">$(</span>KOKKOS_ABSOLUTE_PATH<span class="k">)</span>/config/nvcc_wrapper
+</pre></div>
+</div>
+</div></div>
+</div>
+<div class="section" id="advanced-kokkos-compilation-settings">
+<h3>Advanced KOKKOS compilation settings<a class="headerlink" href="#advanced-kokkos-compilation-settings" title="Permalink to this headline">¶</a></h3>
+<p>There are other allowed options when building with the KOKKOS package
+that can improve performance or assist in debugging or profiling. Below
+are some examples that may be useful in combination with LAMMPS.  For
+the full list (which keeps changing as the Kokkos package itself evolves),
+please consult the Kokkos library documentation.</p>
+<p>As alternative to using multi-threading via OpenMP
+(<code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_OPENMP=on</span></code> or <code class="docutils literal notranslate"><span class="pre">KOKKOS_DEVICES=OpenMP</span></code>) it is also
+possible to use Posix threads directly (<code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_PTHREAD=on</span></code>
+or <code class="docutils literal notranslate"><span class="pre">KOKKOS_DEVICES=Pthread</span></code>).  While binding of threads to individual
+or groups of CPU cores is managed in OpenMP with environment variables,
+you need assistance from either the “hwloc” or “libnuma” library for the
+Pthread thread parallelization option. To enable use with CMake:
+<code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_HWLOC=on</span></code> or <code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_LIBNUMA=on</span></code>; and with
+conventional make: <code class="docutils literal notranslate"><span class="pre">KOKKOS_USE_TPLS=hwloc</span></code> or
+<code class="docutils literal notranslate"><span class="pre">KOKKOS_USE_TPLS=libnuma</span></code>.</p>
+<p>The CMake option <code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_LIBRT=on</span></code> or the makefile setting
+<code class="docutils literal notranslate"><span class="pre">KOKKOS_USE_TPLS=librt</span></code> enables the use of a more accurate timer
+mechanism on many Unix-like platforms for internal profiling.</p>
+<p>The CMake option <code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_DEBUG=on</span></code> or the makefile setting
+<code class="docutils literal notranslate"><span class="pre">KOKKOS_DEBUG=yes</span></code> enables printing of run-time
+debugging information that can be useful. It also enables runtime
+bounds checking on Kokkos data structures.  As to be expected, enabling
+this option will negatively impact the performance and thus is only
+recommended when developing a Kokkos-enabled style in LAMMPS.</p>
+<p>The CMake option <code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_CUDA_UVM=on</span></code> or the makefile
+setting <code class="docutils literal notranslate"><span class="pre">KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm</span></code> enables the
+use of CUDA “Unified Virtual Memory” (UVM) in Kokkos.  UVM allows to
+transparently use RAM on the host to supplement the memory used on the
+GPU (with some performance penalty) and thus enables running larger
+problems that would otherwise not fit into the RAM on the GPU.</p>
+<p>Please note, that the LAMMPS KOKKOS package must <strong>always</strong> be compiled
+with the <em>enable_lambda</em> option when using GPUs.  The CMake configuration
+will thus always enable it.</p>
+<hr class="docutils" />
+</div>
+</div>
+<div class="section" id="latte-package">
+<span id="latte"></span><h2><span class="section-number">3.7.5. </span>LATTE package<a class="headerlink" href="#latte-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, you must download and build the LATTE
+library.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-3-3-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-3-3-0" name="3-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-3-3-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-3-3-1" name="3-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-3-3-0" class="sphinx-tabs-panel" id="panel-3-3-0" name="3-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">DOWNLOAD_LATTE</span><span class="o">=</span>value    <span class="c1"># download LATTE for build, value = no (default) or yes</span>
+-D <span class="nv">LATTE_LIBRARY</span><span class="o">=</span>path      <span class="c1"># LATTE library file (only needed if a custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_LATTE</span></code> is set, the LATTE library will be downloaded
+and built inside the CMake build directory.  If the LATTE library
+is already on your system (in a location CMake cannot find it),
+<code class="docutils literal notranslate"><span class="pre">LATTE_LIBRARY</span></code> is the filename (plus path) of the LATTE library
+file, not the directory the library file is in.</p>
+</div><div aria-labelledby="tab-3-3-1" class="sphinx-tabs-panel" hidden="true" id="panel-3-3-1" name="3-1" role="tabpanel" tabindex="0"><p>You can download and build the LATTE library manually if you
+prefer; follow the instructions in <code class="docutils literal notranslate"><span class="pre">lib/latte/README</span></code>.  You
+can also do it in one step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a
+command like these, which simply invokes the
+<code class="docutils literal notranslate"><span class="pre">lib/latte/Install.py</span></code> script with the specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-latte                          <span class="c1"># print help message</span>
+$ make lib-latte <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b&quot;</span>                <span class="c1"># download and build in lib/latte/LATTE-master</span>
+$ make lib-latte <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p </span><span class="nv">$HOME</span><span class="s2">/latte&quot;</span>    <span class="c1"># use existing LATTE installation in $HOME/latte</span>
+$ make lib-latte <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b -m gfortran&quot;</span>    <span class="c1"># download and build in lib/latte and</span>
+                                          <span class="c1">#   copy Makefile.lammps.gfortran to Makefile.lammps</span>
+</pre></div>
+</div>
+<p>Note that 3 symbolic (soft) links, <code class="docutils literal notranslate"><span class="pre">includelink</span></code> and <code class="docutils literal notranslate"><span class="pre">liblink</span></code>
+and <code class="docutils literal notranslate"><span class="pre">filelink.o</span></code>, are created in <code class="docutils literal notranslate"><span class="pre">lib/latte</span></code> to point to
+required folders and files in the LATTE home directory.  When
+LAMMPS itself is built it will use these links.  You should also
+check that the <code class="docutils literal notranslate"><span class="pre">Makefile.lammps</span></code> file you create is appropriate
+for the compiler you use on your system to build LATTE.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="message-package">
+<span id="message"></span><h2><span class="section-number">3.7.6. </span>MESSAGE package<a class="headerlink" href="#message-package" title="Permalink to this headline">¶</a></h2>
+<p>This package can optionally include support for messaging via sockets,
+using the open-source <a class="reference external" href="http://zeromq.org">ZeroMQ library</a>, which must
+be installed on your system.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-4-4-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-4-4-0" name="4-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-4-4-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-4-4-1" name="4-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-4-4-0" class="sphinx-tabs-panel" id="panel-4-4-0" name="4-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">MESSAGE_ZMQ</span><span class="o">=</span>value    <span class="c1"># build with ZeroMQ support, value = no (default) or yes</span>
+-D <span class="nv">ZMQ_LIBRARY</span><span class="o">=</span>path     <span class="c1"># ZMQ library file (only needed if a custom location)</span>
+-D <span class="nv">ZMQ_INCLUDE_DIR</span><span class="o">=</span>path <span class="c1"># ZMQ include directory (only needed if a custom location)</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-4-4-1" class="sphinx-tabs-panel" hidden="true" id="panel-4-4-1" name="4-1" role="tabpanel" tabindex="0"><p>Before building LAMMPS, you must build the CSlib library in
+<code class="docutils literal notranslate"><span class="pre">lib/message</span></code>.  You can build the CSlib library manually if
+you prefer; follow the instructions in <code class="docutils literal notranslate"><span class="pre">lib/message/README</span></code>.
+You can also do it in one step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using
+a command like these, which simply invoke the
+<code class="docutils literal notranslate"><span class="pre">lib/message/Install.py</span></code> script with the specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-message               <span class="c1"># print help message</span>
+$ make lib-message <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m -z&quot;</span>  <span class="c1"># build with MPI and socket (ZMQ) support</span>
+$ make lib-message <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-s&quot;</span>     <span class="c1"># build as serial lib with no ZMQ support</span>
+</pre></div>
+</div>
+<p>The build should produce two files: <code class="docutils literal notranslate"><span class="pre">lib/message/cslib/src/libmessage.a</span></code>
+and <code class="docutils literal notranslate"><span class="pre">lib/message/Makefile.lammps</span></code>.  The latter is copied from an
+existing <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.*</span></code> and has settings to link with the ZeroMQ
+library if requested in the build.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="mliap-package">
+<span id="mliap"></span><h2><span class="section-number">3.7.7. </span>MLIAP package<a class="headerlink" href="#mliap-package" title="Permalink to this headline">¶</a></h2>
+<p>Building the MLIAP package requires including the <a class="reference internal" href="Packages_details.html#pkg-snap"><span class="std std-ref">SNAP</span></a>
+package.  There will be an error message if this requirement is not satisfied.
+Using the <em>mliappy</em> model also requires enabling Python support, which
+in turn requires the <a class="reference internal" href="Packages_details.html#pkg-python"><span class="std std-ref">PYTHON</span></a>
+package <strong>and</strong> requires you have the <a class="reference external" href="https://cython.org">cython</a> software
+installed and with it a working <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> command.  This feature requires
+compiling LAMMPS with Python version 3.6 or later.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-5-5-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-5-5-0" name="5-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-5-5-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-5-5-1" name="5-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-5-5-0" class="sphinx-tabs-panel" id="panel-5-5-0" name="5-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">MLIAP_ENABLE_PYTHON</span><span class="o">=</span>value   <span class="c1"># enable mliappy model (default is autodetect)</span>
+</pre></div>
+</div>
+<p>Without this setting, CMake will check whether it can find a
+suitable Python version and the <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> command and choose
+the default accordingly.  During the build procedure the provided
+.pyx file(s) will be automatically translated to C++ code and compiled.
+Please do <strong>not</strong> run <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> manually in the <code class="docutils literal notranslate"><span class="pre">src/MLIAP</span></code> folder,
+as that can lead to compilation errors if Python support is not enabled.
+If you did by accident, please remove the generated .cpp and .h files.</p>
+</div><div aria-labelledby="tab-5-5-1" class="sphinx-tabs-panel" hidden="true" id="panel-5-5-1" name="5-1" role="tabpanel" tabindex="0"><p>The build uses the <code class="docutils literal notranslate"><span class="pre">lib/python/Makefile.mliap_python</span></code> file in the
+compile/link process to add a rule to update the files generated by
+the <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> command in case the corresponding .pyx file(s) were
+modified.  You may need to modify <code class="docutils literal notranslate"><span class="pre">lib/python/Makefile.lammps</span></code>
+if the LAMMPS build fails.
+To manually enforce building MLIAP with Python support enabled,
+you can add
+<code class="docutils literal notranslate"><span class="pre">-DMLIAP_PYTHON</span></code> to the <code class="docutils literal notranslate"><span class="pre">LMP_INC</span></code> variable in your machine makefile.
+You may have to manually run the <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> command on .pyx file(s)
+in the <code class="docutils literal notranslate"><span class="pre">src</span></code> folder, if this is not automatically done during
+installing the MLIAP package.  Please do <strong>not</strong> run <code class="docutils literal notranslate"><span class="pre">cythonize</span></code>
+in the <code class="docutils literal notranslate"><span class="pre">src/MLIAP</span></code> folder, as that can lead to compilation errors
+if Python support is not enabled.
+If you did by accident, please remove the generated .cpp and .h files.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="mscg-package">
+<span id="mscg"></span><h2><span class="section-number">3.7.8. </span>MSCG package<a class="headerlink" href="#mscg-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, you must download and build the MS-CG
+library.  Building the MS-CG library requires that the GSL
+(GNU Scientific Library) headers and libraries are installed on your
+machine.  See the <code class="docutils literal notranslate"><span class="pre">lib/mscg/README</span></code> and <code class="docutils literal notranslate"><span class="pre">MSCG/Install</span></code> files for
+more details.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-6-6-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-6-6-0" name="6-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-6-6-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-6-6-1" name="6-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-6-6-0" class="sphinx-tabs-panel" id="panel-6-6-0" name="6-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">DOWNLOAD_MSCG</span><span class="o">=</span>value    <span class="c1"># download MSCG for build, value = no (default) or yes</span>
+-D <span class="nv">MSCG_LIBRARY</span><span class="o">=</span>path      <span class="c1"># MSCG library file (only needed if a custom location)</span>
+-D <span class="nv">MSCG_INCLUDE_DIR</span><span class="o">=</span>path  <span class="c1"># MSCG include directory (only needed if a custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_MSCG</span></code> is set, the MSCG library will be downloaded
+and built inside the CMake build directory.  If the MSCG library
+is already on your system (in a location CMake cannot find it),
+<code class="docutils literal notranslate"><span class="pre">MSCG_LIBRARY</span></code> is the filename (plus path) of the MSCG library
+file, not the directory the library file is in.
+<code class="docutils literal notranslate"><span class="pre">MSCG_INCLUDE_DIR</span></code> is the directory the MSCG include file is in.</p>
+</div><div aria-labelledby="tab-6-6-1" class="sphinx-tabs-panel" hidden="true" id="panel-6-6-1" name="6-1" role="tabpanel" tabindex="0"><p>You can download and build the MS-CG library manually if you
+prefer; follow the instructions in <code class="docutils literal notranslate"><span class="pre">lib/mscg/README</span></code>.  You can
+also do it in one step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a
+command like these, which simply invoke the
+<code class="docutils literal notranslate"><span class="pre">lib/mscg/Install.py</span></code> script with the specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-mscg             <span class="c1"># print help message</span>
+$ make lib-mscg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b -m serial&quot;</span>   <span class="c1"># download and build in lib/mscg/MSCG-release-master</span>
+                                      <span class="c1"># with the settings compatible with &quot;make serial&quot;</span>
+$ make lib-mscg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b -m mpi&quot;</span>      <span class="c1"># download and build in lib/mscg/MSCG-release-master</span>
+                                      <span class="c1"># with the settings compatible with &quot;make mpi&quot;</span>
+$ make lib-mscg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p /usr/local/mscg-release&quot;</span> <span class="c1"># use the existing MS-CG installation in /usr/local/mscg-release</span>
+</pre></div>
+</div>
+<p>Note that 2 symbolic (soft) links, <code class="docutils literal notranslate"><span class="pre">includelink</span></code> and <code class="docutils literal notranslate"><span class="pre">liblink</span></code>,
+will be created in <code class="docutils literal notranslate"><span class="pre">lib/mscg</span></code> to point to the MS-CG
+<code class="docutils literal notranslate"><span class="pre">src/installation</span></code> dir.  When LAMMPS is built in src it will use
+these links.  You should not need to edit the
+<code class="docutils literal notranslate"><span class="pre">lib/mscg/Makefile.lammps</span></code> file.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="opt-package">
+<span id="opt"></span><h2><span class="section-number">3.7.9. </span>OPT package<a class="headerlink" href="#opt-package" title="Permalink to this headline">¶</a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-7-7-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-7-7-0" name="7-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-7-7-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-7-7-1" name="7-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-7-7-0" class="sphinx-tabs-panel" id="panel-7-7-0" name="7-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_OPT=yes</span></code></p>
+</div><div aria-labelledby="tab-7-7-1" class="sphinx-tabs-panel" hidden="true" id="panel-7-7-1" name="7-1" role="tabpanel" tabindex="0"><p>The compiler flag <code class="docutils literal notranslate"><span class="pre">-restrict</span></code> must be used to build LAMMPS with
+the OPT package when using Intel compilers.  It should be added to
+the <code class="code docutils literal notranslate"><span class="pre">CCFLAGS</span></code> line of your <code class="docutils literal notranslate"><span class="pre">Makefile.machine</span></code>.  See
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/Makefile.opt</span></code> for an example.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="poems-package">
+<span id="poems"></span><h2><span class="section-number">3.7.10. </span>POEMS package<a class="headerlink" href="#poems-package" title="Permalink to this headline">¶</a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-8-8-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-8-8-0" name="8-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-8-8-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-8-8-1" name="8-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-8-8-0" class="sphinx-tabs-panel" id="panel-8-8-0" name="8-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_OPT=yes</span></code></p>
+</div><div aria-labelledby="tab-8-8-1" class="sphinx-tabs-panel" hidden="true" id="panel-8-8-1" name="8-1" role="tabpanel" tabindex="0"><p>Before building LAMMPS, you must build the POEMS library in
+<code class="docutils literal notranslate"><span class="pre">lib/poems</span></code>.  You can do this manually if you prefer; follow
+the instructions in <code class="docutils literal notranslate"><span class="pre">lib/poems/README</span></code>.  You can also do it in
+one step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a command like these,
+which simply invoke the <code class="docutils literal notranslate"><span class="pre">lib/poems/Install.py</span></code> script with the
+specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-poems                   <span class="c1"># print help message</span>
+$ make lib-poems <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m serial&quot;</span>  <span class="c1"># build with GNU g++ compiler (settings as with &quot;make serial&quot;)</span>
+$ make lib-poems <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m mpi&quot;</span>     <span class="c1"># build with default MPI C++ compiler (settings as with &quot;make mpi&quot;)</span>
+$ make lib-poems <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m icc&quot;</span>     <span class="c1"># build with Intel icc compiler</span>
+</pre></div>
+</div>
+<p>The build should produce two files: <code class="docutils literal notranslate"><span class="pre">lib/poems/libpoems.a</span></code> and
+<code class="docutils literal notranslate"><span class="pre">lib/poems/Makefile.lammps</span></code>.  The latter is copied from an
+existing <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.*</span></code> and has settings needed to build
+LAMMPS with the POEMS library (though typically the settings are
+just blank).  If necessary, you can edit/create a new
+<code class="docutils literal notranslate"><span class="pre">lib/poems/Makefile.machine</span></code> file for your system, which should
+define an <code class="docutils literal notranslate"><span class="pre">EXTRAMAKE</span></code> variable to specify a corresponding
+<code class="docutils literal notranslate"><span class="pre">Makefile.lammps.machine</span></code> file.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="python-package">
+<span id="python"></span><h2><span class="section-number">3.7.11. </span>PYTHON package<a class="headerlink" href="#python-package" title="Permalink to this headline">¶</a></h2>
+<p>Building with the PYTHON package requires you have a the Python development
+headers and library available on your system, which needs to be a Python 2.7
+version or a Python 3.x version.  Since support for Python 2.x has ended,
+using Python 3.x is strongly recommended. See <code class="docutils literal notranslate"><span class="pre">lib/python/README</span></code> for
+additional details.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-9-9-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-9-9-0" name="9-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-9-9-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-9-9-1" name="9-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-9-9-0" class="sphinx-tabs-panel" id="panel-9-9-0" name="9-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">PYTHON_EXECUTABLE</span><span class="o">=</span>path   <span class="c1"># path to Python executable to use</span>
+</pre></div>
+</div>
+<p>Without this setting, CMake will guess the default Python version
+on your system.  To use a different Python version, you can either
+create a virtualenv, activate it and then run cmake.  Or you can
+set the PYTHON_EXECUTABLE variable to specify which Python
+interpreter should be used.  Note note that you will also need to
+have the development headers installed for this version,
+e.g. python2-devel.</p>
+</div><div aria-labelledby="tab-9-9-1" class="sphinx-tabs-panel" hidden="true" id="panel-9-9-1" name="9-1" role="tabpanel" tabindex="0"><p>The build uses the <code class="docutils literal notranslate"><span class="pre">lib/python/Makefile.lammps</span></code> file in the
+compile/link process to find Python.  You should only need to
+create a new <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.*</span></code> file (and copy it to
+<code class="docutils literal notranslate"><span class="pre">Makefile.lammps</span></code>) if the LAMMPS build fails.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="voronoi-package">
+<span id="voronoi"></span><h2><span class="section-number">3.7.12. </span>VORONOI package<a class="headerlink" href="#voronoi-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, you must download and build the
+<a class="reference external" href="http://math.lbl.gov/voro++">Voro++ library</a> or install a
+binary package provided by your operating system.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-10-10-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-10-10-0" name="10-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-10-10-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-10-10-1" name="10-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-10-10-0" class="sphinx-tabs-panel" id="panel-10-10-0" name="10-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">DOWNLOAD_VORO</span><span class="o">=</span>value    <span class="c1"># download Voro++ for build, value = no (default) or yes</span>
+-D <span class="nv">VORO_LIBRARY</span><span class="o">=</span>path      <span class="c1"># Voro++ library file (only needed if at custom location)</span>
+-D <span class="nv">VORO_INCLUDE_DIR</span><span class="o">=</span>path  <span class="c1"># Voro++ include directory (only needed if at custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_VORO</span></code> is set, the Voro++ library will be downloaded
+and built inside the CMake build directory.  If the Voro++ library
+is already on your system (in a location CMake cannot find it),
+<code class="docutils literal notranslate"><span class="pre">VORO_LIBRARY</span></code> is the filename (plus path) of the Voro++ library
+file, not the directory the library file is in.
+<code class="docutils literal notranslate"><span class="pre">VORO_INCLUDE_DIR</span></code> is the directory the Voro++ include file is
+in.</p>
+</div><div aria-labelledby="tab-10-10-1" class="sphinx-tabs-panel" hidden="true" id="panel-10-10-1" name="10-1" role="tabpanel" tabindex="0"><p>You can download and build the Voro++ library manually if you
+prefer; follow the instructions in <code class="docutils literal notranslate"><span class="pre">lib/voronoi/README</span></code>.  You
+can also do it in one step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a
+command like these, which simply invoke the
+<code class="docutils literal notranslate"><span class="pre">lib/voronoi/Install.py</span></code> script with the specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-voronoi                          <span class="c1"># print help message</span>
+$ make lib-voronoi <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b&quot;</span>                <span class="c1"># download and build the default version in lib/voronoi/voro++-&lt;version&gt;</span>
+$ make lib-voronoi <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p </span><span class="nv">$HOME</span><span class="s2">/voro++&quot;</span>   <span class="c1"># use existing Voro++ installation in $HOME/voro++</span>
+$ make lib-voronoi <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b -v voro++0.4.6&quot;</span> <span class="c1"># download and build the 0.4.6 version in lib/voronoi/voro++-0.4.6</span>
+</pre></div>
+</div>
+<p>Note that 2 symbolic (soft) links, <code class="docutils literal notranslate"><span class="pre">includelink</span></code> and
+<code class="docutils literal notranslate"><span class="pre">liblink</span></code>, are created in lib/voronoi to point to the Voro++
+source dir.  When LAMMPS builds in <code class="docutils literal notranslate"><span class="pre">src</span></code> it will use these
+links.  You should not need to edit the
+<code class="docutils literal notranslate"><span class="pre">lib/voronoi/Makefile.lammps</span></code> file.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-adios-package">
+<span id="user-adios"></span><h2><span class="section-number">3.7.13. </span>USER-ADIOS package<a class="headerlink" href="#user-adios-package" title="Permalink to this headline">¶</a></h2>
+<p>The USER-ADIOS package requires the <a class="reference external" href="https://github.com/ornladios/ADIOS2">ADIOS I/O library</a>, version 2.3.1 or newer. Make
+sure that you have ADIOS built either with or without MPI to match if
+you build LAMMPS with or without MPI.  ADIOS compilation settings for
+LAMMPS are automatically detected, if the PATH and LD_LIBRARY_PATH
+environment variables have been updated for the local ADIOS installation
+and the instructions below are followed for the respective build
+systems.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-11-11-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-11-11-0" name="11-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-11-11-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-11-11-1" name="11-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-11-11-0" class="sphinx-tabs-panel" id="panel-11-11-0" name="11-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">ADIOS2_DIR</span><span class="o">=</span>path        <span class="c1"># path is where ADIOS 2.x is installed</span>
+-D PKG_USER-ADIOS<span class="o">=</span>yes
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-11-11-1" class="sphinx-tabs-panel" hidden="true" id="panel-11-11-1" name="11-1" role="tabpanel" tabindex="0"><p>Turn on the USER-ADIOS package before building LAMMPS. If the
+ADIOS 2.x software is installed in PATH, there is nothing else to
+do:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make yes-user-adios
+</pre></div>
+</div>
+<p>otherwise, set ADIOS2_DIR environment variable when turning on the package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nv">ADIOS2_DIR</span><span class="o">=</span>path make yes-user-adios   <span class="c1"># path is where ADIOS 2.x is installed</span>
+</pre></div>
+</div>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-atc-package">
+<span id="user-atc"></span><h2><span class="section-number">3.7.14. </span>USER-ATC package<a class="headerlink" href="#user-atc-package" title="Permalink to this headline">¶</a></h2>
+<p>The USER-ATC package requires the MANYBODY package also be installed.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-12-12-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-12-12-0" name="12-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-12-12-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-12-12-1" name="12-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-12-12-0" class="sphinx-tabs-panel" id="panel-12-12-0" name="12-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-ATC=yes</span></code>
+and <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_MANYBODY=yes</span></code>.</p>
+</div><div aria-labelledby="tab-12-12-1" class="sphinx-tabs-panel" hidden="true" id="panel-12-12-1" name="12-1" role="tabpanel" tabindex="0"><p>Before building LAMMPS, you must build the ATC library in
+<code class="docutils literal notranslate"><span class="pre">lib/atc</span></code>.  You can do this manually if you prefer; follow the
+instructions in <code class="docutils literal notranslate"><span class="pre">lib/atc/README</span></code>.  You can also do it in one
+step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a command like these,
+which simply invoke the <code class="docutils literal notranslate"><span class="pre">lib/atc/Install.py</span></code> script with the
+specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-atc                      <span class="c1"># print help message</span>
+$ make lib-atc <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m serial&quot;</span>     <span class="c1"># build with GNU g++ compiler and MPI STUBS (settings as with &quot;make serial&quot;)</span>
+$ make lib-atc <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m mpi&quot;</span>        <span class="c1"># build with default MPI compiler (settings as with &quot;make mpi&quot;)</span>
+$ make lib-atc <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m icc&quot;</span>        <span class="c1"># build with Intel icc compiler</span>
+</pre></div>
+</div>
+<p>The build should produce two files: <code class="docutils literal notranslate"><span class="pre">lib/atc/libatc.a</span></code> and
+<code class="docutils literal notranslate"><span class="pre">lib/atc/Makefile.lammps</span></code>.  The latter is copied from an
+existing <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.*</span></code> and has settings needed to build
+LAMMPS with the ATC library.  If necessary, you can edit/create a
+new <code class="docutils literal notranslate"><span class="pre">lib/atc/Makefile.machine</span></code> file for your system, which
+should define an <code class="docutils literal notranslate"><span class="pre">EXTRAMAKE</span></code> variable to specify a corresponding
+<code class="docutils literal notranslate"><span class="pre">Makefile.lammps.&lt;machine&gt;</span></code> file.</p>
+<p>Note that the Makefile.lammps file has settings for the BLAS and
+LAPACK linear algebra libraries.  As explained in
+<code class="docutils literal notranslate"><span class="pre">lib/atc/README</span></code> these can either exist on your system, or you
+can use the files provided in <code class="docutils literal notranslate"><span class="pre">lib/linalg</span></code>.  In the latter case
+you also need to build the library in <code class="docutils literal notranslate"><span class="pre">lib/linalg</span></code> with a
+command like these:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-linalg                     <span class="c1"># print help message</span>
+$ make lib-linalg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m serial&quot;</span>    <span class="c1"># build with GNU Fortran compiler (settings as with &quot;make serial&quot;)</span>
+$ make lib-linalg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m mpi&quot;</span>       <span class="c1"># build with default MPI Fortran compiler (settings as with &quot;make mpi&quot;)</span>
+$ make lib-linalg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m gfortran&quot;</span>  <span class="c1"># build with GNU Fortran compiler</span>
+</pre></div>
+</div>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-awpmd-package">
+<span id="user-awpmd"></span><h2><span class="section-number">3.7.15. </span>USER-AWPMD package<a class="headerlink" href="#user-awpmd-package" title="Permalink to this headline">¶</a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-13-13-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-13-13-0" name="13-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-13-13-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-13-13-1" name="13-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-13-13-0" class="sphinx-tabs-panel" id="panel-13-13-0" name="13-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-AQPMD=yes</span></code>.</p>
+</div><div aria-labelledby="tab-13-13-1" class="sphinx-tabs-panel" hidden="true" id="panel-13-13-1" name="13-1" role="tabpanel" tabindex="0"><p>Before building LAMMPS, you must build the AWPMD library in
+<code class="docutils literal notranslate"><span class="pre">lib/awpmd</span></code>.  You can do this manually if you prefer; follow the
+instructions in <code class="docutils literal notranslate"><span class="pre">lib/awpmd/README</span></code>.  You can also do it in one
+step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a command like these,
+which simply invoke the <code class="docutils literal notranslate"><span class="pre">lib/awpmd/Install.py</span></code> script with the
+specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-awpmd                   <span class="c1"># print help message</span>
+$ make lib-awpmd <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m serial&quot;</span>  <span class="c1"># build with GNU g++ compiler and MPI STUBS (settings as with &quot;make serial&quot;)</span>
+$ make lib-awpmd <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m mpi&quot;</span>     <span class="c1"># build with default MPI compiler (settings as with &quot;make mpi&quot;)</span>
+$ make lib-awpmd <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m icc&quot;</span>     <span class="c1"># build with Intel icc compiler</span>
+</pre></div>
+</div>
+<p>The build should produce two files: <code class="docutils literal notranslate"><span class="pre">lib/awpmd/libawpmd.a</span></code> and
+<code class="docutils literal notranslate"><span class="pre">lib/awpmd/Makefile.lammps</span></code>.  The latter is copied from an
+existing <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.*</span></code> and has settings needed to build
+LAMMPS with the AWPMD library.  If necessary, you can edit/create
+a new <code class="docutils literal notranslate"><span class="pre">lib/awpmd/Makefile.machine</span></code> file for your system, which
+should define an <code class="docutils literal notranslate"><span class="pre">EXTRAMAKE</span></code> variable to specify a corresponding
+<code class="docutils literal notranslate"><span class="pre">Makefile.lammps.&lt;machine&gt;</span></code> file.</p>
+<p>Note that the <code class="docutils literal notranslate"><span class="pre">Makefile.lammps</span></code> file has settings for the BLAS
+and LAPACK linear algebra libraries.  As explained in
+<code class="docutils literal notranslate"><span class="pre">lib/awpmd/README</span></code> these can either exist on your system, or you
+can use the files provided in <code class="docutils literal notranslate"><span class="pre">lib/linalg</span></code>.  In the latter case
+you also need to build the library in <code class="docutils literal notranslate"><span class="pre">lib/linalg</span></code> with a
+command like these:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-linalg                     <span class="c1"># print help message</span>
+$ make lib-linalg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m serial&quot;</span>    <span class="c1"># build with GNU Fortran compiler (settings as with &quot;make serial&quot;)</span>
+$ make lib-linalg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m mpi&quot;</span>       <span class="c1"># build with default MPI Fortran compiler (settings as with &quot;make mpi&quot;)</span>
+$ make lib-linalg <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m gfortran&quot;</span>  <span class="c1"># build with GNU Fortran compiler</span>
+</pre></div>
+</div>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-colvars-package">
+<span id="user-colvars"></span><h2><span class="section-number">3.7.16. </span>USER-COLVARS package<a class="headerlink" href="#user-colvars-package" title="Permalink to this headline">¶</a></h2>
+<p>This package includes the <a class="reference external" href="https://colvars.github.io/">Colvars library</a> into the LAMMPS distribution, which can
+be built for the most part with all major versions of the C++ language.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-14-14-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-14-14-0" name="14-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-14-14-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-14-14-1" name="14-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-14-14-0" class="sphinx-tabs-panel" id="panel-14-14-0" name="14-0" role="tabpanel" tabindex="0"><p>This is the recommended build procedure for using Colvars in
+LAMMPS. No additional settings are normally needed besides
+<code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-COLVARS=yes</span></code>.</p>
+</div><div aria-labelledby="tab-14-14-1" class="sphinx-tabs-panel" hidden="true" id="panel-14-14-1" name="14-1" role="tabpanel" tabindex="0"><p>Before building LAMMPS, one must build the Colvars library in lib/colvars.</p>
+<p>This can be done manually in the same folder by using or adapting
+one of the provided Makefiles: for example, <code class="docutils literal notranslate"><span class="pre">Makefile.g++</span></code> for
+the GNU C++ compiler.  C++11 compatibility may need to be enabled
+for some older compilers (as is done in the example makefile).</p>
+<p>In general, it is safer to use build setting consistent with the
+rest of LAMMPS.  This is best carried out from the LAMMPS src
+directory using a command like these, which simply invoke the
+<code class="docutils literal notranslate"><span class="pre">lib/colvars/Install.py</span></code> script with the specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-colvars                      <span class="c1"># print help message</span>
+$ make lib-colvars <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m serial&quot;</span>     <span class="c1"># build with GNU g++ compiler (settings as with &quot;make serial&quot;)</span>
+$ make lib-colvars <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m mpi&quot;</span>        <span class="c1"># build with default MPI compiler (settings as with &quot;make mpi&quot;)</span>
+$ make lib-colvars <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m g++-debug&quot;</span>  <span class="c1"># build with GNU g++ compiler and colvars debugging enabled</span>
+</pre></div>
+</div>
+<p>The “machine” argument of the “-m” flag is used to find a
+Makefile.machine to use as build recipe.  If it does not already
+exist in <code class="docutils literal notranslate"><span class="pre">lib/colvars</span></code>, it will be auto-generated by using
+compiler flags consistent with those parsed from the core LAMMPS
+makefiles.</p>
+<p>Optional flags may be specified as environment variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ <span class="nv">COLVARS_DEBUG</span><span class="o">=</span>yes make lib-colvars <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m machine&quot;</span>  <span class="c1"># Build with debug code (much slower)</span>
+$ <span class="nv">COLVARS_LEPTON</span><span class="o">=</span>no make lib-colvars <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m machine&quot;</span>  <span class="c1"># Build without Lepton (included otherwise)</span>
+</pre></div>
+</div>
+<p>The build should produce two files: the library <code class="docutils literal notranslate"><span class="pre">lib/colvars/libcolvars.a</span></code>
+(which also includes Lepton objects if enabled) and the specification file
+<code class="docutils literal notranslate"><span class="pre">lib/colvars/Makefile.lammps</span></code>.  The latter is auto-generated, and normally does
+not need to be edited.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-plumed-package">
+<span id="user-plumed"></span><h2><span class="section-number">3.7.17. </span>USER-PLUMED package<a class="headerlink" href="#user-plumed-package" title="Permalink to this headline">¶</a></h2>
+<p>Before building LAMMPS with this package, you must first build PLUMED.
+PLUMED can be built as part of the LAMMPS build or installed separately
+from LAMMPS using the generic <a class="reference external" href="https://plumed.github.io/doc-master/user-doc/html/_installation.html">PLUMED installation instructions</a>.
+The USER-PLUMED package has been tested to work with Plumed versions
+2.4.x, 2.5.x, and 2.6.x and will error out, when trying to run calculations
+with a different version of the Plumed kernel.</p>
+<p>PLUMED can be linked into MD codes in three different modes: static,
+shared, and runtime.  With the “static” mode, all the code that PLUMED
+requires is linked statically into LAMMPS. LAMMPS is then fully
+independent from the PLUMED installation, but you have to rebuild/relink
+it in order to update the PLUMED code inside it.  With the “shared”
+linkage mode, LAMMPS is linked to a shared library that contains the
+PLUMED code.  This library should preferably be installed in a globally
+accessible location. When PLUMED is linked in this way the same library
+can be used by multiple MD packages.  Furthermore, the PLUMED library
+LAMMPS uses can be updated without the need for a recompile of LAMMPS
+for as long as the shared PLUMED library is ABI-compatible.</p>
+<p>The third linkage mode is “runtime” which allows the user to specify
+which PLUMED kernel should be used at runtime by using the PLUMED_KERNEL
+environment variable. This variable should point to the location of the
+libplumedKernel.so dynamical shared object, which is then loaded at
+runtime. This mode of linking is particularly convenient for doing
+PLUMED development and comparing multiple PLUMED versions as these sorts
+of comparisons can be done without recompiling the hosting MD code. All
+three linkage modes are supported by LAMMPS on selected operating
+systems (e.g. Linux) and using either CMake or traditional make
+build. The “static” mode should be the most portable, while the
+“runtime” mode support in LAMMPS makes the most assumptions about
+operating system and compiler environment. If one mode does not work,
+try a different one, switch to a different build system, consider a
+global PLUMED installation or consider downloading PLUMED during the
+LAMMPS build.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-15-15-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-15-15-0" name="15-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-15-15-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-15-15-1" name="15-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-15-15-0" class="sphinx-tabs-panel" id="panel-15-15-0" name="15-0" role="tabpanel" tabindex="0"><p>When the <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-PLUMED=yes</span></code> flag is included in the cmake
+command you must ensure that GSL is installed in locations that
+are specified in your environment.  There are then two additional
+variables that control the manner in which PLUMED is obtained and
+linked into LAMMPS.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">DOWNLOAD_PLUMED</span><span class="o">=</span>value   <span class="c1"># download PLUMED for build, value = no (default) or yes</span>
+-D <span class="nv">PLUMED_MODE</span><span class="o">=</span>value       <span class="c1"># Linkage mode for PLUMED, value = static (default), shared, or runtime</span>
+</pre></div>
+</div>
+<p>If DOWNLOAD_PLUMED is set to “yes”, the PLUMED library will be
+downloaded (the version of PLUMED that will be downloaded is
+hard-coded to a vetted version of PLUMED, usually a recent stable
+release version) and built inside the CMake build directory.  If
+<code class="docutils literal notranslate"><span class="pre">DOWNLOAD_PLUMED</span></code> is set to “no” (the default), CMake will try
+to detect and link to an installed version of PLUMED.  For this to
+work, the PLUMED library has to be installed into a location where
+the <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> tool can find it or the PKG_CONFIG_PATH
+environment variable has to be set up accordingly.  PLUMED should
+be installed in such a location if you compile it using the
+default make; make install commands.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">PLUMED_MODE</span></code> setting determines the linkage mode for the
+PLUMED library.  The allowed values for this flag are “static”
+(default), “shared”, or “runtime”.  If you want to switch the
+linkage mode, just re-run CMake with a different setting. For a
+discussion of PLUMED linkage modes, please see above.  When
+<code class="docutils literal notranslate"><span class="pre">DOWNLOAD_PLUMED</span></code> is enabled the static linkage mode is
+recommended.</p>
+</div><div aria-labelledby="tab-15-15-1" class="sphinx-tabs-panel" hidden="true" id="panel-15-15-1" name="15-1" role="tabpanel" tabindex="0"><p>PLUMED needs to be installed before the USER-PLUMED package is
+installed so that LAMMPS can find the right settings when
+compiling and linking the LAMMPS executable.  You can either
+download and build PLUMED inside the LAMMPS plumed library folder
+or use a previously installed PLUMED library and point LAMMPS to
+its location. You also have to choose the linkage mode: “static”
+(default), “shared” or “runtime”.  For a discussion of PLUMED
+linkage modes, please see above.</p>
+<p>Download/compilation/configuration of the plumed library can be done
+from the src folder through the following make args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-plumed                         <span class="c1"># print help message</span>
+$ make lib-plumed <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b&quot;</span>               <span class="c1"># download and build PLUMED in lib/plumed/plumed2</span>
+$ make lib-plumed <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p </span><span class="nv">$HOME</span><span class="s2">/.local&quot;</span>  <span class="c1"># use existing PLUMED installation in $HOME/.local</span>
+$ make lib-plumed <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p /usr/local -m shared&quot;</span>  <span class="c1"># use existing PLUMED installation in</span>
+                                                  <span class="c1"># /usr/local and use shared linkage mode</span>
+</pre></div>
+</div>
+<p>Note that 2 symbolic (soft) links, <code class="docutils literal notranslate"><span class="pre">includelink</span></code> and <code class="docutils literal notranslate"><span class="pre">liblink</span></code>
+are created in lib/plumed that point to the location of the PLUMED
+build to use. A new file <code class="docutils literal notranslate"><span class="pre">lib/plumed/Makefile.lammps</span></code> is also
+created with settings suitable for LAMMPS to compile and link
+PLUMED using the desired linkage mode. After this step is
+completed, you can install the USER-PLUMED package and compile
+LAMMPS in the usual manner:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make yes-user-plumed
+$ make machine
+</pre></div>
+</div>
+<p>Once this compilation completes you should be able to run LAMMPS
+in the usual way.  For shared linkage mode, libplumed.so must be
+found by the LAMMPS executable, which on many operating systems
+means, you have to set the LD_LIBRARY_PATH environment variable
+accordingly.</p>
+<p>Support for the different linkage modes in LAMMPS varies for
+different operating systems, using the static linkage is expected
+to be the most portable, and thus set to be the default.</p>
+<p>If you want to change the linkage mode, you have to re-run “make
+lib-plumed” with the desired settings <strong>and</strong> do a re-install if
+the USER-PLUMED package with “make yes-user-plumed” to update the
+required makefile settings with the changes in the lib/plumed
+folder.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-h5md-package">
+<span id="user-h5md"></span><h2><span class="section-number">3.7.18. </span>USER-H5MD package<a class="headerlink" href="#user-h5md-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package you must have the HDF5 software package
+installed on your system, which should include the h5cc compiler and
+the HDF5 library.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-16-16-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-16-16-0" name="16-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-16-16-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-16-16-1" name="16-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-16-16-0" class="sphinx-tabs-panel" id="panel-16-16-0" name="16-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-H5MD=yes</span></code>.</p>
+<p>This should auto-detect the H5MD library on your system.  Several
+advanced CMake H5MD options exist if you need to specify where it
+is installed.  Use the ccmake (terminal window) or cmake-gui
+(graphical) tools to see these options and set them interactively
+from their user interfaces.</p>
+</div><div aria-labelledby="tab-16-16-1" class="sphinx-tabs-panel" hidden="true" id="panel-16-16-1" name="16-1" role="tabpanel" tabindex="0"><p>Before building LAMMPS, you must build the CH5MD library in
+<code class="docutils literal notranslate"><span class="pre">lib/h5md</span></code>.  You can do this manually if you prefer; follow the
+instructions in <code class="docutils literal notranslate"><span class="pre">lib/h5md/README</span></code>.  You can also do it in one
+step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a command like these,
+which simply invoke the <code class="docutils literal notranslate"><span class="pre">lib/h5md/Install.py</span></code> script with the
+specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-h5md                     <span class="c1"># print help message</span>
+$ make lib-h5md <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m h5cc&quot;</span>      <span class="c1"># build with h5cc compiler</span>
+</pre></div>
+</div>
+<p>The build should produce two files: <code class="docutils literal notranslate"><span class="pre">lib/h5md/libch5md.a</span></code> and
+<code class="docutils literal notranslate"><span class="pre">lib/h5md/Makefile.lammps</span></code>.  The latter is copied from an
+existing <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.*</span></code> and has settings needed to build
+LAMMPS with the system HDF5 library.  If necessary, you can
+edit/create a new <code class="docutils literal notranslate"><span class="pre">lib/h5md/Makefile.machine</span></code> file for your
+system, which should define an EXTRAMAKE variable to specify a
+corresponding <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.&lt;machine&gt;</span></code> file.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-intel-package">
+<span id="user-intel"></span><h2><span class="section-number">3.7.19. </span>USER-INTEL package<a class="headerlink" href="#user-intel-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, you must choose which hardware you want to
+build for, either x86 CPUs or Intel KNLs in offload mode.  You should
+also typically <a class="reference internal" href="#user-omp"><span class="std std-ref">install the USER-OMP package</span></a>, as it can be
+used in tandem with the USER-INTEL package to good effect, as explained
+on the <a class="reference internal" href="Speed_intel.html"><span class="doc">USER-INTEL package</span></a> page.</p>
+<p>When using Intel compilers version 16.0 or later is required.  You can
+also use the GNU or Clang compilers and they will provide performance
+improvements over regular styles and USER-OMP styles, but less so than
+with the Intel compilers.  Please also note, that some compilers have
+been found to apply memory alignment constraints incompletely or
+incorrectly and thus can cause segmentation faults in otherwise correct
+code when using features from the USER-INTEL package.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-17-17-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-17-17-0" name="17-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-17-17-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-17-17-1" name="17-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-17-17-0" class="sphinx-tabs-panel" id="panel-17-17-0" name="17-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">INTEL_ARCH</span><span class="o">=</span>value     <span class="c1"># value = cpu (default) or knl</span>
+-D <span class="nv">INTEL_LRT_MODE</span><span class="o">=</span>value <span class="c1"># value = threads, none, or c++11</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-17-17-1" class="sphinx-tabs-panel" hidden="true" id="panel-17-17-1" name="17-1" role="tabpanel" tabindex="0"><p>Choose which hardware to compile for in Makefile.machine via the
+following settings.  See <code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/Makefile.intel_cpu*</span></code>
+and <code class="docutils literal notranslate"><span class="pre">Makefile.knl</span></code> files for examples. and
+<code class="docutils literal notranslate"><span class="pre">src/USER-INTEL/README</span></code> for additional information.</p>
+<p>For CPUs:</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">OPTFLAGS</span> <span class="o">=</span>      -xHost -O2 -fp-model <span class="nv">fast</span><span class="o">=</span><span class="m">2</span> -no-prec-div -qoverride-limits -qopt-zmm-usage<span class="o">=</span>high
+<span class="nv">CCFLAGS</span> <span class="o">=</span>       -g -qopenmp -DLAMMPS_MEMALIGN<span class="o">=</span><span class="m">64</span> -no-offload -fno-alias -ansi-alias -restrict <span class="k">$(</span>OPTFLAGS<span class="k">)</span>
+<span class="nv">LINKFLAGS</span> <span class="o">=</span>     -g -qopenmp <span class="k">$(</span>OPTFLAGS<span class="k">)</span>
+<span class="nv">LIB</span> <span class="o">=</span>           -ltbbmalloc
+</pre></div>
+</div>
+<p>For KNLs:</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">OPTFLAGS</span> <span class="o">=</span>      -xMIC-AVX512 -O2 -fp-model <span class="nv">fast</span><span class="o">=</span><span class="m">2</span> -no-prec-div -qoverride-limits
+<span class="nv">CCFLAGS</span> <span class="o">=</span>       -g -qopenmp -DLAMMPS_MEMALIGN<span class="o">=</span><span class="m">64</span> -no-offload -fno-alias -ansi-alias -restrict <span class="k">$(</span>OPTFLAGS<span class="k">)</span>
+<span class="nv">LINKFLAGS</span> <span class="o">=</span>     -g -qopenmp <span class="k">$(</span>OPTFLAGS<span class="k">)</span>
+<span class="nv">LIB</span> <span class="o">=</span>           -ltbbmalloc
+</pre></div>
+</div>
+</div></div>
+<p>In Long-range thread mode (LRT) a modified verlet style is used, that
+operates the Kspace calculation in a separate thread concurrently to
+other calculations. This has to be enabled in the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command at runtime. With the setting “threads” it used the
+pthreads library, while “c++11” will use the built-in thread support
+of C++11 compilers. The option “none” skips compilation of this
+feature. The default is to use “threads” if pthreads is available and
+otherwise “none”.</p>
+<p>Best performance is achieved with Intel hardware, Intel compilers, as
+well as the Intel TBB and MKL libraries. However, the code also
+compiles, links, and runs with other compilers / hardware and without
+TBB and MKL.</p>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-mesont-package">
+<span id="user-mesont"></span><h2><span class="section-number">3.7.20. </span>USER-MESONT package<a class="headerlink" href="#user-mesont-package" title="Permalink to this headline">¶</a></h2>
+<p>This package includes a library written in Fortran 90 in the
+<code class="docutils literal notranslate"><span class="pre">lib/mesont</span></code> folder, so a working Fortran 90 compiler is required to
+compile it.  Also, the files with the force field data for running the
+bundled examples are not included in the source distribution. Instead
+they will be downloaded the first time this package is installed.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-18-18-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-18-18-0" name="18-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-18-18-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-18-18-1" name="18-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-18-18-0" class="sphinx-tabs-panel" id="panel-18-18-0" name="18-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-MESONT=yes</span></code></p>
+</div><div aria-labelledby="tab-18-18-1" class="sphinx-tabs-panel" hidden="true" id="panel-18-18-1" name="18-1" role="tabpanel" tabindex="0"><p>Before building LAMMPS, you must build the <em>mesont</em> library in
+<code class="docutils literal notranslate"><span class="pre">lib/mesont</span></code>.  You can also do it in one step from the
+<code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a command like these, which simply
+invoke the <code class="docutils literal notranslate"><span class="pre">lib/mesont/Install.py</span></code> script with the specified
+args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-mesont                    <span class="c1"># print help message</span>
+$ make lib-mesont <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m gfortran&quot;</span> <span class="c1"># build with GNU g++ compiler (settings as with &quot;make serial&quot;)</span>
+$ make lib-mesont <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m ifort&quot;</span>    <span class="c1"># build with Intel icc compiler</span>
+</pre></div>
+</div>
+<p>The build should produce two files: <code class="docutils literal notranslate"><span class="pre">lib/mesont/libmesont.a</span></code> and
+<code class="docutils literal notranslate"><span class="pre">lib/mesont/Makefile.lammps</span></code>.  The latter is copied from an
+existing <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.\*</span></code> and has settings needed to build
+LAMMPS with the <em>mesont</em> library (though typically the settings
+contain only the Fortran runtime library).  If necessary, you can
+edit/create a new <code class="docutils literal notranslate"><span class="pre">lib/mesont/Makefile.machine</span></code> file for your
+system, which should define an <code class="docutils literal notranslate"><span class="pre">EXTRAMAKE</span></code> variable to specify a
+corresponding <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.machine</span></code> file.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-molfile-package">
+<span id="user-molfile"></span><h2><span class="section-number">3.7.21. </span>USER-MOLFILE package<a class="headerlink" href="#user-molfile-package" title="Permalink to this headline">¶</a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-19-19-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-19-19-0" name="19-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-19-19-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-19-19-1" name="19-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-19-19-0" class="sphinx-tabs-panel" id="panel-19-19-0" name="19-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">MOLFILE_INCLUDE_DIR</span><span class="o">=</span>path   <span class="c1"># (optional) path where VMD molfile plugin headers are installed</span>
+-D PKG_USER-MOLFILE<span class="o">=</span>yes
+</pre></div>
+</div>
+<p>Using <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-MOLFILE=yes</span></code> enables the package, and setting
+<code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">MOLFILE_INCLUDE_DIR</span></code> allows to provide a custom location for
+the molfile plugin header files. These should match the ABI of the
+plugin files used, and thus one typically sets them to include
+folder of the local VMD installation in use. LAMMPS ships with a
+couple of default header files that correspond to a popular VMD
+version, usually the latest release.</p>
+</div><div aria-labelledby="tab-19-19-1" class="sphinx-tabs-panel" hidden="true" id="panel-19-19-1" name="19-1" role="tabpanel" tabindex="0"><p>The <code class="docutils literal notranslate"><span class="pre">lib/molfile/Makefile.lammps</span></code> file has a setting for a
+dynamic loading library libdl.a that is typically present on all
+systems.  It is required for LAMMPS to link with this package.  If
+the setting is not valid for your system, you will need to edit
+the Makefile.lammps file.  See <code class="docutils literal notranslate"><span class="pre">lib/molfile/README</span></code> and
+<code class="docutils literal notranslate"><span class="pre">lib/molfile/Makefile.lammps</span></code> for details. It is also possible
+to configure a different folder with the VMD molfile plugin header
+files. LAMMPS ships with a couple of default headers, but these
+are not compatible with all VMD versions, so it is often best to
+change this setting to the location of the same include files of
+the local VMD installation in use.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-netcdf-package">
+<span id="user-netcdf"></span><h2><span class="section-number">3.7.22. </span>USER-NETCDF package<a class="headerlink" href="#user-netcdf-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package you must have the NetCDF library installed
+on your system.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-20-20-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-20-20-0" name="20-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-20-20-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-20-20-1" name="20-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-20-20-0" class="sphinx-tabs-panel" id="panel-20-20-0" name="20-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-NETCDF=yes</span></code>.</p>
+<p>This should auto-detect the NETCDF library if it is installed on
+your system at standard locations.  Several advanced CMake NETCDF
+options exist if you need to specify where it was installed.  Use
+the <code class="docutils literal notranslate"><span class="pre">ccmake</span></code> (terminal window) or <code class="docutils literal notranslate"><span class="pre">cmake-gui</span></code> (graphical)
+tools to see these options and set them interactively from their
+user interfaces.</p>
+</div><div aria-labelledby="tab-20-20-1" class="sphinx-tabs-panel" hidden="true" id="panel-20-20-1" name="20-1" role="tabpanel" tabindex="0"><p>The <code class="docutils literal notranslate"><span class="pre">lib/netcdf/Makefile.lammps</span></code> file has settings for NetCDF
+include and library files which LAMMPS needs to build with this
+package.  If the settings are not valid for your system, you will
+need to edit the <code class="docutils literal notranslate"><span class="pre">Makefile.lammps</span></code> file.  See
+<code class="docutils literal notranslate"><span class="pre">lib/netcdf/README</span></code> for details.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-omp-package">
+<span id="user-omp"></span><h2><span class="section-number">3.7.23. </span>USER-OMP package<a class="headerlink" href="#user-omp-package" title="Permalink to this headline">¶</a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-21-21-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-21-21-0" name="21-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-21-21-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-21-21-1" name="21-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-21-21-0" class="sphinx-tabs-panel" id="panel-21-21-0" name="21-0" role="tabpanel" tabindex="0"><p>No additional settings are required besides <code class="docutils literal notranslate"><span class="pre">-D</span>
+<span class="pre">PKG_USER-OMP=yes</span></code>.  If CMake detects OpenMP compiler support, the
+USER-OMP code will be compiled with multi-threading support
+enabled, otherwise as optimized serial code.</p>
+</div><div aria-labelledby="tab-21-21-1" class="sphinx-tabs-panel" hidden="true" id="panel-21-21-1" name="21-1" role="tabpanel" tabindex="0"><p>To enable multi-threading support in the USER-OMP package (and
+other styles supporting OpenMP) the following compile and link
+flags must be added to your Makefile.machine file.  See
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/Makefile.omp</span></code> for an example.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>CCFLAGS: -fopenmp               # for GNU and Clang Compilers
+CCFLAGS: -qopenmp -restrict     # for Intel compilers on Linux
+LINKFLAGS: -fopenmp             # for GNU and Clang Compilers
+LINKFLAGS: -qopenmp             # for Intel compilers on Linux
+</pre></div>
+</div>
+<p>For other platforms and compilers, please consult the
+documentation about OpenMP support for your compiler.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-qmmm-package">
+<span id="user-qmmm"></span><h2><span class="section-number">3.7.24. </span>USER-QMMM package<a class="headerlink" href="#user-qmmm-package" title="Permalink to this headline">¶</a></h2>
+<p>For using LAMMPS to do QM/MM simulations via the USER-QMMM package you
+need to build LAMMPS as a library.  A LAMMPS executable with <a class="reference internal" href="fix_qmmm.html"><span class="doc">fix
+qmmm</span></a> included can be built, but will not be able to do a
+QM/MM simulation on as such.  You must also build a QM code - currently
+only Quantum ESPRESSO (QE) is supported - and create a new executable
+which links LAMMPS and the QM code together.  Details are given in the
+<code class="docutils literal notranslate"><span class="pre">lib/qmmm/README</span></code> file.  It is also recommended to read the
+instructions for <a class="reference internal" href="Build_link.html"><span class="doc">linking with LAMMPS as a library</span></a>
+for background information.  This requires compatible Quantum Espresso
+and LAMMPS versions.  The current interface and makefiles have last been
+verified to work in February 2020 with Quantum Espresso versions 6.3 to
+6.5.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-22-22-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-22-22-0" name="22-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-22-22-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-22-22-1" name="22-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-22-22-0" class="sphinx-tabs-panel" id="panel-22-22-0" name="22-0" role="tabpanel" tabindex="0"><p>When using CMake, building a LAMMPS library is required and it is
+recommended to build a shared library, since any libraries built
+from the sources in the <em>lib</em> folder (including the essential
+libqmmm.a) are not included in the static LAMMPS library and
+(currently) not installed, while their code is included in the
+shared LAMMPS library.  Thus a typical command line to configure
+building LAMMPS for USER-QMMM would be:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake -C ../cmake/presets/minimal.cmake -D PKG_USER-QMMM<span class="o">=</span>yes <span class="se">\</span>
+    -D <span class="nv">BUILD_LIB</span><span class="o">=</span>yes -DBUILD_SHARED_LIBS<span class="o">=</span>yes ../cmake
+</pre></div>
+</div>
+<p>After completing the LAMMPS build and also configuring and
+compiling Quantum ESPRESSO with external library support (via
+“make couple”), go back to the <code class="docutils literal notranslate"><span class="pre">lib/qmmm</span></code> folder and follow the
+instructions on the README file to build the combined LAMMPS/QE
+QM/MM executable (pwqmmm.x) in the <code class="docutils literal notranslate"><span class="pre">lib/qmmm</span></code> folder.</p>
+</div><div aria-labelledby="tab-22-22-1" class="sphinx-tabs-panel" hidden="true" id="panel-22-22-1" name="22-1" role="tabpanel" tabindex="0"><p>Before building LAMMPS, you must build the QMMM library in
+<code class="docutils literal notranslate"><span class="pre">lib/qmmm</span></code>.  You can do this manually if you prefer; follow the
+first two steps explained in <code class="docutils literal notranslate"><span class="pre">lib/qmmm/README</span></code>.  You can also do
+it in one step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a command like
+these, which simply invoke the <code class="docutils literal notranslate"><span class="pre">lib/qmmm/Install.py</span></code> script with
+the specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-qmmm                      <span class="c1"># print help message</span>
+$ make lib-qmmm <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m serial&quot;</span>     <span class="c1"># build with GNU Fortran compiler (settings as in &quot;make serial&quot;)</span>
+$ make lib-qmmm <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m mpi&quot;</span>        <span class="c1"># build with default MPI compiler (settings as in &quot;make mpi&quot;)</span>
+$ make lib-qmmm <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-m gfortran&quot;</span>   <span class="c1"># build with GNU Fortran compiler</span>
+</pre></div>
+</div>
+<p>The build should produce two files: <code class="docutils literal notranslate"><span class="pre">lib/qmmm/libqmmm.a</span></code> and
+<code class="docutils literal notranslate"><span class="pre">lib/qmmm/Makefile.lammps</span></code>.  The latter is copied from an
+existing <code class="docutils literal notranslate"><span class="pre">Makefile.lammps.*</span></code> and has settings needed to build
+LAMMPS with the QMMM library (though typically the settings are
+just blank).  If necessary, you can edit/create a new
+<code class="docutils literal notranslate"><span class="pre">lib/qmmm/Makefile.&lt;machine&gt;</span></code> file for your system, which should
+define an <code class="docutils literal notranslate"><span class="pre">EXTRAMAKE</span></code> variable to specify a corresponding
+<code class="docutils literal notranslate"><span class="pre">Makefile.lammps.&lt;machine&gt;</span></code> file.</p>
+<p>You can then install QMMM package and build LAMMPS in the usual
+manner.  After completing the LAMMPS build and compiling Quantum
+ESPRESSO with external library support (via “make couple”), go
+back to the <code class="docutils literal notranslate"><span class="pre">lib/qmmm</span></code> folder and follow the instructions in the
+README file to build the combined LAMMPS/QE QM/MM executable
+(pwqmmm.x) in the lib/qmmm folder.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-quip-package">
+<span id="user-quip"></span><h2><span class="section-number">3.7.25. </span>USER-QUIP package<a class="headerlink" href="#user-quip-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, you must download and build the QUIP
+library.  It can be obtained from GitHub.  For support of GAP
+potentials, additional files with specific licensing conditions need
+to be downloaded and configured.  See step 1 and step 1.1 in the
+<code class="docutils literal notranslate"><span class="pre">lib/quip/README</span></code> file for details on how to do this.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-23-23-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-23-23-0" name="23-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-23-23-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-23-23-1" name="23-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-23-23-0" class="sphinx-tabs-panel" id="panel-23-23-0" name="23-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">QUIP_LIBRARY</span><span class="o">=</span>path     <span class="c1"># path to libquip.a (only needed if a custom location)</span>
+</pre></div>
+</div>
+<p>CMake will <strong>not</strong> download and build the QUIP library.  But once you have
+done that, a CMake build of LAMMPS with <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-QUIP=yes</span></code> should
+work.  Set the <code class="docutils literal notranslate"><span class="pre">QUIP_LIBRARY</span></code> variable if CMake cannot find the QUIP library.</p>
+</div><div aria-labelledby="tab-23-23-1" class="sphinx-tabs-panel" hidden="true" id="panel-23-23-1" name="23-1" role="tabpanel" tabindex="0"><p>The download/build procedure for the QUIP library, described in
+<code class="docutils literal notranslate"><span class="pre">lib/quip/README</span></code> file requires setting two environment
+variables, <code class="docutils literal notranslate"><span class="pre">QUIP_ROOT</span></code> and <code class="docutils literal notranslate"><span class="pre">QUIP_ARCH</span></code>.  These are accessed by
+the <code class="docutils literal notranslate"><span class="pre">lib/quip/Makefile.lammps</span></code> file which is used when you
+compile and link LAMMPS with this package.  You should only need
+to edit <code class="docutils literal notranslate"><span class="pre">Makefile.lammps</span></code> if the LAMMPS build can not use its
+settings to successfully build on your system.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-scafacos-package">
+<span id="user-scafacos"></span><h2><span class="section-number">3.7.26. </span>USER-SCAFACOS package<a class="headerlink" href="#user-scafacos-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, you must download and build the
+<a class="reference external" href="http://www.scafacos.de">ScaFaCoS Coulomb solver library</a></p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-24-24-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-24-24-0" name="24-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-24-24-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-24-24-1" name="24-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-24-24-0" class="sphinx-tabs-panel" id="panel-24-24-0" name="24-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">DOWNLOAD_SCAFACOS</span><span class="o">=</span>value    <span class="c1"># download ScaFaCoS for build, value = no (default) or yes</span>
+-D <span class="nv">SCAFACOS_LIBRARY</span><span class="o">=</span>path      <span class="c1"># ScaFaCos library file (only needed if at custom location)</span>
+-D <span class="nv">SCAFACOS_INCLUDE_DIR</span><span class="o">=</span>path  <span class="c1"># ScaFaCoS include directory (only needed if at custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_SCAFACOS</span></code> is set, the ScaFaCoS library will be
+downloaded and built inside the CMake build directory.  If the
+ScaFaCoS library is already on your system (in a location CMake
+cannot find it), <code class="docutils literal notranslate"><span class="pre">SCAFACOS_LIBRARY</span></code> is the filename (plus path) of
+the ScaFaCoS library file, not the directory the library file is
+in.  <code class="docutils literal notranslate"><span class="pre">SCAFACOS_INCLUDE_DIR</span></code> is the directory the ScaFaCoS include
+file is in.</p>
+</div><div aria-labelledby="tab-24-24-1" class="sphinx-tabs-panel" hidden="true" id="panel-24-24-1" name="24-1" role="tabpanel" tabindex="0"><p>You can download and build the ScaFaCoS library manually if you
+prefer; follow the instructions in <code class="docutils literal notranslate"><span class="pre">lib/scafacos/README</span></code>.  You
+can also do it in one step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a
+command like these, which simply invoke the
+<code class="docutils literal notranslate"><span class="pre">lib/scafacos/Install.py</span></code> script with the specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make lib-scafacos                         <span class="c1"># print help message</span>
+make lib-scafacos <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b&quot;</span>               <span class="c1"># download and build in lib/scafacos/scafacos-&lt;version&gt;</span>
+make lib-scafacos <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p </span><span class="nv">$HOME</span><span class="s2">/scafacos  # use existing ScaFaCoS installation in </span><span class="nv">$HOME</span><span class="s2">/scafacos</span>
+</pre></div>
+</div>
+<p>Note that 2 symbolic (soft) links, <code class="docutils literal notranslate"><span class="pre">includelink</span></code> and <code class="docutils literal notranslate"><span class="pre">liblink</span></code>, are
+created in <code class="docutils literal notranslate"><span class="pre">lib/scafacos</span></code> to point to the ScaFaCoS src dir.  When LAMMPS
+builds in src it will use these links.  You should not need to edit
+the <code class="docutils literal notranslate"><span class="pre">lib/scafacos/Makefile.lammps</span></code> file.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-smd-package">
+<span id="user-smd"></span><h2><span class="section-number">3.7.27. </span>USER-SMD package<a class="headerlink" href="#user-smd-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package, you must download the Eigen3 library.
+Eigen3 is a template library, so you do not need to build it.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-25-25-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-25-25-0" name="25-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-25-25-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-25-25-1" name="25-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-25-25-0" class="sphinx-tabs-panel" id="panel-25-25-0" name="25-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D DOWNLOAD_EIGEN3            <span class="c1"># download Eigen3, value = no (default) or yes</span>
+-D <span class="nv">EIGEN3_INCLUDE_DIR</span><span class="o">=</span>path    <span class="c1"># path to Eigen library (only needed if a custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_EIGEN3</span></code> is set, the Eigen3 library will be
+downloaded and inside the CMake build directory.  If the Eigen3
+library is already on your system (in a location where CMake
+cannot find it), set <code class="docutils literal notranslate"><span class="pre">EIGEN3_INCLUDE_DIR</span></code> to the directory the
+<code class="docutils literal notranslate"><span class="pre">Eigen3</span></code> include file is in.</p>
+</div><div aria-labelledby="tab-25-25-1" class="sphinx-tabs-panel" hidden="true" id="panel-25-25-1" name="25-1" role="tabpanel" tabindex="0"><p>You can download the Eigen3 library manually if you prefer; follow
+the instructions in <code class="docutils literal notranslate"><span class="pre">lib/smd/README</span></code>.  You can also do it in one
+step from the <code class="docutils literal notranslate"><span class="pre">lammps/src</span></code> dir, using a command like these,
+which simply invoke the <code class="docutils literal notranslate"><span class="pre">lib/smd/Install.py</span></code> script with the
+specified args:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ make lib-smd                         <span class="c1"># print help message</span>
+$ make lib-smd <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-b&quot;</span>               <span class="c1"># download to lib/smd/eigen3</span>
+$ make lib-smd <span class="nv">args</span><span class="o">=</span><span class="s2">&quot;-p /usr/include/eigen3&quot;</span>    <span class="c1"># use existing Eigen installation in /usr/include/eigen3</span>
+</pre></div>
+</div>
+<p>Note that a symbolic (soft) link named <code class="docutils literal notranslate"><span class="pre">includelink</span></code> is created
+in <code class="docutils literal notranslate"><span class="pre">lib/smd</span></code> to point to the Eigen dir.  When LAMMPS builds it
+will use this link.  You should not need to edit the
+<code class="docutils literal notranslate"><span class="pre">lib/smd/Makefile.lammps</span></code> file.</p>
+</div></div>
+<hr class="docutils" />
+</div>
+<div class="section" id="user-vtk-package">
+<span id="user-vtk"></span><h2><span class="section-number">3.7.28. </span>USER-VTK package<a class="headerlink" href="#user-vtk-package" title="Permalink to this headline">¶</a></h2>
+<p>To build with this package you must have the VTK library installed on
+your system.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-26-26-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-26-26-0" name="26-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-26-26-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-26-26-1" name="26-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-26-26-0" class="sphinx-tabs-panel" id="panel-26-26-0" name="26-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_USER-VTK=yes</span></code>.</p>
+<p>This should auto-detect the VTK library if it is installed on your
+system at standard locations.  Several advanced VTK options exist
+if you need to specify where it was installed.  Use the <code class="docutils literal notranslate"><span class="pre">ccmake</span></code>
+(terminal window) or <code class="docutils literal notranslate"><span class="pre">cmake-gui</span></code> (graphical) tools to see these
+options and set them interactively from their user interfaces.</p>
+</div><div aria-labelledby="tab-26-26-1" class="sphinx-tabs-panel" hidden="true" id="panel-26-26-1" name="26-1" role="tabpanel" tabindex="0"><p>The <code class="docutils literal notranslate"><span class="pre">lib/vtk/Makefile.lammps</span></code> file has settings for accessing
+VTK files and its library, which LAMMPS needs to build with this
+package.  If the settings are not valid for your system, check if
+one of the other <code class="docutils literal notranslate"><span class="pre">lib/vtk/Makefile.lammps.*</span></code> files is compatible
+and copy it to Makefile.lammps.  If none of the provided files
+work, you will need to edit the <code class="docutils literal notranslate"><span class="pre">Makefile.lammps</span></code> file.  See
+<code class="docutils literal notranslate"><span class="pre">lib/vtk/README</span></code> for details.</p>
+</div></div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Build_manual.html" class="btn btn-neutral float-right" title="3.8. Build the LAMMPS documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Build_package.html" class="btn btn-neutral float-left" title="3.6. Include packages in build" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

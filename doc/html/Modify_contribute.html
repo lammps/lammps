@@ -1,0 +1,486 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3.2. Submitting new features for inclusion in LAMMPS &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.3. Atom styles" href="Modify_atom.html" />
+    <link rel="prev" title="3.1. Overview" href="Modify_overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Modify_overview.html">3.1. Overview</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.2. Submitting new features for inclusion in LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_atom.html">3.3. Atom styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_pair.html">3.4. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_bond.html">3.5. Bond, angle, dihedral, improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_compute.html">3.6. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_fix.html">3.7. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_command.html">3.8. Input script command style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_dump.html">3.9. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_kspace.html">3.10. Kspace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_min.html">3.11. Minimization styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_region.html">3.12. Region styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_body.html">3.13. Body styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_thermo.html">3.14. Thermodynamic output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_variable.html">3.15. Variable options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Modify.html"><span class="section-number">3. </span>Modifying &amp; extending LAMMPS</a> &raquo;</li>
+        
+      <li><span class="section-number">3.2. </span>Submitting new features for inclusion in LAMMPS</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Modify_atom.html" class="btn btn-neutral float-right" title="3.3. Atom styles" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Modify_overview.html" class="btn btn-neutral float-left" title="3.1. Overview" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="submitting-new-features-for-inclusion-in-lammps">
+<h1><span class="section-number">3.2. </span>Submitting new features for inclusion in LAMMPS<a class="headerlink" href="#submitting-new-features-for-inclusion-in-lammps" title="Permalink to this headline">¶</a></h1>
+<p>We encourage users to submit new features or modifications for LAMMPS to
+<a class="reference external" href="https://lammps.sandia.gov/authors.html">the core developers</a> so they
+can be added to the LAMMPS distribution. The preferred way to manage and
+coordinate this is via the LAMMPS project on <a class="reference external" href="https://github.com/lammps/lammps">GitHub</a>.  Please see the <a class="reference internal" href="Howto_github.html"><span class="doc">GitHub
+Tutorial</span></a> for a demonstration on how to do that.  An
+alternative is to contact the LAMMPS developers or the indicated
+developer of a package or feature directly and send in your contribution
+via e-mail, but that can add a significant delay on getting your
+contribution included, depending on how busy the developer is you
+contact, how complex a task it would be to integrate that code, and how
+many - if any - changes are required before the code can be included.</p>
+<p>For any larger modifications or programming project, you are encouraged
+to contact the LAMMPS developers ahead of time, in order to discuss
+implementation strategies and coding guidelines, that will make it
+easier to integrate your contribution and result in less work for
+everybody involved. You are also encouraged to search through the list
+of <a class="reference external" href="https://github.com/lammps/lammps/issues">open issues on GitHub</a>
+and submit a new issue for a planned feature, so you would not duplicate
+the work of others (and possibly get scooped by them) or have your work
+duplicated by others.</p>
+<p>For informal communication with (some of) the LAMMPS developers you may
+ask to join the <a class="reference external" href="https://lammps.slack.com">LAMMPS developers on Slack</a>.
+This slack work space is by invitation only. Thus for access, please
+send an e-mail to <code class="docutils literal notranslate"><span class="pre">slack&#64;lammps.org</span></code> explaining what part of LAMMPS
+you are working on.  Only discussions related to LAMMPS development are
+tolerated, so this is <strong>NOT</strong> for people that look for help with compiling,
+installing, or using LAMMPS. Please contact the <a class="reference external" href="https://lammps.sandia.gov/mail.html">lammps-users mailing
+list</a> for those purposes instead.</p>
+<p>How quickly your contribution will be integrated depends largely on how
+much effort it will cause to integrate and test it, how much it requires
+changes to the core codebase, and of how much interest it is to the
+larger LAMMPS community.  Please see below for a checklist of typical
+requirements. Once you have prepared everything, see the <a class="reference internal" href="Howto_github.html"><span class="doc">LAMMPS GitHub
+Tutorial</span></a> page for instructions on
+how to submit your changes or new files through a GitHub pull
+request. If you prefer to submit patches or full files, you should first
+make certain, that your code works correctly with the latest patch-level
+version of LAMMPS and contains all bug fixes from it. Then create a
+gzipped tar file of all changed or added files or a corresponding patch
+file using ‘diff -u’ or ‘diff -c’ and compress it with gzip. Please only
+use gzip compression, as this works well on all platforms.</p>
+<p>If the new features/files are broadly useful we may add them as core
+files to LAMMPS or as part of a <a class="reference internal" href="Packages_standard.html"><span class="doc">standard package</span></a>.  Else we will add them as a
+user-contributed file or <a class="reference internal" href="Packages_user.html"><span class="doc">user package</span></a>.  Examples
+of user packages are in src sub-directories that start with USER.  The
+USER-MISC package is simply a collection of (mostly) unrelated single
+files, which is the simplest way to have your contribution quickly
+added to the LAMMPS distribution.  All the standard and user packages
+are listed and described on the <a class="reference internal" href="Packages_details.html"><span class="doc">Packages details</span></a> doc page.</p>
+<p>Note that by providing us files to release, you are agreeing to make
+them open-source, i.e. we can release them under the terms of the GPL,
+used as a license for the rest of LAMMPS.  See the <a class="reference internal" href="Intro_opensource.html"><span class="doc">LAMMPS license</span></a> doc page for details.</p>
+<p>With user packages and files, all we are really providing (aside from
+the fame and fortune that accompanies having your name in the source
+code and on the <a class="reference external" href="https://lammps.sandia.gov/authors.html">Authors page</a>
+of the <a class="reference external" href="https://lammps.sandia.gov">LAMMPS WWW site</a>), is a means for you to distribute your
+work to the LAMMPS user community, and a mechanism for others to
+easily try out your new feature.  This may help you find bugs or make
+contact with new collaborators.  Note that you’re also implicitly
+agreeing to support your code which means answer questions, fix bugs,
+and maintain it if LAMMPS changes in some way that breaks it (an
+unusual event).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you prefer to actively develop and support your add-on
+feature yourself, then you may wish to make it available for download
+from your own website, as a user package that LAMMPS users can add to
+their copy of LAMMPS.  See the <a class="reference external" href="https://lammps.sandia.gov/offsite.html">Offsite LAMMPS packages and tools</a> page of the LAMMPS web
+site for examples of groups that do this.  We are happy to advertise
+your package and web site from that page.  Simply email the
+<a class="reference external" href="https://lammps.sandia.gov/authors.html">developers</a> with info about
+your package and we will post it there.</p>
+</div>
+<p>The previous sections of this doc page describe how to add new “style”
+files of various kinds to LAMMPS.  Packages are simply collections of
+one or more new class files which are invoked as a new style within a
+LAMMPS input script.  If designed correctly, these additions typically
+do not require changes to the main core of LAMMPS; they are simply
+add-on files.  If you think your new feature requires non-trivial
+changes in core LAMMPS files, you should <a class="reference external" href="https://lammps.sandia.gov/authors.html">communicate with the
+developers</a>, since we may or
+may not want to include those changes for some reason.  An example of a
+trivial change is making a parent-class method “virtual” when you derive
+a new child class from it.</p>
+<p>Here is a checklist of steps you need to follow to submit a single file
+or user package for our consideration.  Following these steps will save
+both you and us time. Please have a look at the existing files in
+packages in the src directory for examples. If you are uncertain, please ask.</p>
+<ul class="simple">
+<li><p>All source files you provide must compile with the most current
+version of LAMMPS with multiple configurations. In particular you
+need to test compiling LAMMPS from scratch with -DLAMMPS_BIGBIG
+set in addition to the default -DLAMMPS_SMALLBIG setting. Your code
+will need to work correctly in serial and in parallel using MPI.</p></li>
+<li><p>For consistency with the rest of LAMMPS and especially, if you want
+your contribution(s) to be added to main LAMMPS code or one of its
+standard packages, it needs to be written in a style compatible with
+other LAMMPS source files. This means: 2-character indentation per
+level, <strong>no tabs</strong>, no lines over 80 characters. I/O is done via
+the C-style stdio library (mixing of stdio and iostreams is generally
+discouraged), class header files should not import any system headers
+outside of &lt;cstdio&gt;, STL containers should be avoided in headers,
+system header from the C library should use the C++-style names
+(&lt;cstdlib&gt;, &lt;cstdio&gt;, or &lt;cstring&gt;) instead of the C-style names
+&lt;stdlib.h&gt;, &lt;stdio.h&gt;, or &lt;string.h&gt;), and forward declarations
+used where possible or needed to avoid including headers.
+All added code should be placed into the LAMMPS_NS namespace or a
+sub-namespace; global or static variables should be avoided, as they
+conflict with the modular nature of LAMMPS and the C++ class structure.
+Header files must <strong>not</strong> import namespaces with <em>using</em>.
+This all is so the developers can more easily understand, integrate,
+and maintain your contribution and reduce conflicts with other parts
+of LAMMPS.  This basically means that the code accesses data
+structures, performs its operations, and is formatted similar to other
+LAMMPS source files, including the use of the error class for error
+and warning messages.</p></li>
+<li><p>If you want your contribution to be added as a user-contributed
+feature, and it’s a single file (actually a *.cpp and *.h file) it can
+rapidly be added to the USER-MISC directory.  Send us the one-line
+entry to add to the USER-MISC/README file in that dir, along with the
+2 source files.  You can do this multiple times if you wish to
+contribute several individual features.</p></li>
+<li><p>If you want your contribution to be added as a user-contribution and
+it is several related features, it is probably best to make it a user
+package directory with a name like USER-FOO.  In addition to your new
+files, the directory should contain a README text file.  The README
+should contain your name and contact information and a brief
+description of what your new package does.  If your files depend on
+other LAMMPS style files also being installed (e.g. because your file
+is a derived class from the other LAMMPS class), then an Install.sh
+file is also needed to check for those dependencies.  See other README
+and Install.sh files in other USER directories as examples.  Send us a
+tarball of this USER-FOO directory.</p></li>
+<li><p>Your new source files need to have the LAMMPS copyright, GPL notice,
+and your name and email address at the top, like other
+user-contributed LAMMPS source files.  They need to create a class
+that is inside the LAMMPS namespace.  If the file is for one of the
+USER packages, including USER-MISC, then we are not as picky about the
+coding style (see above).  I.e. the files do not need to be in the
+same stylistic format and syntax as other LAMMPS files, though that
+would be nice for developers as well as users who try to read your
+code.</p></li>
+<li><p>You <strong>must</strong> also create a <strong>documentation</strong> file for each new command
+or style you are adding to LAMMPS. For simplicity and convenience, the
+documentation of groups of closely related commands or styles may be
+combined into a single file.  This will be one file for a single-file
+feature.  For a package, it might be several files.  These are text
+files with a .rst extension using the <a class="reference external" href="https://docutils.readthedocs.io/en/sphinx-docs/user/rst/quickstart.html">reStructuredText</a>
+markup language, that are then converted to HTML and PDF using the
+<a class="reference external" href="https://sphinx-doc.org">Sphinx</a> documentation generator tool.  Running Sphinx with
+the included configuration requires Python 3.x.  Configuration
+settings and custom extensions for this conversion are included in the
+source distribution, and missing python packages will be transparently
+downloaded into a virtual environment via pip. Thus, if your local
+system is missing required packages, you need access to the
+internet. The translation can be as simple as doing “make html pdf” in
+the doc folder.  As appropriate, the text files can include inline
+mathematical expression or figures (see doc/JPG for examples).
+Additional PDF files with further details (see doc/PDF for examples)
+may also be included.  The doc page should also include literature
+citations as appropriate; see the bottom of doc/fix_nh.rst for
+examples and the earlier part of the same file for how to format the
+cite itself.  Citation labels must be unique across all .rst files.
+The “Restrictions” section of the doc page should indicate if your
+command is only available if LAMMPS is built with the appropriate
+USER-MISC or USER-FOO package.  See other user package doc files for
+examples of how to do this.  Please run at least “make html” and “make
+spelling” and carefully inspect and proofread the resulting HTML
+format doc page before submitting your code.  Upon submission of a
+pull request, checks for error free completion of the HTML and PDF
+build will be performed and also a spell check, a check for correct
+anchors and labels, and a check for completeness of references all
+styles in their corresponding tables and lists is run.  In case the
+spell check reports false positives they can be added to the file
+doc/utils/sphinx-config/false_positives.txt</p></li>
+<li><p>For a new package (or even a single command) you should include one or
+more example scripts demonstrating its use.  These should run in no
+more than a couple minutes, even on a single processor, and not require
+large data files as input.  See directories under examples/USER for
+examples of input scripts other users provided for their packages.
+These example inputs are also required for validating memory accesses
+and testing for memory leaks with valgrind</p></li>
+<li><p>If there is a paper of yours describing your feature (either the
+algorithm/science behind the feature itself, or its initial usage, or
+its implementation in LAMMPS), you can add the citation to the *.cpp
+source file.  See src/USER-EFF/atom_vec_electron.cpp for an example.
+A LaTeX citation is stored in a variable at the top of the file and a
+single line of code that references the variable is added to the
+constructor of the class.  Whenever a user invokes your feature from
+their input script, this will cause LAMMPS to output the citation to a
+log.cite file and prompt the user to examine the file.  Note that you
+should only use this for a paper you or your group authored.
+E.g. adding a cite in the code for a paper by Nose and Hoover if you
+write a fix that implements their integrator is not the intended
+usage.  That kind of citation should just be in the doc page you
+provide.</p></li>
+</ul>
+<p>Finally, as a general rule-of-thumb, the more clear and
+self-explanatory you make your documentation and README files, and the
+easier you make it for people to get started, e.g. by providing example
+scripts, the more likely it is that users will try out your new feature.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Modify_atom.html" class="btn btn-neutral float-right" title="3.3. Atom styles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Modify_overview.html" class="btn btn-neutral float-left" title="3.1. Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

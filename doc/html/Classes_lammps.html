@@ -1,0 +1,388 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4.7.1. LAMMPS Class &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.7.2. LAMMPS Atom and AtomVec Base Classes" href="Classes_atom.html" />
+    <link rel="prev" title="4.7. C++ base classes" href="Classes.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.3. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.4. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.5. Notes for Developers and Code Maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.6. Adding tests for unit testing</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Classes.html">4.7. C++ base classes</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.7.1. LAMMPS Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Classes_atom.html">4.7.2. LAMMPS Atom and AtomVec Base Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Classes_input.html">4.7.3. LAMMPS Input Base Class</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.8. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.9. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.10. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.11. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.12. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.13. Communication buffer coding with <em>ubuf</em></a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a> &raquo;</li>
+        
+          <li><a href="Classes.html"><span class="section-number">4.7. </span>C++ base classes</a> &raquo;</li>
+        
+      <li><span class="section-number">4.7.1. </span>LAMMPS Class</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Classes_atom.html" class="btn btn-neutral float-right" title="4.7.2. LAMMPS Atom and AtomVec Base Classes" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Classes.html" class="btn btn-neutral float-left" title="4.7. C++ base classes" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="lammps-class">
+<h1><span class="section-number">4.7.1. </span>LAMMPS Class<a class="headerlink" href="#lammps-class" title="Permalink to this headline">¶</a></h1>
+<p>The LAMMPS class is encapsulating an MD simulation state and thus it is
+the class that needs to be created when starting a new simulation system
+state.  The LAMMPS executable essentially creates one instance of this
+class and passes the command line flags and tells it to process the
+provided input (a file or <code class="docutils literal notranslate"><span class="pre">stdin</span></code>).  It shuts the class down when
+control is returned to it and then exits.  When using LAMMPS as a
+library from another code it is required to create an instance of this
+class, either directly from C++ with <code class="docutils literal notranslate"><span class="pre">new</span> <span class="pre">LAMMPS()</span></code> or through one
+of the library interface functions like <a class="reference internal" href="Library_create.html#_CPPv411lammps_openiPPc8MPI_CommPPv" title="lammps_open"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_open()</span></code></a> of the
+C-library interface, or the <a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps.lammps</span></code></a> class constructor
+of the Python module, or the <code class="xref f f-func docutils literal notranslate"><span class="pre">lammps()</span></code> constructor of the Fortran
+module.</p>
+<p>In order to avoid clashes of function names, all of the core code in
+LAMMPS is placed into the <code class="docutils literal notranslate"><span class="pre">LAMMPS_NS</span></code> namespace.  Functions or variables
+outside of that namespace must be “static”, i.e.  visible only to the
+scope of the file/object they are defined in.  Code in packages or the
+libraries in the <code class="docutils literal notranslate"><span class="pre">lib</span></code> folder may not adhere to this as some of them
+are adapted from legacy code or consist of external libraries with their
+own requirements and policies.</p>
+<hr class="docutils" />
+<dl class="cpp class">
+<dt id="_CPPv4N9LAMMPS_NS6LAMMPSE">
+<span id="_CPPv3N9LAMMPS_NS6LAMMPSE"></span><span id="_CPPv2N9LAMMPS_NS6LAMMPSE"></span><span id="LAMMPS_NS::LAMMPS"></span><span class="target" id="classLAMMPS__NS_1_1LAMMPS"></span><em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">LAMMPS_NS</span><code class="sig-prename descclassname"><span class="pre">::</span></code></code><code class="sig-name descname"><span class="pre">LAMMPS</span></code><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6LAMMPSE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p><a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> simulation instance. </p>
+<p>The <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> class contains pointers of all constituent class instances and global variables that are used by a <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> simulation. Its contents represent the entire state of the simulation.</p>
+<p>The <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> class manages the components of an MD simulation by creating, deleting, and initializing instances of the classes it is composed of, processing command line flags, and providing access to some global properties. The specifics of setting up and running a simulation are handled by the individual component class instances. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N9LAMMPS_NS6LAMMPS11match_styleEPKcPKc">
+<span id="_CPPv3N9LAMMPS_NS6LAMMPS11match_styleEPKcPKc"></span><span id="_CPPv2N9LAMMPS_NS6LAMMPS11match_styleEPKcPKc"></span><span id="LAMMPS_NS::LAMMPS::match_style__cCP.cCP"></span><span class="target" id="classLAMMPS__NS_1_1LAMMPS_1a494c5512fbe010f7eddf168ee45878d9"></span><em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><code class="sig-name descname"><span class="pre">match_style</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">style</span></em>, <em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6LAMMPS11match_styleEPKcPKc" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Return name of package that a specific style belongs to. </p>
+<p>This function checks the given name against all list of styles for all type of styles and if the name and the style match, it returns which package this style belongs to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>style</strong> – Type of style (e.g. atom, pair, fix, etc.) </p></li>
+<li><p><strong>name</strong> – Name of style </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Name of the package this style is part of </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N9LAMMPS_NS6LAMMPS6LAMMPSEiPPc8MPI_Comm">
+<span id="_CPPv3N9LAMMPS_NS6LAMMPS6LAMMPSEiPPc8MPI_Comm"></span><span id="_CPPv2N9LAMMPS_NS6LAMMPS6LAMMPSEiPPc8MPI_Comm"></span><span id="LAMMPS_NS::LAMMPS::LAMMPS__i.cPP.MPI_Comm"></span><span class="target" id="classLAMMPS__NS_1_1LAMMPS_1ad442476f0b5d6babaf85c9fdb3c3fbc7"></span><code class="sig-name descname"><span class="pre">LAMMPS</span></code><span class="sig-paren">(</span><span class="pre">int</span>, <span class="pre">char</span><span class="pre">*</span><span class="pre">*</span>, <span class="pre">MPI_Comm</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6LAMMPS6LAMMPSEiPPc8MPI_Comm" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Create a <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> simulation instance</p>
+<p>The <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> constructor starts up a simulation by allocating all fundamental classes in the necessary order, parses input switches and their arguments, initializes communicators, screen and logfile output FILE pointers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>narg</strong> – number of arguments </p></li>
+<li><p><strong>arg</strong> – list of arguments </p></li>
+<li><p><strong>communicator</strong> – MPI communicator used by this <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt id="_CPPv4N9LAMMPS_NS6LAMMPSD0Ev">
+<span id="_CPPv3N9LAMMPS_NS6LAMMPSD0Ev"></span><span id="_CPPv2N9LAMMPS_NS6LAMMPSD0Ev"></span><span id="LAMMPS_NS::LAMMPS::~LAMMPS"></span><span class="target" id="classLAMMPS__NS_1_1LAMMPS_1ab3410932868638d63f0683577e189e2e"></span><code class="sig-name descname"><span class="pre">~LAMMPS</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6LAMMPSD0Ev" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Shut down a <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> simulation instance</p>
+<p>The <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> destructor shuts down the simulation by deleting top-level class instances, closing screen and log files for the global instance (aka “world”) and files and MPI communicators in sub-partitions (“universes”). Then it deletes the fundamental class instances and copies of data inside the class. </p>
+</dd></dl>
+
+</div>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-static-functions">Public Static Functions</p>
+<dl class="cpp function">
+<dt id="_CPPv4N9LAMMPS_NS6LAMMPS16is_installed_pkgEPKc">
+<span id="_CPPv3N9LAMMPS_NS6LAMMPS16is_installed_pkgEPKc"></span><span id="_CPPv2N9LAMMPS_NS6LAMMPS16is_installed_pkgEPKc"></span><span id="LAMMPS_NS::LAMMPS::is_installed_pkg__cCP"></span><span class="target" id="classLAMMPS__NS_1_1LAMMPS_1a0e0366f32d92ec48bd0c034826e9c101"></span><em class="property"><span class="pre">static</span></em> <span class="pre">bool</span> <code class="sig-name descname"><span class="pre">is_installed_pkg</span></code><span class="sig-paren">(</span><em class="property"><span class="pre">const</span></em> <span class="pre">char</span> <span class="pre">*</span><em><span class="pre">pkg</span></em><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6LAMMPS16is_installed_pkgEPKc" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Return true if a <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> package is enabled in this binary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>pkg</strong> – name of package </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>true if yes, else false </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+<dl class="cpp class">
+<dt id="_CPPv4N9LAMMPS_NS8PointersE">
+<span id="_CPPv3N9LAMMPS_NS8PointersE"></span><span id="_CPPv2N9LAMMPS_NS8PointersE"></span><span id="LAMMPS_NS::Pointers"></span><span class="target" id="classLAMMPS__NS_1_1Pointers"></span><em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Pointers</span></code><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8PointersE" title="Permalink to this definition">¶</a><br /></dt>
+<dd><p>Base class for <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> features. </p>
+<p>The <a class="reference internal" href="#classLAMMPS__NS_1_1Pointers"><span class="std std-ref">Pointers</span></a> class contains references to many of the pointers and members of the <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS_NS::LAMMPS</span></a> class. Derived classes thus gain access to the constituent class instances in the <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> composite class and thus to the core functionality of <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a>.</p>
+<p>This kind of construct is needed, since the <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> constructor should only be run once per <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance and thus classes cannot be derived from <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> itself. The <a class="reference internal" href="#classLAMMPS__NS_1_1Pointers"><span class="std std-ref">Pointers</span></a> class constructor instead only initializes C++ references to component pointer in the <a class="reference internal" href="#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> class. </p>
+<p>Subclassed by <a class="reference internal" href="Classes_atom.html#classLAMMPS__NS_1_1Atom"><span class="std std-ref">Atom</span></a>, <a class="reference internal" href="Classes_input.html#classLAMMPS__NS_1_1Input"><span class="std std-ref">Input</span></a>, <a class="reference internal" href="Developer_utils.html#classLAMMPS__NS_1_1PotentialFileReader"><span class="std std-ref">PotentialFileReader</span></a></p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Classes_atom.html" class="btn btn-neutral float-right" title="4.7.2. LAMMPS Atom and AtomVec Base Classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Classes.html" class="btn btn-neutral float-left" title="4.7. C++ base classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,563 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>5.4. Commands by category &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5.5. General commands" href="Commands_all.html" />
+    <link rel="prev" title="5.3. Input script structure" href="Commands_structure.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Commands.html">5. Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Commands_input.html">5.1. LAMMPS input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_parse.html">5.2. Parsing rules for input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_structure.html">5.3. Input script structure</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.4. Commands by category</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#initialization">5.4.1. Initialization:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setup-simulation-box">5.4.2. Setup simulation box:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#setup-atoms">5.4.3. Setup atoms:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#force-fields">5.4.4. Force fields:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#settings">5.4.5. Settings:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#operations-within-timestepping-fixes-and-diagnostics-computes">5.4.6. Operations within timestepping (fixes) and diagnostics (computes):</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output">5.4.7. Output:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#actions">5.4.8. Actions:</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#input-script-control">5.4.9. Input script control:</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_all.html">5.5. General commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_fix.html">5.6. Fix commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_compute.html">5.7. Compute commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_pair.html">5.8. Pair_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html">5.9. Bond_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#angle-style-potentials">5.10. Angle_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#dihedral-style-potentials">5.11. Dihedral_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#improper-style-potentials">5.12. Improper_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_kspace.html">5.13. KSpace solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_removed.html">5.14. Removed commands and packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Commands.html"><span class="section-number">5. </span>Commands</a> &raquo;</li>
+        
+      <li><span class="section-number">5.4. </span>Commands by category</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Commands_all.html" class="btn btn-neutral float-right" title="5.5. General commands" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Commands_structure.html" class="btn btn-neutral float-left" title="5.3. Input script structure" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="commands-by-category">
+<h1><span class="section-number">5.4. </span>Commands by category<a class="headerlink" href="#commands-by-category" title="Permalink to this headline">¶</a></h1>
+<p>This page lists most of the LAMMPS commands, grouped by category.  The
+<a class="reference internal" href="Commands_all.html"><span class="doc">General commands</span></a> doc page lists all general commands
+alphabetically.  Style options for entries like fix, compute, pair etc.
+have their own pages where they are listed alphabetically.</p>
+<div class="section" id="initialization">
+<h2><span class="section-number">5.4.1. </span>Initialization:<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="newton.html"><span class="doc">newton</span></a></p></td>
+<td><p><a class="reference internal" href="package.html"><span class="doc">package</span></a></p></td>
+<td><p><a class="reference internal" href="processors.html"><span class="doc">processors</span></a></p></td>
+<td><p><a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a></p></td>
+<td><p><a class="reference internal" href="units.html"><span class="doc">units</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="setup-simulation-box">
+<h2><span class="section-number">5.4.2. </span>Setup simulation box:<a class="headerlink" href="#setup-simulation-box" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a></p></td>
+<td><p><a class="reference internal" href="box.html"><span class="doc">box</span></a></p></td>
+<td><p><a class="reference internal" href="change_box.html"><span class="doc">change_box</span></a></p></td>
+<td><p><a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="dimension.html"><span class="doc">dimension</span></a></p></td>
+<td><p><a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a></p></td>
+<td><p><a class="reference internal" href="region.html"><span class="doc">region</span></a></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="setup-atoms">
+<h2><span class="section-number">5.4.3. </span>Setup atoms:<a class="headerlink" href="#setup-atoms" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify</span></a></p></td>
+<td><p><a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a></p></td>
+<td><p><a class="reference internal" href="balance.html"><span class="doc">balance</span></a></p></td>
+<td><p><a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="create_bonds.html"><span class="doc">create_bonds</span></a></p></td>
+<td><p><a class="reference internal" href="delete_atoms.html"><span class="doc">delete_atoms</span></a></p></td>
+<td><p><a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a></p></td>
+<td><p><a class="reference internal" href="displace_atoms.html"><span class="doc">displace_atoms</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="group.html"><span class="doc">group</span></a></p></td>
+<td><p><a class="reference internal" href="mass.html"><span class="doc">mass</span></a></p></td>
+<td><p><a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a></p></td>
+<td><p><a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a></p></td>
+<td><p><a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a></p></td>
+<td><p><a class="reference internal" href="replicate.html"><span class="doc">replicate</span></a></p></td>
+<td><p><a class="reference internal" href="set.html"><span class="doc">set</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="force-fields">
+<h2><span class="section-number">5.4.4. </span>Force fields:<a class="headerlink" href="#force-fields" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="angle_coeff.html"><span class="doc">angle_coeff</span></a></p></td>
+<td><p><a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a></p></td>
+<td><p><a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a></p></td>
+<td><p><a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="bond_write.html"><span class="doc">bond_write</span></a></p></td>
+<td><p><a class="reference internal" href="dielectric.html"><span class="doc">dielectric</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral_style</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="improper_coeff.html"><span class="doc">improper_coeff</span></a></p></td>
+<td><p><a class="reference internal" href="improper_style.html"><span class="doc">improper_style</span></a></p></td>
+<td><p><a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify</span></a></p></td>
+<td><p><a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a></p></td>
+<td><p><a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a></p></td>
+<td><p><a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a></p></td>
+<td><p><a class="reference internal" href="pair_write.html"><span class="doc">pair_write</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="settings">
+<h2><span class="section-number">5.4.5. </span>Settings:<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify</span></a></p></td>
+<td><p><a class="reference internal" href="comm_style.html"><span class="doc">comm_style</span></a></p></td>
+<td><p><a class="reference internal" href="info.html"><span class="doc">info</span></a></p></td>
+<td><p><a class="reference internal" href="min_modify.html"><span class="doc">min_modify</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="min_style.html"><span class="doc">min_style</span></a></p></td>
+<td><p><a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify</span></a></p></td>
+<td><p><a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a></p></td>
+<td><p><a class="reference internal" href="partition.html"><span class="doc">partition</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="reset_timestep.html"><span class="doc">reset_timestep</span></a></p></td>
+<td><p><a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a></p></td>
+<td><p><a class="reference internal" href="timer.html"><span class="doc">timer</span></a></p></td>
+<td><p><a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="operations-within-timestepping-fixes-and-diagnostics-computes">
+<h2><span class="section-number">5.4.6. </span>Operations within timestepping (fixes) and diagnostics (computes):<a class="headerlink" href="#operations-within-timestepping-fixes-and-diagnostics-computes" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="compute.html"><span class="doc">compute</span></a></p></td>
+<td><p><a class="reference internal" href="compute_modify.html"><span class="doc">compute_modify</span></a></p></td>
+<td><p><a class="reference internal" href="fix.html"><span class="doc">fix</span></a></p></td>
+<td><p><a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="uncompute.html"><span class="doc">uncompute</span></a></p></td>
+<td><p><a class="reference internal" href="unfix.html"><span class="doc">unfix</span></a></p></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="output">
+<h2><span class="section-number">5.4.7. </span>Output:<a class="headerlink" href="#output" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a></p></td>
+<td><p><a class="reference internal" href="dump_image.html"><span class="doc">dump movie</span></a></p></td>
+<td><p><a class="reference internal" href="dump.html"><span class="doc">dump</span></a></p></td>
+<td><p><a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="restart.html"><span class="doc">restart</span></a></p></td>
+<td><p><a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a></p></td>
+<td><p><a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a></p></td>
+<td><p><a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="undump.html"><span class="doc">undump</span></a></p></td>
+<td><p><a class="reference internal" href="write_coeff.html"><span class="doc">write_coeff</span></a></p></td>
+<td><p><a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a></p></td>
+<td><p><a class="reference internal" href="write_dump.html"><span class="doc">write_dump</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="actions">
+<h2><span class="section-number">5.4.8. </span>Actions:<a class="headerlink" href="#actions" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a></p></td>
+<td><p><a class="reference internal" href="neb.html"><span class="doc">neb</span></a></p></td>
+<td><p><a class="reference internal" href="neb_spin.html"><span class="doc">neb_spin</span></a></p></td>
+<td><p><a class="reference internal" href="prd.html"><span class="doc">prd</span></a></p></td>
+<td><p><a class="reference internal" href="rerun.html"><span class="doc">rerun</span></a></p></td>
+<td><p><a class="reference internal" href="run.html"><span class="doc">run</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="tad.html"><span class="doc">tad</span></a></p></td>
+<td><p><a class="reference internal" href="temper.html"><span class="doc">temper</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="input-script-control">
+<h2><span class="section-number">5.4.9. </span>Input script control:<a class="headerlink" href="#input-script-control" title="Permalink to this headline">¶</a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="clear.html"><span class="doc">clear</span></a></p></td>
+<td><p><a class="reference internal" href="echo.html"><span class="doc">echo</span></a></p></td>
+<td><p><a class="reference internal" href="if.html"><span class="doc">if</span></a></p></td>
+<td><p><a class="reference internal" href="include.html"><span class="doc">include</span></a></p></td>
+<td><p><a class="reference internal" href="info.html"><span class="doc">info</span></a></p></td>
+<td><p><a class="reference internal" href="jump.html"><span class="doc">jump</span></a></p></td>
+<td><p><a class="reference internal" href="label.html"><span class="doc">label</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="log.html"><span class="doc">log</span></a></p></td>
+<td><p><a class="reference internal" href="next.html"><span class="doc">next</span></a></p></td>
+<td><p><a class="reference internal" href="print.html"><span class="doc">print</span></a></p></td>
+<td><p><a class="reference internal" href="python.html"><span class="doc">python</span></a></p></td>
+<td><p><a class="reference internal" href="quit.html"><span class="doc">quit</span></a></p></td>
+<td><p><a class="reference internal" href="shell.html"><span class="doc">shell</span></a></p></td>
+<td><p><a class="reference internal" href="variable.html"><span class="doc">variable</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Commands_all.html" class="btn btn-neutral float-right" title="5.5. General commands" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Commands_structure.html" class="btn btn-neutral float-left" title="5.3. Input script structure" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

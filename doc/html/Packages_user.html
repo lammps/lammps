@@ -1,0 +1,567 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>6.2. User packages &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="6.3. Package details" href="Packages_details.html" />
+    <link rel="prev" title="6.1. Standard packages" href="Packages_standard.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Packages.html">6. Optional packages</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Packages_standard.html">6.1. Standard packages</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">6.2. User packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Packages_details.html">6.3. Package details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Packages.html"><span class="section-number">6. </span>Optional packages</a> &raquo;</li>
+        
+      <li><span class="section-number">6.2. </span>User packages</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Packages_details.html" class="btn btn-neutral float-right" title="6.3. Package details" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Packages_standard.html" class="btn btn-neutral float-left" title="6.1. Standard packages" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="user-packages">
+<h1><span class="section-number">6.2. </span>User packages<a class="headerlink" href="#user-packages" title="Permalink to this headline">¶</a></h1>
+<p>This is a list of user packages in LAMMPS.  The link for each package
+name gives more details.</p>
+<p>User packages have been contributed by users, and begin with the
+“user” prefix.  If a contribution is a single command (single file),
+it is typically in the USER-MISC package.  User packages don’t
+necessarily meet the requirements of the <a class="reference internal" href="Packages_standard.html"><span class="doc">standard packages</span></a>. This means the developers will try
+to keep things working and usually can answer technical questions
+about compiling the package. If you have problems using a specific
+feature provided in a user package, you may need to contact the
+contributor directly to get help.  Information on how to submit
+additions you make to LAMMPS as single files or as a standard or user
+package is explained on the <a class="reference internal" href="Modify_contribute.html"><span class="doc">Modify contribute</span></a>
+doc page.</p>
+<p>The “Example” column is a sub-directory in the examples directory of
+the distribution which has an input script that uses the package.
+E.g. “peptide” refers to the examples/peptide directory; USER/atc
+refers to the examples/USER/atc directory.  The “Library” column
+indicates whether an extra library is needed to build and use the
+package:</p>
+<ul class="simple">
+<li><p>no  = no library</p></li>
+<li><p>sys = system library: you likely have it on your machine</p></li>
+<li><p>int = internal library: provided with LAMMPS, but you may need to build it</p></li>
+<li><p>ext = external library: you will need to download and install it on your machine</p></li>
+</ul>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 19%" />
+<col style="width: 25%" />
+<col style="width: 31%" />
+<col style="width: 21%" />
+<col style="width: 4%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Package</p></td>
+<td><p>Description</p></td>
+<td><p>Doc page</p></td>
+<td><p>Example</p></td>
+<td><p>Library</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-adios"><span class="std std-ref">USER-ADIOS</span></a></p></td>
+<td><p>dump output via ADIOS</p></td>
+<td><p><a class="reference internal" href="dump_adios.html"><span class="doc">dump adios</span></a></p></td>
+<td><p>USER/adios</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-atc"><span class="std std-ref">USER-ATC</span></a></p></td>
+<td><p>Atom-to-Continuum coupling</p></td>
+<td><p><a class="reference internal" href="fix_atc.html"><span class="doc">fix atc</span></a></p></td>
+<td><p>USER/atc</p></td>
+<td><p>int</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-awpmd"><span class="std std-ref">USER-AWPMD</span></a></p></td>
+<td><p>wave packet MD</p></td>
+<td><p><a class="reference internal" href="pair_awpmd.html"><span class="doc">pair_style awpmd/cut</span></a></p></td>
+<td><p>USER/awpmd</p></td>
+<td><p>int</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-bocs"><span class="std std-ref">USER-BOCS</span></a></p></td>
+<td><p>BOCS bottom up coarse graining</p></td>
+<td><p><a class="reference internal" href="fix_bocs.html"><span class="doc">fix bocs</span></a></p></td>
+<td><p>USER/bocs</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-cgdna"><span class="std std-ref">USER-CGDNA</span></a></p></td>
+<td><p>coarse-grained DNA force fields</p></td>
+<td><p>src/USER-CGDNA/README</p></td>
+<td><p>USER/cgdna</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-cgsdk"><span class="std std-ref">USER-CGSDK</span></a></p></td>
+<td><p>SDK coarse-graining model</p></td>
+<td><p><a class="reference internal" href="pair_sdk.html"><span class="doc">pair_style lj/sdk</span></a></p></td>
+<td><p>USER/cgsdk</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-colvars"><span class="std std-ref">USER-COLVARS</span></a></p></td>
+<td><p>collective variables library</p></td>
+<td><p><a class="reference internal" href="fix_colvars.html"><span class="doc">fix colvars</span></a></p></td>
+<td><p>USER/colvars</p></td>
+<td><p>int</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-diffraction"><span class="std std-ref">USER-DIFFRACTION</span></a></p></td>
+<td><p>virtual x-ray and electron diffraction</p></td>
+<td><p><a class="reference internal" href="compute_xrd.html"><span class="doc">compute xrd</span></a></p></td>
+<td><p>USER/diffraction</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-dpd"><span class="std std-ref">USER-DPD</span></a></p></td>
+<td><p>reactive dissipative particle dynamics</p></td>
+<td><p>src/USER-DPD/README</p></td>
+<td><p>USER/dpd</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-drude"><span class="std std-ref">USER-DRUDE</span></a></p></td>
+<td><p>Drude oscillators</p></td>
+<td><p><a class="reference internal" href="Howto_drude.html"><span class="doc">Howto drude</span></a></p></td>
+<td><p>USER/drude</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-eff"><span class="std std-ref">USER-EFF</span></a></p></td>
+<td><p>electron force field</p></td>
+<td><p><a class="reference internal" href="pair_eff.html"><span class="doc">pair_style eff/cut</span></a></p></td>
+<td><p>USER/eff</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-fep"><span class="std std-ref">USER-FEP</span></a></p></td>
+<td><p>free energy perturbation</p></td>
+<td><p><a class="reference internal" href="compute_fep.html"><span class="doc">compute fep</span></a></p></td>
+<td><p>USER/fep</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-h5md"><span class="std std-ref">USER-H5MD</span></a></p></td>
+<td><p>dump output via HDF5</p></td>
+<td><p><a class="reference internal" href="dump_h5md.html"><span class="doc">dump h5md</span></a></p></td>
+<td><p>n/a</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-intel"><span class="std std-ref">USER-INTEL</span></a></p></td>
+<td><p>optimized Intel CPU and KNL styles</p></td>
+<td><p><a class="reference internal" href="Speed_intel.html"><span class="doc">Speed intel</span></a></p></td>
+<td><p><a class="reference external" href="https://lammps.sandia.gov/bench.html">Benchmarks</a></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-lb"><span class="std std-ref">USER-LB</span></a></p></td>
+<td><p>Lattice Boltzmann fluid</p></td>
+<td><p><a class="reference internal" href="fix_lb_fluid.html"><span class="doc">fix lb/fluid</span></a></p></td>
+<td><p>USER/lb</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-manifold"><span class="std std-ref">USER-MANIFOLD</span></a></p></td>
+<td><p>motion on 2d surfaces</p></td>
+<td><p><a class="reference internal" href="fix_manifoldforce.html"><span class="doc">fix manifoldforce</span></a></p></td>
+<td><p>USER/manifold</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-meamc"><span class="std std-ref">USER-MEAMC</span></a></p></td>
+<td><p>modified EAM potential (C++)</p></td>
+<td><p><a class="reference internal" href="pair_meamc.html"><span class="doc">pair_style meam/c</span></a></p></td>
+<td><p>meamc</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-mesodpd"><span class="std std-ref">USER-MESODPD</span></a></p></td>
+<td><p>mesoscale DPD models</p></td>
+<td><p><a class="reference internal" href="pair_mesodpd.html"><span class="doc">pair_style edpd</span></a></p></td>
+<td><p>USER/mesodpd</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-mesont"><span class="std std-ref">USER-MESONT</span></a></p></td>
+<td><p>mesoscopic tubular potential model for nanotubes</p></td>
+<td><p>pair style <a class="reference internal" href="pair_mesont_tpm.html"><span class="doc">mesont/tpm</span></a>, <a class="reference internal" href="pair_mesocnt.html"><span class="doc">mesocnt</span></a></p></td>
+<td><p>USER/mesont</p></td>
+<td><p>int</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-mgpt"><span class="std std-ref">USER-MGPT</span></a></p></td>
+<td><p>fast MGPT multi-ion potentials</p></td>
+<td><p><a class="reference internal" href="pair_mgpt.html"><span class="doc">pair_style mgpt</span></a></p></td>
+<td><p>USER/mgpt</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-misc"><span class="std std-ref">USER-MISC</span></a></p></td>
+<td><p>single-file contributions</p></td>
+<td><p>USER-MISC/README</p></td>
+<td><p>USER/misc</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-mofff"><span class="std std-ref">USER-MOFFF</span></a></p></td>
+<td><p>styles for <a class="reference external" href="https://www.mofplus.org/content/show/MOF-FF">MOF-FF</a> force field</p></td>
+<td><p><a class="reference internal" href="pair_buck6d_coul_gauss.html"><span class="doc">pair_style buck6d/coul/gauss</span></a></p></td>
+<td><p>USER/mofff</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-molfile"><span class="std std-ref">USER-MOLFILE</span></a></p></td>
+<td><p><a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/">VMD</a> molfile plug-ins</p></td>
+<td><p><a class="reference internal" href="dump_molfile.html"><span class="doc">dump molfile</span></a></p></td>
+<td><p>n/a</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-netcdf"><span class="std std-ref">USER-NETCDF</span></a></p></td>
+<td><p>dump output via NetCDF</p></td>
+<td><p><a class="reference internal" href="dump_netcdf.html"><span class="doc">dump netcdf</span></a></p></td>
+<td><p>n/a</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-omp"><span class="std std-ref">USER-OMP</span></a></p></td>
+<td><p>OpenMP-enabled styles</p></td>
+<td><p><a class="reference internal" href="Speed_omp.html"><span class="doc">Speed omp</span></a></p></td>
+<td><p><a class="reference external" href="https://lammps.sandia.gov/bench.html">Benchmarks</a></p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-phonon"><span class="std std-ref">USER-PHONON</span></a></p></td>
+<td><p>phonon dynamical matrix</p></td>
+<td><p><a class="reference internal" href="fix_phonon.html"><span class="doc">fix phonon</span></a></p></td>
+<td><p>USER/phonon</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-plumed"><span class="std std-ref">USER-PLUMED</span></a></p></td>
+<td><p><a class="reference internal" href="fix_plumed.html#plumed"><span class="std std-ref">PLUMED</span></a> free energy library</p></td>
+<td><p><a class="reference internal" href="fix_plumed.html"><span class="doc">fix plumed</span></a></p></td>
+<td><p>USER/plumed</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-ptm"><span class="std std-ref">USER-PTM</span></a></p></td>
+<td><p>Polyhedral Template Matching</p></td>
+<td><p><a class="reference internal" href="compute_ptm_atom.html"><span class="doc">compute ptm/atom</span></a></p></td>
+<td><p>n/a</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-qmmm"><span class="std std-ref">USER-QMMM</span></a></p></td>
+<td><p>QM/MM coupling</p></td>
+<td><p><a class="reference internal" href="fix_qmmm.html"><span class="doc">fix qmmm</span></a></p></td>
+<td><p>USER/qmmm</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-qtb"><span class="std std-ref">USER-QTB</span></a></p></td>
+<td><p>quantum nuclear effects</p></td>
+<td><p><a class="reference internal" href="fix_qtb.html"><span class="doc">fix qtb</span></a> <a class="reference internal" href="fix_qbmsst.html"><span class="doc">fix qbmsst</span></a></p></td>
+<td><p>qtb</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-quip"><span class="std std-ref">USER-QUIP</span></a></p></td>
+<td><p>QUIP/libatoms interface</p></td>
+<td><p><a class="reference internal" href="pair_quip.html"><span class="doc">pair_style quip</span></a></p></td>
+<td><p>USER/quip</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-reaction"><span class="std std-ref">USER-REACTION</span></a></p></td>
+<td><p>chemical reactions in classical MD</p></td>
+<td><p><a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a></p></td>
+<td><p>USER/reaction</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-reaxc"><span class="std std-ref">USER-REAXC</span></a></p></td>
+<td><p>ReaxFF potential (C/C++)</p></td>
+<td><p><a class="reference internal" href="pair_reaxc.html"><span class="doc">pair_style reaxc</span></a></p></td>
+<td><p>reax</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-scafacos"><span class="std std-ref">USER-SCAFACOS</span></a></p></td>
+<td><p>wrapper on ScaFaCoS solver</p></td>
+<td><p><a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style scafacos</span></a></p></td>
+<td><p>USER/scafacos</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-sdpd"><span class="std std-ref">USER-SDPD</span></a></p></td>
+<td><p>smoothed dissipative particle dynamics</p></td>
+<td><p><a class="reference internal" href="pair_sdpd_taitwater_isothermal.html"><span class="doc">pair_style sdpd/taitwater/isothermal</span></a></p></td>
+<td><p>USER/sdpd</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-smd"><span class="std std-ref">USER-SMD</span></a></p></td>
+<td><p>smoothed Mach dynamics</p></td>
+<td><p><a class="reference external" href="PDF/SMD_LAMMPS_userguide.pdf">SMD User Guide</a></p></td>
+<td><p>USER/smd</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-smtbq"><span class="std std-ref">USER-SMTBQ</span></a></p></td>
+<td><p>second moment tight binding QEq potential</p></td>
+<td><p><a class="reference internal" href="pair_smtbq.html"><span class="doc">pair_style smtbq</span></a></p></td>
+<td><p>USER/smtbq</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-sph"><span class="std std-ref">USER-SPH</span></a></p></td>
+<td><p>smoothed particle hydrodynamics</p></td>
+<td><p><a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">SPH User Guide</a></p></td>
+<td><p>USER/sph</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-tally"><span class="std std-ref">USER-TALLY</span></a></p></td>
+<td><p>pairwise tally computes</p></td>
+<td><p><a class="reference internal" href="compute_tally.html"><span class="doc">compute XXX/tally</span></a></p></td>
+<td><p>USER/tally</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-uef"><span class="std std-ref">USER-UEF</span></a></p></td>
+<td><p>extensional flow</p></td>
+<td><p><a class="reference internal" href="fix_nh_uef.html"><span class="doc">fix nvt/uef</span></a></p></td>
+<td><p>USER/uef</p></td>
+<td><p>no</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-vtk"><span class="std std-ref">USER-VTK</span></a></p></td>
+<td><p>dump output via VTK</p></td>
+<td><p><a class="reference internal" href="dump_vtk.html"><span class="doc">compute vtk</span></a></p></td>
+<td><p>n/a</p></td>
+<td><p>ext</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Packages_details.html#pkg-user-yaff"><span class="std std-ref">USER-YAFF</span></a></p></td>
+<td><p>additional styles implemented in YAFF</p></td>
+<td><p><a class="reference internal" href="angle_cross.html"><span class="doc">angle_style cross</span></a></p></td>
+<td><p>USER/yaff</p></td>
+<td><p>no</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Packages_details.html" class="btn btn-neutral float-right" title="6.3. Package details" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Packages_standard.html" class="btn btn-neutral float-left" title="6.1. Standard packages" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

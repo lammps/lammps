@@ -1,0 +1,419 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>8.3.6. Calculate viscosity &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="8.3.7. Calculate diffusion coefficients" href="Howto_diffusion.html" />
+    <link rel="prev" title="8.3.5. Calculate thermal conductivity" href="Howto_kappa.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">8. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">8.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">8.2. Settings howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#analysis-howto">8.3. Analysis howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_output.html">8.3.1. Output from LAMMPS (thermo, dumps, computes, fixes, variables)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_chunk.html">8.3.2. Use chunks to calculate system properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_temperature.html">8.3.3. Calculate temperature</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_elastic.html">8.3.4. Calculate elastic constants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_kappa.html">8.3.5. Calculate thermal conductivity</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">8.3.6. Calculate viscosity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_diffusion.html">8.3.7. Calculate diffusion coefficients</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">8.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">8.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">8.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Howto.html"><span class="section-number">8. </span>Howto discussions</a> &raquo;</li>
+        
+      <li><span class="section-number">8.3.6. </span>Calculate viscosity</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Howto_diffusion.html" class="btn btn-neutral float-right" title="8.3.7. Calculate diffusion coefficients" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Howto_kappa.html" class="btn btn-neutral float-left" title="8.3.5. Calculate thermal conductivity" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="calculate-viscosity">
+<h1><span class="section-number">8.3.6. </span>Calculate viscosity<a class="headerlink" href="#calculate-viscosity" title="Permalink to this headline">¶</a></h1>
+<p>The shear viscosity eta of a fluid can be measured in at least 6 ways
+using various options in LAMMPS.  See the examples/VISCOSITY directory
+for scripts that implement the 5 methods discussed here for a simple
+Lennard-Jones fluid model and 1 method for SPC/E water model.
+Also, see the <a class="reference internal" href="Howto_kappa.html"><span class="doc">page on calculating thermal conductivity</span></a>
+for an analogous discussion for thermal conductivity.</p>
+<p>Eta is a measure of the propensity of a fluid to transmit momentum in
+a direction perpendicular to the direction of velocity or momentum
+flow.  Alternatively it is the resistance the fluid has to being
+sheared.  It is given by</p>
+<p>J = -eta grad(Vstream)</p>
+<p>where J is the momentum flux in units of momentum per area per time.
+and grad(Vstream) is the spatial gradient of the velocity of the fluid
+moving in another direction, normal to the area through which the
+momentum flows.  Viscosity thus has units of pressure-time.</p>
+<p>The first method is to perform a non-equilibrium MD (NEMD) simulation
+by shearing the simulation box via the <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a>
+command, and using the <a class="reference internal" href="fix_nvt_sllod.html"><span class="doc">fix nvt/sllod</span></a> command to
+thermostat the fluid via the SLLOD equations of motion.
+Alternatively, as a second method, one or more moving walls can be
+used to shear the fluid in between them, again with some kind of
+thermostat that modifies only the thermal (non-shearing) components of
+velocity to prevent the fluid from heating up.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A recent (2017) book by <a class="reference internal" href="#daivis-viscosity"><span class="std std-ref">(Daivis and Todd)</span></a>
+discusses use of the SLLOD method and non-equilibrium MD (NEMD)
+thermostatting generally, for both simple and complex fluids,
+e.g. molecular systems.  The latter can be tricky to do correctly.</p>
+</div>
+<p>In both cases, the velocity profile setup in the fluid by this
+procedure can be monitored by the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>
+command, which determines grad(Vstream) in the equation above.
+E.g. the derivative in the y-direction of the Vx component of fluid
+motion or grad(Vstream) = dVx/dy.  The Pxy off-diagonal component of
+the pressure or stress tensor, as calculated by the <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> command, can also be monitored, which
+is the J term in the equation above.  See the <a class="reference internal" href="Howto_nemd.html"><span class="doc">Howto nemd</span></a> doc page for details on NEMD simulations.</p>
+<p>The third method is to perform a reverse non-equilibrium MD simulation
+using the <a class="reference internal" href="fix_viscosity.html"><span class="doc">fix viscosity</span></a> command which implements
+the rNEMD algorithm of Muller-Plathe.  Momentum in one dimension is
+swapped between atoms in two different layers of the simulation box in
+a different dimension.  This induces a velocity gradient which can be
+monitored with the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a> command.
+The fix tallies the cumulative momentum transfer that it performs.
+See the <a class="reference internal" href="fix_viscosity.html"><span class="doc">fix viscosity</span></a> command for details.</p>
+<p>The fourth method is based on the Green-Kubo (GK) formula which
+relates the ensemble average of the auto-correlation of the
+stress/pressure tensor to eta.  This can be done in a fully
+equilibrated simulation which is in contrast to the two preceding
+non-equilibrium methods, where momentum flows continuously through the
+simulation box.</p>
+<p>Here is an example input script that calculates the viscosity of
+liquid Ar via the GK formalism:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c"># Sample LAMMPS input script for viscosity of liquid Ar</span>
+
+<span class="k">units</span><span class="w">       </span><span class="n">real</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">T</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">86.4956</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">V</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">vol</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">dt</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">4.0</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">p</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">400</span><span class="w">     </span><span class="c"># correlation length</span>
+<span class="k">variable    </span><span class="nv nv-Identifier">s</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">5</span><span class="w">       </span><span class="c"># sample interval</span>
+<span class="k">variable    </span><span class="nv nv-Identifier">d</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="nv">$p</span><span class="o">*</span><span class="nv">$s</span><span class="w">   </span><span class="c"># dump interval</span>
+
+<span class="c"># convert from LAMMPS real units to SI</span>
+
+<span class="k">variable    </span><span class="nv nv-Identifier">kB</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">1.3806504e-23</span><span class="w">    </span><span class="c"># [J/K] Boltzmann</span>
+<span class="k">variable    </span><span class="nv nv-Identifier">atm2Pa</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">101325.0</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">A2m</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">1.0e-10</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">fs2s</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">1.0e-15</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">convert</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="nv">${</span><span class="nv nv-Identifier">atm2Pa</span><span class="err">}</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">atm2Pa</span><span class="err">}</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">fs2s</span><span class="err">}</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">A2m</span><span class="err">}</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">A2m</span><span class="err">}</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">A2m</span><span class="err">}</span><span class="w"></span>
+
+<span class="c"># setup problem</span>
+
+<span class="k">dimension</span><span class="w">    </span><span class="m">3</span><span class="w"></span>
+<span class="k">boundary</span><span class="w">     </span><span class="n">p</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="n">p</span><span class="w"></span>
+<span class="k">lattice</span><span class="w">      </span><span class="n">fcc</span><span class="w"> </span><span class="m">5.376</span><span class="w"> </span><span class="n">orient</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">orient</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">orient</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+<span class="k">region       </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">4</span><span class="w"></span>
+<span class="k">create_box</span><span class="w">   </span><span class="m">1</span><span class="w"> </span><span class="n">box</span><span class="w"></span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">box</span><span class="w"></span>
+<span class="k">mass</span><span class="w">         </span><span class="m">1</span><span class="w"> </span><span class="m">39.948</span><span class="w"></span>
+<span class="k">pair_style</span><span class="w">   </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="w"> </span><span class="m">13.0</span><span class="w"></span>
+<span class="k">pair_coeff</span><span class="w">   </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">0.2381</span><span class="w"> </span><span class="m">3.405</span><span class="w"></span>
+<span class="k">timestep</span><span class="w">     </span><span class="nv">${</span><span class="nv nv-Identifier">dt</span><span class="err">}</span><span class="w"></span>
+<span class="k">thermo</span><span class="w">       </span><span class="nv">$d</span><span class="w"></span>
+
+<span class="c"># equilibration and thermalization</span>
+
+<span class="k">velocity</span><span class="w">     </span><span class="n">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="nv">$T</span><span class="w"> </span><span class="m">102486</span><span class="w"> </span><span class="n">mom</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">rot</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">dist</span><span class="w"> </span><span class="n">gaussian</span><span class="w"></span>
+<span class="k">fix          </span><span class="nv nv-Identifier">NVT</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nvt</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="nv">$T</span><span class="w"> </span><span class="nv">$T</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">drag</span><span class="w"> </span><span class="m">0.2</span><span class="w"></span>
+<span class="k">run</span><span class="w">          </span><span class="m">8000</span><span class="w"></span>
+
+<span class="c"># viscosity calculation, switch to NVE if desired</span>
+
+<span class="c">#unfix       NVT</span>
+<span class="c">#fix         NVE all nve</span>
+
+<span class="k">reset_timestep</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">pxy</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">pxy</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">pxz</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">pxz</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">pyz</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">pyz</span><span class="w"></span>
+<span class="k">fix          </span><span class="nv nv-Identifier">SS</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">ave</span><span class="o">/</span><span class="n">correlate</span><span class="w"> </span><span class="nv">$s</span><span class="w"> </span><span class="nv">$p</span><span class="w"> </span><span class="nv">$d</span><span class="w"> </span><span class="o">&amp;</span><span class="w"></span>
+<span class="w">             </span><span class="n">v_pxy</span><span class="w"> </span><span class="n">v_pxz</span><span class="w"> </span><span class="n">v_pyz</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">auto</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">S0St.dat</span><span class="w"> </span><span class="n">ave</span><span class="w"> </span><span class="n">running</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">scale</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="nv">${</span><span class="nv nv-Identifier">convert</span><span class="err">}</span><span class="o">/</span><span class="nv">(${kB}*$T)</span><span class="o">*</span><span class="nv">$V</span><span class="o">*</span><span class="nv">$s</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">dt</span><span class="err">}</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">v11</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">trap</span><span class="nv">(f_SS[3])</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">scale</span><span class="err">}</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">v22</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">trap</span><span class="nv">(f_SS[4])</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">scale</span><span class="err">}</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">v33</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">trap</span><span class="nv">(f_SS[5])</span><span class="o">*</span><span class="nv">${</span><span class="nv nv-Identifier">scale</span><span class="err">}</span><span class="w"></span>
+<span class="k">thermo_style</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="n">press</span><span class="w"> </span><span class="n">v_pxy</span><span class="w"> </span><span class="n">v_pxz</span><span class="w"> </span><span class="n">v_pyz</span><span class="w"> </span><span class="n">v_v11</span><span class="w"> </span><span class="n">v_v22</span><span class="w"> </span><span class="n">v_v33</span><span class="w"></span>
+<span class="k">run</span><span class="w">          </span><span class="m">100000</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">v</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="nv">(v_v11+v_v22+v_v33)</span><span class="o">/</span><span class="m">3.0</span><span class="w"></span>
+<span class="k">variable     </span><span class="nv nv-Identifier">ndens</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">count</span><span class="nv">(all)</span><span class="o">/</span><span class="n">vol</span><span class="w"></span>
+<span class="k">print</span><span class="w">        </span><span class="s">&quot;average viscosity: $v [Pa.s] @ $T K, ${ndens} /A^3&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The fifth method is related to the above Green-Kubo method,
+but uses the Einstein formulation, analogous to the Einstein
+mean-square-displacement formulation for self-diffusivity. The
+time-integrated momentum fluxes play the role of Cartesian
+coordinates, whose mean-square displacement increases linearly
+with time at sufficiently long times.</p>
+<p>The sixth is periodic perturbation method. It is also a non-equilibrium MD method.
+However, instead of measure the momentum flux in response of applied velocity gradient,
+it measures the velocity profile in response of applied stress.
+A cosine-shaped periodic acceleration is added to the system via the
+<a class="reference internal" href="fix_accelerate_cos.html"><span class="doc">fix accelerate/cos</span></a> command,
+and the <a class="reference internal" href="compute_viscosity_cos.html"><span class="doc">compute viscosity/cos</span></a> command is used to monitor the
+generated velocity profile and remove the velocity bias before thermostatting.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>An article by <a class="reference internal" href="#hess3"><span class="std std-ref">(Hess)</span></a> discussed the accuracy and efficiency of these methods.</p>
+</div>
+<hr class="docutils" />
+<p id="daivis-viscosity"><strong>(Daivis and Todd)</strong> Daivis and Todd, Nonequilibrium Molecular Dynamics (book),
+Cambridge University Press, <a class="reference external" href="https://doi.org/10.1017/9781139017848">https://doi.org/10.1017/9781139017848</a>, (2017).</p>
+<p id="hess3"><strong>(Hess)</strong> Hess, B. The Journal of Chemical Physics 2002, 116 (1), 209-217.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Howto_diffusion.html" class="btn btn-neutral float-right" title="8.3.7. Calculate diffusion coefficients" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Howto_kappa.html" class="btn btn-neutral float-left" title="8.3.5. Calculate thermal conductivity" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

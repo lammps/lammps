@@ -1,0 +1,1292 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix rigid command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="_static/mathjax/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix rigid/meso command" href="fix_rigid_meso.html" />
+    <link rel="prev" title="fix rhok command" href="fix_rhok.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="fixes.html">Fixes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fix_accelerate_cos.html">fix accelerate/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt.html">fix adapt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt_fep.html">fix adapt/fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addforce.html">fix addforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque.html">fix addtorque command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_append_atoms.html">fix append/atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atc.html">fix atc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_swap.html">fix atom/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_atom.html">fix ave/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_chunk.html">fix ave/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate.html">fix ave/correlate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate_long.html">fix ave/correlate/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html">fix ave/histo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html#fix-ave-histo-weight-command">fix ave/histo/weight command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_time.html">fix ave/time command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_aveforce.html">fix aveforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_balance.html">fix balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bocs.html">fix bocs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_break.html">fix bond/break command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html">fix bond/create command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html#fix-bond-create-angle-command">fix bond/create/angle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_react.html">fix bond/react command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_swap.html">fix bond/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_box_relax.html">fix box/relax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_client_md.html">fix client/md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_cmap.html">fix cmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_colvars.html">fix colvars command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_controller.html">fix controller command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform.html">fix deform command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deposit.html">fix deposit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_energy.html">fix dpd/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html">fix edpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html#fix-tdpd-source-command">fix tdpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drag.html">fix drag command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude.html">fix drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html">fix drude/transform/direct command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html#fix-drude-transform-inverse-command">fix drude/transform/inverse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dt_reset.html">fix dt/reset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html">fix efield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ehex.html">fix ehex command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html">fix electron/stopping command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html#fix-electron-stopping-fit-command">fix electron/stopping/fit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_enforce2d.html">fix enforce2d command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_cv.html">fix eos/cv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table.html">fix eos/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table_rx.html">fix eos/table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_evaporate.html">fix evaporate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_external.html">fix external command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ffl.html">fix ffl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_filter_corotate.html">fix filter/corotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_flow_gauss.html">fix flow/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_freeze.html">fix freeze command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gcmc.html">fix gcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gld.html">fix gld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gle.html">fix gle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gravity.html">fix gravity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_grem.html">fix grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_halt.html">fix halt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat.html">fix heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_global.html">fix hyper/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_local.html">fix hyper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_imd.html">fix imd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_indent.html">fix indent command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ipi.html">fix ipi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin.html">fix langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_drude.html">fix langevin/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_eff.html">fix langevin/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_spin.html">fix langevin/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_latte.html">fix latte command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_fluid.html">fix lb/fluid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_momentum.html">fix lb/momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_pc.html">fix lb/pc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_rigid_pc_sphere.html">fix lb/rigid/pc/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_viscous.html">fix lb/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lineforce.html">fix lineforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_manifoldforce.html">fix manifoldforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_meso_move.html">fix meso/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html">fix momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html#fix-momentum-chunk-command">fix momentum/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_move.html">fix move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mscg.html">fix mscg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_msst.html">fix msst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html">fix mvv/dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-edpd-command">fix mvv/edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-tdpd-command">fix mvv/tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb.html">fix neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb_spin.html">fix neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html">fix nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-npt-command">fix npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-nph-command">fix nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html">fix nvt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-npt-eff-command">fix npt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-nph-eff-command">fix nph/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html">fix nvt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html#fix-npt-uef-command">fix npt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_asphere.html">fix nph/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_body.html">fix nph/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_sphere.html">fix nph/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nphug.html">fix nphug command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_asphere.html">fix npt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_body.html">fix npt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_cauchy.html">fix npt/cauchy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_sphere.html">fix npt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff.html">fix numdiff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve.html">fix nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere.html">fix nve/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere_noforce.html">fix nve/asphere/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_awpmd.html">fix nve/awpmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_body.html">fix nve/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dot.html">fix nve/dot command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dotc_langevin.html">fix nve/dotc/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_eff.html">fix nve/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_limit.html">fix nve/limit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_line.html">fix nve/line command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_manifold_rattle.html">fix nve/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_noforce.html">fix nve/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_sphere.html">fix nve/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_spin.html">fix nve/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_tri.html">fix nve/tri command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvk.html">fix nvk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_asphere.html">fix nvt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_body.html">fix nvt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_manifold_rattle.html">fix nvt/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod.html">fix nvt/sllod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod_eff.html">fix nvt/sllod/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sphere.html">fix nvt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_oneway.html">fix oneway command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html">fix orient/fcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html#fix-orient-bcc-command">fix orient/bcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient_eco.html">fix orient/eco command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pafi.html">fix pafi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_phonon.html">fix phonon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html">fix pimd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd4.html">fix pimd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_planeforce.html">fix planeforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_plumed.html">fix plumed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_poems.html">fix poems command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pour.html">fix pour command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_precession_spin.html">fix precession/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_berendsen.html">fix press/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_print.html">fix print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_propel_self.html">fix propel/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_property_atom.html">fix property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_invoke.html">fix python/invoke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_move.html">fix python/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qbmsst.html">fix qbmsst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html">fix qeq/point command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-shielded-command">fix qeq/shielded command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-slater-command">fix qeq/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-dynamic-command">fix qeq/dynamic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-fire-command">fix qeq/fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_comb.html">fix qeq/comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_reax.html">fix qeq/reax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qmmm.html">fix qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtb.html">fix qtb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxc_bonds.html">fix reax/c/bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxc_species.html">fix reax/c/species command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_recenter.html">fix recenter command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_restrain.html">fix restrain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rhok.html">fix rhok command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">fix rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-nve-command">fix rigid/nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-nvt-command">fix rigid/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-npt-command">fix rigid/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-nph-command">fix rigid/nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-small-command">fix rigid/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-nve-small-command">fix rigid/nve/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-nvt-small-command">fix rigid/nvt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-npt-small-command">fix rigid/npt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-rigid-nph-small-command">fix rigid/nph/small command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-fix-modify-output-run-start-stop-minimize-info">Restart, fix_modify, output, run start/stop, minimize info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid_meso.html">fix rigid/meso command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rx.html">fix rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_saed_vtk.html">fix saed/vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html">fix setforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html#fix-setforce-spin-command">fix setforce/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html">fix shake command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html#fix-rattle-command">fix rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shardlow.html">fix shardlow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd.html">fix smd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_adjust_dt.html">fix smd/adjust_dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_tlsph.html">fix smd/integrate_tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_ulsph.html">fix smd/integrate_ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_move_triangulated_surface.html">fix smd/move_tri_surf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_setvel.html">fix smd/setvel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_wall_surface.html">fix smd/wall_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph.html">fix sph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph_stationary.html">fix sph/stationary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring.html">fix spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_chunk.html">fix spring/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_rg.html">fix spring/rg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_self.html">fix spring/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_srd.html">fix srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_force.html">fix store/force command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_state.html">fix store/state command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_berendsen.html">fix temp/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html">fix temp/csvr command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html#fix-temp-csld-command">fix temp/csld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale.html">fix temp/rescale command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html">fix tgnvt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html#fix-tgnpt-drude-command">fix tgnpt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-mod-command">fix ttm/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tune_kspace.html">fix tune/kspace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_vector.html">fix vector command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscosity.html">fix viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous.html">fix viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html">fix wall/lj93 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj126-command">fix wall/lj126 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj1043-command">fix wall/lj1043 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-colloid-command">fix wall/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-command">fix wall/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-morse-command">fix wall/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polygon.html">fix wall/body/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polyhedron.html">fix wall/body/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html">fix wall/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html#fix-wall-region-ees-command">fix wall/region/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran.html">fix wall/gran command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran_region.html">fix wall/gran/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_piston.html">fix wall/piston command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect.html">fix wall/reflect command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect_stochastic.html">fix wall/reflect/stochastic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_region.html">fix wall/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_srd.html">fix wall/srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_widom.html">fix widom command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="fixes.html">Fixes</a> &raquo;</li>
+        
+      <li>fix rigid command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="fix_rigid_meso.html" class="btn btn-neutral float-right" title="fix rigid/meso command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fix_rhok.html" class="btn btn-neutral float-left" title="fix rhok command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="index-0"></span><span class="target" id="index-1"></span><span class="target" id="index-2"></span><span class="target" id="index-3"></span><span class="target" id="index-4"></span><span class="target" id="index-5"></span><span class="target" id="index-6"></span><span class="target" id="index-7"></span><span class="target" id="index-8"></span><span class="target" id="index-9"></span><span class="target" id="index-10"></span><span class="target" id="index-11"></span><span class="target" id="index-12"></span><span class="target" id="index-13"></span><span class="target" id="index-14"></span><div class="section" id="fix-rigid-command">
+<span id="index-15"></span><h1>fix rigid command<a class="headerlink" href="#fix-rigid-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>rigid/omp</em></p>
+</div>
+<div class="section" id="fix-rigid-nve-command">
+<h1>fix rigid/nve command<a class="headerlink" href="#fix-rigid-nve-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>rigid/nve/omp</em></p>
+</div>
+<div class="section" id="fix-rigid-nvt-command">
+<h1>fix rigid/nvt command<a class="headerlink" href="#fix-rigid-nvt-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>rigid/nvt/omp</em></p>
+</div>
+<div class="section" id="fix-rigid-npt-command">
+<h1>fix rigid/npt command<a class="headerlink" href="#fix-rigid-npt-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>rigid/npt/omp</em></p>
+</div>
+<div class="section" id="fix-rigid-nph-command">
+<h1>fix rigid/nph command<a class="headerlink" href="#fix-rigid-nph-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>rigid/nph/omp</em></p>
+</div>
+<div class="section" id="fix-rigid-small-command">
+<h1>fix rigid/small command<a class="headerlink" href="#fix-rigid-small-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>rigid/small/omp</em></p>
+</div>
+<div class="section" id="fix-rigid-nve-small-command">
+<h1>fix rigid/nve/small command<a class="headerlink" href="#fix-rigid-nve-small-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-rigid-nvt-small-command">
+<h1>fix rigid/nvt/small command<a class="headerlink" href="#fix-rigid-nvt-small-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-rigid-npt-small-command">
+<h1>fix rigid/npt/small command<a class="headerlink" href="#fix-rigid-npt-small-command" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="fix-rigid-nph-small-command">
+<h1>fix rigid/nph/small command<a class="headerlink" href="#fix-rigid-nph-small-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>fix ID group-ID style bodystyle args keyword values ...
+</pre></div>
+</div>
+<ul>
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p></li>
+<li><p>style = <em>rigid</em> or <em>rigid/nve</em> or <em>rigid/nvt</em> or <em>rigid/npt</em> or <em>rigid/nph</em> or <em>rigid/small</em> or <em>rigid/nve/small</em> or <em>rigid/nvt/small</em> or <em>rigid/npt/small</em> or <em>rigid/nph/small</em></p></li>
+<li><p>bodystyle = <em>single</em> or <em>molecule</em> or <em>group</em></p>
+<pre class="literal-block"><em>single</em> args = none
+<em>molecule</em> args = none
+<em>custom</em> args = <em>i_propname</em> or <em>v_varname</em>
+  i_propname = an integer property defined via fix property/atom
+  v_varname  = an atom-style or atomfile-style variable
+<em>group</em> args = N groupID1 groupID2 ...
+  N = # of groups
+  groupID1, groupID2, ... = list of N group IDs</pre>
+</li>
+<li><p>zero or more keyword/value pairs may be appended</p></li>
+<li><p>keyword = <em>langevin</em> or <em>reinit</em> or <em>temp</em> or <em>iso</em> or <em>aniso</em> or <em>x</em> or <em>y</em> or <em>z</em> or <em>couple</em> or <em>tparam</em> or <em>pchain</em> or <em>dilate</em> or <em>force</em> or <em>torque</em> or <em>infile</em></p>
+<pre class="literal-block"><em>langevin</em> values = Tstart Tstop Tperiod seed
+  Tstart,Tstop = desired temperature at start/stop of run (temperature units)
+  Tdamp = temperature damping parameter (time units)
+  seed = random number seed to use for white noise (positive integer)
+<em>reinit</em> = <em>yes</em> or <em>no</em>
+<em>temp</em> values = Tstart Tstop Tdamp
+  Tstart,Tstop = desired temperature at start/stop of run (temperature units)
+  Tdamp = temperature damping parameter (time units)
+<em>iso</em> or <em>aniso</em> values = Pstart Pstop Pdamp
+  Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
+  Pdamp = pressure damping parameter (time units)
+<em>x</em> or <em>y</em> or <em>z</em> values = Pstart Pstop Pdamp
+  Pstart,Pstop = external stress tensor component at start/end of run (pressure units)
+  Pdamp = stress damping parameter (time units)
+<em>couple</em> = <em>none</em> or <em>xyz</em> or <em>xy</em> or <em>yz</em> or <em>xz</em>
+<em>tparam</em> values = Tchain Titer Torder
+  Tchain = length of Nose/Hoover thermostat chain
+  Titer = number of thermostat iterations performed
+  Torder = 3 or 5 = Yoshida-Suzuki integration parameters
+<em>pchain</em> values = Pchain
+  Pchain = length of the Nose/Hoover thermostat chain coupled with the barostat
+<em>dilate</em> value = dilate-group-ID
+  dilate-group-ID = only dilate atoms in this group due to barostat volume changes
+<em>force</em> values = M xflag yflag zflag
+  M = which rigid body from 1-Nbody (see asterisk form below)
+  xflag,yflag,zflag = off/on if component of center-of-mass force is active
+<em>torque</em> values = M xflag yflag zflag
+  M = which rigid body from 1-Nbody (see asterisk form below)
+  xflag,yflag,zflag = off/on if component of center-of-mass torque is active
+<em>infile</em> filename
+  filename = file with per-body values of mass, center-of-mass, moments of inertia
+<em>mol</em> value = template-ID
+  template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command</pre>
+</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">clump</span><span class="w"> </span><span class="n">rigid</span><span class="w"> </span><span class="n">single</span><span class="w"> </span><span class="n">reinit</span><span class="w"> </span><span class="n">yes</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">clump</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">small</span><span class="w"> </span><span class="n">molecule</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">clump</span><span class="w"> </span><span class="n">rigid</span><span class="w"> </span><span class="n">single</span><span class="w"> </span><span class="n">force</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="n">langevin</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">428984</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">polychains</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">nvt</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="n">reinit</span><span class="w"> </span><span class="n">no</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">polychains</span><span class="w"> </span><span class="n">rigid</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">force</span><span class="w"> </span><span class="m">1</span><span class="o">*</span><span class="m">5</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">force</span><span class="w"> </span><span class="m">6</span><span class="o">*</span><span class="m">10</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">on</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">polychains</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">small</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">langevin</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">428984</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">fluid</span><span class="w"> </span><span class="n">rigid</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">3</span><span class="w"> </span><span class="n">clump1</span><span class="w"> </span><span class="n">clump2</span><span class="w"> </span><span class="n">clump3</span><span class="w"> </span><span class="n">torque</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">off</span><span class="w"> </span><span class="n">off</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">rods</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">npt</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">100.0</span><span class="w"> </span><span class="n">iso</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">10.0</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">particles</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">npt</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">couple</span><span class="w"> </span><span class="n">xz</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">water</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">nph</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">iso</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">1.0</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">particles</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">npt</span><span class="o">/</span><span class="n">small</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">iso</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">1.0</span><span class="w"></span>
+
+<span class="k">variable </span><span class="nv nv-Identifier">bodyid</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1.0</span><span class="o">*</span><span class="n">gmask</span><span class="nv">(clump1)</span><span class="o">+</span><span class="m">2.0</span><span class="o">*</span><span class="n">gmask</span><span class="nv">(clump2)</span><span class="o">+</span><span class="m">3.0</span><span class="o">*</span><span class="n">gmask</span><span class="nv">(clump3)</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">clump</span><span class="w"> </span><span class="n">rigid</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">v_bodyid</span><span class="w"></span>
+
+<span class="k">variable </span><span class="nv nv-Identifier">bodyid</span><span class="w"> </span><span class="n">atomfile</span><span class="w"> </span><span class="n">bodies.txt</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">clump</span><span class="w"> </span><span class="n">rigid</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">v_bodyid</span><span class="w"></span>
+
+<span class="k">fix </span><span class="nv nv-Identifier">0</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">i_bodyid</span><span class="w"></span>
+<span class="k">read_restart</span><span class="w"> </span><span class="n">data.rigid</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">0</span><span class="w"> </span><span class="nv nv-Identifier">NULL</span><span class="w"> </span><span class="n">Bodies</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">clump</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">small</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">i_bodyid</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Treat one or more sets of atoms as independent rigid bodies.  This
+means that each timestep the total force and torque on each rigid body
+is computed as the sum of the forces and torques on its constituent
+particles.  The coordinates, velocities, and orientations of the atoms
+in each body are then updated so that the body moves and rotates as a
+single entity.  This is implemented by creating internal data structures
+for each rigid body and performing time integration on these data
+structures.  Positions, velocities, and orientations of the constituent
+particles are regenerated from the rigid body data structures in every
+time step. This restricts which operations and fixes can be applied to
+rigid bodies. See below for a detailed discussion.</p>
+<p>Examples of large rigid bodies are a colloidal particle, or portions
+of a biomolecule such as a protein.</p>
+<p>Example of small rigid bodies are patchy nanoparticles, such as those
+modeled in <a class="reference internal" href="#zhang1"><span class="std std-ref">this paper</span></a> by Sharon Glotzer’s group, clumps of
+granular particles, lipid molecules consisting of one or more point
+dipoles connected to other spheroids or ellipsoids, irregular
+particles built from line segments (2d) or triangles (3d), and
+coarse-grain models of nano or colloidal particles consisting of a
+small number of constituent particles.  Note that the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> command can also be used to rigidify small
+molecules of 2, 3, or 4 atoms, e.g. water molecules.  That fix treats
+the constituent atoms as point masses.</p>
+<p>These fixes also update the positions and velocities of the atoms in
+each rigid body via time integration, in the NVE, NVT, NPT, or NPH
+ensemble, as described below.</p>
+<p>There are two main variants of this fix, fix rigid and fix
+rigid/small.  The NVE/NVT/NPT/NHT versions belong to one of the two
+variants, as their style names indicate.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Not all of the <em>bodystyle</em> options and keyword/value options are
+available for both the <em>rigid</em> and <em>rigid/small</em> variants.  See
+details below.</p>
+</div>
+<p>The <em>rigid</em> styles are typically the best choice for a system with a
+small number of large rigid bodies, each of which can extend across
+the domain of many processors.  It operates by creating a single
+global list of rigid bodies, which all processors contribute to.
+MPI_Allreduce operations are performed each timestep to sum the
+contributions from each processor to the force and torque on all the
+bodies.  This operation will not scale well in parallel if large
+numbers of rigid bodies are simulated.</p>
+<p>The <em>rigid/small</em> styles are typically best for a system with a large
+number of small rigid bodies.  Each body is assigned to the atom
+closest to the geometrical center of the body.  The fix operates using
+local lists of rigid bodies owned by each processor and information is
+exchanged and summed via local communication between neighboring
+processors when ghost atom info is accumulated.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To use the <em>rigid/small</em> styles the ghost atom cutoff must be
+large enough to span the distance between the atom that owns the body
+and every other atom in the body.  This distance value is printed out
+when the rigid bodies are defined.  If the
+<a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> cutoff plus neighbor skin does not span
+this distance, then you should use the <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a> command with a setting epsilon larger than
+the distance.</p>
+</div>
+<p>Which of the two variants is faster for a particular problem is hard
+to predict.  The best way to decide is to perform a short test run.
+Both variants should give identical numerical answers for short runs.
+Long runs should give statistically similar results, but round-off
+differences may accumulate to produce divergent trajectories.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You should not update the atoms in rigid bodies via other
+time-integration fixes (e.g. <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a>, <a class="reference internal" href="fix_move.html"><span class="doc">fix move</span></a>),
+or you will have conflicting updates to positions and velocities
+resulting in unphysical behavior in most cases. When performing a hybrid
+simulation with some atoms in rigid bodies, and some not, a separate
+time integration fix like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> should be used for the non-rigid particles.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These fixes are overkill if you simply want to hold a collection
+of atoms stationary or have them move with a constant velocity.  A
+simpler way to hold atoms stationary is to not include those atoms in
+your time integration fix.  E.g. use “fix 1 mobile nve” instead of
+“fix 1 all nve”, where “mobile” is the group of atoms that you want to
+move.  You can move atoms with a constant velocity by assigning them
+an initial velocity (via the <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> command),
+setting the force on them to 0.0 (via the <a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce</span></a> command), and integrating them as usual
+(e.g. via the <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> command).</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The aggregate properties of each rigid body are
+calculated at the start of a simulation run and are maintained in
+internal data structures. The properties include the position and
+velocity of the center-of-mass of the body, its moments of inertia, and
+its angular momentum.  This is done using the properties of the
+constituent atoms of the body at that point in time (or see the <em>infile</em>
+keyword option).  Thereafter, changing these properties of individual
+atoms in the body will have no effect on a rigid body’s dynamics, unless
+they effect any computation of per-atom forces or torques. If the
+keyword <em>reinit</em> is set to <em>yes</em> (the default), the rigid body data
+structures will be recreated at the beginning of each <em>run</em> command;
+if the keyword <em>reinit</em> is set to <em>no</em>, the rigid body data structures
+will be built only at the very first <em>run</em> command and maintained for
+as long as the rigid fix is defined. For example, you might think you
+could displace the atoms in a body or add a large velocity to each atom
+in a body to make it move in a desired direction before a second run is
+performed, using the <a class="reference internal" href="set.html"><span class="doc">set</span></a> or
+<a class="reference internal" href="displace_atoms.html"><span class="doc">displace_atoms</span></a> or <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a>
+commands.  But these commands will not affect the internal attributes
+of the body unless <em>reinit</em> is set to <em>yes</em>. With <em>reinit</em> set to <em>no</em>
+(or using the <em>infile</em> option, which implies <em>reinit</em> <em>no</em>) the position
+and velocity of individual atoms in the body will be reset when time
+integration starts again.</p>
+</div>
+<hr class="docutils" />
+<p>Each rigid body must have two or more atoms.  An atom can belong to at
+most one rigid body.  Which atoms are in which bodies can be defined
+via several options.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>With the <em>rigid/small</em> styles, which require that <em>bodystyle</em> be
+specified as <em>molecule</em> or <em>custom</em>, you can define a system that has
+no rigid bodies initially.  This is useful when you are using the
+<em>mol</em> keyword in conjunction with another fix that is adding rigid
+bodies on-the-fly as molecules, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a>
+or <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>.</p>
+</div>
+<p>For bodystyle <em>single</em> the entire fix group of atoms is treated as one
+rigid body.  This option is only allowed for the <em>rigid</em> styles.</p>
+<p>For bodystyle <em>molecule</em>, atoms are grouped into rigid bodies by their
+respective molecule IDs: each set of atoms in the fix group with the
+same molecule ID is treated as a different rigid body.  This option is
+allowed for both the <em>rigid</em> and <em>rigid/small</em> styles.  Note that
+atoms with a molecule ID = 0 will be treated as a single rigid body.
+For a system with atomic solvent (typically this is atoms with
+molecule ID = 0) surrounding rigid bodies, this may not be what you
+want.  Thus you should be careful to use a fix group that only
+includes atoms you want to be part of rigid bodies.</p>
+<p>Bodystyle <em>custom</em> is similar to bodystyle <em>molecule</em> except that it
+is more flexible in using other per-atom properties to define the sets
+of atoms that form rigid bodies.  An integer vector defined by the
+<a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> command can be used.  Or an
+<a class="reference internal" href="variable.html"><span class="doc">atom-style or atomfile-style variable</span></a> can be used; the
+floating-point value produced by the variable is rounded to an
+integer.  As with bodystyle <em>molecule</em>, each set of atoms in the fix
+groups with the same integer value is treated as a different rigid
+body.  Since fix property/atom vectors and atom-style variables
+produce values for all atoms, you should be careful to use a fix group
+that only includes atoms you want to be part of rigid bodies.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To compute the initial center-of-mass position and other
+properties of each rigid body, the image flags for each atom in the
+body are used to “unwrap” the atom coordinates.  Thus you must insure
+that these image flags are consistent so that the unwrapping creates a
+valid rigid body (one where the atoms are close together),
+particularly if the atoms in a single rigid body straddle a periodic
+boundary.  This means the input data file or restart file must define
+the image flags for each atom consistently or that you have used the
+<a class="reference internal" href="set.html"><span class="doc">set</span></a> command to specify them correctly.  If a dimension is
+non-periodic then the image flag of each atom must be 0 in that
+dimension, else an error is generated.</p>
+</div>
+<p>The <em>force</em> and <em>torque</em> keywords discussed next are only allowed for
+the <em>rigid</em> styles.</p>
+<p>By default, each rigid body is acted on by other atoms which induce an
+external force and torque on its center of mass, causing it to
+translate and rotate.  Components of the external center-of-mass force
+and torque can be turned off by the <em>force</em> and <em>torque</em> keywords.
+This may be useful if you wish a body to rotate but not translate, or
+vice versa, or if you wish it to rotate or translate continuously
+unaffected by interactions with other particles.  Note that if you
+expect a rigid body not to move or rotate by using these keywords, you
+must insure its initial center-of-mass translational or angular
+velocity is 0.0.  Otherwise the initial translational or angular
+momentum the body has will persist.</p>
+<p>An xflag, yflag, or zflag set to <em>off</em> means turn off the component of
+force of torque in that dimension.  A setting of <em>on</em> means turn on
+the component, which is the default.  Which rigid body(s) the settings
+apply to is determined by the first argument of the <em>force</em> and
+<em>torque</em> keywords.  It can be an integer M from 1 to Nbody, where
+Nbody is the number of rigid bodies defined.  A wild-card asterisk can
+be used in place of, or in conjunction with, the M argument to set the
+flags for multiple rigid bodies.  This takes the form “*” or “*n” or
+“n*” or “m*n”.  If N = the number of rigid bodies, then an asterisk
+with no numeric values means all bodies from 1 to N.  A leading
+asterisk means all bodies from 1 to n (inclusive).  A trailing
+asterisk means all bodies from n to N (inclusive).  A middle asterisk
+means all types from m to n (inclusive).  Note that you can use the
+<em>force</em> or <em>torque</em> keywords as many times as you like.  If a
+particular rigid body has its component flags set multiple times, the
+settings from the final keyword are used.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For computational efficiency, you may wish to turn off pairwise
+and bond interactions within each rigid body, as they no longer
+contribute to the motion.  The <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify exclude</span></a> and <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a>
+commands are used to do this.  If the rigid bodies have strongly
+overlapping atoms, you may need to turn off these interactions to
+avoid numerical problems due to large equal/opposite intra-body forces
+swamping the contribution of small inter-body forces.</p>
+</div>
+<p>For computational efficiency, you should typically define one fix
+rigid or fix rigid/small command which includes all the desired rigid
+bodies.  LAMMPS will allow multiple rigid fixes to be defined, but it
+is more expensive.</p>
+<hr class="docutils" />
+<p>The constituent particles within a rigid body can be point particles
+(the default in LAMMPS) or finite-size particles, such as spheres or
+ellipsoids or line segments or triangles.  See the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style sphere and ellipsoid and line and tri</span></a> commands for more
+details on these kinds of particles.  Finite-size particles contribute
+differently to the moment of inertia of a rigid body than do point
+particles.  Finite-size particles can also experience torque (e.g. due
+to <a class="reference internal" href="pair_gran.html"><span class="doc">frictional granular interactions</span></a>) and have an
+orientation.  These contributions are accounted for by these fixes.</p>
+<p>Forces between particles within a body do not contribute to the
+external force or torque on the body.  Thus for computational
+efficiency, you may wish to turn off pairwise and bond interactions
+between particles within each rigid body.  The <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify exclude</span></a> and <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a>
+commands are used to do this.  For finite-size particles this also
+means the particles can be highly overlapped when creating the rigid
+body.</p>
+<hr class="docutils" />
+<p>The <em>rigid</em>, <em>rigid/nve</em>, <em>rigid/small</em>, and <em>rigid/small/nve</em> styles
+perform constant NVE time integration.  They are referred to below as
+the 4 NVE rigid styles.  The only difference is that the <em>rigid</em> and
+<em>rigid/small</em> styles use an integration technique based on Richardson
+iterations.  The <em>rigid/nve</em> and <em>rigid/small/nve</em> styles uses the
+methods described in the paper by <a class="reference internal" href="#miller3"><span class="std std-ref">Miller</span></a>, which are thought
+to provide better energy conservation than an iterative approach.</p>
+<p>The <em>rigid/nvt</em> and <em>rigid/nvt/small</em> styles performs constant NVT
+integration using a Nose/Hoover thermostat with chains as described
+originally in <a class="reference internal" href="#hoover"><span class="std std-ref">(Hoover)</span></a> and <a class="reference internal" href="#martyna2"><span class="std std-ref">(Martyna)</span></a>, which
+thermostats both the translational and rotational degrees of freedom
+of the rigid bodies.  They are referred to below as the 2 NVT rigid
+styles.  The rigid-body algorithm used by <em>rigid/nvt</em> is described in
+the paper by <a class="reference internal" href="#kamberaj"><span class="std std-ref">Kamberaj</span></a>.</p>
+<p>The <em>rigid/npt</em>, <em>rigid/nph</em>, <em>rigid/npt/small</em>, and <em>rigid/nph/small</em>
+styles perform constant NPT or NPH integration using a Nose/Hoover
+barostat with chains.  They are referred to below as the 4 NPT and NPH
+rigid styles.  For the NPT case, the same Nose/Hoover thermostat is
+also used as with <em>rigid/nvt</em> and <em>rigid/nvt/small</em>.</p>
+<p>The barostat parameters are specified using one or more of the <em>iso</em>,
+<em>aniso</em>, <em>x</em>, <em>y</em>, <em>z</em> and <em>couple</em> keywords.  These keywords give you
+the ability to specify 3 diagonal components of the external stress
+tensor, and to couple these components together so that the dimensions
+they represent are varied together during a constant-pressure
+simulation.  The effects of these keywords are similar to those
+defined in <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt/nph</span></a></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently the <em>rigid/npt</em>, <em>rigid/nph</em>, <em>rigid/npt/small</em>, and
+<em>rigid/nph/small</em> styles do not support triclinic (non-orthogonal)
+boxes.</p>
+</div>
+<p>The target pressures for each of the 6 components of the stress tensor
+can be specified independently via the <em>x</em>, <em>y</em>, <em>z</em> keywords, which
+correspond to the 3 simulation box dimensions.  For each component,
+the external pressure or tensor component at each timestep is a ramped
+value during the run from <em>Pstart</em> to <em>Pstop</em>. If a target pressure is
+specified for a component, then the corresponding box dimension will
+change during a simulation.  For example, if the <em>y</em> keyword is used,
+the y-box length will change.  A box dimension will not change if that
+component is not specified, although you have the option to change
+that dimension via the <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a> command.</p>
+<p>For all barostat keywords, the <em>Pdamp</em> parameter operates like the
+<em>Tdamp</em> parameter, determining the time scale on which pressure is
+relaxed.  For example, a value of 10.0 means to relax the pressure in
+a timespan of (roughly) 10 time units (e.g. <span class="math notranslate nohighlight">\(\tau\)</span> or fs or ps
+- see the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).</p>
+<p>Regardless of what atoms are in the fix group (the only atoms which
+are time integrated), a global pressure or stress tensor is computed
+for all atoms.  Similarly, when the size of the simulation box is
+changed, all atoms are re-scaled to new positions, unless the keyword
+<em>dilate</em> is specified with a <em>dilate-group-ID</em> for a group that
+represents a subset of the atoms.  This can be useful, for example, to
+leave the coordinates of atoms in a solid substrate unchanged and
+controlling the pressure of a surrounding fluid.  Another example is a
+system consisting of rigid bodies and point particles where the
+barostat is only coupled with the rigid bodies.  This option should be
+used with care, since it can be unphysical to dilate some atoms and
+not others, because it can introduce large, instantaneous
+displacements between a pair of atoms (one dilated, one not) that are
+far from the dilation origin.</p>
+<p>The <em>couple</em> keyword allows two or three of the diagonal components of
+the pressure tensor to be “coupled” together.  The value specified
+with the keyword determines which are coupled.  For example, <em>xz</em>
+means the <em>Pxx</em> and <em>Pzz</em> components of the stress tensor are coupled.
+<em>Xyz</em> means all 3 diagonal components are coupled.  Coupling means two
+things: the instantaneous stress will be computed as an average of the
+corresponding diagonal components, and the coupled box dimensions will
+be changed together in lockstep, meaning coupled dimensions will be
+dilated or contracted by the same percentage every timestep.  The
+<em>Pstart</em>, <em>Pstop</em>, <em>Pdamp</em> parameters for any coupled dimensions must
+be identical.  <em>Couple xyz</em> can be used for a 2d simulation; the <em>z</em>
+dimension is simply ignored.</p>
+<p>The <em>iso</em> and <em>aniso</em> keywords are simply shortcuts that are
+equivalent to specifying several other keywords together.</p>
+<p>The keyword <em>iso</em> means couple all 3 diagonal components together when
+pressure is computed (hydrostatic pressure), and dilate/contract the
+dimensions together.  Using “iso Pstart Pstop Pdamp” is the same as
+specifying these 4 keywords:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x Pstart Pstop Pdamp
+y Pstart Pstop Pdamp
+z Pstart Pstop Pdamp
+couple xyz
+</pre></div>
+</div>
+<p>The keyword <em>aniso</em> means <em>x</em>, <em>y</em>, and <em>z</em> dimensions are controlled
+independently using the <em>Pxx</em>, <em>Pyy</em>, and <em>Pzz</em> components of the
+stress tensor as the driving forces, and the specified scalar external
+pressure.  Using “aniso Pstart Pstop Pdamp” is the same as specifying
+these 4 keywords:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x Pstart Pstop Pdamp
+y Pstart Pstop Pdamp
+z Pstart Pstop Pdamp
+couple none
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>The keyword/value option pairs are used in the following ways.</p>
+<p>The <em>reinit</em> keyword determines, whether the rigid body properties
+are re-initialized between run commands. With the option <em>yes</em> (the
+default) this is done, with the option <em>no</em> this is not done. Turning
+off the re-initialization can be helpful to protect rigid bodies against
+unphysical manipulations between runs or when properties cannot be
+easily re-computed (e.g. when read from a file). When using the <em>infile</em>
+keyword, the <em>reinit</em> option is automatically set to <em>no</em>.</p>
+<p>The <em>langevin</em> and <em>temp</em> and <em>tparam</em> keywords perform thermostatting
+of the rigid bodies, altering both their translational and rotational
+degrees of freedom.  What is meant by “temperature” of a collection of
+rigid bodies and how it can be monitored via the fix output is
+discussed below.</p>
+<p>The <em>langevin</em> keyword applies a Langevin thermostat to the constant
+NVE time integration performed by any of the 4 NVE rigid styles:
+<em>rigid</em>, <em>rigid/nve</em>, <em>rigid/small</em>, <em>rigid/small/nve</em>.  It cannot be
+used with the 2 NVT rigid styles: <em>rigid/nvt</em>, <em>rigid/small/nvt</em>.  The
+desired temperature at each timestep is a ramped value during the run
+from <em>Tstart</em> to <em>Tstop</em>.  The <em>Tdamp</em> parameter is specified in time
+units and determines how rapidly the temperature is relaxed.  For
+example, a value of 100.0 means to relax the temperature in a timespan
+of (roughly) 100 time units (<span class="math notranslate nohighlight">\(\tau\)</span> or fs or ps - see the
+<a class="reference internal" href="units.html"><span class="doc">units</span></a> command).  The random # <em>seed</em> must be a positive
+integer.</p>
+<p>The way that Langevin thermostatting operates is explained on the <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> doc page.  If you wish to simply viscously
+damp the rotational motion without thermostatting, you can set
+<em>Tstart</em> and <em>Tstop</em> to 0.0, which means only the viscous drag term in
+the Langevin thermostat will be applied.  See the discussion on the
+<a class="reference internal" href="fix_viscous.html"><span class="doc">fix viscous</span></a> doc page for details.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When the <em>langevin</em> keyword is used with fix rigid versus fix
+rigid/small, different dynamics will result for parallel runs.  This
+is because of the way random numbers are used in the two cases.  The
+dynamics for the two cases should be statistically similar, but will
+not be identical, even for a single timestep.</p>
+</div>
+<p>The <em>temp</em> and <em>tparam</em> keywords apply a Nose/Hoover thermostat to the
+NVT time integration performed by the 2 NVT rigid styles.  They cannot
+be used with the 4 NVE rigid styles.  The desired temperature at each
+timestep is a ramped value during the run from <em>Tstart</em> to <em>Tstop</em>.
+The <em>Tdamp</em> parameter is specified in time units and determines how
+rapidly the temperature is relaxed.  For example, a value of 100.0
+means to relax the temperature in a timespan of (roughly) 100 time
+units (tau or fs or ps - see the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command).</p>
+<p>Nose/Hoover chains are used in conjunction with this thermostat.  The
+<em>tparam</em> keyword can optionally be used to change the chain settings
+used.  <em>Tchain</em> is the number of thermostats in the Nose Hoover chain.
+This value, along with <em>Tdamp</em> can be varied to dampen undesirable
+oscillations in temperature that can occur in a simulation.  As a rule
+of thumb, increasing the chain length should lead to smaller
+oscillations. The keyword <em>pchain</em> specifies the number of
+thermostats in the chain thermostatting the barostat degrees of
+freedom.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>There are alternate ways to thermostat a system of rigid bodies.
+You can use <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> to treat the individual
+particles in the rigid bodies as effectively immersed in an implicit
+solvent, e.g. a Brownian dynamics model.  For hybrid systems with both
+rigid bodies and solvent particles, you can thermostat only the
+solvent particles that surround one or more rigid bodies by
+appropriate choice of groups in the compute and fix commands for
+temperature and thermostatting.  The solvent interactions with the
+rigid bodies should then effectively thermostat the rigid body
+temperature as well without use of the Langevin or Nose/Hoover options
+associated with the fix rigid commands.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>mol</em> keyword can only be used with the <em>rigid/small</em> styles.  It
+must be used when other commands, such as <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>, add rigid
+bodies on-the-fly during a simulation.  You specify a <em>template-ID</em>
+previously defined using the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command, which
+reads a file that defines the molecule.  You must use the same
+<em>template-ID</em> that the other fix which is adding rigid bodies uses.
+The coordinates, atom types, atom diameters, center-of-mass, and
+moments of inertia can be specified in the molecule file.  See the
+<a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command for details.  The only settings
+required to be in this file are the coordinates and types of atoms in
+the molecule, in which case the molecule command calculates the other
+quantities itself.</p>
+<p>Note that these other fixes create new rigid bodies, in addition to
+those defined initially by this fix via the <em>bodystyle</em> setting.</p>
+<p>Also note that when using the <em>mol</em> keyword, extra restart information
+about all rigid bodies is written out whenever a restart file is
+written out.  See the NOTE in the next section for details.</p>
+<hr class="docutils" />
+<p>The <em>infile</em> keyword allows a file of rigid body attributes to be read
+in from a file, rather then having LAMMPS compute them.  There are 5
+such attributes: the total mass of the rigid body, its center-of-mass
+position, its 6 moments of inertia, its center-of-mass velocity, and
+the 3 image flags of the center-of-mass position.  For rigid bodies
+consisting of point particles or non-overlapping finite-size
+particles, LAMMPS can compute these values accurately.  However, for
+rigid bodies consisting of finite-size particles which overlap each
+other, LAMMPS will ignore the overlaps when computing these 4
+attributes.  The amount of error this induces depends on the amount of
+overlap.  To avoid this issue, the values can be pre-computed
+(e.g. using Monte Carlo integration).</p>
+<p>The format of the file is as follows.  Note that the file does not
+have to list attributes for every rigid body integrated by fix rigid.
+Only bodies which the file specifies will have their computed
+attributes overridden.  The file can contain initial blank lines or
+comment lines starting with “#” which are ignored.  The first
+non-blank, non-comment line should list N = the number of lines to
+follow.  The N successive lines contain the following information:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ID1 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz ixcm iycm izcm
+ID2 masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz ixcm iycm izcm
+...
+IDN masstotal xcm ycm zcm ixx iyy izz ixy ixz iyz vxcm vycm vzcm lx ly lz ixcm iycm izcm
+</pre></div>
+</div>
+<p>The rigid body IDs are all positive integers.  For the <em>single</em>
+bodystyle, only an ID of 1 can be used.  For the <em>group</em> bodystyle,
+IDs from 1 to Ng can be used where Ng is the number of specified
+groups.  For the <em>molecule</em> bodystyle, use the molecule ID for the
+atoms in a specific rigid body as the rigid body ID.</p>
+<p>The masstotal and center-of-mass coordinates (xcm,ycm,zcm) are
+self-explanatory.  The center-of-mass should be consistent with what
+is calculated for the position of the rigid body with all its atoms
+unwrapped by their respective image flags.  If this produces a
+center-of-mass that is outside the simulation box, LAMMPS wraps it
+back into the box.</p>
+<p>The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz) should be the
+values consistent with the current orientation of the rigid body
+around its center of mass.  The values are with respect to the
+simulation box XYZ axes, not with respect to the principal axes of the
+rigid body itself.  LAMMPS performs the latter calculation internally.</p>
+<p>The (vxcm,vycm,vzcm) values are the velocity of the center of mass.
+The (lx,ly,lz) values are the angular momentum of the body.  The
+(vxcm,vycm,vzcm) and (lx,ly,lz) values can simply be set to 0 if you
+wish the body to have no initial motion.</p>
+<p>The (ixcm,iycm,izcm) values are the image flags of the center of mass
+of the body.  For periodic dimensions, they specify which image of the
+simulation box the body is considered to be in.  An image of 0 means
+it is inside the box as defined.  A value of 2 means add 2 box lengths
+to get the true value.  A value of -1 means subtract 1 box length to
+get the true value.  LAMMPS updates these flags as the rigid bodies
+cross periodic boundaries during the simulation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you use the <em>infile</em> or <em>mol</em> keywords and write restart
+files during a simulation, then each time a restart file is written,
+the fix also write an auxiliary restart file with the name
+rfile.rigid, where “rfile” is the name of the restart file,
+e.g. tmp.restart.10000 and tmp.restart.10000.rigid.  This auxiliary
+file is in the same format described above.  Thus it can be used in a
+new input script that restarts the run and re-specifies a rigid fix
+using an <em>infile</em> keyword and the appropriate filename.  Note that the
+auxiliary file will contain one line for every rigid body, even if the
+original file only listed a subset of the rigid bodies.</p>
+</div>
+<hr class="docutils" />
+<p>If you use a <a class="reference internal" href="compute.html"><span class="doc">temperature compute</span></a> with a group that
+includes particles in rigid bodies, the degrees-of-freedom removed by
+each rigid body are accounted for in the temperature (and pressure)
+computation, but only if the temperature group includes all the
+particles in a particular rigid body.</p>
+<p>A 3d rigid body has 6 degrees of freedom (3 translational, 3
+rotational), except for a collection of point particles lying on a
+straight line, which has only 5, e.g a dimer.  A 2d rigid body has 3
+degrees of freedom (2 translational, 1 rotational).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You may wish to explicitly subtract additional
+degrees-of-freedom if you use the <em>force</em> and <em>torque</em> keywords to
+eliminate certain motions of one or more rigid bodies.  LAMMPS does
+not do this automatically.</p>
+</div>
+<p>The rigid body contribution to the pressure of the system (virial) is
+also accounted for by this fix.</p>
+<hr class="docutils" />
+<p>If your simulation is a hybrid model with a mixture of rigid bodies
+and non-rigid particles (e.g. solvent) there are several ways these
+rigid fixes can be used in tandem with <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a>, and <a class="reference internal" href="fix_nh.html"><span class="doc">fix nph</span></a>.</p>
+<p>If you wish to perform NVE dynamics (no thermostatting or
+barostatting), use one of 4 NVE rigid styles to integrate the rigid
+bodies, and <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> to integrate the non-rigid
+particles.</p>
+<p>If you wish to perform NVT dynamics (thermostatting, but no
+barostatting), you can use one of the 2 NVT rigid styles for the rigid
+bodies, and any thermostatting fix for the non-rigid particles (<a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>, <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, <a class="reference internal" href="fix_temp_berendsen.html"><span class="doc">fix temp/berendsen</span></a>).  You can also use one of the
+4 NVE rigid styles for the rigid bodies and thermostat them using <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> on the group that contains all the
+particles in the rigid bodies.  The net force added by <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> to each rigid body effectively thermostats
+its translational center-of-mass motion.  Not sure how well it does at
+thermostatting its rotational motion.</p>
+<p>If you with to perform NPT or NPH dynamics (barostatting), you cannot
+use both <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> and the NPT or NPH rigid styles.  This
+is because there can only be one fix which monitors the global
+pressure and changes the simulation box dimensions.  So you have 3
+choices:</p>
+<ul class="simple">
+<li><p>Use one of the 4 NPT or NPH styles for the rigid bodies.  Use the
+<em>dilate</em> all option so that it will dilate the positions of the
+non-rigid particles as well.  Use <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> (or any other
+thermostat) for the non-rigid particles.</p></li>
+<li><p>Use <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> for the group of non-rigid particles.  Use
+the <em>dilate</em> all option so that it will dilate the center-of-mass
+positions of the rigid bodies as well.  Use one of the 4 NVE or 2 NVT
+rigid styles for the rigid bodies.</p></li>
+<li><p>Use <a class="reference internal" href="fix_press_berendsen.html"><span class="doc">fix press/berendsen</span></a> to compute the
+pressure and change the box dimensions.  Use one of the 4 NVE or 2 NVT
+rigid styles for the rigid bodies.  Use <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> (or any
+other thermostat) for the non-rigid particles.</p></li>
+</ul>
+<p>In all case, the rigid bodies and non-rigid particles both contribute
+to the global pressure and the box is scaled the same by any of the
+barostatting fixes.</p>
+<p>You could even use the second and third options for a non-hybrid simulation
+consisting of only rigid bodies, assuming you give <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> an empty group, though it’s an odd thing to do.  The
+barostatting fixes (<a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> and <a class="reference internal" href="fix_press_berendsen.html"><span class="doc">fix press/berensen</span></a>) will monitor the pressure
+and change the box dimensions, but not time integrate any particles.
+The integration of the rigid bodies will be performed by fix
+rigid/nvt.</p>
+<hr class="docutils" />
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the <a class="reference internal" href="Speed_packages.html"><span class="doc">Speed packages</span></a> doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc page for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Run_options.html"><span class="doc">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can use the
+<a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See the <a class="reference internal" href="Speed_packages.html"><span class="doc">Speed packages</span></a> doc page for more
+instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>No information about the 4 NVE rigid styles is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  The exception is if the <em>infile</em> or
+<em>mol</em> keyword is used, in which case an auxiliary file is written out
+with rigid body information each time a restart file is written, as
+explained above for the <em>infile</em> keyword.  For the 2 NVT rigid styles,
+the state of the Nose/Hoover thermostat is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  Ditto for the 4 NPT and NPH rigid styles, and
+the state of the Nose/Hoover barostat.  See the
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by the 6
+NVT, NPT, NPH rigid styles to add the energy change induced by the
+thermostatting to the system’s potential energy as part of
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>virial</em> option is supported by this
+fix to add the contribution due to keeping the objects rigid to the
+system’s virial as part of <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.
+The default is <em>virial yes</em></p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>temp</em> and <em>press</em> options are
+supported by the 4 NPT and NPH rigid styles to change the computes
+used to calculate the instantaneous pressure tensor.  Note that the 2
+NVT rigid fixes do not use any external compute to compute
+instantaneous temperature.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>bodyforces</em> option is supported by
+all rigid styles to set whether per-body forces and torques are
+computed early or late in a timestep, i.e. at the post-force stage or
+at the final-integrate stage or the timestep, respectively.</p>
+<p>The 2 NVE rigid fixes compute a global scalar which can be accessed by
+various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>.  The scalar value
+calculated by these fixes is “intensive”.  The scalar is the current
+temperature of the collection of rigid bodies.  This is averaged over
+all rigid bodies and their translational and rotational degrees of
+freedom.  The translational energy of a rigid body is 1/2 m v^2, where
+m = total mass of the body and v = the velocity of its center of mass.
+The rotational energy of a rigid body is 1/2 I w^2, where I = the
+moment of inertia tensor of the body and w = its angular velocity.
+Degrees of freedom constrained by the <em>force</em> and <em>torque</em> keywords
+are removed from this calculation, but only for the <em>rigid</em> and
+<em>rigid/nve</em> fixes.</p>
+<p>The 6 NVT, NPT, NPH rigid fixes compute a global scalar which can be
+accessed by various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>.  The scalar
+value calculated by these fixes is “extensive”.  The scalar is the
+cumulative energy change due to the thermostatting and barostatting
+the fix performs.</p>
+<p>All of the <em>rigid</em> styles (not the <em>rigid/small</em> styles) compute a
+global array of values which can be accessed by various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>.  Similar information about the bodies
+defined by the <em>rigid/small</em> styles can be accessed via the <a class="reference internal" href="compute_rigid_local.html"><span class="doc">compute rigid/local</span></a> command.</p>
+<p>The number of rows in the array is equal to the number of rigid
+bodies.  The number of columns is 15.  Thus for each rigid body, 15
+values are stored: the xyz coords of the center of mass (COM), the xyz
+components of the COM velocity, the xyz components of the force acting
+on the COM, the xyz components of the torque acting on the COM, and
+the xyz image flags of the COM.</p>
+<p>The center of mass (COM) for each body is similar to unwrapped
+coordinates written to a dump file.  It will always be inside (or
+slightly outside) the simulation box.  The image flags have the same
+meaning as image flags for atom positions (see the “dump” command).
+This means you can calculate the unwrapped COM by applying the image
+flags to the COM, the same as when unwrapped coordinates are written
+to a dump file.</p>
+<p>The force and torque values in the array are not affected by the
+<em>force</em> and <em>torque</em> keywords in the fix rigid command; they reflect
+values before any changes are made by those keywords.</p>
+<p>The ordering of the rigid bodies (by row in the array) is as follows.
+For the <em>single</em> keyword there is just one rigid body.  For the
+<em>molecule</em> keyword, the bodies are ordered by ascending molecule ID.
+For the <em>group</em> keyword, the list of group IDs determines the ordering
+of bodies.</p>
+<p>The array values calculated by these fixes are “intensive”, meaning
+they are independent of the number of atoms in the simulation.</p>
+<p>No parameter of these fixes can be used with the <em>start/stop</em> keywords
+of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  These fixes are not invoked during
+<a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>These fixes are all part of the RIGID package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc page for more info.</p>
+<p>Assigning a temperature via the <a class="reference internal" href="velocity.html"><span class="doc">velocity create</span></a>
+command to a system with <a class="reference internal" href="#"><span class="doc">rigid bodies</span></a> may not have
+the desired outcome for two reasons.  First, the velocity command can
+be invoked before the rigid-body fix is invoked or initialized and the
+number of adjusted degrees of freedom (DOFs) is known.  Thus it is not
+possible to compute the target temperature correctly.  Second, the
+assigned velocities may be partially canceled when constraints are
+first enforced, leading to a different temperature than desired.  A
+workaround for this is to perform a <a class="reference internal" href="run.html"><span class="doc">run 0</span></a> command, which
+insures all DOFs are accounted for properly, and then rescale the
+temperature to the desired value before performing a simulation.  For
+example:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">velocity</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">12345</span><span class="w"></span>
+<span class="k">run</span><span class="w"> </span><span class="m">0</span><span class="w">                             </span><span class="c"># temperature may not be 300K</span>
+<span class="k">velocity</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="m">300.0</span><span class="w">          </span><span class="c"># now it should be</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a>, <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify</span></a>
+exclude, <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are force * on on on and torque * on on on,
+meaning all rigid bodies are acted on by center-of-mass force and
+torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3, reinit = yes.</p>
+<hr class="docutils" />
+<p id="hoover"><strong>(Hoover)</strong> Hoover, Phys Rev A, 31, 1695 (1985).</p>
+<p id="kamberaj"><strong>(Kamberaj)</strong> Kamberaj, Low, Neal, J Chem Phys, 122, 224114 (2005).</p>
+<p id="martyna2"><strong>(Martyna)</strong> Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
+Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.</p>
+<p id="miller3"><strong>(Miller)</strong> Miller, Eleftheriou, Pattnaik, Ndirango, and Newns,
+J Chem Phys, 116, 8649 (2002).</p>
+<p id="zhang1"><strong>(Zhang)</strong> Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="fix_rigid_meso.html" class="btn btn-neutral float-right" title="fix rigid/meso command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fix_rhok.html" class="btn btn-neutral float-left" title="fix rhok command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,1035 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>fix bond/react command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="_static/mathjax/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix bond/swap command" href="fix_bond_swap.html" />
+    <link rel="prev" title="fix bond/create command" href="fix_bond_create.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="fixes.html">Fixes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fix_accelerate_cos.html">fix accelerate/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt.html">fix adapt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt_fep.html">fix adapt/fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addforce.html">fix addforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque.html">fix addtorque command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_append_atoms.html">fix append/atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atc.html">fix atc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_swap.html">fix atom/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_atom.html">fix ave/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_chunk.html">fix ave/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate.html">fix ave/correlate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate_long.html">fix ave/correlate/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html">fix ave/histo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html#fix-ave-histo-weight-command">fix ave/histo/weight command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_time.html">fix ave/time command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_aveforce.html">fix aveforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_balance.html">fix balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bocs.html">fix bocs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_break.html">fix bond/break command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html">fix bond/create command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html#fix-bond-create-angle-command">fix bond/create/angle command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">fix bond/react command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-fix-modify-output-run-start-stop-minimize-info">Restart, fix_modify, output, run start/stop, minimize info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_swap.html">fix bond/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_box_relax.html">fix box/relax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_client_md.html">fix client/md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_cmap.html">fix cmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_colvars.html">fix colvars command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_controller.html">fix controller command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform.html">fix deform command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deposit.html">fix deposit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_energy.html">fix dpd/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html">fix edpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html#fix-tdpd-source-command">fix tdpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drag.html">fix drag command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude.html">fix drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html">fix drude/transform/direct command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html#fix-drude-transform-inverse-command">fix drude/transform/inverse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dt_reset.html">fix dt/reset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html">fix efield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ehex.html">fix ehex command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html">fix electron/stopping command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html#fix-electron-stopping-fit-command">fix electron/stopping/fit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_enforce2d.html">fix enforce2d command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_cv.html">fix eos/cv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table.html">fix eos/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table_rx.html">fix eos/table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_evaporate.html">fix evaporate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_external.html">fix external command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ffl.html">fix ffl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_filter_corotate.html">fix filter/corotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_flow_gauss.html">fix flow/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_freeze.html">fix freeze command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gcmc.html">fix gcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gld.html">fix gld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gle.html">fix gle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gravity.html">fix gravity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_grem.html">fix grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_halt.html">fix halt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat.html">fix heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_global.html">fix hyper/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_local.html">fix hyper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_imd.html">fix imd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_indent.html">fix indent command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ipi.html">fix ipi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin.html">fix langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_drude.html">fix langevin/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_eff.html">fix langevin/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_spin.html">fix langevin/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_latte.html">fix latte command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_fluid.html">fix lb/fluid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_momentum.html">fix lb/momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_pc.html">fix lb/pc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_rigid_pc_sphere.html">fix lb/rigid/pc/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_viscous.html">fix lb/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lineforce.html">fix lineforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_manifoldforce.html">fix manifoldforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_meso_move.html">fix meso/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html">fix momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html#fix-momentum-chunk-command">fix momentum/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_move.html">fix move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mscg.html">fix mscg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_msst.html">fix msst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html">fix mvv/dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-edpd-command">fix mvv/edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-tdpd-command">fix mvv/tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb.html">fix neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb_spin.html">fix neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html">fix nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-npt-command">fix npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-nph-command">fix nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html">fix nvt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-npt-eff-command">fix npt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-nph-eff-command">fix nph/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html">fix nvt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html#fix-npt-uef-command">fix npt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_asphere.html">fix nph/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_body.html">fix nph/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_sphere.html">fix nph/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nphug.html">fix nphug command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_asphere.html">fix npt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_body.html">fix npt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_cauchy.html">fix npt/cauchy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_sphere.html">fix npt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff.html">fix numdiff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve.html">fix nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere.html">fix nve/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere_noforce.html">fix nve/asphere/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_awpmd.html">fix nve/awpmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_body.html">fix nve/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dot.html">fix nve/dot command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dotc_langevin.html">fix nve/dotc/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_eff.html">fix nve/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_limit.html">fix nve/limit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_line.html">fix nve/line command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_manifold_rattle.html">fix nve/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_noforce.html">fix nve/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_sphere.html">fix nve/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_spin.html">fix nve/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_tri.html">fix nve/tri command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvk.html">fix nvk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_asphere.html">fix nvt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_body.html">fix nvt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_manifold_rattle.html">fix nvt/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod.html">fix nvt/sllod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod_eff.html">fix nvt/sllod/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sphere.html">fix nvt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_oneway.html">fix oneway command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html">fix orient/fcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html#fix-orient-bcc-command">fix orient/bcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient_eco.html">fix orient/eco command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pafi.html">fix pafi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_phonon.html">fix phonon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html">fix pimd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd4.html">fix pimd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_planeforce.html">fix planeforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_plumed.html">fix plumed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_poems.html">fix poems command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pour.html">fix pour command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_precession_spin.html">fix precession/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_berendsen.html">fix press/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_print.html">fix print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_propel_self.html">fix propel/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_property_atom.html">fix property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_invoke.html">fix python/invoke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_move.html">fix python/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qbmsst.html">fix qbmsst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html">fix qeq/point command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-shielded-command">fix qeq/shielded command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-slater-command">fix qeq/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-dynamic-command">fix qeq/dynamic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-fire-command">fix qeq/fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_comb.html">fix qeq/comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_reax.html">fix qeq/reax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qmmm.html">fix qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtb.html">fix qtb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxc_bonds.html">fix reax/c/bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxc_species.html">fix reax/c/species command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_recenter.html">fix recenter command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_restrain.html">fix restrain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rhok.html">fix rhok command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html">fix rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-command">fix rigid/nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-command">fix rigid/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-command">fix rigid/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-command">fix rigid/nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-small-command">fix rigid/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-small-command">fix rigid/nve/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-small-command">fix rigid/nvt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-small-command">fix rigid/npt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-small-command">fix rigid/nph/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid_meso.html">fix rigid/meso command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rx.html">fix rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_saed_vtk.html">fix saed/vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html">fix setforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html#fix-setforce-spin-command">fix setforce/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html">fix shake command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html#fix-rattle-command">fix rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shardlow.html">fix shardlow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd.html">fix smd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_adjust_dt.html">fix smd/adjust_dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_tlsph.html">fix smd/integrate_tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_ulsph.html">fix smd/integrate_ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_move_triangulated_surface.html">fix smd/move_tri_surf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_setvel.html">fix smd/setvel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_wall_surface.html">fix smd/wall_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph.html">fix sph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph_stationary.html">fix sph/stationary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring.html">fix spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_chunk.html">fix spring/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_rg.html">fix spring/rg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_self.html">fix spring/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_srd.html">fix srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_force.html">fix store/force command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_state.html">fix store/state command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_berendsen.html">fix temp/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html">fix temp/csvr command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html#fix-temp-csld-command">fix temp/csld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale.html">fix temp/rescale command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html">fix tgnvt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html#fix-tgnpt-drude-command">fix tgnpt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-mod-command">fix ttm/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tune_kspace.html">fix tune/kspace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_vector.html">fix vector command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscosity.html">fix viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous.html">fix viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html">fix wall/lj93 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj126-command">fix wall/lj126 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj1043-command">fix wall/lj1043 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-colloid-command">fix wall/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-command">fix wall/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-morse-command">fix wall/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polygon.html">fix wall/body/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polyhedron.html">fix wall/body/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html">fix wall/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html#fix-wall-region-ees-command">fix wall/region/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran.html">fix wall/gran command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran_region.html">fix wall/gran/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_piston.html">fix wall/piston command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect.html">fix wall/reflect command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect_stochastic.html">fix wall/reflect/stochastic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_region.html">fix wall/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_srd.html">fix wall/srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_widom.html">fix widom command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="fixes.html">Fixes</a> &raquo;</li>
+        
+      <li>fix bond/react command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="fix_bond_swap.html" class="btn btn-neutral float-right" title="fix bond/swap command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fix_bond_create.html" class="btn btn-neutral float-left" title="fix bond/create command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="fix-bond-react-command">
+<span id="index-0"></span><h1>fix bond/react command<a class="headerlink" href="#fix-bond-react-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>fix ID group-ID bond/react common_keyword values ...
+  react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  react react-ID react-group-ID Nevery Rmin Rmax template-ID(pre-reacted) template-ID(post-reacted) map_file individual_keyword values ...
+  ...
+</pre></div>
+</div>
+<ul>
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command.</p></li>
+<li><p>bond/react = style name of this fix command</p></li>
+<li><p>the common keyword/values may be appended directly after ‘bond/react’</p></li>
+<li><p>this applies to all reaction specifications (below)</p></li>
+<li><p>common_keyword = <em>stabilization</em> or <em>reset_mol_ids</em></p>
+<pre class="literal-block"><em>stabilization</em> values = <em>no</em> or <em>yes</em> <em>group-ID</em> <em>xmax</em>
+  <em>no</em> = no reaction site stabilization (default)
+  <em>yes</em> = perform reaction site stabilization
+    <em>group-ID</em> = user-assigned prefix for the dynamic group of atoms not currently involved in a reaction
+    <em>xmax</em> = xmax value that is used by an internally-created <a class="reference internal" href="fix_nve_limit.html"><span class="doc">nve/limit</span></a> integrator
+<em>reset_mol_ids</em> values = <em>yes</em> or <em>no</em>
+  <em>yes</em> = update molecule IDs based on new global topology (default)
+  <em>no</em> = do not update molecule IDs</pre>
+</li>
+<li><p>react = mandatory argument indicating new reaction specification</p></li>
+<li><p>react-ID = user-assigned name for the reaction</p></li>
+<li><p>react-group-ID = only atoms in this group are considered for the reaction</p></li>
+<li><p>Nevery = attempt reaction every this many steps</p></li>
+<li><p>Rmin = initiator atoms must be separated by more than Rmin to initiate reaction (distance units)</p></li>
+<li><p>Rmax = initiator atoms must be separated by less than Rmax to initiate reaction (distance units)</p></li>
+<li><p>template-ID(pre-reacted) = ID of a molecule template containing pre-reaction topology</p></li>
+<li><p>template-ID(post-reacted) = ID of a molecule template containing post-reaction topology</p></li>
+<li><p>map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates</p></li>
+<li><p>zero or more individual keyword/value pairs may be appended to each react argument</p></li>
+<li><p>individual_keyword = <em>prob</em> or <em>max_rxn</em> or <em>stabilize_steps</em> or <em>custom_charges</em></p>
+<pre class="literal-block"><em>prob</em> values = fraction seed
+  fraction = initiate reaction with this probability if otherwise eligible
+  seed = random number seed (positive integer)
+<em>max_rxn</em> value = N
+  N = maximum number of reactions allowed to occur
+<em>stabilize_steps</em> value = timesteps
+  timesteps = number of timesteps to apply the internally-created <a class="reference internal" href="fix_nve_limit.html"><span class="doc">nve/limit</span></a> fix to reacting atoms
+<em>custom_charges</em> value = <em>no</em> or <em>fragmentID</em>
+  no = update all atomic charges (default)
+  fragmentID = ID of molecule fragment whose charges are updated
+<em>molecule</em> value = <em>off</em> or <em>inter</em> or <em>intra</em>
+  off = allow both inter- and intramolecular reactions (default)
+  inter = search for reactions between molecules with different IDs
+  intra = search for reactions within the same molecule</pre>
+</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>For unabridged example scripts and files, see examples/USER/reaction.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">molecule</span><span class="w"> </span><span class="n">mol1</span><span class="w"> </span><span class="n">pre_reacted_topology.txt</span><span class="w"></span>
+<span class="k">molecule</span><span class="w"> </span><span class="n">mol2</span><span class="w"> </span><span class="n">post_reacted_topology.txt</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">5</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">react</span><span class="w"> </span><span class="n">react</span><span class="w"> </span><span class="n">myrxn1</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">3.25</span><span class="w"> </span><span class="n">mol1</span><span class="w"> </span><span class="n">mol2</span><span class="w"> </span><span class="n">map_file.txt</span><span class="w"></span>
+
+<span class="k">molecule</span><span class="w"> </span><span class="n">mol1</span><span class="w"> </span><span class="n">pre_reacted_rxn1.txt</span><span class="w"></span>
+<span class="k">molecule</span><span class="w"> </span><span class="n">mol2</span><span class="w"> </span><span class="n">post_reacted_rxn1.txt</span><span class="w"></span>
+<span class="k">molecule</span><span class="w"> </span><span class="n">mol3</span><span class="w"> </span><span class="n">pre_reacted_rxn2.txt</span><span class="w"></span>
+<span class="k">molecule</span><span class="w"> </span><span class="n">mol4</span><span class="w"> </span><span class="n">post_reacted_rxn2.txt</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">5</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">react</span><span class="w"> </span><span class="n">stabilization</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">nvt_grp</span><span class="w"> </span><span class="n">.03</span><span class="w"> </span><span class="o">&amp;</span><span class="w"></span>
+<span class="w">  </span><span class="n">react</span><span class="w"> </span><span class="n">myrxn1</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">3.25</span><span class="w"> </span><span class="n">mol1</span><span class="w"> </span><span class="n">mol2</span><span class="w"> </span><span class="n">map_file_rxn1.txt</span><span class="w"> </span><span class="n">prob</span><span class="w"> </span><span class="m">0.50</span><span class="w"> </span><span class="m">12345</span><span class="w"> </span><span class="o">&amp;</span><span class="w"></span>
+<span class="w">  </span><span class="n">react</span><span class="w"> </span><span class="n">myrxn2</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">2.75</span><span class="w"> </span><span class="n">mol3</span><span class="w"> </span><span class="n">mol4</span><span class="w"> </span><span class="n">map_file_rxn2.txt</span><span class="w"> </span><span class="n">prob</span><span class="w"> </span><span class="m">0.25</span><span class="w"> </span><span class="m">12345</span><span class="w"></span>
+<span class="k">fix </span><span class="nv nv-Identifier">6</span><span class="w"> </span><span class="nv nv-Identifier">nvt_grp_REACT</span><span class="w"> </span><span class="n">nvt</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="c"># set thermostat after bond/react</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Initiate complex covalent bonding (topology) changes. These topology
+changes will be referred to as ‘reactions’ throughout this
+documentation. Topology changes are defined in pre- and post-reaction
+molecule templates and can include creation and deletion of bonds,
+angles, dihedrals, impropers, bond types, angle types, dihedral types,
+atom types, or atomic charges. In addition, reaction by-products or
+other molecules can be identified and deleted.</p>
+<p>Fix bond/react does not use quantum mechanical (eg. fix qmmm) or
+pairwise bond-order potential (eg. Tersoff or AIREBO) methods to
+determine bonding changes a priori. Rather, it uses a distance-based
+probabilistic criteria to effect predetermined topology changes in
+simulations using standard force fields.</p>
+<p>This fix was created to facilitate the dynamic creation of polymeric,
+amorphous or highly cross-linked systems. A suggested workflow for
+using this fix is: 1) identify a reaction to be simulated 2) build a
+molecule template of the reaction site before the reaction has
+occurred 3) build a molecule template of the reaction site after the
+reaction has occurred 4) create a map that relates the
+template-atom-IDs of each atom between pre- and post-reaction molecule
+templates 5) fill a simulation box with molecules and run a simulation
+with fix bond/react.</p>
+<p>Only one ‘fix bond/react’ command can be used at a time. Multiple
+reactions can be simultaneously applied by specifying multiple <em>react</em>
+arguments to a single ‘fix bond/react’ command. This syntax is
+necessary because the ‘common keywords’ are applied to all reactions.</p>
+<p>The <em>stabilization</em> keyword enables reaction site stabilization.
+Reaction site stabilization is performed by including reacting atoms
+in an internally-created fix <a class="reference internal" href="fix_nve_limit.html"><span class="doc">nve/limit</span></a> time
+integrator for a set number of timesteps given by the
+<em>stabilize_steps</em> keyword. While reacting atoms are being time
+integrated by the internal nve/limit, they are prevented from being
+involved in any new reactions. The <em>xmax</em> value keyword should
+typically be set to the maximum distance that non-reacting atoms move
+during the simulation.</p>
+<p>Fix bond/react creates and maintains two important dynamic groups of
+atoms when using the <em>stabilization</em> keyword. The first group contains
+all atoms currently involved in a reaction; this group is
+automatically thermostatted by an internally-created
+<a class="reference internal" href="fix_nve_limit.html"><span class="doc">nve/limit</span></a> integrator. The second group contains
+all atoms currently not involved in a reaction. This group should be
+used by a thermostat in order to time integrate the system. The name
+of this group of non-reacting atoms is created by appending ‘_REACT’
+to the group-ID argument of the <em>stabilization</em> keyword, as shown in
+the second example above.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using reaction stabilization, you should generally not have
+a separate thermostat which acts on the ‘all’ group.</p>
+</div>
+<p>The group-ID set using the <em>stabilization</em> keyword can be an existing
+static group or a previously-unused group-ID. It cannot be specified
+as ‘all’. If the group-ID is previously unused, the fix bond/react
+command creates a <a class="reference internal" href="group.html"><span class="doc">dynamic group</span></a> that is initialized to
+include all atoms. If the group-ID is that of an existing static
+group, the group is used as the parent group of new,
+internally-created dynamic group. In both cases, this new dynamic
+group is named by appending ‘_REACT’ to the group-ID, e.g.
+nvt_grp_REACT. By specifying an existing group, you may thermostat
+constant-topology parts of your system separately. The dynamic group
+contains only atoms not involved in a reaction at a given timestep,
+and therefore should be used by a subsequent system-wide time
+integrator such as nvt, npt, or nve, as shown in the second example
+above (full examples can be found at examples/USER/reaction). The time
+integration command should be placed after the fix bond/react command
+due to the internal dynamic grouping performed by fix bond/react.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the group-ID is an existing static group, react-group-IDs
+should also be specified as this static group, or a subset.</p>
+</div>
+<p>The <em>reset_mol_ids</em> keyword invokes the <a class="reference internal" href="reset_mol_ids.html"><span class="doc">reset_mol_ids</span></a>
+command after a reaction occurs, to ensure that molecule IDs are
+consistent with the new bond topology. The group-ID used for
+<a class="reference internal" href="reset_mol_ids.html"><span class="doc">reset_mol_ids</span></a> is the group-ID for this fix.
+Resetting molecule IDs is necessarily a global operation, and so can
+be slow for very large systems.</p>
+<p>The following comments pertain to each <em>react</em> argument (in other
+words, can be customized for each reaction, or reaction step):</p>
+<p>A check for possible new reaction sites is performed every <em>Nevery</em>
+timesteps. <em>Nevery</em> can be specified with an equal-style
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a>, whose value is rounded up to the nearest
+integer.</p>
+<p>Three physical conditions must be met for a reaction to occur. First,
+an initiator atom pair must be identified within the reaction distance
+cutoffs. Second, the topology surrounding the initiator atom pair must
+match the topology of the pre-reaction template. Only atom types and
+bond connectivity are used to identify a valid reaction site (not bond
+types, etc.). Finally, any reaction constraints listed in the map file
+(see below) must be satisfied. If all of these conditions are met, the
+reaction site is eligible to be modified to match the post-reaction
+template.</p>
+<p>An initiator atom pair will be identified if several conditions are
+met. First, a pair of atoms I,J within the specified react-group-ID of
+type itype and jtype must be separated by a distance between <em>Rmin</em>
+and <em>Rmax</em>. <em>Rmin</em> and <em>Rmax</em> can be specified with equal-style
+<a class="reference internal" href="variable.html"><span class="doc">variables</span></a>. For example, these reaction cutoffs can
+be a function of the reaction conversion using the following commands:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">rmax</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="c"># initialize variable before bond/react</span>
+<span class="k">fix </span><span class="nv nv-Identifier">myrxn</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">react</span><span class="w"> </span><span class="n">react</span><span class="w"> </span><span class="n">myrxn1</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">v_rmax</span><span class="w"> </span><span class="n">mol1</span><span class="w"> </span><span class="n">mol2</span><span class="w"> </span><span class="n">map_file.txt</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">rmax</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">3</span><span class="o">+</span><span class="n">f_myrxn[1]</span><span class="o">/</span><span class="m">100</span><span class="w"> </span><span class="c"># arbitrary function of reaction count</span>
+</pre></div>
+</div>
+<p>The following criteria are used if multiple candidate initiator atom
+pairs are identified within the cutoff distance: 1) If the initiator
+atoms in the pre-reaction template are not 1-2 neighbors (i.e. not
+directly bonded) the closest potential partner is chosen. 2)
+Otherwise, if the initiator atoms in the pre-reaction template are 1-2
+neighbors (i.e. directly bonded) the farthest potential partner is
+chosen. 3) Then, if both an atom I and atom J have each other as their
+initiator partners, these two atoms are identified as the initiator
+atom pair of the reaction site. Note that it can be helpful to select
+unique atom types for the initiator atoms: if an initiator atom pair
+is identified, as described in the previous steps, but does not
+correspond to the same pair specified in the pre-reaction template, an
+otherwise eligible reaction could be prevented from occurring. Once
+this unique initiator atom pair is identified for each reaction, there
+could be two or more reactions that involve the same atom on the same
+timestep. If this is the case, only one such reaction is permitted to
+occur. This reaction is chosen randomly from all potential reactions
+involving the overlapping atom. This capability allows e.g. for
+different reaction pathways to proceed from identical reaction sites
+with user-specified probabilities.</p>
+<p>The pre-reacted molecule template is specified by a molecule command.
+This molecule template file contains a sample reaction site and its
+surrounding topology. As described below, the initiator atom pairs of
+the pre-reacted template are specified by atom ID in the map file. The
+pre-reacted molecule template should contain as few atoms as possible
+while still completely describing the topology of all atoms affected
+by the reaction (which includes all atoms that change atom type or
+connectivity, and all bonds that change bond type). For example, if
+the force field contains dihedrals, the pre-reacted template should
+contain any atom within three bonds of reacting atoms.</p>
+<p>Some atoms in the pre-reacted template that are not reacting may have
+missing topology with respect to the simulation. For example, the
+pre-reacted template may contain an atom that, in the simulation, is
+currently connected to the rest of a long polymer chain. These are
+referred to as edge atoms, and are also specified in the map file. All
+pre-reaction template atoms should be linked to an initiator atom, via
+at least one path that does not involve edge atoms. When the
+pre-reaction template contains edge atoms, not all atoms, bonds,
+charges, etc. specified in the reaction templates will be updated.
+Specifically, topology that involves only atoms that are ‘too near’ to
+template edges will not be updated. The definition of ‘too near the
+edge’ depends on which interactions are defined in the simulation. If
+the simulation has defined dihedrals, atoms within two bonds of edge
+atoms are considered ‘too near the edge.’ If the simulation defines
+angles, but not dihedrals, atoms within one bond of edge atoms are
+considered ‘too near the edge.’ If just bonds are defined, only edge
+atoms are considered ‘too near the edge.’</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Small molecules, i.e. ones that have all their atoms contained
+within the reaction templates, never have edge atoms.</p>
+</div>
+<p>Note that some care must be taken when a building a molecule template
+for a given simulation. All atom types in the pre-reacted template
+must be the same as those of a potential reaction site in the
+simulation. A detailed discussion of matching molecule template atom
+types with the simulation is provided on the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a>
+command page.</p>
+<p>The post-reacted molecule template contains a sample of the reaction
+site and its surrounding topology after the reaction has occurred. It
+must contain the same number of atoms as the pre-reacted template. A
+one-to-one correspondence between the atom IDs in the pre- and
+post-reacted templates is specified in the map file as described
+below. Note that during a reaction, an atom, bond, etc. type may
+change to one that was previously not present in the simulation. These
+new types must also be defined during the setup of a given simulation.
+A discussion of correctly handling this is also provided on the
+<a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command page.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When a reaction occurs, it is possible that the resulting
+topology/atom (e.g. special bonds, dihedrals, etc.) exceeds that of
+the existing system and reaction templates. As when inserting
+molecules, enough space for this increased topology/atom must be
+reserved by using the relevant “extra” keywords to the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> commands.</p>
+</div>
+<p>The map file is a text document with the following format:</p>
+<p>A map file has a header and a body. The header of map file the
+contains one mandatory keyword and four optional keywords. The
+mandatory keyword is ‘equivalences’:</p>
+<pre class="literal-block">N <em>equivalences</em> = # of atoms N in the reaction molecule templates</pre>
+<p>The optional keywords are ‘edgeIDs’, ‘deleteIDs’, ‘chiralIDs’ and
+‘constraints’:</p>
+<pre class="literal-block">N <em>edgeIDs</em> = # of edge atoms N in the pre-reacted molecule template
+N <em>deleteIDs</em> = # of atoms N that are specified for deletion
+N <em>chiralIDs</em> = # of specified chiral centers N
+N <em>constraints</em> = # of specified reaction constraints N</pre>
+<p>The body of the map file contains two mandatory sections and four
+optional sections. The first mandatory section begins with the keyword
+‘InitiatorIDs’ and lists the two atom IDs of the initiator atom pair
+in the pre-reacted molecule template. The second mandatory section
+begins with the keyword ‘Equivalences’ and lists a one-to-one
+correspondence between atom IDs of the pre- and post-reacted
+templates. The first column is an atom ID of the pre-reacted molecule
+template, and the second column is the corresponding atom ID of the
+post-reacted molecule template. The first optional section begins with
+the keyword ‘EdgeIDs’ and lists the atom IDs of edge atoms in the
+pre-reacted molecule template. The second optional section begins with
+the keyword ‘DeleteIDs’ and lists the atom IDs of pre-reaction
+template atoms to delete. The third optional section begins with the
+keyword ‘ChiralIDs’ lists the atom IDs of chiral atoms whose
+handedness should be enforced. The fourth optional section begins with
+the keyword ‘Constraints’ and lists additional criteria that must be
+satisfied in order for the reaction to occur. Currently, there are
+five types of constraints available, as discussed below: ‘distance’,
+‘angle’, ‘dihedral’, ‘arrhenius’, and ‘rmsd’.</p>
+<p>A sample map file is given below:</p>
+<hr class="docutils" />
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># this is a map file
+
+7 equivalences
+2 edgeIDs
+
+InitiatorIDs
+
+3
+5
+
+EdgeIDs
+
+1
+7
+
+Equivalences
+
+1   1
+2   2
+3   3
+4   4
+5   5
+6   6
+7   7
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>The handedness of atoms that are chiral centers can be enforced by
+listing their IDs in the ChiralIDs section. A chiral atom must be
+bonded to four atoms with mutually different atom types. This feature
+uses the coordinates and types of the involved atoms in the
+pre-reaction template to determine handedness. Three atoms bonded to
+the chiral center are arbitrarily chosen, to define an oriented plane,
+and the relative position of the fourth bonded atom determines the
+chiral center’s handedness.</p>
+<p>Any number of additional constraints may be specified in the
+Constraints section of the map file. The constraint of type ‘distance’
+has syntax as follows:</p>
+<pre class="literal-block">distance <em>ID1</em> <em>ID2</em> <em>rmin</em> <em>rmax</em></pre>
+<p>where ‘distance’ is the required keyword, <em>ID1</em> and <em>ID2</em> are
+pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+two atoms must be separated by a distance between <em>rmin</em> and <em>rmax</em>
+for the reaction to occur.</p>
+<p>The constraint of type ‘angle’ has the following syntax:</p>
+<pre class="literal-block">angle <em>ID1</em> <em>ID2</em> <em>ID3</em> <em>amin</em> <em>amax</em></pre>
+<p>where ‘angle’ is the required keyword, <em>ID1</em>, <em>ID2</em> and <em>ID3</em> are
+pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
+three atoms must form an angle between <em>amin</em> and <em>amax</em> for the
+reaction to occur (where <em>ID2</em> is the central atom). Angles must be
+specified in degrees. This constraint can be used to enforce a certain
+orientation between reacting molecules.</p>
+<p>The constraint of type ‘dihedral’ has the following syntax:</p>
+<pre class="literal-block">dihedral <em>ID1</em> <em>ID2</em> <em>ID3</em> <em>ID4</em> <em>amin</em> <em>amax</em> <em>amin2</em> <em>amax2</em></pre>
+<p>where ‘dihedral’ is the required keyword, and <em>ID1</em>, <em>ID2</em>, <em>ID3</em>
+and <em>ID4</em> are pre-reaction atom IDs (or molecule-fragment IDs, see
+below). Dihedral angles are calculated in the interval (-180,180].
+Refer to the <a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral style</span></a> documentation for
+further details on convention. If <em>amin</em> is less than <em>amax</em>, these
+four atoms must form a dihedral angle greater than <em>amin</em> <strong>and</strong> less
+than <em>amax</em> for the reaction to occur. If <em>amin</em> is greater than
+<em>amax</em>, these four atoms must form a dihedral angle greater than
+<em>amin</em> <strong>or</strong> less than <em>amax</em> for the reaction to occur. Angles must
+be specified in degrees. Optionally, a second range of permissible
+angles <em>amin2</em>-<em>amax2</em> can be specified.</p>
+<p>For the ‘distance’, ‘angle’, and ‘dihedral’ constraints (explained
+above), atom IDs can be replaced by pre-reaction molecule-fragment
+IDs. The molecule-fragment ID must begin with a letter. The location
+of the ID is the geometric center of all atom positions in the
+fragment. The molecule fragment must have been defined in the
+<a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command for the pre-reaction template.</p>
+<p>The constraint of type ‘arrhenius’ imposes an additional reaction
+probability according to the temperature-dependent Arrhenius equation:</p>
+<div class="math notranslate nohighlight">
+\[k = AT^{n}e^{\frac{-E_{a}}{k_{B}T}}\]</div>
+<p>The Arrhenius constraint has the following syntax:</p>
+<pre class="literal-block">arrhenius <em>A</em> <em>n</em> <em>E_a</em> <em>seed</em></pre>
+<p>where ‘arrhenius’ is the required keyword, <em>A</em> is the pre-exponential
+factor, <em>n</em> is the exponent of the temperature dependence, <span class="math notranslate nohighlight">\(E_a\)</span>
+is the activation energy (<a class="reference internal" href="units.html"><span class="doc">units</span></a> of energy), and <em>seed</em> is a
+random number seed. The temperature is defined as the instantaneous
+temperature averaged over all atoms in the reaction site, and is
+calculated in the same manner as for example
+<a class="reference internal" href="compute_temp_chunk.html"><span class="doc">compute temp/chunk</span></a>. Currently, there are no
+options for additional temperature averaging or velocity-biased
+temperature calculations. A uniform random number between 0 and 1 is
+generated using <em>seed</em>; if this number is less than the result of the
+Arrhenius equation above, the reaction is permitted to occur.</p>
+<p>The constraint of type ‘rmsd’ has the following syntax:</p>
+<pre class="literal-block">rmsd <em>RMSDmax</em> <em>molfragment</em></pre>
+<p>where ‘rmsd’ is the required keyword, and <em>RMSDmax</em> is the maximum
+root-mean-square deviation between atom positions of the pre-reaction
+template and the local reaction site (distance units), after optimal
+translation and rotation of the pre-reaction template. Optionally, the
+name of a molecule fragment (of the pre-reaction template) can be
+specified by <em>molfragment</em>. If a molecule fragment is specified,
+only atoms that are part of this molecule fragment are used to
+determine the RMSD. A molecule fragment must have been defined in the
+<a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command for the pre-reaction template. For
+example, the molecule fragment could consist of only the backbone
+atoms of a polymer chain. This constraint can be used to enforce a
+specific relative position and orientation between reacting molecules.</p>
+<p>By default, all constraints must be satisfied for the reaction to
+occur. In other words, constraints are evaluated as a series of
+logical values using the logical AND operator “&amp;&amp;”. More complex logic
+can be achieved by explicitly adding the logical AND operator “&amp;&amp;” or
+the logical OR operator “||” after a given constraint command. If a
+logical operator is specified after a constraint, it must be placed
+after all constraint parameters, on the same line as the constraint
+(one per line). Similarly, parentheses can be used to group
+constraints. The expression that results from concatenating all
+constraints should be a valid logical expression that can be read by
+the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command after converting each
+constraint to a logical value. Because exactly one constraint is
+allowed per line, having a valid logical expression implies that left
+parentheses “(” should only appear before a constraint, and right
+parentheses “)” should only appear after a constraint and before any
+logical operator.</p>
+<p>Once a reaction site has been successfully identified, data structures
+within LAMMPS that store bond topology are updated to reflect the
+post-reacted molecule template. All force fields with fixed bonds,
+angles, dihedrals or impropers are supported.</p>
+<p>A few capabilities to note: 1) You may specify as many <em>react</em>
+arguments as desired. For example, you could break down a complicated
+reaction mechanism into several reaction steps, each defined by its
+own <em>react</em> argument. 2) While typically a bond is formed or removed
+between the initiator atoms specified in the pre-reacted molecule
+template, this is not required. 3) By reversing the order of the pre-
+and post- reacted molecule templates in another <em>react</em> argument, you
+can allow for the possibility of one or more reverse reactions.</p>
+<p>The optional keywords deal with the probability of a given reaction
+occurring as well as the stable equilibration of each reaction site as
+it occurs:</p>
+<p>The <em>prob</em> keyword can affect whether or not an eligible reaction
+actually occurs. The fraction setting must be a value between 0.0 and
+1.0, and can be specified with an equal-style <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>.
+A uniform random number between 0.0 and 1.0 is generated and the
+eligible reaction only occurs if the random number is less than the
+fraction. Up to N reactions are permitted to occur, as optionally
+specified by the <em>max_rxn</em> keyword.</p>
+<p>The <em>stabilize_steps</em> keyword allows for the specification of how many
+timesteps a reaction site is stabilized before being returned to the
+overall system thermostat. In order to produce the most physical
+behavior, this ‘reaction site equilibration time’ should be tuned to
+be as small as possible while retaining stability for a given system
+or reaction step. After a limited number of case studies, this number
+has been set to a default of 60 timesteps. Ideally, it should be
+individually tuned for each fix reaction step. Note that in some
+situations, decreasing rather than increasing this parameter will
+result in an increase in stability.</p>
+<p>The <em>custom_charges</em> keyword can be used to specify which atoms’
+atomic charges are updated. When the value is set to ‘no’, all atomic
+charges are updated to those specified by the post-reaction template
+(default). Otherwise, the value should be the name of a molecule
+fragment defined in the pre-reaction molecule template. In this case,
+only the atomic charges of atoms in the molecule fragment are updated.</p>
+<p>The <em>molecule</em> keyword can be used to force the reaction to be
+intermolecular, intramolecular or either. When the value is set to
+‘off’, molecule IDs are not considered when searching for reactions
+(default). When the value is set to ‘inter’, the initiator atoms must
+have different molecule IDs in order to be considered for the
+reaction. When the value is set to ‘intra’, only initiator atoms with
+the same molecule ID are considered for the reaction.</p>
+<p>A few other considerations:</p>
+<p>Many reactions result in one or more atoms that are considered
+unwanted by-products. Therefore, bond/react provides the option to
+delete a user-specified set of atoms. These pre-reaction atoms are
+identified in the map file. A deleted atom must still be included in
+the post-reaction molecule template, in which it cannot be bonded to
+an atom that is not deleted. In addition to deleting unwanted reaction
+by-products, this feature can be used to remove specific topologies,
+such as small rings, that may be otherwise indistinguishable.</p>
+<p>Optionally, you can enforce additional behaviors on reacting atoms.
+For example, it may be beneficial to force reacting atoms to remain at
+a certain temperature. For this, you can use the internally-created
+dynamic group named “bond_react_MASTER_group”, which consists of all
+atoms currently involved in a reaction. For example, adding the
+following command would add an additional thermostat to the group of
+all currently-reacting atoms:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">bond_react_MASTER_group</span><span class="w"> </span><span class="n">temp</span><span class="o">/</span><span class="n">rescale</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">1</span><span class="w"></span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This command must be added after the fix bond/react command, and
+will apply to all reactions.</p>
+</div>
+<p>Computationally, each timestep this fix operates, it loops over
+neighbor lists (for bond-forming reactions) and computes distances
+between pairs of atoms in the list. It also communicates between
+neighboring processors to coordinate which bonds are created and/or
+removed. All of these operations increase the cost of a timestep. Thus
+you should be cautious about invoking this fix too frequently.</p>
+<p>You can dump out snapshots of the current bond topology via the dump
+local command.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Permalink to this headline">¶</a></h2>
+<p>Cumulative reaction counts for each reaction are written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.
+These values are associated with the reaction name (react-ID).
+Additionally, internally-created per-atom properties are stored to
+allow for smooth restarts. None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a>
+options are relevant to this fix.</p>
+<p>This fix computes one statistic for each <em>react</em> argument that it
+stores in a global vector, of length ‘number of react arguments’, that
+can be accessed by various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>. The
+vector values calculated by this fix are “intensive”.</p>
+<p>These is 1 quantity for each react argument:</p>
+<ul class="simple">
+<li><ol class="arabic simple">
+<li><p>cumulative # of reactions occurred</p></li>
+</ol>
+</li>
+</ul>
+<p>No parameter of this fix can be used with the <em>start/stop</em> keywords
+of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  This fix is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+<p>When fix bond/react is ‘unfixed’, all internally-created groups are
+deleted. Therefore, fix bond/react can only be unfixed after unfixing
+all other fixes that use any group created by fix bond/react.</p>
+</div>
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This fix is part of the USER-REACTION package.  It is only enabled if
+LAMMPS was built with that package.  See the
+<a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc page for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="fix_bond_create.html"><span class="doc">fix bond/create</span></a>,
+<a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a>,
+<a class="reference internal" href="fix_bond_swap.html"><span class="doc">fix bond/swap</span></a>,
+<a class="reference internal" href="dump.html"><span class="doc">dump local</span></a>, <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
+reset_mol_ids = yes, custom_charges = no, molecule = off</p>
+<hr class="docutils" />
+<p id="gissinger"><strong>(Gissinger)</strong> Gissinger, Jensen and Wise, Polymer, 128, 211-217 (2017).</p>
+<p id="gissinger2020"><strong>(Gissinger)</strong> Gissinger, Jensen and Wise, Macromolecules, 53, 22, 9953–9961 (2020).</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="fix_bond_swap.html" class="btn btn-neutral float-right" title="fix bond/swap command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="fix_bond_create.html" class="btn btn-neutral float-left" title="fix bond/create command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

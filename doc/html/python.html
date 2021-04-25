@@ -1,0 +1,862 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>python command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="quit command" href="quit.html" />
+    <link rel="prev" title="processors command" href="processors.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="box.html">box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html">dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-vtk-command"><span class="xref std std-doc">dump vtk</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-h5md-command"><span class="xref std std-doc">dump h5md</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-molfile-command"><span class="xref std std-doc">dump molfile</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-netcdf-command"><span class="xref std std-doc">dump netcdf</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-image-command"><span class="xref std std-doc">dump image</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-movie-command"><span class="xref std std-doc">dump movie</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-atom-adios-command"><span class="xref std std-doc">dump atom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-custom-adios-command"><span class="xref std std-doc">dump custom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html">dump atom/adios  command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html#dump-custom-adios-command">dump custom/adios command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_cfg_uef.html">dump cfg/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_h5md.html">dump h5md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html">dump image command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-movie-command">dump movie command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html">dump_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_molfile.html">dump molfile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html">dump netcdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html#dump-netcdf-mpiio-command">dump netcdf/mpiio command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_vtk.html">dump vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html"><span class="xref std std-ref">kim_init</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-interactions-command"><span class="xref std std-ref">kim_interactions</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-query-command"><span class="xref std std-ref">kim_query</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-param-command"><span class="xref std std-ref">kim_param</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-property-command"><span class="xref std std-ref">kim_property</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="message.html">message command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html#minimize-kk-command">minimize/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">python command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atom_ids.html">reset_atom_ids command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_mol_ids.html">reset_mol_ids command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html">server command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server_mc.html">server mc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server_md.html">server md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="commands_list.html">Commands</a> &raquo;</li>
+        
+      <li>python command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="quit.html" class="btn btn-neutral float-right" title="quit command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="processors.html" class="btn btn-neutral float-left" title="processors command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="python-command">
+<span id="index-0"></span><h1>python command<a class="headerlink" href="#python-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>python func keyword args ...
+</pre></div>
+</div>
+<ul>
+<li><p>func = name of Python function</p></li>
+<li><p>one or more keyword/args pairs must be appended</p>
+<pre class="literal-block">keyword = <em>invoke</em> or <em>input</em> or <em>return</em> or <em>format</em> or <em>length</em> or <em>file</em> or <em>here</em> or <em>exists</em> or <em>source</em>
+  <em>invoke</em> arg = none = invoke the previously defined Python function
+  <em>input</em> args = N i1 i2 ... iN
+    N = # of inputs to function
+    i1,...,iN = value, SELF, or LAMMPS variable name
+      value = integer number, floating point number, or string
+      SELF = reference to LAMMPS itself which can be accessed by Python function
+      variable = v_name, where name = name of LAMMPS variable, e.g. v_abc
+  <em>return</em> arg = varReturn
+    varReturn = v_name  = LAMMPS variable name which return value of function will be assigned to
+  <em>format</em> arg = fstring with M characters
+    M = N if no return value, where N = # of inputs
+    M = N+1 if there is a return value
+    fstring = each character (i,f,s,p) corresponds in order to an input or return value
+    'i' = integer, 'f' = floating point, 's' = string, 'p' = SELF
+  <em>length</em> arg = Nlen
+    Nlen = max length of string returned from Python function
+  <em>file</em> arg = filename
+    filename = file of Python code, which defines func
+  <em>here</em> arg = inline
+    inline = one or more lines of Python code which defines func
+             must be a single argument, typically enclosed between triple quotes
+  <em>exists</em> arg = none = Python code has been loaded by previous python command
+  <em>source</em> arg = <em>filename</em> or <em>inline</em>
+    filename = file of Python code which will be executed immediately
+    inline = one or more lines of Python code which will be executed immediately
+             must be a single argument, typically enclosed between triple quotes</pre>
+</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">python</span><span class="w"> </span><span class="n">pForce</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">v_x</span><span class="w"> </span><span class="m">20.0</span><span class="w"> </span><span class="n">return</span><span class="w"> </span><span class="n">v_f</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">fff</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">force.py</span><span class="w"></span>
+<span class="k">python</span><span class="w"> </span><span class="n">pForce</span><span class="w"> </span><span class="n">invoke</span><span class="w"></span>
+
+<span class="k">python</span><span class="w"> </span><span class="n">factorial</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">myN</span><span class="w"> </span><span class="n">return</span><span class="w"> </span><span class="n">v_fac</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">ii</span><span class="w"> </span><span class="n">here</span><span class="w"> </span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">def factorial(n):</span>
+<span class="s">  if n == 1: return n</span>
+<span class="s">  return n * factorial(n-1)</span>
+<span class="s"> &quot;&quot;&quot;</span><span class="w"></span>
+
+<span class="k">python</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">SELF</span><span class="w"> </span><span class="n">return</span><span class="w"> </span><span class="n">v_value</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">pf</span><span class="w"> </span><span class="n">here</span><span class="w"> </span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">def loop(lmpptr,N,cut0):</span>
+<span class="s">  from lammps import lammps</span>
+<span class="s">  lmp = lammps(ptr=lmpptr)</span>
+
+<span class="s">  # loop N times, increasing cutoff each time</span>
+
+<span class="s">  for i in range(N):</span>
+<span class="s">    cut = cut0 + i*0.1</span>
+<span class="s">    lmp.set_variable(&quot;</span><span class="n">cut</span><span class="s">&quot;,cut)               # set a variable in LAMMPS</span>
+<span class="s">    lmp.command(&quot;</span><span class="n">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="w"> </span><span class="nv">${</span><span class="nv nv-Identifier">cut</span><span class="err">}</span><span class="s">&quot;)   # LAMMPS commands</span>
+<span class="s">    lmp.command(&quot;</span><span class="n">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="s">&quot;)</span>
+<span class="s">    lmp.command(&quot;</span><span class="n">run</span><span class="w"> </span><span class="m">100</span><span class="s">&quot;)</span>
+<span class="s"> &quot;&quot;&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>Define a Python function or execute a previously defined function or
+execute some arbitrary python code.
+Arguments, including LAMMPS variables, can be passed to the function
+from the LAMMPS input script and a value returned by the Python
+function to a LAMMPS variable.  The Python code for the function can
+be included directly in the input script or in a separate Python file.
+The function can be standard Python code or it can make “callbacks” to
+LAMMPS through its library interface to query or set internal values
+within LAMMPS.  This is a powerful mechanism for performing complex
+operations in a LAMMPS input script that are not possible with the
+simple input script and variable syntax which LAMMPS defines.  Thus
+your input script can operate more like a true programming language.</p>
+<p>Use of this command requires building LAMMPS with the PYTHON package
+which links to the Python library so that the Python interpreter is
+embedded in LAMMPS.  More details about this process are given below.</p>
+<p>There are two ways to invoke a Python function once it has been
+defined.  One is using the <em>invoke</em> keyword.  The other is to assign
+the function to a <a class="reference internal" href="variable.html"><span class="doc">python-style variable</span></a> defined in
+your input script.  Whenever the variable is evaluated, it will
+execute the Python function to assign a value to the variable.  Note
+that variables can be evaluated in many different ways within LAMMPS.
+They can be substituted for directly in an input script.  Or they can
+be passed to various commands as arguments, so that the variable is
+evaluated during a simulation run.</p>
+<p>A broader overview of how Python can be used with LAMMPS is given on
+the <a class="reference internal" href="Python_head.html"><span class="doc">Python</span></a> doc page.  There is an examples/python
+directory which illustrates use of the python command.</p>
+<hr class="docutils" />
+<p>The <em>func</em> setting specifies the name of the Python function.  The
+code for the function is defined using the <em>file</em> or <em>here</em> keywords
+as explained below. In case of the <em>source</em> keyword, the name of
+the function is ignored.</p>
+<p>If the <em>invoke</em> keyword is used, no other keywords can be used, and a
+previous python command must have defined the Python function
+referenced by this command.  This invokes the Python function with the
+previously defined arguments and return value processed as explained
+below.  You can invoke the function as many times as you wish in your
+input script.</p>
+<p>If the <em>source</em> keyword is used, no other keywords can be used.
+The argument can be a filename or a string with python commands,
+either on a single line enclosed in quotes, or as multiple lines
+enclosed in triple quotes. These python commands will be passed
+to the python interpreter and executed immediately without registering
+a python function for future execution.</p>
+<p>The <em>input</em> keyword defines how many arguments <em>N</em> the Python function
+expects.  If it takes no arguments, then the <em>input</em> keyword should
+not be used.  Each argument can be specified directly as a value,
+e.g. 6 or 3.14159 or abc (a string of characters).  The type of each
+argument is specified by the <em>format</em> keyword as explained below, so
+that Python will know how to interpret the value.  If the word SELF is
+used for an argument it has a special meaning.  A pointer is passed to
+the Python function which it converts into a reference to LAMMPS
+itself.  This enables the function to call back to LAMMPS through its
+library interface as explained below.  This allows the Python function
+to query or set values internal to LAMMPS which can affect the
+subsequent execution of the input script.  A LAMMPS variable can also
+be used as an argument, specified as v_name, where “name” is the name
+of the variable.  Any style of LAMMPS variable can be used, as defined
+by the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command.  Each time the Python
+function is invoked, the LAMMPS variable is evaluated and its value is
+passed to the Python function.</p>
+<p>The <em>return</em> keyword is only needed if the Python function returns a
+value.  The specified <em>varReturn</em> must be of the form v_name, where
+“name” is the name of a python-style LAMMPS variable, defined by the
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command.  The Python function can return a
+numeric or string value, as specified by the <em>format</em> keyword.</p>
+<p>As explained on the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> doc page, the definition
+of a python-style variable associates a Python function name with the
+variable.  This must match the <em>func</em> setting for this command.  For
+example these two commands would be self-consistent:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">foo</span><span class="w"> </span><span class="n">python</span><span class="w"> </span><span class="n">myMultiply</span><span class="w"></span>
+<span class="k">python</span><span class="w"> </span><span class="n">myMultiply</span><span class="w"> </span><span class="n">return</span><span class="w"> </span><span class="n">v_foo</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">funcs.py</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The two commands can appear in either order in the input script so
+long as both are specified before the Python function is invoked for
+the first time.</p>
+<p>The <em>format</em> keyword must be used if the <em>input</em> or <em>return</em> keyword
+is used.  It defines an <em>fstring</em> with M characters, where M = sum of
+number of inputs and outputs.  The order of characters corresponds to
+the N inputs, followed by the return value (if it exists).  Each
+character must be one of the following: “i” for integer, “f” for
+floating point, “s” for string, or “p” for SELF.  Each character
+defines the type of the corresponding input or output value of the
+Python function and affects the type conversion that is performed
+internally as data is passed back and forth between LAMMPS and Python.
+Note that it is permissible to use a <a class="reference internal" href="variable.html"><span class="doc">python-style variable</span></a> in a LAMMPS command that allows for an
+equal-style variable as an argument, but only if the output of the
+Python function is flagged as a numeric value (“i” or “f”) via the
+<em>format</em> keyword.</p>
+<p>If the <em>return</em> keyword is used and the <em>format</em> keyword specifies the
+output as a string, then the default maximum length of that string is
+63 characters (64-1 for the string terminator).  If you want to return
+a longer string, the <em>length</em> keyword can be specified with its <em>Nlen</em>
+value set to a larger number (the code allocates space for Nlen+1 to
+include the string terminator).  If the Python function generates a
+string longer than the default 63 or the specified <em>Nlen</em>, it will be
+truncated.</p>
+<hr class="docutils" />
+<p>Either the <em>file</em>, <em>here</em>, or <em>exists</em> keyword must be used, but only
+one of them.  These keywords specify what Python code to load into the
+Python interpreter.  The <em>file</em> keyword gives the name of a file,
+which should end with a “.py” suffix, which contains Python code.  The
+code will be immediately loaded into and run in the “main” module of
+the Python interpreter.  Note that Python code which contains a
+function definition does not “execute” the function when it is run; it
+simply defines the function so that it can be invoked later.</p>
+<p>The <em>here</em> keyword does the same thing, except that the Python code
+follows as a single argument to the <em>here</em> keyword.  This can be done
+using triple quotes as delimiters, as in the examples above.  This
+allows Python code to be listed verbatim in your input script, with
+proper indentation, blank lines, and comments, as desired.  See the
+<a class="reference internal" href="Commands_parse.html"><span class="doc">Commands parse</span></a> doc page, for an explanation of
+how triple quotes can be used as part of input script syntax.</p>
+<p>The <em>exists</em> keyword takes no argument.  It means that Python code
+containing the required Python function defined by the <em>func</em> setting,
+is assumed to have been previously loaded by another python command.</p>
+<p>Note that the Python code that is loaded and run must contain a
+function with the specified <em>func</em> name.  To operate properly when
+later invoked, the function code must match the <em>input</em> and
+<em>return</em> and <em>format</em> keywords specified by the python command.
+Otherwise Python will generate an error.</p>
+<hr class="docutils" />
+<p>This section describes how Python code can be written to work with
+LAMMPS.</p>
+<p>Whether you load Python code from a file or directly from your input
+script, via the <em>file</em> and <em>here</em> keywords, the code can be identical.
+It must be indented properly as Python requires.  It can contain
+comments or blank lines.  If the code is in your input script, it
+cannot however contain triple-quoted Python strings, since that will
+conflict with the triple-quote parsing that the LAMMPS input script
+performs.</p>
+<p>All the Python code you specify via one or more python commands is
+loaded into the Python “main” module, i.e. __main__.  The code can
+define global variables or statements that are outside of function
+definitions.  It can contain multiple functions, only one of which
+matches the <em>func</em> setting in the python command.  This means you can
+use the <em>file</em> keyword once to load several functions, and the
+<em>exists</em> keyword thereafter in subsequent python commands to access
+the other functions previously loaded.</p>
+<p>A Python function you define (or more generally, the code you load)
+can import other Python modules or classes, it can make calls to other
+system functions or functions you define, and it can access or modify
+global variables (in the “main” module) which will persist between
+successive function calls.  The latter can be useful, for example, to
+prevent a function from being invoke multiple times per timestep by
+different commands in a LAMMPS input script that access the returned
+python-style variable associated with the function.  For example,
+consider this function loaded with two global variables defined
+outside the function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">nsteplast</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">nvaluelast</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="k">def</span> <span class="nf">expensive</span><span class="p">(</span><span class="n">nstep</span><span class="p">):</span>
+  <span class="k">global</span> <span class="n">nsteplast</span><span class="p">,</span><span class="n">nvaluelast</span>
+  <span class="k">if</span> <span class="n">nstep</span> <span class="o">==</span> <span class="n">nsteplast</span><span class="p">:</span> <span class="k">return</span> <span class="n">nvaluelast</span>
+  <span class="n">nsteplast</span> <span class="o">=</span> <span class="n">nstep</span>
+  <span class="c1"># perform complicated calculation</span>
+  <span class="n">nvalue</span> <span class="o">=</span> <span class="o">...</span>
+  <span class="n">nvaluelast</span> <span class="o">=</span> <span class="n">nvalue</span>
+  <span class="k">return</span> <span class="n">nvalue</span>
+</pre></div>
+</div>
+<p>Nsteplast stores the previous timestep the function was invoked
+(passed as an argument to the function).  Nvaluelast stores the return
+value computed on the last function invocation.  If the function is
+invoked again on the same timestep, the previous value is simply
+returned, without re-computing it.  The “global” statement inside the
+Python function allows it to overwrite the global variables.</p>
+<p>Note that if you load Python code multiple times (via multiple python
+commands), you can overwrite previously loaded variables and functions
+if you are not careful.  E.g. if the code above were loaded twice, the
+global variables would be re-initialized, which might not be what you
+want.  Likewise, if a function with the same name exists in two chunks
+of Python code you load, the function loaded second will override the
+function loaded first.</p>
+<p>It’s important to realize that if you are running LAMMPS in parallel,
+each MPI task will load the Python interpreter and execute a local
+copy of the Python function(s) you define.  There is no connection
+between the Python interpreters running on different processors.
+This implies three important things.</p>
+<p>First, if you put a print statement in your Python function, you will
+see P copies of the output, when running on P processors.  If the
+prints occur at (nearly) the same time, the P copies of the output may
+be mixed together.  Welcome to the world of parallel programming and
+debugging.</p>
+<p>Second, if your Python code loads modules that are not pre-loaded by
+the Python library, then it will load the module from disk.  This may
+be a bottleneck if 1000s of processors try to load a module at the
+same time.  On some large supercomputers, loading of modules from disk
+by Python may be disabled.  In this case you would need to pre-build a
+Python library that has the required modules pre-loaded and link
+LAMMPS with that library.</p>
+<p>Third, if your Python code calls back to LAMMPS (discussed in the
+next section) and causes LAMMPS to perform an MPI operation requires
+global communication (e.g. via MPI_Allreduce), such as computing the
+global temperature of the system, then you must insure all your Python
+functions (running independently on different processors) call back to
+LAMMPS.  Otherwise the code may hang.</p>
+<hr class="docutils" />
+<p>Your Python function can “call back” to LAMMPS through its
+library interface, if you use the SELF input to pass Python
+a pointer to LAMMPS.  The mechanism for doing this in your
+Python function is as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">foo</span><span class="p">(</span><span class="n">lmpptr</span><span class="p">,</span><span class="o">...</span><span class="p">):</span>
+  <span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+  <span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">ptr</span><span class="o">=</span><span class="n">lmpptr</span><span class="p">)</span>
+  <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s1">&#39;print &quot;Hello from inside Python&quot;&#39;</span><span class="p">)</span>
+  <span class="o">...</span>
+</pre></div>
+</div>
+<p>The function definition must include a variable (lmpptr in this case)
+which corresponds to SELF in the python command.  The first line of the
+function imports the <a class="reference internal" href="Python_module.html"><span class="doc">“lammps” Python module</span></a>.
+The second line creates a Python object <code class="docutils literal notranslate"><span class="pre">lmp</span></code> which
+wraps the instance of LAMMPS that called the function.  The “ptr=lmpptr”
+argument is what makes that happen.  The third line invokes the
+command() function in the LAMMPS library interface.  It takes a single
+string argument which is a LAMMPS input script command for LAMMPS to
+execute, the same as if it appeared in your input script.  In this case,
+LAMMPS should output</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Hello from inside Python
+</pre></div>
+</div>
+<p>to the screen and log file.  Note that since the LAMMPS print command
+itself takes a string in quotes as its argument, the Python string
+must be delimited with a different style of quotes.</p>
+<p>The <a class="reference internal" href="Python_head.html"><span class="doc">Use Python with LAMMPS</span></a> doc page describes the syntax
+for how Python wraps the various functions included in the LAMMPS
+library interface.</p>
+<p>A more interesting example is in the examples/python/in.python script
+which loads and runs the following function from examples/python/funcs.py:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">loop</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">cut0</span><span class="p">,</span><span class="n">thresh</span><span class="p">,</span><span class="n">lmpptr</span><span class="p">):</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LOOP ARGS&quot;</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">cut0</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">lmpptr</span><span class="p">)</span>
+  <span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+  <span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">(</span><span class="n">ptr</span><span class="o">=</span><span class="n">lmpptr</span><span class="p">)</span>
+  <span class="n">natoms</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">get_natoms</span><span class="p">()</span>
+
+  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">cut</span> <span class="o">=</span> <span class="n">cut0</span> <span class="o">+</span> <span class="n">i</span><span class="o">*</span><span class="mf">0.1</span>
+
+    <span class="n">lmp</span><span class="o">.</span><span class="n">set_variable</span><span class="p">(</span><span class="s2">&quot;cut&quot;</span><span class="p">,</span><span class="n">cut</span><span class="p">)</span>                 <span class="c1"># set a variable in LAMMPS</span>
+    <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;pair_style lj/cut $</span><span class="si">{cut}</span><span class="s2">&quot;</span><span class="p">)</span>     <span class="c1"># LAMMPS command</span>
+    <span class="c1">#lmp.command(&quot;pair_style lj/cut %d&quot; % cut)  # LAMMPS command option</span>
+
+    <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;pair_coeff * * 1.0 1.0&quot;</span><span class="p">)</span>       <span class="c1"># ditto</span>
+    <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;run 10&quot;</span><span class="p">)</span>                       <span class="c1"># ditto</span>
+    <span class="n">pe</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">extract_compute</span><span class="p">(</span><span class="s2">&quot;thermo_pe&quot;</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>   <span class="c1"># extract total PE from LAMMPS</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PE&quot;</span><span class="p">,</span> <span class="n">pe</span><span class="o">/</span><span class="n">natoms</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pe</span><span class="o">/</span><span class="n">natoms</span> <span class="o">&lt;</span> <span class="n">thresh</span><span class="p">:</span> <span class="k">return</span>
+</pre></div>
+</div>
+<p>with these input script commands:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">python</span><span class="w">          </span><span class="n">loop</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="o">-</span><span class="m">4.0</span><span class="w"> </span><span class="n">SELF</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">iffp</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">funcs.py</span><span class="w"></span>
+<span class="k">python</span><span class="w">          </span><span class="n">loop</span><span class="w"> </span><span class="n">invoke</span><span class="w"></span>
+</pre></div>
+</div>
+<p>This has the effect of looping over a series of 10 short runs (10
+timesteps each) where the pair style cutoff is increased from a value
+of 1.0 in distance units, in increments of 0.1.  The looping stops
+when the per-atom potential energy falls below a threshold of -4.0 in
+energy units.  More generally, Python can be used to implement a loop
+with complex logic, much more so than can be created using the LAMMPS
+<a class="reference internal" href="jump.html"><span class="doc">jump</span></a> and <a class="reference internal" href="if.html"><span class="doc">if</span></a> commands.</p>
+<p>Several LAMMPS library functions are called from the loop function.
+Get_natoms() returns the number of atoms in the simulation, so that it
+can be used to normalize the potential energy that is returned by
+extract_compute() for the “thermo_pe” compute that is defined by
+default for LAMMPS thermodynamic output.  Set_variable() sets the
+value of a string variable defined in LAMMPS.  This library function
+is a useful way for a Python function to return multiple values to
+LAMMPS, more than the single value that can be passed back via a
+return statement.  This cutoff value in the “cut” variable is then
+substituted (by LAMMPS) in the pair_style command that is executed
+next.  Alternatively, the “LAMMPS command option” line could be used
+in place of the 2 preceding lines, to have Python insert the value
+into the LAMMPS command string.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When using the callback mechanism just described, recognize that
+there are some operations you should not attempt because LAMMPS cannot
+execute them correctly.  If the Python function is invoked between
+runs in the LAMMPS input script, then it should be OK to invoke any
+LAMMPS input script command via the library interface command() or
+file() functions, so long as the command would work if it were
+executed in the LAMMPS input script directly at the same point.</p>
+</div>
+<p>However, a Python function can also be invoked during a run, whenever
+an associated LAMMPS variable it is assigned to is evaluated.  If the
+variable is an input argument to another LAMMPS command (e.g. <a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce</span></a>), then the Python function will be invoked
+inside the class for that command, in one of its methods that is
+invoked in the middle of a timestep.  You cannot execute arbitrary
+input script commands from the Python function (again, via the
+command() or file() functions) at that point in the run and expect it
+to work.  Other library functions such as those that invoke computes
+or other variables may have hidden side effects as well.  In these
+cases, LAMMPS has no simple way to check that something illogical is
+being attempted.</p>
+<p>The same applies to Python functions called during a simulation run at
+each time step using <a class="reference internal" href="fix_python_invoke.html"><span class="doc">fix python/invoke</span></a>.</p>
+<hr class="docutils" />
+<p>If you run Python code directly on your workstation, either
+interactively or by using Python to launch a Python script stored in a
+file, and your code has an error, you will typically see informative
+error messages.  That is not the case when you run Python code from
+LAMMPS using an embedded Python interpreter.  The code will typically
+fail silently.  LAMMPS will catch some errors but cannot tell you
+where in the Python code the problem occurred.  For example, if the
+Python code cannot be loaded and run because it has syntax or other
+logic errors, you may get an error from Python pointing to the
+offending line, or you may get one of these generic errors from
+LAMMPS:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Could not process Python file
+Could not process Python string
+</pre></div>
+</div>
+<p>When the Python function is invoked, if it does not return properly,
+you will typically get this generic error from LAMMPS:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Python function evaluation failed
+</pre></div>
+</div>
+<p>Here are three suggestions for debugging your Python code while
+running it under LAMMPS.</p>
+<p>First, don’t run it under LAMMPS, at least to start with!  Debug it
+using plain Python.  Load and invoke your function, pass it arguments,
+check return values, etc.</p>
+<p>Second, add Python print statements to the function to check how far
+it gets and intermediate values it calculates.  See the discussion
+above about printing from Python when running in parallel.</p>
+<p>Third, use Python exception handling.  For example, say this statement
+in your Python function is failing, because you have not initialized the
+variable foo:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">foo</span> <span class="o">+=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>If you put one (or more) statements inside a “try” statement,
+like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">exceptions</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Inside simple function&quot;</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+  <span class="n">foo</span> <span class="o">+=</span> <span class="mi">1</span>      <span class="c1"># one or more statements here</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+  <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;FOO error:&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>then you will get this message printed to the screen:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>FOO error: local variable &#39;foo&#39; referenced before assignment
+</pre></div>
+</div>
+<p>If there is no error in the try statements, then nothing is printed.
+Either way the function continues on (unless you put a return or
+sys.exit() in the except clause).</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This command is part of the PYTHON package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc page for more info.</p>
+<p>Building LAMMPS with the PYTHON package will link LAMMPS with the
+Python library on your system.  Settings to enable this are in the
+lib/python/Makefile.lammps file.  See the lib/python/README file for
+information on those settings.</p>
+<p>If you use Python code which calls back to LAMMPS, via the SELF input argument
+explained above, there is an extra step required when building LAMMPS.  LAMMPS
+must also be built as a shared library and your Python function must be able to
+load the <a class="reference internal" href="Python_module.html"><span class="doc">“lammps” Python module</span></a> that wraps the LAMMPS
+library interface.  These are the same steps required to use Python by itself
+to wrap LAMMPS.  Details on these steps are explained on the <a class="reference internal" href="Python_head.html"><span class="doc">Python</span></a> doc page.  Note that it is important that the stand-alone LAMMPS
+executable and the LAMMPS shared library be consistent (built from the same
+source code files) in order for this to work.  If the two have been built at
+different times using different source files, problems may occur.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="shell.html"><span class="doc">shell</span></a>, <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>, <a class="reference internal" href="fix_python_invoke.html"><span class="doc">fix python/invoke</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>none</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="quit.html" class="btn btn-neutral float-right" title="quit command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="processors.html" class="btn btn-neutral float-left" title="processors command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

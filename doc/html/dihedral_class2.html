@@ -1,0 +1,462 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>dihedral_style class2 command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="_static/mathjax/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dihedral_style cosine/shift/exp command" href="dihedral_cosine_shift_exp.html" />
+    <link rel="prev" title="dihedral_style charmm command" href="dihedral_charmm.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dihedral_charmm.html">dihedral_style charmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_charmm.html#dihedral-style-charmmfsw-command">dihedral_style charmmfsw command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">dihedral_style class2 command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_cosine_shift_exp.html">dihedral_style cosine/shift/exp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_fourier.html">dihedral_style fourier command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_harmonic.html">dihedral_style harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_helix.html">dihedral_style helix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_hybrid.html">dihedral_style hybrid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_multi_harmonic.html">dihedral_style multi/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_nharmonic.html">dihedral_style nharmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_none.html">dihedral_style none command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_opls.html">dihedral_style opls command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_quadratic.html">dihedral_style quadratic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_spherical.html">dihedral_style spherical command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_table.html">dihedral_style table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_table_cut.html">dihedral_style table/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_zero.html">dihedral_style zero command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="dihedrals.html">Dihedral Styles</a> &raquo;</li>
+        
+      <li>dihedral_style class2 command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="dihedral_cosine_shift_exp.html" class="btn btn-neutral float-right" title="dihedral_style cosine/shift/exp command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dihedral_charmm.html" class="btn btn-neutral float-left" title="dihedral_style charmm command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <span class="target" id="index-0"></span><span class="target" id="index-1"></span><div class="section" id="dihedral-style-class2-command">
+<span id="index-2"></span><h1>dihedral_style class2 command<a class="headerlink" href="#dihedral-style-class2-command" title="Permalink to this headline">¶</a></h1>
+<p>Accelerator Variants: <em>class2/omp</em>, <em>class2/kk</em></p>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dihedral_style</span><span class="w"> </span><span class="n">class2</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dihedral_style</span><span class="w"> </span><span class="n">class2</span><span class="w"></span>
+<span class="k">dihedral_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="m">75</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="m">60</span><span class="w"></span>
+<span class="k">dihedral_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">mbt</span><span class="w"> </span><span class="m">3.5945</span><span class="w"> </span><span class="m">0.1704</span><span class="w"> </span><span class="o">-</span><span class="m">0.5490</span><span class="w"> </span><span class="m">1.5228</span><span class="w"></span>
+<span class="k">dihedral_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ebt</span><span class="w"> </span><span class="m">0.3417</span><span class="w"> </span><span class="m">0.3264</span><span class="w"> </span><span class="o">-</span><span class="m">0.9036</span><span class="w"> </span><span class="m">0.1368</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="o">-</span><span class="m">0.8080</span><span class="w"> </span><span class="m">1.0119</span><span class="w"> </span><span class="m">1.1010</span><span class="w"></span>
+<span class="k">dihedral_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">at</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="o">-</span><span class="m">0.1850</span><span class="w"> </span><span class="o">-</span><span class="m">0.7963</span><span class="w"> </span><span class="o">-</span><span class="m">2.0220</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="o">-</span><span class="m">0.3991</span><span class="w"> </span><span class="m">110.2453</span><span class="w"> </span><span class="m">105.1270</span><span class="w"></span>
+<span class="k">dihedral_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">aat</span><span class="w"> </span><span class="o">-</span><span class="m">13.5271</span><span class="w"> </span><span class="m">110.2453</span><span class="w"> </span><span class="m">105.1270</span><span class="w"></span>
+<span class="k">dihedral_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">bb13</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">1.0119</span><span class="w"> </span><span class="m">1.1010</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>The <em>class2</em> dihedral style uses the potential</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}E        = &amp; E_d + E_{mbt} + E_{ebt} + E_{at} + E_{aat} + E_{bb13} \\
+E_d      = &amp; \sum_{n=1}^{3} K_n [ 1 - \cos (n \phi - \phi_n) ] \\
+E_{mbt}  = &amp; (r_{jk} - r_2) [ A_1 \cos (\phi) + A_2 \cos (2\phi) + A_3 \cos (3\phi) ] \\
+E_{ebt}  = &amp; (r_{ij} - r_1) [ B_1 \cos (\phi) + B_2 \cos (2\phi) + B_3 \cos (3\phi) ] + \\
+           &amp; (r_{kl} - r_3) [ C_1 \cos (\phi) + C_2 \cos (2\phi) + C_3 \cos (3\phi) ] \\
+E_{at}   = &amp; (\theta_{ijk} - \theta_1) [ D_1 \cos (\phi) + D_2 \cos (2\phi) + D_3 \cos (3\phi) ] + \\
+           &amp; (\theta_{jkl} - \theta_2) [ E_1 \cos (\phi) + E_2 \cos (2\phi) + E_3 \cos (3\phi) ] \\
+E_{aat}  = &amp; M (\theta_{ijk} - \theta_1) (\theta_{jkl} - \theta_2) \cos (\phi) \\
+E_{bb13} = &amp; N (r_{ij} - r_1) (r_{kl} - r_3)\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(E_d\)</span> is the dihedral term, <span class="math notranslate nohighlight">\(E_{mbt}\)</span> is a middle-bond-torsion term,
+<span class="math notranslate nohighlight">\(E_{ebt}\)</span> is an end-bond-torsion term, <span class="math notranslate nohighlight">\(E_{at}\)</span> is an angle-torsion term, <span class="math notranslate nohighlight">\(E_{aat}\)</span>
+is an angle-angle-torsion term, and <span class="math notranslate nohighlight">\(E_{bb13}\)</span> is a bond-bond-13 term.</p>
+<p><span class="math notranslate nohighlight">\(\theta_1\)</span> and <span class="math notranslate nohighlight">\(\theta_2\)</span> are equilibrium angles and <span class="math notranslate nohighlight">\(r_1\)</span>, <span class="math notranslate nohighlight">\(r_2\)</span>, and
+<span class="math notranslate nohighlight">\(r_3\)</span> are equilibrium bond lengths.</p>
+<p>See <a class="reference internal" href="#dihedral-sun"><span class="std std-ref">(Sun)</span></a> for a description of the COMPASS class2 force field.</p>
+<p>Coefficients for the <span class="math notranslate nohighlight">\(E_d\)</span>, <span class="math notranslate nohighlight">\(E_{mbt}\)</span>, <span class="math notranslate nohighlight">\(E_{ebt}\)</span>,
+<span class="math notranslate nohighlight">\(E_{at}\)</span>, <span class="math notranslate nohighlight">\(E_{aat}\)</span>, and <span class="math notranslate nohighlight">\(E_{bb13}\)</span> formulas must be
+defined for each dihedral type via the <a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a>
+command as in the example above, or in the data file
+or restart files read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> commands.</p>
+<p>These are the 6 coefficients for the <span class="math notranslate nohighlight">\(E_d\)</span> formula:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(K_1\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\phi_1\)</span> (degrees)</p></li>
+<li><p><span class="math notranslate nohighlight">\(K_2\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\phi_2\)</span> (degrees)</p></li>
+<li><p><span class="math notranslate nohighlight">\(K_3\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(phi_3\)</span> (degrees)</p></li>
+</ul>
+<p>For the <span class="math notranslate nohighlight">\(E_{mbt}\)</span> formula, each line in a
+<a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a> command in the input script lists
+5 coefficients, the first of which is <em>mbt</em> to indicate they are
+MiddleBondTorsion coefficients.  In a data file, these coefficients
+should be listed under a <em>MiddleBondTorsion Coeffs</em> heading and you
+must leave out the <em>mbt</em>, i.e. only list 4 coefficients after the
+dihedral type.</p>
+<ul class="simple">
+<li><p><em>mbt</em></p></li>
+<li><p><span class="math notranslate nohighlight">\(A_1\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(A_2\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(A_3\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(r_2\)</span> (distance)</p></li>
+</ul>
+<p>For the <span class="math notranslate nohighlight">\(E_{ebt}\)</span> formula, each line in a
+<a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a> command in the input script lists
+9 coefficients, the first of which is <em>ebt</em> to indicate they are
+EndBondTorsion coefficients.  In a data file, these coefficients
+should be listed under a <em>EndBondTorsion Coeffs</em> heading and you must
+leave out the <em>ebt</em>, i.e. only list 8 coefficients after the dihedral
+type.</p>
+<ul class="simple">
+<li><p><em>ebt</em></p></li>
+<li><p><span class="math notranslate nohighlight">\(B_1\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(B_2\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(B_3\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(C_1\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(C_2\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(C_3\)</span> (energy/distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(r_1\)</span> (distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(r_3\)</span> (distance)</p></li>
+</ul>
+<p>For the <span class="math notranslate nohighlight">\(E_{at}\)</span> formula, each line in a
+<a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a> command in the input script lists
+9 coefficients, the first of which is <em>at</em> to indicate they are
+AngleTorsion coefficients.  In a data file, these coefficients should
+be listed under a <em>AngleTorsion Coeffs</em> heading and you must leave out
+the <em>at</em>, i.e. only list 8 coefficients after the dihedral type.</p>
+<ul class="simple">
+<li><p><em>at</em></p></li>
+<li><p><span class="math notranslate nohighlight">\(D_1\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(D_2\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(D_3\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(E_1\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(E_2\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(E_3\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\theta_1\)</span> (degrees)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\theta_2\)</span> (degrees)</p></li>
+</ul>
+<p><span class="math notranslate nohighlight">\(\theta_1\)</span> and <span class="math notranslate nohighlight">\(\theta_2\)</span> are specified in degrees, but
+LAMMPS converts them to radians internally; hence the various
+<span class="math notranslate nohighlight">\(D\)</span> and <span class="math notranslate nohighlight">\(E\)</span> are effectively energy per radian.</p>
+<p>For the <span class="math notranslate nohighlight">\(E_{aat}\)</span> formula, each line in a <a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a> command in the input script lists 4 coefficients,
+the first of which is <em>aat</em> to indicate they are AngleAngleTorsion
+coefficients.  In a data file, these coefficients should be listed
+under a <em>AngleAngleTorsion Coeffs</em> heading and you must leave out the
+<em>aat</em>, i.e. only list 3 coefficients after the dihedral type.</p>
+<ul class="simple">
+<li><p><em>aat</em></p></li>
+<li><p><span class="math notranslate nohighlight">\(M\)</span> (energy)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\theta_1\)</span> (degrees)</p></li>
+<li><p><span class="math notranslate nohighlight">\(\theta_2\)</span> (degrees)</p></li>
+</ul>
+<p><span class="math notranslate nohighlight">\(\theta_1\)</span> and <span class="math notranslate nohighlight">\(\theta_2\)</span> are specified in degrees, but
+LAMMPS converts them to radians internally; hence <span class="math notranslate nohighlight">\(M\)</span> is
+effectively energy per radian^2.</p>
+<p>For the <span class="math notranslate nohighlight">\(E_{bb13}\)</span> formula, each line in a
+<a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a> command in the input script lists
+4 coefficients, the first of which is <em>bb13</em> to indicate they are
+BondBond13 coefficients.  In a data file, these coefficients should be
+listed under a <em>BondBond13 Coeffs</em> heading and you must leave out the
+<em>bb13</em>, i.e. only list 3 coefficients after the dihedral type.</p>
+<ul class="simple">
+<li><p><em>bb13</em></p></li>
+<li><p><span class="math notranslate nohighlight">\(N\)</span> (energy/distance^2)</p></li>
+<li><p><span class="math notranslate nohighlight">\(r_1\)</span> (distance)</p></li>
+<li><p><span class="math notranslate nohighlight">\(r_3\)</span> (distance)</p></li>
+</ul>
+<hr class="docutils" />
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the <a class="reference internal" href="Speed_packages.html"><span class="doc">Speed packages</span></a> doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
+USER-OMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc page for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Run_options.html"><span class="doc">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can use the
+<a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See the <a class="reference internal" href="Speed_packages.html"><span class="doc">Speed packages</span></a> doc page for more
+instructions on how to use the accelerated styles effectively.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>This dihedral style can only be used if LAMMPS was built with the
+CLASS2 package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc
+page for more info.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>none</p>
+<hr class="docutils" />
+<p id="dihedral-sun"><strong>(Sun)</strong> Sun, J Phys Chem B 102, 7338-7364 (1998).</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="dihedral_cosine_shift_exp.html" class="btn btn-neutral float-right" title="dihedral_style cosine/shift/exp command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="dihedral_charmm.html" class="btn btn-neutral float-left" title="dihedral_style charmm command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

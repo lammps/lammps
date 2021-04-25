@@ -1,0 +1,1673 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>variable command &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="velocity command" href="velocity.html" />
+    <link rel="prev" title="units command" href="units.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="box.html">box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html">dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-vtk-command"><span class="xref std std-doc">dump vtk</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-h5md-command"><span class="xref std std-doc">dump h5md</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-molfile-command"><span class="xref std std-doc">dump molfile</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-netcdf-command"><span class="xref std std-doc">dump netcdf</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-image-command"><span class="xref std std-doc">dump image</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-movie-command"><span class="xref std std-doc">dump movie</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-atom-adios-command"><span class="xref std std-doc">dump atom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-custom-adios-command"><span class="xref std std-doc">dump custom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html">dump atom/adios  command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html#dump-custom-adios-command">dump custom/adios command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_cfg_uef.html">dump cfg/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_h5md.html">dump h5md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html">dump image command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-movie-command">dump movie command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html">dump_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_molfile.html">dump molfile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html">dump netcdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html#dump-netcdf-mpiio-command">dump netcdf/mpiio command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_vtk.html">dump vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html"><span class="xref std std-ref">kim_init</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-interactions-command"><span class="xref std std-ref">kim_interactions</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-query-command"><span class="xref std std-ref">kim_query</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-param-command"><span class="xref std std-ref">kim_param</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html#kim-property-command"><span class="xref std std-ref">kim_property</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="message.html">message command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html#minimize-kk-command">minimize/kk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atom_ids.html">reset_atom_ids command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_mol_ids.html">reset_mol_ids command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server.html">server command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server_mc.html">server mc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="server_md.html">server md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">variable command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#immediate-evaluation-of-variables">Immediate Evaluation of Variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#variable-accuracy">Variable Accuracy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="commands_list.html">Commands</a> &raquo;</li>
+        
+      <li>variable command</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="velocity.html" class="btn btn-neutral float-right" title="velocity command" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="units.html" class="btn btn-neutral float-left" title="units command" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="variable-command">
+<span id="index-0"></span><h1>variable command<a class="headerlink" href="#variable-command" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>variable name style args ...
+</pre></div>
+</div>
+<ul>
+<li><p>name = name of variable to define</p></li>
+<li><p>style = <em>delete</em> or <em>index</em> or <em>loop</em> or <em>world</em> or <em>universe</em> or <em>uloop</em> or <em>string</em> or <em>format</em> or <em>getenv</em> or <em>file</em> or <em>atomfile</em> or <em>python</em> or <em>internal</em> or <em>equal</em> or <em>vector</em> or <em>atom</em></p>
+<pre class="literal-block"><em>delete</em> = no args
+<em>index</em> args = one or more strings
+<em>loop</em> args = N
+  N = integer size of loop, loop from 1 to N inclusive
+<em>loop</em> args = N pad
+  N = integer size of loop, loop from 1 to N inclusive
+  pad = all values will be same length, e.g. 001, 002, ..., 100
+<em>loop</em> args = N1 N2
+  N1,N2 = loop from N1 to N2 inclusive
+<em>loop</em> args = N1 N2 pad
+  N1,N2 = loop from N1 to N2 inclusive
+  pad = all values will be same length, e.g. 050, 051, ..., 100
+<em>world</em> args = one string for each partition of processors
+<em>universe</em> args = one or more strings
+<em>uloop</em> args = N
+  N = integer size of loop
+<em>uloop</em> args = N pad
+  N = integer size of loop
+  pad = all values will be same length, e.g. 001, 002, ..., 100
+<em>string</em> arg = one string
+<em>format</em> args = vname fstr
+  vname = name of equal-style variable to evaluate
+  fstr = C-style format string
+<em>getenv</em> arg = one string
+<em>file</em> arg = filename
+<em>atomfile</em> arg = filename
+<em>python</em> arg = function
+<em>internal</em> arg = numeric value
+<em>equal</em> or <em>vector</em> or <em>atom</em> args = one formula containing numbers, thermo keywords, math operations, group functions, atom values and vectors, compute/fix/variable references
+  numbers = 0.0, 100, -5.4, 2.8e-4, etc
+  constants = PI, version, on, off, true, false, yes, no
+  thermo keywords = vol, ke, press, etc from <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>
+  math operators = (), -x, x+y, x-y, x*y, x/y, x^y, x%y,
+                   x == y, x != y, x &lt; y, x &lt;= y, x &gt; y, x &gt;= y, x &amp;&amp; y, x || y, x |^ y, !x
+  math functions = sqrt(x), exp(x), ln(x), log(x), abs(x),
+                   sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),
+                   random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x)
+                   ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),
+                   logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c),
+                   vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)
+  group functions = count(group), mass(group), charge(group),
+                    xcm(group,dim), vcm(group,dim), fcm(group,dim),
+                    bound(group,dir), gyration(group), ke(group),
+                    angmom(group,dim), torque(group,dim),
+                    inertia(group,dimdim), omega(group,dim)
+  region functions = count(group,region), mass(group,region), charge(group,region),
+                    xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
+                    bound(group,dir,region), gyration(group,region), ke(group,reigon),
+                    angmom(group,dim,region), torque(group,dim,region),
+                    inertia(group,dimdim,region), omega(group,dim,region)
+  special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), gmask(x), rmask(x), grmask(x,y), next(x)
+  feature functions = is_active(category,feature,exact), is_defined(category,id,exact)
+  atom value = id[i], mass[i], type[i], mol[i], x[i], y[i], z[i], vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]
+  atom vector = id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q
+  compute references = c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]
+  fix references = f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]
+  variable references = v_name, v_name[i]</pre>
+</li>
+</ul>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="n">run1</span><span class="w"> </span><span class="n">run2</span><span class="w"> </span><span class="n">run3</span><span class="w"> </span><span class="n">run4</span><span class="w"> </span><span class="n">run5</span><span class="w"> </span><span class="n">run6</span><span class="w"> </span><span class="n">run7</span><span class="w"> </span><span class="n">run8</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">LoopVar</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="nv">$n</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">beta</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">temp</span><span class="o">/</span><span class="m">3.0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">b1</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">x[234]</span><span class="o">+</span><span class="m">0.5</span><span class="o">*</span><span class="n">vol</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">b1</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;x[234] + 0.5*vol&quot;</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">b</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">xcm</span><span class="nv">(mol1,x)</span><span class="o">/</span><span class="m">2.0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">b</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">c_myTemp</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">b</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="o">/</span><span class="n">vol</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">foo</span><span class="w"> </span><span class="n">string</span><span class="w"> </span><span class="n">myfile</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">foo</span><span class="w"> </span><span class="n">internal</span><span class="w"> </span><span class="m">3.5</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">myPy</span><span class="w"> </span><span class="n">python</span><span class="w"> </span><span class="n">increase</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">f</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">values.txt</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">temp</span><span class="w"> </span><span class="n">world</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">310.0</span><span class="w"> </span><span class="m">320.0</span><span class="w"> </span><span class="nv">${</span><span class="nv nv-Identifier">Tfinal</span><span class="err">}</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="n">universe</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">7</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">9</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">11</span><span class="w"> </span><span class="m">12</span><span class="w"> </span><span class="m">13</span><span class="w"> </span><span class="m">14</span><span class="w"> </span><span class="m">15</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="n">uloop</span><span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="n">pad</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">str</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">%</span><span class="n">.6g</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="n">delete</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>This command assigns one or more strings to a variable name for
+evaluation later in the input script or during a simulation.</p>
+<p>Variables can thus be useful in several contexts.  A variable can be
+defined and then referenced elsewhere in an input script to become
+part of a new input command.  For variable styles that store multiple
+strings, the <a class="reference internal" href="next.html"><span class="doc">next</span></a> command can be used to increment which
+string is assigned to the variable.  Variables of style <em>equal</em> store
+a formula which when evaluated produces a single numeric value which
+can be output either directly (see the <a class="reference internal" href="print.html"><span class="doc">print</span></a>, <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a>, and <a class="reference internal" href="run.html"><span class="doc">run every</span></a> commands) or as part
+of thermodynamic output (see the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>
+command), or used as input to an averaging fix (see the <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a> command).  Variables of style <em>vector</em>
+store a formula which produces a vector of such values which can be
+used as input to various averaging fixes, or elements of which can be
+part of thermodynamic output.  Variables of style <em>atom</em> store a
+formula which when evaluated produces one numeric value per atom which
+can be output to a dump file (see the <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command)
+or used as input to an averaging fix (see the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a> and <a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix ave/atom</span></a>
+commands).  Variables of style <em>atomfile</em> can be used anywhere in an
+input script that atom-style variables are used; they get their
+per-atom values from a file rather than from a formula.  Variables of
+style <em>python</em> can be hooked to Python functions using code you
+provide, so that the variable gets its value from the evaluation of
+the Python code.  Variables of style <em>internal</em> are used by a few
+commands which set their value directly.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As discussed on the <a class="reference internal" href="Commands_parse.html"><span class="doc">Commands parse</span></a> doc
+page, an input script can use “immediate” variables, specified as
+$(formula) with parenthesis, where the formula has the same syntax as
+equal-style variables described on this page.  This is a convenient
+way to evaluate a formula immediately without using the variable
+command to define a named variable and then evaluate that
+variable. See below for a more detailed discussion of this feature.</p>
+</div>
+<p>In the discussion that follows, the “name” of the variable is the
+arbitrary string that is the first argument in the variable command.
+This name can only contain alphanumeric characters and underscores.
+The “string” is one or more of the subsequent arguments.  The “string”
+can be simple text as in the first example above, it can contain other
+variables as in the second example, or it can be a formula as in the third
+example.  The “value” is the numeric quantity resulting from
+evaluation of the string.  Note that the same string can generate
+different values when it is evaluated at different times during a
+simulation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When an input script line is encountered that defines a variable
+of style <em>equal</em> or <em>vector</em> or <em>atom</em> or <em>python</em> that contains a
+formula or Python code, the formula is NOT immediately evaluated.  It
+will be evaluated every time when the variable is <strong>used</strong> instead.  If
+you simply want to evaluate a formula in place you can use as
+so-called. See the section below about “Immediate Evaluation of
+Variables” for more details on the topic.  This is also true of a
+<em>format</em> style variable since it evaluates another variable when it is
+invoked.</p>
+</div>
+<p>Variables of style <em>equal</em> and <em>vector</em> and <em>atom</em> can be used as
+inputs to various other commands which evaluate their formulas as
+needed, e.g. at different timesteps during a <a class="reference internal" href="run.html"><span class="doc">run</span></a>.</p>
+<p>Variables of style <em>internal</em> can be used in place of an equal-style
+variable, except by commands that set the value stored by the
+internal-style variable.  Thus any command that states it can use an
+equal-style variable as an argument, can also use an internal-style
+variable.  This means that when the command evaluates the variable, it
+will use the value set (internally) by another command.</p>
+<p>Variables of style <em>python</em> can be used in place of an equal-style
+variable so long as the associated Python function, as defined by the
+<a class="reference internal" href="python.html"><span class="doc">python</span></a> command, returns a numeric value.  Thus any
+command that states it can use an equal-style variable as an argument,
+can also use such a python-style variable.  This means that when the
+LAMMPS command evaluates the variable, the Python function will be
+executed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When a variable command is encountered in the input script and
+the variable name has already been specified, the command is ignored.
+This means variables can NOT be re-defined in an input script (with
+two exceptions, read further).  This is to allow an input script to be
+processed multiple times without resetting the variables; see the
+<a class="reference internal" href="jump.html"><span class="doc">jump</span></a> or <a class="reference internal" href="include.html"><span class="doc">include</span></a> commands.  It also means
+that using the <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> -var will
+override a corresponding index variable setting in the input script.</p>
+</div>
+<p>There are two exceptions to this rule.  First, variables of style
+<em>string</em>, <em>getenv</em>, <em>internal</em>, <em>equal</em>, <em>vector</em>, <em>atom</em>, and
+<em>python</em> ARE redefined each time the command is encountered.  This
+allows these style of variables to be redefined multiple times in an
+input script.  In a loop, this means the formula associated with an
+<em>equal</em> or <em>atom</em> style variable can change if it contains a
+substitution for another variable, e.g. $x or v_x.</p>
+<p>Second, as described below, if a variable is iterated on to the end of
+its list of strings via the <a class="reference internal" href="next.html"><span class="doc">next</span></a> command, it is removed
+from the list of active variables, and is thus available to be
+re-defined in a subsequent variable command.  The <em>delete</em> style does
+the same thing.</p>
+<hr class="docutils" />
+<p>The <a class="reference internal" href="Commands_parse.html"><span class="doc">Commands parse</span></a> doc page explains how
+occurrences of a variable name in an input script line are replaced by
+the variable’s string.  The variable name can be referenced as $x if
+the name “x” is a single character, or as ${LoopVar} if the name
+“LoopVar” is one or more characters.</p>
+<p>As described below, for variable styles <em>index</em>, <em>loop</em>, <em>file</em>,
+<em>universe</em>, and <em>uloop</em>, which string is assigned to a variable can be
+incremented via the <a class="reference internal" href="next.html"><span class="doc">next</span></a> command.  When there are no more
+strings to assign, the variable is exhausted and a flag is set that
+causes the next <a class="reference internal" href="jump.html"><span class="doc">jump</span></a> command encountered in the input
+script to be skipped.  This enables the construction of simple loops
+in the input script that are iterated over and then exited from.</p>
+<p>As explained above, an exhausted variable can be re-used in an input
+script.  The <em>delete</em> style also removes the variable, the same as if
+it were exhausted, allowing it to be redefined later in the input
+script or when the input script is looped over.  This can be useful
+when breaking out of a loop via the <a class="reference internal" href="if.html"><span class="doc">if</span></a> and <a class="reference internal" href="jump.html"><span class="doc">jump</span></a>
+commands before the variable would become exhausted.  For example,</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">label</span><span class="w">       </span><span class="n">loop</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">a</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="m">5</span><span class="w"></span>
+<span class="k">print</span><span class="w">       </span><span class="s">&quot;A = $a&quot;</span><span class="w"></span>
+<span class="k">if</span><span class="w">          </span><span class="s">&quot;$a &gt; 2&quot;</span><span class="w"> </span><span class="n">then</span><span class="w"> </span><span class="s">&quot;jump in.script break&quot;</span><span class="w"></span>
+<span class="k">next</span><span class="w">        </span><span class="n">a</span><span class="w"></span>
+<span class="k">jump</span><span class="w">        </span><span class="n">in.script</span><span class="w"> </span><span class="n">loop</span><span class="w"></span>
+<span class="k">label</span><span class="w">       </span><span class="n">break</span><span class="w"></span>
+<span class="k">variable    </span><span class="nv nv-Identifier">a</span><span class="w"> </span><span class="n">delete</span><span class="w"></span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>This section describes how all the various variable styles are defined
+and what they store.  Except for the <em>equal</em> and <em>vector</em> and <em>atom</em>
+styles, which are explained in the next section.</p>
+<p>Many of the styles store one or more strings.  Note that a single
+string can contain spaces (multiple words), if it is enclosed in
+quotes in the variable command.  When the variable is substituted for
+in another input script command, its returned string will then be
+interpreted as multiple arguments in the expanded command.</p>
+<p>For the <em>index</em> style, one or more strings are specified.  Initially,
+the first string is assigned to the variable.  Each time a
+<a class="reference internal" href="next.html"><span class="doc">next</span></a> command is used with the variable name, the next
+string is assigned.  All processors assign the same string to the
+variable.</p>
+<p><em>Index</em> style variables with a single string value can also be set by
+using the <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch -var</span></a>.</p>
+<p>The <em>loop</em> style is identical to the <em>index</em> style except that the
+strings are the integers from 1 to N inclusive, if only one argument N
+is specified.  This allows generation of a long list of runs
+(e.g. 1000) without having to list N strings in the input script.
+Initially, the string “1” is assigned to the variable.  Each time a
+<a class="reference internal" href="next.html"><span class="doc">next</span></a> command is used with the variable name, the next
+string (“2”, “3”, etc) is assigned.  All processors assign the same
+string to the variable.  The <em>loop</em> style can also be specified with
+two arguments N1 and N2.  In this case the loop runs from N1 to N2
+inclusive, and the string N1 is initially assigned to the variable.
+N1 &lt;= N2 and N2 &gt;= 0 is required.</p>
+<p>For the <em>world</em> style, one or more strings are specified.  There must
+be one string for each processor partition or “world”.  LAMMPS can be
+run with multiple partitions via the <a class="reference internal" href="Run_options.html"><span class="doc">-partition command-line switch</span></a>.  This variable command assigns one string to
+each world.  All processors in the world are assigned the same string.
+The next command cannot be used with <em>equal</em> style variables, since
+there is only one value per world.  This style of variable is useful
+when you wish to run different simulations on different partitions, or
+when performing a parallel tempering simulation (see the
+<a class="reference internal" href="temper.html"><span class="doc">temper</span></a> command), to assign different temperatures to
+different partitions.</p>
+<p>For the <em>universe</em> style, one or more strings are specified.  There
+must be at least as many strings as there are processor partitions or
+“worlds”.  LAMMPS can be run with multiple partitions via the
+<a class="reference internal" href="Run_options.html"><span class="doc">-partition command-line switch</span></a>.  This variable
+command initially assigns one string to each world.  When a
+<a class="reference internal" href="next.html"><span class="doc">next</span></a> command is encountered using this variable, the first
+processor partition to encounter it, is assigned the next available
+string.  This continues until all the variable strings are consumed.
+Thus, this command can be used to run 50 simulations on 8 processor
+partitions.  The simulations will be run one after the other on
+whatever partition becomes available, until they are all finished.
+<em>Universe</em> style variables are incremented using the files
+“tmp.lammps.variable” and “tmp.lammps.variable.lock” which you will
+see in your directory during such a LAMMPS run.</p>
+<p>The <em>uloop</em> style is identical to the <em>universe</em> style except that the
+strings are the integers from 1 to N.  This allows generation of long
+list of runs (e.g. 1000) without having to list N strings in the input
+script.</p>
+<p>For the <em>string</em> style, a single string is assigned to the variable.
+Two differences between this style and using the <em>index</em> style exist:
+a variable with <em>string</em> style can be redefined, e.g. by another command later
+in the input script, or if the script is read again in a loop. The other
+difference is that <em>string</em> performs variable substitution even if the
+string parameter is quoted.</p>
+<p>For the <em>format</em> style, an equal-style variable is specified along
+with a C-style format string, e.g. “%f” or “%.10g”, which must be
+appropriate for formatting a double-precision floating-point value.
+The default format is “%.15g”.  This variable style allows an
+equal-style variable to be formatted precisely when it is evaluated.</p>
+<p>If you simply wish to print a variable value with desired precision to
+the screen or logfile via the <a class="reference internal" href="print.html"><span class="doc">print</span></a> or <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a> commands, you can also do this by specifying an
+“immediate” variable with a trailing colon and format string, as part
+of the string argument of those commands.  This is explained on the
+<a class="reference internal" href="Commands_parse.html"><span class="doc">Commands parse</span></a> doc page.</p>
+<p>For the <em>getenv</em> style, a single string is assigned to the variable
+which should be the name of an environment variable.  When the
+variable is evaluated, it returns the value of the environment
+variable, or an empty string if it not defined.  This style of
+variable can be used to adapt the behavior of LAMMPS input scripts via
+environment variable settings, or to retrieve information that has
+been previously stored with the <a class="reference internal" href="shell.html"><span class="doc">shell putenv</span></a> command.
+Note that because environment variable settings are stored by the
+operating systems, they persist beyond a <a class="reference internal" href="clear.html"><span class="doc">clear</span></a> command.</p>
+<p>For the <em>file</em> style, a filename is provided which contains a list of
+strings to assign to the variable, one per line.  The strings can be
+numeric values if desired.  See the discussion of the next() function
+below for equal-style variables, which will convert the string of a
+file-style variable into a numeric value in a formula.</p>
+<p>When a file-style variable is defined, the file is opened and the
+string on the first line is read and stored with the variable.  This
+means the variable can then be evaluated as many times as desired and
+will return that string.  There are two ways to cause the next string
+from the file to be read: use the <a class="reference internal" href="next.html"><span class="doc">next</span></a> command or the
+next() function in an equal- or atom-style variable, as discussed
+below.</p>
+<p>The rules for formatting the file are as follows.  A comment character
+“#” can be used anywhere on a line; text starting with the comment
+character is stripped.  Blank lines are skipped.  The first “word” of
+a non-blank line, delimited by white-space, is the “string” assigned
+to the variable.</p>
+<p>For the <em>atomfile</em> style, a filename is provided which contains one or
+more sets of values, to assign on a per-atom basis to the variable.
+The format of the file is described below.</p>
+<p>When an atomfile-style variable is defined, the file is opened and the
+first set of per-atom values are read and stored with the variable.
+This means the variable can then be evaluated as many times as desired
+and will return those values.  There are two ways to cause the next
+set of per-atom values from the file to be read: use the
+<a class="reference internal" href="next.html"><span class="doc">next</span></a> command or the next() function in an atom-style
+variable, as discussed below.</p>
+<p>The rules for formatting the file are as follows.  Each time a set of
+per-atom values is read, a non-blank line is searched for in the file.
+A comment character “#” can be used anywhere on a line; text starting
+with the comment character is stripped.  Blank lines are skipped.  The
+first “word” of a non-blank line, delimited by white-space, is read as
+the count N of per-atom lines to immediately follow.  N can be the
+total number of atoms in the system, or only a subset.  The next N
+lines have the following format</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ID value
+</pre></div>
+</div>
+<p>where ID is an atom ID and value is the per-atom numeric value that
+will be assigned to that atom.  IDs can be listed in any order.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Every time a set of per-atom lines is read, the value for all
+atoms is first set to 0.0.  Thus values for atoms whose ID does not
+appear in the set, will remain 0.0.</p>
+</div>
+<p>For the <em>python</em> style a Python function name is provided.  This needs
+to match a function name specified in a <a class="reference internal" href="python.html"><span class="doc">python</span></a> command
+which returns a value to this variable as defined by its <em>return</em>
+keyword.  For example these two commands would be self-consistent:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">foo</span><span class="w"> </span><span class="n">python</span><span class="w"> </span><span class="n">myMultiply</span><span class="w"></span>
+<span class="k">python</span><span class="w"> </span><span class="n">myMultiply</span><span class="w"> </span><span class="n">return</span><span class="w"> </span><span class="n">v_foo</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">funcs.py</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The two commands can appear in either order so long as both are
+specified before the Python function is invoked for the first time.</p>
+<p>Each time the variable is evaluated, the associated Python function is
+invoked, and the value it returns is also returned by the variable.
+Since the Python function can use other LAMMPS variables as input, or
+query interal LAMMPS quantities to perform its computation, this means
+the variable can return a different value each time it is evaluated.</p>
+<p>The type of value stored in the variable is determined by the <em>format</em>
+keyword of the <a class="reference internal" href="python.html"><span class="doc">python</span></a> command.  It can be an integer
+(i), floating point (f), or string (s) value.  As mentioned above, if
+it is a numeric value (integer or floating point), then the
+python-style variable can be used in place of an equal-style variable
+anywhere in an input script, e.g. as an argument to another command
+that allows for equal-style variables.</p>
+<p>For the <em>internal</em> style a numeric value is provided.  This value will
+be assigned to the variable until a LAMMPS command sets it to a new
+value.  There are currently only two LAMMPS commands that require
+<em>internal</em> variables as inputs, because they reset them:
+<a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> and <a class="reference internal" href="fix_controller.html"><span class="doc">fix controller</span></a>.  As mentioned above, an
+internal-style variable can be used in place of an equal-style
+variable anywhere else in an input script, e.g. as an argument to
+another command that allows for equal-style variables.</p>
+<hr class="docutils" />
+<p>For the <em>equal</em> and <em>vector</em> and <em>atom</em> styles, a single string is
+specified which represents a formula that will be evaluated afresh
+each time the variable is used.  If you want spaces in the string,
+enclose it in double quotes so the parser will treat it as a single
+argument.  For <em>equal</em>-style variables the formula computes a scalar
+quantity, which becomes the value of the variable whenever it is
+evaluated.  For <em>vector</em>-style variables the formula must compute a
+vector of quantities, which becomes the value of the variable whenever
+it is evaluated.  The calculated vector can be on length one, but it
+cannot be a simple scalar value like that produced by an equal-style
+compute.  I.e. the formula for a vector-style variable must have at
+least one quantity in it that refers to a global vector produced by a
+compute, fix, or other vector-style variable.  For <em>atom</em>-style
+variables the formula computes one quantity for each atom whenever it
+is evaluated.</p>
+<p>Note that <em>equal</em>, <em>vector</em>, and <em>atom</em> variables can produce
+different values at different stages of the input script or at
+different times during a run.  For example, if an <em>equal</em> variable is
+used in a <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a> command, different values could
+be printed each timestep it was invoked.  If you want a variable to be
+evaluated immediately, so that the result is stored by the variable
+instead of the string, see the section below on “Immediate Evaluation
+of Variables”.</p>
+<p>The next command cannot be used with <em>equal</em> or <em>vector</em> or <em>atom</em>
+style variables, since there is only one string.</p>
+<p>The formula for an <em>equal</em>, <em>vector</em>, or <em>atom</em> variable can contain a
+variety of quantities.  The syntax for each kind of quantity is
+simple, but multiple quantities can be nested and combined in various
+ways to build up formulas of arbitrary complexity.  For example, this
+is a valid (though strange) variable formula:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;pe + c_MyTemp / vol^(1/3)&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Specifically, a formula can contain numbers, constants, thermo
+keywords, math operators, math functions, group functions, region
+functions, atom values, atom vectors, compute references, fix
+references, and references to other variables.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 5%" />
+<col style="width: 95%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Number</p></td>
+<td><p>0.2, 100, 1.0e20, -15.4, etc</p></td>
+</tr>
+<tr class="row-even"><td><p>Constant</p></td>
+<td><p>PI, version, on, off, true, false, yes, no</p></td>
+</tr>
+<tr class="row-odd"><td><p>Thermo keywords</p></td>
+<td><p>vol, pe, ebond, etc</p></td>
+</tr>
+<tr class="row-even"><td><p>Math operators</p></td>
+<td><p>(), -x, x+y, x-y, x*y, x/y, x^y, x%y,      x == y, x != y, x &lt; y, x &lt;= y, x &gt; y, x &gt;= y, x &amp;&amp; y, x || y, x |^ y, !x</p></td>
+</tr>
+<tr class="row-odd"><td><p>Math functions</p></td>
+<td><p>sqrt(x), exp(x), ln(x), log(x), abs(x),      sin(x), cos(x), tan(x), asin(x), acos(x), atan(x), atan2(y,x),      random(x,y,z), normal(x,y,z), ceil(x), floor(x), round(x),      ramp(x,y), stagger(x,y), logfreq(x,y,z), logfreq2(x,y,z),      logfreq3(x,y,z), stride(x,y,z), stride2(x,y,z,a,b,c),      vdisplace(x,y), swiggle(x,y,z), cwiggle(x,y,z)</p></td>
+</tr>
+<tr class="row-even"><td><p>Group functions</p></td>
+<td><p>count(ID), mass(ID), charge(ID), xcm(ID,dim),      vcm(ID,dim), fcm(ID,dim), bound(ID,dir),      gyration(ID), ke(ID), angmom(ID,dim), torque(ID,dim),      inertia(ID,dimdim), omega(ID,dim)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Region functions</p></td>
+<td><p>count(ID,IDR), mass(ID,IDR), charge(ID,IDR),      xcm(ID,dim,IDR), vcm(ID,dim,IDR), fcm(ID,dim,IDR),      bound(ID,dir,IDR), gyration(ID,IDR), ke(ID,IDR),      angmom(ID,dim,IDR), torque(ID,dim,IDR),      inertia(ID,dimdim,IDR), omega(ID,dim,IDR)</p></td>
+</tr>
+<tr class="row-even"><td><p>Special functions</p></td>
+<td><p>sum(x), min(x), max(x), ave(x), trap(x),      slope(x), gmask(x), rmask(x), grmask(x,y), next(x)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Atom values</p></td>
+<td><p>id[i], mass[i], type[i], mol[i], x[i], y[i], z[i],              vx[i], vy[i], vz[i], fx[i], fy[i], fz[i], q[i]</p></td>
+</tr>
+<tr class="row-even"><td><p>Atom vectors</p></td>
+<td><p>id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q</p></td>
+</tr>
+<tr class="row-odd"><td><p>Compute references</p></td>
+<td><p>c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]</p></td>
+</tr>
+<tr class="row-even"><td><p>Fix references</p></td>
+<td><p>f_ID, f_ID[i], f_ID[i][j], F_ID, F_ID[i]</p></td>
+</tr>
+<tr class="row-odd"><td><p>Other variables</p></td>
+<td><p>v_name, v_name[i]</p></td>
+</tr>
+</tbody>
+</table>
+<p>Most of the formula elements produce a scalar value.  Some produce a
+global or per-atom vector of values.  Global vectors can be produced
+by computes or fixes or by other vector-style variables.  Per-atom
+vectors are produced by atom vectors, compute references that
+represent a per-atom vector, fix references that represent a per-atom
+vector, and variables that are atom-style variables.  Math functions
+that operate on scalar values produce a scalar value; math function
+that operate on global or per-atom vectors do so element-by-element
+and produce a global or per-atom vector.</p>
+<p>A formula for equal-style variables cannot use any formula element
+that produces a global or per-atom vector.  A formula for a
+vector-style variable can use formula elements that produce either a
+scalar value or a global vector value, but cannot use a formula
+element that produces a per-atom vector.  A formula for an atom-style
+variable can use formula elements that produce either a scalar value
+or a per-atom vector, but not one that produces a global vector.
+Atom-style variables are evaluated by other commands that define a
+<a class="reference internal" href="group.html"><span class="doc">group</span></a> on which they operate, e.g. a <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> or
+<a class="reference internal" href="compute.html"><span class="doc">compute</span></a> or <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command.  When they invoke
+the atom-style variable, only atoms in the group are included in the
+formula evaluation.  The variable evaluates to 0.0 for atoms not in
+the group.</p>
+<hr class="docutils" />
+<div class="section" id="numbers-constants-and-thermo-keywords">
+<h3>Numbers, constants, and thermo keywords<a class="headerlink" href="#numbers-constants-and-thermo-keywords" title="Permalink to this headline">¶</a></h3>
+<p>Numbers can contain digits, scientific notation
+(3.0e20,3.0e-20,3.0E20,3.0E-20), and leading minus signs.</p>
+<p>Constants are set at compile time and cannot be changed. <em>PI</em> will
+return the number 3.14159265358979323846; <em>on</em>, <em>true</em> or <em>yes</em> will
+return 1.0; <em>off</em>, <em>false</em> or <em>no</em> will return 0.0; <em>version</em> will
+return a numeric version code of the current LAMMPS version (e.g.
+version 2 Sep 2015 will return the number 20150902). The corresponding
+value for newer versions of LAMMPS will be larger, for older versions
+of LAMMPS will be smaller. This can be used to have input scripts
+adapt automatically to LAMMPS versions, when non-backwards compatible
+syntax changes are introduced. Here is an illustrative example (which
+will not work, since the <em>version</em> has been introduced more recently):</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="nv">$(version&lt;20140513)</span><span class="w"> </span><span class="n">then</span><span class="w"> </span><span class="s">&quot;communicate vel yes&quot;</span><span class="w"> </span><span class="n">else</span><span class="w"> </span><span class="s">&quot;comm_modify vel yes&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The thermo keywords allowed in a formula are those defined by the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command.  Thermo keywords that
+require a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> to calculate their values such as
+“temp” or “press”, use computes stored and invoked by the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command.  This means that you can
+only use those keywords in a variable if the style you are using with
+the thermo_style command (and the thermo keywords associated with that
+style) also define and use the needed compute.  Note that some thermo
+keywords use a compute indirectly to calculate their value (e.g. the
+enthalpy keyword uses temp, pe, and pressure).  If a variable is
+evaluated directly in an input script (not during a run), then the
+values accessed by the thermo keyword must be current.  See the
+discussion below about “Variable Accuracy”.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="math-operators">
+<h3>Math Operators<a class="headerlink" href="#math-operators" title="Permalink to this headline">¶</a></h3>
+<p>Math operators are written in the usual way, where the “x” and “y” in
+the examples can themselves be arbitrarily complex formulas, as in the
+examples above.  In this syntax, “x” and “y” can be scalar values or
+per-atom vectors.  For example, “ke/natoms” is the division of two
+scalars, where “vy+vz” is the element-by-element sum of two per-atom
+vectors of y and z velocities.</p>
+<p>Operators are evaluated left to right and have the usual C-style
+precedence: unary minus and unary logical NOT operator “!” have the
+highest precedence, exponentiation “^” is next; multiplication and
+division and the modulo operator “%” are next; addition and
+subtraction are next; the 4 relational operators “&lt;”, “&lt;=”, “&gt;”, and
+“&gt;=” are next; the two remaining relational operators “==” and “!=”
+are next; then the logical AND operator “&amp;&amp;”; and finally the logical
+OR operator “||” and logical XOR (exclusive or) operator “|^” have the
+lowest precedence.  Parenthesis can be used to group one or more
+portions of a formula and/or enforce a different order of evaluation
+than what would occur with the default precedence.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because a unary minus is higher precedence than exponentiation,
+the formula “-2^2” will evaluate to 4, not -4.  This convention is
+compatible with some programming languages, but not others.  As
+mentioned, this behavior can be easily overridden with parenthesis;
+the formula “-(2^2)” will evaluate to -4.</p>
+</div>
+<p>The 6 relational operators return either a 1.0 or 0.0 depending on
+whether the relationship between x and y is TRUE or FALSE.  For
+example the expression x&lt;10.0 in an atom-style variable formula will
+return 1.0 for all atoms whose x-coordinate is less than 10.0, and 0.0
+for the others.  The logical AND operator will return 1.0 if both its
+arguments are non-zero, else it returns 0.0.  The logical OR operator
+will return 1.0 if either of its arguments is non-zero, else it
+returns 0.0.  The logical XOR operator will return 1.0 if one of its
+arguments is zero and the other non-zero, else it returns 0.0.  The
+logical NOT operator returns 1.0 if its argument is 0.0, else it
+returns 0.0.</p>
+<p>These relational and logical operators can be used as a masking or
+selection operation in a formula.  For example, the number of atoms
+whose properties satisfy one or more criteria could be calculated by
+taking the returned per-atom vector of ones and zeroes and passing it
+to the <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a> command.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="math-functions">
+<h3>Math Functions<a class="headerlink" href="#math-functions" title="Permalink to this headline">¶</a></h3>
+<p>Math functions are specified as keywords followed by one or more
+parenthesized arguments “x”, “y”, “z”, each of which can themselves be
+arbitrarily complex formulas.  In this syntax, the arguments can
+represent scalar values or global vectors or per-atom vectors.  In the
+latter case, the math operation is performed on each element of the
+vector.  For example, “sqrt(natoms)” is the sqrt() of a scalar, where
+“sqrt(y*z)” yields a per-atom vector with each element being the
+sqrt() of the product of one atom’s y and z coordinates.</p>
+<p>Most of the math functions perform obvious operations.  The ln() is
+the natural log; log() is the base 10 log.</p>
+<p>The random(x,y,z) function takes 3 arguments: x = lo, y = hi, and z =
+seed.  It generates a uniform random number between lo and hi.  The
+normal(x,y,z) function also takes 3 arguments: x = mu, y = sigma, and
+z = seed.  It generates a Gaussian variate centered on mu with
+variance sigma^2.  In both cases the seed is used the first time the
+internal random number generator is invoked, to initialize it.  For
+equal-style and vector-style variables, every processor uses the same
+seed so that they each generate the same sequence of random numbers.
+For atom-style variables, a unique seed is created for each processor,
+based on the specified seed.  This effectively generates a different
+random number for each atom being looped over in the atom-style
+variable.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Internally, there is just one random number generator for all
+equal-style and vector-style variables and another one for all
+atom-style variables.  If you define multiple variables (of each
+style) which use the random() or normal() math functions, then the
+internal random number generators will only be initialized once, which
+means only one of the specified seeds will determine the sequence of
+generated random numbers.</p>
+</div>
+<p>The ceil(), floor(), and round() functions are those in the C math
+library.  Ceil() is the smallest integer not less than its argument.
+Floor() if the largest integer not greater than its argument.  Round()
+is the nearest integer to its argument.</p>
+<p>The ramp(x,y) function uses the current timestep to generate a value
+linearly interpolated between the specified x,y values over the course
+of a run, according to this formula:</p>
+<pre class="literal-block">value = x + (y-x) * (timestep-startstep) / (stopstep-startstep)</pre>
+<p>The run begins on startstep and ends on stopstep.  Startstep and
+stopstep can span multiple runs, using the <em>start</em> and <em>stop</em> keywords
+of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command for
+details of how to do this.</p>
+<p>The stagger(x,y) function uses the current timestep to generate a new
+timestep.  X,y &gt; 0 and x &gt; y are required.  The generated timesteps
+increase in a staggered fashion, as the sequence
+x,x+y,2x,2x+y,3x,3x+y,etc.  For any current timestep, the next
+timestep in the sequence is returned.  Thus if stagger(1000,100) is
+used in a variable by the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a>
+command, it will generate the sequence of output timesteps:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>100,1000,1100,2000,2100,3000,etc
+</pre></div>
+</div>
+<p>The logfreq(x,y,z) function uses the current timestep to generate a
+new timestep.  X,y,z &gt; 0 and y &lt; z are required.  The generated
+timesteps are on a base-z logarithmic scale, starting with x, and the
+y value is how many of the z-1 possible timesteps within one
+logarithmic interval are generated.  I.e. the timesteps follow the
+sequence x,2x,3x,…y*x,x*z,2x*z,3x*z,…y*x*z,x*z^2,2x*z^2,etc.  For
+any current timestep, the next timestep in the sequence is returned.
+Thus if logfreq(100,4,10) is used in a variable by the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command, it will generate this sequence of
+output timesteps:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>100,200,300,400,1000,2000,3000,4000,10000,20000,etc
+</pre></div>
+</div>
+<p>The logfreq2(x,y,z) function is similar to logfreq, except a single
+logarithmic interval is divided into y equally-spaced timesteps and
+all of them are output.  Y &lt; z is not required.  Thus, if
+logfreq2(100,18,10) is used in a variable by the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command, then the interval between 100 and
+1000 is divided as 900/18 = 50 steps, and it will generate the
+sequence of output timesteps:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>100,150,200,...950,1000,1500,2000,...9500,10000,15000,etc
+</pre></div>
+</div>
+<p>The logfreq3(x,y,z) function generates y points between x and z (inclusive),
+that are separated by a multiplicative ratio: (z/x)^(1/(y-1)). Constraints
+are: x,z &gt; 0, y &gt; 1, z-x &gt;= y-1. For eg., if logfreq3(10,25,1000) is used in
+a variable by the <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a> command, then the interval
+between 10 and 1000 is divided into 24 parts with a multiplicative
+separation of ~1.21, and it will generate the following sequence of output
+timesteps:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>10, 13, 15, 18, 22, 27, 32,...384, 465, 563, 682, 826, 1000
+</pre></div>
+</div>
+<p>The stride(x,y,z) function uses the current timestep to generate a new
+timestep.  X,y &gt;= 0 and z &gt; 0 and x &lt;= y are required.  The generated
+timesteps increase in increments of z, from x to y, i.e. it generates
+the sequence x,x+z,x+2z,…,y.  If y-x is not a multiple of z, then
+similar to the way a for loop operates, the last value will be one
+that does not exceed y.  For any current timestep, the next timestep
+in the sequence is returned.  Thus if stride(1000,2000,100) is used
+in a variable by the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command, it
+will generate the sequence of output timesteps:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>1000,1100,1200, ... ,1900,2000
+</pre></div>
+</div>
+<p>The stride2(x,y,z,a,b,c) function is similar to the stride() function
+except it generates two sets of strided timesteps, one at a coarser
+level and one at a finer level.  Thus it is useful for debugging,
+e.g. to produce output every timestep at the point in simulation when
+a problem occurs.  X,y &gt;= 0 and z &gt; 0 and x &lt;= y are required, as are
+a,b &gt;= 0 and c &gt; 0 and a &lt; b.  Also, a &gt;= x and b &lt;= y are required so
+that the second stride is inside the first.  The generated timesteps
+increase in increments of z, starting at x, until a is reached.  At
+that point the timestep increases in increments of c, from a to b,
+then after b, increments by z are resumed until y is reached.  For any
+current timestep, the next timestep in the sequence is returned.  Thus
+if stride2(1000,2000,100,1350,1360,1) is used in a variable by the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command, it will generate the
+sequence of output timesteps:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>1000,1100,1200,1300,1350,1351,1352, ... 1359,1360,1400,1500, ... ,2000
+</pre></div>
+</div>
+<p>The vdisplace(x,y) function takes 2 arguments: x = value0 and y =
+velocity, and uses the elapsed time to change the value by a linear
+displacement due to the applied velocity over the course of a run,
+according to this formula:</p>
+<pre class="literal-block">value = value0 + velocity*(timestep-startstep)*dt</pre>
+<p>where dt = the timestep size.</p>
+<p>The run begins on startstep.  Startstep can span multiple runs, using
+the <em>start</em> keyword of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the
+<a class="reference internal" href="run.html"><span class="doc">run</span></a> command for details of how to do this.  Note that the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> keyword elaplong =
+timestep-startstep.</p>
+<p>The swiggle(x,y,z) and cwiggle(x,y,z) functions each take 3 arguments:
+x = value0, y = amplitude, z = period.  They use the elapsed time to
+oscillate the value by a sin() or cos() function over the course of a
+run, according to one of these formulas, where omega = 2 PI / period:</p>
+<pre class="literal-block">value = value0 + Amplitude * sin(omega*(timestep-startstep)*dt)
+value = value0 + Amplitude * (1 - cos(omega*(timestep-startstep)*dt))</pre>
+<p>where dt = the timestep size.</p>
+<p>The run begins on startstep.  Startstep can span multiple runs, using
+the <em>start</em> keyword of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  See the
+<a class="reference internal" href="run.html"><span class="doc">run</span></a> command for details of how to do this.  Note that the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> keyword elaplong =
+timestep-startstep.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="group-and-region-functions">
+<h3>Group and Region Functions<a class="headerlink" href="#group-and-region-functions" title="Permalink to this headline">¶</a></h3>
+<p>Group functions are specified as keywords followed by one or two
+parenthesized arguments.  The first argument <em>ID</em> is the group-ID.
+The <em>dim</em> argument, if it exists, is <em>x</em> or <em>y</em> or <em>z</em>.  The <em>dir</em>
+argument, if it exists, is <em>xmin</em>, <em>xmax</em>, <em>ymin</em>, <em>ymax</em>, <em>zmin</em>, or
+<em>zmax</em>.  The <em>dimdim</em> argument, if it exists, is <em>xx</em> or <em>yy</em> or <em>zz</em>
+or <em>xy</em> or <em>yz</em> or <em>xz</em>.</p>
+<p>The group function count() is the number of atoms in the group.  The
+group functions mass() and charge() are the total mass and charge of
+the group.  Xcm() and vcm() return components of the position and
+velocity of the center of mass of the group.  Fcm() returns a
+component of the total force on the group of atoms.  Bound() returns
+the min/max of a particular coordinate for all atoms in the group.
+Gyration() computes the radius-of-gyration of the group of atoms.  See
+the <a class="reference internal" href="compute_gyration.html"><span class="doc">compute gyration</span></a> command for a definition
+of the formula.  Angmom() returns components of the angular momentum
+of the group of atoms around its center of mass.  Torque() returns
+components of the torque on the group of atoms around its center of
+mass, based on current forces on the atoms.  Inertia() returns one of
+6 components of the symmetric inertia tensor of the group of atoms
+around its center of mass, ordered as Ixx,Iyy,Izz,Ixy,Iyz,Ixz.
+Omega() returns components of the angular velocity of the group of
+atoms around its center of mass.</p>
+<p>Region functions are specified exactly the same way as group functions
+except they take an extra final argument <em>IDR</em> which is the region ID.
+The function is computed for all atoms that are in both the group and
+the region.  If the group is “all”, then the only criteria for atom
+inclusion is that it be in the region.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="special-functions">
+<h3>Special Functions<a class="headerlink" href="#special-functions" title="Permalink to this headline">¶</a></h3>
+<p>Special functions take specific kinds of arguments, meaning their
+arguments cannot be formulas themselves.</p>
+<p>The sum(x), min(x), max(x), ave(x), trap(x), and slope(x) functions
+each take 1 argument which is of the form “c_ID” or “c_ID[N]” or
+“f_ID” or “f_ID[N]” or “v_name”.  The first two are computes and the
+second two are fixes; the ID in the reference should be replaced by
+the ID of a compute or fix defined elsewhere in the input script.  The
+compute or fix must produce either a global vector or array.  If it
+produces a global vector, then the notation without “[N]” should be
+used.  If it produces a global array, then the notation with “[N]”
+should be used, when N is an integer, to specify which column of the
+global array is being referenced.  The last form of argument “v_name”
+is for a vector-style variable where “name” is replaced by the name of
+the variable.</p>
+<p>These functions operate on a global vector of inputs and reduce it to
+a single scalar value.  This is analogous to the operation of the
+<a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a> command, which performs similar
+operations on per-atom and local vectors.</p>
+<p>The sum() function calculates the sum of all the vector elements.  The
+min() and max() functions find the minimum and maximum element
+respectively.  The ave() function is the same as sum() except that it
+divides the result by the length of the vector.</p>
+<p>The trap() function is the same as sum() except the first and last
+elements are multiplied by a weighting factor of 1/2 when performing
+the sum.  This effectively implements an integration via the
+trapezoidal rule on the global vector of data.  I.e. consider a set of
+points, equally spaced by 1 in their x coordinate: (1,V1), (2,V2),
+…, (N,VN), where the Vi are the values in the global vector of
+length N.  The integral from 1 to N of these points is trap().  When
+appropriately normalized by the timestep size, this function is useful
+for calculating integrals of time-series data, like that generated by
+the <a class="reference internal" href="fix_ave_correlate.html"><span class="doc">fix ave/correlate</span></a> command.</p>
+<p>The slope() function uses linear regression to fit a line to the set
+of points, equally spaced by 1 in their x coordinate: (1,V1), (2,V2),
+…, (N,VN), where the Vi are the values in the global vector of
+length N.  The returned value is the slope of the line.  If the line
+has a single point or is vertical, it returns 1.0e20.</p>
+<p>The gmask(x) function takes 1 argument which is a group ID.  It
+can only be used in atom-style variables.  It returns a 1 for
+atoms that are in the group, and a 0 for atoms that are not.</p>
+<p>The rmask(x) function takes 1 argument which is a region ID.  It can
+only be used in atom-style variables.  It returns a 1 for atoms that
+are in the geometric region, and a 0 for atoms that are not.</p>
+<p>The grmask(x,y) function takes 2 arguments.  The first is a group ID,
+and the second is a region ID.  It can only be used in atom-style
+variables.  It returns a 1 for atoms that are in both the group and
+region, and a 0 for atoms that are not in both.</p>
+<p>The next(x) function takes 1 argument which is a variable ID (not
+“v_foo”, just “foo”).  It must be for a file-style or atomfile-style
+variable.  Each time the next() function is invoked (i.e. each time
+the equal-style or atom-style variable is evaluated), the following
+steps occur.</p>
+<p>For file-style variables, the current string value stored by the
+file-style variable is converted to a numeric value and returned by
+the function.  And the next string value in the file is read and
+stored.  Note that if the line previously read from the file was not a
+numeric string, then it will typically evaluate to 0.0, which is
+likely not what you want.</p>
+<p>For atomfile-style variables, the current per-atom values stored by
+the atomfile-style variable are returned by the function.  And the
+next set of per-atom values in the file is read and stored.</p>
+<p>Since file-style and atomfile-style variables read and store the first
+line of the file or first set of per-atoms values when they are
+defined in the input script, these are the value(s) that will be
+returned the first time the next() function is invoked.  If next() is
+invoked more times than there are lines or sets of lines in the file,
+the variable is deleted, similar to how the <a class="reference internal" href="next.html"><span class="doc">next</span></a> command
+operates.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="feature-functions">
+<h3>Feature Functions<a class="headerlink" href="#feature-functions" title="Permalink to this headline">¶</a></h3>
+<p>Feature functions allow to probe the running LAMMPS executable for
+whether specific features are either active, defined, or available.
+The functions take two arguments, a <em>category</em> and a corresponding
+<em>argument</em>. The arguments are strings thus cannot be formulas
+themselves (only $-style immediate variable expansion is possible).
+Return value is either 1.0 or 0.0 depending on whether the function
+evaluates to true or false, respectively.</p>
+<p>The <em>is_active()</em> function allows to query for active settings which
+are grouped by categories. Currently supported categories and
+arguments are:</p>
+<ul class="simple">
+<li><p><em>package</em> (argument = <em>gpu</em> or <em>intel</em> or <em>kokkos</em> or <em>omp</em>)</p></li>
+<li><p><em>newton</em> (argument = <em>pair</em> or <em>bond</em> or <em>any</em>)</p></li>
+<li><p><em>pair</em> (argument = <em>single</em> or <em>respa</em> or <em>manybody</em> or <em>tail</em> or <em>shift</em>)</p></li>
+<li><p><em>comm_style</em> (argument = <em>brick</em> or <em>tiled</em>)</p></li>
+<li><p><em>min_style</em> (argument = any of the compiled in minimizer styles)</p></li>
+<li><p><em>run_style</em> (argument = any of the compiled in run styles)</p></li>
+<li><p><em>atom_style</em> (argument = any of the compiled in atom styles)</p></li>
+<li><p><em>pair_style</em> (argument = any of the compiled in pair styles)</p></li>
+<li><p><em>bond_style</em> (argument = any of the compiled in bond styles)</p></li>
+<li><p><em>angle_style</em> (argument = any of the compiled in angle styles)</p></li>
+<li><p><em>dihedral_style</em> (argument = any of the compiled in dihedral styles)</p></li>
+<li><p><em>improper_style</em> (argument = any of the compiled in improper styles)</p></li>
+<li><p><em>kspace_style</em> (argument = any of the compiled in kspace styles)</p></li>
+</ul>
+<p>Most of the settings are self-explanatory, the <em>single</em> argument in the
+<em>pair</em> category allows to check whether a pair style supports a
+Pair::single() function as needed by compute group/group and others
+features or LAMMPS, <em>respa</em> allows to check whether the inner/middle/outer
+mode of r-RESPA is supported. In the various style categories,
+the checking is also done using suffix flags, if available and enabled.</p>
+<p>Example 1: disable use of suffix for pppm when using GPU package (i.e. run it on the CPU concurrently to running the pair style on the GPU), but do use the suffix otherwise (e.g. with USER-OMP).</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">long</span><span class="w"> </span><span class="m">14.0</span><span class="w"></span>
+<span class="k">if</span><span class="w"> </span><span class="nv">$(is_active(package,gpu))</span><span class="w"> </span><span class="n">then</span><span class="w"> </span><span class="s">&quot;suffix off&quot;</span><span class="w"></span>
+<span class="k">kspace_style</span><span class="w"> </span><span class="n">pppm</span><span class="w"></span>
+</pre></div>
+</div>
+<p>Example 2: use r-RESPA with inner/outer cutoff, if supported by pair style, otherwise fall back to using pair and reducing the outer time step</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">timestep</span><span class="w"> </span><span class="nv">$(2.0*(1.0+2.0*is_active(pair,respa))</span>
+<span class="nv">if $(is_active(pair,respa)) then &quot;run_style respa 4 3 2 2  improper 1 inner 2 5.5 7.0 outer 3 kspace 4&quot; else &quot;run_style respa 3 3 2  improper 1 pair 2 kspace 3&quot;</span>
+</pre></div>
+</div>
+<p>The <em>is_defined()</em> function allows to query categories like <em>compute</em>,
+<em>dump</em>, <em>fix</em>, <em>group</em>, <em>region</em>, and <em>variable</em> whether an entry
+with the provided name or id is defined.</p>
+<p>The <em>is_available(category,name)</em> function allows to query whether
+a specific optional feature is available, i.e. compiled in.
+This currently works for the following categories: <em>command</em>,
+<em>compute</em>, <em>fix</em>, <em>pair_style</em> and <em>feature</em>. For all categories
+except <em>command</em> and <em>feature</em> also appending active suffixes is
+tried before reporting failure.</p>
+<p>The <em>feature</em> category is used to check the availability of compiled in
+features such as GZIP support, PNG support, JPEG support, FFMPEG support,
+and C++ exceptions for error handling. Corresponding values for name are
+<em>gzip</em>, <em>png</em>, <em>jpeg</em>, <em>ffmpeg</em> and <em>exceptions</em>.</p>
+<p>This enables writing input scripts which only dump using a given format if
+the compiled binary supports it.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="s">&quot;$(is_available(feature,png))&quot;</span><span class="w"> </span><span class="n">then</span><span class="w"> </span><span class="s">&quot;print &#39;PNG supported&#39;&quot;</span><span class="w"> </span><span class="n">else</span><span class="w"> </span><span class="s">&quot;print &#39;PNG not supported&#39;&quot;</span><span class="w"></span>
+
+<span class="k">if</span><span class="w"> </span><span class="s">&quot;$(is_available(feature,ffmpeg)&quot;</span><span class="w"> </span><span class="n">then</span><span class="w"> </span><span class="s">&quot;dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="atom-values-and-vectors">
+<h3>Atom Values and Vectors<a class="headerlink" href="#atom-values-and-vectors" title="Permalink to this headline">¶</a></h3>
+<p>Atom values take an integer argument I from 1 to N, where I is the
+atom-ID, e.g. x[243], which means use the x coordinate of the atom
+with ID = 243.  Or they can take a variable name, specified as v_name,
+where name is the name of the variable, like x[v_myIndex].  The
+variable can be of any style except <em>vector</em> or <em>atom</em> or <em>atomfile</em>
+variables.  The variable is evaluated and the result is expected to be
+numeric and is cast to an integer (i.e. 3.4 becomes 3), to use an
+index, which must be a value from 1 to N.  Note that a “formula”
+cannot be used as the argument between the brackets, e.g. x[243+10]
+or x[v_myIndex+1] are not allowed.  To do this a single variable can
+be defined that contains the needed formula.</p>
+<p>Note that the 0 &lt; atom-ID &lt;= N, where N is the largest atom ID
+in the system.  If an ID is specified for an atom that does not
+currently exist, then the generated value is 0.0.</p>
+<p>Atom vectors generate one value per atom, so that a reference like
+“vx” means the x-component of each atom’s velocity will be used when
+evaluating the variable.</p>
+<p>The meaning of the different atom values and vectors is mostly
+self-explanatory.  <em>Mol</em> refers to the molecule ID of an atom, and is
+only defined if an <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a> is being used that
+defines molecule IDs.</p>
+<p>Note that many other atom attributes can be used as inputs to a
+variable by using the <a class="reference internal" href="compute_property_atom.html"><span class="doc">compute property/atom</span></a> command and then specifying
+a quantity from that compute.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="compute-references">
+<h3>Compute References<a class="headerlink" href="#compute-references" title="Permalink to this headline">¶</a></h3>
+<p>Compute references access quantities calculated by a
+<a class="reference internal" href="compute.html"><span class="doc">compute</span></a>.  The ID in the reference should be replaced by
+the ID of a compute defined elsewhere in the input script.  As
+discussed in the doc page for the <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command,
+computes can produce global, per-atom, or local values.  Only global
+and per-atom values can be used in a variable.  Computes can also
+produce a scalar, vector, or array.</p>
+<p>An equal-style variable can only use scalar values, which means a
+global scalar, or an element of a global or per-atom vector or array.
+A vector-style variable can use scalar values or a global vector of
+values, or a column of a global array of values.  Atom-style variables
+can use global scalar values.  They can also use per-atom vector
+values, or a column of a per-atom array.  See the doc pages for
+individual computes to see what kind of values they produce.</p>
+<p>Examples of different kinds of compute references are as follows.
+There is typically no ambiguity (see exception below) as to what a
+reference means, since computes only produce either global or per-atom
+quantities, never both.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 89%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td colspan="2"><p>c_ID       | global scalar, or per-atom vector</p></td>
+</tr>
+<tr class="row-even"><td colspan="2"><p>c_ID[I]    | Ith element of global vector, or atom I’s value in per-atom vector, or Ith column from per-atom array</p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p>c_ID[I][J] | I,J element of global array, or atom I’s Jth value in per-atom array</p></td>
+</tr>
+</tbody>
+</table>
+<p>For I and J indices, integers can be specified or a variable name,
+specified as v_name, where name is the name of the variable.  The
+rules for this syntax are the same as for the “Atom Values and
+Vectors” discussion above.</p>
+<p>One source of ambiguity for compute references is when a vector-style
+variable refers to a compute that produces both a global scalar and a
+global vector.  Consider a compute with ID “foo” that does this,
+referenced as follows by variable “a”, where “myVec” is another
+vector-style variable:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">a</span><span class="w"> </span><span class="n">vector</span><span class="w"> </span><span class="n">c_foo</span><span class="o">*</span><span class="n">v_myVec</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The reference “c_foo” could refer to either the global scalar or
+global vector produced by compute “foo”.  In this case, “c_foo” will
+always refer to the global scalar, and “C_foo” can be used to
+reference the global vector.  Similarly if the compute produces both a
+global vector and global array, then “c_foo[I]” will always refer to
+an element of the global vector, and “C_foo[I]” can be used to
+reference the Ith column of the global array.</p>
+<p>Note that if a variable containing a compute is evaluated directly in
+an input script (not during a run), then the values accessed by the
+compute must be current.  See the discussion below about “Variable
+Accuracy”.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="fix-references">
+<h3>Fix References<a class="headerlink" href="#fix-references" title="Permalink to this headline">¶</a></h3>
+<p>Fix references access quantities calculated by a <a class="reference internal" href="compute.html"><span class="doc">fix</span></a>.
+The ID in the reference should be replaced by the ID of a fix defined
+elsewhere in the input script.  As discussed in the doc page for the
+<a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command, fixes can produce global, per-atom, or local
+values.  Only global and per-atom values can be used in a variable.
+Fixes can also produce a scalar, vector, or array.  An equal-style
+variable can only use scalar values, which means a global scalar, or
+an element of a global or per-atom vector or array.  Atom-style
+variables can use the same scalar values.  They can also use per-atom
+vector values.  A vector value can be a per-atom vector itself, or a
+column of an per-atom array.  See the doc pages for individual fixes
+to see what kind of values they produce.</p>
+<p>The different kinds of fix references are exactly the same as the
+compute references listed in the above table, where “c_” is replaced
+by “f_”.  Again, there is typically no ambiguity (see exception below)
+as to what a reference means, since fixes only produce either global
+or per-atom quantities, never both.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 89%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td colspan="2"><p>f_ID       | global scalar, or per-atom vector</p></td>
+</tr>
+<tr class="row-even"><td colspan="2"><p>f_ID[I]    | Ith element of global vector, or atom I’s value in per-atom vector, or Ith column from per-atom array</p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p>f_ID[I][J] | I,J element of global array, or atom I’s Jth value in per-atom array</p></td>
+</tr>
+</tbody>
+</table>
+<p>For I and J indices, integers can be specified or a variable name,
+specified as v_name, where name is the name of the variable.  The
+rules for this syntax are the same as for the “Atom Values and
+Vectors” discussion above.</p>
+<p>One source of ambiguity for fix references is the same ambiguity
+discussed for compute references above.  Namely when a vector-style
+variable refers to a fix that produces both a global scalar and a
+global vector.  The solution is the same as for compute references.
+For a fix with ID “foo”, “f_foo” will always refer to the global
+scalar, and “F_foo” can be used to reference the global vector.  And
+similarly for distinguishing between a fix’s global vector versus
+global array with “f_foo[I]” versus “F_foo[I]”.</p>
+<p>Note that if a variable containing a fix is evaluated directly in an
+input script (not during a run), then the values accessed by the fix
+should be current.  See the discussion below about “Variable
+Accuracy”.</p>
+<p>Note that some fixes only generate quantities on certain timesteps.
+If a variable attempts to access the fix on non-allowed timesteps, an
+error is generated.  For example, the <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>
+command may only generate averaged quantities every 100 steps.  See
+the doc pages for individual fix commands for details.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="variable-references">
+<h3>Variable References<a class="headerlink" href="#variable-references" title="Permalink to this headline">¶</a></h3>
+<p>Variable references access quantities stored or calculated by other
+variables, which will cause those variables to be evaluated.  The name
+in the reference should be replaced by the name of a variable defined
+elsewhere in the input script.</p>
+<p>As discussed on this doc page, equal-style variables generate a single
+global numeric value, vector-style variables generate a vector of
+global numeric values, and atom-style and atomfile-style variables
+generate a per-atom vector of numeric values.  All other variables
+store one or more strings.</p>
+<p>The formula for an equal-style variable can use any style of variable
+including a vector_style or atom-style or atomfile-style.  For these
+3 styles, a subscript must be used to access a single value from
+the vector-, atom-, or atomfile-style variable.  If a string-storing
+variable is used, the string is converted to a numeric value.  Note
+that this will typically produce a 0.0 if the string is not a numeric
+string, which is likely not what you want.</p>
+<p>The formula for a vector-style variable can use any style of variable,
+including atom-style or atomfile-style variables.  For these 2 styles,
+a subscript must be used to access a single value from the atom-, or
+atomfile-style variable.</p>
+<p>The formula for an atom-style variable can use any style of variable,
+including other atom-style or atomfile-style variables.  If it uses a
+vector-style variable, a subscript must be used to access a single
+value from the vector-style variable.</p>
+<p>Examples of different kinds of variable references are as follows.
+There is no ambiguity as to what a reference means, since variables
+produce only a global scalar or global vector or per-atom vector.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 85%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td colspan="2"><p>v_name    | global scalar from equal-style variable</p></td>
+</tr>
+<tr class="row-even"><td colspan="2"><p>v_name    | global vector from vector-style variable</p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p>v_name    | per-atom vector from atom-style or atomfile-style variable</p></td>
+</tr>
+<tr class="row-even"><td colspan="2"><p>v_name[I] | Ith element of a global vector from vector-style variable</p></td>
+</tr>
+<tr class="row-odd"><td colspan="2"><p>v_name[I] | value of atom with ID = I from atom-style or atomfile-style variable</p></td>
+</tr>
+</tbody>
+</table>
+<p>For the I index, an integer can be specified or a variable name,
+specified as v_name, where name is the name of the variable.  The
+rules for this syntax are the same as for the “Atom Values and
+Vectors” discussion above.</p>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="immediate-evaluation-of-variables">
+<h2>Immediate Evaluation of Variables<a class="headerlink" href="#immediate-evaluation-of-variables" title="Permalink to this headline">¶</a></h2>
+<p>If you want an equal-style variable to be evaluated immediately, it
+may be the case that you do not need to define a variable at all.  See
+the <a class="reference internal" href="Commands_parse.html"><span class="doc">Commands parse</span></a> doc page for info on how to
+use “immediate” variables in an input script, specified as $(formula)
+with parenthesis, where the formula has the same syntax as equal-style
+variables described on this page.  This effectively evaluates a
+formula immediately without using the variable command to define a
+named variable.</p>
+<p>More generally, there is a difference between referencing a variable
+with a leading $ sign (e.g. $x or ${abc}) versus with a leading “v_”
+(e.g. v_x or v_abc).  The former can be used in any input script
+command, including a variable command.  The input script parser
+evaluates the reference variable immediately and substitutes its value
+into the command.  As explained on the <a class="reference internal" href="Commands_parse.html"><span class="doc">Commands parse</span></a> doc page, you can also use un-named
+“immediate” variables for this purpose.  For example, a string like
+this $((xlo+xhi)/2+sqrt(v_area)) in an input script command evaluates
+the string between the parenthesis as an equal-style variable formula.</p>
+<p>Referencing a variable with a leading “v_” is an optional or required
+kind of argument for some commands (e.g. the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a> or <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> or
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> commands) if you wish it to evaluate
+a variable periodically during a run.  It can also be used in a
+variable formula if you wish to reference a second variable.  The
+second variable will be evaluated whenever the first variable is
+evaluated.</p>
+<p>As an example, suppose you use this command in your input script to
+define the variable “v” as</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">v</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">vol</span><span class="w"></span>
+</pre></div>
+</div>
+<p>before a run where the simulation box size changes.  You might think
+this will assign the initial volume to the variable “v”.  That is not
+the case.  Rather it assigns a formula which evaluates the volume
+(using the thermo_style keyword “vol”) to the variable “v”.  If you
+use the variable “v” in some other command like <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a> then the current volume of the box will be
+evaluated continuously during the run.</p>
+<p>If you want to store the initial volume of the system, you can do it
+this way:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">v</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">vol</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">v0</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="nv">$v</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The second command will force “v” to be evaluated (yielding the
+initial volume) and assign that value to the variable “v0”.  Thus the
+command</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">thermo_style</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="n">v_v</span><span class="w"> </span><span class="n">v_v0</span><span class="w"></span>
+</pre></div>
+</div>
+<p>would print out both the current and initial volume periodically
+during the run.</p>
+<p>Note that it is a mistake to enclose a variable formula in double
+quotes if it contains variables preceded by $ signs.  For example,</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">vratio</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;${vfinal}/${v0}&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>This is because the quotes prevent variable substitution (explained on
+the <a class="reference internal" href="Commands_parse.html"><span class="doc">Commands parse</span></a> doc page), and thus an error
+will occur when the formula for “vratio” is evaluated later.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="variable-accuracy">
+<h2>Variable Accuracy<a class="headerlink" href="#variable-accuracy" title="Permalink to this headline">¶</a></h2>
+<p>Obviously, LAMMPS attempts to evaluate variables containing formulas
+(<em>equal</em> and <em>atom</em> style variables) accurately whenever the
+evaluation is performed.  Depending on what is included in the
+formula, this may require invoking a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a>, either
+directly or indirectly via a thermo keyword, or accessing a value
+previously calculated by a compute, or accessing a value calculated
+and stored by a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a>.  If the compute is one that calculates
+the pressure or energy of the system, then these quantities need to be
+tallied during the evaluation of the interatomic potentials (pair,
+bond, etc) on timesteps that the variable will need the values.</p>
+<p>LAMMPS keeps track of all of this during a <a class="reference internal" href="run.html"><span class="doc">run</span></a> or <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.  An error will be generated if you
+attempt to evaluate a variable on timesteps when it cannot produce
+accurate values.  For example, if a <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command prints a variable which accesses
+values stored by a <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a> command and the
+timesteps on which thermo output is generated are not multiples of the
+averaging frequency used in the fix command, then an error will occur.</p>
+<p>An input script can also request variables be evaluated before or
+after or in between runs, e.g. by including them in a
+<a class="reference internal" href="print.html"><span class="doc">print</span></a> command.  In this case, if a compute is needed to
+evaluate a variable (either directly or indirectly), LAMMPS will not
+invoke the compute, but it will use a value previously calculated by
+the compute, and can do this only if it was invoked on the current
+timestep.  Fixes will always provide a quantity needed by a variable,
+but the quantity may or may not be current.  This leads to one of
+three kinds of behavior:</p>
+<p>(1) The variable may be evaluated accurately.  If it contains
+references to a compute or fix, and these values were calculated on
+the last timestep of a preceding run, then they will be accessed and
+used by the variable and the result will be accurate.</p>
+<p>(2) LAMMPS may not be able to evaluate the variable and will generate
+an error message stating so.  For example, if the variable requires a
+quantity from a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> that has not been invoked on
+the current timestep, LAMMPS will generate an error.  This means, for
+example, that such a variable cannot be evaluated before the first run
+has occurred.  Likewise, in between runs, a variable containing a
+compute cannot be evaluated unless the compute was invoked on the last
+timestep of the preceding run, e.g. by thermodynamic output.</p>
+<p>One way to get around this problem is to perform a 0-timestep run
+before using the variable.  For example, these commands</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">t</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">temp</span><span class="w"></span>
+<span class="k">print</span><span class="w"> </span><span class="s">&quot;Initial temperature = $t&quot;</span><span class="w"></span>
+<span class="k">run</span><span class="w"> </span><span class="m">1000</span><span class="w"></span>
+</pre></div>
+</div>
+<p>will generate an error if the run is the first run specified in the
+input script, because generating a value for the “t” variable requires
+a compute for calculating the temperature to be invoked.</p>
+<p>However, this sequence of commands would be fine:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">run</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">t</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">temp</span><span class="w"></span>
+<span class="k">print</span><span class="w"> </span><span class="s">&quot;Initial temperature = $t&quot;</span><span class="w"></span>
+<span class="k">run</span><span class="w"> </span><span class="m">1000</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The 0-timestep run initializes and invokes various computes, including
+the one for temperature, so that the value it stores is current and
+can be accessed by the variable “t” after the run has completed.  Note
+that a 0-timestep run does not alter the state of the system, so it
+does not change the input state for the 1000-timestep run that
+follows.  Also note that the 0-timestep run must actually use and
+invoke the compute in question (e.g. via <a class="reference internal" href="thermo_style.html"><span class="doc">thermo</span></a> or
+<a class="reference internal" href="dump.html"><span class="doc">dump</span></a> output) in order for it to enable the compute to be
+used in a variable after the run.  Thus if you are trying to print a
+variable that uses a compute you have defined, you can insure it is
+invoked on the last timestep of the preceding run by including it in
+thermodynamic output.</p>
+<p>Unlike computes, <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> will never generate an error if
+their values are accessed by a variable in between runs.  They always
+return some value to the variable.  However, the value may not be what
+you expect if the fix has not yet calculated the quantity of interest
+or it is not current.  For example, the <a class="reference internal" href="fix_indent.html"><span class="doc">fix indent</span></a>
+command stores the force on the indenter.  But this is not computed
+until a run is performed.  Thus if a variable attempts to print this
+value before the first run, zeroes will be output.  Again, performing
+a 0-timestep run before printing the variable has the desired effect.</p>
+<p>(3) The variable may be evaluated incorrectly and LAMMPS may have no
+way to detect this has occurred.  Consider the following sequence of
+commands:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"></span>
+<span class="k">run</span><span class="w"> </span><span class="m">1000</span><span class="w"></span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">1.0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">e</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">pe</span><span class="w"></span>
+<span class="k">print</span><span class="w"> </span><span class="s">&quot;Final potential energy = $e&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The first run is performed using one setting for the pairwise
+potential defined by the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> and
+<a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> commands.  The potential energy is
+evaluated on the final timestep and stored by the <a class="reference internal" href="compute_pe.html"><span class="doc">compute pe</span></a> compute (this is done by the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command).  Then a pair coefficient is
+changed, altering the potential energy of the system.  When the
+potential energy is printed via the “e” variable, LAMMPS will use the
+potential energy value stored by the <a class="reference internal" href="compute_pe.html"><span class="doc">compute pe</span></a>
+compute, thinking it is current.  There are many other commands which
+could alter the state of the system between runs, causing a variable
+to evaluate incorrectly.</p>
+<p>The solution to this issue is the same as for case (2) above, namely
+perform a 0-timestep run before the variable is evaluated to insure
+the system is up-to-date.  For example, this sequence of commands
+would print a potential energy that reflected the changed pairwise
+coefficient:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"></span>
+<span class="k">run</span><span class="w"> </span><span class="m">1000</span><span class="w"></span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">1.0</span><span class="w"></span>
+<span class="k">run</span><span class="w"> </span><span class="m">0</span><span class="w"></span>
+<span class="k">variable </span><span class="nv nv-Identifier">e</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">pe</span><span class="w"></span>
+<span class="k">print</span><span class="w"> </span><span class="s">&quot;Final potential energy = $e&quot;</span><span class="w"></span>
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<div class="section" id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h2>
+<p>Indexing any formula element by global atom ID, such as an atom value,
+requires the <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> to use a global mapping in
+order to look up the vector indices.  By default, only atom styles
+with molecular information create global maps.  The <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify map</span></a> command can override the default, e.g. for
+atomic-style atom styles.</p>
+<p>All <em>universe</em>- and <em>uloop</em>-style variables defined in an input script
+must have the same number of values.</p>
+</div>
+<div class="section" id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference internal" href="next.html"><span class="doc">next</span></a>, <a class="reference internal" href="jump.html"><span class="doc">jump</span></a>, <a class="reference internal" href="include.html"><span class="doc">include</span></a>,
+<a class="reference internal" href="temper.html"><span class="doc">temper</span></a>, <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a>, <a class="reference internal" href="print.html"><span class="doc">print</span></a></p>
+</div>
+<div class="section" id="default">
+<h2>Default<a class="headerlink" href="#default" title="Permalink to this headline">¶</a></h2>
+<p>none</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="velocity.html" class="btn btn-neutral float-right" title="velocity command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="units.html" class="btn btn-neutral float-left" title="units command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

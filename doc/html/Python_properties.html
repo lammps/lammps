@@ -1,0 +1,401 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2.3.6. System properties &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/tabs.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2.3.7. Per-atom properties" href="Python_atoms.html" />
+    <link rel="prev" title="2.3.5. Executing commands" href="Python_execute.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Python_overview.html">2.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_install.html">2.2. Installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Python_run.html">2.3. Run LAMMPS from Python</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html">2.3.1. Running LAMMPS and Python in serial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html#running-lammps-and-python-in-parallel-with-mpi">2.3.2. Running LAMMPS and Python in parallel with MPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html#running-python-scripts">2.3.3. Running Python scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_create.html">2.3.4. Creating or deleting a LAMMPS object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_execute.html">2.3.5. Executing commands</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.3.6. System properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_atoms.html">2.3.7. Per-atom properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_objects.html">2.3.8. Compute, fixes, variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_scatter.html">2.3.9. Scatter/gather operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_neighbor.html">2.3.10. Neighbor list access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_config.html">2.3.11. Configuration information</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Python_module.html">2.4. The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> Python module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_ext.html">2.5. Extending the Python interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_call.html">2.6. Calling Python from LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_examples.html">2.7. Example Python scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_error.html">2.8. Handling LAMMPS errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_trouble.html">2.9. Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Python_head.html"><span class="section-number">2. </span>Use Python with LAMMPS</a> &raquo;</li>
+        
+          <li><a href="Python_run.html"><span class="section-number">2.3. </span>Run LAMMPS from Python</a> &raquo;</li>
+        
+      <li><span class="section-number">2.3.6. </span>System properties</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Python_atoms.html" class="btn btn-neutral float-right" title="2.3.7. Per-atom properties" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Python_execute.html" class="btn btn-neutral float-left" title="2.3.5. Executing commands" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="system-properties">
+<h1><span class="section-number">2.3.6. </span>System properties<a class="headerlink" href="#system-properties" title="Permalink to this headline">¶</a></h1>
+<p>Similar to what is described in <a class="reference internal" href="Library_properties.html"><span class="doc">System properties</span></a>, the instances of
+<a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a>, <a class="reference internal" href="Python_module.html#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a>, or
+<a class="reference internal" href="Python_module.html#lammps.IPyLammps" title="lammps.IPyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">IPyLammps</span></code></a> can be used to extract different kinds
+of information about the active LAMMPS instance and also to modify some of it. The
+main difference between the interfaces is how the information is exposed.</p>
+<p>While the <a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> is just a thin layer that wraps C API calls,
+<a class="reference internal" href="Python_module.html#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a> and <a class="reference internal" href="Python_module.html#lammps.IPyLammps" title="lammps.IPyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">IPyLammps</span></code></a> expose
+information as objects and properties.</p>
+<p>In some cases the data returned is a direct reference to the original data
+inside LAMMPS cast to <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> pointers. Where possible, the wrappers will
+determine the <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> data type and cast pointers accordingly. If
+<code class="docutils literal notranslate"><span class="pre">numpy</span></code> is installed arrays can also be extracted as numpy arrays, which
+will access the C arrays directly and have the correct dimensions to protect
+against invalid accesses.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When accessing per-atom data,
+please note that this data is the per-processor local data and indexed
+accordingly. These arrays can change sizes and order at every neighbor list
+rebuild and atom sort event as atoms are migrating between sub-domains.</p>
+</div>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">lammps API</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">PyLammps/IPyLammps API</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+
+<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s2">&quot;in.sysinit&quot;</span><span class="p">)</span>
+
+<span class="n">natoms</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">get_natoms</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;running simulation with </span><span class="si">{</span><span class="n">natoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span><span class="p">)</span>
+
+<span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;run 1000 post no&quot;</span><span class="p">);</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+   <span class="n">lmp</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;run 100 pre no post no&quot;</span><span class="p">)</span>
+   <span class="n">pe</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">get_thermo</span><span class="p">(</span><span class="s2">&quot;pe&quot;</span><span class="p">)</span>
+   <span class="n">ke</span> <span class="o">=</span> <span class="n">lmp</span><span class="o">.</span><span class="n">get_thermo</span><span class="p">(</span><span class="s2">&quot;ke&quot;</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PE = </span><span class="si">{</span><span class="n">pe</span><span class="si">}</span><span class="se">\n</span><span class="s2">KE = </span><span class="si">{</span><span class="n">ke</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">lmp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Methods</strong>:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.version" title="lammps.lammps.version"><code class="xref py py-meth docutils literal notranslate"><span class="pre">version()</span></code></a>: return the numerical version id, e.g. LAMMPS 2 Sep 2015 -&gt; 20150902</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.get_thermo" title="lammps.lammps.get_thermo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_thermo()</span></code></a>: return current value of a thermo keyword</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.get_natoms" title="lammps.lammps.get_natoms"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_natoms()</span></code></a>: total # of atoms as int</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.reset_box" title="lammps.lammps.reset_box"><code class="xref py py-meth docutils literal notranslate"><span class="pre">reset_box()</span></code></a>: reset the simulation box size</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.extract_setting" title="lammps.lammps.extract_setting"><code class="xref py py-meth docutils literal notranslate"><span class="pre">extract_setting()</span></code></a>: return a global setting</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.extract_global" title="lammps.lammps.extract_global"><code class="xref py py-meth docutils literal notranslate"><span class="pre">extract_global()</span></code></a>: extract a global quantity</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.extract_box" title="lammps.lammps.extract_box"><code class="xref py py-meth docutils literal notranslate"><span class="pre">extract_box()</span></code></a>: extract box info</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.create_atoms" title="lammps.lammps.create_atoms"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_atoms()</span></code></a>: create N atoms with IDs, types, x, v, and image flags</p></li>
+</ul>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><p>In addition to the functions provided by <a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a>, <a class="reference internal" href="Python_module.html#lammps.PyLammps" title="lammps.PyLammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">PyLammps</span></code></a> objects
+have several properties which allow you to query the system state:</p>
+<dl class="simple">
+<dt>L.system</dt><dd><p>Is a dictionary describing the system such as the bounding box or number of atoms</p>
+</dd>
+<dt>L.system.xlo, L.system.xhi</dt><dd><p>bounding box limits along x-axis</p>
+</dd>
+<dt>L.system.ylo, L.system.yhi</dt><dd><p>bounding box limits along y-axis</p>
+</dd>
+<dt>L.system.zlo, L.system.zhi</dt><dd><p>bounding box limits along z-axis</p>
+</dd>
+<dt>L.communication</dt><dd><p>configuration of communication subsystem, such as the number of threads or processors</p>
+</dd>
+<dt>L.communication.nthreads</dt><dd><p>number of threads used by each LAMMPS process</p>
+</dd>
+<dt>L.communication.nprocs</dt><dd><p>number of MPI processes used by LAMMPS</p>
+</dd>
+<dt>L.fixes</dt><dd><p>List of fixes in the current system</p>
+</dd>
+<dt>L.computes</dt><dd><p>List of active computes in the current system</p>
+</dd>
+<dt>L.dump</dt><dd><p>List of active dumps in the current system</p>
+</dd>
+<dt>L.groups</dt><dd><p>List of groups present in the current system</p>
+</dd>
+</dl>
+<p><strong>Retrieving the value of an arbitrary LAMMPS expressions</strong></p>
+<p>LAMMPS expressions can be immediately evaluated by using the <code class="docutils literal notranslate"><span class="pre">eval</span></code> method. The
+passed string parameter can be any expression containing global <a class="reference internal" href="thermo.html"><span class="doc">thermo command</span></a> values,
+variables, compute or fix data (see <a class="reference internal" href="Howto_output.html"><span class="doc">Output from LAMMPS (thermo, dumps, computes, fixes, variables)</span></a>):</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s2">&quot;ke&quot;</span><span class="p">)</span> <span class="c1"># kinetic energy</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s2">&quot;pe&quot;</span><span class="p">)</span> <span class="c1"># potential energy</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s2">&quot;v_t/2.0&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">PyLammps</span>
+
+<span class="n">L</span> <span class="o">=</span> <span class="n">PyLammps</span><span class="p">()</span>
+<span class="n">L</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s2">&quot;in.sysinit&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;running simulation with </span><span class="si">{</span><span class="n">L</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">natoms</span><span class="si">}</span><span class="s2"> atoms&quot;</span><span class="p">)</span>
+
+<span class="n">L</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;post no&quot;</span><span class="p">);</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+   <span class="n">L</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="s2">&quot;pre no post no&quot;</span><span class="p">)</span>
+   <span class="n">pe</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s2">&quot;pe&quot;</span><span class="p">)</span>
+   <span class="n">ke</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">eval</span><span class="p">(</span><span class="s2">&quot;ke&quot;</span><span class="p">)</span>
+   <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PE = </span><span class="si">{</span><span class="n">pe</span><span class="si">}</span><span class="se">\n</span><span class="s2">KE = </span><span class="si">{</span><span class="n">ke</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div></div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Python_atoms.html" class="btn btn-neutral float-right" title="2.3.7. Per-atom properties" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Python_execute.html" class="btn btn-neutral float-left" title="2.3.5. Executing commands" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

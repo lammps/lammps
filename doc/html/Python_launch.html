@@ -1,0 +1,377 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>2.3.1. Running LAMMPS and Python in serial &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script async="async" src="_static/mathjax/es5/tex-mml-chtml.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2.3.4. Creating or deleting a LAMMPS object" href="Python_create.html" />
+    <link rel="prev" title="2.3. Run LAMMPS from Python" href="Python_run.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="Manual.html">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Python_overview.html">2.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_install.html">2.2. Installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Python_run.html">2.3. Run LAMMPS from Python</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.3.1. Running LAMMPS and Python in serial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-lammps-and-python-in-parallel-with-mpi">2.3.2. Running LAMMPS and Python in parallel with MPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-python-scripts">2.3.3. Running Python scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_create.html">2.3.4. Creating or deleting a LAMMPS object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_execute.html">2.3.5. Executing commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_properties.html">2.3.6. System properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_atoms.html">2.3.7. Per-atom properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_objects.html">2.3.8. Compute, fixes, variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_scatter.html">2.3.9. Scatter/gather operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_neighbor.html">2.3.10. Neighbor list access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_config.html">2.3.11. Configuration information</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Python_module.html">2.4. The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> Python module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_ext.html">2.5. Extending the Python interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_call.html">2.6. Calling Python from LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_examples.html">2.7. Example Python scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_error.html">2.8. Handling LAMMPS errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_trouble.html">2.9. Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="Manual.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="Python_head.html"><span class="section-number">2. </span>Use Python with LAMMPS</a> &raquo;</li>
+        
+          <li><a href="Python_run.html"><span class="section-number">2.3. </span>Run LAMMPS from Python</a> &raquo;</li>
+        
+      <li><span class="section-number">2.3.1. </span>Running LAMMPS and Python in serial</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Python_create.html" class="btn btn-neutral float-right" title="2.3.4. Creating or deleting a LAMMPS object" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Python_run.html" class="btn btn-neutral float-left" title="2.3. Run LAMMPS from Python" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="running-lammps-and-python-in-serial">
+<h1><span class="section-number">2.3.1. </span>Running LAMMPS and Python in serial<a class="headerlink" href="#running-lammps-and-python-in-serial" title="Permalink to this headline">¶</a></h1>
+<p>To run a LAMMPS in serial, type these lines into Python
+interactively from the <code class="docutils literal notranslate"><span class="pre">bench</span></code> directory:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lmp</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s2">&quot;in.lj&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Or put the same lines in the file <code class="docutils literal notranslate"><span class="pre">test.py</span></code> and run it as</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python3 test.py
+</pre></div>
+</div>
+<p>Either way, you should see the results of running the <code class="docutils literal notranslate"><span class="pre">in.lj</span></code> benchmark
+on a single processor appear on the screen, the same as if you had
+typed something like:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lmp_serial -in <span class="k">in</span>.lj
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-lammps-and-python-in-parallel-with-mpi">
+<h1><span class="section-number">2.3.2. </span>Running LAMMPS and Python in parallel with MPI<a class="headerlink" href="#running-lammps-and-python-in-parallel-with-mpi" title="Permalink to this headline">¶</a></h1>
+<p>To run LAMMPS in parallel, assuming you have installed the
+<a class="reference external" href="https://mpi4py.readthedocs.io">mpi4py</a> package as discussed
+<a class="reference internal" href="Python_install.html#python-install-mpi4py"><span class="std std-ref">Extending Python to run in parallel</span></a>, create a <code class="docutils literal notranslate"><span class="pre">test.py</span></code> file containing these lines:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+<span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s2">&quot;in.lj&quot;</span><span class="p">)</span>
+<span class="n">me</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+<span class="n">nprocs</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Proc </span><span class="si">%d</span><span class="s2"> out of </span><span class="si">%d</span><span class="s2"> procs has&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">me</span><span class="p">,</span><span class="n">nprocs</span><span class="p">),</span><span class="n">lmp</span><span class="p">)</span>
+<span class="n">MPI</span><span class="o">.</span><span class="n">Finalize</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>You can run the script in parallel as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ mpirun -np <span class="m">4</span> python3 test.py
+</pre></div>
+</div>
+<p>and you should see the same output as if you had typed</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ mpirun -np <span class="m">4</span> lmp_mpi -in <span class="k">in</span>.lj
+</pre></div>
+</div>
+<p>Note that without the mpi4py specific lines from <code class="docutils literal notranslate"><span class="pre">test.py</span></code></p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lammps</span> <span class="kn">import</span> <span class="n">lammps</span>
+<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s2">&quot;in.lj&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>running the script with <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> on <span class="math notranslate nohighlight">\(P\)</span> processors would lead to
+<span class="math notranslate nohighlight">\(P\)</span> independent simulations to run parallel, each with a single
+processor. Therefore, if you use the mpi4py lines and you see multiple LAMMPS
+single processor outputs, mpi4py is not working correctly.</p>
+<p>Also note that once you import the mpi4py module, mpi4py initializes MPI
+for you, and you can use MPI calls directly in your Python script, as
+described in the mpi4py documentation.  The last line of your Python
+script should be <code class="docutils literal notranslate"><span class="pre">MPI.finalize()</span></code>, to insure MPI is shut down
+correctly.</p>
+</div>
+<div class="section" id="running-python-scripts">
+<h1><span class="section-number">2.3.3. </span>Running Python scripts<a class="headerlink" href="#running-python-scripts" title="Permalink to this headline">¶</a></h1>
+<p>Note that any Python script (not just for LAMMPS) can be invoked in
+one of several ways:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ python script.py
+$ python -i script.py
+$ ./script.py
+</pre></div>
+</div>
+<p>The last command requires that the first line of the script be
+something like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/python</span>
+<span class="c1">#!/usr/bin/python -i</span>
+</pre></div>
+</div>
+<p>where the path points to where you have Python installed, and that you
+have made the script file executable:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$ chmod +x script.py
+</pre></div>
+</div>
+<p>Without the <code class="docutils literal notranslate"><span class="pre">-i</span></code> flag, Python will exit when the script finishes.
+With the <code class="docutils literal notranslate"><span class="pre">-i</span></code> flag, you will be left in the Python interpreter when
+the script finishes, so you can type subsequent commands.  As
+mentioned above, you can only run Python interactively when running
+Python on a single processor, not in parallel.</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Python_create.html" class="btn btn-neutral float-right" title="2.3.4. Creating or deleting a LAMMPS object" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Python_run.html" class="btn btn-neutral float-left" title="2.3. Run LAMMPS from Python" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

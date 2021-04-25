@@ -1,0 +1,482 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>LAMMPS version 24 Dec 2020 Documentation &mdash; LAMMPS documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/lammps.css" type="text/css" />
+
+  
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="1. Introduction" href="Intro.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#">
+          
+
+          
+            
+            <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="lammps_version">Version: <b>24 Dec 2020</b></div>
+              <div class="lammps_release">git info: patch 24Dec2020-115-g2b8a0d310</div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Index</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fixes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Computes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix_modify_atc_commands.html">fix_modify AtC commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">LAMMPS</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content style-external-links">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>LAMMPS version 24 Dec 2020 Documentation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+          <a href="http://lammps.sandia.gov">Website</a>
+          <a href="Commands_all.html">Commands</a>
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="Intro.html" class="btn btn-neutral float-right" title="1. Introduction" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="lammps-version-version-documentation">
+<h1>LAMMPS version 24 Dec 2020 Documentation<a class="headerlink" href="#lammps-version-version-documentation" title="Permalink to this headline">¶</a></h1>
+<p>LAMMPS stands for <strong>L</strong>arge-scale <strong>A</strong>tomic/<strong>M</strong>olecular
+<strong>M</strong>assively <strong>P</strong>arallel <strong>S</strong>imulator.</p>
+<p>LAMMPS is a classical molecular dynamics simulation code with a focus
+on materials modeling.  It was designed to run efficiently on parallel
+computers.  It was developed originally at Sandia National
+Laboratories, a US Department of Energy facility.  The majority of
+funding for LAMMPS has come from the US Department of Energy (DOE).
+LAMMPS is an open-source code, distributed freely under the terms of
+the GNU Public License (GPL).</p>
+<p>The <a class="reference external" href="https://lammps.sandia.gov">LAMMPS website</a> has a variety of information about the
+code.  It includes links to an on-line version of this manual, a
+<a class="reference external" href="https://lammps.sandia.gov/mail.html">mailing list</a> where users can
+post questions, and a <a class="reference external" href="https://github.com/lammps/lammps">GitHub site</a>
+where all LAMMPS development is coordinated.</p>
+<hr class="docutils" />
+<p>The content for this manual is part of the LAMMPS distribution.  The
+online version always corresponds to the latest development version.
+If needed, you can download or build a local copy of the manual as
+HTML pages or a PDF file by following the steps on the
+<a class="reference internal" href="Build_manual.html"><span class="doc">Build the LAMMPS documentation</span></a> page. If you have difficulties viewing the pages
+please <a class="reference internal" href="#webbrowser"><span class="std std-ref">see this note</span></a>.</p>
+<hr class="docutils" />
+<p>The manual is organized in two parts:
+1) the <a class="reference internal" href="#user-documentation"><span class="std std-ref">User Guide</span></a> for how to install
+and use LAMMPS and 2) the <a class="reference internal" href="#programmer-documentation"><span class="std std-ref">Programmer Guide</span></a>
+for how to write programs using the LAMMPS library from different
+programming languages and how to modify and extend LAMMPS.</p>
+<p>Once you are familiar with LAMMPS, you may want to bookmark
+<a class="reference internal" href="Commands_all.html"><span class="doc">this page</span></a> since it gives quick access
+the documentation for all LAMMPS commands.</p>
+<hr class="docutils" />
+<div class="section" id="user-guide">
+<h2>User Guide<a class="headerlink" href="#user-guide" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound" id="userdoc">
+<span id="user-documentation"></span><p class="caption"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Intro_overview.html">1.1. Overview of LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Manual_version.html">1.2. What does a LAMMPS version mean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_features.html">1.3. LAMMPS features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_nonfeatures.html">1.4. LAMMPS non-features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_opensource.html">1.5. LAMMPS open-source license</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_authors.html">1.6. Authors of LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_citing.html">1.7. Citing LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_website.html">1.8. Additional website links</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Install_linux.html">2.1. Download an executable for Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_mac.html">2.2. Download an executable for Mac</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_windows.html">2.3. Download an executable for Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_conda.html">2.4. Download an executable for Linux or Mac via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_tarball.html">2.5. Download source and documentation as a tarball</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_git.html">2.6. Download the LAMMPS source with git</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_patch.html">2.7. Applying patches</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Build_cmake.html">3.1. Build LAMMPS with CMake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_make.html">3.2. Build LAMMPS with make</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_link.html">3.3. Link LAMMPS as a library to another code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_basics.html">3.4. Basic build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_settings.html">3.5. Optional build settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_package.html">3.6. Include packages in build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_extras.html">3.7. Packages with extra build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_manual.html">3.8. Build the LAMMPS documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_windows.html">3.9. Notes for building LAMMPS on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_development.html">3.10. Development build options (CMake only)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Run_basics.html">4.1. Basics of running LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_options.html">4.2. Command-line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_output.html">4.3. Screen and logfile output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_windows.html">4.4. Running LAMMPS on Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">5. Commands</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Commands_input.html">5.1. LAMMPS input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_parse.html">5.2. Parsing rules for input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_structure.html">5.3. Input script structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_category.html">5.4. Commands by category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_all.html">5.5. General commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_fix.html">5.6. Fix commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_compute.html">5.7. Compute commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_pair.html">5.8. Pair_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html">5.9. Bond_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#angle-style-potentials">5.10. Angle_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#dihedral-style-potentials">5.11. Dihedral_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#improper-style-potentials">5.12. Improper_style potentials</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_kspace.html">5.13. KSpace solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_removed.html">5.14. Removed commands and packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">6. Optional packages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Packages_standard.html">6.1. Standard packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Packages_user.html">6.2. User packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Packages_details.html">6.3. Package details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Speed_bench.html">7.1. Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_measure.html">7.2. Measuring performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_tips.html">7.3. General tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_packages.html">7.4. Accelerator packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_compare.html">7.5. Comparison of various accelerator packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">8. Howto discussions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">8.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">8.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">8.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">8.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">8.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">8.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">9. Example scripts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Examples.html#lowercase-directories">9.1. Lowercase directories</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Examples.html#uppercase-directories">9.2. Uppercase directories</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">10. Auxiliary tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Tools.html#pre-processing-tools">10.1. Pre-processing tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tools.html#post-processing-tools">10.2. Post-processing tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tools.html#miscellaneous-tools">10.3. Miscellaneous tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Tools.html#tool-descriptions">10.4. Tool descriptions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">11. Errors</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Errors_common.html">11.1. Common problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_bugs.html">11.2. Reporting bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_debug.html">11.3. Debugging crashes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_messages.html">11.4. Error messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_warnings.html">11.5. Warning messages</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="programmer-guide">
+<h2>Programmer Guide<a class="headerlink" href="#programmer-guide" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound" id="progdoc">
+<span id="programmer-documentation"></span><p class="caption"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-c-library-api">1.1. LAMMPS C Library API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-python-apis">1.2. LAMMPS Python APIs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-fortran-api">1.3. LAMMPS Fortran API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-cplusplus-api">1.4. LAMMPS C++ API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Python_overview.html">2.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_install.html">2.2. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_run.html">2.3. Run LAMMPS from Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_module.html">2.4. The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> Python module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_ext.html">2.5. Extending the Python interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_call.html">2.6. Calling Python from LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_examples.html">2.7. Example Python scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_error.html">2.8. Handling LAMMPS errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_trouble.html">2.9. Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Modify_overview.html">3.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_contribute.html">3.2. Submitting new features for inclusion in LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_atom.html">3.3. Atom styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_pair.html">3.4. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_bond.html">3.5. Bond, angle, dihedral, improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_compute.html">3.6. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_fix.html">3.7. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_command.html">3.8. Input script command style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_dump.html">3.9. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_kspace.html">3.10. Kspace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_min.html">3.11. Minimization styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_region.html">3.12. Region styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_body.html">3.13. Body styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_thermo.html">3.14. Thermodynamic output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_variable.html">3.15. Variable options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.3. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.4. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.5. Notes for Developers and Code Maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.6. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.7. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.8. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.9. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.10. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.11. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.12. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.13. Communication buffer coding with <em>ubuf</em></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound" id="index">
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+<div class="admonition-web-browser-compatibility admonition" id="webbrowser">
+<p class="admonition-title">Web Browser Compatibility</p>
+<p>The HTML version of the manual makes use of advanced features present
+int “modern” web browsers.  This can lead to incompatibilities with older
+web browsers (released more than 4 years ago) and specific vendor browsers
+(e.g. Internet Explorer on Windows; Microsoft Edge works well though)
+where parts of the pages are not rendered as expected (e.g. the layout is
+broken or mathematical expressions not typeset).  In that case we
+recommend to install/use a different/newer web browser or use
+the <a class="reference external" href="https://lammps.sandia.gov/doc/Manual.pdf">PDF version of the manual</a>.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Intro.html" class="btn btn-neutral float-right" title="1. Introduction" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2003-2020 Sandia Corporation
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

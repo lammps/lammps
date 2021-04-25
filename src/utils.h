@@ -17,9 +17,12 @@
 /*! \file utils.h */
 
 #include "lmptype.h"
+
+#include <mpi.h>
+
+#include <cstdio>
 #include <string>
 #include <vector>
-#include <cstdio>
 
 namespace LAMMPS_NS {
 
@@ -88,6 +91,26 @@ namespace LAMMPS_NS {
 
     void sfread(const char *srcname, int srcline, void *s, size_t size,
                 size_t num, FILE *fp, const char *filename, Error *error);
+
+    /** Read N lines of text from file into buffer and broadcast them
+     *
+     * This function uses repeated calls to fread() to fill a buffer with
+     * newline terminated text.  If a line does not end in a newline (e.g.
+     * at the end of a file), it is added.  The caller has to allocate an
+     * nlines by maxline sized buffer for storing the text data.
+     * Reading is done by MPI rank 0 of the given communicator only, and
+     * thus only MPI rank 0 needs to provide a valid file pointer.
+     *
+     *  \param fp       file pointer used by fread
+     *  \param nlines   number of lines to be read
+     *  \param maxline  maximum length of a single line
+     *  \param buffer   buffer for storing the data.
+     *  \param me       MPI rank of calling process in MPI communicator
+     *  \param comm     MPI communicator for broadcast
+     *  \return         1 if the read was short, 0 if read was succesful */
+
+    int read_lines_from_file(FILE *fp, int nlines, int maxline,
+                             char *buffer, int me, MPI_Comm comm);
 
     /** Report if a requested style is in a package or may have a typo
      *

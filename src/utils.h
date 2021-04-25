@@ -49,8 +49,8 @@ namespace LAMMPS_NS {
 
     /* Internal function handling the argument list for logmesg(). */
 
-    void _internal_logmesg(LAMMPS *lmp, fmt::string_view format,
-                           fmt::format_args args);
+    void fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format,
+                         fmt::format_args args);
 
     /** Send formatted message to screen and logfile, if available
      *
@@ -65,8 +65,8 @@ namespace LAMMPS_NS {
 
     template <typename S, typename... Args>
     void logmesg(LAMMPS *lmp, const S &format, Args&&... args) {
-      _internal_logmesg(lmp, format,
-                        fmt::make_args_checked<Args...>(format, args...));
+      fmtargs_logmesg(lmp, format,
+                      fmt::make_args_checked<Args...>(format, args...));
     }
 
     /** \overload

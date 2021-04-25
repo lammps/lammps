@@ -134,8 +134,11 @@ void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
 void utils::fmtargs_logmesg(LAMMPS *lmp,  fmt::string_view format,
                         fmt::format_args args)
 {
-  if (lmp->screen)  fmt::vprint(lmp->screen,  format, args);
-  if (lmp->logfile) fmt::vprint(lmp->logfile, format, args);
+  try {
+    logmesg(lmp, fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    logmesg(lmp, std::string(e.what())+"\n");
+  }
 }
 
 /* define this here, so we won't have to include the headers

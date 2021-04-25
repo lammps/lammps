@@ -13,6 +13,8 @@
 
 using ::testing::MatchesRegex;
 using ::testing::StartsWith;
+using ::testing::StrEq;
+using ::testing::StrNe;
 
 namespace LAMMPS_NS {
 // test fixture for regular tests
@@ -91,13 +93,13 @@ TEST_F(LAMMPS_plain, InitMembers)
     EXPECT_NE(lmp->python, nullptr);
     EXPECT_EQ(lmp->citeme, nullptr);
     if (LAMMPS::has_git_info) {
-        EXPECT_STRNE(LAMMPS::git_commit, "");
-        EXPECT_STRNE(LAMMPS::git_branch, "");
-        EXPECT_STRNE(LAMMPS::git_descriptor, "");
+        EXPECT_THAT(LAMMPS::git_commit, StrNe(""));
+        EXPECT_THAT(LAMMPS::git_branch, StrNe(""));
+        EXPECT_THAT(LAMMPS::git_descriptor, StrNe(""));
     } else {
-        EXPECT_STREQ(LAMMPS::git_commit, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
+        EXPECT_THAT(LAMMPS::git_commit, StrEq("(unknown)"));
+        EXPECT_THAT(LAMMPS::git_branch, StrEq("(unknown)"));
+        EXPECT_THAT(LAMMPS::git_descriptor, StrEq("(unknown)"));
     }
     EXPECT_EQ(lmp->comm->nthreads, 1);
 }

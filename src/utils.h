@@ -55,7 +55,7 @@ namespace LAMMPS_NS {
 
     void logmesg(LAMMPS *lmp, const std::string &mesg);
 
-    /** return a string representing the current system error status
+    /** Return a string representing the current system error status
      *
      *  This is a wrapper around calling strerror(errno).
      *
@@ -63,8 +63,10 @@ namespace LAMMPS_NS {
 
     std::string getsyserror();
 
-    /** safe wrapper around fgets() which aborts on errors
-     *  or EOF and prints a suitable error message to help debugging
+    /** Safe wrapper around fgets() which aborts on errors
+     *  or EOF and prints a suitable error message to help debugging.
+     *
+     *  Use nullptr as the error parameter to avoid the abort on EOF or error.
      *
      *  \param srcname  name of the calling source file (from FLERR macro)
      *  \param srcline  line in the calling source file (from FLERR macro)
@@ -72,13 +74,15 @@ namespace LAMMPS_NS {
      *  \param size     size of buffer s (max number of bytes read by fgets())
      *  \param fp       file pointer used by fgets()
      *  \param filename file name associated with fp (may be a null pointer; then LAMMPS will try to detect)
-     *  \param error    pointer to Error class instance (for abort) */
+     *  \param error    pointer to Error class instance (for abort) or nullptr */
 
     void sfgets(const char *srcname, int srcline, char *s, int size,
                 FILE *fp, const char *filename, Error *error);
 
-    /** safe wrapper around fread() which aborts on errors
-     *  or EOF and prints a suitable error message to help debugging
+    /** Safe wrapper around fread() which aborts on errors
+     *  or EOF and prints a suitable error message to help debugging.
+     *
+     *  Use nullptr as the error parameter to avoid the abort on EOF or error.
      *
      *  \param srcname  name of the calling source file (from FLERR macro)
      *  \param srcline  line in the calling source file (from FLERR macro)
@@ -87,7 +91,7 @@ namespace LAMMPS_NS {
      *  \param num      number of data elements read by fread()
      *  \param fp       file pointer used by fread()
      *  \param filename file name associated with fp (may be a null pointer; then LAMMPS will try to detect)
-     *  \param error    pointer to Error class instance (for abort) */
+     *  \param error    pointer to Error class instance (for abort) or nullptr */
 
     void sfread(const char *srcname, int srcline, void *s, size_t size,
                 size_t num, FILE *fp, const char *filename, Error *error);

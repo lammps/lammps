@@ -2282,6 +2282,7 @@ Ntype
 ntypes
 Ntypes
 nucleotides
+nullptr
 num
 numa
 numactl

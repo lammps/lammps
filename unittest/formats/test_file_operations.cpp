@@ -11,13 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
+#include "error.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstdio>
 #include <mpi.h>
@@ -134,9 +135,9 @@ TEST_F(FileOperationsTest, logmesg)
     utils::logmesg(lmp, "one\n");
     command("log test_logmesg.log");
     utils::logmesg(lmp, "two\n");
-    utils::logmesg(lmp, "three={}\n",3);
+    utils::logmesg(lmp, "three={}\n", 3);
     utils::logmesg(lmp, "four {}\n");
-    utils::logmesg(lmp, "five\n",5);
+    utils::logmesg(lmp, "five\n", 5);
     command("log none");
     std::string out = END_CAPTURE_OUTPUT();
     memset(buf, 0, 64);
@@ -146,6 +147,50 @@ TEST_F(FileOperationsTest, logmesg)
     ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\nargument not found\nfive\n"));
     ASSERT_THAT(buf, StrEq("two\nthree=3\nargument not found\nfive\n"));
     remove("test_logmesg.log");
+}
+
+TEST_F(FileOperationsTest, error_message_warn)
+{
+    char buf[64];
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    command("log test_error_warn.log");
+    END_HIDE_OUTPUT();
+    BEGIN_CAPTURE_OUTPUT();
+    lmp->error->message("testme.cpp", 10, "message me");
+    lmp->error->warning("testme.cpp", 100, "warn me");
+    command("log none");
+    std::string out = END_CAPTURE_OUTPUT();
+    memset(buf, 0, 64);
+    FILE *fp = fopen("test_error_warn.log", "r");
+    fread(buf, 1, 64, fp);
+    fclose(fp);
+    auto msg = StrEq("message me (testme.cpp:10)\n"
+                     "WARNING: warn me (testme.cpp:100)\n");
+    ASSERT_THAT(out, msg);
+    ASSERT_THAT(buf, msg);
+    remove("test_error_warn.log");
+}
+
+TEST_F(FileOperationsTest, error_all_one)
+{
+    char buf[64];
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    command("log none");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: exit \\(testme.cpp:10\\).*",
+                 lmp->error->all("testme.cpp", 10, "exit"););
+    TEST_FAILURE(".*ERROR: exit too \\(testme.cpp:10\\).*",
+                 lmp->error->all("testme.cpp", 10, "exit {}", "too"););
+    TEST_FAILURE(".*ERROR: argument not found \\(testme.cpp:10\\).*",
+                 lmp->error->all("testme.cpp", 10, "exit {} {}", "too"););
+    TEST_FAILURE(".*ERROR on proc 0: exit \\(testme.cpp:10\\).*",
+                 lmp->error->one("testme.cpp", 10, "exit"););
+    TEST_FAILURE(".*ERROR on proc 0: exit too \\(testme.cpp:10\\).*",
+                 lmp->error->one("testme.cpp", 10, "exit {}", "too"););
+    TEST_FAILURE(".*ERROR on proc 0: argument not found \\(testme.cpp:10\\).*",
+                 lmp->error->one("testme.cpp", 10, "exit {} {}", "too"););
 }
 
 int main(int argc, char **argv)

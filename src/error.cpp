@@ -214,6 +214,30 @@ void Error::one(const std::string &file, int line, const std::string &str)
 }
 
 /* ----------------------------------------------------------------------
+   forward vararg version to single string version
+------------------------------------------------------------------------- */
+
+void Error::_all(const std::string &file, int line, fmt::string_view format,
+                 fmt::format_args args)
+{
+  try {
+    all(file,line,fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    all(file,line,e.what());
+  }
+}
+
+void Error::_one(const std::string &file, int line, fmt::string_view format,
+                 fmt::format_args args)
+{
+  try {
+    one(file,line,fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    one(file,line,e.what());
+  }
+}
+
+/* ----------------------------------------------------------------------
    called by one proc in world
    only write to screen if non-nullptr on this proc since could be file
 ------------------------------------------------------------------------- */

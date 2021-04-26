@@ -15,7 +15,7 @@ add_test(NAME HelpMessage
          COMMAND $<TARGET_FILE:lmp> -h
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(HelpMessage PROPERTIES
-         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;PAGER=head"
+         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1"
          PASS_REGULAR_EXPRESSION ".*Large-scale Atomic/Molecular Massively Parallel Simulator -.*Usage example:.*")
 
 # check if the compiled executable will error out on an invalid command line flag

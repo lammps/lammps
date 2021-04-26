@@ -78,28 +78,12 @@ FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
   strncpy(current_node, "@DEFAULT", MDI_COMMAND_LENGTH);
 
   // create and add a compute for PE calculation
-  int n_pe = strlen(id) + 4;
-  id_pe = new char[n_pe];
-  strcpy(id_pe,id);
-  strcat(id_pe,"_pe");
-  char **newarg_pe = new char*[3];
-  newarg_pe[0] = id_pe;
-  newarg_pe[1] = (char *) "all";
-  newarg_pe[2] = (char *) "pe";
-  modify->add_compute(3,newarg_pe);
-  delete [] newarg_pe;
+  id_pe = utils::strdup(std::string(id) + "_pe");
+  modify->add_compute(fmt::format("{} all pe",id_pe));
 
   // create and add a compute for KE calculation
-  int n_ke = strlen(id) + 4;
-  id_ke = new char[n_ke];
-  strcpy(id_ke,id);
-  strcat(id_ke,"_ke");
-  char **newarg_ke = new char*[3];
-  newarg_ke[0] = id_ke;
-  newarg_ke[1] = (char *) "all";
-  newarg_ke[2] = (char *) "ke";
-  modify->add_compute(3,newarg_ke);
-  delete [] newarg_ke;
+  id_ke = utils::strdup(std::string(id) + "_ke");
+  modify->add_compute(fmt::format("{} all ke",id_ke));
 
   // accept a communicator to the driver
   int ierr;

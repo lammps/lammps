@@ -488,7 +488,7 @@ void FixAveChunk::init()
 
   for (int m = 0; m < nvalues; m++) {
     if (which[m] == ArgInfo::COMPUTE) {
-      int icompute = modify->find_compute(ids[m]);
+      icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/chunk does not exist");
       value2index[m] = icompute;
@@ -984,7 +984,6 @@ void FixAveChunk::end_of_step()
         }
       }
     } else {
-      int j;
       if (ncoord == 0) {
         for (m = 0; m < nchunk; m++) {
           fprintf(fp,"  %d %d %g",m+1,chunkID[m],count_total[m]/normcount);

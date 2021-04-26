@@ -1326,6 +1326,9 @@ void LAMMPS::print_config(FILE *fp)
   std::string infobuf = Info::get_mpi_info(major,minor);
   fmt::print(fp,"MPI v{}.{}: {}\n\n",major,minor,infobuf);
 
+  fmt::print(fp,"Accelerator configuration:\n\n{}\n",
+             Info::get_accelerator_info());
+
   fputs("Active compile time flags:\n\n",fp);
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);

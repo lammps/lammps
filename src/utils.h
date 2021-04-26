@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,9 +19,11 @@
 #include "lmptype.h"
 #include "fmt/format.h"
 
+#include <mpi.h>
+
+#include <cstdio>
 #include <string>
 #include <vector>
-#include <cstdio>
 
 namespace LAMMPS_NS {
 
@@ -76,7 +78,7 @@ namespace LAMMPS_NS {
 
     void logmesg(LAMMPS *lmp, const std::string &mesg);
 
-    /** return a string representing the current system error status
+    /** Return a string representing the current system error status
      *
      *  This is a wrapper around calling strerror(errno).
      *
@@ -84,8 +86,10 @@ namespace LAMMPS_NS {
 
     std::string getsyserror();
 
-    /** safe wrapper around fgets() which aborts on errors
-     *  or EOF and prints a suitable error message to help debugging
+    /** Safe wrapper around fgets() which aborts on errors
+     *  or EOF and prints a suitable error message to help debugging.
+     *
+     *  Use nullptr as the error parameter to avoid the abort on EOF or error.
      *
      *  \param srcname  name of the calling source file (from FLERR macro)
      *  \param srcline  line in the calling source file (from FLERR macro)
@@ -93,13 +97,15 @@ namespace LAMMPS_NS {
      *  \param size     size of buffer s (max number of bytes read by fgets())
      *  \param fp       file pointer used by fgets()
      *  \param filename file name associated with fp (may be a null pointer; then LAMMPS will try to detect)
-     *  \param error    pointer to Error class instance (for abort) */
+     *  \param error    pointer to Error class instance (for abort) or nullptr */
 
     void sfgets(const char *srcname, int srcline, char *s, int size,
                 FILE *fp, const char *filename, Error *error);
 
-    /** safe wrapper around fread() which aborts on errors
-     *  or EOF and prints a suitable error message to help debugging
+    /** Safe wrapper around fread() which aborts on errors
+     *  or EOF and prints a suitable error message to help debugging.
+     *
+     *  Use nullptr as the error parameter to avoid the abort on EOF or error.
      *
      *  \param srcname  name of the calling source file (from FLERR macro)
      *  \param srcline  line in the calling source file (from FLERR macro)
@@ -108,10 +114,30 @@ namespace LAMMPS_NS {
      *  \param num      number of data elements read by fread()
      *  \param fp       file pointer used by fread()
      *  \param filename file name associated with fp (may be a null pointer; then LAMMPS will try to detect)
-     *  \param error    pointer to Error class instance (for abort) */
+     *  \param error    pointer to Error class instance (for abort) or nullptr */
 
     void sfread(const char *srcname, int srcline, void *s, size_t size,
                 size_t num, FILE *fp, const char *filename, Error *error);
+
+    /** Read N lines of text from file into buffer and broadcast them
+     *
+     * This function uses repeated calls to fread() to fill a buffer with
+     * newline terminated text.  If a line does not end in a newline (e.g.
+     * at the end of a file), it is added.  The caller has to allocate an
+     * nlines by nmax sized buffer for storing the text data.
+     * Reading is done by MPI rank 0 of the given communicator only, and
+     * thus only MPI rank 0 needs to provide a valid file pointer.
+     *
+     *  \param fp       file pointer used by fread
+     *  \param nlines   number of lines to be read
+     *  \param nmax     maximum length of a single line
+     *  \param buffer   buffer for storing the data.
+     *  \param me       MPI rank of calling process in MPI communicator
+     *  \param comm     MPI communicator for broadcast
+     *  \return         1 if the read was short, 0 if read was successful */
+
+    int read_lines_from_file(FILE *fp, int nlines, int nmax,
+                             char *buffer, int me, MPI_Comm comm);
 
     /** Report if a requested style is in a package or may have a typo
      *

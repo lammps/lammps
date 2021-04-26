@@ -16,23 +16,23 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_alloy_gpu.h"
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "gpu_extra.h"
 #include "domain.h"
-
+#include "error.h"
+#include "force.h"
+#include "gpu_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
 #include "suffix.h"
 #include "tokenizer.h"
-#include "potential_file_reader.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -389,7 +389,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
       ValueTokenizer values = reader.next_values(1);
       file->nelements = values.next_int();
 
-      if (values.count() != file->nelements + 1)
+      if ((int)values.count() != file->nelements + 1)
         error->one(FLERR,"Incorrect element names in EAM potential file");
 
       file->elements = new char*[file->nelements];

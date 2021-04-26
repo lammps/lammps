@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -113,9 +113,6 @@ class Comm : protected Pointers {
   int rendezvous(int, int, char *, int, int, int *,
                  int (*)(int, char *, int &, int *&, char *&, void *),
                  int, char *&, int, void *, int statflag=0);
-
-  int read_lines_from_file(FILE *, int, int, char *);
-  int read_lines_from_file_universe(FILE *, int, int, char *);
 
   // extract data useful to other classes
   virtual void *extract(const char *, int &) {return nullptr;}

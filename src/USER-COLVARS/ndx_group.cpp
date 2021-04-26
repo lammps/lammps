@@ -22,10 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "group.h"
-#include "memory.h"
 #include "tokenizer.h"
-
-#include <cstdlib>
 
 using namespace LAMMPS_NS;
 #define BUFLEN 4096

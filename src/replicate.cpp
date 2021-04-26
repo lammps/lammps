@@ -166,7 +166,7 @@ void Replicate::command(int narg, char **arg)
     atom->molecules = (Molecule **) memory->smalloc((old->nmolecule)*sizeof(Molecule *),
                                                     "atom::molecules");
     atom->nmolecule = old->nmolecule;
-    for (int i = 0; i < old->nmolecule; ++i)
+    for (i = 0; i < old->nmolecule; ++i)
       atom->molecules[i] = old->molecules[i];
     memory->sfree(old->molecules);
     old->molecules = nullptr;

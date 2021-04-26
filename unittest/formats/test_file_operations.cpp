@@ -29,6 +29,7 @@ using namespace LAMMPS_NS;
 using testing::MatchesRegex;
 using testing::StrEq;
 
+using utils::read_lines_from_file;
 using utils::sfgets;
 using utils::sfread;
 using utils::split_words;
@@ -123,6 +124,37 @@ TEST_F(FileOperationsTest, safe_fread)
     utils::sfread(FLERR, buf, 1, 100, fp, "safe_file_read_test.txt", nullptr);
     ASSERT_THAT(buf, StrEq("one line\ntwo_lines\n\nno newline"));
     fclose(fp);
+}
+
+TEST_F(FileOperationsTest, read_lines_from_file)
+{
+    char *buf = new char[MAX_BUF_SIZE];
+    FILE *fp       = nullptr;
+    MPI_Comm world = MPI_COMM_WORLD;
+    int me, rv;
+    memset(buf, 0, MAX_BUF_SIZE);
+
+    rv = utils::read_lines_from_file(nullptr, 1, MAX_BUF_SIZE, buf, me, world);
+    ASSERT_EQ(rv, 1);
+
+    MPI_Comm_rank(world, &me);
+    if (me == 0) {
+        fp = fopen("safe_file_read_test.txt", "r");
+        ASSERT_NE(fp, nullptr);
+    } else
+        ASSERT_EQ(fp, nullptr);
+
+    rv = utils::read_lines_from_file(fp, 2, MAX_BUF_SIZE / 2, buf, me, world);
+    ASSERT_EQ(rv, 0);
+    ASSERT_THAT(buf, StrEq("one line\ntwo_lines\n"));
+
+    rv = utils::read_lines_from_file(fp, 2, MAX_BUF_SIZE / 2, buf, me, world);
+    ASSERT_EQ(rv, 0);
+    ASSERT_THAT(buf, StrEq("\nno newline\n"));
+
+    rv = utils::read_lines_from_file(fp, 2, MAX_BUF_SIZE / 2, buf, me, world);
+    ASSERT_EQ(rv, 1);
+    delete[] buf;
 }
 
 TEST_F(FileOperationsTest, logmesg)

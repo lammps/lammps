@@ -27,7 +27,6 @@
 #include "comm.h"
 #include "compute.h"
 #include "error.h"
-#include "force.h"
 #include "group.h"
 #include "memory.h"
 #include "modify.h"

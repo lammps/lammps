@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -34,7 +34,7 @@ class FixLangevinSpin : public Fix {
   void init();
   void setup(int);
   void add_tdamping(double *, double *);                 // add transverse damping
-  void add_temperature(int, double *, double *); 
+  void add_temperature(double[3]);
   void compute_single_langevin(int, double *, double *);
 
  protected:

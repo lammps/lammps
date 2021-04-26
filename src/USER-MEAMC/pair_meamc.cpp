@@ -17,19 +17,20 @@
 
 #include "pair_meamc.h"
 
-#include <memory>
-
-#include "meam.h"
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "meam.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
+
+#include <cstring>
+#include <memory>
 
 using namespace LAMMPS_NS;
 

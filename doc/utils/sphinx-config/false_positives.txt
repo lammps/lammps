@@ -101,6 +101,7 @@ anisotropic
 anisotropies
 anisotropy
 ansi
+antiferromagnetic
 antiquewhite
 Antisymmetrized
 antisymmetry
@@ -2177,6 +2178,7 @@ nimpropers
 nimpropertypes
 Nimpropertype
 Ninteger
+NiO
 Nissila
 nist
 nitride
@@ -2188,6 +2190,7 @@ nl
 nlayers
 nlen
 Nlines
+nlines
 nlo
 nlocal
 Nlocal
@@ -2279,6 +2282,7 @@ Ntype
 ntypes
 Ntypes
 nucleotides
+nullptr
 num
 numa
 numactl
@@ -3163,6 +3167,7 @@ th
 thb
 thei
 Theodorou
+Theophile
 Theor
 thermalization
 thermalize
@@ -3315,6 +3320,7 @@ Uleft
 uloop
 Ulomek
 ulsph
+Ultrafast
 uMech
 umin
 Umin
@@ -3595,6 +3601,7 @@ ZBL
 Zc
 zcm
 Zeeman
+zeeman
 Zemer
 Zepeda
 zflag

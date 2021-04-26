@@ -918,7 +918,7 @@ int Balance::shift()
     // do this with minimal adjustment to splits
 
     double close = (1.0+EPSNEIGH) * neighbor->skin / boxsize;
-    double delta,midpt,start,stop,lbound,ubound,spacing;
+    double midpt,start,stop,lbound,ubound,spacing;
 
     i = 0;
     while (i < np) {
@@ -1093,7 +1093,7 @@ int Balance::adjust(int n, double *split)
     }
 
   int change = 0;
-  for (int i = 1; i < n; i++)
+  for (i = 1; i < n; i++)
     if (sum[i] != target[i]) {
       change = 1;
       if (rho == 0) split[i] = 0.5 * (lo[i]+hi[i]);

@@ -819,9 +819,9 @@ void ReadDump::process_atoms()
 
   int nlocal = atom->nlocal;
   memory->create(updateflag,nlocal,"read_dump:updateflag");
-  for (int i = 0; i < nlocal; i++) updateflag[i] = 0;
+  for (i = 0; i < nlocal; i++) updateflag[i] = 0;
   memory->create(newflag,nnew,"read_dump:newflag");
-  for (int i = 0; i < nnew; i++) newflag[i] = 1;
+  for (i = 0; i < nnew; i++) newflag[i] = 1;
 
   // loop over new atoms
 
@@ -919,7 +919,7 @@ void ReadDump::process_atoms()
   if (trimflag) {
     AtomVec *avec = atom->avec;
 
-    int i = 0;
+    i = 0;
     while (i < nlocal) {
       if (!updateflag[i]) {
         avec->copy(nlocal-1,i,1);

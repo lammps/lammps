@@ -31,6 +31,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "mdi_interface.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
@@ -4972,6 +4973,56 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
     return error_type;
   }
 #endif
+  return 0;
+}
+
+// ----------------------------------------------------------------------
+// MDI functions
+// ----------------------------------------------------------------------
+int MDI_Plugin_init_lammps() {
+  // initialize MDI
+  int mdi_argc;
+  char** mdi_argv;
+  if ( MDI_Plugin_get_argc(&mdi_argc) )
+    MPI_Abort(MPI_COMM_WORLD, 1);
+  if ( MDI_Plugin_get_argv(&mdi_argv) )
+    MPI_Abort(MPI_COMM_WORLD, 1);
+  if ( MDI_Init(&mdi_argc, &mdi_argv) )
+    MPI_Abort(MPI_COMM_WORLD, 1);
+
+  // get the MPI intra-communicator for this code
+  MPI_Comm mpi_world_comm = MPI_COMM_WORLD;
+  if ( MDI_MPI_get_world_comm(&mpi_world_comm) )
+    MPI_Abort(MPI_COMM_WORLD, 1);
+
+  // find the -in argument
+  int iarg = 0;
+  char *filename;
+  bool found_filename = false;
+  while( iarg < mdi_argc && !found_filename ) {
+    if (strcmp(mdi_argv[iarg],"-in") == 0 ||
+	strcmp(mdi_argv[iarg],"-i") == 0) {
+      if (iarg+2 > mdi_argc)
+	MPI_Abort(MPI_COMM_WORLD, 1);
+      filename = mdi_argv[iarg+1];
+      found_filename = true;
+
+      // remove -in argument from the command list
+      mdi_argc -= 2;
+      for (int jarg=iarg; jarg < mdi_argc; jarg++) {
+	mdi_argv[jarg] = mdi_argv[jarg+2];
+      }
+    }
+    iarg++;
+  }
+  if (!found_filename)
+    MPI_Abort(MPI_COMM_WORLD, 1);
+
+  // create and run a LAMMPS instance
+  LAMMPS *lmp = (LAMMPS*) lammps_open(mdi_argc, mdi_argv, mpi_world_comm, NULL);
+  lammps_file(lmp, filename);
+  lammps_close(lmp);
+
   return 0;
 }
 

@@ -76,6 +76,40 @@ TEST_F(TextFileReaderTest, permissions)
     unlink("text_reader_noperms.file");
 }
 
+TEST_F(TextFileReaderTest, nofp)
+{
+    ASSERT_THROW({ TextFileReader reader(nullptr, "test"); },
+                 FileReaderException);
+}
+
+TEST_F(TextFileReaderTest, usefp)
+{
+    test_files();
+    FILE *fp = fopen("text_reader_two.file","r");
+    ASSERT_NE(fp,nullptr);
+
+    auto reader = new TextFileReader(fp, "test");
+    auto line              = reader->next_line();
+    ASSERT_STREQ(line, "4  ");
+    line = reader->next_line(1);
+    ASSERT_STREQ(line, "4 0.5   ");
+    ASSERT_NO_THROW({ reader->skip_line(); });
+    auto values = reader->next_values(1);
+    ASSERT_EQ(values.count(), 2);
+    ASSERT_EQ(values.next_int(), 3);
+    ASSERT_STREQ(values.next_string().c_str(), "1.5");
+    ASSERT_NE(reader->next_line(), nullptr);
+    double data[20];
+    ASSERT_THROW({ reader->next_dvector(data,20); }, FileReaderException);
+    ASSERT_THROW({ reader->skip_line(); }, EOFException);
+    ASSERT_EQ(reader->next_line(), nullptr);
+    delete reader;
+
+    // check that we reached EOF and the destructor didn't close the file.
+    ASSERT_EQ(feof(fp),1);
+    ASSERT_EQ(fclose(fp),0);
+}
+
 TEST_F(TextFileReaderTest, comments)
 {
     test_files();

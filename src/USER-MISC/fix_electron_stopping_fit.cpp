@@ -20,18 +20,13 @@
 
 #include "atom.h"
 #include "citeme.h"
-#include "compute.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "math_special.h"
-#include "modify.h"
-#include "region.h"
 #include "respa.h"
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

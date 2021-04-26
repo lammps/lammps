@@ -22,8 +22,8 @@ PairStyle(meam,PairMEAMC)
 #define LMP_PAIR_MEAMC_H
 
 #include "pair.h"
+
 #include <vector>
-#include <string>
 
 namespace LAMMPS_NS {
 

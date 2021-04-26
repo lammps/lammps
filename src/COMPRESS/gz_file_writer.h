@@ -19,9 +19,10 @@
 #define LMP_GZ_FILE_WRITER_H
 
 #include "file_writer.h"
+
+#include <exception>
 #include <string>
 #include <zlib.h>
-#include <exception>
 
 namespace LAMMPS_NS {
 
@@ -40,8 +41,6 @@ public:
 
     void setCompressionLevel(int level);
 };
-
-
 }
 
 #endif

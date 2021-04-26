@@ -11,7 +11,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -352,7 +351,7 @@ static char *plugin_generator(const char *text, int state)
 {
     const char *subcmd[] = {"load", "unload", "list", "clear", NULL};
     const char *sub;
-    static std::size_t idx, len;
+    static std::size_t idx=0, len;
     if (!state) idx = 0;
     len = strlen(text);
 
@@ -368,7 +367,7 @@ static char *plugin_style_generator(const char *text, int state)
 {
     const char *styles[] = {"pair", "fix", "command", NULL};
     const char *s;
-    static std::size_t idx, len;
+    static std::size_t idx=0, len;
     if (!state) idx = 0;
     len = strlen(text);
     while ((s = styles[idx]) != NULL) {
@@ -384,10 +383,10 @@ static char *plugin_name_generator(const char *text, int state)
     auto words = utils::split_words(text);
     if (words.size() < 4) return nullptr;
 
-    static std::size_t idx, len;
+    static std::size_t idx, len, nmax;
     if (!state) idx = 0;
     len = words[3].size();
-    int nmax = lammps_plugin_count();
+    nmax = lammps_plugin_count();
 
     while (idx < nmax) {
         char style[buflen], name[buflen];

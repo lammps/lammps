@@ -18,10 +18,7 @@
 #include "fix_nph_body.h"
 
 #include "error.h"
-#include "group.h"
 #include "modify.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

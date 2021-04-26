@@ -100,7 +100,7 @@ char *TextFileReader::next_line(int nparams) {
   if (nwords > 0) n = strlen(line);
 
   while (nwords == 0 || nwords < nparams) {
-    char *ptr = fgets(&line[n], MAXLINE - n, fp);
+    ptr = fgets(&line[n], MAXLINE - n, fp);
 
     if (ptr == nullptr) {
       // EOF

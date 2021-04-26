@@ -135,8 +135,8 @@ void ComputeTempSphere::dof_compute()
   // user should correct this via compute_modify if needed
 
   double *radius = atom->radius;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
+  const int *mask = atom->mask;
+  const int nlocal = atom->nlocal;
 
   count = 0;
   if (domain->dimension == 3) {
@@ -170,9 +170,6 @@ void ComputeTempSphere::dof_compute()
     if (mode == ALL) dof -= tbias->dof_remove(-1) * natoms_temp;
 
   } else if (tempbias == 2) {
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
     tbias->dof_remove_pre();
 
     count = 0;

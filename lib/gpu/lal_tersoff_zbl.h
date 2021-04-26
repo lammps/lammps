@@ -80,7 +80,7 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
   /// ts6.x = Z_i, ts6.y = Z_j, ts6.z = ZBLcut, ts6.w = ZBLexpscale
   UCL_D_Vec<numtyp4> ts6;
 
-  UCL_D_Vec<numtyp> cutsq_pair;
+  numtyp _cutsq_max;
 
   UCL_D_Vec<int> elem2param;
   UCL_D_Vec<int> map;

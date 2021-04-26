@@ -2,7 +2,6 @@
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:08:45 2021
 epsilon: 7e-14
-skip_tests: gpu
 prerequisites: ! |
   atom full
   pair lj/charmm/coul/charmm

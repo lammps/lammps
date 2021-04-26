@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1038,6 +1038,11 @@ typedef tdual_virial_array::t_host_const_randomread t_virial_array_randomread;
 // Spin types
 
 //2d X_FLOAT array n*4
+#ifdef LMP_KOKKOS_NO_LEGACY
+typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutLeft, LMPDeviceType> tdual_float_1d_4;
+#else
+typedef Kokkos::DualView<X_FLOAT*[4], Kokkos::LayoutRight, LMPDeviceType> tdual_float_1d_4;
+#endif
 typedef tdual_float_1d_4::t_host t_sp_array;
 typedef tdual_float_1d_4::t_host_const t_sp_array_const;
 typedef tdual_float_1d_4::t_host_um t_sp_array_um;

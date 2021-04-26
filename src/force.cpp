@@ -36,8 +36,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-
 /* ---------------------------------------------------------------------- */
 
 Force::Force(LAMMPS *lmp) : Pointers(lmp)

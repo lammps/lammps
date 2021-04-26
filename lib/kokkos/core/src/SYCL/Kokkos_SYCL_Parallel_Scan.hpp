@@ -83,21 +83,21 @@ class ParallelScanSYCLBase {
 
  private:
   template <typename Functor>
-  void scan_internal(cl::sycl::queue& q, const Functor& functor,
+  void scan_internal(sycl::queue& q, const Functor& functor,
                      pointer_type global_mem, std::size_t size) const {
     // FIXME_SYCL optimize
     constexpr size_t wgroup_size = 32;
     auto n_wgroups               = (size + wgroup_size - 1) / wgroup_size;
 
     // FIXME_SYCL The allocation should be handled by the execution space
-    auto deleter = [&q](value_type* ptr) { cl::sycl::free(ptr, q); };
+    auto deleter = [&q](value_type* ptr) { sycl::free(ptr, q); };
     std::unique_ptr<value_type[], decltype(deleter)> group_results_memory(
         static_cast<pointer_type>(sycl::malloc(sizeof(value_type) * n_wgroups,
                                                q, sycl::usm::alloc::shared)),
         deleter);
     auto group_results = group_results_memory.get();
 
-    q.submit([&](cl::sycl::handler& cgh) {
+    q.submit([&](sycl::handler& cgh) {
       sycl::accessor<value_type, 1, sycl::access::mode::read_write,
                      sycl::access::target::local>
           local_mem(sycl::range<1>(wgroup_size), cgh);
@@ -159,7 +159,7 @@ class ParallelScanSYCLBase {
     });
 
     if (n_wgroups > 1) scan_internal(q, functor, group_results, n_wgroups);
-    q.wait();
+    m_policy.space().fence();
 
     q.submit([&](sycl::handler& cgh) {
       cgh.parallel_for(sycl::nd_range<1>(n_wgroups * wgroup_size, wgroup_size),
@@ -171,7 +171,7 @@ class ParallelScanSYCLBase {
                                &group_results[item.get_group_linear_id()]);
                        });
     });
-    q.wait();
+    m_policy.space().fence();
   }
 
   template <typename Functor>
@@ -180,18 +180,17 @@ class ParallelScanSYCLBase {
     const Kokkos::Experimental::SYCL& space = m_policy.space();
     Kokkos::Experimental::Impl::SYCLInternal& instance =
         *space.impl_internal_space_instance();
-    cl::sycl::queue& q = *instance.m_queue;
+    sycl::queue& q = *instance.m_queue;
 
     const std::size_t len = m_policy.end() - m_policy.begin();
 
     // Initialize global memory
     q.submit([&](sycl::handler& cgh) {
       auto global_mem = m_scratch_space;
-      auto policy     = m_policy;
+      auto begin      = m_policy.begin();
       cgh.parallel_for(sycl::range<1>(len), [=](sycl::item<1> item) {
         const typename Policy::index_type id =
-            static_cast<typename Policy::index_type>(item.get_id()) +
-            policy.begin();
+            static_cast<typename Policy::index_type>(item.get_id()) + begin;
         value_type update{};
         ValueInit::init(functor, &update);
         if constexpr (std::is_same<WorkTag, void>::value)
@@ -201,7 +200,7 @@ class ParallelScanSYCLBase {
         ValueOps::copy(functor, &global_mem[id], &update);
       });
     });
-    q.wait();
+    space.fence();
 
     // Perform the actual exlcusive scan
     scan_internal(q, functor, m_scratch_space, len);
@@ -220,51 +219,36 @@ class ParallelScanSYCLBase {
         ValueOps::copy(functor, &global_mem[global_id], &update);
       });
     });
-    q.wait();
-  }
-
-  template <typename Functor>
-  void sycl_indirect_launch(const Functor& functor) const {
-    // Convenience references
-    const Kokkos::Experimental::SYCL& space = m_policy.space();
-    Kokkos::Experimental::Impl::SYCLInternal& instance =
-        *space.impl_internal_space_instance();
-    Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMemory& kernelMem =
-        *instance.m_indirectKernel;
-
-    // Allocate USM shared memory for the functor
-    kernelMem.resize(std::max(kernelMem.size(), sizeof(functor)));
-
-    // Placement new a copy of functor into USM shared memory
-    //
-    // Store it in a unique_ptr to call its destructor on scope exit
-    std::unique_ptr<Functor, Kokkos::Impl::destruct_delete> kernelFunctorPtr(
-        new (kernelMem.data()) Functor(functor));
-
-    auto kernelFunctor = std::reference_wrapper(*kernelFunctorPtr);
-    sycl_direct_launch(kernelFunctor);
+    space.fence();
   }
 
  public:
   template <typename PostFunctor>
   void impl_execute(const PostFunctor& post_functor) {
-    const auto& q = *(m_policy.space().impl_internal_space_instance()->m_queue);
+    if (m_policy.begin() == m_policy.end()) return;
+
+    const auto& q = *m_policy.space().impl_internal_space_instance()->m_queue;
     const std::size_t len = m_policy.end() - m_policy.begin();
 
     // FIXME_SYCL The allocation should be handled by the execution space
     // consider only storing one value per block and recreate initial results in
     // the end before doing the final pass
-    auto deleter = [&q](value_type* ptr) { cl::sycl::free(ptr, q); };
+    auto deleter = [&q](value_type* ptr) { sycl::free(ptr, q); };
     std::unique_ptr<value_type[], decltype(deleter)> result_memory(
         static_cast<pointer_type>(sycl::malloc(sizeof(value_type) * len, q,
                                                sycl::usm::alloc::shared)),
         deleter);
     m_scratch_space = result_memory.get();
 
-    if constexpr (std::is_trivially_copyable_v<decltype(m_functor)>)
-      sycl_direct_launch(m_policy, m_functor);
-    else
-      sycl_indirect_launch(m_functor);
+    Kokkos::Experimental::Impl::SYCLInternal::IndirectKernelMem&
+        indirectKernelMem = m_policy.space()
+                                .impl_internal_space_instance()
+                                ->m_indirectKernelMem;
+
+    const auto functor_wrapper = Experimental::Impl::make_sycl_function_wrapper(
+        m_functor, indirectKernelMem);
+
+    sycl_direct_launch(functor_wrapper.get_functor());
     post_functor();
   }
 

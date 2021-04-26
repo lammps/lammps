@@ -48,9 +48,12 @@
 #if defined(KOKKOS_ENABLE_SYCL)
 #include <Kokkos_SYCL.hpp>
 #include <SYCL/Kokkos_SYCL_DeepCopy.hpp>
+#include <SYCL/Kokkos_SYCL_MDRangePolicy.hpp>
 #include <SYCL/Kokkos_SYCL_Parallel_Range.hpp>
 #include <SYCL/Kokkos_SYCL_Parallel_Reduce.hpp>
 #include <SYCL/Kokkos_SYCL_Parallel_Scan.hpp>
+#include <SYCL/Kokkos_SYCL_Parallel_Team.hpp>
+#include <SYCL/Kokkos_SYCL_UniqueToken.hpp>
 #endif
 
 #endif

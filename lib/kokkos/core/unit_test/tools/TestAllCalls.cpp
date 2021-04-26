@@ -46,11 +46,12 @@
 // testing library this tests that our shared-library loading based profiling
 // mechanisms work
 
-#include <iostream>
 #include <Kokkos_Core.hpp>
+#include <iostream>
+#include <sstream>
 
-int main() {
-  Kokkos::initialize();
+int main(int argc, char** argv) {
+  Kokkos::initialize(argc, argv);
   {
     // This test only uses host kernel launch mechanisms. This is to allow for
     // the test to run on platforms where CUDA lambda launch isn't supported.
@@ -84,6 +85,7 @@ int main() {
     Kokkos::Profiling::stopSection(sectionId);
     Kokkos::Profiling::destroyProfileSection(sectionId);
     Kokkos::Profiling::markEvent("profiling_event");
+    Kokkos::Tools::declareMetadata("dogs", "good");
   }
   Kokkos::finalize();
 }

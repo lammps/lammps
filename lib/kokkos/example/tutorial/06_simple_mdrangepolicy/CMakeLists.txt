@@ -7,4 +7,3 @@ KOKKOS_ADD_EXECUTABLE(
   tutorial_06_simple_mdrangepolicy
   SOURCES simple_mdrangepolicy.cpp
 )
-

@@ -86,8 +86,8 @@ void Ndx2Group::command(int narg, char **arg)
   if (comm->me == 0) {
     fp = fopen(arg[0], "r");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open index file for reading: {}",
-                                   utils::getsyserror()));
+      error->one(FLERR,"Cannot open index file for reading: {}",
+                                   utils::getsyserror());
     utils::logmesg(lmp,"Reading groups from index file {}:\n",arg[0]);
   }
 

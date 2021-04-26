@@ -250,14 +250,14 @@ void Modify::init()
 
   for (i = 0; i < nfix; i++)
     if (!fix[i]->dynamic_group_allow && group->dynamic[fix[i]->igroup])
-      error->all(FLERR,fmt::format("Fix {} does not allow use with a "
-                                   "dynamic group",fix[i]->id));
+      error->all(FLERR,"Fix {} does not allow use with a "
+                                   "dynamic group",fix[i]->id);
 
   for (i = 0; i < ncompute; i++)
     if (!compute[i]->dynamic_group_allow &&
         group->dynamic[compute[i]->igroup])
-      error->all(FLERR,fmt::format("Compute {} does not allow use with a "
-                                   "dynamic group",compute[i]->id));
+      error->all(FLERR,"Compute {} does not allow use with a "
+                                   "dynamic group",compute[i]->id);
 
   // warn if any particle is time integrated more than once
 
@@ -1221,7 +1221,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
 
   for (int icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0)
-      error->all(FLERR,fmt::format("Reuse of compute ID '{}'",arg[0]));
+      error->all(FLERR,"Reuse of compute ID '{}'",arg[0]);
 
   // extend Compute list if necessary
 

@@ -379,8 +379,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == nullptr)
-      error->one(FLERR,fmt::format("Cannot open SNAP parameter file {}: {}",
-                                   paramfilename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open SNAP parameter file {}: {}",
+                                   paramfilename, utils::getsyserror());
   }
 
   char line[MAXLINE],*ptr;

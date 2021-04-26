@@ -278,8 +278,8 @@ void PPPMDisp::init()
   }
 
   if (order > MAXORDER || order_6 > MAXORDER)
-    error->all(FLERR,fmt::format("PPPMDisp coulomb or dispersion order cannot"
-                                 " be greater than {}",MAXORDER));
+    error->all(FLERR,"PPPMDisp coulomb or dispersion order cannot"
+                                 " be greater than {}",MAXORDER);
 
   // compute two charge force
 

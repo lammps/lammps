@@ -298,8 +298,8 @@ void CreateBonds::many()
 
       if (!newton_bond || tag[i] < tag[j]) {
         if (num_bond[i] == atom->bond_per_atom)
-          error->one(FLERR,fmt::format("New bond exceeded bonds per atom limit "
-                                       " of {} in create_bonds",atom->bond_per_atom));
+          error->one(FLERR,"New bond exceeded bonds per atom limit "
+                                       " of {} in create_bonds",atom->bond_per_atom);
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tag[j];
         num_bond[i]++;

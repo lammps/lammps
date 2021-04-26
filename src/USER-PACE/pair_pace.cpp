@@ -156,7 +156,7 @@ void PairPACE::compute(int eflag, int vflag) {
   firstneigh = list->firstneigh;
 
   if (inum != nlocal)
-    error->all(FLERR,fmt::format("inum: {} nlocal: {} are different",inum, nlocal));
+    error->all(FLERR,"inum: {} nlocal: {} are different",inum, nlocal);
 
   // Aidan Thompson told RD (26 July 2019) that practically always holds:
   // inum = nlocal
@@ -329,7 +329,7 @@ void PairPACE::coeff(int narg, char **arg) {
     char *elemname = elemtypes[i - 1];
     int atomic_number = AtomicNumberByName_pace(elemname);
     if (atomic_number == -1)
-      error->all(FLERR,fmt::format("'{}' is not a valid element\n", elemname));
+      error->all(FLERR,"'{}' is not a valid element\n", elemname);
 
     SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
     if (mu != -1) {
@@ -339,7 +339,7 @@ void PairPACE::coeff(int narg, char **arg) {
       map[i] = mu;
       aceimpl->ace->element_type_mapping(i) = mu; // set up LAMMPS atom type to ACE species  mapping for ace evaluator
     } else {
-      error->all(FLERR, fmt::format("Element {} is not supported by ACE-potential from file {}", elemname,potential_file_name));
+      error->all(FLERR,"Element {} is not supported by ACE-potential from file {}", elemname,potential_file_name);
     }
   }
 

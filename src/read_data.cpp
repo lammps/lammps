@@ -720,8 +720,8 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) impropercoeffs(1);
         else skip_lines(nimpropertypes);
 
-      } else error->all(FLERR,fmt::format("Unknown identifier in data file: {}",
-                                          keyword));
+      } else error->all(FLERR,"Unknown identifier in data file: {}",
+                                          keyword);
 
       parse_keyword(0);
     }
@@ -1178,7 +1178,7 @@ void ReadData::header(int firstpass)
   for (n = 0; n < NSECTIONS; n++)
     if (strcmp(keyword,section_keywords[n]) == 0) break;
   if (n == NSECTIONS)
-    error->all(FLERR,fmt::format("Unknown identifier in data file: {}",keyword));
+    error->all(FLERR,"Unknown identifier in data file: {}",keyword);
 
   // error checks on header values
   // must be consistent with atom style and other header values
@@ -1970,8 +1970,8 @@ void ReadData::open(char *file)
   }
 
   if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open file {}: {}",
-                                 file, utils::getsyserror()));
+    error->one(FLERR,"Cannot open file {}: {}",
+                                 file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

@@ -102,11 +102,11 @@ void KimInteractions::do_setup(int narg, char **arg)
   if ((narg == 1) && (arg_str == "fixed_types")) {
     fixed_types = true;
   } else if (narg != atom->ntypes) {
-    error->all(FLERR, fmt::format("Illegal 'kim interactions' command.\nThe "
+    error->all(FLERR, "Illegal 'kim interactions' command.\nThe "
                                   "LAMMPS simulation has {} atom type(s), but "
                                   "{} chemical species passed to the "
                                   "'kim interactions' command",
-                                  atom->ntypes, narg));
+                                  atom->ntypes, narg);
   } else {
     fixed_types = false;
   }
@@ -164,8 +164,8 @@ void KimInteractions::do_setup(int narg, char **arg)
           if (atom_type_sym == sim_species) species_is_supported = true;
         }
         if (!species_is_supported) {
-          error->all(FLERR, fmt::format("Species '{}' is not supported by this "
-                                        "KIM Simulator Model", atom_type_sym));
+          error->all(FLERR, "Species '{}' is not supported by this "
+                                        "KIM Simulator Model", atom_type_sym);
         }
       }
     } else {
@@ -275,8 +275,8 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
 
   const std::string key = words[1];
   if (key != "pair" && key != "charge")
-    error->one(FLERR, fmt::format("Unrecognized KEY {} for "
-                                  "KIM_SET_TYPE_PARAMETERS command", key));
+    error->one(FLERR, "Unrecognized KEY {} for "
+                                  "KIM_SET_TYPE_PARAMETERS command", key);
 
   std::string filename = words[2];
   std::vector<std::string> species(words.begin() + 3, words.end());

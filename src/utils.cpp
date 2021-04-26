@@ -1107,9 +1107,9 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
 
     if (auto_convert == nullptr) {
       if (!units.empty() && (units != unit_style) && (me == 0)) {
-        error->one(FLERR, fmt::format("Potential file {} requires {} units "
+        error->one(FLERR, "Potential file {} requires {} units "
                                       "but {} units are in use", name, units,
-                                      unit_style));
+                                      unit_style);
         return nullptr;
       }
     } else {
@@ -1123,9 +1123,9 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
             && (*auto_convert & REAL2METAL)) {
           *auto_convert = REAL2METAL;
         } else {
-          error->one(FLERR, fmt::format("Potential file {} requires {} units "
+          error->one(FLERR, "Potential file {} requires {} units "
                                         "but {} units are in use", name,
-                                        units, unit_style));
+                                        units, unit_style);
           return nullptr;
         }
       }

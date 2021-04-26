@@ -2280,8 +2280,8 @@ void FixRigid::readfile(int which, double *vec,
   if (me == 0) {
     fp = fopen(inpfile,"r");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix rigid file {}: {}",
-                                   inpfile,utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix rigid file {}: {}",
+                                   inpfile,utils::getsyserror());
     while (1) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr) error->one(FLERR,"Unexpected end of fix rigid file");
@@ -2389,8 +2389,8 @@ void FixRigid::write_restart_file(const char *file)
   auto outfile = std::string(file) + ".rigid";
   FILE *fp = fopen(outfile.c_str(),"w");
   if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open fix rigid restart file {}: {}",
-                                 outfile,utils::getsyserror()));
+    error->one(FLERR,"Cannot open fix rigid restart file {}: {}",
+                                 outfile,utils::getsyserror());
 
   fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for "
              "{} bodies on timestep {}\n\n",nbody,update->ntimestep);

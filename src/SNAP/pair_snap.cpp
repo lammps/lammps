@@ -456,8 +456,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   if (comm->me == 0) {
     fpcoeff = utils::open_potential(coefffilename,lmp,nullptr);
     if (fpcoeff == nullptr)
-      error->one(FLERR,fmt::format("Cannot open SNAP coefficient file {}: ",
-                                   coefffilename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open SNAP coefficient file {}: ",
+                                   coefffilename, utils::getsyserror());
   }
 
   char line[MAXLINE],*ptr;
@@ -490,8 +490,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     nelemtmp = words.next_int();
     ncoeffall = words.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,fmt::format("Incorrect format in SNAP coefficient "
-                                 "file: {}", e.what()));
+    error->all(FLERR,"Incorrect format in SNAP coefficient "
+                                 "file: {}", e.what());
   }
 
   // clean out old arrays and set up element lists
@@ -589,8 +589,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
         coeffelem[jelem][icoeff] = coeff.next_double();
       } catch (TokenizerException &e) {
-        error->all(FLERR,fmt::format("Incorrect format in SNAP coefficient "
-                                     "file: {}", e.what()));
+        error->all(FLERR,"Incorrect format in SNAP coefficient "
+                                     "file: {}", e.what());
       }
     }
   }
@@ -599,8 +599,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   for (int jelem = 0; jelem < nelements; jelem++) {
     if (elementflags[jelem] == 0)
-      error->all(FLERR,fmt::format("Element {} not found in SNAP coefficient "
-                                   "file", elements[jelem]));
+      error->all(FLERR,"Element {} not found in SNAP coefficient "
+                                   "file", elements[jelem]);
   }
 
   // set flags for required keywords
@@ -626,8 +626,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == nullptr)
-      error->one(FLERR,fmt::format("Cannot open SNAP parameter file {}: {}",
-                                   paramfilename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open SNAP parameter file {}: {}",
+                                   paramfilename, utils::getsyserror());
   }
 
   eof = 0;
@@ -687,8 +687,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     else if (keywd == "chunksize")
       chunksize = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
     else
-      error->all(FLERR,fmt::format("Unknown parameter '{}' in SNAP "
-                                   "parameter file", keywd));
+      error->all(FLERR,"Unknown parameter '{}' in SNAP "
+                                   "parameter file", keywd);
   }
 
   if (rcutfacflag == 0 || twojmaxflag == 0)

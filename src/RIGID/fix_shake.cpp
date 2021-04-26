@@ -524,19 +524,19 @@ void FixShake::pre_neighbor()
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         if (atom1 == -1 || atom2 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} missing on proc "
+          error->one(FLERR,"Shake atoms {} {} missing on proc "
                                        "{} at step {}",shake_atom[i][0],
-                                       shake_atom[i][1],me,update->ntimestep));
+                                       shake_atom[i][1],me,update->ntimestep);
         if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} {} missing on proc "
+          error->one(FLERR,"Shake atoms {} {} {} missing on proc "
                                        "{} at step {}",shake_atom[i][0],
                                        shake_atom[i][1],shake_atom[i][2],
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
         atom1 = atom->map(shake_atom[i][0]);
@@ -544,10 +544,10 @@ void FixShake::pre_neighbor()
         atom3 = atom->map(shake_atom[i][2]);
         atom4 = atom->map(shake_atom[i][3]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} {} {} missing on "
+          error->one(FLERR,"Shake atoms {} {} {} {} missing on "
                                        "proc {} at step {}",shake_atom[i][0],
                                        shake_atom[i][1],shake_atom[i][2],
-                                       shake_atom[i][3],me,update->ntimestep));
+                                       shake_atom[i][3],me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)
           list[nlist++] = i;
       }

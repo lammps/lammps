@@ -508,10 +508,10 @@ void DihedralTableCut::coeff(int narg, char **arg)
   // ---  and resolve issues with periodicity  ---
 
   if (tb->ninput < 2)
-    error->all(FLERR,fmt::format("Invalid dihedral table length: {}",arg[5]));
+    error->all(FLERR,"Invalid dihedral table length: {}",arg[5]);
   else if ((tb->ninput == 2) && (tabstyle == SPLINE))
-    error->all(FLERR,fmt::format("Invalid dihedral spline table length: {} "
-                                 "(Try linear)",arg[5]));
+    error->all(FLERR,"Invalid dihedral spline table length: {} "
+                                 "(Try linear)",arg[5]);
 
   // check for monotonicity
   for (int i=0; i < tb->ninput-1; i++) {
@@ -529,12 +529,12 @@ void DihedralTableCut::coeff(int narg, char **arg)
   double phihi = tb->phifile[tb->ninput-1];
   if (tb->use_degrees) {
     if ((phihi - philo) >= 360)
-      error->all(FLERR,fmt::format("Dihedral table angle range must be < 360 "
-                                   "degrees ({})",arg[5]));
+      error->all(FLERR,"Dihedral table angle range must be < 360 "
+                                   "degrees ({})",arg[5]);
   } else {
     if ((phihi - philo) >= MY_2PI)
-      error->all(FLERR,fmt::format("Dihedral table angle range must be < 2*PI "
-                                   "radians ({})",arg[5]));
+      error->all(FLERR,"Dihedral table angle range must be < 2*PI "
+                                   "radians ({})",arg[5]);
   }
 
   // convert phi from degrees to radians

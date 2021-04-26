@@ -175,8 +175,8 @@ void WriteData::write(const std::string &file)
   if (me == 0) {
     fp = fopen(file.c_str(),"w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open data file {}: {}",
-                                   file, utils::getsyserror()));
+      error->one(FLERR,"Cannot open data file {}: {}",
+                                   file, utils::getsyserror());
   }
 
   // proc 0 writes header, ntype-length arrays, force fields

@@ -56,8 +56,8 @@ void Group2Ndx::command(int narg, char **arg)
   if (comm->me == 0) {
     fp = fopen(arg[0], "w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open index file for writing: {}",
-                                   utils::getsyserror()));
+      error->one(FLERR,"Cannot open index file for writing: {}",
+                                   utils::getsyserror());
     utils::logmesg(lmp,"Writing groups to index file {}:\n",arg[0]);
   }
 

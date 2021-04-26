@@ -109,8 +109,8 @@ void ReadRestart::command(int narg, char **arg)
     }
     fp = fopen(hfile.c_str(),"rb");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
-                                   hfile, utils::getsyserror()));
+      error->one(FLERR,"Cannot open restart file {}: {}",
+                                   hfile, utils::getsyserror());
   }
 
   // read magic string, endian flag, format revision
@@ -271,8 +271,8 @@ void ReadRestart::command(int narg, char **arg)
       procfile.replace(procfile.find("%"),1,fmt::format("{}",iproc));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
-        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
-                                     procfile, utils::getsyserror()));
+        error->one(FLERR,"Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror());
       utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
       if (flag != PROCSPERFILE)
         error->one(FLERR,"Invalid flag in peratom section of restart file");
@@ -335,8 +335,8 @@ void ReadRestart::command(int narg, char **arg)
       procfile.replace(procfile.find("%"),1,fmt::format("{}",icluster));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
-        error->one(FLERR,fmt::format("Cannot open restart file {}: {}",
-                                     procfile, utils::getsyserror()));
+        error->one(FLERR,"Cannot open restart file {}: {}",
+                                     procfile, utils::getsyserror());
     }
 
     int flag,procsperfile;

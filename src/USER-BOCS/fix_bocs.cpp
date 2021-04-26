@@ -725,7 +725,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     }
   }
   else {
-    error->all(FLERR,fmt::format("ERROR: Unable to open file: {}", filename));
+    error->all(FLERR,"ERROR: Unable to open file: {}", filename);
   }
 
   if (badInput && comm->me == 0) {
@@ -744,7 +744,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
   }
   else
   {
-    error->all(FLERR,fmt::format("ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type));
+    error->all(FLERR,"ERROR: invalid p_basis_type value of {} in read_F_table", p_basis_type);
   }
 
   memory->destroy(data);

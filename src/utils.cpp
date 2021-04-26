@@ -225,6 +225,36 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
 
 /* ------------------------------------------------------------------ */
 
+/* read N lines and broadcast */
+int utils::read_lines_from_file(FILE *fp, int nlines, int nmax,
+                                char *buffer, int me, MPI_Comm comm)
+{
+  char *ptr = buffer;
+  *ptr = '\0';
+
+  if (me == 0) {
+    if (fp) {
+      for (int i = 0; i < nlines; i++) {
+        ptr = fgets(ptr,nmax,fp);
+        if (!ptr) break; // EOF?
+        // advance ptr to end of string and append newline char if needed.
+        ptr += strlen(ptr);
+        if (*(--ptr) != '\n') *(++ptr) = '\n';
+        // ensure buffer is null terminated. null char is start of next line.
+        *(++ptr) = '\0';
+      }
+    }
+  }
+
+  int n = strlen(buffer);
+  MPI_Bcast(&n,1,MPI_INT,0,comm);
+  if (n == 0) return 1;
+  MPI_Bcast(buffer,n+1,MPI_CHAR,0,comm);
+  return 0;
+}
+
+/* ------------------------------------------------------------------ */
+
 std::string utils::check_packages_for_style(const std::string &style,
                                             const std::string &name,
                                             LAMMPS *lmp)

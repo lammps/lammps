@@ -2190,6 +2190,7 @@ nl
 nlayers
 nlen
 Nlines
+nlines
 nlo
 nlocal
 Nlocal
@@ -2281,6 +2282,7 @@ Ntype
 ntypes
 Ntypes
 nucleotides
+nullptr
 num
 numa
 numactl

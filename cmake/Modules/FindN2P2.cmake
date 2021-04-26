@@ -34,19 +34,20 @@ find_package_handle_standard_args(N2P2 DEFAULT_MSG
 
 if(N2P2_FOUND)
   if (NOT TARGET N2P2::N2P2)
+    # n2p2 core library "libnnp"
     add_library(N2P2::LIBNNP UNKNOWN IMPORTED)
     set_target_properties(N2P2::LIBNNP PROPERTIES
       INTERFACE_INCLUDE_DIRECTORIES ${N2P2_INCLUDE_DIR}
       IMPORTED_LOCATION ${N2P2_LIBNNP})
+    # n2p2 interface library "libnnpif"
     add_library(N2P2::LIBNNPIF UNKNOWN IMPORTED)
     set_target_properties(N2P2::LIBNNPIF PROPERTIES
       INTERFACE_INCLUDE_DIRECTORIES ${N2P2_INCLUDE_DIR}
       IMPORTED_LOCATION ${N2P2_LIBNNPIF})
+    # Put libnnp, libnnpif and include directory together.
     add_library(N2P2::N2P2 INTERFACE IMPORTED)
     set_property(TARGET N2P2::N2P2 PROPERTY
       INTERFACE_LINK_LIBRARIES N2P2::LIBNNPIF N2P2::LIBNNP)
-    #set(N2P2_INCLUDE_DIRS ${N2P2_INCLUDE_DIR})
-    #set(N2P2_LIBRARIES ${N2P2_LIBNNPIF} ${N2P2_LIBNNP})
     set(N2P2_CMAKE_EXTRAS ${N2P2_CMAKE_EXTRA})
   endif()
 endif()

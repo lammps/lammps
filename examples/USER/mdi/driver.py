@@ -1,6 +1,13 @@
 import sys
 import mdi
 
+use_mpi4py = False
+try:
+    from mpi4py import MPI
+    use_mpi4py = True
+except:
+    pass
+
 # Initialize the MDI Library
 mdi.MDI_Init(sys.argv[2])
 

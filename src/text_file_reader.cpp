@@ -54,6 +54,17 @@ TextFileReader::TextFileReader(const std::string &filename, const std::string &f
 /**
  * \overload
  *
+\verbatim embed:rst
+
+This function is useful in combination with :cpp:func:`utils::open_potential`.
+
+.. note::
+
+   The FILE pointer is not closed in the destructor, but will be advanced
+   when reading from it.
+
+\endverbatim
+ *
  * \param  fp        File descriptor of the already opened file
  * \param  filetype  Description of file type for error messages */
 

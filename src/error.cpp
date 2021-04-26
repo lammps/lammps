@@ -225,6 +225,7 @@ void Error::_all(const std::string &file, int line, fmt::string_view format,
   } catch (fmt::format_error &e) {
     all(file,line,e.what());
   }
+  exit(1); // to trick "smart" compilers into believing this does not return
 }
 
 void Error::_one(const std::string &file, int line, fmt::string_view format,
@@ -235,6 +236,7 @@ void Error::_one(const std::string &file, int line, fmt::string_view format,
   } catch (fmt::format_error &e) {
     one(file,line,e.what());
   }
+  exit(1); // to trick "smart" compilers into believing this does not return
 }
 
 /* ----------------------------------------------------------------------

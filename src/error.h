@@ -56,12 +56,13 @@ class Error : protected Pointers {
   std::string last_error_message;
   ErrorType last_error_type;
 
+#endif
+ private:
   // internal versions that accept explicit fmtlib arguments
   [[ noreturn ]] void _all(const std::string &, int, fmt::string_view,
                            fmt::format_args args);
   [[ noreturn ]] void _one(const std::string &, int, fmt::string_view,
                            fmt::format_args args);
-#endif
 };
 
 }

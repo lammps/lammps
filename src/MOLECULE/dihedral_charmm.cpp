@@ -17,19 +17,18 @@
 
 #include "dihedral_charmm.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
-#include "update.h"
-#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

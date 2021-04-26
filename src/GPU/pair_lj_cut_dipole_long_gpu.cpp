@@ -16,27 +16,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_dipole_long_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911

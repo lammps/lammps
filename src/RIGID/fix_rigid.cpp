@@ -329,7 +329,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   pstyle = ANISO;
   dimension = domain->dimension;
 
-  for (int i = 0; i < 3; i++) {
+  for (i = 0; i < 3; i++) {
     p_start[i] = p_stop[i] = p_period[i] = 0.0;
     p_flag[i] = 0;
   }
@@ -551,7 +551,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   // set pstat_flag
 
   pstat_flag = 0;
-  for (int i = 0; i < 3; i++)
+  for (i = 0; i < 3; i++)
     if (p_flag[i]) pstat_flag = 1;
 
   if (pcouple == XYZ || (dimension == 2 && pcouple == XY)) pstyle = ISO;

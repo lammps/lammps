@@ -18,20 +18,14 @@
 #include "pair_lj_class2_gpu.h"
 
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "integrate.h"
-#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "universe.h"
-#include "update.h"
 
 #include <cmath>
 

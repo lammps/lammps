@@ -16,9 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "msm_cg.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "gridcomm.h"
 #include "domain.h"
@@ -26,7 +24,9 @@
 #include "force.h"
 #include "neighbor.h"
 #include "memory.h"
-#include "fmt/format.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -1,0 +1,29 @@
+This dir contains scripts that demonstrate how to use LAMMPS as an
+MDI engine.  LAMMPS as an engine performs the MD timestepping.
+The driver is a simple Python script.  Every timestep the driver
+sends one or more commands to LAMMPS.
+
+See the MDI package documentation Build_extras.html#mdi and
+Build_extras.html#mdi for more details on how the LAMMPS MDI
+implementation works.
+
+--------------
+
+NOTE: the Script.sh file has comands to perform all the
+runs listed below.
+
+--------------
+
+File or ZMQ or mpi/two modes of messaging:
+
+% mpirun -np 1 lmp_mpi -v mode file -log log.client -in in.message.client & 
+% mpirun -np 2 lmp_mpi -v mode file -log log.server -in in.message.server
+
+% mpirun -np 4 lmp_mpi -v mode zmq -log log.client -in in.message.client & 
+% mpirun -np 1 lmp_mpi -v mode zmq -log log.server -in in.message.server
+
+% mpirun -np 2 lmp_mpi -v mode mpitwo -log log.client -in in.message.client & 
+% mpirun -np 4 lmp_mpi -v mode mpitwo -log log.server -in in.message.server
+
+Or run with in.message.tilt.client/server.
+Don't run the tilt files with the "file" mode; they run too slow.

@@ -175,9 +175,16 @@ void CommandMDIEngine::command(int narg, char **arg)
   MDI_Register_Command("@COORDS", "@PRE-FORCES");
   MDI_Register_Command("@COORDS", "EXIT");
 
+  // if the mdi_engine fix is not already present, add it now
+  int ifix = modify->find_fix_by_style("mdi/engine");
+  bool added_mdi_engine_fix = false;
+  if (ifix < 0) {
+    modify->add_fix("_mdiengine_ all mdi/engine");
+    added_mdi_engine_fix = true;
+  }
 
   // identify the mdi_engine fix
-  int ifix = modify->find_fix_by_style("mdi/engine");
+  ifix = modify->find_fix_by_style("mdi/engine");
   if (ifix < 0) error->all(FLERR,"The mdi_engine command requires the mdi/engine fix");
   mdi_fix = static_cast<FixMDIEngine*>(modify->fix[ifix]);
 
@@ -221,6 +228,9 @@ void CommandMDIEngine::command(int narg, char **arg)
       error->all(FLERR,fmt::format("MDI node exited with invalid command: {}",command));
     }
   }
+
+  // remove the mdi/engine fix
+  if (added_mdi_engine_fix) modify->delete_fix("_mdiengine_");
 
   return;
 }

@@ -2049,7 +2049,7 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
 
   if (!atom->labelmapflag) atom->add_label_map();
 
-  int eof = comm->read_lines_from_file(fp,myntypes,MAXLINE,buf);
+  int eof = utils::read_lines_from_file(fp,myntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *typelabel = new char[MAXLINE];

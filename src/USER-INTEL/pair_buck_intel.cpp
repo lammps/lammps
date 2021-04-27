@@ -362,11 +362,14 @@ void PairBuckIntel::eval(const int offload, const int vflag,
 void PairBuckIntel::init_style()
 {
   PairBuck::init_style();
+
+  // augment neighbor list request
+  auto request = neighbor->find_request(this);
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)

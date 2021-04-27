@@ -179,12 +179,10 @@ PairAIREBOIntel::~PairAIREBOIntel()
 void PairAIREBOIntel::init_style()
 {
   PairAIREBO::init_style();
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  neighbor->find_request(this)->intel = 1;
 
-  const int nrequest = neighbor->nrequest;
-  for (int i = 0; i < nrequest; ++i)
-    if (neighbor->requests[i]->skip)
-      error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
+  if (utils::strmatch(force->pair_style,"^hybrid"))
+    error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)

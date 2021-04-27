@@ -1101,7 +1101,8 @@ void PairSWIntel::allocate()
 void PairSWIntel::init_style()
 {
   PairSW::init_style();
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  neighbor->find_request(this)->intel = 1;
+
   map[0] = map[1];
 
   int ifix = modify->find_fix("package_intel");

@@ -447,11 +447,13 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
 void PairLJCharmmCoulCharmmIntel::init_style()
 {
   PairLJCharmmCoulCharmm::init_style();
+  auto request = neighbor->find_request(this);
+
   if (force->newton_pair == 0) {
-    neighbor->requests[neighbor->nrequest-1]->half = 0;
-    neighbor->requests[neighbor->nrequest-1]->full = 1;
+    request->half = 0;
+    request->full = 1;
   }
-  neighbor->requests[neighbor->nrequest-1]->intel = 1;
+  request->intel = 1;
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)

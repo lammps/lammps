@@ -158,7 +158,7 @@ void run_lammps(LAMMPS *lmp)
     command("run 4 post no");
 }
 
-void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool nofdotr = false)
+void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool nofdotr = false, bool newton = true)
 {
     // utility lambda to improve readability
     auto command = [&](const std::string &line) {
@@ -166,6 +166,8 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool nofdotr = false)
     };
 
     command("clear");
+    if (newton) command("newton on");
+    else command("newton off");
     command("read_restart " + cfg.basename + ".restart");
 
     if (!lmp->force->pair) {
@@ -1085,7 +1087,7 @@ TEST(PairStyle, intel)
     if (print_stats) std::cerr << "run_energy  stats:" << stats << std::endl;
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true);
+    restart_lammps(lmp, test_config, true, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     f   = lmp->atom->f;

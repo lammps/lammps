@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,17 +46,12 @@ class PairBOP : public Pair {
   int update_list;              // check for changing maximum size of neighbor list
   int maxbopn;                  // maximum size of bop neighbor list for allocation
   int maxnall;                  // maximum size of bop neighbor list for allocation
-  int *map;                     // mapping from atom types to elements
-  int nelements;                // # of unique elements
   int nr;                       // increments for the BOP pair potential
   int ntheta;                   // increments for the angle function
   int npower;                   // power of the angular function
   int nBOt;                     // second BO increments
   int bop_types;                // number of elements in potential
   int npairs;                   // number of element pairs
-  char **elements;              // names of unique elements
-  int ***elem2param;
-  int nparams;
   int bop_step;
   int allocate_neigh;
   int nb_pi,nb_sg;

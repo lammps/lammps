@@ -216,7 +216,7 @@ void NPairFullBinGhostIntel::fbi(const int offload, NeighList * list,
   const int * _noalias const bins = this->bins;
   const int cop = _fix->coprocessor_number();
   const int separate_buffers = _fix->separate_buffers();
-  #pragma offload target(mic:cop) if(offload) \
+  #pragma offload target(mic:cop) if (offload) \
     in(x:length(e_nall+1) alloc_if(0) free_if(0)) \
     in(tag:length(tag_size) alloc_if(0) free_if(0)) \
     in(special:length(special_size*maxspecial) alloc_if(0) free_if(0)) \

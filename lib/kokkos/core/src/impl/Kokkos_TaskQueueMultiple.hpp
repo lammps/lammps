@@ -245,7 +245,7 @@ class LeagueQueueCollection {
   KOKKOS_INLINE_FUNCTION
   team_queue_type& get_team_queue(int iteam) {
     iteam %= max_num_queues;
-#if !defined(__HCC_ACCELERATOR__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     assert(initialized());
     assert(iteam < m_size);
     assert(iteam >= 0);

@@ -77,7 +77,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int /*vflag*/)
   if (atomKK->torque_flag) flag_mask |= 4;
 
   copymode = 1;
-  switch( flag_mask ){
+  switch (flag_mask) {
     case 0:{
       FixEnforce2DKokkosPostForceFunctor<DeviceType,0,0,0> functor(this);
       Kokkos::parallel_for(nlocal,functor);
@@ -139,21 +139,21 @@ template <int omega_flag, int angmom_flag, int torque_flag>
 KOKKOS_INLINE_FUNCTION
 void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 {
-  if (mask[i] & groupbit){
+  if (mask[i] & groupbit) {
     v(i,2) = 0.0;
     f(i,2) = 0.0;
 
-    if(omega_flag){
+    if (omega_flag) {
       omega(i,0) = 0.0;
       omega(i,1) = 0.0;
     }
 
-    if(angmom_flag){
+    if (angmom_flag) {
       angmom(i,0) = 0.0;
       angmom(i,1) = 0.0;
     }
 
-    if(torque_flag){
+    if (torque_flag) {
       torque(i,0) = 0.0;
       torque(i,1) = 0.0;
     }

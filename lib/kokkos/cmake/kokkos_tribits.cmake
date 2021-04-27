@@ -6,6 +6,12 @@ INCLUDE(GNUInstallDirs)
 
 MESSAGE(STATUS "The project name is: ${PROJECT_NAME}")
 
+FUNCTION(VERIFY_EMPTY CONTEXT)
+  if(${ARGN})
+    MESSAGE(FATAL_ERROR "Kokkos does not support all of Tribits. Unhandled arguments in ${CONTEXT}:\n${ARGN}")
+  endif()
+ENDFUNCTION()
+
 #Leave this here for now - but only do for tribits
 #This breaks the standalone CMake
 IF (KOKKOS_HAS_TRILINOS)
@@ -135,28 +141,37 @@ FUNCTION(KOKKOS_ADD_EXECUTABLE ROOT_NAME)
 ENDFUNCTION()
 
 FUNCTION(KOKKOS_ADD_EXECUTABLE_AND_TEST ROOT_NAME)
+CMAKE_PARSE_ARGUMENTS(PARSE
+  ""
+  ""
+  "SOURCES;CATEGORIES;ARGS"
+  ${ARGN})
+VERIFY_EMPTY(KOKKOS_ADD_EXECUTABLE_AND_TEST ${PARSE_UNPARSED_ARGUMENTS})
+
 IF (KOKKOS_HAS_TRILINOS)
+  IF(DEFINED PARSE_ARGS)
+    STRING(REPLACE ";" " " PARSE_ARGS "${PARSE_ARGS}")
+  ENDIF()
   TRIBITS_ADD_EXECUTABLE_AND_TEST(
     ${ROOT_NAME}
+    SOURCES ${PARSE_SOURCES}
     TESTONLYLIBS kokkos_gtest
-    ${ARGN}
     NUM_MPI_PROCS 1
     COMM serial mpi
+    ARGS ${PARSE_ARGS}
+    CATEGORIES ${PARSE_CATEGORIES}
+    SOURCES ${PARSE_SOURCES}
     FAIL_REGULAR_EXPRESSION "  FAILED  "
+    ARGS ${PARSE_ARGS}
   )
 ELSE()
-  CMAKE_PARSE_ARGUMENTS(PARSE
-    ""
-    ""
-    "SOURCES;CATEGORIES"
-    ${ARGN})
-  VERIFY_EMPTY(KOKKOS_ADD_EXECUTABLE_AND_TEST ${PARSE_UNPARSED_ARGUMENTS})
   KOKKOS_ADD_TEST_EXECUTABLE(${ROOT_NAME}
     SOURCES ${PARSE_SOURCES}
   )
   KOKKOS_ADD_TEST(NAME ${ROOT_NAME}
     EXE ${ROOT_NAME}
     FAIL_REGULAR_EXPRESSION "  FAILED  "
+    ARGS ${PARSE_ARGS}
   )
 ENDIF()
 ENDFUNCTION()
@@ -219,12 +234,86 @@ MACRO(KOKKOS_ADD_TEST_EXECUTABLE ROOT_NAME)
     ${PARSE_UNPARSED_ARGUMENTS}
     TESTONLYLIBS kokkos_gtest
   )
+  SET(EXE_NAME ${PACKAGE_NAME}_${ROOT_NAME})
 ENDMACRO()
 
 MACRO(KOKKOS_PACKAGE_POSTPROCESS)
   if (KOKKOS_HAS_TRILINOS)
     TRIBITS_PACKAGE_POSTPROCESS()
   endif()
+ENDMACRO()
+
+## KOKKOS_CONFIGURE_CORE  Configure/Generate header files for core content based
+##                        on enabled backends.
+##                        KOKKOS_FWD is the forward declare set
+##                        KOKKOS_SETUP  is included in Kokkos_Macros.hpp and include prefix includes/defines
+##                        KOKKOS_DECLARE is the declaration set
+##                        KOKKOS_POST_INCLUDE is included at the end of Kokkos_Core.hpp
+MACRO(KOKKOS_CONFIGURE_CORE)
+   SET(FWD_BACKEND_LIST)
+   FOREACH(MEMSPACE ${KOKKOS_MEMSPACE_LIST})
+      LIST(APPEND FWD_BACKEND_LIST ${MEMSPACE})
+   ENDFOREACH()
+   FOREACH(BACKEND_ ${KOKKOS_ENABLED_DEVICES})
+      IF( ${BACKEND_} STREQUAL "PTHREAD")
+         LIST(APPEND FWD_BACKEND_LIST THREADS)
+      ELSE()
+         LIST(APPEND FWD_BACKEND_LIST ${BACKEND_})
+      ENDIF()
+   ENDFOREACH()
+   MESSAGE(STATUS "Kokkos Devices: ${KOKKOS_ENABLED_DEVICES}, Kokkos Backends: ${FWD_BACKEND_LIST}")
+   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_FwdBackend.hpp "KOKKOS_FWD" "fwd/Kokkos_Fwd" "${FWD_BACKEND_LIST}")
+   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_SetupBackend.hpp "KOKKOS_SETUP" "setup/Kokkos_Setup" "${DEVICE_SETUP_LIST}")
+   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_DeclareBackend.hpp "KOKKOS_DECLARE" "decl/Kokkos_Declare" "${FWD_BACKEND_LIST}")
+   KOKKOS_CONFIG_HEADER( KokkosCore_Config_HeaderSet.in KokkosCore_Config_PostInclude.hpp "KOKKOS_POST_INCLUDE" "Kokkos_Post_Include" "${KOKKOS_BACKEND_POST_INCLUDE_LIST}")
+   SET(_DEFAULT_HOST_MEMSPACE "::Kokkos::HostSpace")
+   KOKKOS_OPTION(DEFAULT_DEVICE_MEMORY_SPACE "" STRING "Override default device memory space")
+   KOKKOS_OPTION(DEFAULT_HOST_MEMORY_SPACE "" STRING "Override default host memory space")
+   KOKKOS_OPTION(DEFAULT_DEVICE_EXECUTION_SPACE "" STRING "Override default device execution space")
+   KOKKOS_OPTION(DEFAULT_HOST_PARALLEL_EXECUTION_SPACE "" STRING "Override default host parallel execution space")
+   IF (NOT Kokkos_DEFAULT_DEVICE_EXECUTION_SPACE STREQUAL "")
+      SET(_DEVICE_PARALLEL ${Kokkos_DEFAULT_DEVICE_EXECUTION_SPACE})
+      MESSAGE(STATUS "Override default device execution space: ${_DEVICE_PARALLEL}")
+      SET(KOKKOS_DEVICE_SPACE_ACTIVE ON)
+   ELSE()
+      IF (_DEVICE_PARALLEL STREQUAL "NoTypeDefined")
+         SET(KOKKOS_DEVICE_SPACE_ACTIVE OFF)
+      ELSE()
+         SET(KOKKOS_DEVICE_SPACE_ACTIVE ON)
+      ENDIF()
+   ENDIF()
+   IF (NOT Kokkos_DEFAULT_HOST_PARALLEL_EXECUTION_SPACE STREQUAL "")
+      SET(_HOST_PARALLEL ${Kokkos_DEFAULT_HOST_PARALLEL_EXECUTION_SPACE})
+      MESSAGE(STATUS "Override default host parallel execution space: ${_HOST_PARALLEL}")
+      SET(KOKKOS_HOSTPARALLEL_SPACE_ACTIVE ON)
+   ELSE()
+      IF (_HOST_PARALLEL STREQUAL "NoTypeDefined")
+         SET(KOKKOS_HOSTPARALLEL_SPACE_ACTIVE OFF)
+      ELSE()
+         SET(KOKKOS_HOSTPARALLEL_SPACE_ACTIVE ON)
+      ENDIF()
+   ENDIF()
+   #We are ready to configure the header
+   CONFIGURE_FILE(cmake/KokkosCore_config.h.in KokkosCore_config.h @ONLY)
+ENDMACRO()
+
+## KOKKOS_INSTALL_ADDITIONAL_FILES - instruct cmake to install files in target destination.
+##                        Includes generated header files, scripts such as nvcc_wrapper and hpcbind,
+##                        as well as other files provided through plugins.
+MACRO(KOKKOS_INSTALL_ADDITIONAL_FILES)
+  # kokkos_launch_compiler is used by Kokkos to prefix compiler commands so that they forward to nvcc_wrapper
+  INSTALL(PROGRAMS
+          "${CMAKE_CURRENT_SOURCE_DIR}/bin/nvcc_wrapper"
+          "${CMAKE_CURRENT_SOURCE_DIR}/bin/hpcbind"
+          "${CMAKE_CURRENT_SOURCE_DIR}/bin/kokkos_launch_compiler"
+          DESTINATION ${CMAKE_INSTALL_BINDIR})
+  INSTALL(FILES
+          "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_config.h"
+          "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_FwdBackend.hpp"
+          "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_SetupBackend.hpp"
+          "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_DeclareBackend.hpp"
+          "${CMAKE_CURRENT_BINARY_DIR}/KokkosCore_Config_PostInclude.hpp"
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 ENDMACRO()
 
 FUNCTION(KOKKOS_SET_LIBRARY_PROPERTIES LIBRARY_NAME)

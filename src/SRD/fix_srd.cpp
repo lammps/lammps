@@ -993,7 +993,7 @@ void FixSRD::reset_velocities()
   if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
 
   if (tstat) {
-    for (i = 0; i < nbins; i++){
+    for (i = 0; i < nbins; i++) {
       n = vbin[i].n;
       if (n <= 1) continue;
 
@@ -1034,7 +1034,7 @@ void FixSRD::reset_velocities()
     if (shifts[shiftflag].commflag) xbin_comm(shiftflag,1);
   }
 
-  for (i = 0; i < nbins; i++){
+  for (i = 0; i < nbins; i++) {
     if (vbin[i].owner) {
       if (vbin[i].n > 1) {
         srd_bin_temp += vbin[i].value[0]/(vbin[i].n-dof_temp);
@@ -3979,13 +3979,13 @@ void FixSRD::triside(double t, double &f, double &df)
 double FixSRD::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (shifts[0].nbins + shifts[1].nbins) * sizeof(BinAve);
-  bytes += nmax * sizeof(int);
+  bytes += (double)(shifts[0].nbins + shifts[1].nbins) * sizeof(BinAve);
+  bytes += (double)nmax * sizeof(int);
   if (bigexist) {
-    bytes += nbins2 * sizeof(int);
-    bytes += nbins2*ATOMPERBIN * sizeof(int);
+    bytes += (double)nbins2 * sizeof(int);
+    bytes += (double)nbins2*ATOMPERBIN * sizeof(int);
   }
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }
 

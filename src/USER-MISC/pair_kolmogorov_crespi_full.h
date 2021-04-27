@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -57,12 +57,6 @@ class PairKolmogorovCrespiFull : public Pair {
     int ielement,jelement;
   };
   Param *params;       // parameter set for I-J interactions
-  char **elements;     // names of unique elements
-  int **elem2param;    // mapping from element pairs to parameters
-  int *map;            // mapping from atom types to elements
-  int nelements;       // # of unique elements
-  int nparams;         // # of stored parameter sets
-  int maxparam;        // max # of parameter sets
   int nmax;            // max # of atoms
 
   double cut_global;
@@ -84,7 +78,7 @@ class PairKolmogorovCrespiFull : public Pair {
     double Tap_coeff[8] = {1.0,0.0,0.0,0.0,-35.0,84.0,-70.0,20.0};
 
     r = r_ij/Rcut;
-    if(r >= 1.0) {Tap = 0.0;}
+    if (r >= 1.0) {Tap = 0.0;}
     else{
       Tap = Tap_coeff[7] * r + Tap_coeff[6];
       Tap = Tap * r  + Tap_coeff[5];
@@ -104,7 +98,7 @@ class PairKolmogorovCrespiFull : public Pair {
     double Tap_coeff[8] = {1.0,0.0,0.0,0.0,-35.0,84.0,-70.0,20.0};
 
     r = r_ij/Rcut;
-    if(r >= 1.0) {dTap = 0.0;}
+    if (r >= 1.0) {dTap = 0.0;}
     else {
       dTap = 7.0*Tap_coeff[7] * r + 6.0*Tap_coeff[6];
       dTap = dTap * r  + 5.0*Tap_coeff[5];

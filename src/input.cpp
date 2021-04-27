@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "comm_brick.h"
 #include "comm_tiled.h"
+#include "command.h"
 #include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
@@ -83,7 +84,7 @@ command line flags, holds the factory of commands and creates and
 initializes an instance of the Variable class.
 
 To execute a command, a specific class instance, derived from
-:cpp:class:`Pointers`, is created, then its ``command()`` member
+:cpp:class:`Command`, is created, then its ``command()`` member
 function executed, and finally the class instance is deleted.
 
 \endverbatim
@@ -107,6 +108,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
   label_active = 0;
   labelstr = nullptr;
   jump_skip = 0;
+  utf8_warn = true;
 
   if (me == 0) {
     nfile = 1;
@@ -420,6 +422,16 @@ void Input::parse()
       else if (quoteflag == 1 && *ptr == '\'') quoteflag = 0;
     }
     ptr++;
+  }
+
+  if (utils::has_utf8(copy)) {
+    std::string buf = utils::utf8_subst(copy);
+    strcpy(copy,buf.c_str());
+    if (utf8_warn && (comm->me == 0))
+      error->warning(FLERR,"Detected non-ASCII characters in input. "
+                     "Will try to continue by replacing with ASCII "
+                     "equivalents where known.");
+    utf8_warn = false;
   }
 
   // perform $ variable substitution (print changes)
@@ -816,7 +828,9 @@ int Input::execute_command()
 
   if (command_map->find(command) != command_map->end()) {
     CommandCreator &command_creator = (*command_map)[command];
-    command_creator(lmp,narg,arg);
+    Command *cmd = command_creator(lmp);
+    cmd->command(narg,arg);
+    delete cmd;
     return 0;
   }
 
@@ -830,10 +844,9 @@ int Input::execute_command()
 ------------------------------------------------------------------------- */
 
 template <typename T>
-void Input::command_creator(LAMMPS *lmp, int narg, char **arg)
+Command *Input::command_creator(LAMMPS *lmp)
 {
-  T cmd(lmp);
-  cmd.command(narg,arg);
+  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -912,7 +925,7 @@ void Input::ifthenelse()
     char **commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
+      n = strlen(arg[i]) + 1;
       if (n == 1) error->all(FLERR,"Illegal if command");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
@@ -965,7 +978,7 @@ void Input::ifthenelse()
     char **commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
+      n = strlen(arg[i]) + 1;
       if (n == 1) error->all(FLERR,"Illegal if command");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
@@ -1040,9 +1053,7 @@ void Input::jump()
   if (narg == 2) {
     label_active = 1;
     if (labelstr) delete [] labelstr;
-    int n = strlen(arg[1]) + 1;
-    labelstr = new char[n];
-    strcpy(labelstr,arg[1]);
+    labelstr = utils::strdup(arg[1]);
   }
 }
 
@@ -1103,22 +1114,20 @@ void Input::partition()
   int ilo,ihi;
   utils::bounds(FLERR,arg[1],1,universe->nworlds,ilo,ihi,error);
 
-  // copy original line to copy, since will use strtok() on it
-  // ptr = start of 4th word
+  // new command starts at the 3rd argument,
+  // which must not be another partition command
 
-  strcpy(copy,line);
-  char *ptr = strtok(copy," \t\n\r\f");
-  ptr = strtok(nullptr," \t\n\r\f");
-  ptr = strtok(nullptr," \t\n\r\f");
-  ptr += strlen(ptr) + 1;
-  ptr += strspn(ptr," \t\n\r\f");
+  if (strcmp(arg[2],"partition") == 0)
+    error->all(FLERR,"Illegal partition command");
+
+  char *cmd = strstr(line,arg[2]);
 
   // execute the remaining command line on requested partitions
 
   if (yesflag) {
-    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(ptr);
+    if (universe->iworld+1 >= ilo && universe->iworld+1 <= ihi) one(cmd);
   } else {
-    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(ptr);
+    if (universe->iworld+1 < ilo || universe->iworld+1 > ihi) one(cmd);
   }
 }
 
@@ -1281,9 +1290,18 @@ void Input::shell()
     for (int i = 1; i < narg; i++) {
       rv = 0;
 #ifdef _WIN32
-      if (arg[i]) rv = _putenv(arg[i]);
+      if (arg[i]) rv = _putenv(utils::strdup(arg[i]));
 #else
-      if (arg[i]) rv = putenv(arg[i]);
+      if (arg[i]) {
+        std::string vardef(arg[i]);
+        auto found = vardef.find_first_of("=");
+        if (found == std::string::npos) {
+          rv = setenv(vardef.c_str(),"",1);
+        } else {
+          rv = setenv(vardef.substr(0,found).c_str(),
+                      vardef.substr(found+1).c_str(),1);
+        }
+      }
 #endif
       rv = (rv < 0) ? errno : 0;
       MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
@@ -1761,6 +1779,10 @@ void Input::pair_coeff()
     error->all(FLERR,"Pair_coeff command before simulation box is defined");
   if (force->pair == nullptr)
     error->all(FLERR,"Pair_coeff command before pair_style is defined");
+  if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
+                                             || (strcmp(arg[1],"*") != 0))))
+    error->all(FLERR,"Incorrect args for pair coefficients");
+  
   int newflag0 = readtype(arg[0],Atom::ATOM);
   int newflag1 = readtype(arg[1],Atom::ATOM);
 
@@ -1808,7 +1830,10 @@ void Input::pair_style()
     int match = 0;
     if (style == force->pair_style) match = 1;
     if (!match && lmp->suffix_enable) {
-      if (lmp->suffix)
+      if (lmp->suffixp)
+        if (style + "/" + lmp->suffixp == force->pair_style) match = 1;
+
+      if (lmp->suffix && !lmp->suffixp)
         if (style + "/" + lmp->suffix == force->pair_style) match = 1;
 
       if (lmp->suffix2)
@@ -1921,17 +1946,11 @@ void Input::suffix()
 
     if (strcmp(arg[0],"hybrid") == 0) {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
-      int n = strlen(arg[1]) + 1;
-      lmp->suffix = new char[n];
-      strcpy(lmp->suffix,arg[1]);
-      n = strlen(arg[2]) + 1;
-      lmp->suffix2 = new char[n];
-      strcpy(lmp->suffix2,arg[2]);
+      lmp->suffix = utils::strdup(arg[1]);
+      lmp->suffix2 = utils::strdup(arg[2]);
     } else {
       if (narg != 1) error->all(FLERR,"Illegal suffix command");
-      int n = strlen(arg[0]) + 1;
-      lmp->suffix = new char[n];
-      strcpy(lmp->suffix,arg[0]);
+      lmp->suffix = utils::strdup(arg[0]);
     }
   }
 }

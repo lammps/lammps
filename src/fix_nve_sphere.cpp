@@ -18,7 +18,6 @@
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
-#include "math_vector.h"
 
 #include <cmath>
 #include <cstring>
@@ -98,9 +97,8 @@ void FixNVESphere::init()
 void FixNVESphere::initial_integrate(int /*vflag*/)
 {
   double dtfm,dtirotate,msq,scale,s2,inv_len_mu;
-  double g[3];
-  vector w, w_temp, a;
-  matrix Q, Q_temp, R;
+  double g[3], w[3], w_temp[3], a[3];
+  double Q[3][3], Q_temp[3][3], R[3][3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -187,7 +185,7 @@ void FixNVESphere::initial_integrate(int /*vflag*/)
           // Q = I + vx + vx^2 * (1-c)/s^2
 
           s2 = a[0]*a[0] + a[1]*a[1];
-          if (s2 != 0.0){ // i.e. the vectors are not parallel
+          if (s2 != 0.0) { // i.e. the vectors are not parallel
             scale = (1.0 - a[2])/s2;
 
             Q[0][0] = 1.0 - scale*a[0]*a[0];

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,13 +39,18 @@ class FixPrecessionSpin : public Fix {
   void min_post_force(int);
   double compute_scalar();
 
-  int zeeman_flag, aniso_flag, cubic_flag;
+  int zeeman_flag, stt_flag, aniso_flag, cubic_flag, hexaniso_flag;
   void compute_single_precession(int, double *, double *);
 
   // zeeman calculations
 
   void compute_zeeman(int, double *);
   double compute_zeeman_energy(double *);
+
+  // stt calculations
+
+  void compute_stt(double *, double *);
+  double compute_stt_energy(double *);
 
   // uniaxial aniso calculations
 
@@ -56,6 +61,11 @@ class FixPrecessionSpin : public Fix {
 
   void compute_cubic(double *, double *);
   double compute_cubic_energy(double *);
+
+  // hexagonal aniso calculations
+
+  void compute_hexaniso(double *, double *);
+  double compute_hexaniso_energy(double *);
 
   // storing magnetic energies
 
@@ -83,6 +93,12 @@ class FixPrecessionSpin : public Fix {
   double nhx, nhy, nhz;
   double hx, hy, hz;            // temp. force variables
 
+  // STT intensity and direction
+
+  double stt_field;
+  double nsttx, nstty, nsttz;
+  double sttx, stty, sttz;
+
   // magnetic anisotropy intensity and direction
 
   double Ka;                    // aniso const. in eV
@@ -97,6 +113,13 @@ class FixPrecessionSpin : public Fix {
   double nc1x,nc1y,nc1z;
   double nc2x,nc2y,nc2z;
   double nc3x,nc3y,nc3z;
+
+  // hexagonal anisotropy
+  double K6;               // hexagonal aniso const. in eV
+  double K6h;               // hexagonal aniso const. in rad.THz
+  double n6x,n6y,n6z;       // main axis
+  double m6x,m6y,m6z;       // secondary (perpendicular) axis
+  double l6x,l6y,l6z;       // =(m x n)
 
   void set_magneticprecession();
 

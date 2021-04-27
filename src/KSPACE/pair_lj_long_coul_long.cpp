@@ -19,24 +19,24 @@
 
 #include "pair_lj_long_coul_long.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_vector.h"
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
 
-
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathExtra;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -242,7 +242,7 @@ void PairLJLongCoulLong::init_style()
 
   // set rRESPA cutoffs
 
-  if (strstr(update->integrate_style,"respa") &&
+  if (utils::strmatch(update->integrate_style,"^respa") &&
       ((Respa *) update->integrate)->level_inner >= 0)
     cut_respa = ((Respa *) update->integrate)->cutoff;
   else cut_respa = nullptr;
@@ -258,7 +258,7 @@ void PairLJLongCoulLong::init_style()
     int irequest;
     int respa = 0;
 
-    if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+    if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
       if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
       if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
     }
@@ -473,7 +473,7 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
   double *cutsqi, *cut_ljsqi, *lj1i, *lj2i, *lj3i, *lj4i, *offseti;
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
-  vector xi, d;
+  double xi[3], d[3];
 
   ineighn = (ineigh = list->ilist)+list->inum;
 
@@ -483,7 +483,7 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
     offseti = offset[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                       // loop over neighbors
@@ -496,7 +496,7 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
       if (order1 && (rsq < cut_coulsq)) {                   // coulombic
@@ -530,7 +530,7 @@ void PairLJLongCoulLong::compute(int eflag, int vflag)
 
       if (rsq < cut_ljsqi[typej]) {                         // lj
         if (order6) {                                       // long-range lj
-          if(!ndisptablebits || rsq <= tabinnerdispsq) {    // series real space
+          if (!ndisptablebits || rsq <= tabinnerdispsq) {    // series real space
             double rn = r2inv*r2inv*r2inv;
             double x2 = g2*rsq, a2 = 1.0/x2;
             x2 = a2*exp(-x2)*lj4i[typej];
@@ -627,12 +627,12 @@ void PairLJLongCoulLong::compute_inner()
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
   int i, j, order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   double qri, *cut_ljsqi, *lj1i, *lj2i;
-  vector xi, d;
+  double xi[3], d[3];
 
   ineighn = (ineigh = list->ilist_inner)+list->inum_inner;
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
@@ -646,7 +646,7 @@ void PairLJLongCoulLong::compute_inner()
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
+      if ((rsq = dot3(d, d)) >= cut_out_off_sq) continue;
       r2inv = 1.0/rsq;
 
       if (order1 && (rsq < cut_coulsq)) {                       // coulombic
@@ -714,14 +714,14 @@ void PairLJLongCoulLong::compute_middle()
   int *ineigh, *ineighn, *jneigh, *jneighn, typei, typej, ni;
   int i, j, order1 = (ewald_order|(ewald_off^-1))&(1<<1);
   double qri, *cut_ljsqi, *lj1i, *lj2i;
-  vector xi, d;
+  double xi[3], d[3];
 
   ineighn = (ineigh = list->ilist_middle)+list->inum_middle;
 
   for (; ineigh<ineighn; ++ineigh) {                        // loop over my atoms
     i = *ineigh; fi = f0+3*i;
     if (order1) qri = qqrd2e*q[i];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     cut_ljsqi = cut_ljsq[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei];
     jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
@@ -736,7 +736,7 @@ void PairLJLongCoulLong::compute_middle()
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cut_out_off_sq) continue;
+      if ((rsq = dot3(d, d)) >= cut_out_off_sq) continue;
       if (rsq <= cut_in_off_sq) continue;
       r2inv = 1.0/rsq;
 
@@ -803,7 +803,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald_6*g_ewald_6, g6 = g2*g2*g2, g8 = g6*g2;
   double respa_lj = 0.0, respa_coul = 0.0, frespa = 0.0;
-  vector xi, d;
+  double xi[3], d[3];
 
   double cut_in_off = cut_respa[2];
   double cut_in_on = cut_respa[3];
@@ -820,7 +820,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
     offseti = offset[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
     for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
@@ -833,7 +833,7 @@ void PairLJLongCoulLong::compute_outer(int eflag, int vflag)
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
       frespa = 1.0;                                       // check whether and how to compute respa corrections

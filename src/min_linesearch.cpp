@@ -545,7 +545,7 @@ pseudo code:
               bactrack = true
 
            // GRAD_TOL = 0.1
-           if ( (not backtrack) && (fabs(fhCurr/fh0) <= GRAD_TOL) ):
+           if ((not backtrack) && (fabs(fhCurr/fh0) <= GRAD_TOL)):
               // forces sufficiently reduced without energy increase
               EXIT with success
 

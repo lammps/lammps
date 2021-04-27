@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -56,9 +56,6 @@ class ComputeOrientOrderAtom : public Compute {
   double polar_prefactor(int, int, double);
   double associated_legendre(int, int, double);
 
-  static const int nmaxfactorial = 167;
-  static const double nfac_table[];
-  double factorial(int);
   virtual void init_clebsch_gordan();
   double *cglist;                      // Clebsch-Gordan coeffs
   int idxcg_max;

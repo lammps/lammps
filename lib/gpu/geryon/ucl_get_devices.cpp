@@ -44,10 +44,8 @@ using namespace ucl_hip;
 int main(int argc, char** argv) {
   UCL_Device cop;
   std::cout << "Found " << cop.num_platforms() << " platform(s).\n";
-  if (cop.num_platforms()>0) {
-    std::cout << "Using platform: " << cop.platform_name() << std::endl;
+  if (cop.num_platforms()>0)
     cop.print_all(std::cout);
-  }
   return 0;
 }
 

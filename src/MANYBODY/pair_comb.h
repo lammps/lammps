@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -38,7 +38,7 @@ class PairComb : public Pair {
   virtual double yasu_char(double *, int &);
   double enegtot;
 
-  static const int NPARAMS_PER_LINE = 49;
+  static constexpr int NPARAMS_PER_LINE = 49;
 
  protected:
   struct Param {
@@ -62,12 +62,6 @@ class PairComb : public Pair {
   };
 
   double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
   double precision;
   Param *params;                // parameter set for an I-J-K interaction
 
@@ -155,29 +149,6 @@ class PairComb : public Pair {
   void unpack_forward_comm(int , int , double *);
 
   void Short_neigh();
-
-  // vector functions, inline for efficiency
-
-  inline double vec3_dot(const double x[3], const double y[3]) const {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-  }
-
-  inline void vec3_add(const double x[3], const double y[3],
-                       double * const z) const {
-    z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
-  }
-
-  inline void vec3_scale(const double k, const double x[3],
-                         double y[3]) const {
-    y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
-  }
-
-  inline void vec3_scaleadd(const double k, const double x[3],
-                            const double y[3], double * const z) const {
-    z[0] = k*x[0]+y[0];
-    z[1] = k*x[1]+y[1];
-    z[2] = k*x[2]+y[2];
-  }
 };
 
 }

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,7 +42,7 @@ class PairEAM : public Pair {
 
   // potentials in spline form used for force computation
 
-  double dr,rdr,drho,rdrho,rhomax;
+  double dr,rdr,drho,rdrho,rhomax,rhomin;
   double ***rhor_spline,***frho_spline,***z2r_spline;
 
   PairEAM(class LAMMPS *);
@@ -74,8 +74,6 @@ class PairEAM : public Pair {
   int *numforce;
 
   // potentials as file data
-
-  int *map;                   // which element each atom type maps to
 
   struct Funcfl {
     char *file;

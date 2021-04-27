@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperNPT::TemperNPT(LAMMPS *lmp) : Pointers(lmp) {}
+TemperNPT::TemperNPT(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

@@ -258,7 +258,7 @@ struct DeepCopy<HostSpace, Kokkos::Experimental::OpenMPTargetSpace,
 template <>
 struct VerifyExecutionCanAccessMemorySpace<
     Kokkos::HostSpace, Kokkos::Experimental::OpenMPTargetSpace> {
-  enum { value = false };
+  enum : bool { value = false };
   inline static void verify(void) {}
   inline static void verify(const void*) {}
 };

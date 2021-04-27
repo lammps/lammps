@@ -16,25 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_buck_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -47,8 +40,8 @@ int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                   const int nall, const int max_nbors,  const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
 void buck_gpu_reinit(const int ntypes, double **cutsq, double **host_rhoinv,
-                  double **host_buck1, double **host_buck2,
-                  double **host_a, double **host_c, double **offset);
+                     double **host_buck1, double **host_buck2,
+                     double **host_a, double **host_c, double **offset);
 void buck_gpu_clear();
 int ** buck_gpu_compute_n(const int ago, const int inum_full, const int nall,
                           double **host_x, int *host_type, double *sublo,
@@ -159,11 +152,12 @@ void PairBuckGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = buck_gpu_init(atom->ntypes+1, cutsq, rhoinv, buck1, buck2,
                               a, c, offset, force->special_lj, atom->nlocal,
-                              atom->nlocal+atom->nghost, 300, maxspecial,
+                              atom->nlocal+atom->nghost, mnf, maxspecial,
                               cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

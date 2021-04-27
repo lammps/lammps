@@ -173,7 +173,7 @@ TEST(MPI, multi_partition)
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
     MPI_Comm_rank(MPI_COMM_WORLD, &me);
 
-    const char *args[] = {"LAMMPS_test", "-log",   "none",    "-partition", "2x2",
+    const char *args[] = {"LAMMPS_test", "-log",   "none",    "-partition", "4x1",
                           "-echo",       "screen", "-nocite", "-in",        "none"};
     char **argv        = (char **)args;
     int argc           = sizeof(args) / sizeof(char *);
@@ -183,19 +183,15 @@ TEST(MPI, multi_partition)
     lammps_command(lmp, "atom_style      atomic");
     lammps_command(lmp, "region          box block 0 2 0 2 0 2");
     lammps_command(lmp, "create_box      1 box");
-    lammps_command(lmp, "variable        partition universe 1 2");
+    lammps_command(lmp, "variable        partition universe 1 2 3 4");
 
     EXPECT_EQ(lammps_extract_setting(lmp, "universe_size"), nprocs);
     EXPECT_EQ(lammps_extract_setting(lmp, "universe_rank"), me);
-    EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), nprocs / 2);
-    EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), me % 2);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), 1);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_rank"), 0);
 
     char *part_id = (char *)lammps_extract_variable(lmp, "partition", nullptr);
-    if (me < 2) {
-        ASSERT_THAT(part_id, StrEq("1"));
-    } else {
-        ASSERT_THAT(part_id, StrEq("2"));
-    }
+    ASSERT_THAT(part_id, StrEq(std::to_string(me + 1)));
 
     lammps_close(lmp);
 };

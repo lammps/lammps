@@ -302,11 +302,11 @@ bigint ReaderMolfile::read_header(double box[3][3], int &boxinfo, int &triclinic
          (fieldtype[i] == Y) ||
          (fieldtype[i] == Z) ||
          (fieldtype[i] == ID) ||
-         (fieldtype[i] == TYPE) ) {
+         (fieldtype[i] == TYPE)) {
       fieldindex[i] = fieldtype[i];
     } else if ( (fieldtype[i] == VX) ||
                 (fieldtype[i] == VY) ||
-                (fieldtype[i] == VZ) ) {
+                (fieldtype[i] == VZ)) {
       fieldindex[i] = fieldtype[i];
       needvels = 1;
     } else {

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -242,7 +242,7 @@ The typecasts prevent compiler warnings about possible truncation issues.
 
 // define stack variable alignment
 
-#if defined(__INTEL_COMPILER)
+#if defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_COMPILER)
 #define _alignvar(expr,val) __declspec(align(val)) expr
 #elif defined(__GNUC__)
 #define _alignvar(expr,val) expr __attribute((aligned(val)))
@@ -252,7 +252,7 @@ The typecasts prevent compiler warnings about possible truncation issues.
 
 // declaration to lift aliasing restrictions
 
-#if defined(__INTEL_COMPILER)
+#if defined(__INTEL_LLVM_COMPILER) || defined(__INTEL_COMPILER)
 #define _noalias restrict
 #elif defined(__GNUC__)
 #define _noalias __restrict
@@ -267,6 +267,8 @@ The typecasts prevent compiler warnings about possible truncation issues.
 #if defined(__clang__)
 #  define _noopt __attribute__((optnone))
 #elif defined(__INTEL_COMPILER)
+#  define _noopt
+#elif defined(__PGI)
 #  define _noopt
 #elif defined(__GNUC__)
 #  if (__GNUC__ > 4) || ((__GNUC__ == 4) && (__GNUC_MINOR__ >= 9))

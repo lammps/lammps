@@ -1,7 +1,8 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:11 202
-epsilon: 5e-14
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:08:40 2021
+epsilon: 2e-13
+skip_tests: gpu
 prerequisites: ! |
   atom full
   pair buck/coul/msm
@@ -32,7 +33,9 @@ pair_coeff: ! |
   4 4 127198.698386798 0.207005479340455 37.2289658745028
   4 5 127198.698386798 0.207005479340455 37.2289658745028
   5 5 127198.698386798 0.207005479340455 37.2289658745028
-extract: ! ""
+extract: |
+  a 2
+  c 2
 natoms: 29
 init_vdwl: 143.749538808172
 init_coul: 226.465163473713

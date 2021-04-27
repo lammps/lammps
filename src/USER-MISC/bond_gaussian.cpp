@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,7 +31,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-BondGaussian::BondGaussian(LAMMPS *lmp) : Bond(lmp)
+BondGaussian::BondGaussian(LAMMPS *lmp)
+  : Bond(lmp), nterms(nullptr), bond_temperature(nullptr),
+    alpha(nullptr), width(nullptr), r0(nullptr)
 {
   reinitflag = 1;
 }
@@ -45,9 +47,9 @@ BondGaussian::~BondGaussian()
     memory->destroy(nterms);
     memory->destroy(bond_temperature);
     for (int i = 1; i <= atom->nbondtypes; i++) {
-      if (alpha[i]) delete [] alpha[i];
-      if (width[i]) delete [] width[i];
-      if (r0[i]) delete [] r0[i];
+      delete [] alpha[i];
+      delete [] width[i];
+      delete [] r0[i];
     }
     delete [] alpha;
     delete [] width;
@@ -136,11 +138,9 @@ void BondGaussian::allocate()
   alpha = new double *[n+1];
   width = new double *[n+1];
   r0 = new double *[n+1];
-  for (int i = 1; i <= n; i++) {
-    alpha[i] = 0;
-    width[i] = 0;
-    r0[i] = 0;
-  }
+  memset(alpha,0,sizeof(double)*(n+1));
+  memset(width,0,sizeof(double)*(n+1));
+  memset(r0,0,sizeof(double)*(n+1));
 
   memory->create(setflag,n+1,"bond:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
@@ -168,10 +168,13 @@ void BondGaussian::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     bond_temperature[i] = bond_temp_one;
     nterms[i] = n;
+    delete[] alpha[i];
     alpha[i] = new double [n];
+    delete[] width[i];
     width[i] = new double [n];
+    delete[] r0[i];
     r0[i] = new double [n];
-    for (int j = 0; j < n; j++ ) {
+    for (int j = 0; j < n; j++) {
       alpha[i][j] = utils::numeric(FLERR,arg[3+3*j],false,lmp);
       width[i][j] = utils::numeric(FLERR,arg[4+3*j],false,lmp);
       r0[i][j] = utils::numeric(FLERR,arg[5+3*j],false,lmp);
@@ -200,7 +203,7 @@ void BondGaussian::write_restart(FILE *fp)
 {
   fwrite(&bond_temperature[1],sizeof(double),atom->nbondtypes,fp);
   fwrite(&nterms[1],sizeof(int),atom->nbondtypes,fp);
-  for(int i = 1; i <= atom->nbondtypes; i++) {
+  for (int i = 1; i <= atom->nbondtypes; i++) {
     fwrite(alpha[i],sizeof(double),nterms[i],fp);
     fwrite(width[i],sizeof(double),nterms[i],fp);
     fwrite(r0[i],sizeof(double),nterms[i],fp);
@@ -223,21 +226,21 @@ void BondGaussian::read_restart(FILE *fp)
   MPI_Bcast(&nterms[1],atom->nbondtypes,MPI_INT,0,world);
 
   // allocate
-  for(int i = 1; i <= atom->nbondtypes; i++) {
+  for (int i = 1; i <= atom->nbondtypes; i++) {
     alpha[i] = new double [nterms[i]];
     width[i] = new double [nterms[i]];
     r0[i] = new double [nterms[i]];
   }
 
   if (comm->me == 0) {
-    for(int i = 1; i <= atom->nbondtypes; i++) {
+    for (int i = 1; i <= atom->nbondtypes; i++) {
       utils::sfread(FLERR,alpha[i],sizeof(double),nterms[i],fp,nullptr,error);
       utils::sfread(FLERR,width[i],sizeof(double),nterms[i],fp,nullptr,error);
       utils::sfread(FLERR,r0[i],sizeof(double),nterms[i],fp,nullptr,error);
     }
   }
 
-  for(int i = 1; i <= atom->nbondtypes; i++) {
+  for (int i = 1; i <= atom->nbondtypes; i++) {
     MPI_Bcast(alpha[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(width[i],nterms[i],MPI_DOUBLE,0,world);
     MPI_Bcast(r0[i],nterms[i],MPI_DOUBLE,0,world);

@@ -263,7 +263,7 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   nper = static_cast<int> (volfrac*volume/volume_one);
   if (nper == 0) error->all(FLERR,"Fix pour insertion count per timestep is 0");
-  int nfinal = update->ntimestep + 1 + (ninsert-1)/nper * nfreq;
+  int nfinal = update->ntimestep + 1 + ((bigint)ninsert-1)/nper * nfreq;
 
   // print stats
 
@@ -369,6 +369,14 @@ void FixPour::init()
       error->all(FLERR,"Fix pour and fix shake not using "
                  "same molecule template ID");
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPour::setup_pre_exchange()
+{
+  if (ninserted < ninsert) next_reneighbor = update->ntimestep + 1;
+  else next_reneighbor = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -705,10 +713,10 @@ void FixPour::pre_exchange()
     if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
     if (mode == MOLECULE) {
-      atom->nbonds += onemols[imol]->nbonds * ninserted_mols;
-      atom->nangles += onemols[imol]->nangles * ninserted_mols;
-      atom->ndihedrals += onemols[imol]->ndihedrals * ninserted_mols;
-      atom->nimpropers += onemols[imol]->nimpropers * ninserted_mols;
+      atom->nbonds += (bigint)onemols[imol]->nbonds * ninserted_mols;
+      atom->nangles += (bigint)onemols[imol]->nangles * ninserted_mols;
+      atom->ndihedrals += (bigint)onemols[imol]->ndihedrals * ninserted_mols;
+      atom->nimpropers += (bigint)onemols[imol]->nimpropers * ninserted_mols;
     }
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
@@ -940,18 +948,14 @@ void FixPour::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"rigid") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idrigid;
-      idrigid = new char[n];
-      strcpy(idrigid,arg[iarg+1]);
+      idrigid = utils::strdup(arg[iarg+1]);
       rigidflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"shake") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pour command");
-      int n = strlen(arg[iarg+1]) + 1;
       delete [] idshake;
-      idshake = new char[n];
-      strcpy(idshake,arg[iarg+1]);
+      idshake = utils::strdup(arg[iarg+1]);
       shakeflag = 1;
       iarg += 2;
 

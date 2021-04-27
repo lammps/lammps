@@ -77,7 +77,7 @@ class LJDSF : public BaseCharge<numtyp, acctyp> {
  private:
   bool _allocated;
   numtyp _e_shift, _f_shift, _alpha, _cut_coulsq;
-  void loop(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
 };
 
 }

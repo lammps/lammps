@@ -2036,6 +2036,8 @@ template <class Space, class MemTraits = void>
 void test_layoutleft_to_layoutleft() {
   Impl::test_subview_legal_args_left();
 
+  // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
   using view3D_t = Kokkos::View<int***, Kokkos::LayoutLeft, Space>;
   using view4D_t = Kokkos::View<int****, Kokkos::LayoutLeft, Space>;
   {
@@ -2073,12 +2075,15 @@ void test_layoutleft_to_layoutleft() {
                                                                   1);
     check.run();
   }
+#endif
 }
 
 template <class Space, class MemTraits = void>
 void test_layoutright_to_layoutright() {
   Impl::test_subview_legal_args_right();
 
+  // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
   using view3D_t = Kokkos::View<int***, Kokkos::LayoutRight, Space>;
   using view4D_t = Kokkos::View<int****, Kokkos::LayoutRight, Space>;
   {
@@ -2102,6 +2107,7 @@ void test_layoutright_to_layoutright() {
                                                                   0);
     check.run();
   }
+#endif
 }
 //----------------------------------------------------------------------------
 
@@ -2233,7 +2239,7 @@ struct TestSubviewStaticSizes {
            test_8 + test_9 + test_10 + test_11;
   }
 
-  TestSubviewStaticSizes() : a(Kokkos::view_alloc(), 20), b() {}
+  TestSubviewStaticSizes() : a(Kokkos::view_alloc("a"), 20), b("b") {}
 };
 
 template <class Space>

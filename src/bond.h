@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,7 +26,7 @@ class Bond : protected Pointers {
   int *setflag;
   int writedata;                  // 1 if writes coeffs to data file
   double energy;                  // accumulated energies
-  double virial[6];               // accumulated virial
+  double virial[6];               // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom,**vatom;          // accumulated per-atom energy/virial
 
   int reinitflag;                // 1 if compatible with fix adapt and alike

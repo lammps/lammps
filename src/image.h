@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -72,6 +72,10 @@ class Image : protected Pointers {
   double *depthBuffer,*surfaceBuffer;
   double *depthcopy,*surfacecopy;
   unsigned char *imageBuffer,*rgbcopy,*writeBuffer;
+
+  // MPI_Gatherv
+
+  int *recvcounts,*displs;
 
   // constant view params
 

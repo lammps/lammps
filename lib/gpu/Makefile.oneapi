@@ -1,0 +1,26 @@
+# /* ----------------------------------------------------------------------
+#  Generic Linux Makefile for OpenCL
+# ------------------------------------------------------------------------- */
+
+# which file will be copied to Makefile.lammps
+
+EXTRAMAKE = Makefile.lammps.opencl
+
+# this setting should match LAMMPS Makefile
+# one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
+
+LMP_INC = -DLAMMPS_SMALLBIG
+
+OCL_INC =
+OCL_CPP = mpiicpc -std=c++11 -xHost -O2 -qopenmp -qopenmp-simd  -DMPICH_IGNORE_CXX_SEEK $(LMP_INC) $(OCL_INC)
+OCL_LINK = -lOpenCL
+OCL_PREC = -D_SINGLE_DOUBLE
+OCL_TUNE = -DMPI_GERYON -DGERYON_NUMA_FISSION -DUCL_NO_EXIT -fp-model fast=2 -no-prec-div
+
+BIN_DIR = ./
+OBJ_DIR = ./
+LIB_DIR = ./
+AR = ar
+BSH = /bin/sh
+
+include Opencl.makefile

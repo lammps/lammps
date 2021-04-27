@@ -83,7 +83,7 @@ void PairBuckIntel::compute(int eflag, int vflag,
     if (nthreads > INTEL_HTHREADS) packthreads = nthreads;
     else packthreads = 1;
     #if defined(_OPENMP)
-    #pragma omp parallel if(packthreads > 1)
+    #pragma omp parallel if (packthreads > 1)
     #endif
     {
       int ifrom, ito, tid;
@@ -162,7 +162,7 @@ void PairBuckIntel::eval(const int offload, const int vflag,
   // Redeclare as local variables for offload
 
   if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if(offload)                 \
+  #pragma offload target(mic:_cop) if (offload)                 \
     in(special_lj:length(0) alloc_if(0) free_if(0)) \
     in(c_force, c_energy:length(0) alloc_if(0) free_if(0))      \
     in(firstneigh:length(0) alloc_if(0) free_if(0)) \
@@ -442,7 +442,7 @@ template <class flt_t>
 void PairBuckIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                   Memory *memory,
                                                   const int cop) {
-  if ( (ntypes != _ntypes ) ) {
+  if ((ntypes != _ntypes )) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;

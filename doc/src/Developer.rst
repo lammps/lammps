@@ -13,6 +13,8 @@ of time and requests from the LAMMPS user community.
    Developer_org
    Developer_flow
    Developer_write
+   Developer_notes
+   Developer_plugins
    Developer_unittest
    Classes
    Developer_utils

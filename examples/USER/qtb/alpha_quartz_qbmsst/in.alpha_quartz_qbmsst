@@ -23,13 +23,12 @@ include                 alpha_quartz_qtb.mod
 reset_timestep          0
 #Beta is the number of time steps between each update of the quantum bath temperature. Setting a larger beta can reduce thermal flactuations.
 fix                     shock all qbmsst z ${v_msst} q ${q_msst} tscale ${tscale_msst} damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
-fix_modify              shock energy yes
 variable                dhug equal f_shock[1]
 variable                dray equal f_shock[2]
 variable                lgr_vel equal f_shock[3]
 variable                lgr_pos equal f_shock[4]
 variable                T_qm equal f_shock[5]                                                                   #Temperature with quantum nuclear correction
-thermo_style            custom step v_T_qm press etotal vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
+thermo_style            custom step v_T_qm press econserve vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
 thermo                  200
 timestep                ${delta_t}
 run                     1000
@@ -42,14 +41,14 @@ read_restart            restart.1000
 include                 alpha_quartz_potential.mod
 #Use the same fix id and add no tscale if the system is already compressed
 fix                     shock all qbmsst z ${v_msst} q ${q_msst} tscale 0.0 damp ${damp_qtb} f_max 120 N_f 100 seed 35082 eta ${eta_qbmsst} beta 5 T_init ${temperature}
-fix_modify              shock energy yes
 variable                dhug equal f_shock[1]
 variable                dray equal f_shock[2]
 variable                lgr_vel equal f_shock[3]
 variable                lgr_pos equal f_shock[4]
 variable                T_qm equal f_shock[5]                                                                   #Temperature with quantum nuclear correction
-thermo_style            custom step v_T_qm press etotal vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
+thermo_style            custom step v_T_qm press econserve vol lx ly lz pzz v_dhug v_dray v_lgr_vel v_lgr_pos
 thermo                  500
 timestep                ${delta_t}
-restart                 1000 restart
+#restart                 1000 restart
 run                     10000                                                                                   #10 ps
+shell rm restart.1000

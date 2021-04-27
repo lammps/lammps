@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -410,18 +410,18 @@ class Memory : protected Pointers {
     nbytes = ((bigint) sizeof(TYPE ***)) * n1;
     array = (TYPE ****) smalloc(nbytes,name);
 
-    int i,j,k;
+    bigint i,j,k;
     bigint m1,m2;
     bigint n = 0;
     for (i = 0; i < n1; i++) {
-      m2 = ((bigint) i) * n2;
+      m2 = i * n2;
       array[i] = &plane[m2];
       for (j = 0; j < n2; j++) {
-        m1 = ((bigint) i) * n2 + j;
-        m2 = ((bigint) i) * n2*n3 + j*n3;
+        m1 = i * n2 + j;
+        m2 = i * n2*n3 + j*n3;
         plane[m1] = &cube[m2];
         for (k = 0; k < n3; k++) {
-          m1 = ((bigint) i) * n2*n3 + j*n3 + k;
+          m1 = i * n2*n3 + j*n3 + k;
           cube[m1] = &data[n];
           n += n4;
         }

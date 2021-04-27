@@ -249,6 +249,10 @@ struct concurrent_bitset {
       if (!(prev & mask)) {
         // Successfully claimed 'result.first' by
         // atomically setting that bit.
+        // Flush the set operation. Technically this only needs to be acquire/
+        // release semantics and not sequentially consistent, but for now
+        // we'll just do this.
+        Kokkos::memory_fence();
         return type(bit, state_bit_used + 1);
       }
 
@@ -297,6 +301,9 @@ struct concurrent_bitset {
     Kokkos::memory_fence();
 
     const int count = Kokkos::atomic_fetch_add((volatile int *)buffer, -1);
+
+    // Flush the store-release
+    Kokkos::memory_fence();
 
     return (count & state_used_mask) - 1;
   }

@@ -13,6 +13,7 @@
 
 #include "yaml_writer.h"
 #include "yaml.h"
+#include "fmt/format.h"
 
 #include <cstdio>
 #include <string>
@@ -51,41 +52,17 @@ YamlWriter::~YamlWriter()
 
 void YamlWriter::emit(const std::string &key, const double value)
 {
-    yaml_scalar_event_initialize(&event, NULL, (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)key.c_str(), key.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(&emitter, &event);
-    char buf[256];
-    snprintf(buf, 256, "%.15g", value);
-    yaml_scalar_event_initialize(&event, NULL, (yaml_char_t *)YAML_STR_TAG, (yaml_char_t *)buf,
-                                 strlen(buf), 1, 0, YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(&emitter, &event);
+    emit(key,fmt::format("{}",value));
 }
 
 void YamlWriter::emit(const std::string &key, const long value)
 {
-    yaml_scalar_event_initialize(&event, NULL, (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)key.c_str(), key.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(&emitter, &event);
-    char buf[256];
-    snprintf(buf, 256, "%ld", value);
-    yaml_scalar_event_initialize(&event, NULL, (yaml_char_t *)YAML_STR_TAG, (yaml_char_t *)buf,
-                                 strlen(buf), 1, 0, YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(&emitter, &event);
+    emit(key,fmt::format("{}",value));
 }
 
 void YamlWriter::emit(const std::string &key, const int value)
 {
-    yaml_scalar_event_initialize(&event, NULL, (yaml_char_t *)YAML_STR_TAG,
-                                 (yaml_char_t *)key.c_str(), key.size(), 1, 0,
-                                 YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(&emitter, &event);
-    char buf[256];
-    snprintf(buf, 256, "%d", value);
-    yaml_scalar_event_initialize(&event, NULL, (yaml_char_t *)YAML_STR_TAG, (yaml_char_t *)buf,
-                                 strlen(buf), 1, 0, YAML_PLAIN_SCALAR_STYLE);
-    yaml_emitter_emit(&emitter, &event);
+    emit(key,fmt::format("{}",value));
 }
 
 void YamlWriter::emit(const std::string &key, const std::string &value)

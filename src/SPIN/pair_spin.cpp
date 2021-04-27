@@ -22,20 +22,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
+#include "fix_nve_spin.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "update.h"
-#include "fix_nve_spin.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

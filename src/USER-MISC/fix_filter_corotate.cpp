@@ -260,14 +260,14 @@ void FixFilterCorotate::init()
   int i;
   // error if more than one filter
   int count = 0;
-  for (i = 0; i < modify->nfix; i++){
+  for (i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"filter/corotate") == 0) count++;
   }
   if (count > 1) error->all(FLERR,"More than one fix filter/corotate");
 
   // check for fix shake:
   count = 0;
-  for (i = 0; i < modify->nfix; i++){
+  for (i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
   }
   if (count > 1)
@@ -277,7 +277,7 @@ void FixFilterCorotate::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
@@ -353,7 +353,7 @@ void FixFilterCorotate::pre_neighbor()
 
   nlist = 0;
 
-  for (int i = 0; i < nlocal; i++){
+  for (int i = 0; i < nlocal; i++) {
     if (shake_flag[i]) {
       if (shake_flag[i] == 2) {
         atom1 = atom->map(shake_atom[i][0]);
@@ -682,11 +682,11 @@ void FixFilterCorotate::setup(int vflag)
   ((Respa *) update->integrate)->copy_f_flevel(nlevels_respa-1);
 }
 
-void FixFilterCorotate::setup_pre_force_respa(int vflag,int ilevel){
+void FixFilterCorotate::setup_pre_force_respa(int vflag,int ilevel) {
   pre_force_respa(vflag,ilevel,0);
 }
 
-//void FixFilterCorotate::setup_post_force_respa(int vflag,int ilevel){
+//void FixFilterCorotate::setup_post_force_respa(int vflag,int ilevel) {
 //  post_force_respa(vflag,ilevel,0);
 //}
 
@@ -944,7 +944,7 @@ void FixFilterCorotate::find_clusters()
   m = 0;
   while (m < size) {
     i = atom->map(buf[m]);
-    for (j = 0; j < npartner[i]; j++){
+    for (j = 0; j < npartner[i]; j++) {
       if (buf[m+1] == partner_tag[i][j]) break;
     }
     partner_mask[i][j] = buf[m+2];
@@ -965,7 +965,7 @@ void FixFilterCorotate::find_clusters()
   // else it's an error
 
   flag = 0;
-  for (i = 0; i < nlocal; i++){
+  for (i = 0; i < nlocal; i++) {
     for (j = 0; j < npartner[i]; j++) {
       if (partner_type[i][j] == 0) flag = 1;
       if (!(mask[i] & groupbit)) continue;
@@ -1072,7 +1072,7 @@ void FixFilterCorotate::find_clusters()
   m = 0;
   while (m < size) {
     i = atom->map(buf[m]);
-    for (j = 0; j < npartner[i]; j++){
+    for (j = 0; j < npartner[i]; j++) {
       if (buf[m+1] == partner_tag[i][j]) break;
     }
     partner_nshake[i][j] = buf[m+2];
@@ -1132,7 +1132,7 @@ void FixFilterCorotate::find_clusters()
     shake_type[i][3] = 0;
 
     if (nshake[i] == 1) {
-      for (j = 0; j < npartner[i]; j++){
+      for (j = 0; j < npartner[i]; j++) {
         if (partner_shake[i][j]) break;
       }
       if (partner_nshake[i][j] == 1 && tag[i] < partner_tag[i][j]) {
@@ -1810,17 +1810,17 @@ double FixFilterCorotate::memory_usage()
 {
   double bytes = 0;
   //GROW:
-  bytes += 3*sizeof(double) + 5*sizeof(tagint) + 5*sizeof(int);
+  bytes += (double)3*sizeof(double) + 5*sizeof(tagint) + 5*sizeof(int);
   //clist
-  bytes += 13*atom->nlocal*sizeof(int);
-  bytes += 15*16*nlocal*sizeof(double);
+  bytes += (double)13*atom->nlocal*sizeof(int);
+  bytes += (double)15*16*nlocal*sizeof(double);
 
   //fixed:
   int nb = atom->nbondtypes+1;
   int na = atom->nangletypes+1;
   int nt = atom->ntypes+1;
-  bytes += (nb+na+nt)*sizeof(int);
-  bytes += (nt-1+nb+na+15*15+18+10*15)*sizeof(double);
+  bytes += (double)(nb+na+nt)*sizeof(int);
+  bytes += (double)(nt-1+nb+na+15*15+18+10*15)*sizeof(double);
 
   return bytes;
 }

@@ -38,6 +38,7 @@ using namespace LAMMPS_NS;
 DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp)
 {
   writedata = 1;
+  a = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,7 +48,7 @@ DihedralNHarmonic::~DihedralNHarmonic()
   if (allocated) {
     memory->destroy(setflag);
     for (int i = 1; i <= atom->ndihedraltypes; i++)
-      if ( a[i] ) delete [] a[i];
+      delete [] a[i];
     delete [] a;
     delete [] nterms;
   }
@@ -181,15 +182,14 @@ void DihedralNHarmonic::compute(int eflag, int vflag)
     // p = sum (i=1,n) a_i * c**(i-1)
     // pd = dp/dc
 
-    c_ = c;
-    p = this->a[type][0];
-    pd = this->a[type][1];
-    for (int i = 1; i < nterms[type]-1; i++) {
-      p += c_ * this->a[type][i];
-      pd += c_ * static_cast<double>(i+1) * this->a[type][i+1];
+    c_ = 1.0;
+    p = a[type][0];
+    pd = 0.0;
+    for (int i = 1; i < nterms[type]; i++) {
+      pd += c_ * i * a[type][i];
       c_ *= c;
+      p += c_ * a[type][i];
     }
-    p += c_ * this->a[type][nterms[type]-1];
 
     if (eflag) edihedral = p;
 
@@ -263,7 +263,7 @@ void DihedralNHarmonic::allocate()
 
   nterms = new int[n+1];
   a = new double *[n+1];
-  for (int i = 1; i <= n; i++) a[i] = 0;
+  for (int i = 1; i <= n; i++) a[i] = nullptr;
 
   memory->create(setflag,n+1,"dihedral:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
@@ -275,7 +275,7 @@ void DihedralNHarmonic::allocate()
 
 void DihedralNHarmonic::coeff(int narg, char **arg)
 {
-  if (narg < 4 ) error->all(FLERR,"Incorrect args for dihedral coefficients");
+  if (narg < 3) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
   int n = utils::inumeric(FLERR,arg[1],false,lmp);
   if (narg != n + 2)
@@ -288,9 +288,10 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
+    delete[] a[i];
     a[i] = new double [n];
     nterms[i] = n;
-    for (int j = 0; j < n; j++ ) {
+    for (int j = 0; j < n; j++) {
       a[i][j] = utils::numeric(FLERR,arg[2+j],false,lmp);
       setflag[i] = 1;
     }
@@ -307,7 +308,7 @@ void DihedralNHarmonic::coeff(int narg, char **arg)
 void DihedralNHarmonic::write_restart(FILE *fp)
 {
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
-  for(int i = 1; i <= atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     fwrite(a[i],sizeof(double),nterms[i],fp);
 }
 
@@ -325,11 +326,11 @@ void DihedralNHarmonic::read_restart(FILE *fp)
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
   // allocate
-  for(int i = 1; i <= atom->ndihedraltypes; i++)
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
     a[i] = new double [nterms[i]];
 
   if (comm->me == 0) {
-    for(int i = 1; i <= atom->ndihedraltypes; i++)
+    for (int i = 1; i <= atom->ndihedraltypes; i++)
       utils::sfread(FLERR,a[i],sizeof(double),nterms[i],fp,nullptr,error);
   }
 

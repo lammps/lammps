@@ -254,9 +254,9 @@ in commands that use the spacings should be decipherable.
 Example commands for generating a Wurtzite crystal.
 The lattice constants approximate those of CdSe.
 The :math:`\sqrt{3}\times 1` orthorhombic supercell is used
-with the x, y, and z directions oriented 
-along :math:`[\bar{1}\bar{2}30]`,  
-:math:`[10\bar{1}0]`, and :math:`[0001]`, respectively.   
+with the x, y, and z directions oriented
+along :math:`[\bar{1}\bar{2}30]`,
+:math:`[10\bar{1}0]`, and :math:`[0001]`, respectively.
 
 .. code-block:: LAMMPS
 

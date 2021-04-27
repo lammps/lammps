@@ -546,7 +546,7 @@ void PairMesoCNT::bond_neigh()
     if (i2 > nlocal-1 && false) numneigh2 = 0;
     else numneigh2 = numneigh[i2];
 
-    int numneigh_max_local = numneigh1 + numneigh1;
+    int numneigh_max_local = numneigh1 + numneigh2;
     if (numneigh_max_local > numneigh_max) numneigh_max = numneigh_max_local;
   }
   if (numneigh_max > reduced_neigh_size) {

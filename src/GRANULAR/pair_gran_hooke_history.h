@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,6 +49,7 @@ class PairGranHookeHistory : public Pair {
   double dt;
   int freeze_group_bit;
   int history;
+  int limit_damping;
 
   int neighprev;
   double *onerad_dynamic,*onerad_frozen;

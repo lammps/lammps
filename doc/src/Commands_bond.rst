@@ -126,7 +126,7 @@ OPT.
    * :doc:`quadratic (o) <dihedral_quadratic>`
    * :doc:`spherical <dihedral_spherical>`
    * :doc:`table (o) <dihedral_table>`
-   * :doc:`table/cut <dihedral_table_cut>`
+   * :doc:`table/cut <dihedral_table>`
 
 .. _improper:
 

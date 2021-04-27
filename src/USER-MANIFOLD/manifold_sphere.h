@@ -1,3 +1,16 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 #ifndef LMP_MANIFOLD_SPHERE_H
 #define LMP_MANIFOLD_SPHERE_H
 
@@ -12,9 +25,9 @@ namespace user_manifold {
   class manifold_sphere : public manifold {
    public:
     enum { NPARAMS = 1 };
-    manifold_sphere( LAMMPS *lmp, int, char ** ) : manifold(lmp){}
+    manifold_sphere( LAMMPS *lmp, int, char ** ) : manifold(lmp) {}
 
-    virtual ~manifold_sphere(){}
+    virtual ~manifold_sphere() {}
     virtual double g( const double *x )
     {
       double R = params[0];
@@ -46,10 +59,10 @@ namespace user_manifold {
       h[0][0] = h[1][1] = h[2][2] = 2.0;
     }
 
-    static const char* type(){ return "sphere"; }
-    virtual const char *id(){ return type(); }
-    static int expected_argc(){ return NPARAMS; }
-    virtual int nparams(){ return NPARAMS; }
+    static const char* type() { return "sphere"; }
+    virtual const char *id() { return type(); }
+    static int expected_argc() { return NPARAMS; }
+    virtual int nparams() { return NPARAMS; }
   };
 }
 

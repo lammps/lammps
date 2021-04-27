@@ -214,7 +214,7 @@ TEST_F(FileOperationsTest, write_restart)
     if (info->has_package("MPIIO")) ASSERT_FILE_EXISTS("test.restart.mpiio");
 
     if (!info->has_package("MPIIO")) {
-        TEST_FAILURE(".*ERROR: Illegal write_restart command.*",
+        TEST_FAILURE(".*ERROR: Writing to MPI-IO filename when MPIIO package is not inst.*",
                      command("write_restart test.restart.mpiio"););
     } else {
         TEST_FAILURE(".*ERROR: Restart file MPI-IO output not allowed with % in filename.*",

@@ -75,7 +75,7 @@ namespace LAMMPS_NS {
      *  \param size     size of buffer s (max number of bytes returned)
      *  \param fp       file pointer used by fgets() */
 
-    char *fgets_trunc_nl(char *s, int size, FILE *fp);
+    char *fgets_trunc(char *s, int size, FILE *fp);
 
     /** Safe wrapper around fgets() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging.

@@ -958,7 +958,7 @@ void ReadData::header(int firstpass)
   // skip 1st line of file
 
   if (me == 0) {
-    char *eof = utils::fgets_trunc_nl(line,MAXLINE,fp);
+    char *eof = utils::fgets_trunc(line,MAXLINE,fp);
     if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
   }
 
@@ -967,7 +967,7 @@ void ReadData::header(int firstpass)
     // read a line and bcast length
 
     if (me == 0) {
-      if (utils::fgets_trunc_nl(line,MAXLINE,fp) == nullptr) n = 0;
+      if (utils::fgets_trunc(line,MAXLINE,fp) == nullptr) n = 0;
       else n = strlen(line) + 1;
     }
     MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -1670,7 +1670,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
       m = 0;
 
       while (nchunk < nmax && nline <= CHUNK-MAXBODY) {
-        eof = utils::fgets_trunc_nl(&buffer[m],MAXLINE,fp);
+        eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
         if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
         rv = sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
         if (rv != 3)
@@ -1684,7 +1684,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
         nword = 0;
         while (nword < ninteger) {
-          eof = utils::fgets_trunc_nl(&buffer[m],MAXLINE,fp);
+          eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
           if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
           ncount = utils::trim_and_count_words(&buffer[m]);
           if (ncount == 0)
@@ -1698,7 +1698,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
         nword = 0;
         while (nword < ndouble) {
-          eof = utils::fgets_trunc_nl(&buffer[m],MAXLINE,fp);
+          eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
           if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
           ncount = utils::trim_and_count_words(&buffer[m]);
           if (ncount == 0)
@@ -2002,15 +2002,15 @@ void ReadData::parse_keyword(int first)
 
   if (me == 0) {
     if (!first) {
-      if (utils::fgets_trunc_nl(line,MAXLINE,fp) == nullptr) eof = 1;
+      if (utils::fgets_trunc(line,MAXLINE,fp) == nullptr) eof = 1;
     }
     while (eof == 0 && done == 0) {
       int blank = strspn(line," \t\n\r");
       if ((blank == (int)strlen(line)) || (line[blank] == '#')) {
-        if (utils::fgets_trunc_nl(line,MAXLINE,fp) == nullptr) eof = 1;
+        if (utils::fgets_trunc(line,MAXLINE,fp) == nullptr) eof = 1;
       } else done = 1;
     }
-    if (utils::fgets_trunc_nl(buffer,MAXLINE,fp) == nullptr) {
+    if (utils::fgets_trunc(buffer,MAXLINE,fp) == nullptr) {
       eof = 1;
       buffer[0] = '\0';
     }
@@ -2064,7 +2064,7 @@ void ReadData::skip_lines(bigint n)
   if (me) return;
   if (n <= 0) return;
   char *eof = nullptr;
-  for (bigint i = 0; i < n; i++) eof = utils::fgets_trunc_nl(line,MAXLINE,fp);
+  for (bigint i = 0; i < n; i++) eof = utils::fgets_trunc(line,MAXLINE,fp);
   if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
 }
 

@@ -19,7 +19,7 @@ In that case, the functions will stop with an error message, indicating
 the name of the problematic file, if possible unless the *error* argument
 is a NULL pointer.
 
-The :cpp:func:`fgets_trunc_nl` function will work similar for ``fgets()``
+The :cpp:func:`fgets_trunc` function will work similar for ``fgets()``
 but it will read in a whole line (i.e. until the end of line or end
 of file), but store only as many characters as will fit into the buffer
 including a final newline character and the terminating NULL byte.
@@ -41,7 +41,7 @@ NULL character.
 .. doxygenfunction:: sfread
    :project: progguide
 
-.. doxygenfunction:: fgets_trunc_nl
+.. doxygenfunction:: fgets_trunc
    :project: progguide
 
 .. doxygenfunction:: read_lines_from_file

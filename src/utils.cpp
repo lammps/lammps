@@ -168,7 +168,7 @@ const char *utils::guesspath(char *buf, int len, FILE *fp)
 // read line into buffer. if line is too long keep reading until EOL or EOF
 // but return only the first part with a newline at the end.
 
-char *utils::fgets_trunc_nl(char *buf, int size, FILE *fp)
+char *utils::fgets_trunc(char *buf, int size, FILE *fp)
 {
   constexpr int MAXDUMMY = 256;
   char dummy[MAXDUMMY];
@@ -271,7 +271,7 @@ int utils::read_lines_from_file(FILE *fp, int nlines, int nmax,
   if (me == 0) {
     if (fp) {
       for (int i = 0; i < nlines; i++) {
-        ptr = fgets_trunc_nl(ptr,nmax,fp);
+        ptr = fgets_trunc(ptr,nmax,fp);
         if (!ptr) break; // EOF?
         // advance ptr to end of string
         ptr += strlen(ptr);

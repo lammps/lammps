@@ -27,11 +27,13 @@
 #include "error.h"
 #include "fix.h"
 #include "fix_external.h"
+#if defined(LMP_USER_MDI)
+#include "fix_mdi_engine.h"
+#endif
 #include "force.h"
 #include "group.h"
 #include "info.h"
 #include "input.h"
-#include "mdi_interface.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
@@ -4979,7 +4981,8 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 // ----------------------------------------------------------------------
 // MDI functions
 // ----------------------------------------------------------------------
-int MDI_Plugin_init_lammps() {
+int MDI_Plugin_init_lammps()
+{
   // initialize MDI
   int mdi_argc;
   char** mdi_argv;
@@ -5025,6 +5028,18 @@ int MDI_Plugin_init_lammps() {
 
   return 0;
 }
+
+int lammps_execute_mdi_command(const char* command, MDI_Comm comm, void* class_obj)
+{
+#if defined(LMP_USER_MDI)
+  FixMDIEngine *mdi_fix = (FixMDIEngine*) class_obj;
+  mdi_fix->execute_command(command, comm);
+  return 0;
+#else
+  return 1;
+#endif
+}
+
 
 // Local Variables:
 // fill-column: 72

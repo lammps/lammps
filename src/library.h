@@ -40,6 +40,8 @@
 #include <inttypes.h>  /* for int64_t */
 #endif
 
+#include "mdi_interface.h"
+
 /** Data type constants for extracting data from atoms, computes and fixes
  *
  * Must be kept in sync with the equivalent constants in lammps/constants.py */
@@ -247,6 +249,7 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
  * MDI functions
  * ---------------------------------------------------------------------- */
 int MDI_Plugin_init_lammps();
+int lammps_execute_mdi_command(const char* command, MDI_Comm comm, void* class_obj);
 
 
 #ifdef __cplusplus

@@ -22,6 +22,7 @@ FixStyle(mdi/engine,FixMDIEngine)
 #define LMP_FIX_MDI_ENGINE_H
 
 #include "fix.h"
+#include "mdi.h"
 
 namespace LAMMPS_NS {
 
@@ -32,6 +33,7 @@ class FixMDIEngine : public Fix {
   int setmask();
   void init();
 
+  int execute_command(const char *command, MDI_Comm driver_socket);
   char *engine_mode(const char *node);
 
   // receive and update forces

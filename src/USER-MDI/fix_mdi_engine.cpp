@@ -25,7 +25,7 @@
 #include "error.h"
 #include "force.h"
 #include "irregular.h"
-#include "mdi.h"
+#include "library.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
@@ -261,6 +261,191 @@ void FixMDIEngine::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+int FixMDIEngine::execute_command(const char *command, MDI_Comm driver_socket)
+{
+  /*
+  if (screen)
+    fprintf(screen,"MDI command: %s\n",command);
+  if (logfile)
+    fprintf(logfile,"MDI command: %s:\n",command);
+  */
+
+  // confirm that this command is supported at this node
+  int command_exists = 0;
+  ierr = MDI_Check_Command_Exists(current_node, command, MDI_COMM_NULL, &command_exists);
+  if (ierr != 0)
+    error->all(FLERR,"Unable to check whether the current command is supported");
+  if ( command_exists != 1 )
+    error->all(FLERR,"Received a command that is not supported at the current node");
+
+  if (strcmp(command,"STATUS      ") == 0 ) {
+    // send the calculation status to the driver
+    if (master) {
+      ierr = MDI_Send_Command("READY", driver_socket);
+      if (ierr != 0)
+	error->all(FLERR,"Unable to return status to driver");
+    }
+  }
+  else if (strcmp(command,">NATOMS") == 0 ) {
+    // receive the number of atoms from the driver
+    if (master) {
+      ierr = MDI_Recv((char*) &atom->natoms, 1, MDI_INT, driver_socket);
+      if (ierr != 0)
+	error->all(FLERR,"Unable to receive number of atoms from driver");
+      }
+    MPI_Bcast(&atom->natoms,1,MPI_INT,0,world);
+  }
+  else if (strcmp(command,"<NATOMS") == 0 ) {
+    // send the number of atoms to the driver
+    if (master) {
+      int64_t mdi_natoms = atom->natoms;
+      ierr = MDI_Send((char*) &mdi_natoms, 1, MDI_INT64_T, driver_socket);
+      if (ierr != 0)
+	error->all(FLERR,"Unable to send number of atoms to driver");
+    }
+  }
+  else if (strcmp(command,"<NTYPES") == 0 ) {
+    // send the number of atom types to the driver
+    if (master) {
+      ierr = MDI_Send((char*) &atom->ntypes, 1, MDI_INT, driver_socket);
+      if (ierr != 0)
+	error->all(FLERR,"Unable to send number of atom types to driver");
+    }
+  }
+  else if (strcmp(command,"<TYPES") == 0 ) {
+    // send the atom types
+    send_types(error);
+  }
+  else if (strcmp(command,"<LABELS") == 0 ) {
+    // send the atom labels
+    send_labels(error);
+  }
+  else if (strcmp(command,"<MASSES") == 0 ) {
+    // send the atom types
+    send_masses(error);
+  }
+  else if (strcmp(command,"<CELL") == 0 ) {
+    // send the cell dimensions to the driver
+    send_cell(error);
+  }
+  else if (strcmp(command,">COORDS") == 0 ) {
+    // receive the coordinate information
+    receive_coordinates(error);
+  }
+  else if (strcmp(command,"<COORDS") == 0 ) {
+    // send the coordinate information
+    send_coordinates(error);
+  }
+  else if (strcmp(command,"<CHARGES") == 0 ) {
+    // send the charges
+    send_charges(error);
+  }
+  else if (strcmp(command,"<ENERGY") == 0 ) {
+    // send the total energy to the driver
+    send_energy(error);
+  }
+  else if (strcmp(command,"<FORCES") == 0 ) {
+    // send the forces to the driver
+    send_forces(error);
+  }
+  else if (strcmp(command,">FORCES") == 0 ) {
+    // receive the forces from the driver
+    receive_forces(error);
+  }
+  else if (strcmp(command,"+FORCES") == 0 ) {
+    // receive additional forces from the driver
+    // these are added prior to SHAKE or other post-processing
+    add_forces(error);
+  }
+  else if (strcmp(command,"@INIT_MD") == 0 ) {
+    if ( most_recent_init != 0 ) {
+      error->all(FLERR,"MDI is already performing a simulation");
+    }
+
+    // initialize a new MD simulation
+    most_recent_init = 1;
+    local_exit_flag = true;
+  }
+  else if (strcmp(command,"@INIT_OPTG") == 0 ) {
+    if ( most_recent_init != 0 ) {
+      error->all(FLERR,"MDI is already performing a simulation");
+    }
+
+    // initialize a new geometry optimization
+    most_recent_init = 2;
+    local_exit_flag = true;
+    //optg_init(error);
+  }
+  else if (strcmp(command,"@") == 0 ) {
+    strncpy(target_node, "\0", MDI_COMMAND_LENGTH);
+    local_exit_flag = true;
+  }
+  else if (strcmp(command,"<@") == 0 ) {
+    if (master) {
+      ierr = MDI_Send(current_node, MDI_NAME_LENGTH, MDI_CHAR, driver_socket);
+      if (ierr != 0)
+	error->all(FLERR,"Unable to send node to driver");
+    }
+  }
+  else if (strcmp(command,"<KE") == 0 ) {
+    // send the kinetic energy to the driver
+    send_ke(error);
+  }
+  else if (strcmp(command,"<PE") == 0 ) {
+    // send the potential energy to the driver
+    send_pe(error);
+  }
+  else if (strcmp(command,"@COORDS") == 0 ) {
+    strncpy(target_node, "@COORDS", MDI_COMMAND_LENGTH);
+    local_exit_flag = true;
+  }
+  else if (strcmp(command,"@PRE-FORCES") == 0 ) {
+    strncpy(target_node, "@PRE-FORCES", MDI_COMMAND_LENGTH);
+    local_exit_flag = true;
+  }
+  else if (strcmp(command,"@FORCES") == 0 ) {
+    strncpy(target_node, "@FORCES", MDI_COMMAND_LENGTH);
+    local_exit_flag = true;
+  }
+  else if (strcmp(command,"EXIT_SIM") == 0 ) {
+    most_recent_init = 0;
+
+    local_exit_flag = true;
+
+    // are we in the middle of a geometry optimization?
+    if ( most_recent_init == 2 ) {
+      // ensure that the energy and force tolerances are met
+      update->etol = std::numeric_limits<double>::max();
+      update->ftol = std::numeric_limits<double>::max();
+
+      // set the maximum number of force evaluations to 0
+      update->max_eval = 0;
+    }
+  }
+  else if (strcmp(command,"EXIT") == 0 ) {
+    // exit the driver code
+    exit_flag = true;
+
+    // are we in the middle of a geometry optimization?
+    if ( most_recent_init == 2 ) {
+      // ensure that the energy and force tolerances are met
+      update->etol = std::numeric_limits<double>::max();
+      update->ftol = std::numeric_limits<double>::max();
+
+      // set the maximum number of force evaluations to 0
+      update->max_eval = 0;
+    }
+  }
+  else {
+    // the command is not supported
+    error->all(FLERR,"Unknown command from driver");
+  }
+
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
 char *FixMDIEngine::engine_mode(const char *node)
 {
   /*
@@ -276,199 +461,25 @@ char *FixMDIEngine::engine_mode(const char *node)
     local_exit_flag = true;
   }
 
+  // register the execute_command function with MDI
+  MDI_Set_execute_command_func(lammps_execute_mdi_command, this);
+
   /* ----------------------------------------------------------------- */
   // Answer commands from the driver
   /* ----------------------------------------------------------------- */
 
   while (not exit_flag and not local_exit_flag) {
 
-    if (master) { 
-      // read the next command from the driver
-      ierr = MDI_Recv_Command(command, driver_socket);
-      if (ierr != 0)
-        error->all(FLERR,"Unable to receive command from driver");
-      command[MDI_COMMAND_LENGTH]=0;
-    }
+    // read the next command from the driver
+    ierr = MDI_Recv_Command(command, driver_socket);
+    if (ierr != 0)
+      error->all(FLERR,"Unable to receive command from driver");
+
     // broadcast the command to the other tasks
     MPI_Bcast(command,MDI_COMMAND_LENGTH,MPI_CHAR,0,world);
 
-    /*
-    if (screen)
-      fprintf(screen,"MDI command: %s\n",command);
-    if (logfile)
-      fprintf(logfile,"MDI command: %s:\n",command);
-    */
-
-    // confirm that this command is supported at this node
-    int command_exists = 0;
-    ierr = MDI_Check_Command_Exists(current_node, command, MDI_COMM_NULL, &command_exists);
-    if (ierr != 0)
-        error->all(FLERR,"Unable to check whether the current command is supported");
-    if ( command_exists != 1 )
-        error->all(FLERR,"Received a command that is not supported at the current node");
-
-    if (strcmp(command,"STATUS      ") == 0 ) {
-      // send the calculation status to the driver
-      if (master) {
-	ierr = MDI_Send_Command("READY", driver_socket);
-        if (ierr != 0)
-          error->all(FLERR,"Unable to return status to driver");
-      }
-    }
-    else if (strcmp(command,">NATOMS") == 0 ) {
-      // receive the number of atoms from the driver
-      if (master) {
-        ierr = MDI_Recv((char*) &atom->natoms, 1, MDI_INT, driver_socket);
-        if (ierr != 0)
-          error->all(FLERR,"Unable to receive number of atoms from driver");
-      }
-      MPI_Bcast(&atom->natoms,1,MPI_INT,0,world);
-    }
-    else if (strcmp(command,"<NATOMS") == 0 ) {
-      // send the number of atoms to the driver
-      if (master) {
-        int64_t mdi_natoms = atom->natoms;
-        ierr = MDI_Send((char*) &mdi_natoms, 1, MDI_INT64_T, driver_socket);
-        if (ierr != 0)
-          error->all(FLERR,"Unable to send number of atoms to driver");
-      }
-    }
-    else if (strcmp(command,"<NTYPES") == 0 ) {
-      // send the number of atom types to the driver
-      if (master) {
-        ierr = MDI_Send((char*) &atom->ntypes, 1, MDI_INT, driver_socket);
-        if (ierr != 0)
-          error->all(FLERR,"Unable to send number of atom types to driver");
-      }
-    }
-    else if (strcmp(command,"<TYPES") == 0 ) {
-      // send the atom types
-      send_types(error);
-    }
-    else if (strcmp(command,"<LABELS") == 0 ) {
-      // send the atom labels
-      send_labels(error);
-    }
-    else if (strcmp(command,"<MASSES") == 0 ) {
-      // send the atom types
-      send_masses(error);
-    }
-    else if (strcmp(command,"<CELL") == 0 ) {
-      // send the cell dimensions to the driver
-      send_cell(error);
-    }
-    else if (strcmp(command,">COORDS") == 0 ) {
-      // receive the coordinate information
-      receive_coordinates(error);
-    }
-    else if (strcmp(command,"<COORDS") == 0 ) {
-      // send the coordinate information
-      send_coordinates(error);
-    }
-    else if (strcmp(command,"<CHARGES") == 0 ) {
-      // send the charges
-      send_charges(error);
-    }
-    else if (strcmp(command,"<ENERGY") == 0 ) {
-      // send the total energy to the driver
-      send_energy(error);
-    }
-    else if (strcmp(command,"<FORCES") == 0 ) {
-      // send the forces to the driver
-      send_forces(error);
-    }
-    else if (strcmp(command,">FORCES") == 0 ) {
-      // receive the forces from the driver
-      receive_forces(error);
-    }
-    else if (strcmp(command,"+FORCES") == 0 ) {
-      // receive additional forces from the driver
-      // these are added prior to SHAKE or other post-processing
-      add_forces(error);
-    }
-    else if (strcmp(command,"@INIT_MD") == 0 ) {
-      if ( most_recent_init != 0 ) {
-	error->all(FLERR,"MDI is already performing a simulation");
-      }
-
-      // initialize a new MD simulation
-      most_recent_init = 1;
-      local_exit_flag = true;
-    }
-    else if (strcmp(command,"@INIT_OPTG") == 0 ) {
-      if ( most_recent_init != 0 ) {
-	error->all(FLERR,"MDI is already performing a simulation");
-      }
-
-      // initialize a new geometry optimization
-      most_recent_init = 2;
-      local_exit_flag = true;
-      //optg_init(error);
-    }
-    else if (strcmp(command,"@") == 0 ) {
-      strncpy(target_node, "\0", MDI_COMMAND_LENGTH);
-      local_exit_flag = true;
-    }
-    else if (strcmp(command,"<@") == 0 ) {
-      if (master) {
-	ierr = MDI_Send(current_node, MDI_NAME_LENGTH, MDI_CHAR, driver_socket);
-	if (ierr != 0)
-	  error->all(FLERR,"Unable to send node to driver");
-      }
-    }
-    else if (strcmp(command,"<KE") == 0 ) {
-      // send the kinetic energy to the driver
-      send_ke(error);
-    }
-    else if (strcmp(command,"<PE") == 0 ) {
-      // send the potential energy to the driver
-      send_pe(error);
-    }
-    else if (strcmp(command,"@COORDS") == 0 ) {
-      strncpy(target_node, "@COORDS", MDI_COMMAND_LENGTH);
-      local_exit_flag = true;
-    }
-    else if (strcmp(command,"@PRE-FORCES") == 0 ) {
-      strncpy(target_node, "@PRE-FORCES", MDI_COMMAND_LENGTH);
-      local_exit_flag = true;
-    }
-    else if (strcmp(command,"@FORCES") == 0 ) {
-      strncpy(target_node, "@FORCES", MDI_COMMAND_LENGTH);
-      local_exit_flag = true;
-    }
-    else if (strcmp(command,"EXIT_SIM") == 0 ) {
-      most_recent_init = 0;
-
-      local_exit_flag = true;
-
-      // are we in the middle of a geometry optimization?
-      if ( most_recent_init == 2 ) {
-	// ensure that the energy and force tolerances are met
-	update->etol = std::numeric_limits<double>::max();
-	update->ftol = std::numeric_limits<double>::max();
-
-	// set the maximum number of force evaluations to 0
-	update->max_eval = 0;
-      }
-    }
-    else if (strcmp(command,"EXIT") == 0 ) {
-      // exit the driver code
-      exit_flag = true;
-
-      // are we in the middle of a geometry optimization?
-      if ( most_recent_init == 2 ) {
-	// ensure that the energy and force tolerances are met
-	update->etol = std::numeric_limits<double>::max();
-	update->ftol = std::numeric_limits<double>::max();
-
-	// set the maximum number of force evaluations to 0
-	update->max_eval = 0;
-      }
-    }
-    else {
-      // the command is not supported
-      error->all(FLERR,"Unknown command from driver");
-    }
+    // execute the command
+    this->execute_command(command, driver_socket);
 
     // check if the target node is something other than the current node
     if ( strcmp(target_node,"\0") != 0 and strcmp(target_node, current_node) != 0 ) {

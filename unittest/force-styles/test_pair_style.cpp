@@ -166,8 +166,10 @@ void restart_lammps(LAMMPS *lmp, const TestConfig &cfg, bool nofdotr = false, bo
     };
 
     command("clear");
-    if (newton) command("newton on");
-    else command("newton off");
+    if (newton)
+        command("newton on");
+    else
+        command("newton off");
     command("read_restart " + cfg.basename + ".restart");
 
     if (!lmp->force->pair) {
@@ -1086,37 +1088,40 @@ TEST(PairStyle, intel)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats:" << stats << std::endl;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true, false);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    // pair style sw requires newton on, but that also requires fdotr for /intel
+    std::cerr << "pair style : " << test_config.pair_style << "\n";
+    if (test_config.pair_style != "sw") {
 
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, 5 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, 5 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, 5 * epsilon);
+        if (!verbose) ::testing::internal::CaptureStdout();
+        restart_lammps(lmp, test_config, true, false);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        f   = lmp->atom->f;
+        tag = lmp->atom->tag;
+        stats.reset();
+        ASSERT_EQ(nlocal + 1, f_ref.size());
+        for (int i = 0; i < nlocal; ++i) {
+            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, 5 * epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, 5 * epsilon);
+            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, 5 * epsilon);
+        }
+        if (print_stats) std::cerr << "nofdotr_forces stats:" << stats << std::endl;
+
+        pair   = lmp->force->pair;
+        stress = pair->virial;
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
+        if (print_stats) std::cerr << "nofdotr_stress stats:" << stats << std::endl;
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
+        if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
     }
-    if (print_stats) std::cerr << "nofdotr_forces stats:" << stats << std::endl;
-
-    pair   = lmp->force->pair;
-    stress = pair->virial;
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(stress[0], test_config.init_stress.xx, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[1], test_config.init_stress.yy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[2], test_config.init_stress.zz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[3], test_config.init_stress.xy, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[4], test_config.init_stress.xz, 10 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(stress[5], test_config.init_stress.yz, 10 * epsilon);
-    if (print_stats) std::cerr << "nofdotr_stress stats:" << stats << std::endl;
-
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
-    if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
-
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();

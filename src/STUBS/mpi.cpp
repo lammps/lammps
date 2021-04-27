@@ -1,6 +1,6 @@
-/* -----------------------------------------------------------------------
-   LAMMPS 2003 (July 31) - Molecular Dynamics Simulator
-   Sandia National Laboratories, www.cs.sandia.gov/~sjplimp/lammps.html
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,7 +9,7 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 /* Single-processor "stub" versions of MPI routines */
 

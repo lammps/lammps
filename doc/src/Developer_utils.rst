@@ -12,11 +12,18 @@ reduces redundant implementations and encourages consistent behavior.
 I/O with status check
 ^^^^^^^^^^^^^^^^^^^^^
 
-These are wrappers around the corresponding C library calls like
-``fgets()`` or ``fread()``.  They will check if there were errors
-on reading or an unexpected end-of-file state was reached.  In that
-case, the functions will stop the calculation with an error message,
-indicating the name of the problematic file, if possible.
+The the first two functions are wrappers around the corresponding C
+library calls ``fgets()`` or ``fread()``.  They will check if there
+were errors on reading or an unexpected end-of-file state was reached.
+In that case, the functions will stop with an error message, indicating
+the name of the problematic file, if possible unless the *error* argument
+is a NULL pointer.
+
+The :cpp:func:`read_lines_from_file` function will read the requested
+number of lines of a maximum length into a buffer and will return 0
+if successful or 1 if not. It also guarantees that all lines are
+terminated with a newline character and the entire buffer with a
+NULL character.
 
 ----------
 
@@ -24,6 +31,9 @@ indicating the name of the problematic file, if possible.
    :project: progguide
 
 .. doxygenfunction:: sfread
+   :project: progguide
+
+.. doxygenfunction:: read_lines_from_file
    :project: progguide
 
 ----------

@@ -887,7 +887,7 @@ void Input::ifthenelse()
     char **commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
+      n = strlen(arg[i]) + 1;
       if (n == 1) error->all(FLERR,"Illegal if command");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);
@@ -940,7 +940,7 @@ void Input::ifthenelse()
     char **commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
+      n = strlen(arg[i]) + 1;
       if (n == 1) error->all(FLERR,"Illegal if command");
       commands[ncommands] = new char[n];
       strcpy(commands[ncommands],arg[i]);

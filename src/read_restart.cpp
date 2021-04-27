@@ -339,7 +339,7 @@ void ReadRestart::command(int narg, char **arg)
                                      procfile, utils::getsyserror()));
     }
 
-    int flag,procsperfile;
+    int procsperfile;
 
     if (filereader) {
       utils::sfread(FLERR,&flag,sizeof(int),1,fp,nullptr,error);
@@ -704,7 +704,7 @@ void ReadRestart::header()
       int procgrid[3];
       read_int();
       read_int_vec(3,procgrid);
-      int flag = 0;
+      flag = 0;
       if (comm->user_procgrid[0] != 0 &&
           procgrid[0] != comm->user_procgrid[0]) flag = 1;
       if (comm->user_procgrid[1] != 0 &&

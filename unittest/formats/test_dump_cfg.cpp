@@ -75,6 +75,31 @@ TEST_F(DumpCfgTest, run0)
     delete_file("dump_cfg_run0.melt.cfg");
 }
 
+TEST_F(DumpCfgTest, write_dump)
+{
+    auto dump_file = "dump_cfg_run*.melt.cfg";
+    auto fields    = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
+
+    BEGIN_HIDE_OUTPUT();
+    command(std::string("write_dump all cfg dump_cfg.melt.cfg ") + fields);
+    command(std::string("write_dump all cfg dump_cfg*.melt.cfg ") + fields);
+    END_HIDE_OUTPUT();
+
+    ASSERT_FILE_EXISTS("dump_cfg.melt.cfg");
+    auto lines = read_lines("dump_cfg.melt.cfg");
+    ASSERT_EQ(lines.size(), 124);
+    ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
+    delete_file("dump_cfg.melt.cfg");
+
+    ASSERT_FILE_EXISTS("dump_cfg0.melt.cfg");
+    lines = read_lines("dump_cfg0.melt.cfg");
+    ASSERT_EQ(lines.size(), 124);
+    ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
+    delete_file("dump_cfg0.melt.cfg");
+
+    TEST_FAILURE(".*ERROR: Unrecognized dump style 'xxx'.*", command("write_dump all xxx test.xxx"););
+}
+
 TEST_F(DumpCfgTest, unwrap_run0)
 {
     auto dump_file = "dump_cfg_unwrap_run*.melt.cfg";

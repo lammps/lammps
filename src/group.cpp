@@ -494,7 +494,7 @@ void Group::assign(int narg, char **arg)
 
       std::string fixcmd = "GROUP_";
       fixcmd += fmt::format("{} {} GROUP",names[igroup],arg[2]);
-      for (int i = 3; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+      for (i = 3; i < narg; i++) fixcmd += std::string(" ") + arg[i];
       modify->add_fix(fixcmd);
 
     // style = static

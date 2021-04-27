@@ -304,6 +304,12 @@ void ReadData::command(int narg, char **arg)
        extra_dihedral_types || extra_improper_types))
     error->all(FLERR,"Cannot use read_data extra with add flag");
 
+  // check if data file is available and readable
+
+  if (!utils::file_is_readable(arg[0]))
+    error->all(FLERR,fmt::format("Cannot open file {}: {}",
+                                 arg[0], utils::getsyserror()));
+
   // first time system initialization
 
   if (addflag == NONE) {
@@ -1226,7 +1232,7 @@ void ReadData::atoms()
 
   while (nread < natoms) {
     nchunk = MIN(natoms-nread,CHUNK);
-    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,shiftflag,shift);
     nread += nchunk;
@@ -1282,7 +1288,7 @@ void ReadData::velocities()
 
   while (nread < natoms) {
     nchunk = MIN(natoms-nread,CHUNK);
-    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_vels(nchunk,buffer,id_offset);
     nread += nchunk;
@@ -1324,7 +1330,7 @@ void ReadData::bonds(int firstpass)
 
   while (nread < nbonds) {
     nchunk = MIN(nbonds-nread,CHUNK);
-    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_bonds(nchunk,buffer,count,id_offset,boffset);
     nread += nchunk;
@@ -1398,7 +1404,7 @@ void ReadData::angles(int firstpass)
 
   while (nread < nangles) {
     nchunk = MIN(nangles-nread,CHUNK);
-    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_angles(nchunk,buffer,count,id_offset,aoffset);
     nread += nchunk;
@@ -1472,7 +1478,7 @@ void ReadData::dihedrals(int firstpass)
 
   while (nread < ndihedrals) {
     nchunk = MIN(ndihedrals-nread,CHUNK);
-    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_dihedrals(nchunk,buffer,count,id_offset,doffset);
     nread += nchunk;
@@ -1546,7 +1552,7 @@ void ReadData::impropers(int firstpass)
 
   while (nread < nimpropers) {
     nchunk = MIN(nimpropers-nread,CHUNK);
-    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_impropers(nchunk,buffer,count,id_offset,ioffset);
     nread += nchunk;
@@ -1613,7 +1619,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
 
   while (nread < natoms) {
     nchunk = MIN(natoms-nread,CHUNK);
-    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_bonus(nchunk,buffer,ptr,id_offset);
     nread += nchunk;
@@ -1739,7 +1745,7 @@ void ReadData::mass()
   char *next;
   char *buf = new char[ntypes*MAXLINE];
 
-  int eof = comm->read_lines_from_file(fp,ntypes,MAXLINE,buf);
+  int eof = utils::read_lines_from_file(fp,ntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
@@ -1759,7 +1765,7 @@ void ReadData::paircoeffs()
   char *next;
   char *buf = new char[ntypes*MAXLINE];
 
-  int eof = comm->read_lines_from_file(fp,ntypes,MAXLINE,buf);
+  int eof = utils::read_lines_from_file(fp,ntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
@@ -1785,7 +1791,7 @@ void ReadData::pairIJcoeffs()
   int nsq = ntypes * (ntypes+1) / 2;
   char *buf = new char[nsq * MAXLINE];
 
-  int eof = comm->read_lines_from_file(fp,nsq,MAXLINE,buf);
+  int eof = utils::read_lines_from_file(fp,nsq,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
@@ -1811,7 +1817,7 @@ void ReadData::bondcoeffs()
   char *next;
   char *buf = new char[nbondtypes*MAXLINE];
 
-  int eof = comm->read_lines_from_file(fp,nbondtypes,MAXLINE,buf);
+  int eof = utils::read_lines_from_file(fp,nbondtypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
@@ -1836,7 +1842,7 @@ void ReadData::anglecoeffs(int which)
   char *next;
   char *buf = new char[nangletypes*MAXLINE];
 
-  int eof = comm->read_lines_from_file(fp,nangletypes,MAXLINE,buf);
+  int eof = utils::read_lines_from_file(fp,nangletypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
@@ -1862,7 +1868,7 @@ void ReadData::dihedralcoeffs(int which)
   char *next;
   char *buf = new char[ndihedraltypes*MAXLINE];
 
-  int eof = comm->read_lines_from_file(fp,ndihedraltypes,MAXLINE,buf);
+  int eof = utils::read_lines_from_file(fp,ndihedraltypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
@@ -1892,7 +1898,7 @@ void ReadData::impropercoeffs(int which)
   char *next;
   char *buf = new char[nimpropertypes*MAXLINE];
 
-  int eof = comm->read_lines_from_file(fp,nimpropertypes,MAXLINE,buf);
+  int eof = utils::read_lines_from_file(fp,nimpropertypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
 
   char *original = buf;
@@ -1922,7 +1928,7 @@ void ReadData::fix(int ifix, char *keyword)
   bigint nread = 0;
   while (nread < nline) {
     nchunk = MIN(nline-nread,CHUNK);
-    eof = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+    eof = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eof) error->all(FLERR,"Unexpected end of data file");
     modify->fix[ifix]->read_data_section(keyword,nchunk,buffer,id_offset);
     nread += nchunk;

@@ -225,6 +225,36 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size,
 
 /* ------------------------------------------------------------------ */
 
+/* read N lines and broadcast */
+int utils::read_lines_from_file(FILE *fp, int nlines, int nmax,
+                                char *buffer, int me, MPI_Comm comm)
+{
+  char *ptr = buffer;
+  *ptr = '\0';
+
+  if (me == 0) {
+    if (fp) {
+      for (int i = 0; i < nlines; i++) {
+        ptr = fgets(ptr,nmax,fp);
+        if (!ptr) break; // EOF?
+        // advance ptr to end of string and append newline char if needed.
+        ptr += strlen(ptr);
+        if (*(--ptr) != '\n') *(++ptr) = '\n';
+        // ensure buffer is null terminated. null char is start of next line.
+        *(++ptr) = '\0';
+      }
+    }
+  }
+
+  int n = strlen(buffer);
+  MPI_Bcast(&n,1,MPI_INT,0,comm);
+  if (n == 0) return 1;
+  MPI_Bcast(buffer,n+1,MPI_CHAR,0,comm);
+  return 0;
+}
+
+/* ------------------------------------------------------------------ */
+
 std::string utils::check_packages_for_style(const std::string &style,
                                             const std::string &name,
                                             LAMMPS *lmp)
@@ -673,6 +703,18 @@ std::string utils::utf8_subst(const std::string &line)
         // ZERO WIDTH SPACE (U+200B)
         if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x8bU))
           out += ' ', i += 2;
+        // LEFT SINGLE QUOTATION MARK (U+2018)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x98U))
+          out += '\'', i += 2;
+        // RIGHT SINGLE QUOTATION MARK (U+2019)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x99U))
+          out += '\'', i += 2;
+        // LEFT DOUBLE QUOTATION MARK (U+201C)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x9cU))
+          out += '"', i += 2;
+        // RIGHT DOUBLE QUOTATION MARK (U+201D)
+        if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0x9dU))
+          out += '"', i += 2;
         // NARROW NO-BREAK SPACE (U+202F)
         if ((in[i] == 0xe2U) && (in[i+1] == 0x80U) && (in[i+2] == 0xafU))
           out += ' ', i += 2;
@@ -996,8 +1038,8 @@ std::string utils::get_potential_file_path(const std::string &path) {
 
       while (dirs.has_next()) {
         auto pot = utils::path_basename(filepath);
-        auto path = dirs.next();
-        filepath = utils::path_join(path, pot);
+        auto dir = dirs.next();
+        filepath = utils::path_join(dir, pot);
 
         if (utils::file_is_readable(filepath)) {
           return filepath;

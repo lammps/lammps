@@ -51,12 +51,25 @@ protected:
         ASSERT_TRUE(out.good());
         out << "one line\ntwo_lines\n\nno newline";
         out.close();
+
+        out.open("file_with_long_lines_test.txt", std::ios_base::out | std::ios_base::binary);
+        ASSERT_TRUE(out.good());
+        out << "zero ##########################################################"
+            "##################################################################"
+            "##################################################################"
+            "############################################################\n";
+        out << "one line\ntwo_lines\n\n";
+        for (int i; i < 100; ++i) out << "one two ";
+        out << "\nthree\nfour five #";
+        for (int i; i < 1000; ++i) out << '#';
+        out.close();
     }
 
     void TearDown() override
     {
         LAMMPSTest::TearDown();
         remove("safe_file_read_test.txt");
+        remove("file_with_long_lines_test.txt");
     }
 };
 
@@ -97,6 +110,68 @@ TEST_F(FileOperationsTest, safe_fgets)
 }
 
 #define MAX_BUF_SIZE 128
+TEST_F(FileOperationsTest, fgets_trunc_nl)
+{
+    char buf[MAX_BUF_SIZE];
+    char *ptr;
+
+    FILE *fp = fopen("safe_file_read_test.txt", "rb");
+    ASSERT_NE(fp, nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("one line\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("two_lines\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc_nl(buf, 4, fp);
+    ASSERT_THAT(buf, StrEq("no\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_EQ(ptr,nullptr);
+    fclose(fp);
+
+    fp = fopen("file_with_long_lines_test.txt", "r");
+    ASSERT_NE(fp,nullptr);
+
+    memset(buf, 0, MAX_BUF_SIZE);
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_NE(ptr,nullptr);
+    ASSERT_THAT(buf, StrEq("zero ##########################################################"
+                           "###############################################################\n"));
+
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("one line\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("two_lines\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_THAT(buf, StrEq("\n"));
+    ASSERT_NE(ptr,nullptr);
+
+    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ASSERT_NE(ptr,nullptr);
+    ASSERT_THAT(buf, StrEq("one two one two one two one two one two one two one two one two "
+                           "one two one two one two one two one two one two one two one tw\n"));
+
+    fclose(fp);
+}
+
+#define MAX_BUF_SIZE 128
 TEST_F(FileOperationsTest, safe_fread)
 {
     char buf[MAX_BUF_SIZE];
@@ -127,7 +202,7 @@ TEST_F(FileOperationsTest, safe_fread)
 
 TEST_F(FileOperationsTest, read_lines_from_file)
 {
-    char *buf = new char[MAX_BUF_SIZE];
+    char *buf      = new char[MAX_BUF_SIZE];
     FILE *fp       = nullptr;
     MPI_Comm world = MPI_COMM_WORLD;
     int me, rv;

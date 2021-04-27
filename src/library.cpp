@@ -4981,6 +4981,24 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
 // ----------------------------------------------------------------------
 // MDI functions
 // ----------------------------------------------------------------------
+/** Initialize an instance of LAMMPS as an MDI plugin
+
+\verbatim embed:rst
+This function is called by the MDI Library when LAMMPS is run as a
+plugin, and should not otherwise be used.  The function initializes
+MDI, then initializes an instance of LAMMPS.  The command-line
+arguments ``argc`` and ``argv`` used to initialize LAMMPS are recieved
+from MDI.  The LAMMPS instance runs an input file, which must include the
+``mdi_engine`` command; when LAMMPS executes this command, it will begin
+listening for commands from the driver.  The name of the input file is
+obtained from the ``-in`` command-line argument, which must be provided
+by the driver.
+\endverbatim
+ *
+ * \param  command   string buffer corresponding to the command to be executed
+ * \param  comm      MDI communicator that can be used to communicated with the driver.
+ * \param  class_obj pointer to an instance of an mdi/engine fix cast to ``void *``.
+ * \return 0 on no error. */
 int MDI_Plugin_init_lammps()
 {
   // initialize MDI
@@ -5029,12 +5047,25 @@ int MDI_Plugin_init_lammps()
   return 0;
 }
 
+/** Execute an MDI command
+
+\verbatim embed:rst
+This function is called by the MDI Library when LAMMPS is run as a
+plugin, and should not otherwise be used.  The function executes a
+single command from an external MDI driver.  If the LAMMPS library
+was compiled without ``-DLMP_USER_MDI``, the function will fail and
+return a "1".
+\endverbatim
+ *
+ * \param  command   string buffer corresponding to the command to be executed
+ * \param  comm      MDI communicator that can be used to communicated with the driver.
+ * \param  class_obj pointer to an instance of an mdi/engine fix cast to ``void *``.
+ * \return 0 on no error, 1 on error. */
 int lammps_execute_mdi_command(const char* command, MDI_Comm comm, void* class_obj)
 {
 #if defined(LMP_USER_MDI)
   FixMDIEngine *mdi_fix = (FixMDIEngine*) class_obj;
-  mdi_fix->execute_command(command, comm);
-  return 0;
+  return mdi_fix->execute_command(command, comm);
 #else
   return 1;
 #endif

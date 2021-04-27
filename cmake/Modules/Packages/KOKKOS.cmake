@@ -38,8 +38,6 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
   set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.4.00.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-
-https://github.com/kokkos/kokkos/archive/refs/tags/3.4.00.tar.gz
   set(KOKKOS_MD5 "c2fdcedb6953e6160c765366f6045abb" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)

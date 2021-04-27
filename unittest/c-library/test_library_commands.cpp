@@ -118,4 +118,24 @@ TEST_F(LibraryCommands, from_string)
     lammps_commands_string(lmp, cmds.c_str());
     if (!verbose) ::testing::internal::GetCapturedStdout();
     EXPECT_EQ(lammps_get_natoms(lmp), 2);
+
+    // repeat test with DOS/Windows style CR-LF line endings
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_command(lmp, "clear");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    cmds.clear();
+    for (unsigned int i = 0; i < sizeof(demo_input) / sizeof(char *); ++i) {
+        cmds += demo_input[i];
+        cmds += "\r\n";
+    }
+    for (unsigned int i = 0; i < sizeof(cont_input) / sizeof(char *); ++i) {
+        cmds += cont_input[i];
+        cmds += "\r\n";
+    }
+    EXPECT_EQ(lammps_get_natoms(lmp), 0);
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_commands_string(lmp, cmds.c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    EXPECT_EQ(lammps_get_natoms(lmp), 2);
 };

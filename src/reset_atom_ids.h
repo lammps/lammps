@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,11 +20,11 @@ CommandStyle(reset_atom_ids,ResetIDs)
 #ifndef LMP_RESET_IDS_H
 #define LMP_RESET_IDS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class ResetIDs : protected Pointers {
+class ResetIDs : public Command {
  public:
   struct AtomRvous {
     bigint ibin;
@@ -37,7 +37,7 @@ class ResetIDs : protected Pointers {
     int ilocal;
   };
 
-  #if defined(LMP_QSORT)
+#if defined(LMP_QSORT)
   // static variable across all ResetID objects, for qsort callback
   static AtomRvous *sortrvous;
 #endif

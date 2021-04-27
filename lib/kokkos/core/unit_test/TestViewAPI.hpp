@@ -1145,6 +1145,8 @@ class TestViewAPI {
     // T v2 = hx( 0, 0 ); // Generates compile error as intended.
     // hx( 0, 0 ) = v2;   // Generates compile error as intended.
 
+    // FIXME_SYCL requires MDRange policy
+#ifndef KOKKOS_ENABLE_SYCL
     // Testing with asynchronous deep copy with respect to device
     {
       size_t count = 0;
@@ -1247,6 +1249,7 @@ class TestViewAPI {
               ASSERT_EQ(hx(ip, i1, i2, i3), T(0));
             }
     }
+#endif
 
     dz = dx;
     ASSERT_EQ(dx, dz);
@@ -1477,6 +1480,12 @@ class TestViewAPI {
 #ifdef KOKKOS_ENABLE_OPENMPTARGET
     if (std::is_same<typename dView1::memory_space,
                      Kokkos::Experimental::OpenMPTargetSpace>::value)
+      return;
+#endif
+// FIXME_SYCL
+#ifdef KOKKOS_ENABLE_SYCL
+    if (std::is_same<typename dView1::memory_space,
+                     Kokkos::Experimental::SYCLDeviceUSMSpace>::value)
       return;
 #endif
     auto alloc_size = std::numeric_limits<size_t>::max() - 42;

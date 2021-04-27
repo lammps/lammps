@@ -130,8 +130,8 @@ int FixPropelSelf::setmask()
 double FixPropelSelf::memory_usage()
 {
   // magnitude + thermostat_orient + mode + n_types_filter + apply_to_type
-  double bytes = sizeof(double) + 3*sizeof(int) + sizeof(int*);
-  bytes += sizeof(int)*atom->ntypes*n_types_filter;
+  double bytes = (double)sizeof(double) + 3*sizeof(int) + sizeof(int*);
+  bytes += (double)sizeof(int)*atom->ntypes*n_types_filter;
 
   return bytes;
 }
@@ -171,8 +171,8 @@ void FixPropelSelf::post_force_quaternion(int /* vflag */ )
 
   // Add the active force to the atom force:
 
-  for( int i = 0; i < nlocal; ++i ){
-    if( mask[i] & groupbit ){
+  for (int i = 0; i < nlocal; ++i) {
+    if (mask[i] & groupbit) {
       if (filter_by_type && !apply_to_type[type[i]]) {
         continue;
       }
@@ -206,8 +206,8 @@ void FixPropelSelf::post_force_velocity(int /*vflag*/)
 
   // Add the active force to the atom force:
 
-  for(int i = 0; i < nlocal; ++i) {
-    if( mask[i] & groupbit ){
+  for (int i = 0; i < nlocal; ++i) {
+    if (mask[i] & groupbit) {
       if (filter_by_type && !apply_to_type[type[i]]) {
         continue;
       }

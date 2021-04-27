@@ -107,5 +107,6 @@ pair_style morse/smooth/linear, Stefan Paquay (TU Eindhoven), stefanpaquay at gm
 pair_style srp, Tim Sirk, tim.sirk at us.army.mil, 21 Nov 14
 pair_style tersoff/table, Luca Ferraro, luca.ferraro@caspur.it, 1 Dec 11
 pair_style momb, Kristen Fichthorn, Tonnam Balankura, Ya Zhou, fichthorn@psu.edu, 18 Mar 17
+pair_style wf_cut, Simon Ramirez-Hinestrosa, Xipeng Wang, sr802 at cam.ac.uk, 4 Nov 20
 temper/grem, David Stelter, dstelter@bu.edu, 22 Nov 16
 temper/npt, Amulya K. Pervaje, Cody K. Addington, amulyapervaje@gmail.com , 31 Aug 17

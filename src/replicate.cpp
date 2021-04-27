@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Replicate::Replicate(LAMMPS *lmp) : Pointers(lmp) {}
+Replicate::Replicate(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -166,7 +166,7 @@ void Replicate::command(int narg, char **arg)
     atom->molecules = (Molecule **) memory->smalloc((old->nmolecule)*sizeof(Molecule *),
                                                     "atom::molecules");
     atom->nmolecule = old->nmolecule;
-    for (int i = 0; i < old->nmolecule; ++i)
+    for (i = 0; i < old->nmolecule; ++i)
       atom->molecules[i] = old->molecules[i];
     memory->sfree(old->molecules);
     old->molecules = nullptr;
@@ -510,12 +510,12 @@ void Replicate::command(int narg, char **arg)
             if (!xoverlap) {
               if (xboxlo < 0) {
                 _xoverlap1 = 1;
-                if ( _lo[0] > (subhi[0] - EPSILON) ) _xoverlap1 = 0;
+                if (_lo[0] > (subhi[0] - EPSILON)) _xoverlap1 = 0;
               }
 
               if (xboxhi > 0) {
                 _xoverlap2 = 1;
-                if ( _hi[0] < (sublo[0] + EPSILON) ) _xoverlap2 = 0;
+                if (_hi[0] < (sublo[0] + EPSILON)) _xoverlap2 = 0;
               }
 
               if (_xoverlap1 || _xoverlap2) xoverlap = 1;
@@ -526,12 +526,12 @@ void Replicate::command(int narg, char **arg)
             if (!yoverlap) {
               if (yboxlo < 0) {
                 _yoverlap1 = 1;
-                if ( _lo[1] > (subhi[1] - EPSILON) ) _yoverlap1 = 0;
+                if (_lo[1] > (subhi[1] - EPSILON)) _yoverlap1 = 0;
               }
 
               if (yboxhi > 0) {
                 _yoverlap2 = 1;
-                if ( _hi[1] < (sublo[1] + EPSILON) ) _yoverlap2 = 0;
+                if (_hi[1] < (sublo[1] + EPSILON)) _yoverlap2 = 0;
               }
 
               if (_yoverlap1 || _yoverlap2) yoverlap = 1;
@@ -543,12 +543,12 @@ void Replicate::command(int narg, char **arg)
             if (!zoverlap) {
               if (zboxlo < 0) {
                 _zoverlap1 = 1;
-                if ( _lo[2] > (subhi[2] - EPSILON) ) _zoverlap1 = 0;
+                if (_lo[2] > (subhi[2] - EPSILON)) _zoverlap1 = 0;
               }
 
               if (zboxhi > 0) {
                 _zoverlap2 = 1;
-                if ( _hi[2] < (sublo[2] + EPSILON) ) _zoverlap2 = 0;
+                if (_hi[2] < (sublo[2] + EPSILON)) _zoverlap2 = 0;
               }
 
               if (_zoverlap1 || _zoverlap2) zoverlap = 1;
@@ -602,7 +602,7 @@ void Replicate::command(int narg, char **arg)
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
-                if (atom->molecular) {
+                if (atom->molecular != Atom::ATOMIC) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
                   if (atom->molecular == Atom::MOLECULAR) {
@@ -704,7 +704,7 @@ void Replicate::command(int narg, char **arg)
                 atom->tag[i] += atom_offset;
                 atom->image[i] = image;
 
-                if (atom->molecular) {
+                if (atom->molecular != Atom::ATOMIC) {
                   if (atom->molecule[i] > 0)
                     atom->molecule[i] += mol_offset;
                   if (atom->molecular == Atom::MOLECULAR) {

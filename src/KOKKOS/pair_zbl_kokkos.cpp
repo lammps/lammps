@@ -30,6 +30,8 @@
 #include "atom_masks.h"
 #include "kokkos.h"
 
+#include "pair_zbl_const.h"
+
 // From J.F. Zeigler, J. P. Biersack and U. Littmark,
 // "The Stopping and Range of Ions in Matter" volume 1, Pergamon, 1985.
 
@@ -43,6 +45,7 @@ PairZBLKokkos<DeviceType>::PairZBLKokkos(LAMMPS *lmp) : PairZBL(lmp)
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -78,7 +81,7 @@ void PairZBLKokkos<DeviceType>::init_style()
 
   // error if rRESPA with inner levels
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -301,7 +304,7 @@ double PairZBLKokkos<DeviceType>::init_one(int i, int j)
   k_sw4.modify<LMPHostType>();
   k_sw5.modify<LMPHostType>();
 
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_cutsq[i][j] = m_cutsq[j][i] = cutone*cutone;
   }
 

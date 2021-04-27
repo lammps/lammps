@@ -195,6 +195,8 @@ void DihedralQuadratic::compute(int eflag, int vflag)
     siinv = 1.0/si;
 
     double dphi = phi-phi0[type];
+    if (dphi > MY_PI) dphi -= 2*MY_PI;
+    else if (dphi < -MY_PI) dphi += 2*MY_PI;
     p = k[type]*dphi;
     pd = - 2.0 * p * siinv;
     p = p * dphi;

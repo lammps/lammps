@@ -58,7 +58,7 @@ int Init_System(reax_system *system, control_params *control, char * /*msg*/)
   /* estimate numH and Hcap */
   system->numH = 0;
   if (control->hbond_cut > 0)
-    for(i = 0; i < system->n; ++i) {
+    for (i = 0; i < system->n; ++i) {
       atom = &(system->my_atoms[i]);
       if (system->reax_param.sbp[ atom->type ].p_hbond == 1 && atom->type >= 0)
         atom->Hindex = system->numH++;
@@ -77,7 +77,7 @@ int Init_Simulation_Data(reax_system *system, control_params *control,
 
   /* initialize the timer(s) */
   if (system->my_rank == MASTER_NODE) {
-    data->timing.start = Get_Time();
+    data->timing.start = MPI_Wtime();
   }
 
   data->step = data->prev_steps = 0;
@@ -101,7 +101,7 @@ void Init_Taper(control_params *control,  storage *workspace)
   if (swb < 0) {
     error->all(FLERR,"Negative upper Taper-radius cutoff");
   }
-  else if(swb < 5 && control->me == 0) {
+  else if (swb < 5 && control->me == 0) {
     char errmsg[256];
     snprintf(errmsg, 256, "Very low Taper-radius cutoff: %f", swb);
     error->warning(FLERR, errmsg);
@@ -178,13 +178,13 @@ int  Init_Lists(reax_system *system, control_params *control,
   if (control->hbond_cut > 0) {
     /* init H indexes */
     total_hbonds = 0;
-    for(i = 0; i < system->n; ++i) {
+    for (i = 0; i < system->n; ++i) {
       system->my_atoms[i].num_hbonds = hb_top[i];
       total_hbonds += hb_top[i];
     }
     total_hbonds = (int)(MAX(total_hbonds*saferzone,mincap*system->minhbonds));
 
-    if(!Make_List(system->Hcap, total_hbonds, TYP_HBOND,
+    if (!Make_List(system->Hcap, total_hbonds, TYP_HBOND,
                     *lists+HBONDS))
       error->one(FLERR, "Not enough space for hbonds list.");
 
@@ -192,13 +192,13 @@ int  Init_Lists(reax_system *system, control_params *control,
   }
 
   total_bonds = 0;
-  for(i = 0; i < system->N; ++i) {
+  for (i = 0; i < system->N; ++i) {
     system->my_atoms[i].num_bonds = bond_top[i];
     total_bonds += bond_top[i];
   }
   bond_cap = (int)(MAX(total_bonds*safezone, mincap*MIN_BONDS));
 
-  if(!Make_List(system->total_cap, bond_cap, TYP_BOND,
+  if (!Make_List(system->total_cap, bond_cap, TYP_BOND,
                   *lists+BONDS))
     error->one(FLERR, "Not enough space for bonds list.");
 
@@ -206,7 +206,7 @@ int  Init_Lists(reax_system *system, control_params *control,
 
   /* 3bodies list */
   cap_3body = (int)(MAX(num_3body*safezone, MIN_3BODIES));
-  if(!Make_List(bond_cap, cap_3body, TYP_THREE_BODY,
+  if (!Make_List(bond_cap, cap_3body, TYP_THREE_BODY,
                   *lists+THREE_BODIES))
     error->one(FLERR,"Problem in initializing angles list.");
 

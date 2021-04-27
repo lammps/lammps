@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,7 +37,7 @@ class PairComb3 : public Pair {
   virtual double combqeq(double *, int &);
   double enegtot;
 
-  static const int NPARAMS_PER_LINE = 74;
+  static constexpr int NPARAMS_PER_LINE = 74;
 
  protected:
  // general potential parameters
@@ -61,16 +61,10 @@ class PairComb3 : public Pair {
   };
 
   // general setups
-  int nelements;                        // # of unique elements
-  int ***elem2param;                    // mapping from element triplets to parameters
-  int *map;                             // mapping from atom types to elements
-  int nparams;                          // # of stored parameter sets
-  int maxparam;                         // max # of parameter sets
   double PI,PI2,PI4,PIsq;               // PIs
   double cutmin;                        // min cutoff for all elements
   double cutmax;                        // max cutoff for all elements
   double precision;                     // tolerance for QEq convergence
-  char **elements;                      // names of unique elements
   Param *params;                        // parameter set for an I-J-K interaction
   int debug_eng1, debug_eng2, debug_fq; // logic controlling debugging outputs
   int pack_flag;
@@ -250,20 +244,6 @@ class PairComb3 : public Pair {
   void unpack_reverse_comm(int, int *, double *);
   int pack_forward_comm(int , int *, double *, int, int *);
   void unpack_forward_comm(int , int , double *);
-
-  // vector functions, inline for efficiency
-  inline double vec3_dot(double *x, double *y) {
-    return x[0]*y[0] + x[1]*y[1] + x[2]*y[2];
-  }
-  inline void vec3_add(double *x, double *y, double *z) {
-    z[0] = x[0]+y[0];  z[1] = x[1]+y[1];  z[2] = x[2]+y[2];
-  }
-  inline void vec3_scale(double k, double *x, double *y) {
-    y[0] = k*x[0];  y[1] = k*x[1];  y[2] = k*x[2];
-  }
-  inline void vec3_scaleadd(double k, double *x, double *y, double *z) {
-    z[0] = k*x[0]+y[0];  z[1] = k*x[1]+y[1];  z[2] = k*x[2]+y[2];
-  }
  };
 }
 

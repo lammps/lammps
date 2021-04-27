@@ -294,6 +294,6 @@ void ComputeTempRotate::restore_bias_all()
 
 double ComputeTempRotate::memory_usage()
 {
-  double bytes = maxbias * sizeof(double);
+  double bytes = (double)maxbias * sizeof(double);
   return bytes;
 }

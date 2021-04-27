@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
-   Lammps - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -74,7 +74,7 @@ namespace user_manifold { class manifold; }
     virtual void reset_dt();
     virtual void end_of_step();
     virtual int dof(int);
-    virtual void setup(int){}  // Not needed for fixNVE but is for fixNVT
+    virtual void setup(int) {}  // Not needed for fixNVE but is for fixNVT
     virtual double memory_usage();
 
    protected:

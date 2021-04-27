@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,7 +43,7 @@ class FixRigidSmall : public Fix {
   void grow_arrays(int);
   void copy_arrays(int, int, int);
   void set_arrays(int);
-  void set_molecule(int, tagint, int, double *, double *, double *);
+  virtual void set_molecule(int, tagint, int, double *, double *, double *);
 
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);

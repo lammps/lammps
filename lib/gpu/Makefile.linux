@@ -41,6 +41,10 @@ CUDA_ARCH = -arch=sm_50
 # Turing hardware
 #CUDA_ARCH = -arch=sm_75
 
+# Ampere hardware
+#CUDA_ARCH = -arch=sm_80
+#CUDA_ARCH = -arch=sm_86
+
 # this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL
 
@@ -66,7 +70,8 @@ LIB_DIR = ./
 AR = ar
 BSH = /bin/sh
 
-CUDPP_OPT = -DUSE_CUDPP -Icudpp_mini
+# GPU binning not recommended with modern GPUs
+CUDPP_OPT = #-DUSE_CUDPP -Icudpp_mini
 
 include Nvidia.makefile
 

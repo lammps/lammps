@@ -67,7 +67,7 @@ static const char cite_neb_spin[] =
 
 /* ---------------------------------------------------------------------- */
 
-NEBSpin::NEBSpin(LAMMPS *lmp) : Pointers(lmp) {
+NEBSpin::NEBSpin(LAMMPS *lmp) : Command(lmp) {
   if (lmp->citeme) lmp->citeme->add(cite_neb_spin);
 }
 
@@ -242,7 +242,7 @@ void NEBSpin::run()
   timer->init();
   timer->barrier_start();
 
-  // if(ireplica != 0 && ireplica != nreplica -1)
+  // if (ireplica != 0 && ireplica != nreplica -1)
 
   while (update->minimize->niter < n1steps) {
     update->minimize->run(nevery);
@@ -430,9 +430,10 @@ void NEBSpin::readfile(char *file, int flag)
   while (nread < nlines) {
     nchunk = MIN(nlines-nread,CHUNK);
     if (flag == 0)
-      eofflag = comm->read_lines_from_file_universe(fp,nchunk,MAXLINE,buffer);
+      eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,
+                                            universe->me,universe->uworld);
     else
-      eofflag = comm->read_lines_from_file(fp,nchunk,MAXLINE,buffer);
+      eofflag = utils::read_lines_from_file(fp,nchunk,MAXLINE,buffer,me,world);
     if (eofflag) error->all(FLERR,"Unexpected end of neb/spin file");
 
     buf = buffer;

@@ -225,6 +225,8 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
   int i,j;
   int ntypes = atom->ntypes;
 
+  skip = other->skip;
+
   if (other->iskip) {
     iskip = new int[ntypes+1];
     for (i = 1; i <= ntypes; i++)

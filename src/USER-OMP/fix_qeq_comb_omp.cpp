@@ -17,18 +17,18 @@
 
 #include "fix_qeq_comb_omp.h"
 
-#include <cmath>
-#include <cstring>
-#include "pair_comb.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
 #include "neigh_list.h"
+#include "pair_comb.h"
 #include "respa.h"
 #include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -58,7 +58,7 @@ void FixQEQCombOMP::init()
     error->all(FLERR,"Must use pair_style comb or "
                "comb/omp with fix qeq/comb/omp");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -125,7 +125,7 @@ void FixQEQCombOMP::post_force(int /* vflag */)
     q1[i] = q2[i] = qf[i] = 0.0;
   }
 
-  for (iloop = 0; iloop < loopmax; iloop ++ ) {
+  for (iloop = 0; iloop < loopmax; iloop ++) {
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
       if (mask[i] & groupbit) {
@@ -135,7 +135,7 @@ void FixQEQCombOMP::post_force(int /* vflag */)
     }
     comm->forward_comm_fix(this);
 
-    if(comb) enegtot = comb->yasu_char(qf,igroup);
+    if (comb) enegtot = comb->yasu_char(qf,igroup);
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
 

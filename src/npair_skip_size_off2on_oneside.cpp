@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_skip_size_off2on_oneside.h"
-#include "neigh_list.h"
+
 #include "atom.h"
-#include "atom_vec.h"
 #include "domain.h"
-#include "my_page.h"
 #include "error.h"
+#include "my_page.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 

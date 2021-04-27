@@ -110,7 +110,7 @@ class DumpCustomADIOSInternal
 {
 
 public:
-    DumpCustomADIOSInternal(){};
+    DumpCustomADIOSInternal() {};
     ~DumpCustomADIOSInternal() = default;
 
     // name of adios group, referrable in adios2_config.xml

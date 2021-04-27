@@ -49,7 +49,6 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   rho = nullptr;
   fp = nullptr;
   numforce = nullptr;
-  map = nullptr;
   type2frho = nullptr;
 
   nfuncfl = 0;
@@ -62,6 +61,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp)
   rhor = nullptr;
   z2r = nullptr;
   scale = nullptr;
+
+  rhomax = rhomin = 0.0;
 
   frho_spline = nullptr;
   rhor_spline = nullptr;
@@ -88,9 +89,7 @@ PairEAM::~PairEAM()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
-    map = nullptr;
     type2frho = nullptr;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
@@ -346,6 +345,7 @@ void PairEAM::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  delete[] map;
   map = new int[n+1];
   for (int i = 1; i <= n; i++) map[i] = -1;
 
@@ -466,7 +466,7 @@ void PairEAM::read_file(char *filename)
   Funcfl *file = &funcfl[nfuncfl-1];
 
   // read potential file
-  if(comm->me == 0) {
+  if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "eam", unit_convert_flag);
 
     // transparently convert units for supported conversions
@@ -518,7 +518,7 @@ void PairEAM::read_file(char *filename)
   MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     memory->create(file->frho, (file->nrho+1), "pair:frho");
     memory->create(file->rhor, (file->nr+1), "pair:rhor");
     memory->create(file->zr, (file->nr+1), "pair:zr");
@@ -911,9 +911,9 @@ void PairEAM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairEAM::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
 }
 

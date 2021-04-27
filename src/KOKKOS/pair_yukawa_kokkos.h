@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,9 +45,9 @@ class PairYukawaKokkos : public PairYukawa {
 
   struct params_yukawa {
     KOKKOS_INLINE_FUNCTION
-    params_yukawa(){ cutsq=0, a = 0; offset = 0; }
+    params_yukawa() { cutsq=0, a = 0; offset = 0; }
     KOKKOS_INLINE_FUNCTION
-    params_yukawa(int /*i*/){ cutsq=0, a = 0; offset = 0; }
+    params_yukawa(int /*i*/) { cutsq=0, a = 0; offset = 0; }
     F_FLOAT cutsq, a, offset;
   };
 

@@ -148,7 +148,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use fix bond/create with non-molecular systems");
   if (iatomtype == jatomtype &&
       ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
@@ -232,7 +232,7 @@ int FixBondCreate::setmask()
 
 void FixBondCreate::init()
 {
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // check cutoff for iatomtype,jatomtype
@@ -1427,9 +1427,9 @@ double FixBondCreate::compute_vector(int n)
 double FixBondCreate::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
+  double bytes = (double)nmax * sizeof(int);
   bytes = 2*nmax * sizeof(tagint);
-  bytes += nmax * sizeof(double);
+  bytes += (double)nmax * sizeof(double);
   return bytes;
 }
 

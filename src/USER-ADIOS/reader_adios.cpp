@@ -50,7 +50,7 @@ class ReadADIOSInternal
 {
 
 public:
-    ReadADIOSInternal(){};
+    ReadADIOSInternal() {};
     ~ReadADIOSInternal() = default;
 
     // name of adios group, referrable in adios2_config.xml

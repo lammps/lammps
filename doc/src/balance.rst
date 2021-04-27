@@ -257,7 +257,7 @@ factor, similar to how the :doc:`fix balance shift <fix_balance>`
 command operates.
 
 The *dimstr* argument is a string of characters, each of which must be
-an "x" or "y" or "z".  Eacn character can appear zero or one time,
+an "x" or "y" or "z". Each character can appear zero or one time,
 since there is no advantage to balancing on a dimension more than
 once.  You should normally only list dimensions where you expect there
 to be a density variation in the particles.
@@ -285,10 +285,10 @@ plane gets closer to the target value.
 
 After the balanced plane positions are determined, if any pair of
 adjacent planes are closer together than the neighbor skin distance
-(as specified by the :doc`neigh_modify <neigh_modify>` command), then
+(as specified by the :doc:`neigh_modify <neigh_modify>` command), then
 the plane positions are shifted to separate them by at least this
 amount.  This is to prevent particles being lost when dynamics are run
-with processor subdomains that are too narrow in one or more
+with processor sub-domains that are too narrow in one or more
 dimensions.
 
 Once the re-balancing is complete and final processor sub-domains

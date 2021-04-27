@@ -20,19 +20,18 @@
 
 #include "dihedral_charmmfsw.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
-#include "update.h"
-#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -386,7 +385,7 @@ void DihedralCharmmfsw::coeff(int narg, char **arg)
 
 void DihedralCharmmfsw::init_style()
 {
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     Respa *r = (Respa *) update->integrate;
     if (r->level_pair >= 0 && (r->level_pair != r->level_dihedral))
       error->all(FLERR,"Dihedral style charmmfsw must be set to same"

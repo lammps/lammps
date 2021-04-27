@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,15 +20,15 @@ CommandStyle(info,Info)
 #ifndef LMP_INFO_H
 #define LMP_INFO_H
 
-#include "pointers.h"
+#include "command.h"
 
 #include <vector>
 
 namespace LAMMPS_NS {
 
-class Info : protected Pointers {
+class Info : public Command {
  public:
-  Info(class LAMMPS *lmp) : Pointers(lmp) {};
+  Info(class LAMMPS *lmp) : Command(lmp) {};
   void command(int, char **);
 
   bool is_active(const char *, const char *);
@@ -43,7 +43,10 @@ class Info : protected Pointers {
   static bool has_jpeg_support();
   static bool has_ffmpeg_support();
   static bool has_exceptions();
-  static bool has_package(const char * package_name);
+  static bool has_package(const std::string &);
+  static bool has_accelerator_feature(const std::string &,
+                                      const std::string &,
+                                      const std::string &);
 
   static std::string get_os_info();
   static std::string get_compiler_info();
@@ -51,6 +54,7 @@ class Info : protected Pointers {
   static std::string get_mpi_vendor();
   static std::string get_mpi_info(int &, int &);
   static std::string get_cxx_info();
+  static std::string get_accelerator_info(const std::string &pkg="");
 
   void get_memory_info(double *);
   char **get_variable_names(int &num);

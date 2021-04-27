@@ -18,22 +18,24 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh.h"
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "group.h"
-#include "comm.h"
-#include "force.h"
-#include "kspace.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
 #include "rigid_const.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -49,6 +51,8 @@ FixRigidNH::FixRigidNH(LAMMPS *lmp, int narg, char **arg) :
   eta_dot_b(nullptr), f_eta_b(nullptr), rfix(nullptr), id_temp(nullptr),
   id_press(nullptr), temperature(nullptr), pressure(nullptr)
 {
+  if (tstat_flag || pstat_flag) ecouple_flag = 1;
+
   // error checks: could be moved up to FixRigid
 
   if ((p_flag[0] == 1 && p_period[0] <= 0.0) ||
@@ -186,8 +190,6 @@ int FixRigidNH::setmask()
 {
   int mask = 0;
   mask = FixRigid::setmask();
-  if (tstat_flag || pstat_flag) mask |= THERMO_ENERGY;
-
   return mask;
 }
 
@@ -234,8 +236,6 @@ void FixRigidNH::init()
   }
 
   g_f = nf_t + nf_r;
-  onednft = 1.0 + (double)(dimension) / (double)g_f;
-  onednfr = (double) (dimension) / (double)g_f;
 
   // see Table 1 in Kamberaj et al
 
@@ -565,8 +565,7 @@ void FixRigidNH::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // remap simulation box by 1/2 step
 
@@ -720,6 +719,8 @@ void FixRigidNH::final_integrate()
 
 void FixRigidNH::nhc_temp_integrate()
 {
+  if (g_f == 0) return;
+
   int i,j,k;
   double kt,gfkt_t,gfkt_r,tmp,ms,s,s2;
 
@@ -1064,6 +1065,8 @@ void FixRigidNH::compute_press_target()
 
 void FixRigidNH::nh_epsilon_dot()
 {
+  if (g_f == 0) return;
+
   int i;
   double volume,scale,f_epsilon;
 
@@ -1203,9 +1206,7 @@ int FixRigidNH::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1237,9 +1238,7 @@ int FixRigidNH::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

@@ -313,7 +313,7 @@ void ComputeTempProfile::compute_array()
 
   for (i = 0; i < nbins; i++) tbin[i] = 0.0;
 
-  for (int i = 0; i < nlocal; i++)
+  for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       ibin = bin[i];
       if (xflag) vthermal[0] = v[i][0] - binave[ibin][ivx];
@@ -577,7 +577,7 @@ void ComputeTempProfile::bin_assign()
 
 double ComputeTempProfile::memory_usage()
 {
-  double bytes = maxatom * sizeof(int);
-  bytes += nbins*ncount * sizeof(double);
+  double bytes = (double)maxatom * sizeof(int);
+  bytes += (double)nbins*ncount * sizeof(double);
   return bytes;
 }

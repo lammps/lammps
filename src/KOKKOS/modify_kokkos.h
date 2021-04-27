@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,7 +37,9 @@ class ModifyKokkos : public Modify {
   void post_force(int);
   void final_integrate();
   void end_of_step();
-  double thermo_energy();
+  double energy_couple();
+  double energy_global();
+  void energy_atom(int, double *);
   void post_run();
 
   void setup_pre_force_respa(int, int);

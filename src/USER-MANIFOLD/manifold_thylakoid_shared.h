@@ -1,3 +1,16 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 #ifndef MANIFOLD_THYLAKOID_SHARED_H
 #define MANIFOLD_THYLAKOID_SHARED_H
 
@@ -21,7 +34,7 @@ namespace user_manifold {
 
     thyla_part( int type, double *args, double xlo, double ylo, double zlo,
                 double xhi, double yhi, double zhi );
-    thyla_part() : type(-1), x0(-1337), y0(-1337), z0(-1337){}
+    thyla_part() : type(-1), x0(-1337), y0(-1337), z0(-1337) {}
     ~thyla_part();
 
     double g( const double *x );
@@ -43,7 +56,7 @@ namespace user_manifold {
 
 
   struct thyla_part_geom {
-    thyla_part_geom() : pt(3), lo(3), hi(3){}
+    thyla_part_geom() : pt(3), lo(3), hi(3) {}
     std::vector<double> pt, lo, hi;
 
     // Function for mirroring thyla_geoms:

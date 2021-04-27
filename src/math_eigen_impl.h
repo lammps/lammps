@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -399,7 +399,7 @@ void Alloc2D(size_t nrows,          // size of the array (number of rows)
   //assert(paaX);
   *paaX = new Entry* [nrows];  //conventional 2D C array (pointer-to-pointer)
   (*paaX)[0] = new Entry [nrows * ncols];  // 1D C array (contiguous memor)
-  for(size_t iy=0; iy<nrows; iy++)
+  for (size_t iy=0; iy<nrows; iy++)
     (*paaX)[iy] = (*paaX)[0] + iy*ncols;
   // The caller can access the contents using (*paaX)[i][j]
 }
@@ -453,7 +453,7 @@ inline real_t<T> l2_norm(const std::vector<T>& vec) {
 template <typename T1, typename T2>
 inline void scalar_mul(T1 a, std::vector<T2>& vec) {
   int n = vec.size();
-  for(int i = 0;i < n;i++)
+  for (int i = 0;i < n;i++)
     vec[i] *= a;
 }
 
@@ -465,7 +465,7 @@ inline void normalize(std::vector<T>& vec) {
 template <typename T>
 inline real_t<T> l1_norm(const std::vector<T>& vec) {
   real_t<T> norm = real_t<T>(); // Zero initialization
-  for(const T& element : vec)
+  for (const T& element : vec)
     norm += std::abs(element);
   return norm;
 }
@@ -746,7 +746,7 @@ template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 int Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 MaxEntryRow(Scalar const *const *M, int i) const {
   int j_max = i+1;
-  for(int j = i+2; j < n; j++)
+  for (int j = i+2; j < n; j++)
     if (std::abs(M[i][j]) > std::abs(M[i][j_max]))
       j_max = j;
   return j_max;
@@ -963,9 +963,9 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
   pev = std::numeric_limits<real_t<T>>::max();
 
   int itern = this->max_iteration;
-  for(int k = 1;k <= this->max_iteration;k++) {
+  for (int k = 1;k <= this->max_iteration;k++) {
     // vk = (A + offset*E)uk, here E is the identity matrix
-    for(int i = 0;i < n;i++) {
+    for (int i = 0;i < n;i++) {
       vk[i] = uk[i]*this->eigenvalue_offset;
     }
     this->mv_mul(uk, vk);
@@ -984,7 +984,7 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
 
     alpha.push_back(alphak);
 
-    for(int i = 0;i < n; i++) {
+    for (int i = 0;i < n; i++) {
       uk[i] = vk[i] - betak*u[k-1][i] - alphak*u[k][i];
     }
 
@@ -993,14 +993,14 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
     betak = l2_norm(uk);
     beta.push_back(betak);
 
-    if(this->find_maximum) {
+    if (this->find_maximum) {
       ev = find_maximum_eigenvalue(alpha, beta);
     } else {
       ev = find_minimum_eigenvalue(alpha, beta);
     }
 
     const real_t<T> zero_threshold = minimum_effective_decimal<real_t<T>>()*1e-1;
-    if(betak < zero_threshold) {
+    if (betak < zero_threshold) {
       u.push_back(uk);
       // This element will never be accessed,
       // but this "push" guarantees u to always have one more element than
@@ -1012,7 +1012,7 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
     normalize(uk);
     u.push_back(uk);
 
-    if(abs(ev-pev) < std::min(abs(ev), abs(pev))*this->eps) {
+    if (abs(ev-pev) < std::min(abs(ev), abs(pev))*this->eps) {
       itern = k;
       break;
     } else {
@@ -1030,18 +1030,18 @@ run(real_t<T>& eigvalue, std::vector<T>& eigvec) const
 
   beta[m-1] = 0.0;
 
-  if(eigvec.size() < n) {
+  if (eigvec.size() < n) {
     eigvec.resize(n);
   }
 
-  for(int i = 0;i < n;i++) {
+  for (int i = 0;i < n;i++) {
     eigvec[i] = cv[m-1]*u[m-1][i];
   }
 
-  for(int k = m-2;k >= 1;k--) {
+  for (int k = m-2;k >= 1;k--) {
     cv[k] = ((ev - alpha[k+1])*cv[k+1] - beta[k+1]*cv[k+2])/beta[k];
 
-    for(int i = 0;i < n;i++) {
+    for (int i = 0;i < n;i++) {
       eigvec[i] += cv[k]*u[k][i];
     }
   }
@@ -1062,9 +1062,9 @@ schmidt_orth(std::vector<T>& uorth, const std::vector<std::vector<T>>& u)
 
   int n = uorth.size();
 
-  for(int k = 0;k < u.size();k++) {
+  for (int k = 0;k < u.size();k++) {
     T innprod = inner_prod(uorth, u[k]);
-    for(int i = 0;i < n;i++)
+    for (int i = 0;i < n;i++)
       uorth[i] -= innprod * u[k][i];
   }
 }
@@ -1083,16 +1083,16 @@ find_minimum_eigenvalue(const std::vector<real_t<T>>& alpha,
   real_t<T> mid;
   int nmid; // Number of eigenvalues smaller than the "mid"
 
-  while(upper-lower > std::min(abs(lower), abs(upper))*eps) {
+  while (upper-lower > std::min(abs(lower), abs(upper))*eps) {
     mid = (lower+upper)/2.0;
     nmid = num_of_eigs_smaller_than(mid, alpha, beta);
-    if(nmid >= 1) {
+    if (nmid >= 1) {
       upper = mid;
     } else {
       lower = mid;
     }
 
-    if(mid == pmid) {
+    if (mid == pmid) {
       break; // This avoids an infinite loop due to zero matrix
     }
     pmid = mid;
@@ -1119,17 +1119,17 @@ find_maximum_eigenvalue(const std::vector<real_t<T>>& alpha,
                              // triangular matrix, which equals the rank of it
 
 
-  while(upper-lower > std::min(abs(lower), abs(upper))*eps) {
+  while (upper-lower > std::min(abs(lower), abs(upper))*eps) {
     mid = (lower+upper)/2.0;
     nmid = num_of_eigs_smaller_than(mid, alpha, beta);
 
-    if(nmid < m) {
+    if (nmid < m) {
       lower = mid;
     } else {
       upper = mid;
     }
 
-    if(mid == pmid) {
+    if (mid == pmid) {
       break; // This avoids an infinite loop due to zero matrix
     }
     pmid = mid;
@@ -1173,12 +1173,12 @@ num_of_eigs_smaller_than(real_t<T> c,
   int count = 0;
   int m = alpha.size();
 
-  for(int i = 1;i < m;i++){
+  for (int i = 1;i < m;i++){
     q_i = alpha[i] - c - beta[i-1]*beta[i-1]/q_i;
-    if(q_i < 0){
+    if (q_i < 0){
       count++;
     }
-    if(q_i == 0){
+    if (q_i == 0){
       q_i = minimum_effective_decimal<real_t<T>>();
     }
   }
@@ -1271,7 +1271,7 @@ init(std::vector<T>& v)
   std::uniform_real_distribution<T> rand((T)(-1.0), (T)(1.0));
 
   int n = v.size();
-  for(int i = 0;i < n;i++) {
+  for (int i = 0;i < n;i++) {
     v[i] = rand(mt);
   }
 
@@ -1288,7 +1288,7 @@ init(std::vector<std::complex<T>>& v)
   std::uniform_real_distribution<T> rand((T)(-1.0), (T)(1.0));
 
   int n = v.size();
-  for(int i = 0;i < n;i++) {
+  for (int i = 0;i < n;i++) {
     v[i] = std::complex<T>(rand(mt), rand(mt));
   }
 
@@ -1319,14 +1319,14 @@ PrincipalEigen(ConstMatrix matrix,
 {
   //assert(n > 0);
   auto matmul = [&](const std::vector<Scalar>& in, std::vector<Scalar>& out) {
-    for(int i = 0; i < n; i++) {
-      for(int j = 0; j < n; j++) {
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
         out[i] += matrix[i][j]*in[j];
       }
     }
   };
   auto init_vec = [&](std::vector<Scalar>& vec) {
-    for(int i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
       vec[i] = 0.0;
     vec[0] = 1.0;
   };

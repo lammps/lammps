@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,14 +40,18 @@ class Fix : protected Pointers {
   };
 
   bigint next_reneighbor;        // next timestep to force a reneighboring
-  int thermo_energy;             // 1 if fix_modify enabled ThEng, 0 if not
-  int thermo_virial;             // 1 if fix_modify enabled ThVir, 0 if not
   int nevery;                    // how often to call an end_of_step fix
-  int rigid_flag;                // 1 if Fix integrates rigid bodies, 0 if not
-  int peatom_flag;               // 1 if Fix contributes per-atom eng, 0 if not
-  int virial_flag;               // 1 if Fix contributes to virial, 0 if not
+  int thermo_energy;             // 1 if fix_modify energy enabled, 0 if not
+  int thermo_virial;             // 1 if fix_modify virial enabled, 0 if not
+  int energy_global_flag;        // 1 if contributes to global eng
+  int energy_peratom_flag;       // 1 if contributes to peratom eng
+  int virial_global_flag;        // 1 if contributes to global virial
+  int virial_peratom_flag;       // 1 if contributes to peratom virial
+  int ecouple_flag;              // 1 if thermostat fix outputs cumulative
+                                 //      reservoir energy via compute_scalar()
+  int time_integrate;            // 1 if performs time integration, 0 if no
+  int rigid_flag;                // 1 if integrates rigid bodies, 0 if not
   int no_change_box;             // 1 if cannot swap ortho <-> triclinic
-  int time_integrate;            // 1 if fix performs time integration, 0 if no
   int time_depend;               // 1 if requires continuous timestepping
   int create_attribute;          // 1 if fix stores attributes that need
                                  //      setting when a new atom is created
@@ -99,8 +103,8 @@ class Fix : protected Pointers {
   int comm_reverse;              // size of reverse communication (0 if none)
   int comm_border;               // size of border communication (0 if none)
 
-  double virial[6];              // accumulated virial
-  double *eatom,**vatom;         // accumulated per-atom energy/virial
+  double virial[6];              // virial for this timestep
+  double *eatom,**vatom;         // per-atom energy/virial for this timestep
 
   int centroidstressflag;        // centroid stress compared to two-body stress
                                  // CENTROID_SAME = same as two-body stress
@@ -151,7 +155,7 @@ class Fix : protected Pointers {
   virtual void copy_arrays(int, int, int) {}
   virtual void set_arrays(int) {}
   virtual void update_arrays(int, int) {}
-  virtual void set_molecule(int, tagint, int, double *, double *, double *) {}
+  virtual void set_molecule(int, tagint, int, double *, double *, double *);
   virtual void clear_bonus() {}
 
   virtual int pack_border(int, int *, double *) {return 0;}
@@ -239,11 +243,17 @@ class Fix : protected Pointers {
   int dynamic;    // recount atoms for temperature computes
 
   void ev_init(int eflag, int vflag) {
-    if (eflag||vflag) ev_setup(eflag, vflag);
-    else evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom = 0;
+    if ((eflag && thermo_energy) || (vflag && thermo_virial)) ev_setup(eflag, vflag);
+    else evflag = eflag_either = eflag_global = eflag_atom =
+         vflag_either = vflag_global = vflag_atom = 0;
   }
   void ev_setup(int, int);
   void ev_tally(int, int *, double, double, double *);
+
+  void v_init(int vflag) {
+    if (vflag && thermo_virial) v_setup(vflag);
+    else evflag = vflag_either = vflag_global = vflag_atom = 0;
+  }
   void v_setup(int);
   void v_tally(int, int *, double, double *);
   void v_tally(int, double *);
@@ -251,31 +261,31 @@ class Fix : protected Pointers {
 };
 
 namespace FixConst {
-  static const int INITIAL_INTEGRATE =       1<<0;
-  static const int POST_INTEGRATE =          1<<1;
-  static const int PRE_EXCHANGE =            1<<2;
-  static const int PRE_NEIGHBOR =            1<<3;
-  static const int POST_NEIGHBOR =           1<<4;
-  static const int PRE_FORCE =               1<<5;
-  static const int PRE_REVERSE =             1<<6;
-  static const int POST_FORCE =              1<<7;
-  static const int FINAL_INTEGRATE =         1<<8;
-  static const int END_OF_STEP =             1<<9;
-  static const int POST_RUN =                1<<10;
-  static const int THERMO_ENERGY =           1<<11;
-  static const int INITIAL_INTEGRATE_RESPA = 1<<12;
-  static const int POST_INTEGRATE_RESPA =    1<<13;
-  static const int PRE_FORCE_RESPA =         1<<14;
-  static const int POST_FORCE_RESPA =        1<<15;
-  static const int FINAL_INTEGRATE_RESPA =   1<<16;
-  static const int MIN_PRE_EXCHANGE =        1<<17;
-  static const int MIN_PRE_NEIGHBOR =        1<<18;
-  static const int MIN_POST_NEIGHBOR =       1<<19;
-  static const int MIN_PRE_FORCE =           1<<20;
-  static const int MIN_PRE_REVERSE =         1<<21;
-  static const int MIN_POST_FORCE =          1<<22;
-  static const int MIN_ENERGY =              1<<23;
-  static const int FIX_CONST_LAST =          1<<24;
+  enum {
+    INITIAL_INTEGRATE =       1<<0,
+    POST_INTEGRATE =          1<<1,
+    PRE_EXCHANGE =            1<<2,
+    PRE_NEIGHBOR =            1<<3,
+    POST_NEIGHBOR =           1<<4,
+    PRE_FORCE =               1<<5,
+    PRE_REVERSE =             1<<6,
+    POST_FORCE =              1<<7,
+    FINAL_INTEGRATE =         1<<8,
+    END_OF_STEP =             1<<9,
+    POST_RUN =                1<<10,
+    INITIAL_INTEGRATE_RESPA = 1<<11,
+    POST_INTEGRATE_RESPA =    1<<12,
+    PRE_FORCE_RESPA =         1<<13,
+    POST_FORCE_RESPA =        1<<14,
+    FINAL_INTEGRATE_RESPA =   1<<15,
+    MIN_PRE_EXCHANGE =        1<<16,
+    MIN_PRE_NEIGHBOR =        1<<17,
+    MIN_POST_NEIGHBOR =       1<<18,
+    MIN_PRE_FORCE =           1<<19,
+    MIN_PRE_REVERSE =         1<<20,
+    MIN_POST_FORCE =          1<<21,
+    MIN_ENERGY =              1<<22
+  };
 }
 
 }

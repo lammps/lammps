@@ -1,3 +1,16 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://lammps.sandia.gov/, Sandia National Laboratories
+   Steve Plimpton, sjplimp@sandia.gov
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+   ----------------------------------------------------------------------- */
+
 #include "manifold_thylakoid.h"
 #include <cmath>
 #include "manifold_thylakoid_shared.h"
@@ -25,7 +38,7 @@ manifold_thylakoid::manifold_thylakoid( LAMMPS *lmp, int /*narg*/, char ** /*arg
 
 manifold_thylakoid::~manifold_thylakoid()
 {
-  for(std::size_t i = 0; i < parts.size(); ++i) {
+  for (std::size_t i = 0; i < parts.size(); ++i) {
     delete parts[i];
   }
 }
@@ -57,17 +70,17 @@ void manifold_thylakoid::post_param_init()
 
 void manifold_thylakoid::checkup()
 {
-  if (comm->me == 0 ) {
+  if (comm->me == 0) {
     fprintf(screen,"This is checkup of thylakoid %p\n", this);
     fprintf(screen,"I have %ld parts. They are:\n", parts.size());
-    for( int i = 0; i < (int)parts.size(); ++i ){
+    for (int i = 0; i < (int)parts.size(); ++i) {
       fprintf(screen, "[%f, %f] x [%f, %f] x [%f, %f]\n",
               parts[i]->xlo, parts[i]->xhi,
               parts[i]->ylo, parts[i]->yhi,
               parts[i]->zlo, parts[i]->zhi );
     }
     fprintf(screen,"My params are:\n");
-    for( int i = 0; i < NPARAMS; ++i ){
+    for (int i = 0; i < NPARAMS; ++i) {
       fprintf(screen,"%f\n", params[i]);
     }
   }
@@ -79,7 +92,7 @@ double manifold_thylakoid::g( const double *x )
   int err = 0;
   std::size_t idx;
   thyla_part *p = get_thyla_part(x,&err,&idx);
-  if(err){
+  if (err) {
     char msg[2048];
     sprintf(msg,"Error getting thyla_part for x = (%f, %f, %f)",x[0],x[1],x[2]);
     error->one(FLERR,msg);
@@ -101,7 +114,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
   int err = 0;
   std::size_t idx;
   thyla_part *p = get_thyla_part(x,&err,&idx);
-  if(err){
+  if (err) {
     char msg[2048];
     sprintf(msg,"Error getting thyla_part for x = (%f, %f, %f)",x[0],x[1],x[2]);
     error->one(FLERR,msg);
@@ -120,7 +133,7 @@ void   manifold_thylakoid::n( const double *x, double *n )
 thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_flag*/, std::size_t *idx )
 {
 
-  for( std::size_t i = 0; i < parts.size(); ++i ){
+  for (std::size_t i = 0; i < parts.size(); ++i) {
     thyla_part *p = parts[i];
     if (is_in_domain(p,x)) {
       if (idx != nullptr) *idx = i;
@@ -185,17 +198,17 @@ void manifold_thylakoid::init_domains()
 
 #ifndef USE_PHONY_LAMMPS
   char msg[2048];
-  if(x1 > domain->boxhi[0]){
+  if (x1 > domain->boxhi[0]) {
     sprintf(msg,"Expected xhi larger than current box has: %f > %f",
             x1, domain->boxhi[0]);
     error->one(FLERR,msg);
   }
-  if(y1 > domain->boxhi[1]){
+  if (y1 > domain->boxhi[1]) {
     sprintf(msg,"Expected yhi larger than current box has: %f > %f",
             y1, domain->boxhi[1]);
     error->one(FLERR,msg);
   }
-  // if(z1 > domain->boxhi[2]){
+  // if (z1 > domain->boxhi[2]) {
   //   sprintf(msg,"Expected zhi larger than current box has: %f > %f",
   //           z1, domain->boxhi[2]);
   //   error->one(FLERR,msg);
@@ -604,7 +617,7 @@ thyla_part *manifold_thylakoid::make_cyl_to_plane_part(double X0, double R0, dou
 
 void manifold_thylakoid::print_part_data( FILE *fp_doms, FILE *fp_coms )
 {
-  for( std::size_t i = 0; i < parts.size(); ++i ){
+  for (std::size_t i = 0; i < parts.size(); ++i) {
     thyla_part *p = parts[i];
     fprintf(fp_doms, "%f   %f\n",  p->xlo, p->ylo);
     fprintf(fp_doms, "%f   %f\n",  p->xlo, p->yhi);

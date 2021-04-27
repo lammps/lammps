@@ -17,14 +17,15 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_zbl_omp.h"
-#include "update.h"
+
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
-#include "tokenizer.h"
-#include "potential_file_reader.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+#include "potential_file_reader.h"
+#include "tokenizer.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -95,7 +96,7 @@ void PairTersoffZBLOMP::read_file(char *file)
     double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
                                                             unit_convert);
 
-    while((line = reader.next_line(NPARAMS_PER_LINE))) {
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);
 
@@ -190,7 +191,7 @@ void PairTersoffZBLOMP::read_file(char *file)
   MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  if(comm->me != 0) {
+  if (comm->me != 0) {
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
   }
 
@@ -219,7 +220,7 @@ void PairTersoffZBLOMP::force_zeta(Param *param, double rsq, double zeta_ij,
      - ters_fc(r,param) * F_fermi_d(r,param->ZBLexpscale,param->ZBLcut));
 
   bij = ters_bij(zeta_ij,param);
-  fforce = 0.5*bij*fa_d / r;
+  fforce = 0.5*bij*fa_d;
   prefactor = -0.5*fa * ters_bij_d(zeta_ij,param);
   if (eflag) eng = 0.5*bij*fa;
 }

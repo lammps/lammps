@@ -134,7 +134,7 @@ void Finish::end(int flag)
             (strcmp(update->unit_style,"micro") == 0) ||
             (strcmp(update->unit_style,"nano") == 0) ||
             (strcmp(update->unit_style,"electron") == 0) ||
-            (strcmp(update->unit_style,"real") == 0)) ) {
+            (strcmp(update->unit_style,"real") == 0))) {
         double one_fs = force->femtosecond;
         double t_step = ((double) time_loop) / ((double) update->nsteps);
         double step_t = 1.0/t_step;
@@ -401,7 +401,7 @@ void Finish::end(int flag)
   }
 #endif
 
-  if (lmp->kokkos && lmp->kokkos->ngpus > 0)
+  if ((comm->me == 0) && lmp->kokkos && (lmp->kokkos->ngpus > 0))
     if (const char* env_clb = getenv("CUDA_LAUNCH_BLOCKING"))
       if (!(strcmp(env_clb,"1") == 0)) {
         error->warning(FLERR,"Timing breakdown may not be accurate "

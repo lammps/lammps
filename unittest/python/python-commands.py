@@ -1,6 +1,17 @@
 
 import sys,os,unittest
-from lammps import lammps, LMP_VAR_ATOM
+from lammps import lammps, LMP_VAR_ATOM, LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR
+
+has_manybody=False
+try:
+    machine=None
+    if 'LAMMPS_MACHINE_NAME' in os.environ:
+        machine=os.environ['LAMMPS_MACHINE_NAME']
+    lmp=lammps(name=machine)
+    has_manybody = lmp.has_style("pair","sw")
+    lmp.close()
+except:
+    pass
 
 class PythonCommand(unittest.TestCase):
 
@@ -85,36 +96,35 @@ create_atoms 1 single &
         natoms = self.lmp.get_natoms()
         self.assertEqual(natoms,2)
 
-    def testNeighborList(self):
-        self.lmp.command("units lj")
-        self.lmp.command("atom_style atomic")
-        self.lmp.command("atom_modify map array")
-        self.lmp.command("boundary f f f")
-        self.lmp.command("region box block 0 2 0 2 0 2")
-        self.lmp.command("create_box 1 box")
+    def testNeighborListSimple(self):
+        self.lmp.commands_string("""
+        units lj
+        atom_style atomic
+        atom_modify map array
+        boundary f f f
+        region box block 0 2 0 2 0 2
+        create_box 1 box""")
 
-        x = [
-          1.0, 1.0, 1.0,
-          1.0, 1.0, 1.5
-        ]
-
+        x = [ 1.0, 1.0, 1.0,  1.0, 1.0, 1.5 ]
         types = [1, 1]
 
         self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 2)
 
-        self.lmp.command("mass 1 1.0")
-        self.lmp.command("velocity all create 3.0 87287")
-        self.lmp.command("pair_style lj/cut 2.5")
-        self.lmp.command("pair_coeff 1 1 1.0 1.0 2.5")
-        self.lmp.command("neighbor 0.1 bin")
-        self.lmp.command("neigh_modify every 20 delay 0 check no")
+        self.lmp.commands_string("""
+        mass 1 1.0
+        velocity all create 3.0 87287
+        pair_style lj/cut 2.5
+        pair_coeff 1 1 1.0 1.0 2.5
+        neighbor 0.1 bin
+        neigh_modify every 20 delay 0 check no
+        run 0 post no""")
 
-        self.lmp.command("run 0")
-
-        self.assertEqual(self.lmp.find_pair_neighlist("lj/cut"), 0)
-        nlist = self.lmp.get_neighlist(0)
+        idx = self.lmp.find_pair_neighlist("lj/cut")
+        self.assertNotEqual(idx, -1)
+        self.assertEqual(self.lmp.find_pair_neighlist("morse"), -1)
+        nlist = self.lmp.get_neighlist(idx)
         self.assertEqual(len(nlist), 2)
         atom_i, numneigh_i, neighbors_i = nlist[0]
         atom_j, numneigh_j, _ = nlist[1]
@@ -126,6 +136,193 @@ create_atoms 1 single &
         self.assertEqual(numneigh_j, 0)
 
         self.assertEqual(1, neighbors_i[0])
+
+    def testNeighborListHalf(self):
+        self.lmp.commands_string("""
+        boundary f f f
+        units real
+        region box block -5 5 -5 5 -5 5
+        create_box 1 box
+        mass 1 1.0
+        pair_style lj/cut 4.0
+        pair_coeff 1 1 0.2 2.0
+        """)
+        x = [ 0.0,  0.0,  0.0,  -1.1,  0.0,  0.0,  1.0,  0.0,  0.0,
+              0.0, -1.1,  0.0,   0.0,  1.0,  0.0,  0.0,  0.0, -1.1,
+              0.0,  0.0,  1.0 ]
+        tags = [1, 2, 3, 4, 5, 6, 7]
+        types = [1, 1, 1, 1, 1, 1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 7)
+
+        self.lmp.command("run 0 post no")
+
+        self.assertEqual(self.lmp.find_pair_neighlist("lj/cut"),0)
+        nlist = self.lmp.get_neighlist(0)
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(idx,i)
+            self.assertEqual(num,nlocal-1-i)
+
+        # look up neighbor list by atom index
+        num, neighs = nlist.find(2)
+        self.assertEqual(num,4)
+        self.assertIsNotNone(neighs,None)
+        # this one will fail
+        num, neighs = nlist.find(10)
+        self.assertEqual(num,-1)
+        self.assertIsNone(neighs,None)
+
+    @unittest.skipIf(not has_manybody,"Full neighbor list test for manybody potential")
+    def testNeighborListFull(self):
+        self.lmp.commands_string("""
+        boundary f f f
+        units metal
+        region box block -5 5 -5 5 -5 5
+        create_box 1 box
+        mass 1 1.0
+        pair_style sw
+        pair_coeff * * Si.sw Si
+        """)
+        x = [ 0.0,  0.0,  0.0,  -1.1,  0.0,  0.0,  1.0,  0.0,  0.0,
+              0.0, -1.1,  0.0,   0.0,  1.0,  0.0,  0.0,  0.0, -1.1,
+              0.0,  0.0,  1.0 ]
+        tags = [1, 2, 3, 4, 5, 6, 7]
+        types = [1, 1, 1, 1, 1, 1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 7)
+
+        self.lmp.command("run 0 post no")
+
+        self.assertEqual(self.lmp.find_pair_neighlist("sw"),0)
+        nlist = self.lmp.get_neighlist(0)
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(idx,i)
+            self.assertEqual(num,nlocal-1)
+
+    @unittest.skipIf(not has_manybody,"Hybrid neighbor list test for manybody potential")
+    def testNeighborListHybrid(self):
+        self.lmp.commands_string("""
+        boundary f f f
+        units metal
+        region box block -5 5 -5 5 -5 5
+        create_box 2 box
+        mass * 1.0
+        pair_style hybrid/overlay morse 4.0 lj/cut 4.0 lj/cut 4.0 sw
+        pair_coeff * * sw Si.sw Si NULL
+        pair_coeff 1 2 morse 0.2 2.0 2.0
+        pair_coeff 2 2 lj/cut 1 0.1 2.0
+        pair_coeff * * lj/cut 2 0.01 2.0
+        """)
+        x = [ 0.0,  0.0,  0.0,  -1.1,  0.0,  0.0,  1.0,  0.0,  0.0,
+              0.0, -1.1,  0.0,   0.0,  1.0,  0.0,  0.0,  0.0, -1.1,
+              0.0,  0.0,  1.0 ]
+        tags = [1, 2, 3, 4, 5, 6, 7]
+        types = [1, 1, 1, 1, 2, 2, 2]
+
+        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 7)
+
+        self.lmp.command("run 0 post no")
+
+        # valid and invalid lookups
+        self.assertNotEqual(self.lmp.find_pair_neighlist("sw"),-1)
+        self.assertNotEqual(self.lmp.find_pair_neighlist("morse"),-1)
+        self.assertNotEqual(self.lmp.find_pair_neighlist("lj/cut",nsub=1),-1)
+        self.assertNotEqual(self.lmp.find_pair_neighlist("lj/cut",nsub=2),-1)
+        self.assertEqual(self.lmp.find_pair_neighlist("lj/cut"),-1)
+        self.assertEqual(self.lmp.find_pair_neighlist("hybrid/overlay"),-1)
+        self.assertNotEqual(self.lmp.get_neighlist(4).size,0)
+        self.assertEqual(self.lmp.get_neighlist(5).size,-1)
+
+        # full neighbor list for 4 type 1 atoms
+        # all have 3 type 1 atom neighbors
+        nlist = self.lmp.get_neighlist(self.lmp.find_pair_neighlist("sw"))
+        self.assertEqual(nlist.size, 4)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(idx,i)
+            self.assertEqual(num,3)
+
+        # half neighbor list for all pairs between type 1 and type 2
+        # 4 type 1 atoms with 3 type 2 neighbors and 3 type 2 atoms without neighbors
+        nlist = self.lmp.get_neighlist(self.lmp.find_pair_neighlist("morse"))
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            if (i < 4): self.assertEqual(num,3)
+            else: self.assertEqual(num,0)
+
+        # half neighbor list between type 2 atoms only
+        # 3 pairs with 2, 1, 0 neighbors
+        nlist = self.lmp.get_neighlist(self.lmp.find_pair_neighlist("lj/cut",nsub=1))
+        self.assertEqual(nlist.size, 3)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(num,2-i)
+
+        # half neighbor list between all pairs. same as simple lj/cut case
+        nlist = self.lmp.get_neighlist(self.lmp.find_pair_neighlist("lj/cut",nsub=2))
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(num,nlocal-1-i)
+
+    def testNeighborListCompute(self):
+        self.lmp.commands_string("""
+        boundary f f f
+        units real
+        region box block -5 5 -5 5 -5 5
+        create_box 1 box
+        mass 1 1.0
+        pair_style lj/cut 4.0
+        pair_coeff 1 1 0.2 2.0
+        compute dist all pair/local dist
+        fix dist all ave/histo 1 1 1 0.0 3.0 4 c_dist mode vector
+        thermo_style custom f_dist[*]
+        """)
+        x = [ 0.0,  0.0,  0.0,  -1.1,  0.0,  0.0,  1.0,  0.0,  0.0,
+              0.0, -1.1,  0.0,   0.0,  1.0,  0.0,  0.0,  0.0, -1.1,
+              0.0,  0.0,  1.0 ]
+        tags = [1, 2, 3, 4, 5, 6, 7]
+        types = [1, 1, 1, 1, 1, 1, 1]
+
+        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        nlocal = self.lmp.extract_global("nlocal")
+        self.assertEqual(nlocal, 7)
+
+        self.lmp.command("run 0 post no")
+        # check compute data from histogram summary
+        nhisto = self.lmp.extract_fix("dist",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,nrow=0)
+        nskip = self.lmp.extract_fix("dist",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,nrow=1)
+        minval = self.lmp.extract_fix("dist",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,nrow=2)
+        maxval = self.lmp.extract_fix("dist",LMP_STYLE_GLOBAL,LMP_TYPE_VECTOR,nrow=3)
+        # 21 pair distances counted, none skipped, smallest 1.0, largest 2.1
+        self.assertEqual(nhisto,21)
+        self.assertEqual(nskip,0)
+        self.assertEqual(minval,1.0)
+        self.assertEqual(maxval,2.1)
+
+        self.assertNotEqual(self.lmp.find_pair_neighlist("lj/cut"),-1)
+        self.assertNotEqual(self.lmp.find_compute_neighlist("dist"),-1)
+        self.assertEqual(self.lmp.find_compute_neighlist("xxx"),-1)
+        self.assertEqual(self.lmp.find_fix_neighlist("dist"),-1)
+
+        # the compute has a half neighbor list
+        nlist = self.lmp.get_neighlist(self.lmp.find_compute_neighlist("dist"))
+        self.assertEqual(nlist.size, 7)
+        for i in range(0,nlist.size):
+            idx, num, neighs = nlist.get(i)
+            self.assertEqual(idx,i)
+            self.assertEqual(num,nlocal-1-i)
 
     def test_extract_box_non_periodic(self):
         self.lmp.command("boundary f f f")
@@ -240,17 +437,9 @@ create_atoms 1 single &
 
         state = {
             "step": 0,
-            "elapsed" : 0.0,
-            "elaplong": 0,
             "dt" : 0.005,
             "time" : 0.0,
             "atoms" : 2.0,
-            "temp" : 0,
-            "press" : 0,
-            "pe" : 0.0,
-            "ke" : 0.0,
-            "etotal" : 0.0,
-            "enthalpy" : 0.0,
             "vol" : 8.0,
             "lx" : 2.0,
             "ly" : 2.0,
@@ -267,15 +456,43 @@ create_atoms 1 single &
             result = self.lmp.get_thermo(key)
             self.assertEqual(value, result, key)
 
-    def test_extract_global_double(self):
+    def test_extract_global(self):
         self.lmp.command("region box block -1 1 -2 2 -3 3")
         self.lmp.command("create_box 1 box")
+        self.assertEqual(self.lmp.extract_global("units"), "lj")
+        self.assertEqual(self.lmp.extract_global("ntimestep"), 0)
+        self.assertEqual(self.lmp.extract_global("dt"), 0.005)
+
         self.assertEqual(self.lmp.extract_global("boxxlo"), -1.0)
         self.assertEqual(self.lmp.extract_global("boxxhi"), 1.0)
         self.assertEqual(self.lmp.extract_global("boxylo"), -2.0)
         self.assertEqual(self.lmp.extract_global("boxyhi"), 2.0)
         self.assertEqual(self.lmp.extract_global("boxzlo"), -3.0)
         self.assertEqual(self.lmp.extract_global("boxzhi"), 3.0)
+        self.assertEqual(self.lmp.extract_global("boxlo"), [-1.0, -2.0, -3.0])
+        self.assertEqual(self.lmp.extract_global("boxhi"), [1.0, 2.0, 3.0])
+        self.assertEqual(self.lmp.extract_global("sublo"), [-1.0, -2.0, -3.0])
+        self.assertEqual(self.lmp.extract_global("subhi"), [1.0, 2.0, 3.0])
+        self.assertEqual(self.lmp.extract_global("periodicity"), [1,1,1])
+        self.assertEqual(self.lmp.extract_global("triclinic"), 0)
+        self.assertEqual(self.lmp.extract_global("sublo_lambda"), None)
+        self.assertEqual(self.lmp.extract_global("subhi_lambda"), None)
+        self.assertEqual(self.lmp.extract_global("respa_levels"), None)
+        self.assertEqual(self.lmp.extract_global("respa_dt"), None)
+
+        # set and initialize r-RESPA
+        self.lmp.command("run_style respa 3 5 2 pair 2 kspace 3")
+        self.lmp.command("mass * 1.0")
+        self.lmp.command("run 1 post no")
+        self.assertEqual(self.lmp.extract_global("ntimestep"), 1)
+        self.assertEqual(self.lmp.extract_global("respa_levels"), 3)
+        self.assertEqual(self.lmp.extract_global("respa_dt"), [0.0005, 0.0025, 0.005])
+
+        # checks only for triclinic boxes
+        self.lmp.command("change_box all triclinic")
+        self.assertEqual(self.lmp.extract_global("triclinic"), 1)
+        self.assertEqual(self.lmp.extract_global("sublo_lambda"), [0.0, 0.0, 0.0])
+        self.assertEqual(self.lmp.extract_global("subhi_lambda"), [1.0, 1.0, 1.0])
 
 ##############################
 if __name__ == "__main__":

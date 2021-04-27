@@ -50,7 +50,7 @@ against invalid accesses.
 
       **Numpy Methods**:
 
-      * :py:meth:`numpy.extract_atom() <lammps.numpy_wrapper.extract_atom()>`: extract a per-atom quantity as numpy array
+      * :py:meth:`numpy.extract_atom() <lammps.numpy_wrapper.numpy_wrapper.extract_atom()>`: extract a per-atom quantity as numpy array
 
    .. tab:: PyLammps/IPyLammps API
 

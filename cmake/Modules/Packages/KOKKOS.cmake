@@ -1,4 +1,7 @@
 ########################################################################
+# As of version 3.3.0 Kokkos requires C++14
+set(CMAKE_CXX_STANDARD 14)
+########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)
   message(STATUS "KOKKOS: Enabling CUDA LAMBDA function support")
@@ -34,9 +37,13 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.3.01.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_MD5 "08201d1c7cf5bc458ce0f5b44a629d5a" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  mark_as_advanced(KOKKOS_URL)
+  mark_as_advanced(KOKKOS_MD5)
   ExternalProject_Add(kokkos_build
-    URL https://github.com/kokkos/kokkos/archive/3.2.01.tar.gz
-    URL_MD5 ba72440e285ccde05b403694ea0c92e5
+    URL     ${KOKKOS_URL}
+    URL_MD5 ${KOKKOS_MD5}
     CMAKE_ARGS ${KOKKOS_LIB_BUILD_ARGS}
     BUILD_BYPRODUCTS <INSTALL_DIR>/lib/libkokkoscore.a
   )
@@ -48,10 +55,12 @@ if(DOWNLOAD_KOKKOS)
     INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
     INTERFACE_LINK_LIBRARIES ${CMAKE_DL_LIBS})
   target_link_libraries(lammps PRIVATE LAMMPS::KOKKOS)
+  target_link_libraries(lmp PRIVATE LAMMPS::KOKKOS)
   add_dependencies(LAMMPS::KOKKOS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3.2.01 REQUIRED CONFIG)
+  find_package(Kokkos 3.3.01 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
+  target_link_libraries(lmp PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)
   set(LAMMPS_LIB_KOKKOS_BIN_DIR ${LAMMPS_LIB_BINARY_DIR}/kokkos)
@@ -63,6 +72,7 @@ else()
                           ${LAMMPS_LIB_KOKKOS_BIN_DIR})
   target_include_directories(lammps PRIVATE ${Kokkos_INCLUDE_DIRS})
   target_link_libraries(lammps PRIVATE kokkos)
+  target_link_libraries(lmp PRIVATE kokkos)
 endif()
 target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS)
 

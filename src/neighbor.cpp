@@ -319,7 +319,7 @@ void Neighbor::init()
   // rRESPA cutoffs
 
   int respa = 0;
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
   }
@@ -513,7 +513,7 @@ void Neighbor::init()
   // print_pairwise_info() made use of requests
   // set of NeighLists now stores all needed info
 
-  for (int i = 0; i < nrequest; i++) {
+  for (i = 0; i < nrequest; i++) {
     delete requests[i];
     requests[i] = nullptr;
   }
@@ -720,11 +720,11 @@ int Neighbor::init_pair()
     lists[i]->index = i;
     lists[i]->requestor = requests[i]->requestor;
 
-    if(requests[i]->pair) {
+    if (requests[i]->pair) {
         lists[i]->requestor_type = NeighList::PAIR;
-    } else if(requests[i]->fix) {
+    } else if (requests[i]->fix) {
         lists[i]->requestor_type = NeighList::FIX;
-    } else if(requests[i]->compute) {
+    } else if (requests[i]->compute) {
         lists[i]->requestor_type = NeighList::COMPUTE;
     }
 
@@ -1479,7 +1479,8 @@ void Neighbor::print_pairwise_info()
     rq = requests[i];
     if (rq->pair) {
       char *pname = force->pair_match_ptr((Pair *) rq->requestor);
-      out += fmt::format("  ({}) pair {}",i+1,pname);
+      if (pname) out += fmt::format("  ({}) pair {}",i+1,pname);
+      else out += fmt::format("  ({}) pair (none)",i+1);
     } else if (rq->fix) {
       out += fmt::format("  ({}) fix {}",i+1,((Fix *) rq->requestor)->style);
     } else if (rq->compute) {
@@ -2078,7 +2079,7 @@ void Neighbor::build(int topoflag)
 
   if (style != Neighbor::NSQ) {
     if (last_setup_bins < 0) setup_bins();
-    for (int i = 0; i < nbin; i++) {
+    for (i = 0; i < nbin; i++) {
       neigh_bin[i]->bin_atoms_setup(nall);
       neigh_bin[i]->bin_atoms();
     }
@@ -2162,12 +2163,15 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
 
   // if this is copy list and parent is occasional list,
   // or this is halffull and parent is occasional list,
+  // or this is skip list and parent is occasional list,
   // insure parent is current
 
   if (mylist->listcopy && mylist->listcopy->occasional)
     build_one(mylist->listcopy,preflag);
   if (mylist->listfull && mylist->listfull->occasional)
     build_one(mylist->listfull,preflag);
+  if (mylist->listskip && mylist->listskip->occasional)
+    build_one(mylist->listskip,preflag);
 
   // create stencil if hasn't been created since last setup_bins() call
 
@@ -2350,6 +2354,22 @@ void Neighbor::modify_params(int narg, char **arg)
 
     } else error->all(FLERR,"Illegal neigh_modify command");
   }
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow modifying parameters from a single string
+------------------------------------------------------------------------- */
+
+void Neighbor::modify_params(const std::string &modcmd)
+{
+  auto args = utils::split_words(modcmd);
+  char **newarg = new char*[args.size()];
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  modify_params(args.size(),newarg);
+  delete[] newarg;
 }
 
 /* ----------------------------------------------------------------------

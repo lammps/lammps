@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -89,8 +89,7 @@ class PairKIM : public Pair {
   virtual double memory_usage();
 
   // Get the KIM_Model object
-  KIM_Model *get_KIM_Model();
-
+  KIM_Model *get_kim_model();
   // Get the atom type list
   std::string get_atom_type_list();
  protected:

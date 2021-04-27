@@ -16,27 +16,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_born_coul_long_cs_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
-#include "kspace.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "kspace.h"
+#include "math_const.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -57,15 +50,15 @@ using namespace MathConst;
 // External functions from cuda library for atom decomposition
 
 int bornclcs_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
-                    double **host_born1, double **host_born2,
-                    double **host_born3, double **host_a,
-                    double **host_c, double **host_d,
-                    double **sigma, double **offset, double *special_lj,
-                    const int inum, const int nall, const int max_nbors,
-                    const int maxspecial, const double cell_size,
-                    int &gpu_mode, FILE *screen, double **host_cut_ljsq,
-                    double host_cut_coulsq, double *host_special_coul,
-                    const double qqrd2e, const double g_ewald);
+                      double **host_born1, double **host_born2,
+                      double **host_born3, double **host_a,
+                      double **host_c, double **host_d,
+                      double **sigma, double **offset, double *special_lj,
+                      const int inum, const int nall, const int max_nbors,
+                      const int maxspecial, const double cell_size,
+                      int &gpu_mode, FILE *screen, double **host_cut_ljsq,
+                      double host_cut_coulsq, double *host_special_coul,
+                      const double qqrd2e, const double g_ewald);
 void bornclcs_gpu_clear();
 int** bornclcs_gpu_compute_n(const int ago, const int inum_full, const int nall,
                            double **host_x, int *host_type, double *sublo,
@@ -194,12 +187,13 @@ void PairBornCoulLongCSGPU::init_style()
   g_ewald = force->kspace->g_ewald;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = bornclcs_gpu_init(atom->ntypes+1, cutsq,  rhoinv,
                                 born1, born2, born3, a, c, d, sigma,
                                 offset, force->special_lj, atom->nlocal,
-                                  atom->nlocal+atom->nghost, 300, maxspecial,
+                                  atom->nlocal+atom->nghost, mnf, maxspecial,
                                    cell_size, gpu_mode, screen, cut_ljsq,
                                 cut_coulsq, force->special_coul,
                                 force->qqrd2e, g_ewald);

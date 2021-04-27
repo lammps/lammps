@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -66,8 +66,6 @@ class PairADP : public Pair {
   double ***u2r_spline, ***w2r_spline;
 
   // potentials as file data
-
-  int *map;                   // which element each atom type maps to
 
   struct Setfl {
     char **elements;

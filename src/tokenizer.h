@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,11 +37,12 @@ public:
     Tokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
     Tokenizer(Tokenizer &&);
     Tokenizer(const Tokenizer &);
-    Tokenizer& operator=(const Tokenizer&) = default;
-    Tokenizer& operator=(Tokenizer&&) = default;
+    Tokenizer& operator=(const Tokenizer&);
+    Tokenizer& operator=(Tokenizer&&);
+    void swap(Tokenizer &);
 
     void reset();
-    void skip(int n);
+    void skip(int n=1);
     bool has_next() const;
     bool contains(const std::string &str) const;
     std::string next();
@@ -93,8 +94,9 @@ public:
     ValueTokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
     ValueTokenizer(const ValueTokenizer &);
     ValueTokenizer(ValueTokenizer &&);
-    ValueTokenizer& operator=(const ValueTokenizer&) = default;
-    ValueTokenizer& operator=(ValueTokenizer&&) = default;
+    ValueTokenizer& operator=(const ValueTokenizer&);
+    ValueTokenizer& operator=(ValueTokenizer&&);
+    void swap(ValueTokenizer &);
 
     std::string next_string();
     tagint next_tagint();
@@ -104,7 +106,7 @@ public:
 
     bool has_next() const;
     bool contains(const std::string &value) const;
-    void skip(int ntokens);
+    void skip(int ntokens=1);
 
     size_t count();
 };

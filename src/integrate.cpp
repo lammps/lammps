@@ -12,12 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #include "integrate.h"
-#include "update.h"
+
+#include "citeme.h"
+#include "compute.h"
 #include "force.h"
-#include "pair.h"
 #include "kspace.h"
 #include "modify.h"
-#include "compute.h"
+#include "pair.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,6 +47,7 @@ Integrate::~Integrate()
 
 void Integrate::init()
 {
+  if (lmp->citeme) lmp->citeme->flush();
   update->atimestep = update->ntimestep;
 
   // allow pair and Kspace compute() to be turned off via modify flags

@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 // max number of interaction per atom for f(Z) environment potential
 
-#define leadDimInteractionList 64
+static constexpr int leadDimInteractionList = 64;
 
 /* ---------------------------------------------------------------------- */
 
@@ -184,7 +184,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
         r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
         jtype = map[type[j]];
-        ijparam = elem2param[itype][jtype][jtype];
+        ijparam = elem3param[itype][jtype][jtype];
         if (r_ij > params[ijparam].cutsq) continue;
 
         r_ij = sqrt(r_ij);
@@ -299,7 +299,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
       r_ij = dr_ij[0]*dr_ij[0] + dr_ij[1]*dr_ij[1] + dr_ij[2]*dr_ij[2];
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       if (r_ij > params[ijparam].cutsq) continue;
 
       r_ij = sqrt(r_ij);
@@ -353,7 +353,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData * const thr)
           k = jlist[neighbor_k];
           k &= NEIGHMASK;
           ktype = map[type[k]];
-          ikparam = elem2param[itype][ktype][ktype];
+          ikparam = elem3param[itype][ktype][ktype];
 
           dr_ik[0] = x[k].x - xtmp;
           dr_ik[1] = x[k].y - ytmp;

@@ -87,7 +87,7 @@ energy is a derived unit (in SI units you equivalently have the relation
 * charge = reduced LJ charge, where :math:`q^* = q \frac{1}{\sqrt{4 \pi \varepsilon_0 \sigma \epsilon}}`
 * dipole = reduced LJ dipole, moment where :math:`\mu^* = \mu \frac{1}{\sqrt{4 \pi \varepsilon_0 \sigma^3 \epsilon}}`
 * electric field = force/charge, where :math:`E^* = E \frac{\sqrt{4 \pi \varepsilon_0 \sigma \epsilon} \sigma}{\epsilon}`
-* density = mass/volume, where :math:`\rho^* = \rho \sigma^{dim}`
+* density = mass/volume, where :math:`\rho^* = \rho \frac{\sigma^{dim}}{m}`
 
 Note that for LJ units, the default mode of thermodynamic output via
 the :doc:`thermo_style <thermo_style>` command is to normalize all

@@ -15,7 +15,6 @@
 
 #include "atom.h"
 #include "error.h"
-#include "modify.h"
 #include "update.h"
 
 #include <cstring>

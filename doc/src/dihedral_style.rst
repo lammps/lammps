@@ -113,7 +113,7 @@ more of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`quadratic <dihedral_quadratic>` - dihedral with quadratic term in angle
 * :doc:`spherical <dihedral_spherical>` - dihedral which includes angle terms to avoid singularities
 * :doc:`table <dihedral_table>` - tabulated dihedral
-* :doc:`table/cut <dihedral_table_cut>` - tabulated dihedral with analytic cutoff
+* :doc:`table/cut <dihedral_table>` - tabulated dihedral with analytic cutoff
 
 ----------
 

@@ -67,7 +67,7 @@ void FixWallHarmonic::wall_particle(int m, int which, double coord)
       if (evflag) {
         if (side < 0) vn = -fwall*delta;
         else vn = fwall*delta;
-        v_tally(dim, i, vn);
+        v_tally(dim,i,vn);
       }
     }
 

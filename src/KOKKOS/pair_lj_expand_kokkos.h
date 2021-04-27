@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,9 +46,9 @@ class PairLJExpandKokkos : public PairLJExpand {
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
-    params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;shift=0;};
+    params_lj() {cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;shift=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int /*i*/){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;shift=0;};
+    params_lj(int /*i*/) {cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;shift=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset,shift;
   };
 

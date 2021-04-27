@@ -181,7 +181,8 @@ radius - r = overlap of particle with wall, m_eff = mass of particle,
 and the effective radius of contact is just the radius of the
 particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu* and *dampflag*
+The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
+and the optional keyword *limit_damping*
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma_t* as described on that page.  If a
@@ -240,11 +241,11 @@ the following table:
 |     1 | 1.0 if particle is in contact with wall,           |                |
 |       | 0.0 otherwise                                      |                |
 +-------+----------------------------------------------------+----------------+
-|     2 | Force :math:`f_x` exerted on the wall              | force units    |
+|     2 | Force :math:`f_x` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     3 | Force :math:`f_y` exerted on the wall              | force units    |
+|     3 | Force :math:`f_y` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
-|     4 | Force :math:`f_z` exerted on the wall              | force units    |
+|     4 | Force :math:`f_z` exerted by the wall              | force units    |
 +-------+----------------------------------------------------+----------------+
 |     5 | :math:`x`-coordinate of contact point on wall      | distance units |
 +-------+----------------------------------------------------+----------------+

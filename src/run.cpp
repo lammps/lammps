@@ -27,11 +27,9 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 2048
-
 /* ---------------------------------------------------------------------- */
 
-Run::Run(LAMMPS *lmp) : Pointers(lmp) {}
+Run::Run(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -134,7 +132,7 @@ void Run::command(int narg, char **arg)
       error->all(FLERR,"Run command stop value is before end of run");
   }
 
-  if (!preflag && strstr(update->integrate_style,"respa"))
+  if (!preflag && utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Run flag 'pre no' not compatible with r-RESPA");
 
   // if nevery, make copies of arg strings that are commands
@@ -145,9 +143,7 @@ void Run::command(int narg, char **arg)
     commands = new char*[ncommands];
     ncommands = 0;
     for (int i = first; i <= last; i++) {
-      int n = strlen(arg[i]) + 1;
-      commands[ncommands] = new char[n];
-      strcpy(commands[ncommands],arg[i]);
+      commands[ncommands] = utils::strdup(arg[i]);
       ncommands++;
     }
   }

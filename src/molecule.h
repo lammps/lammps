@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -161,10 +161,9 @@ class Molecule : protected Pointers {
   void allocate();
   void deallocate();
 
-  void open(char *);
   void readline(char *);
-  void parse_keyword(int, char *, char *);
-  void skip_lines(int, char *);
+  std::string parse_keyword(int, char *);
+  void skip_lines(int, char *, const std::string &);
 
   // void print();
 };

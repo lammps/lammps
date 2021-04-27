@@ -1,0 +1,37 @@
+# Initialization
+units           metal
+boundary        p p p
+atom_style      charge
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use different molecule ids for each layer of hBN
+# so that inter- and intra-layer
+# interactions can be specified separately
+read_data       hBN-monolayer-5nm.data
+mass            1 10.8110   # boron mass (g/mole) | membrane
+mass            2 14.0067   # nitrogen mass (g/mole) | adsorbate
+
+######################## Potential defition ########################
+pair_style  tersoff shift 0.05
+pair_coeff  * * BNC.tersoff B N
+####################################################################
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+#### Simulation settings ####
+timestep        0.001
+velocity        all create 300.0 4928459 loop geom
+fix             thermostat all nve
+
+############# Output ###############
+thermo          100
+thermo_style    custom step etotal pe ke temp
+#thermo_modify   lost warn
+thermo_modify   line one format float %20.16g lost warn
+
+###### Run molecular dynamics ######
+run             1000

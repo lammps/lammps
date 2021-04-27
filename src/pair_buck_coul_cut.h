@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://lammps.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -40,6 +40,7 @@ class PairBuckCoulCut : public Pair {
   void write_data(FILE *);
   void write_data_all(FILE *);
   virtual double single(int, int, int, int, double, double, double, double &);
+  void *extract(const char *, int &);
 
  protected:
   double cut_lj_global,cut_coul_global;

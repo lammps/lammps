@@ -3,10 +3,6 @@ MDI engine.  LAMMPS as an engine performs the MD timestepping.
 The driver is a simple Python script.  Every timestep the driver
 sends one or more commands to LAMMPS.
 
-See the MDI package documentation Build_extras.html#mdi and
-Build_extras.html#mdi for more details on how the LAMMPS MDI
-implementation works.
-
 --------------
 
 NOTE: the Script.sh file has comands to perform all the

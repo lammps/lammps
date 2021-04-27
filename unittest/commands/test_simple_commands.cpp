@@ -14,6 +14,7 @@
 #include "lammps.h"
 
 #include "citeme.h"
+#include "comm.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
@@ -25,6 +26,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "../testing/core.h"
+#include "../testing/utils.h"
 
 #include <cstdio>
 #include <cstring>
@@ -172,6 +174,38 @@ TEST_F(SimpleCommandsTest, Partition)
     command("partition no 1 print 'test'");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, StrEq(""));
+}
+
+TEST_F(SimpleCommandsTest, Processors)
+{
+    // default setting is "*" for all dimensions
+    ASSERT_EQ(lmp->comm->user_procgrid[0], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[1], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("processors 1 1 1");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->comm->user_procgrid[0], 1);
+    ASSERT_EQ(lmp->comm->user_procgrid[1], 1);
+    ASSERT_EQ(lmp->comm->user_procgrid[2], 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("processors * 1 *");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->comm->user_procgrid[0], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[1], 1);
+    ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("processors 0 0 0");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->comm->user_procgrid[0], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[1], 0);
+    ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
+
+    TEST_FAILURE(".*ERROR: Illegal processors command .*", command("processors -1 0 0"););
+    TEST_FAILURE(".*ERROR: Specified processors != physical processors.*", command("processors 100 100 100"););
 }
 
 TEST_F(SimpleCommandsTest, Quit)

@@ -37,8 +37,9 @@ public:
     Tokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
     Tokenizer(Tokenizer &&);
     Tokenizer(const Tokenizer &);
-    Tokenizer& operator=(const Tokenizer&) = default;
-    Tokenizer& operator=(Tokenizer&&) = default;
+    Tokenizer& operator=(const Tokenizer&);
+    Tokenizer& operator=(Tokenizer&&);
+    void swap(Tokenizer &);
 
     void reset();
     void skip(int n=1);
@@ -93,8 +94,9 @@ public:
     ValueTokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
     ValueTokenizer(const ValueTokenizer &);
     ValueTokenizer(ValueTokenizer &&);
-    ValueTokenizer& operator=(const ValueTokenizer&) = default;
-    ValueTokenizer& operator=(ValueTokenizer&&) = default;
+    ValueTokenizer& operator=(const ValueTokenizer&);
+    ValueTokenizer& operator=(ValueTokenizer&&);
+    void swap(ValueTokenizer &);
 
     std::string next_string();
     tagint next_tagint();

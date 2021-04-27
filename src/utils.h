@@ -63,6 +63,20 @@ namespace LAMMPS_NS {
 
     std::string getsyserror();
 
+    /** Wrapper around fgets() which reads whole lines but truncates the
+     *  data to the buffer size and ensures a newline char at the end.
+     *
+     *  This function is useful for reading line based text files with
+     *  possible comments that should be parsed later. This applies to
+     *  data files, potential files, atomfile variable files and so on.
+     *  It is used instead of fgets() by utils::read_lines_from_file().
+     *
+     *  \param s        buffer for storing the result of fgets()
+     *  \param size     size of buffer s (max number of bytes returned)
+     *  \param fp       file pointer used by fgets() */
+
+    char *fgets_trunc_nl(char *s, int size, FILE *fp);
+
     /** Safe wrapper around fgets() which aborts on errors
      *  or EOF and prints a suitable error message to help debugging.
      *

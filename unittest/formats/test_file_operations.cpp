@@ -110,7 +110,7 @@ TEST_F(FileOperationsTest, safe_fgets)
 }
 
 #define MAX_BUF_SIZE 128
-TEST_F(FileOperationsTest, fgets_trunc_nl)
+TEST_F(FileOperationsTest, fgets_trunc)
 {
     char buf[MAX_BUF_SIZE];
     char *ptr;
@@ -119,26 +119,26 @@ TEST_F(FileOperationsTest, fgets_trunc_nl)
     ASSERT_NE(fp, nullptr);
 
     memset(buf, 0, MAX_BUF_SIZE);
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_THAT(buf, StrEq("one line\n"));
     ASSERT_NE(ptr,nullptr);
 
     memset(buf, 0, MAX_BUF_SIZE);
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_THAT(buf, StrEq("two_lines\n"));
     ASSERT_NE(ptr,nullptr);
 
     memset(buf, 0, MAX_BUF_SIZE);
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_THAT(buf, StrEq("\n"));
     ASSERT_NE(ptr,nullptr);
 
     memset(buf, 0, MAX_BUF_SIZE);
-    ptr = utils::fgets_trunc_nl(buf, 4, fp);
+    ptr = utils::fgets_trunc(buf, 4, fp);
     ASSERT_THAT(buf, StrEq("no\n"));
     ASSERT_NE(ptr,nullptr);
 
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_EQ(ptr,nullptr);
     fclose(fp);
 
@@ -146,24 +146,24 @@ TEST_F(FileOperationsTest, fgets_trunc_nl)
     ASSERT_NE(fp,nullptr);
 
     memset(buf, 0, MAX_BUF_SIZE);
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_NE(ptr,nullptr);
     ASSERT_THAT(buf, StrEq("zero ##########################################################"
                            "###############################################################\n"));
 
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_THAT(buf, StrEq("one line\n"));
     ASSERT_NE(ptr,nullptr);
 
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_THAT(buf, StrEq("two_lines\n"));
     ASSERT_NE(ptr,nullptr);
 
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_THAT(buf, StrEq("\n"));
     ASSERT_NE(ptr,nullptr);
 
-    ptr = utils::fgets_trunc_nl(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_NE(ptr,nullptr);
     ASSERT_THAT(buf, StrEq("one two one two one two one two one two one two one two one two "
                            "one two one two one two one two one two one two one two one tw\n"));

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(pppm/cg/omp,PPPMCGOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_CG_OMP_H

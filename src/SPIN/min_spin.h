@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
+// clang-format off
 MinimizeStyle(spin,MinSpin)
-
+// clang-format on
 #else
 
 #ifndef LMP_MIN_SPIN_H

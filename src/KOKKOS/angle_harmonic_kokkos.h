@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(harmonic/kk,AngleHarmonicKokkos<LMPDeviceType>)
 AngleStyle(harmonic/kk/device,AngleHarmonicKokkos<LMPDeviceType>)
 AngleStyle(harmonic/kk/host,AngleHarmonicKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_HARMONIC_KOKKOS_H

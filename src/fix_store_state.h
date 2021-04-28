@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(store/state,FixStoreState)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_STORE_STATE_H

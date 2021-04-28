@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(eam/fs/gpu,PairEAMFSGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_FS_GPU_H

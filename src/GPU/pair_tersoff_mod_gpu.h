@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(tersoff/mod/gpu,PairTersoffMODGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_MOD_GPU_H

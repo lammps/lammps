@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(property/atom,ComputePropertyAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PROPERTY_ATOM_H

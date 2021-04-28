@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(template,AtomVecTemplate)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_TEMPLATE_H

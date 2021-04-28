@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/damage,ComputeSMDDamage)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_DAMAGE_H

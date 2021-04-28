@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(DEPRECATED,BondDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_DEPRECATED_H

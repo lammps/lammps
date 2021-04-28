@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(umbrella/omp,ImproperUmbrellaOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_UMBRELLA_OMP_H

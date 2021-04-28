@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(nvt/sllod/intel,FixNVTSllodIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVTSLLOD_INTEL_H

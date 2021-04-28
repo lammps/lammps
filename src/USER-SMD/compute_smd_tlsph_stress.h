@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(smd/tlsph/stress, ComputeSMDTLSPHStress)
-
+// clang-format off
+ComputeStyle(smd/tlsph/stress,ComputeSMDTLSPHStress)
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_TLSPH_STRESS_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BODY_CLASS
-
+// clang-format off
 BodyStyle(rounded/polyhedron,BodyRoundedPolyhedron)
-
+// clang-format on
 #else
 
 #ifndef LMP_BODY_ROUNDED_POLYHEDRON_H

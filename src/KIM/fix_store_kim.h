@@ -56,9 +56,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(STORE/KIM,FixStoreKIM)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_STORE_KIM_H

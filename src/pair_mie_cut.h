@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(mie/cut,PairMIECut)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MIE_CUT_H

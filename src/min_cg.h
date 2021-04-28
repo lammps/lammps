@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
+// clang-format off
 MinimizeStyle(cg,MinCG)
-
+// clang-format on
 #else
 
 #ifndef LMP_MIN_CG_H

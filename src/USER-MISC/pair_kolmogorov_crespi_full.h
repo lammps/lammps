@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(kolmogorov/crespi/full,PairKolmogorovCrespiFull)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_KolmogorovCrespi_FULL_H

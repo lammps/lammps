@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(aggregate/atom,ComputeAggregateAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_AGGREGATE_ATOM_H

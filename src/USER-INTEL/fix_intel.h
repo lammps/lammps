@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(INTEL,FixIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_INTEL_H

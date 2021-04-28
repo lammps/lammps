@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(buck/coul/long/kk,PairBuckCoulLongKokkos<LMPDeviceType>)
 PairStyle(buck/coul/long/kk/device,PairBuckCoulLongKokkos<LMPDeviceType>)
 PairStyle(buck/coul/long/kk/host,PairBuckCoulLongKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK_COUL_LONG_KOKKOS_H

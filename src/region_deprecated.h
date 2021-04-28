@@ -14,9 +14,9 @@
 #ifdef REGION_CLASS
 
 // list all deprecated and removed region styles here
-
+// clang-format off
 RegionStyle(DEPRECATED,RegionDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_REGION_DEPRECATED_H

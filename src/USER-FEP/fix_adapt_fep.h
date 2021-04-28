@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(adapt/fep,FixAdaptFEP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ADAPT_FEP_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(gaussian,BondGaussian)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_GAUSSIAN_H

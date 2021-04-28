@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/internal/energy,ComputeSMDInternalEnergy)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_INTERNAL_ENERGY_H

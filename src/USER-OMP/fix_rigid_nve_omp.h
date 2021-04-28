@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(rigid/nve/omp,FixRigidNVEOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RIGID_NVE_OMP_H

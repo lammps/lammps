@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(gauss,PairGauss)
-
+// clang-format on
 #else
 
 #ifndef PAIR_GAUSS_H

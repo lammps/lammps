@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(npt/uef,FixNPTUef)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPT_UEF_H

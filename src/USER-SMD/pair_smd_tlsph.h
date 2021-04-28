@@ -23,9 +23,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(smd/tlsph,PairTlsph)
-
+// clang-format on
 #else
 
 #ifndef LMP_TLSPH_NEW_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(mvv/dpd,FixMvvDPD)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MVV_DPD_H

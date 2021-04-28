@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(vtk,DumpVTK)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_VTK_H

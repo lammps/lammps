@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(replicate,Replicate)
-
+// clang-format on
 #else
 
 #ifndef LMP_REPLICATE_H

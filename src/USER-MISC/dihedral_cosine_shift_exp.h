@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(cosine/shift/exp,DihedralCosineShiftExp)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_COSINE_SHIFT_EXP_H

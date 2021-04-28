@@ -23,9 +23,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(smd,AtomVecSMD)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_SMD_H

@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(multi/lucy/rx/kk,PairMultiLucyRXKokkos<LMPDeviceType>)
 PairStyle(multi/lucy/rx/kk/device,PairMultiLucyRXKokkos<LMPDeviceType>)
 PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MULTI_LUCY_RX_KOKKOS_H

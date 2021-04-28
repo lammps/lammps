@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(drag,FixDrag)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DRAG_H

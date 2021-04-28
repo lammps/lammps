@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
+// clang-format off
 RegionStyle(intersect,RegIntersect)
-
+// clang-format on
 #else
 
 #ifndef LMP_REGION_INTERSECT_H

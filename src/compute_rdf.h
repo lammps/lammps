@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(rdf,ComputeRDF)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_RDF_H

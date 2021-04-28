@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/cut/dipole/long/gpu,PairLJCutDipoleLongGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_DIPOLE_LONG_GPU_H

@@ -12,9 +12,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(smd/wall_surface,FixSMDWallSurface)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SMD_WALL_SURFACE_H

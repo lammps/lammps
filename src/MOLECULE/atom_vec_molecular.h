@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(molecular,AtomVecMolecular)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_MOLECULAR_H

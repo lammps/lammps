@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(cna/atom,ComputeCNAAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CNA_ATOM_H

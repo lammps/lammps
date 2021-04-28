@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(chunk/spread/atom,ComputeChunkSpreadAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CHUNK_SPREAD_ATOM_H

@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(eam/cd,PairEAMCD_OneSite)
 PairStyle(eam/cd/old,PairEAMCD_TwoSite)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_CD_H

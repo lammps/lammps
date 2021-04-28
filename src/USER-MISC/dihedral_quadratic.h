@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(quadratic,DihedralQuadratic)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_QUADRATIC_H

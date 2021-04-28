@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(quip,PairQUIP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_QUIP_H

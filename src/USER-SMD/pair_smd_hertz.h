@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(smd/hertz,PairHertz)
-
+// clang-format on
 #else
 
 #ifndef LMP_SMD_HERTZ_H

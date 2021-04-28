@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(enforce2d/kk,FixEnforce2DKokkos<LMPDeviceType>)
 FixStyle(enforce2d/kk/device,FixEnforce2DKokkos<LMPDeviceType>)
 FixStyle(enforce2d/kk/host,FixEnforce2DKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ENFORCE2D_KOKKOS_H

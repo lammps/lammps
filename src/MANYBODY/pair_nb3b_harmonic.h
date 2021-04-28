@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(nb3b/harmonic,PairNb3bHarmonic)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_NB3B_HARMONIC_H

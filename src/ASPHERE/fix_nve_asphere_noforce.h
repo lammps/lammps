@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(nve/asphere/noforce,FixNVEAsphereNoforce)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_ASPHERE_NOFORCE_H

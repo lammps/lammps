@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(harmonic/omp,DihedralHarmonicOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_HARMONIC_OMP_H

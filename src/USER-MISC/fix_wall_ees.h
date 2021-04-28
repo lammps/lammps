@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(wall/ees,FixWallEES)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_EES_H

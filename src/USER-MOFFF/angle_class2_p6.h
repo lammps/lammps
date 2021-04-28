@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(class2/p6,AngleClass2P6)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_CLASS2_P6_H

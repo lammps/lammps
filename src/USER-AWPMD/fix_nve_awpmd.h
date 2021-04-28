@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(nve/awpmd,FixNVEAwpmd)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_awpmd_H

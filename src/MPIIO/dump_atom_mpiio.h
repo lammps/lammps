@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(atom/mpiio,DumpAtomMPIIO)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_ATOM_MPIIO_H

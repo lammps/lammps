@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(torque/chunk,ComputeTorqueChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TORQUE_CHUNK_H

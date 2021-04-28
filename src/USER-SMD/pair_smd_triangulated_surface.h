@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(smd/tri_surface,PairTriSurf)
-
+// clang-format on
 #else
 
 #ifndef LMP_SMD_TRI_SURFACE_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(fene/expand,BondFENEExpand)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_FENE_EXPAND_H

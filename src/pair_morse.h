@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(morse,PairMorse)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MORSE_H

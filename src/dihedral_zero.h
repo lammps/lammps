@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(zero,DihedralZero)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_ZERO_H

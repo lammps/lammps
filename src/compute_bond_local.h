@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(bond/local,ComputeBondLocal)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_BOND_LOCAL_H

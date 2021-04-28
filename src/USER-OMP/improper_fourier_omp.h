@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(fourier/omp,ImproperFourierOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_FOURIER_OMP_H

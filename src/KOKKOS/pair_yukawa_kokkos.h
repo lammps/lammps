@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(yukawa/kk,PairYukawaKokkos<LMPDeviceType>)
 PairStyle(yukawa/kk/device,PairYukawaKokkos<LMPDeviceType>)
 PairStyle(yukawa/kk/host,PairYukawaKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_YUKAWA_KOKKOS_H

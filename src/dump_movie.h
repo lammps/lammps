@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(movie,DumpMovie)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_MOVIE_H

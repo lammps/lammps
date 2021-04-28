@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(local,DumpLocal)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_LOCAL_H

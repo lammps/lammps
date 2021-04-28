@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/cut/tip4p/long/opt,PairLJCutTIP4PLongOpt)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_TIP4P_LONG_OPT_H

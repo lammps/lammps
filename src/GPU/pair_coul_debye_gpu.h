@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(coul/debye/gpu,PairCoulDebyeGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_DEBYE_GPU_H

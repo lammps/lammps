@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(entropy/atom,ComputeEntropyAtom)
-
+// clang-format on
 #else
 
 #ifndef COMPUTE_ENTROPY_ATOM_H

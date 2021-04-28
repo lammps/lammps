@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(msst,FixMSST)
-
+// clang-format on
 #else
 
 #ifndef FIX_MSST_H

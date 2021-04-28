@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
+// clang-format off
 RegionStyle(plane,RegPlane)
-
+// clang-format on
 #else
 
 #ifndef LMP_REGION_PLANE_H

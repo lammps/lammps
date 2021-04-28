@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(eos/table/rx,FixEOStableRX)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EOS_TABLE_RX_H

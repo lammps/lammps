@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(plugin,Plugin)
-
+// clang-format on
 #else
 
 #ifndef LMP_PLUGIN_H

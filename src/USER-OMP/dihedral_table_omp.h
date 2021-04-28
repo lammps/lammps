@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(table/omp,DihedralTableOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_TABLE_OMP_H

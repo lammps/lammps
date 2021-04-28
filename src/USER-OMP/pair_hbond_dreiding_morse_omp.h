@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(hbond/dreiding/morse/omp,PairHbondDreidingMorseOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HBOND_DREIDING_MORSE_OMP_H

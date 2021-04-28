@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(DEPRECATED,PairDeprecated)
 PairStyle(reax,PairDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DEPRECATED_H

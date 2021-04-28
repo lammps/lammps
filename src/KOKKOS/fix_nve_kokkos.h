@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(nve/kk,FixNVEKokkos<LMPDeviceType>)
 FixStyle(nve/kk/device,FixNVEKokkos<LMPDeviceType>)
 FixStyle(nve/kk/host,FixNVEKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_KOKKOS_H

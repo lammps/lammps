@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(reax/c,PairReaxC)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_REAXC_H

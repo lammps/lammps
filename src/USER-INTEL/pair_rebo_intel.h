@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(rebo/intel,PairREBOIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_REBO_INTEL_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
+// clang-format off
 RegionStyle(sphere,RegSphere)
-
+// clang-format on
 #else
 
 #ifndef LMP_REGION_SPHERE_H

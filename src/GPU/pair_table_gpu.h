@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(table/gpu,PairTableGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TABLE_GPU_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
+// clang-format off
 RegionStyle(block,RegBlock)
-
+// clang-format on
 #else
 
 #ifndef LMP_REGION_BLOCK_H

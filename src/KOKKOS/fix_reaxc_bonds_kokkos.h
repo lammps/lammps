@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(reax/c/bonds/kk,FixReaxCBondsKokkos)
 FixStyle(reax/c/bonds/kk/device,FixReaxCBondsKokkos)
 FixStyle(reax/c/bonds/kk/host,FixReaxCBondsKokkos)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_REAXC_BONDS_KOKKOS_H

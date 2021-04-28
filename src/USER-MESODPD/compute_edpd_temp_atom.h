@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(edpd/temp/atom,ComputeEDPDTempAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EDPD_TEMP_ATOM_H

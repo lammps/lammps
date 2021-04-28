@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(reax/c/species/kk,FixReaxCSpeciesKokkos)
 FixStyle(reax/c/species/kk/device,FixReaxCSpeciesKokkos)
 FixStyle(reax/c/species/kk/host,FixReaxCSpeciesKokkos)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_REAXC_SPECIES_KOKKOS_H

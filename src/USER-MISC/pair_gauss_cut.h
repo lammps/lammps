@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(gauss/cut,PairGaussCut)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAUSS_CUT_H

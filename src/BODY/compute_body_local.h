@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(body/local,ComputeBodyLocal)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_BODY_LOCAL_H

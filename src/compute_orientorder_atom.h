@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(orientorder/atom,ComputeOrientOrderAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_ORIENTORDER_ATOM_H

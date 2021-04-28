@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(charmm,AngleCharmm)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_CHARMM_H

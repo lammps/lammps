@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(oxdna2/coaxstk,PairOxdna2Coaxstk)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_OXDNA2_COAXSTK_H

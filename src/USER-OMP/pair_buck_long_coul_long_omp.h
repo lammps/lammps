@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(buck/long/coul/long/omp,PairBuckLongCoulLongOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK_LONG_COUL_LONG_OMP_H

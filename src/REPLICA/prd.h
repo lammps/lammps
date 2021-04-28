@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(prd,PRD)
-
+// clang-format on
 #else
 
 #ifndef LMP_PRD_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(xtc,DumpXTC)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_XTC_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(charge,AtomVecCharge)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_CHARGE_H

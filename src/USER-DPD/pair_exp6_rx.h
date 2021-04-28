@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(exp6/rx,PairExp6rx)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EXP6_RX_H

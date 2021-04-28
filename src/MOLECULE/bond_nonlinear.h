@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(nonlinear,BondNonlinear)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_NONLINEAR_H

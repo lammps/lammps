@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(reduce/region,ComputeReduceRegion)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_REDUCE_REGION_H

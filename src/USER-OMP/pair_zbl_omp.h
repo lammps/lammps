@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(zbl/omp,PairZBLOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ZBL_OMP_H

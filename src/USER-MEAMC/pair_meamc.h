@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(meam/c,PairMEAMC)
 PairStyle(meam,PairMEAMC)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MEAMC_H

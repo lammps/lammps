@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(ave/chunk,FixAveChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_CHUNK_H

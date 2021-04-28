@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(PRESSURE/GREM,ComputePressureGrem)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PRESSURE_GREM_H

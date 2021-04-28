@@ -19,9 +19,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(pppm/intel,PPPMIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_PPPMINTEL_H

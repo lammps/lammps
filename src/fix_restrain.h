@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(restrain,FixRestrain)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RESTRAIN_H

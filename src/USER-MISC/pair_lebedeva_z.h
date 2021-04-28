@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lebedeva/z,PairLebedevaZ)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LEBEDEVA_Z_H

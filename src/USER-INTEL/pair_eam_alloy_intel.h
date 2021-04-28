@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(eam/alloy/intel,PairEAMAlloyIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_ALLOY_INTEL_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(adf,ComputeADF)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_ADF_H

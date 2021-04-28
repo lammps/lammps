@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(pe/tally,ComputePETally)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PETALLY_H

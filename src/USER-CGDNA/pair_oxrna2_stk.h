@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(oxrna2/stk,PairOxrna2Stk)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_OXRNA2_STK_H

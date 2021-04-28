@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(table/omp,BondTableOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_TABLE_OMP_H

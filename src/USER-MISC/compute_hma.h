@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(hma,ComputeHMA)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_HMA_H

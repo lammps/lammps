@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
+// clang-format off
 MinimizeStyle(fire/old,MinFireOld)
-
+// clang-format on
 #else
 
 #ifndef LMP_MIN_FIRE_OLD_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(deposit,FixDeposit)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DEPOSIT_H

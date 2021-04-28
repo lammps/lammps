@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(vashishta/table,PairVashishtaTable)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_VASHISHITA_TABLE_H

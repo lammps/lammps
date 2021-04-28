@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(dpd/kk,AtomVecDPDKokkos)
 AtomStyle(dpd/kk/device,AtomVecDPDKokkos)
 AtomStyle(dpd/kk/host,AtomVecDPDKokkos)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_DPD_KOKKOS_H

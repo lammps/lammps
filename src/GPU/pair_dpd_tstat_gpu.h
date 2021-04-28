@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(dpd/tstat/gpu,PairDPDTstatGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DPD_TSTAT_GPU_H

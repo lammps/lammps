@@ -17,9 +17,9 @@
 
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(local/density,PairLocalDensity)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LOCAL_DENSITY_H

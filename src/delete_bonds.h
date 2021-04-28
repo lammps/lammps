@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(delete_bonds,DeleteBonds)
-
+// clang-format on
 #else
 
 #ifndef LMP_DELETE_BONDS_H

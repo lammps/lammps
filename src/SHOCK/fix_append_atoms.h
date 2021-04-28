@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(append/atoms,FixAppendAtoms)
-
+// clang-format on
 #else
 
 #ifndef FIX_APPEND_ATOMS_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(morse/gpu,PairMorseGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MORSE_GPU_H

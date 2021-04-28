@@ -10,9 +10,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/class2/soft,PairLJClass2Soft)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CLASS2_SOFT_H

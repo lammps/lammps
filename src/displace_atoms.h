@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(displace_atoms,DisplaceAtoms)
-
+// clang-format on
 #else
 
 #ifndef LMP_DISPLACE_ATOMS_H

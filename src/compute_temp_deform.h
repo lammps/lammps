@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/deform,ComputeTempDeform)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_DEFORM_H

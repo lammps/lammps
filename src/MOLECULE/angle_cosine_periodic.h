@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(cosine/periodic, AngleCosinePeriodic)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_PERIODIC_H

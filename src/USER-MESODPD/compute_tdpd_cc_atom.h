@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(tdpd/cc/atom,ComputeTDPDCCAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TDPD_CC_ATOM_H

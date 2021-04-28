@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/chunk,ComputeTempChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_CHUNK_H

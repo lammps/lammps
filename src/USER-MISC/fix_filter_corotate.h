@@ -17,9 +17,9 @@
   ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(filter/corotate,FixFilterCorotate)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_FILTER_COROTATE_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(granular,PairGranular)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GRANULAR_H

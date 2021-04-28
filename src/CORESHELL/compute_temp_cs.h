@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/cs,ComputeTempCS)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_CS_H

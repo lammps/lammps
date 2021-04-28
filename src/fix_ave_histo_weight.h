@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(ave/histo/weight,FixAveHistoWeight)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_HISTO_WEIGHT_H

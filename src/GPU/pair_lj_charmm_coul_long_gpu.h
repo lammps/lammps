@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/charmm/coul/long/gpu,PairLJCharmmCoulLongGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CHARMM_COUL_LONG_GPU_H

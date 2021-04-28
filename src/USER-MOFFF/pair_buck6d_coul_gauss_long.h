@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(buck6d/coul/gauss/long,PairBuck6dCoulGaussLong)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK6D_COUL_GAUSS_LONG_H

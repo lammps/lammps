@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(resquared/omp,PairRESquaredOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_RESQUARED_OMP_H

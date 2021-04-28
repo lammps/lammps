@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(fourier,ImproperFourier)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_FOURIER_H

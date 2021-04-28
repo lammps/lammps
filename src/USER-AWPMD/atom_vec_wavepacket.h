@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(wavepacket,AtomVecWavepacket)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_WAVEPACKET_H

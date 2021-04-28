@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef READER_CLASS
-
+// clang-format off
 ReaderStyle(molfile,ReaderMolfile)
-
+// clang-format on
 #else
 
 #ifndef LMP_READER_MOLFILE_H

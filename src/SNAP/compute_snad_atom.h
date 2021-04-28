@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(snad/atom,ComputeSNADAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SNAD_ATOM_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NTOPO_CLASS
-
+// clang-format off
 NTopoStyle(NTOPO_DIHEDRAL_ALL,NTopoDihedralAll)
-
+// clang-format on
 #else
 
 #ifndef LMP_TOPO_DIHEDRAL_ALL_H

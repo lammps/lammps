@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NTOPO_CLASS
-
+// clang-format off
 NTopoStyle(NTOPO_IMPROPER_ALL,NTopoImproperAll)
-
+// clang-format on
 #else
 
 #ifndef LMP_TOPO_IMPROPER_ALL_H

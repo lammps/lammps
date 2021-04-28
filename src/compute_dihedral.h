@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(dihedral,ComputeDihedral)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DIHEDRAL_H

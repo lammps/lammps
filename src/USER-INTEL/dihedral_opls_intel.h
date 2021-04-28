@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(opls/intel,DihedralOPLSIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_OPLS_INTEL_H

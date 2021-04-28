@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(morse,BondMorse)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_MORSE_H

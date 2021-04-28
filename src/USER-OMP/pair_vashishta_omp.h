@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(vashishta/omp,PairVashishtaOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_VASHISHTA_OMP_H

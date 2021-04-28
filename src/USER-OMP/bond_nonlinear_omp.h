@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(nonlinear/omp,BondNonlinearOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_NONLINEAR_OMP_H

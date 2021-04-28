@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(vector,FixVector)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_VECTOR_H

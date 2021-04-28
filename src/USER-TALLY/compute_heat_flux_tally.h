@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(heat/flux/tally,ComputeHeatFluxTally)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_HEAT_FLUX_TALLY_H

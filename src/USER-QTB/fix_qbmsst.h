@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(qbmsst,FixQBMSST)
-
+// clang-format on
 #else
 
 #ifndef FIX_QBMSST_H

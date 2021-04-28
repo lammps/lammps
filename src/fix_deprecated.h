@@ -14,11 +14,11 @@
 #ifdef FIX_CLASS
 
 // list all deprecated and removed fix styles here
-
+// clang-format off
 FixStyle(DEPRECATED,FixDeprecated)
 FixStyle(ave/spatial,FixDeprecated)
 FixStyle(ave/spatial/sphere,FixDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DEPRECATED_H

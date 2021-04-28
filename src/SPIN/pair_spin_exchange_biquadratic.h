@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(spin/exchange/biquadratic,PairSpinExchangeBiquadratic)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_EXCHANGE_BIQUADRATIC_H

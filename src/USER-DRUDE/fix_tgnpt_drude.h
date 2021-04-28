@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(tgnpt/drude,FixTGNPTDrude)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TGNPT_DRUDE_H

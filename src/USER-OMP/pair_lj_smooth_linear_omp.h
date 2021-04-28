@@ -16,10 +16,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/smooth/linear/omp,PairLJSmoothLinearOMP)
 PairStyle(lj/sf/omp,PairLJSmoothLinearOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_SMOOTH_LINEAR_OMP_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(resquared/gpu,PairRESquaredGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_RESQUARED_GPU_H

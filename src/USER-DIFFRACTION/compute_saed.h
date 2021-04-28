@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(saed,ComputeSAED)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SAED_H

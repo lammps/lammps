@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(oxdna2/fene,BondOxdna2Fene)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_OXDNA2_FENE_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(airebo,PairAIREBO)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AIREBO_H

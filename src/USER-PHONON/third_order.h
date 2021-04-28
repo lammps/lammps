@@ -4,9 +4,9 @@
 
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(third_order,ThirdOrder)
-
+// clang-format on
 #else
 
 #ifndef LMP_THIRD_ORDER_H

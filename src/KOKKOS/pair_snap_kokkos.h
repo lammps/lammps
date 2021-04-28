@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>)
 PairStyle(snap/kk/device,PairSNAPKokkosDevice<LMPDeviceType>)
 #ifdef LMP_KOKKOS_GPU
@@ -20,7 +20,7 @@ PairStyle(snap/kk/host,PairSNAPKokkosHost<LMPHostType>)
 #else
 PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>)
 #endif
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SNAP_KOKKOS_H

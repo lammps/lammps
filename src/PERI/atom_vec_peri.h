@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(peri,AtomVecPeri)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_PERI_H

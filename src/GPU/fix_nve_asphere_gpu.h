@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(nve/asphere/gpu,FixNVEAsphereGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVE_ASPHERE_GPU_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(cosine/shift,AngleCosineShift)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_SHIFT_H

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(cosine/shift/exp/omp,DihedralCosineShiftExpOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_COSINE_SHIFT_EXP_OMP_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(viscosity,FixViscosity)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_VISCOSITY_H

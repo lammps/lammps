@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(ave/correlate,FixAveCorrelate)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_CORRELATE_H

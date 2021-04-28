@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(zero,AngleZero)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_ZERO_H

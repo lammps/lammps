@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(minimize,Minimize)
-
+// clang-format on
 #else
 
 #ifndef LMP_MINIMIZE_H

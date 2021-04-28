@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/triangle/vertices,ComputeSMDTriangleVertices)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_TRIANGLE_VERTICES_H

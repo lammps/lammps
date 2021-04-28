@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(hybrid/overlay,PairHybridOverlay)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HYBRID_OVERLAY_H

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(coul/cut/omp,PairCoulCutOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_CUT_OMP_H

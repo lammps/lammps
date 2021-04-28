@@ -13,9 +13,9 @@
 
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(qmmm,FixQMMM)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QMMM_H

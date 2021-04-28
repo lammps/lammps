@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/kk,ComputeTempKokkos<LMPDeviceType>)
 ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>)
 ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_KOKKOS_H

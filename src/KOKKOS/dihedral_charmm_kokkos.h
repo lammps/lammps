@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(charmm/kk,DihedralCharmmKokkos<LMPDeviceType>)
 DihedralStyle(charmm/kk/device,DihedralCharmmKokkos<LMPDeviceType>)
 DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_CHARMM_KOKKOS_H

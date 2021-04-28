@@ -54,9 +54,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(kim,PairKIM)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_KIM_H

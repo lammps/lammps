@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(coul/streitz,PairCoulStreitz)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_Streitz_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(damage/atom,ComputeDamageAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DAMAGE_ATOM_H

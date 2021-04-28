@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/ulsph/num/neighs,ComputeSMDULSPHNumNeighs)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_ULSPH_NUM_NEIGHS_H

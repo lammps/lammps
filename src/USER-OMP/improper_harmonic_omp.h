@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(harmonic/omp,ImproperHarmonicOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HARMONIC_OMP_H

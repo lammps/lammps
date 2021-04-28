@@ -13,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(eam/kk,PairEAMKokkos<LMPDeviceType>)
 PairStyle(eam/kk/device,PairEAMKokkos<LMPDeviceType>)
 PairStyle(eam/kk/host,PairEAMKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_KOKKOS_H

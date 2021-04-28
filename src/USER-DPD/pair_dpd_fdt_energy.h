@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(dpd/fdt/energy,PairDPDfdtEnergy)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DPD_FDT_ENERGY_H

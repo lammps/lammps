@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(dipole/omp,AngleDipoleOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_DIPOLE_OMP_H

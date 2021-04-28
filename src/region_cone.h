@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
+// clang-format off
 RegionStyle(cone,RegCone)
-
+// clang-format on
 #else
 
 #ifndef LMP_REGION_CONE_H

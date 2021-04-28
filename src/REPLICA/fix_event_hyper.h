@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(EVENT/HYPER,FixEventHyper)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EVENT_HYPER_H

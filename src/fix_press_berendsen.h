@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(press/berendsen,FixPressBerendsen)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PRESS_BERENDSEN_H

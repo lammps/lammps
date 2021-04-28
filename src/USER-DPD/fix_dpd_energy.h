@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(dpd/energy,FixDPDenergy)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DPDE_H

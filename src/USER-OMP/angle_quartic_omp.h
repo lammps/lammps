@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(quartic/omp,AngleQuarticOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_QUARTIC_OMP_H

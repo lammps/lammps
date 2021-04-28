@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(spin,ComputeSpin)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SPIN_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(EVENT/PRD,FixEventPRD)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EVENT_PRD_H

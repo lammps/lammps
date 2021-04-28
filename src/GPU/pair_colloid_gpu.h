@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(colloid/gpu,PairColloidGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COLLOID_GPU_H

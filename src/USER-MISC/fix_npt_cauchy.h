@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(npt/cauchy,FixNPTCauchy)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPT_CAUCHY_H

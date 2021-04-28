@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(pppm/stagger,PPPMStagger)
-
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_STAGGER_H

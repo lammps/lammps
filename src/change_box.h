@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(change_box,ChangeBox)
-
+// clang-format on
 #else
 
 #ifndef LMP_CHANGE_BOX_H

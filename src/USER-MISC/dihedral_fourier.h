@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(fourier,DihedralFourier)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_FOURIER_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(mm3,BondMM3)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_MM3_H

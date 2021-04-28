@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(nharmonic,DihedralNHarmonic)
-
+// clang-format on
 #else
 
 #ifndef DIHEDRAL_NHARMONIC_H

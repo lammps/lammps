@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(msd/chunk,ComputeMSDChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MSD_CHUNK_H

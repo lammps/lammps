@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(saed/vtk,FixSAEDVTK)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SAED_VTK_H

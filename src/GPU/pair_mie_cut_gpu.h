@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(mie/cut/gpu,PairMIECutGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MIE_CUT_GPU_H

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(morse/omp,BondMorseOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_MORSE_OMP_H

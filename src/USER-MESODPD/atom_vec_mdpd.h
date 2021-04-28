@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(mdpd,AtomVecMDPD)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_MDPD_H

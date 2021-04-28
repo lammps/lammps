@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(angmom/chunk,ComputeAngmomChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_ANGMOM_CHUNK_H

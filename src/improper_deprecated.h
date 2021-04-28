@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(DEPRECATED,ImproperDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_DEPRECATED_H

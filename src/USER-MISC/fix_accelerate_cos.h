@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(accelerate/cos,FixAccelerateCos)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ACCELERATE_COS_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(momentum/chunk,FixMomentumChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MOMENTUM_CHUNK_H

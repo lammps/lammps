@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(PERI_NEIGH_OMP,FixPeriNeighOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PERI_NEIGH_OMP_H

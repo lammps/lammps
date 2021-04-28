@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(rebo,PairREBO)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_REBO_H

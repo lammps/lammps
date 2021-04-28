@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(agni/omp,PairAGNIOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AGNI_OMP_H

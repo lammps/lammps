@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(dipole,AngleDipole)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_DIPOLE_H

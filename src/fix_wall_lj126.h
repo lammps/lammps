@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(wall/lj126,FixWallLJ126)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_LJ126_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(charmmfsw,DihedralCharmmfsw)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_CHARMMFSW_H

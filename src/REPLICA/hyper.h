@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(hyper,Hyper)
-
+// clang-format on
 #else
 
 #ifndef LMP_HYPER_H

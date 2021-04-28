@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(gle,FixGLE)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GLE_H

@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(bop,PairBOP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BOP_H

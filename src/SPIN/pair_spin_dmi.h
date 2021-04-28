@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(spin/dmi,PairSpinDmi)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_DMI_H

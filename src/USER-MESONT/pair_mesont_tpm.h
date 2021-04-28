@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(mesont/tpm,PairMESONTTPM)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MESONT_TPM_H

@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(class2/kk,BondClass2Kokkos<LMPDeviceType>)
 BondStyle(class2/kk/device,BondClass2Kokkos<LMPDeviceType>)
 BondStyle(class2/kk/host,BondClass2Kokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_CLASS2_KOKKOS_H

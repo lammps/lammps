@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(pe/atom,ComputePEAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PE_ATOM_H

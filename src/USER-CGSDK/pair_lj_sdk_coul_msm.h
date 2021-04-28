@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/sdk/coul/msm,PairLJSDKCoulMSM)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_SDK_COUL_MSM_H

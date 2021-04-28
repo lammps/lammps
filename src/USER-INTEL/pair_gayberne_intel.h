@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(gayberne/intel,PairGayBerneIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAYBERNE_INTEL_H

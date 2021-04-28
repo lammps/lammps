@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef INTEGRATE_CLASS
-
+// clang-format off
 IntegrateStyle(verlet/split,VerletSplit)
-
+// clang-format on
 #else
 
 #ifndef LMP_VERLET_SPLIT_H

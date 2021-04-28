@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(born/coul/msm/omp,PairBornCoulMSMOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BORN_COUL_MSM_OMP_H

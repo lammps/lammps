@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(distance,ImproperDistance)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_DISTANCE_H

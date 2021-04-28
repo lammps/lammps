@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(qeq/reax/omp,FixQEqReaxOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_REAX_OMP_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(poems,FixPOEMS)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_POEMS_H

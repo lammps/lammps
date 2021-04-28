@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(charmm/intel,AngleCharmmIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_CHARMM_INTEL_H

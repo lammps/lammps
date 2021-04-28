@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj96/cut/gpu,PairLJ96CutGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_96_GPU_H

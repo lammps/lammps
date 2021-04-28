@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(quadratic/omp,DihedralQuadraticOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_QUADRATIC_OMP_H

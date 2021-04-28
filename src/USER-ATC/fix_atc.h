@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(atc,FixATC)
-
+// clang-format on
 #else
 
 #ifndef FIX_ATC_H

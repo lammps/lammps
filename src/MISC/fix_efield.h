@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(efield,FixEfield)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EFIELD_H

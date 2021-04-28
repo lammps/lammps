@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(lb/rigid/pc/sphere,FixLbRigidPCSphere)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LB_RIGID_PC_SPHERE_H

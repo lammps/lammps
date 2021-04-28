@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(read_dump,ReadDump)
-
+// clang-format on
 #else
 
 #ifndef LMP_READ_DUMP_H

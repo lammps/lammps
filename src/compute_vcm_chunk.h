@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(vcm/chunk,ComputeVCMChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VCM_CHUNK_H

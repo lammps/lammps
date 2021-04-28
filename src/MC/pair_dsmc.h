@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(dsmc,PairDSMC)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DSMC_H

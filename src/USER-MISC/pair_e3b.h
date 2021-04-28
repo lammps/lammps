@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(e3b,PairE3B)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_E3B_H

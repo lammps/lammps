@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(ilp/graphene/hbn,PairILPGrapheneHBN)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ILP_GRAPHENE_HBN_H

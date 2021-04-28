@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(recenter,FixRecenter)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RECENTER_H

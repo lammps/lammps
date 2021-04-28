@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(tad,TAD)
-
+// clang-format on
 #else
 
 #ifndef LMP_TAD_H

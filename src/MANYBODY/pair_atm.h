@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(atm,PairATM)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ATM_H

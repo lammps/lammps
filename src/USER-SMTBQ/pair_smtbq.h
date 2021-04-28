@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(smtbq,PairSMTBQ)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SMTBQ_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(gaussian,AngleGaussian)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_GAUSSIAN_H

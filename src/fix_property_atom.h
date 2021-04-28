@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(property/atom,FixPropertyAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PROPERTY_ATOM_H

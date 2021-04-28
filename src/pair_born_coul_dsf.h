@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(born/coul/dsf,PairBornCoulDSF)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BORN_COUL_DSF_H

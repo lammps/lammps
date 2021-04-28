@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(yukawa/gpu,PairYukawaGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_YUKAWA_GPU_H

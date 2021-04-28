@@ -14,9 +14,9 @@
 #ifdef DUMP_CLASS
 
 // list all deprecated and removed dump styles here
-
+// clang-format off
 DumpStyle(DEPRECATED,DumpDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_DEPRECATED_H

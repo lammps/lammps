@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(ewald/dipole,EwaldDipole)
-
+// clang-format on
 #else
 
 #ifndef LMP_EWALD_DIPOLE_H

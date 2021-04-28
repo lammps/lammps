@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(heat,FixHeat)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_HEAT_H

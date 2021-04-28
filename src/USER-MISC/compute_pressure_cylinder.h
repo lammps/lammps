@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(pressure/cylinder,ComputePressureCyl)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PRESSURE_CYLINDER

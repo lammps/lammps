@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(tmd,FixTMD)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TMD_H

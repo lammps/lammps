@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/sphere,ComputeTempSphere)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_SPHERE_H

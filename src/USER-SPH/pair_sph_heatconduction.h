@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(sph/heatconduction,PairSPHHeatConduction)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPH_HEATCONDUCTION_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(zbl/gpu,PairZBLGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ZBL_GPU_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(hybrid,AngleHybrid)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_HYBRID_H

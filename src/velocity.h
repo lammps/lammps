@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(velocity,Velocity)
-
+// clang-format on
 #else
 
 #ifndef LMP_VELOCITY_H

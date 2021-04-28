@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(hexorder/atom,ComputeHexOrderAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_HEXORDER_ATOM_H

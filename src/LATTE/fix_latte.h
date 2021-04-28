@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(latte,FixLatte)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LATTE_H

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(fene/intel,BondFENEIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_FENE_INTEL_H

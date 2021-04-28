@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(angle,ComputeAngle)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_ANGLE_H

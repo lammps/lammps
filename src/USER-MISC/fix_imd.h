@@ -42,9 +42,9 @@ negotiate an appropriate license for such distribution."
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(imd,FixIMD)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_IMD_H

@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(charmm/kk,AngleCharmmKokkos<LMPDeviceType>)
 AngleStyle(charmm/kk/device,AngleCharmmKokkos<LMPDeviceType>)
 AngleStyle(charmm/kk/host,AngleCharmmKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_CHARMM_KOKKOS_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(vashishta/gpu,PairVashishtaGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_VASHISHTA_GPU_H

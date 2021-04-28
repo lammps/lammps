@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(srd,FixSRD)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SRD_H

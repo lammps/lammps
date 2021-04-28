@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(hybrid,ImproperHybrid)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HYBRID_H

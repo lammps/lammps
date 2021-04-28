@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(NEIGH_HISTORY/omp,FixNeighHistoryOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NEIGH_HISTORY_OMP_H

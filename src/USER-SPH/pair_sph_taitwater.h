@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(sph/taitwater,PairSPHTaitwater)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TAITWATER_H

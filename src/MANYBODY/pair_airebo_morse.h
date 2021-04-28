@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(airebo/morse,PairAIREBOMorse)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AIREBO_MORSE_H

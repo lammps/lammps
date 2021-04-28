@@ -34,9 +34,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(manifoldforce,FixManifoldForce)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MANIFOLDFORCE_H

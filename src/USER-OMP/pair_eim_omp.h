@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(eim/omp,PairEIMOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EIM_OMP_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(tersoff/mod/c,PairTersoffMODC)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_MOD_C_H

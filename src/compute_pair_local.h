@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(pair/local,ComputePairLocal)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PAIR_LOCAL_H

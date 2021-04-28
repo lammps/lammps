@@ -14,9 +14,9 @@
    Joel.Eaves@Colorado.edu
    ------------------------------------------------------------------------- */
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(flow/gauss,FixFlowGauss)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_FLOWGAUSS_H

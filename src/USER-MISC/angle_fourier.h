@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(fourier,AngleFourier)
-
+// clang-format on
 #else
 
 #ifndef ANGLE_FOURIER_H

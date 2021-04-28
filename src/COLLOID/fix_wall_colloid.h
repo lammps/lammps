@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(wall/colloid,FixWallColloid)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_COLLOID_H

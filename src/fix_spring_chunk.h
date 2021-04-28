@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(spring/chunk,FixSpringChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SPRING_CHUNK_H

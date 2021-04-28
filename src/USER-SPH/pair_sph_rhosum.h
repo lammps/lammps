@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(sph/rhosum,PairSPHRhoSum)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPH_RHOSUM_H

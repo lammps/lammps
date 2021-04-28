@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(cfg/uef,DumpCFGUef)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_CFG_UEF_H

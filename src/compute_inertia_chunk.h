@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(inertia/chunk,ComputeInertiaChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_INERTIA_CHUNK_H

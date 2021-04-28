@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(gayberne/gpu,PairGayBerneGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAYBERNE_GPU_H

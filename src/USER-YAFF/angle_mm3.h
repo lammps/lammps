@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(mm3,AngleMM3)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_MM3_H

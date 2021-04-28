@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(harmonic,ImproperHarmonic)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HARMONIC_H

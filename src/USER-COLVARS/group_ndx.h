@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(group2ndx,Group2Ndx)
-
+// clang-format on
 #else
 
 #ifndef LMP_GROUP_NDX_H

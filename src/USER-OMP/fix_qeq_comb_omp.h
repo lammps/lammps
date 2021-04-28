@@ -7,9 +7,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(qeq/comb/omp,FixQEQCombOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_COMB_OMP_H

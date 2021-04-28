@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(image,DumpImage)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_IMAGE_H

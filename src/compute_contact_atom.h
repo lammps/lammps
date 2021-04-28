@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(contact/atom,ComputeContactAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CONTACT_ATOM_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(wall/body/polygon,FixWallBodyPolygon)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_BODY_POLYGON_H

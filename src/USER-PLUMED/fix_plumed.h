@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(plumed,FixPlumed)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PLUMED_H

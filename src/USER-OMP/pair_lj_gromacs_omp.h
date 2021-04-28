@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/gromacs/omp,PairLJGromacsOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_GROMACS_OMP_H

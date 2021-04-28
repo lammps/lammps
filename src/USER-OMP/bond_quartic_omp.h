@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(quartic/omp,BondQuarticOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_QUARTIC_OMP_H

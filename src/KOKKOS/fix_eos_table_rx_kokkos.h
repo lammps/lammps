@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(eos/table/rx/kk,FixEOStableRXKokkos<LMPDeviceType>)
 FixStyle(eos/table/rx/kk/device,FixEOStableRXKokkos<LMPDeviceType>)
 FixStyle(eos/table/rx/kk/host,FixEOStableRXKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EOS_TABLE_RX_KOKKOS_H

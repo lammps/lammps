@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(fep,ComputeFEP)
-
+// clang-format on
 #else
 
 #ifndef COMPUTE_FEP_H

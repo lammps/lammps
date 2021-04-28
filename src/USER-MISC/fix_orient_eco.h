@@ -12,9 +12,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(orient/eco,FixOrientECO)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ORIENT_ECO_H

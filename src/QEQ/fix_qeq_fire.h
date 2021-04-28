@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(qeq/fire,FixQEqFire)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_FIRE_H

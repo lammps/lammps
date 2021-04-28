@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(nph/body,FixNPHBody)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPH_BODY_H

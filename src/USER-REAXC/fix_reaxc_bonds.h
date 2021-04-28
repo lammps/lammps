@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(reax/c/bonds,FixReaxCBonds)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_REAXC_BONDS_H

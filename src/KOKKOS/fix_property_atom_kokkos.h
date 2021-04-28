@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(property/atom/kk,FixPropertyAtomKokkos)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PROPERTY_ATOM_KOKKOS_H

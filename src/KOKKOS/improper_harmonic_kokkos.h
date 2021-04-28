@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>)
 ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>)
 ImproperStyle(harmonic/kk/host,ImproperHarmonicKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HARMONIC_KOKKOS_H

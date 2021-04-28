@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(wall/reflect/stochastic,FixWallReflectStochastic)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_REFLECT_STOCHASTIC_H

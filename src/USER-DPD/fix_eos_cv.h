@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(eos/cv,FixEOScv)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EOS_CV_H

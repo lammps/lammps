@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
+// clang-format off
 MinimizeStyle(sd,MinSD)
-
+// clang-format on
 #else
 
 #ifndef LMP_MIN_SD_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(reax/c/species,FixReaxCSpecies)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_REAXC_SPECIES_H

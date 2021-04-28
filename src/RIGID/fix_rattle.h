@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(rattle,FixRattle)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RATTLE_H

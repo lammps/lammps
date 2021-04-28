@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(viscosity/cos,ComputeViscosityCos)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VISCOSITY_COS_H

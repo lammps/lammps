@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(airebo/intel,PairAIREBOIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AIREBO_INTEL_H

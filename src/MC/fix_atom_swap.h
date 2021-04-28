@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(atom/swap,FixAtomSwap)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MCSWAP_H

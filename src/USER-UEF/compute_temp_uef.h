@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/uef,ComputeTempUef)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_UEF_H

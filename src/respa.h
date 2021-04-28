@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef INTEGRATE_CLASS
-
+// clang-format off
 IntegrateStyle(respa,Respa)
-
+// clang-format on
 #else
 
 #ifndef LMP_RESPA_H

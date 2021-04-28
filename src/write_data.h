@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(write_data,WriteData)
-
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_DATA_H

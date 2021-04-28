@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(hyper/local,FixHyperLocal)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_HYPER_LOCAL_H

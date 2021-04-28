@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lennard/mdf,PairLennardMDF)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LENNARD_MDF_H

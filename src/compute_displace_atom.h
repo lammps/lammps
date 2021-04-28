@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(displace/atom,ComputeDisplaceAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DISPLACE_ATOM_H

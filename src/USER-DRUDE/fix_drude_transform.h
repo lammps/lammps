@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(drude/transform/direct,FixDrudeTransform<false>)
 FixStyle(drude/transform/inverse,FixDrudeTransform<true>)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_DRUDE_TRANSFORM_H

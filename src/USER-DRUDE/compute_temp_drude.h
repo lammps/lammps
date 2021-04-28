@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/drude,ComputeTempDrude)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_DRUDE_H

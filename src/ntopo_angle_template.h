@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NTOPO_CLASS
-
+// clang-format off
 NTopoStyle(NTOPO_ANGLE_TEMPLATE,NTopoAngleTemplate)
-
+// clang-format on
 #else
 
 #ifndef LMP_TOPO_ANGLE_TEMPLATE_H

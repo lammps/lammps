@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/ulsph/strain/rate,ComputeSMDULSPHStrainRate)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_ULSPH_STRAIN_RATE_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(soft/gpu,PairSoftGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SOFT_GPU_H

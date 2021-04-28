@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(edpd,PairEDPD)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EDPD_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(snap,ComputeSnap)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SNAP_H

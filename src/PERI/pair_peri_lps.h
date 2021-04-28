@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(peri/lps,PairPeriLPS)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_PERI_LPS_H

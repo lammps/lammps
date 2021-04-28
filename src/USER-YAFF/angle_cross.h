@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(cross,AngleCross)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_CROSS_H

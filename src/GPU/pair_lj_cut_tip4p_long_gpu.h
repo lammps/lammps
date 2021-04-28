@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/cut/tip4p/long/gpu,PairLJCutTIP4PLongGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_TIP4P_LONG_GPU_H

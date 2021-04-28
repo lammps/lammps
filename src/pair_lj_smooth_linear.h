@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/smooth/linear,PairLJSmoothLinear)
 PairStyle(lj/sf,PairLJSmoothLinear)
-
+// clang-format on
 #else
 
 #ifndef PAIR_LJ_SMOOTH_LINEAR_H

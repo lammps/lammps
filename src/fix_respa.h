@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(RESPA,FixRespa)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RESPA_H

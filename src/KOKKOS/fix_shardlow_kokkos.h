@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(shardlow/kk,FixShardlowKokkos<LMPDeviceType>)
 FixStyle(shardlow/kk/device,FixShardlowKokkos<LMPDeviceType>)
 FixStyle(shardlow/kk/host,FixShardlowKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SHARDLOW_KOKKOS_H

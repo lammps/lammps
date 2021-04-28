@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/expand/coul/long,PairLJExpandCoulLong)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_EXPAND_COUL_LONG_H

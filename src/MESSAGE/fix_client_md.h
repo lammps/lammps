@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(client/md,FixClientMD)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_CLIENT_MD_H

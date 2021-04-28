@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(DEPRECATED,DihedralDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_DEPRECATED_H

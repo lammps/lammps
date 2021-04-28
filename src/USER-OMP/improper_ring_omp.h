@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(ring/omp,ImproperRingOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_RING_OMP_H

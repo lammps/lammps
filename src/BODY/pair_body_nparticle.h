@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(body/nparticle,PairBodyNparticle)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BODY_NPARTICLE_H

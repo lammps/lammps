@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(reset_atom_ids,ResetIDs)
-
+// clang-format on
 #else
 
 #ifndef LMP_RESET_IDS_H

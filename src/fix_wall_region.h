@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(wall/region,FixWallRegion)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_REGION_H

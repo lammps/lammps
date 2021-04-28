@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(sqdistharm,ImproperSQDistHarm)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_SQDISTHARM_H

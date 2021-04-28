@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(opls/kk,DihedralOPLSKokkos<LMPDeviceType>)
 DihedralStyle(opls/kk/device,DihedralOPLSKokkos<LMPDeviceType>)
 DihedralStyle(opls/kk/host,DihedralOPLSKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_OPLS_KOKKOS_H

@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(smd/integrate_ulsph,FixSMDIntegrateUlsph)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SMD_INTEGRATE_ULSPH_H

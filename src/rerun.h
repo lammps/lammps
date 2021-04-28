@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(rerun,Rerun)
-
+// clang-format on
 #else
 
 #ifndef LMP_RERUN_H

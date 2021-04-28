@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(lb/momentum,FixLbMomentum)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LB_MOMENTUM_H

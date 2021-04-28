@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(brownian/poly/omp,PairBrownianPolyOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BROWNIAN_POLY_OMP_H

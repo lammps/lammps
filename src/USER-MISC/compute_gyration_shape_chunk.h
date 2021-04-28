@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(gyration/shape/chunk,ComputeGyrationShapeChunk)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GYRATION_SHAPE_CHUNK_H

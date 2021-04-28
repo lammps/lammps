@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/tlsph/shape,ComputeSmdTlsphShape)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_TLSPH_SHAPE_H

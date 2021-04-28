@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(DEPRECATED,KSpaceDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_KSPACE_DEPRECATED_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(mm3/switch3/coulgauss/long,PairMM3Switch3CoulGaussLong)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MM3_SWITCH3_COULGAUSS_LONG_H

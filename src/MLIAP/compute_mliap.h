@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(mliap,ComputeMLIAP)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MLIAP_H

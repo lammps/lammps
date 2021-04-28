@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(indent,FixIndent)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_INDENT_H

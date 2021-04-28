@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(gromos/omp,BondGromosOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_GROMOS_OMP_H

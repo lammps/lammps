@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(cossq/omp,ImproperCossqOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_COSSQ_OMP_H

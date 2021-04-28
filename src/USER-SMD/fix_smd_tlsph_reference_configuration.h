@@ -26,9 +26,9 @@
 
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(SMD_TLSPH_NEIGHBORS,FixSMD_TLSPH_ReferenceConfiguration)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SMD_TLSPH_REFERENCE_H

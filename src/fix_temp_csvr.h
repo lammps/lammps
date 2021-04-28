@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(temp/csvr,FixTempCSVR)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TEMP_CSVR_H

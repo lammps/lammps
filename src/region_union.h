@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
+// clang-format off
 RegionStyle(union,RegUnion)
-
+// clang-format on
 #else
 
 #ifndef LMP_REGION_UNION_H

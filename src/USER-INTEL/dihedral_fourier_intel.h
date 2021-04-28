@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(fourier/intel,DihedralFourierIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_FOURIER_INTEL_H

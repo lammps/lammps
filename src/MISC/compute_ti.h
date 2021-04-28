@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(ti,ComputeTI)
-
+// clang-format on
 #else
 
 #ifndef COMPUTE_TI_H

@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(wall/lj93/kk,FixWallLJ93Kokkos<LMPDeviceType>)
 FixStyle(wall/lj93/kk/device,FixWallLJ93Kokkos<LMPDeviceType>)
 FixStyle(wall/lj93/kk/host,FixWallLJ93Kokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_LJ93_KOKKOS_H

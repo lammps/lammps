@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(tune/kspace,FixTuneKspace)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TUNE_KSPACE_H

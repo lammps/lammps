@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(buck/mdf,PairBuckMDF)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BUCK_MDF_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(erotate/sphere/atom,ComputeErotateSphereAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EROTATE_SPHERE_ATOM_H

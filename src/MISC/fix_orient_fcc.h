@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(orient/fcc,FixOrientFCC)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ORIENT_FCC_H

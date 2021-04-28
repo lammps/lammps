@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/cut/coul/dsf/kk,PairLJCutCoulDSFKokkos<LMPDeviceType>)
 PairStyle(lj/cut/coul/dsf/kk/device,PairLJCutCoulDSFKokkos<LMPDeviceType>)
 PairStyle(lj/cut/coul/dsf/kk/host,PairLJCutCoulDSFKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CUT_COUL_DSF_KOKKOS_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(xrd,ComputeXRD)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_XRD_H

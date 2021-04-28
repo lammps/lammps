@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(harmonic/shift,BondHarmonicShift)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_HARMONIC_SHIFT_H

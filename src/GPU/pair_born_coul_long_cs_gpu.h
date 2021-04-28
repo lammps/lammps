@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(born/coul/long/cs/gpu,PairBornCoulLongCSGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BORN_COUL_LONG_CS_GPU_H

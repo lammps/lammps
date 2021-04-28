@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(fourier/omp,AngleFourierOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_FOURIER_OMP_H

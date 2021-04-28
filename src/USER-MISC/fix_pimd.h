@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(pimd,FixPIMD)
-
+// clang-format on
 #else
 
 #ifndef FIX_PIMD_H

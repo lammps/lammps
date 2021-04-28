@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(pafi,FixPAFI)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PAFI_H

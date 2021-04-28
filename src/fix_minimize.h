@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(MINIMIZE,FixMinimize)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MINIMIZE_H

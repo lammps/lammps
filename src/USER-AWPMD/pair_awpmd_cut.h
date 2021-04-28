@@ -16,9 +16,9 @@
 
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(awpmd/cut,PairAWPMDCut)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_AWPMD_CUT_H

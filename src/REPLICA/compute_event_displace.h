@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(event/displace,ComputeEventDisplace)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EVENT_DISPLACE_H

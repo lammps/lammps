@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/plastic/strain,ComputeSMDPlasticStrain)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_PLASTIC_STRAIN_H

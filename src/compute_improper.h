@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(improper,ComputeImproper)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_IMPROPER_H

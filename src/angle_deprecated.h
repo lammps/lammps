@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(DEPRECATED,AngleDeprecated)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_DEPRECATED_H

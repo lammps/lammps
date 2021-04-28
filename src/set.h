@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(set,Set)
-
+// clang-format on
 #else
 
 #ifndef LMP_SET_H

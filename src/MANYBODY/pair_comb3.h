@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(comb3,PairComb3)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COMB3_H

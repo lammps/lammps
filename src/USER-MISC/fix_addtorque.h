@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(addtorque,FixAddTorque)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ADDTORQUE_H

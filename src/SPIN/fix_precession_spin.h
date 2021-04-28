@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(precession/spin,FixPrecessionSpin)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PRECESSION_SPIN_H

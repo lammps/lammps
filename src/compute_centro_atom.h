@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(centro/atom,ComputeCentroAtom)
-
+// clang-format on
 #else
 
 #ifndef COMPUTE_CENTRO_ATOM_H

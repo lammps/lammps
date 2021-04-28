@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(wall/piston,FixWallPiston)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_WALL_PISTON_H

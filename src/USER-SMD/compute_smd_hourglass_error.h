@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/hourglass/error,ComputeSMDHourglassError)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_HOURGLASS_ERROR_H

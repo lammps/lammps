@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(langevin,FixLangevin)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LANGEVIN_H

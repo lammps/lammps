@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(special,BondSpecial)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_SPECIAL_H

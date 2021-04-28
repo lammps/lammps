@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(gw/zbl,PairGWZBL)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GW_ZBL_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(born,PairBorn)
-
+// clang-format on
 #else
 
 #ifndef PAIR_BORN_H

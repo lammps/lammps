@@ -11,9 +11,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(tersoff/zbl/omp,PairTersoffZBLOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_ZBL_OMP_H

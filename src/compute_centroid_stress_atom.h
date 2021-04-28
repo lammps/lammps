@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(centroid/stress/atom,ComputeCentroidStressAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CENTROID_STRESS_ATOM_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(create_box,CreateBox)
-
+// clang-format on
 #else
 
 #ifndef LMP_CREATE_BOX_H

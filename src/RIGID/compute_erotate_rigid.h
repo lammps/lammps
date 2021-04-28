@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(erotate/rigid,ComputeERotateRigid)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_EROTATE_RIGID_H

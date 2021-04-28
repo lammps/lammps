@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(qeq/reax,FixQEqReax)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_REAX_H

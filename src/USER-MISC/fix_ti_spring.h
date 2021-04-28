@@ -19,9 +19,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(ti/spring,FixTISpring)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TI_SPRING_H

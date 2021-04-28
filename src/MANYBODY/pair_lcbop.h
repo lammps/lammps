@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lcbop,PairLCBOP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LCBOP_H

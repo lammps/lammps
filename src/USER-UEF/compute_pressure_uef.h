@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(pressure/uef,ComputePressureUef)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PRESSURE_UEF_H

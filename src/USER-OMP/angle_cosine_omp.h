@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(cosine/omp,AngleCosineOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_OMP_H

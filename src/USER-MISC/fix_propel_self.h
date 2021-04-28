@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(propel/self,FixPropelSelf)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PROPEL_SELF_H

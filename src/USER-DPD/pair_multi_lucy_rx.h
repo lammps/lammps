@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(multi/lucy/rx,PairMultiLucyRX)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MULTI_LUCY_RX_H

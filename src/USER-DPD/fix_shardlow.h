@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(shardlow,FixShardlow)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SHARDLOW_H

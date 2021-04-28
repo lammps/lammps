@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(snap,PairSNAP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SNAP_H

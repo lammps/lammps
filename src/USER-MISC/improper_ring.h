@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(ring,ImproperRing)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_RING_H

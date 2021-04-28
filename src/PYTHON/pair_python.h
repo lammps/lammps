@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(python,PairPython)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_PYTHON_H

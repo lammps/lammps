@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef READER_CLASS
-
+// clang-format off
 ReaderStyle(xyz,ReaderXYZ)
-
+// clang-format on
 #else
 
 #ifndef LMP_READER_XYZ_H

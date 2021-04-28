@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(spring/self,FixSpringSelf)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SPRING_SELF_H

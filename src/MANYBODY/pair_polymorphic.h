@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(polymorphic,PairPolymorphic)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_POLYMORPHIC_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(neb,NEB)
-
+// clang-format on
 #else
 
 #ifndef LMP_NEB_H

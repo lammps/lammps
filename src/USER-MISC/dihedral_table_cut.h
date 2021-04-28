@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(table/cut,DihedralTableCut)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_TABLE_CUT_H

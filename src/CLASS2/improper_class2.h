@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(class2,ImproperClass2)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_CLASS2_H

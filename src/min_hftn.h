@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
+// clang-format off
 MinimizeStyle(hftn,MinHFTN)
-
+// clang-format on
 #else
 
 #ifndef LMP_MIN_HFTN_H

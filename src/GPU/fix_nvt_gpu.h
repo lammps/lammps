@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(nvt/gpu,FixNVTGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVT_GPU_H

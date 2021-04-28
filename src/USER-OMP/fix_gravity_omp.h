@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(gravity/omp,FixGravityOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GRAVITY_OMP_H

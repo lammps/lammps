@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(reset_mol_ids,ResetMolIDs)
-
+// clang-format on
 #else
 
 #ifndef LMP_RESET_MOL_IDS_H

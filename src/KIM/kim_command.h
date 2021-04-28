@@ -54,9 +54,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(kim,KimCommand)
-
+// clang-format on
 #else
 
 #ifndef LMP_KIM_COMMAND_H

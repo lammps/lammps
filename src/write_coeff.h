@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(write_coeff,WriteCoeff)
-
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_COEFF_H

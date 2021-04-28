@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(qeq/slater,FixQEqSlater)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_SLATER_H

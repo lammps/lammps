@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(write_restart,WriteRestart)
-
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_RESTART_H

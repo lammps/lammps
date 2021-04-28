@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/region/eff,ComputeTempRegionEff)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_REGION_EFF_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
+// clang-format off
 CommandStyle(temper,Temper)
-
+// clang-format on
 #else
 
 #ifndef LMP_TEMPER_H

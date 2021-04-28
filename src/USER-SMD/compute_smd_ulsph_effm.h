@@ -24,9 +24,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(smd/ulsph/effm,ComputeSMD_Ulsph_Effm)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SMD_ULSPH_EFFM_H

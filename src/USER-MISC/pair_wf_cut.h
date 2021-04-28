@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(wf/cut,PairWFCut)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_WF_CUT_H

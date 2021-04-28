@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(mgpt,PairMGPT)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MGPT_H

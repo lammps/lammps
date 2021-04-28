@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(zero,BondZero)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_ZERO_H

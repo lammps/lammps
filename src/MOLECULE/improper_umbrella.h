@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(umbrella,ImproperUmbrella)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_UMBRELLA_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(shake,FixShake)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SHAKE_H

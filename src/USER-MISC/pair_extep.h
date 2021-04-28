@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(extep,PairExTeP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EXTEP_H

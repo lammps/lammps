@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(rigid/meso,FixRigidMeso)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RIGID_MESO_H

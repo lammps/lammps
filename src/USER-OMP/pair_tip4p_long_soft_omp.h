@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(tip4p/long/soft/omp,PairTIP4PLongSoftOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TIP4P_LONG_SOFT_OMP_H

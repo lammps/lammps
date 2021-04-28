@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(cossq,ImproperCossq)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_COSSQ_H

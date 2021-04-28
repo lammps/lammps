@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(cluster/atom,ComputeClusterAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_CLUSTER_ATOM_H

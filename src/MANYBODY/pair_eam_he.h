@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(eam/he,PairEAMHE)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_HE_H

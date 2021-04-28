@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(ewald/omp,EwaldOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_EWALD_OMP_H

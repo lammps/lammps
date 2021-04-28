@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(table,BondTable)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_TABLE_H

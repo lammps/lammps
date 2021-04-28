@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
+// clang-format off
 ImproperStyle(cvff/omp,ImproperCvffOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_CVFF_OMP_H

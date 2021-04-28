@@ -10,9 +10,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(rhok,FixRhok)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_RHOK_H

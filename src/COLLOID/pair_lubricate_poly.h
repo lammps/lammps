@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lubricate/poly,PairLubricatePoly)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LUBRICATE_POLY_H

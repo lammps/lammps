@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(hybrid/overlay/kk,PairHybridOverlayKokkos)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HYBRID_OVERLAY_KOKKOS_H

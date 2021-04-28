@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(python/invoke,FixPythonInvoke)
 FixStyle(python,FixPythonInvoke)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PYTHON_INVOKE_H

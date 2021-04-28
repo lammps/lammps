@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(morse/smooth/linear,PairMorseSmoothLinear)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_MORSE_SMOOTH_LINEAR_H

@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(helix/omp,DihedralHelixOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_HELIX_OMP_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(temp/berendsen,FixTempBerendsen)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TEMP_BERENDSEN_H

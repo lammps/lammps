@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(spherical,DihedralSpherical)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_SPHERICAL_H

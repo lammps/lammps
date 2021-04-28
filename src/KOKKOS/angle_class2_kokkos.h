@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(class2/kk,AngleClass2Kokkos<LMPDeviceType>)
 AngleStyle(class2/kk/device,AngleClass2Kokkos<LMPDeviceType>)
 AngleStyle(class2/kk/host,AngleClass2Kokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_CLASS2_KOKKOS_H

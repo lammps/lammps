@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
+// clang-format off
 RegionStyle(prism,RegPrism)
-
+// clang-format on
 #else
 
 #ifndef LMP_REGION_PRISM_H

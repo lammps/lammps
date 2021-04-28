@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(cmap,FixCMAP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_CMAP_H

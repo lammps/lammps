@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(beck,PairBeck)
-
+// clang-format on
 #else
 
 #ifndef PAIR_BECK_H

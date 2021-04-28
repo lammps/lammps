@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(coul/cut/global/omp,PairCoulCutGlobalOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_CUT_GLOBAL_OMP_H

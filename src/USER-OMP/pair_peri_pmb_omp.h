@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(peri/pmb/omp,PairPeriPMBOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_PERI_PMB_OMP_H

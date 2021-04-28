@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/charmmfsw/coul/long,PairLJCharmmfswCoulLong)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_CHARMMFSW_COUL_LONG_H

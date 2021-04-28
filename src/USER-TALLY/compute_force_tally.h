@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(force/tally,ComputeForceTally)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_FORCE_TALLY_H

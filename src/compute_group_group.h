@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(group/group,ComputeGroupGroup)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_GROUP_GROUP_H

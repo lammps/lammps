@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef INTEGRATE_CLASS
-
+// clang-format off
 IntegrateStyle(verlet/kk,VerletKokkos)
 IntegrateStyle(verlet/kk/device,VerletKokkos)
 IntegrateStyle(verlet/kk/host,VerletKokkos)
-
+// clang-format on
 #else
 
 #ifndef LMP_VERLET_KOKKOS_H

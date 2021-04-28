@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(python/move,FixPythonMove)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PYTHON_MOVE_H

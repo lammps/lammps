@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(beck/gpu,PairBeckGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BECK_GPU_H

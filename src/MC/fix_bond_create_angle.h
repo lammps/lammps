@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(bond/create/angle,FixBondCreateAngle)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BOND_CREATE_ANGLE_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
+// clang-format off
 DihedralStyle(class2,DihedralClass2)
-
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_CLASS2_H

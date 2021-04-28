@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(oxdna/stk,PairOxdnaStk)
 PairStyle(oxdna2/stk,PairOxdnaStk)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_OXDNA_STK_H

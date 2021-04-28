@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(dilatation/atom,ComputeDilatationAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DILATATION_ATOM_H

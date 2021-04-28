@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BODY_CLASS
-
+// clang-format off
 BodyStyle(nparticle,BodyNparticle)
-
+// clang-format on
 #else
 
 #ifndef LMP_BODY_NPARTICLE_H

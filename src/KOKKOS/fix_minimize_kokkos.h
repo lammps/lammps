@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(MINIMIZE/kk,FixMinimizeKokkos)
 FixStyle(MINIMIZE/kk/device,FixMinimizeKokkos)
 FixStyle(MINIMIZE/kk/host,FixMinimizeKokkos)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_MINIMIZE_KOKKOS_H

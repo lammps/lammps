@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(property/local,ComputePropertyLocal)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_PROPERTY_LOCAL_H

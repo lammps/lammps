@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(body/rounded/polygon,PairBodyRoundedPolygon)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BODY_ROUNDED_POLYGON_H

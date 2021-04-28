@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(table,AngleTable)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_TABLE_H

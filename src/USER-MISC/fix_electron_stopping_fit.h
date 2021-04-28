@@ -17,9 +17,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(electron/stopping/fit,FixElectronStoppingFit)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ELECTRON_STOPPING_FIT_H

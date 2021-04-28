@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(harmonic/omp,AngleHarmonicOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_HARMONIC_OMP_H

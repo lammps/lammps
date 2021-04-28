@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(pppm/gpu,PPPMGPU)
-
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_GPU_H

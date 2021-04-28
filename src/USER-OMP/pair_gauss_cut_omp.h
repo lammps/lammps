@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(gauss/cut/omp,PairGaussCutOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GAUSS_CUT_OMP_H

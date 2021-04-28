@@ -25,9 +25,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(colvars,FixColvars)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_COLVARS_H

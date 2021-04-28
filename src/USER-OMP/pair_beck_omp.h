@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(beck/omp,PairBeckOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_BECK_OMP_H

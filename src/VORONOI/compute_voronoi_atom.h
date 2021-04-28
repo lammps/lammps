@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(voronoi/atom,ComputeVoronoi)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_VORONOI_H

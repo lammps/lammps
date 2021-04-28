@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(sph/stationary,FixSPHStationary)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SPH_STATIONARY_H

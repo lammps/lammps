@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(pppm/kk,PPPMKokkos<LMPDeviceType>)
 KSpaceStyle(pppm/kk/device,PPPMKokkos<LMPDeviceType>)
 KSpaceStyle(pppm/kk/host,PPPMKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_KOKKOS_H

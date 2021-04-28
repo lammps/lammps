@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(temp/rotate,ComputeTempRotate)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_ROTATE_H

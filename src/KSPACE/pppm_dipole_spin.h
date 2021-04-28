@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(pppm/dipole/spin,PPPMDipoleSpin)
-
+// clang-format on
 #else
 
 #ifndef LMP_PPPM_DIPOLE_SPIN_H

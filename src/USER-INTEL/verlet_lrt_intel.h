@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef INTEGRATE_CLASS
-
+// clang-format off
 IntegrateStyle(verlet/lrt/intel,VerletLRTIntel)
-
+// clang-format on
 #else
 
 #ifndef LMP_VERLET_LRT_INTEL_H

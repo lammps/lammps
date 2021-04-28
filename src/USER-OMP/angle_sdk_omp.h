@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(sdk/omp,AngleSDKOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_SDK_OMP_H

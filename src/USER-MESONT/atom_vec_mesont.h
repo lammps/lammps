@@ -14,9 +14,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
+// clang-format off
 AtomStyle(mesont,AtomVecMesoNT)
-
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_MESONT_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(nph/asphere/omp,FixNPHAsphereOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPH_ASPHERE_OMP_H

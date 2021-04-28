@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(atom/gz,DumpAtomGZ)
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_ATOM_GZ_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(spin/dipole/long,PairSpinDipoleLong)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_DIPOLE_LONG_H

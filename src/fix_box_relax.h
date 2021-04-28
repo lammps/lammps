@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(box/relax,FixBoxRelax)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BOX_RELAX_H

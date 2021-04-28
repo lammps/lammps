@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/gromacs/kk,PairLJGromacsKokkos<LMPDeviceType>)
 PairStyle(lj/gromacs/kk/device,PairLJGromacsKokkos<LMPDeviceType>)
 PairStyle(lj/gromacs/kk/host,PairLJGromacsKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_GROMACS_KOKKOS_H

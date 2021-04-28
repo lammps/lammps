@@ -11,9 +11,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(comb/omp,PairCombOMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COMB_OMP_H

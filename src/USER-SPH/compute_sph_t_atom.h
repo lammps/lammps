@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(sph/t/atom,ComputeSPHTAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_SPH_T_ATOM_H

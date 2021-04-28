@@ -16,9 +16,9 @@
   --------------------------------------------------------------------------*/
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(stress/mop/profile,ComputeStressMopProfile)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_STRESS_MOP_PROFILE_H

@@ -13,11 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(tersoff/kk,PairTersoffKokkos<LMPDeviceType>)
 PairStyle(tersoff/kk/device,PairTersoffKokkos<LMPDeviceType>)
 PairStyle(tersoff/kk/host,PairTersoffKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_KOKKOS_H

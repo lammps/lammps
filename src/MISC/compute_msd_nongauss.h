@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(msd/nongauss,ComputeMSDNonGauss)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_MSD_NONGAUSS_H

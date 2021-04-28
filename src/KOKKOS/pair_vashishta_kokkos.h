@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(vashishta/kk,PairVashishtaKokkos<LMPDeviceType>)
 PairStyle(vashishta/kk/device,PairVashishtaKokkos<LMPDeviceType>)
 PairStyle(vashishta/kk/host,PairVashishtaKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_VASHISHTA_KOKKOS_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(controller,FixController)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_CONTROLLER_H

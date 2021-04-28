@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(gromos,BondGromos)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_GROMOS_H

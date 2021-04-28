@@ -13,9 +13,9 @@
 
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(ehex,FixEHEX)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_EHEX_H

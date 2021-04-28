@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(spin/neel,PairSpinNeel)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_NEEL_H

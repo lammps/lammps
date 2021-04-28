@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/relres,PairLJRelRes)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_RELRES_H

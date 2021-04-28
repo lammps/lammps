@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
+// clang-format off
 BondStyle(class2/omp,BondClass2OMP)
-
+// clang-format on
 #else
 
 #ifndef LMP_BOND_CLASS2_OMP_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(ackland/atom,ComputeAcklandAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_ACKLAND_ATOM_H

@@ -18,9 +18,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(ufm,PairUFM)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_UFM_H

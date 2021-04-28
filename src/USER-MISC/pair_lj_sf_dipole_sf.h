@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(lj/sf/dipole/sf,PairLJSFDipoleSF)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_SF_DIPOLE_SF_H

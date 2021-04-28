@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(gran/hooke/history/kk,PairGranHookeHistoryKokkos<LMPDeviceType>)
 PairStyle(gran/hooke/history/kk/device,PairGranHookeHistoryKokkos<LMPDeviceType>)
 PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<LMPHostType>)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_KOKKOS_H

@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(ave/atom,FixAveAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_ATOM_H

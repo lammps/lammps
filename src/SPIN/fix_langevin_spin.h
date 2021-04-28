@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(langevin/spin,FixLangevinSpin)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_LANGEVIN_SPIN_H

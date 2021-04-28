@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(thole,PairThole)
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_THOLE_H

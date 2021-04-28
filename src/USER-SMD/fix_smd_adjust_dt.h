@@ -23,9 +23,9 @@
  ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
+// clang-format off
 FixStyle(smd/adjust_dt,FixSMDTlsphDtReset)
-
+// clang-format on
 #else
 
 #ifndef LMP_FIX_TLSPH_DT_RESET_H

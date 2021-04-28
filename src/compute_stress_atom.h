@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
+// clang-format off
 ComputeStyle(stress/atom,ComputeStressAtom)
-
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_STRESS_ATOM_H

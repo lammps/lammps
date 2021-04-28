@@ -41,24 +41,25 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 256
-#define LB_FACTOR 1.1
-#define CHUNK 1024
-#define DELTA 4            // must be 2 or larger
-#define MAXBODY 32         // max # of lines in one body
+static constexpr int MAXLINE = 256;
+static constexpr double LB_FACTOR = 1.1;
+static constexpr int CHUNK = 1024;
+static constexpr int DELTA = 4;    // must be 2 or larger
+static constexpr int MAXBODY = 32; // max # of lines in one body
 
-                           // customize for new sections
-#define NSECTIONS 25       // change when add to header::section_keywords
+// customize for new sections
+// change when add to header::section_keywords
+static constexpr int NSECTIONS = 25;
 
 enum{NONE,APPEND,VALUE,MERGE};
 
 // pair style suffixes to ignore
 // when matching Pair Coeffs comment to currently-defined pair style
 
-const char *suffixes[] = {"/cuda","/gpu","/opt","/omp","/kk",
-                          "/coul/cut","/coul/long","/coul/msm",
-                          "/coul/dsf","/coul/debye","/coul/charmm",
-                          nullptr};
+static const char *suffixes[] = {"/cuda","/gpu","/opt","/omp","/kk",
+                                 "/coul/cut","/coul/long","/coul/msm",
+                                 "/coul/dsf","/coul/debye","/coul/charmm",
+                                 nullptr};
 
 /* ---------------------------------------------------------------------- */
 
@@ -303,6 +304,12 @@ void ReadData::command(int narg, char **arg)
       (extra_atom_types || extra_bond_types || extra_angle_types ||
        extra_dihedral_types || extra_improper_types))
     error->all(FLERR,"Cannot use read_data extra with add flag");
+
+  // check if data file is available and readable
+
+  if (!utils::file_is_readable(arg[0]))
+    error->all(FLERR,fmt::format("Cannot open file {}: {}",
+                                 arg[0], utils::getsyserror()));
 
   // first time system initialization
 
@@ -950,7 +957,7 @@ void ReadData::header(int firstpass)
   // skip 1st line of file
 
   if (me == 0) {
-    char *eof = fgets(line,MAXLINE,fp);
+    char *eof = utils::fgets_trunc(line,MAXLINE,fp);
     if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
   }
 
@@ -959,7 +966,7 @@ void ReadData::header(int firstpass)
     // read a line and bcast length
 
     if (me == 0) {
-      if (fgets(line,MAXLINE,fp) == nullptr) n = 0;
+      if (utils::fgets_trunc(line,MAXLINE,fp) == nullptr) n = 0;
       else n = strlen(line) + 1;
     }
     MPI_Bcast(&n,1,MPI_INT,0,world);
@@ -1662,7 +1669,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
       m = 0;
 
       while (nchunk < nmax && nline <= CHUNK-MAXBODY) {
-        eof = fgets(&buffer[m],MAXLINE,fp);
+        eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
         if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
         rv = sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
         if (rv != 3)
@@ -1676,7 +1683,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
         nword = 0;
         while (nword < ninteger) {
-          eof = fgets(&buffer[m],MAXLINE,fp);
+          eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
           if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
           ncount = utils::trim_and_count_words(&buffer[m]);
           if (ncount == 0)
@@ -1690,7 +1697,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
         nword = 0;
         while (nword < ndouble) {
-          eof = fgets(&buffer[m],MAXLINE,fp);
+          eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
           if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
           ncount = utils::trim_and_count_words(&buffer[m]);
           if (ncount == 0)
@@ -1994,15 +2001,15 @@ void ReadData::parse_keyword(int first)
 
   if (me == 0) {
     if (!first) {
-      if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
+      if (utils::fgets_trunc(line,MAXLINE,fp) == nullptr) eof = 1;
     }
     while (eof == 0 && done == 0) {
       int blank = strspn(line," \t\n\r");
       if ((blank == (int)strlen(line)) || (line[blank] == '#')) {
-        if (fgets(line,MAXLINE,fp) == nullptr) eof = 1;
+        if (utils::fgets_trunc(line,MAXLINE,fp) == nullptr) eof = 1;
       } else done = 1;
     }
-    if (fgets(buffer,MAXLINE,fp) == nullptr) {
+    if (utils::fgets_trunc(buffer,MAXLINE,fp) == nullptr) {
       eof = 1;
       buffer[0] = '\0';
     }
@@ -2056,7 +2063,7 @@ void ReadData::skip_lines(bigint n)
   if (me) return;
   if (n <= 0) return;
   char *eof = nullptr;
-  for (bigint i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
+  for (bigint i = 0; i < n; i++) eof = utils::fgets_trunc(line,MAXLINE,fp);
   if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
 }
 

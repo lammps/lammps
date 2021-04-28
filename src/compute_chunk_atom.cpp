@@ -155,6 +155,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     if ((which == ArgInfo::UNKNOWN) || (which == ArgInfo::NONE)
         || (argi.get_dim() > 1))
       error->all(FLERR,"Illegal compute chunk/atom command");
+    iarg = 4;
   }
 
   // optional args

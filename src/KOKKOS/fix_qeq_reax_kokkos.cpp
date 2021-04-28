@@ -758,12 +758,22 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
   F_FLOAT tmp, sig_old, b_norm;
 
   int teamsize;
-  if (execution_space == Host) teamsize = 1;
+  int vectorsize;
+  int leaguesize;
+  if (execution_space == Host) {
+    teamsize = 1;
+    vectorsize = 1;
+    leaguesize = inum;
+  }
   else {
-    #ifdef KOKKOS_ENABLE_HIP
-    teamsize = 4;
+    #ifdef HIP_OPT_SPMV
+    teamsize = 16;
+    vectorsize = 64;
+    leaguesize = (inum + teamsize - 1) / (teamsize);
     #else
     teamsize = 128;
+    vectorsize = 1;
+    leaguesize = inum;
     #endif
   }
 
@@ -783,7 +793,11 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     if (need_dup)
       Kokkos::Experimental::contribute(d_o, dup_o);
   } else {
+    #ifdef HIP_OPT_SPMV
+    Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1Vector> (leaguesize, teamsize, vectorsize), *this);
+    #else
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1> (inum, teamsize), *this);
+    #endif
   }
 
   if (neighflag != FULL) {
@@ -840,8 +854,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve1()
     } else {
 
 #ifdef HIP_OPT_SPMV
-      using team_policy = Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2>;
-      Kokkos::parallel_for(team_policy((inum+teamsize-1)/teamsize, teamsize, team_policy::vector_length_max()), *this);
+      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2Vector>(leaguesize, teamsize, vectorsize), *this);
 #else
       Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
 #endif
@@ -903,13 +916,23 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
   F_FLOAT tmp, sig_old, b_norm;
 
   int teamsize;
-  if (execution_space == Host) teamsize = 1;
+  int vectorsize;
+  int leaguesize;
+  if (execution_space == Host) {
+    teamsize = 1;
+    vectorsize = 1;
+    leaguesize = inum;
+  }
   else {
-  #ifdef KOKKOS_ENABLE_HIP
-    teamsize = 4;
-  #else
+    #ifdef HIP_OPT_SPMV
+    teamsize = 16;
+    vectorsize = 64;
+    leaguesize = (inum + teamsize - 1) / (teamsize);
+    #else
     teamsize = 64;
-  #endif
+    vectorsize = 1;
+    leaguesize = inum;
+    #endif
   }
 
   // sparse_matvec( &H, x, q );
@@ -930,8 +953,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
       Kokkos::Experimental::contribute(d_o, dup_o);
   } else {
     #ifdef HIP_OPT_SPMV
-    using team_policy = Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3>;
-    Kokkos::parallel_for(team_policy((inum+teamsize-1)/teamsize, teamsize, team_policy::vector_length_max()), *this);
+    Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3Vector>(leaguesize, teamsize, vectorsize), *this);
     #else
     Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> (inum, teamsize), *this);
     #endif
@@ -988,11 +1010,10 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve2()
       if (need_dup)
         Kokkos::Experimental::contribute(d_o, dup_o);
     } else {
-#ifndef HIP_OPT_SPMV
-      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
+#ifdef HIP_OPT_SPMV
+      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2Vector>(leaguesize, teamsize, vectorsize), *this);
 #else
-      using team_policy = Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2>;
-      Kokkos::parallel_for(team_policy((inum+teamsize-1)/teamsize, teamsize, team_policy::vector_length_max()), *this);
+      Kokkos::parallel_for(Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> (inum, teamsize), *this);
 #endif
     }
 
@@ -1130,6 +1151,22 @@ void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec1, const membertyp
   }
 }
 
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec1Vector, const membertype1vec &team) const
+{
+  int k = team.league_rank () * team.team_size () + team.team_rank ();
+  const int i = d_ilist[k];
+  if (mask[i] & groupbit) {
+    F_FLOAT doitmp;
+    Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT &doi) {
+      const int j = d_jlist(jj);
+      doi += d_val(jj) * d_s[j];
+    }, doitmp);
+    Kokkos::single(Kokkos::PerThread(team), [&] () {d_o[i] += doitmp; });
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1168,10 +1205,10 @@ void FixQEqReaxKokkos<DeviceType>::sparse23_item(int ii) const
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef HIP_OPT_SPMV
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2, const membertype2 &team) const
+void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2Vector, const membertype2vec &team) const
 {
   int k = team.league_rank () * team.team_size () + team.team_rank ();
   const int i = d_ilist[k];
@@ -1184,7 +1221,7 @@ void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2, const membertyp
     Kokkos::single(Kokkos::PerThread(team), [&] () {d_o[i] += doitmp; });
   }
 }
-#else
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2, const membertype2 &team) const
@@ -1199,7 +1236,7 @@ void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2, const membertyp
     Kokkos::single(Kokkos::PerTeam(team), [&] () {d_o[i] += doitmp; });
   }
 }
-#endif
+
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -1245,10 +1282,10 @@ void FixQEqReaxKokkos<DeviceType>::sparse33_item(int ii) const
 }
 
 /* ---------------------------------------------------------------------- */
-#ifdef HIP_OPT_SPMV
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec3, const membertype3 &team) const
+void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec3Vector, const membertype3vec &team) const
 {
   int k = team.league_rank () * team.team_size () + team.team_rank ();
   const int i = d_ilist[k];
@@ -1261,7 +1298,7 @@ void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec3, const membertyp
     Kokkos::single(Kokkos::PerThread(team), [&] () {d_o[i] += doitmp;});
   }
 }
-#else
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec3, const membertype3 &team) const
@@ -1276,7 +1313,7 @@ void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec3, const membertyp
     Kokkos::single(Kokkos::PerTeam(team), [&] () {d_o[i] += doitmp;});
   }
 }
-#endif
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

@@ -32,8 +32,11 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
 namespace LAMMPS_NS {
 
 struct TagSparseMatvec1 {};
+struct TagSparseMatvec1Vector {};
 struct TagSparseMatvec2 {};
+struct TagSparseMatvec2Vector {};
 struct TagSparseMatvec3 {};
+struct TagSparseMatvec3Vector {};
 struct TagZeroQGhosts{};
 struct TagFixQEqReaxPackForwardComm {};
 struct TagFixQEqReaxUnpackForwardComm {};
@@ -94,13 +97,25 @@ class FixQEqReaxKokkos : public FixQEqReax {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagSparseMatvec1, const membertype1 &team) const;
 
+  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1Vector> ::member_type membertype1vec;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagSparseMatvec1Vector, const membertype1vec &team) const;
+
   typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> ::member_type membertype2;
   KOKKOS_INLINE_FUNCTION
   void operator() (TagSparseMatvec2, const membertype2 &team) const;
 
+  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2Vector> ::member_type membertype2vec;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagSparseMatvec2Vector, const membertype2vec &team) const;
+
   typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> ::member_type membertype3;
   KOKKOS_INLINE_FUNCTION
   void operator() (TagSparseMatvec3, const membertype3 &team) const;
+
+  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3Vector> ::member_type membertype3vec;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagSparseMatvec3Vector, const membertype3vec &team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagZeroQGhosts, const int&) const;

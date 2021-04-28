@@ -165,6 +165,42 @@ const char *utils::guesspath(char *buf, int len, FILE *fp)
   return buf;
 }
 
+// read line into buffer. if line is too long keep reading until EOL or EOF
+// but return only the first part with a newline at the end.
+
+char *utils::fgets_trunc(char *buf, int size, FILE *fp)
+{
+  constexpr int MAXDUMMY = 256;
+  char dummy[MAXDUMMY];
+  char *ptr = fgets(buf,size,fp);
+
+  // EOF
+  if (!ptr) return nullptr;
+
+  int n = strlen(buf);
+
+  // line is shorter than buffer, append newline if needed,
+  if (n < size-2) {
+    if (buf[n-1] != '\n') {
+      buf[n] = '\n';
+      buf[n+1] = '\0';
+    }
+    return buf;
+
+    // line fits exactly. overwrite last but one character.
+  } else buf[size-2] = '\n';
+
+  // continue reading into dummy buffer until end of line or file
+  do {
+    ptr = fgets(dummy,MAXDUMMY,fp);
+    if (ptr) n = strlen(ptr);
+    else n = 0;
+  } while (n == MAXDUMMY-1 && ptr[MAXDUMMY-1] != '\n');
+
+  // return first chunk
+  return buf;
+}
+
 #define MAXPATHLENBUF 1024
 /* like fgets() but aborts with an error or EOF is encountered */
 void utils::sfgets(const char *srcname, int srcline, char *s, int size,
@@ -235,13 +271,12 @@ int utils::read_lines_from_file(FILE *fp, int nlines, int nmax,
   if (me == 0) {
     if (fp) {
       for (int i = 0; i < nlines; i++) {
-        ptr = fgets(ptr,nmax,fp);
+        ptr = fgets_trunc(ptr,nmax,fp);
         if (!ptr) break; // EOF?
-        // advance ptr to end of string and append newline char if needed.
+        // advance ptr to end of string
         ptr += strlen(ptr);
-        if (*(--ptr) != '\n') *(++ptr) = '\n';
         // ensure buffer is null terminated. null char is start of next line.
-        *(++ptr) = '\0';
+        *ptr = '\0';
       }
     }
   }

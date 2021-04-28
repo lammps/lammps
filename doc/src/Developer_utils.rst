@@ -9,8 +9,8 @@ reading or writing to files with error checking or translation of
 strings into specific types of numbers with checking for validity.  This
 reduces redundant implementations and encourages consistent behavior.
 
-I/O with status check
-^^^^^^^^^^^^^^^^^^^^^
+I/O with status check and similar functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The the first two functions are wrappers around the corresponding C
 library calls ``fgets()`` or ``fread()``.  They will check if there
@@ -18,6 +18,14 @@ were errors on reading or an unexpected end-of-file state was reached.
 In that case, the functions will stop with an error message, indicating
 the name of the problematic file, if possible unless the *error* argument
 is a NULL pointer.
+
+The :cpp:func:`fgets_trunc` function will work similar for ``fgets()``
+but it will read in a whole line (i.e. until the end of line or end
+of file), but store only as many characters as will fit into the buffer
+including a final newline character and the terminating NULL byte.
+If the line in the file is longer it will thus be truncated in the buffer.
+This function is used by :cpp:func:`read_lines_from_file` to read individual
+lines but make certain they follow the size constraints.
 
 The :cpp:func:`read_lines_from_file` function will read the requested
 number of lines of a maximum length into a buffer and will return 0
@@ -31,6 +39,9 @@ NULL character.
    :project: progguide
 
 .. doxygenfunction:: sfread
+   :project: progguide
+
+.. doxygenfunction:: fgets_trunc
    :project: progguide
 
 .. doxygenfunction:: read_lines_from_file

@@ -2,8 +2,7 @@
 
 In some situations it might be necessary to build LAMMPS on a system without
 internet. The scripts in this folder allow you to preload external dependencies
-for both the documentation build for building with CMake into a folder and then
-use that folder on an offline system.
+for both the documentation build and for building with CMake.
 
 It does so by
 
@@ -28,21 +27,23 @@ This script does the following:
 Afterwards, it will print out instruction on how to modify the CMake command
 line to make sure it uses the local HTTP server.
 
-To undo the environment changes and shutdown the HTTP server, run the
+To undo the environment changes and shutdown the local HTTP server, run the
 ``deactivate_caches`` command.
 
 ## Examples
 
-For all of the examples below, you first need to create the cache (which requires internet).
+For all of the examples below, you first need to create the cache, which requires an internect connection.
 
 ```bash
 ./tools/offline/init_caches.sh
 ```
 
-Afterwards, you can disconnect or copy the contents of the
-``LAMMPS_CACHING_DIR`` folder to an offline system.
+Afterwards, you can disconnect or copy the contents of the ``LAMMPS_CACHING_DIR`` folder to an offline system.
 
 ### Documentation
+
+The documentation build will create a new virtual environment that typically first installs dependencies from pip.
+With the offline environment loaded, these installations will instead grab the necessary packages from your local cache.
 
 ```bash
 # if LAMMPS_CACHING_DIR is different from default, make sure to set it first
@@ -55,6 +56,10 @@ deactivate_caches
 ```
 
 ### CMake Build
+
+When compiling certain packages with external dependencies, the CMake build system will download some things from the web.
+For more flexibility it allows users to specify the URL of each of these dependencies. What the ``init_caches.sh`` script does is
+create a CMake preset file, which sets the URL for all of the known dependencies and redirects the download to a local cache.
 
 ```bash
 # if LAMMPS_CACHING_DIR is different from default, make sure to set it first

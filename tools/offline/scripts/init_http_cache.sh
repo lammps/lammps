@@ -61,7 +61,7 @@ CUB_FILENAME="cub-1.12.0.tar.gz"
 KOKKOS_FILENAME="kokkos-3.3.01.tar.gz"
 MSCG_FILENAME="mscg-1.7.3.1.tar.gz"
 LATTE_FILENAME="latte-1.2.2.tar.gz"
-PACELIB_URL="pacelib-2021.4.9.tar.gz"
+PACELIB_FILENAME="pacelib-2021.4.9.tar.gz"
 
 TARBALLS=(
     MPICH2_WIN64_DEVEL_URL

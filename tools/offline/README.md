@@ -6,9 +6,9 @@ for both the documentation build and for building with CMake.
 
 It does so by
 
-1.) Downloading necessary pip packages
-2.) Cloning git repositories
-3.) Downloading tarballs
+1. Downloading necessary pip packages
+2. Cloning git repositories
+3. Downloading tarballs
 
 As of April 2021, all of these downloads make up around 600MB.  By
 default, it will download everything into $HOME/.cache/lammps, but this can be
@@ -21,8 +21,8 @@ The ``use_caches.sh`` must be sourced into the current shell to initialize the
 offline build environment. Note that it must use the same ``LAMMPS_CACHING_DIR``.
 This script does the following:
 
-1.) Sets up environment variables that modify the behavior of both pip and git
-2.) Starts a simple local HTTP server to host files for CMake
+1. Sets up environment variables that modify the behavior of both pip and git
+2. Starts a simple local HTTP server to host files for CMake
 
 Afterwards, it will print out instruction on how to modify the CMake command
 line to make sure it uses the local HTTP server.

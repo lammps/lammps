@@ -2746,6 +2746,10 @@ void FixBondReact::update_everything()
           update_mega_glove[j][update_num_mega] = global_mega_glove[j][i];
         update_num_mega++;
       }
+      // if inserted atoms and global map exists, reset map now instead
+      //   of waiting for comm since other pre-exchange fixes may use it
+      // invoke map_init() b/c atom count has grown
+      // do this once after all atom insertions
       if (inserted_atoms_flag == 1 && atom->map_style != Atom::MAP_NONE) {
         atom->map_init();
         atom->map_set();
@@ -3497,10 +3501,8 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
     }
   }
 
-  // reset global natoms
-  // if global map exists, reset it now instead of waiting for comm
-  //   since other pre-exchange fixes may use it
-  //   invoke map_init() b/c atom count has grown
+  // reset global natoms here
+  // reset atom map elsewhere, after all calls to 'insert_atoms'
   atom->natoms += add_count;
   if (atom->natoms < 0)
     error->all(FLERR,"Too many total atoms");

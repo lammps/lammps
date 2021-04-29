@@ -51,6 +51,7 @@ KOKKOS_URL="https://github.com/kokkos/kokkos/archive/3.3.01.tar.gz"
 KIM_URL="https://s3.openkim.org/kim-api/kim-api-2.2.1.txz"
 MSCG_URL="https://github.com/uchicago-voth/MSCG-release/archive/1.7.3.1.tar.gz"
 PLUMED_URL="https://github.com/plumed/plumed2/releases/download/v2.7.0/plumed-src-2.7.0.tgz"
+PACELIB_URL="https://github.com/ICAMS/lammps-user-pace/archive/refs/tags/v.2021.4.9.tar.gz"
 LATTE_URL="https://github.com/lanl/LATTE/archive/v1.2.2.tar.gz"
 SCAFACOS_URL="https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz"
 
@@ -60,6 +61,7 @@ CUB_FILENAME="cub-1.12.0.tar.gz"
 KOKKOS_FILENAME="kokkos-3.3.01.tar.gz"
 MSCG_FILENAME="mscg-1.7.3.1.tar.gz"
 LATTE_FILENAME="latte-1.2.2.tar.gz"
+PACELIB_URL="pacelib-2021.4.9.tar.gz"
 
 TARBALLS=(
     MPICH2_WIN64_DEVEL_URL
@@ -76,6 +78,7 @@ TARBALLS=(
     KIM_URL
     MSCG_URL
     PLUMED_URL
+    PACELIB_URL
     LATTE_URL
     SCAFACOS_URL
 )

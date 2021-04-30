@@ -2812,6 +2812,9 @@ void FixBondReact::update_everything()
   tagint *tag = atom->tag;
   AtomVec *avec = atom->avec;
 
+  // used when creating atoms
+  int inserted_atoms_flag = 0;
+
   // update atom->nbonds, etc.
   // TODO: correctly tally with 'newton off'
   int delta_bonds = 0;
@@ -2854,8 +2857,9 @@ void FixBondReact::update_everything()
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
-          if (insert_atoms(global_mega_glove,i))
-          ; else { // create aborted
+          if (insert_atoms(global_mega_glove,i)) {
+            inserted_atoms_flag = 1;
+          } else { // create aborted
             reaction_count_total[rxnID]--;
             continue;
           }
@@ -2864,6 +2868,14 @@ void FixBondReact::update_everything()
         for (int j = 0; j < max_natoms+1; j++)
           update_mega_glove[j][update_num_mega] = global_mega_glove[j][i];
         update_num_mega++;
+      }
+      // if inserted atoms and global map exists, reset map now instead
+      //   of waiting for comm since other pre-exchange fixes may use it
+      // invoke map_init() b/c atom count has grown
+      // do this once after all atom insertions
+      if (inserted_atoms_flag == 1 && atom->map_style != Atom::MAP_NONE) {
+        atom->map_init();
+        atom->map_set();
       }
     }
     delete [] iskip;
@@ -3612,20 +3624,14 @@ int FixBondReact::insert_atoms(tagint **my_mega_glove, int iupdate)
     }
   }
 
-  // reset global natoms
-  // if global map exists, reset it now instead of waiting for comm
-  //   since other pre-exchange fixes may use it
-  //   invoke map_init() b/c atom count has grown
+  // reset global natoms here
+  // reset atom map elsewhere, after all calls to 'insert_atoms'
   atom->natoms += add_count;
   if (atom->natoms < 0)
     error->all(FLERR,"Too many total atoms");
   maxtag_all += add_count;
   if (maxtag_all >= MAXTAGINT)
     error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-  if (atom->map_style != Atom::MAP_NONE) {
-    atom->map_init();
-    atom->map_set();
-  }
   // atom creation successful
   memory->destroy(coords);
   memory->destroy(imageflags);

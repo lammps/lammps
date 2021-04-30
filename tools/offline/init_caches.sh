@@ -13,7 +13,7 @@ else
 fi
 
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-CACHE_SCRIPTS_DIR=${SCRIPT_DIR}/scripts
+CACHE_SCRIPTS_DIR="${SCRIPT_DIR}/scripts"
 
 if [ -z "${LAMMPS_DIR}" ]
 then
@@ -24,10 +24,10 @@ else
     echo "Using $LAMMPS_DIR as LAMMPS distribution base directory..."
 fi
 
-export GITHUB_PROXY_DIR=$LAMMPS_CACHING_DIR/github
-export LOGGING_DIR=$LAMMPS_CACHING_DIR/logs
-export PIP_CACHE_DIR=$LAMMPS_CACHING_DIR/pip
-export HTTP_CACHE_DIR=$LAMMPS_CACHING_DIR/http
+export GITHUB_PROXY_DIR="$LAMMPS_CACHING_DIR/github"
+export LOGGING_DIR="$LAMMPS_CACHING_DIR/logs"
+export PIP_CACHE_DIR="$LAMMPS_CACHING_DIR/pip"
+export HTTP_CACHE_DIR="$LAMMPS_CACHING_DIR/http"
 
 mkdir -p $GITHUB_PROXY_DIR
 mkdir -p $LOGGING_DIR
@@ -36,7 +36,7 @@ mkdir -p $HTTP_CACHE_DIR
 
 ${CACHE_SCRIPTS_DIR}/init_pip_cache.sh
 ${CACHE_SCRIPTS_DIR}/init_git_cache.sh
-${CACHE_SCRIPTS_DIR}/init_http_cache.sh  
+${CACHE_SCRIPTS_DIR}/init_http_cache.sh
 echo "##############################################################################"
 echo
 echo "To activate:"

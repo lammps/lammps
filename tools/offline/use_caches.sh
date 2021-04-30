@@ -14,32 +14,32 @@ else script=$0
 fi
 
 SCRIPT_DIR="$(dirname "$(realpath "$script")")"
-CACHE_SCRIPTS_DIR=${SCRIPT_DIR}/scripts
+CACHE_SCRIPTS_DIR="${SCRIPT_DIR}/scripts"
 
-export GITHUB_PROXY_DIR=$LAMMPS_CACHING_DIR/github
-export LOGGING_DIR=$LAMMPS_CACHING_DIR/logs
-export PIP_CACHE_DIR=$LAMMPS_CACHING_DIR/pip
-export HTTP_CACHE_DIR=$LAMMPS_CACHING_DIR/http
+export GITHUB_PROXY_DIR="$LAMMPS_CACHING_DIR/github"
+export LOGGING_DIR="$LAMMPS_CACHING_DIR/logs"
+export PIP_CACHE_DIR="$LAMMPS_CACHING_DIR/pip"
+export HTTP_CACHE_DIR="$LAMMPS_CACHING_DIR/http"
 
-if [ ! -d $GITHUB_PROXY_DIR ]
+if [ ! -d "${GITHUB_PROXY_DIR}" ]
 then
     echo "GitHub proxy directory missing"
     return
 fi
 
-if [ ! -d $LOGGING_DIR ]
+if [ ! -d "${LOGGING_DIR}" ]
 then
     echo "Logging directory missing"
     return
 fi
 
-if [ ! -d $PIP_CACHE_DIR ]
+if [ ! -d "${PIP_CACHE_DIR}" ]
 then
     echo "pip cache directory missing"
     return
 fi
 
-if [ ! -d $HTTP_CACHE_DIR ]
+if [ ! -d "${HTTP_CACHE_DIR}" ]
 then
     echo "HTTP cache directory missing"
     return
@@ -49,9 +49,9 @@ echo "##########################################################################
 echo "Setting up LAMMPS offline compilation environment"
 echo "##############################################################################"
 
-source ${CACHE_SCRIPTS_DIR}/use_git_cache.sh
-source ${CACHE_SCRIPTS_DIR}/use_pip_cache.sh
-source ${CACHE_SCRIPTS_DIR}/use_http_cache.sh  
+source "${CACHE_SCRIPTS_DIR}/use_git_cache.sh"
+source "${CACHE_SCRIPTS_DIR}/use_pip_cache.sh"
+source "${CACHE_SCRIPTS_DIR}/use_http_cache.sh"
 
 echo "##############################################################################"
 echo

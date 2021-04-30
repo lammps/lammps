@@ -213,7 +213,7 @@ int DumpCustomZstd::modify_param(int narg, char **arg)
         return 2;
       }
     } catch (FileWriterException &e) {
-      error->one(FLERR, fmt::format("Illegal dump_modify command: {}", e.what()));
+      error->one(FLERR,"Illegal dump_modify command: {}", e.what());
     }
   }
   return consumed;

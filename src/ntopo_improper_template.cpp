@@ -80,13 +80,13 @@ void NTopoImproperTemplate::build()
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,fmt::format("Improper atoms {} {} {} {}"
+          error->one(FLERR,"Improper atoms {} {} {} {}"
                                        " missing on proc {} at step {}",
                                        improper_atom1[iatom][m]+tagprev,
                                        improper_atom2[iatom][m]+tagprev,
                                        improper_atom3[iatom][m]+tagprev,
                                        improper_atom4[iatom][m]+tagprev,
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i,atom1);

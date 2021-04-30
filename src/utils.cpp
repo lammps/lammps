@@ -123,17 +123,22 @@ std::string utils::strfind(const std::string &text, const std::string &pattern)
     return "";
 }
 
-/** This function simplifies the repetitive task of outputting some
- * message to both the screen and/or the log file. In combination
- * with using fmt::format(), which returns the formatted text
- * in a std::string() instance, this can be used to reduce
- * operations previously requiring several lines of code to
- * a single statement. */
+/* specialization for the case of just a single string argument */
 
 void utils::logmesg(LAMMPS *lmp, const std::string &mesg)
 {
   if (lmp->screen)  fputs(mesg.c_str(), lmp->screen);
   if (lmp->logfile) fputs(mesg.c_str(), lmp->logfile);
+}
+
+void utils::fmtargs_logmesg(LAMMPS *lmp,  fmt::string_view format,
+                        fmt::format_args args)
+{
+  try {
+    logmesg(lmp, fmt::vformat(format, args));
+  } catch (fmt::format_error &e) {
+    logmesg(lmp, std::string(e.what())+"\n");
+  }
 }
 
 /* define this here, so we won't have to include the headers
@@ -1174,16 +1179,14 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
     std::string date       = get_potential_date(filepath, "potential");
     std::string units      = get_potential_units(filepath, "potential");
 
-    if (!date.empty() && (me == 0)) {
-      logmesg(lmp, fmt::format("Reading potential file {} "
-                               "with DATE: {}\n", name, date));
-    }
+    if (!date.empty() && (me == 0))
+      logmesg(lmp,"Reading potential file {} with DATE: {}\n", name, date);
 
     if (auto_convert == nullptr) {
       if (!units.empty() && (units != unit_style) && (me == 0)) {
-        error->one(FLERR, fmt::format("Potential file {} requires {} units "
+        error->one(FLERR, "Potential file {} requires {} units "
                                       "but {} units are in use", name, units,
-                                      unit_style));
+                                      unit_style);
         return nullptr;
       }
     } else {
@@ -1197,9 +1200,9 @@ FILE *utils::open_potential(const std::string &name, LAMMPS *lmp,
             && (*auto_convert & REAL2METAL)) {
           *auto_convert = REAL2METAL;
         } else {
-          error->one(FLERR, fmt::format("Potential file {} requires {} units "
+          error->one(FLERR, "Potential file {} requires {} units "
                                         "but {} units are in use", name,
-                                        units, unit_style));
+                                        units, unit_style);
           return nullptr;
         }
       }

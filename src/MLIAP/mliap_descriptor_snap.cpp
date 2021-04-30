@@ -379,8 +379,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename,lmp,nullptr);
     if (fpparam == nullptr)
-      error->one(FLERR,fmt::format("Cannot open SNAP parameter file {}: {}",
-                                   paramfilename, utils::getsyserror()));
+      error->one(FLERR,"Cannot open SNAP parameter file {}: {}",
+                                   paramfilename, utils::getsyserror());
   }
 
   char line[MAXLINE],*ptr;
@@ -412,9 +412,8 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     char* keywd = strtok(line,"' \t\n\r\f");
     char* keyval = strtok(nullptr,"' \t\n\r\f");
 
-    if (comm->me == 0) {
-      utils::logmesg(lmp, fmt::format("SNAP keyword {} {} \n", keywd, keyval));
-    }
+    if (comm->me == 0)
+      utils::logmesg(lmp,"SNAP keyword {} {} \n", keywd, keyval);
 
     // check for keywords with one value per element
 

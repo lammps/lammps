@@ -321,8 +321,8 @@ void Group::assign(int narg, char **arg)
               delta = values.next_tagint();
             } else throw TokenizerException("Syntax error","");
           } catch (TokenizerException &e) {
-            error->all(FLERR,fmt::format("Incorrect range string "
-                                         "'{}': {}",arg[iarg],e.what()));
+            error->all(FLERR,"Incorrect range string "
+                                         "'{}': {}",arg[iarg],e.what());
           }
           if (delta < 1)
             error->all(FLERR,"Illegal range increment value");
@@ -535,9 +535,9 @@ void Group::assign(int narg, char **arg)
 
   if (me == 0) {
     if (dynamic[igroup])
-      utils::logmesg(lmp,fmt::format("dynamic group {} defined\n",names[igroup]));
+      utils::logmesg(lmp,"dynamic group {} defined\n",names[igroup]);
     else
-      utils::logmesg(lmp,fmt::format("{:.15g} atoms in group {}\n",all,names[igroup]));
+      utils::logmesg(lmp,"{:.15g} atoms in group {}\n",all,names[igroup]);
   }
 }
 

@@ -707,8 +707,8 @@ void FixQEq::read_file(char *file)
   if (comm->me == 0) {
     fp = utils::open_potential(file,lmp,nullptr);
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix qeq parameter file {}: {}",
-                                   file,utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix qeq parameter file {}: {}",
+                                   file,utils::getsyserror());
   }
 
   // read each line out of file, skipping blank lines or leading '#'

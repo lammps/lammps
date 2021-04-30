@@ -263,14 +263,14 @@ void PythonImpl::command(int narg, char **arg)
 
   if (!pFunc) {
     PyUtils::Print_Errors();
-    error->all(FLERR,fmt::format("Could not find Python function {}",
-                                 pfuncs[ifunc].name));
+    error->all(FLERR,"Could not find Python function {}",
+                                 pfuncs[ifunc].name);
   }
 
   if (!PyCallable_Check(pFunc)) {
     PyUtils::Print_Errors();
-    error->all(FLERR,fmt::format("Python function {} is not callable",
-                                 pfuncs[ifunc].name));
+    error->all(FLERR,"Python function {} is not callable",
+                                 pfuncs[ifunc].name);
   }
 
   pfuncs[ifunc].pFunc = (void *) pFunc;

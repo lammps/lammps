@@ -277,8 +277,8 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   nsum -= njoint;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{} clusters, {} bodies, {} joints, {} atoms\n",
-                                   ncluster,nbody,njoint,nsum));
+    utils::logmesg(lmp,"{} clusters, {} bodies, {} joints, {} atoms\n",
+                   ncluster,nbody,njoint,nsum);
 }
 
 /* ----------------------------------------------------------------------

@@ -727,8 +727,8 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) impropercoeffs(1);
         else skip_lines(nimpropertypes);
 
-      } else error->all(FLERR,fmt::format("Unknown identifier in data file: {}",
-                                          keyword));
+      } else error->all(FLERR,"Unknown identifier in data file: {}",
+                                          keyword);
 
       parse_keyword(0);
     }
@@ -914,8 +914,7 @@ void ReadData::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  read_data CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  read_data CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
 }
 
 /* ----------------------------------------------------------------------
@@ -1186,7 +1185,7 @@ void ReadData::header(int firstpass)
   for (n = 0; n < NSECTIONS; n++)
     if (strcmp(keyword,section_keywords[n]) == 0) break;
   if (n == NSECTIONS)
-    error->all(FLERR,fmt::format("Unknown identifier in data file: {}",keyword));
+    error->all(FLERR,"Unknown identifier in data file: {}",keyword);
 
   // error checks on header values
   // must be consistent with atom style and other header values
@@ -1246,7 +1245,7 @@ void ReadData::atoms()
   MPI_Allreduce(&n,&sum,1,MPI_LMP_BIGINT,MPI_SUM,world);
   bigint nassign = sum - (atom->natoms - natoms);
 
-  if (me == 0) utils::logmesg(lmp,fmt::format("  {} atoms\n",nassign));
+  if (me == 0) utils::logmesg(lmp,"  {} atoms\n",nassign);
 
   if (sum != atom->natoms)
     error->all(FLERR,"Did not assign all atoms correctly");
@@ -1300,7 +1299,7 @@ void ReadData::velocities()
     atom->map_style = Atom::MAP_NONE;
   }
 
-  if (me == 0) utils::logmesg(lmp,fmt::format("  {} velocities\n",natoms));
+  if (me == 0) utils::logmesg(lmp,"  {} velocities\n",natoms);
 }
 
 /* ----------------------------------------------------------------------
@@ -1349,7 +1348,7 @@ void ReadData::bonds(int firstpass)
     if (addflag == NONE) maxall += atom->extra_bond_per_atom;
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  {} = max bonds/atom\n",maxall));
+      utils::logmesg(lmp,"  {} = max bonds/atom\n",maxall);
 
     if (addflag != NONE) {
       if (maxall > atom->bond_per_atom)
@@ -1371,7 +1370,7 @@ void ReadData::bonds(int firstpass)
   if (!force->newton_bond) factor = 2;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} bonds\n",sum/factor));
+    utils::logmesg(lmp,"  {} bonds\n",sum/factor);
 
   if (sum != factor*nbonds)
     error->all(FLERR,"Bonds assigned incorrectly");
@@ -1423,7 +1422,7 @@ void ReadData::angles(int firstpass)
     if (addflag == NONE) maxall += atom->extra_angle_per_atom;
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  {} = max angles/atom\n",maxall));
+      utils::logmesg(lmp,"  {} = max angles/atom\n",maxall);
 
     if (addflag != NONE) {
       if (maxall > atom->angle_per_atom)
@@ -1445,7 +1444,7 @@ void ReadData::angles(int firstpass)
   if (!force->newton_bond) factor = 3;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} angles\n",sum/factor));
+    utils::logmesg(lmp,"  {} angles\n",sum/factor);
 
   if (sum != factor*nangles)
     error->all(FLERR,"Angles assigned incorrectly");
@@ -1497,7 +1496,7 @@ void ReadData::dihedrals(int firstpass)
     if (addflag == NONE) maxall += atom->extra_dihedral_per_atom;
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  {} = max dihedrals/atom\n",maxall));
+      utils::logmesg(lmp,"  {} = max dihedrals/atom\n",maxall);
 
     if (addflag != NONE) {
       if (maxall > atom->dihedral_per_atom)
@@ -1519,7 +1518,7 @@ void ReadData::dihedrals(int firstpass)
   if (!force->newton_bond) factor = 4;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} dihedrals\n",sum/factor));
+    utils::logmesg(lmp,"  {} dihedrals\n",sum/factor);
 
   if (sum != factor*ndihedrals)
     error->all(FLERR,"Dihedrals assigned incorrectly");
@@ -1571,7 +1570,7 @@ void ReadData::impropers(int firstpass)
     if (addflag == NONE) maxall += atom->extra_improper_per_atom;
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("  {} = max impropers/atom\n",maxall));
+      utils::logmesg(lmp,"  {} = max impropers/atom\n",maxall);
 
     if (addflag != NONE) {
       if (maxall > atom->improper_per_atom)
@@ -1593,7 +1592,7 @@ void ReadData::impropers(int firstpass)
   if (!force->newton_bond) factor = 4;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} impropers\n",sum/factor));
+    utils::logmesg(lmp,"  {} impropers\n",sum/factor);
 
   if (sum != factor*nimpropers)
     error->all(FLERR,"Impropers assigned incorrectly");
@@ -1632,7 +1631,7 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
   }
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} {}\n",natoms,type));
+    utils::logmesg(lmp,"  {} {}\n",natoms,type);
 }
 
 /* ----------------------------------------------------------------------
@@ -1736,7 +1735,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
   }
 
   if (me == 0 && firstpass)
-    utils::logmesg(lmp,fmt::format("  {} bodies\n",natoms));
+    utils::logmesg(lmp,"  {} bodies\n",natoms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1978,8 +1977,8 @@ void ReadData::open(char *file)
   }
 
   if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open file {}: {}",
-                                 file, utils::getsyserror()));
+    error->one(FLERR,"Cannot open file {}: {}",
+                                 file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

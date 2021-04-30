@@ -20,44 +20,29 @@ FixStyle(brownian/asphere,FixBrownianAsphere)
 #ifndef LMP_FIX_BROWNIAN_ASPHERE_H
 #define LMP_FIX_BROWNIAN_ASPHERE_H
 
-#include "fix.h"
+#include "fix_brownian_base.h"
 
 namespace LAMMPS_NS {
 
-class FixBrownianAsphere : public Fix {
+class FixBrownianAsphere : public FixBrownianBase {
  public:
   FixBrownianAsphere(class LAMMPS *, int, char **);
   virtual ~FixBrownianAsphere();
-  void init();
   void initial_integrate(int);
-  void setup(int);
-  void post_force(int);
-  int setmask();
-  void reset_dt();
-  void update_x_and_omega(double *, double *, double *,
-			  double *, double *, int );
 
+  void init();
 
- private:
-  int seed;               // RNG seed
-  int dipole_flag;        // set if dipole is used
-  double dt, sqrtdt;      // time step interval and its sqrt
-
-
-  double gamma_t,gamma_r;  // translational and rotational damping params
-  double diff_t,diff_r;    // translational and rotational diffusion coeffs
-
-  double g1,g2, g3, g4;    // prefactors in time stepping
-  int noise_flag;          // 0/1 for noise off/on
-  int gaussian_noise_flag; // 0/1 for uniform/gaussian noise
-
+ protected:
   class AtomVecEllipsoid *avec;
   
-protected:
-  class RanMars *random;
-  typedef double (RanMars::*rng_member)();
-  rng_member rng_func;    // placeholder for RNG function
+ private:
+  template < int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D >
+  void initial_integrate_templated();
 
+
+
+  
+  
 };
 
 }

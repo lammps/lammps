@@ -36,104 +36,34 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define SMALL 1e-14
-
-enum{NODIPOLE,DIPOLE};
 
 /* ---------------------------------------------------------------------- */
 
 FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  FixBrownianBase(lmp, narg, arg)
 {
-  virial_flag = 1;
-
-  time_integrate = 1;
-
-  dipole_flag = NODIPOLE;
 
 
-  if (narg > 11 || narg < 8 )
-    error->all(FLERR,"Illegal fix brownian/asphere command.");
-
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Fix brownian/asphere requires atom style sphere");
-
-  gamma_t = utils::numeric(FLERR,arg[3],false,lmp);
-  if (gamma_t <= 0.0)
-    error->all(FLERR,"Fix brownian/asphere translational viscous drag "
-	       "coefficient must be > 0.");
-
-  gamma_r = utils::numeric(FLERR,arg[4],false,lmp);
-  if (gamma_t <= 0.0)
-    error->all(FLERR,"Fix brownian/asphere rotational viscous drag "
-	       "coefficient must be > 0.");
-
-
-  diff_t = utils::numeric(FLERR,arg[5],false,lmp);
-  if (diff_t <= 0.0)
-    error->all(FLERR,"Fix brownian/asphere translational diffusion "
-	       "coefficient must be > 0.");
-  
-  diff_r = utils::numeric(FLERR,arg[6],false,lmp);
-  if (diff_r <= 0.0)
-    error->all(FLERR,"Fix brownian/asphere rotational diffusion "
-	       "coefficient must be > 0.");
-  
-  seed = utils::inumeric(FLERR,arg[7],false,lmp);
-  if (seed <= 0) error->all(FLERR,"Fix brownian/asphere seed must be > 0.");
-
-  noise_flag = 1;
-  gaussian_noise_flag = 0;
-
-  int iarg = 8;
-
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"rng") == 0) {
-      if (narg == iarg + 1) {
-	error->all(FLERR,"Illegal fix/brownian/asphere command.");
-      }
-      if (strcmp(arg[iarg + 1],"uniform") == 0) {
-	noise_flag = 1;
-      } else if (strcmp(arg[iarg + 1],"gaussian") == 0) {
-	noise_flag = 1;
-	gaussian_noise_flag = 1;
-      } else if (strcmp(arg[iarg + 1],"none") == 0) {
-	noise_flag = 0;
-      } else {
-	error->all(FLERR,"Illegal fix/brownian/asphere command.");
-      }
-      iarg = iarg + 2;
-    } else if (strcmp(arg[iarg],"dipole") == 0) {
-      dipole_flag = DIPOLE;
-      iarg = iarg + 1;
-    } else {
-      error->all(FLERR,"Illegal fix/brownian/asphere command.");
-    }
+  if (!gamma_t_eigen_flag || !gamma_r_eigen_flag) {
+    error->all(FLERR,"Illegal fix brownian command.");
   }
+
+  if (gamma_t_flag || gamma_r_flag) {
+    error->all(FLERR,"Illegal fix brownian command.");
+  }
+
   
-  if (dipole_flag == DIPOLE && !atom->mu_flag)
+
+  if (dipole_flag && !atom->mu_flag)
     error->all(FLERR,"Fix brownian/asphere dipole requires atom attribute mu");
 
-  // initialize Marsaglia RNG with processor-unique seed
-  random = new RanMars(lmp,seed + comm->me);
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixBrownianAsphere::setmask()
-{
-  int mask = 0;
-  mask |= INITIAL_INTEGRATE;
-  mask |= POST_FORCE;
-  return mask;
+  
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixBrownianAsphere::~FixBrownianAsphere()
 {
-  delete random;
 }
 
 
@@ -162,9 +92,8 @@ void FixBrownianAsphere::init()
 	error->one(FLERR,"Fix brownian/asphere requires extended particles");
   
   
-  if (dipole_flag == DIPOLE) {
+  if (dipole_flag) {
     
-    double f_act[3] = { 1.0, 0.0, 0.0 };
     double f_rot[3];
     double *quat;
     int *ellipsoid = atom->ellipsoid;
@@ -178,7 +107,7 @@ void FixBrownianAsphere::init()
       if (mask[i] & groupbit) {
 	quat = bonus[ellipsoid[i]].quat;
 	MathExtra::quat_to_mat( quat, Q );
-	MathExtra::matvec( Q, f_act, f_rot );
+	MathExtra::matvec( Q, dipole_body, f_rot );
 	
 	mu[i][0] = f_rot[0];
 	mu[i][1] = f_rot[1];
@@ -188,205 +117,243 @@ void FixBrownianAsphere::init()
     }   
   }
 
-  g1 =  force->ftm2v/gamma_t;
-  g3 = force->ftm2v/gamma_r;
-  if (noise_flag == 0) {
-    g2 = 0;
-    g4 = 0;
-    rng_func = &RanMars::zero_rng;
-  } else if (gaussian_noise_flag == 1) {
-    g2 = gamma_t*sqrt(2 * diff_t)/force->ftm2v;
-    g4 = gamma_r*sqrt(2 * diff_r)/force->ftm2v;
-    rng_func = &RanMars::gaussian;
-  } else {
-    g2 = gamma_t*sqrt( 24 * diff_t)/force->ftm2v;
-    g4 = gamma_r*sqrt( 24 * diff_r )/force->ftm2v;
-    rng_func = &RanMars::uniform_middle;
-  }
+  FixBrownianBase::init();
 
-  dt = update->dt;
-  sqrtdt = sqrt(dt);
-}
 
-void FixBrownianAsphere::setup(int vflag)
-{
-  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
+void FixBrownianAsphere::initial_integrate(int /*vflag */)
+{
 
-void FixBrownianAsphere::initial_integrate(int /* vflag */)
+  if (domain->dimension == 2) {
+    if (dipole_flag) {
+      if (!noise_flag) {
+	initial_integrate_templated<0,0,1,1>();
+      } else if (gaussian_noise_flag) {
+	initial_integrate_templated<0,1,1,1>();
+      } else {
+	initial_integrate_templated<1,0,1,1>();
+      }
+    } else {
+      if (!noise_flag) {
+	initial_integrate_templated<0,0,0,1>();
+      } else if (gaussian_noise_flag) {
+	initial_integrate_templated<0,1,0,1>();
+      } else {
+	initial_integrate_templated<1,0,0,1>();
+      }
+    }
+  } else {
+    if (dipole_flag) {
+      if (!noise_flag) {
+	initial_integrate_templated<0,0,1,0>();
+      } else if (gaussian_noise_flag) {
+	initial_integrate_templated<0,1,1,0>();
+      } else {
+	initial_integrate_templated<1,0,1,0>();
+      }
+    } else {
+      if (!noise_flag) {
+	initial_integrate_templated<0,0,0,0>();
+      } else if (gaussian_noise_flag) {
+	initial_integrate_templated<0,1,0,0>();
+      } else {
+	initial_integrate_templated<1,0,0,0>();
+      }
+    }
+  }
+  return;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template < int Tp_UNIFORM, int Tp_GAUSS, int Tp_DIPOLE, int Tp_2D >
+void FixBrownianAsphere::initial_integrate_templated()
 {
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  double **omega = atom->omega;
-  double **torque = atom->torque;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  
+  
+  double **mu = atom->mu;
+  double **torque = atom->torque;
+  
+  double qw[4];
+  
+  double *quat;
+  int *ellipsoid = atom->ellipsoid;
   
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  int d3rot;  // whether to compute angular momentum in xy plane
+
+    
+  // project dipole along x axis of quat
+  double f_rot[3];
   
-  if (domain->dimension==2) {
-    d3rot = 0;
-  } else {
-    d3rot = 1;
-  }
-
-  if (dipole_flag == DIPOLE) {
-
-    // if dipole is being tracked, then update it along with
-    // quaternions accordingly along with angular velocity
-
-    double wq[4];
+  double rotationmatrix_transpose[3][3];
     
-    double *quat;
-    int *ellipsoid = atom->ellipsoid;
-    AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-    
-    // project dipole along x axis of quat
-    double f_act[3] = { 1.0, 0.0, 0.0 }; 
-    double f_rot[3];
+  double tmp[3];
+  double dv[3];
+  
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      
+      // update orientation first
+      
+      quat = bonus[ellipsoid[i]].quat;
+      
+      MathExtra::quat_to_mat_trans( quat, rotationmatrix_transpose );
+      
+      // tmp holds angular velocity in body frame
+      MathExtra::matvec(rotationmatrix_transpose,torque[i],tmp);
 
-    double Q[3][3];
-    
-    double **mu = atom->mu;
-    
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if (Tp_2D) {
+	tmp[0] = tmp[1] =  0.0;
+	if (Tp_UNIFORM) {
+	  tmp[2] = g1*tmp[2]*gamma_r_inv[2] + gamma_r_invsqrt[2]*(random->uniform()-0.5)*g2;
+	  
+	} else if (Tp_GAUSS) {
+	  tmp[2] = g1*tmp[2]*gamma_r_inv[2] + gamma_r_invsqrt[2]*random->gaussian()*g2;
 	
-	update_x_and_omega(x[i],v[i],omega[i],f[i],torque[i],d3rot);
+	} else {
+	  tmp[2] = g1*tmp[2]*gamma_r_inv[2];
+	  
+	}
+      } else {
+	if (Tp_UNIFORM) {
+	  
+	  tmp[0] = g1*tmp[0]*gamma_r_inv[0] + gamma_r_invsqrt[0]*(random->uniform()-0.5)*g2;
+	  tmp[1] = g1*tmp[1]*gamma_r_inv[1] + gamma_r_invsqrt[1]*(random->uniform()-0.5)*g2;
+	  tmp[2] = g1*tmp[2]*gamma_r_inv[2] + gamma_r_invsqrt[2]*(random->uniform()-0.5)*g2;
+	  
+	} else if (Tp_GAUSS) {
+	  
+	  tmp[0] = g1*tmp[0]*gamma_r_inv[0] + gamma_r_invsqrt[0]*random->gaussian()*g2;
+	  tmp[1] = g1*tmp[1]*gamma_r_inv[1] + gamma_r_invsqrt[1]*random->gaussian()*g2;
+	  tmp[2] = g1*tmp[2]*gamma_r_inv[2] + gamma_r_invsqrt[2]*random->gaussian()*g2;
+	  
+	} else {
+	  tmp[0] = g1*tmp[0]*gamma_r_inv[0];
+	  tmp[1] = g1*tmp[1]*gamma_r_inv[1];
+	  tmp[2] = g1*tmp[2]*gamma_r_inv[2];
+	  
+	}
+      }
+      
+      // convert body frame angular velocity to quaternion
+      MathExtra::quatvec(quat,tmp,qw);
+      quat[0] = quat[0] + 0.5*dt*qw[0];
+      quat[1] = quat[1] + 0.5*dt*qw[1];
+      quat[2] = quat[2] + 0.5*dt*qw[2];
+      quat[3] = quat[3] + 0.5*dt*qw[3];
+      
+      // normalisation introduces the  stochastic drift term
+      // to recover the Boltzmann distribution for the case of conservative torques
+      MathExtra::qnormalize(quat);
+      
+      // next, update centre of mass positions and velocities
+      
+      // tmp now holds force in body frame
+      MathExtra::matvec(rotationmatrix_transpose,f[i],tmp);
+      // and then converts to gamma_t^{-1} * F (velocity) in body frame
 
-	quat = bonus[ellipsoid[i]].quat;
+      if (Tp_2D) {
+	tmp[2] = 0.0;
+	if (Tp_UNIFORM) {	
+	  tmp[0] = g1*tmp[0]*gamma_t_inv[0]
+	    + gamma_t_invsqrt[0]*(random->uniform()-0.5)*g2;
+	  tmp[1] = g1*tmp[1]*gamma_t_inv[1]
+	    + gamma_t_invsqrt[1]*(random->uniform()-0.5)*g2;
+	  
+	} else if (Tp_GAUSS) {
+	  tmp[0] = g1*tmp[0]*gamma_t_inv[0]
+	    + gamma_t_invsqrt[0]*random->gaussian()*g2;
+	  tmp[1] = g1*tmp[1]*gamma_t_inv[1]
+	    + gamma_t_invsqrt[1]*random->gaussian()*g2;
+	  
+	} else {
+	  tmp[0] = g1*tmp[0]*gamma_t_inv[0];
+	  tmp[1] = g1*tmp[1]*gamma_t_inv[1];
+	  
+	}
+      } else {
+	if (Tp_UNIFORM) {
+	  
+	  tmp[0] = g1*tmp[0]*gamma_t_inv[0]
+	    + gamma_t_invsqrt[0]*(random->uniform()-0.5)*g2;
+	  tmp[1] = g1*tmp[1]*gamma_t_inv[1]
+	    + gamma_t_invsqrt[1]*(random->uniform()-0.5)*g2;
+	  tmp[2] = g1*tmp[2]*gamma_t_inv[2]
+	    + gamma_t_invsqrt[2]*(random->uniform()-0.5)*g2;
+	  
+	} else if (Tp_GAUSS) {
+	  
+	  tmp[0] = g1*tmp[0]*gamma_t_inv[0]
+	    + gamma_t_invsqrt[0]*random->gaussian()*g2;
+	  tmp[1] = g1*tmp[1]*gamma_t_inv[1]
+	    + gamma_t_invsqrt[1]*random->gaussian()*g2;
+	  tmp[2] = g1*tmp[2]*gamma_t_inv[2]
+	    + gamma_t_invsqrt[2]*random->gaussian()*g2;
+	  
+	  
+	} else {
+	  
+	  tmp[0] = g1*tmp[0]*gamma_t_inv[0];
+	  tmp[1] = g1*tmp[1]*gamma_t_inv[1];
+	  tmp[2] = g1*tmp[2]*gamma_t_inv[2];
+	}
+      }      
+      
+      
+      
+      // finally, convert this back to lab-frame velocity and store in dv
+      MathExtra::transpose_matvec(rotationmatrix_transpose, tmp, dv );
+
+
+      /*
+      if (Tp_UNIFORM) {
+	dv[0] = dt * (g1 * f[i][0] + g2 * (random->uniform()-0.5));
+	dv[1] = dt * (g1 * f[i][1] + g2 * (random->uniform()-0.5));
+	dv[2] = dt * (g1 * f[i][2] + g2 * (random->uniform()-0.5));
 	
-	MathExtra::vecquat(omega[i],quat,wq);
+      } else if (Tp_GAUSS) {
+	dv[0] = dt * (g1 * f[i][0] + g2 * random->gaussian());
+	dv[1] = dt * (g1 * f[i][1] + g2 * random->gaussian());
+	dv[2] = dt * (g1 * f[i][2] + g2 * random->gaussian());
 	
-	quat[0] = quat[0] + 0.5*dt*wq[0];
-	quat[1] = quat[1] + 0.5*dt*wq[1];
-	quat[2] = quat[2] + 0.5*dt*wq[2];
-	quat[3] = quat[3] + 0.5*dt*wq[3];
-	MathExtra::qnormalize(quat);
-
-	MathExtra::quat_to_mat( quat, Q );
-	MathExtra::matvec( Q, f_act, f_rot );
-
+      } else {
+	dv[0] = dt * g1 * f[i][0];
+	dv[1] = dt * g1 * f[i][1];
+	dv[2] = dt * g1 * f[i][2];
+	
+      }
+      */      
+      v[i][0] = dv[0];
+      v[i][1] = dv[1];
+      v[i][2] = dv[2];
+      
+      x[i][0] += dv[0]*dt;
+      x[i][1] += dv[1]*dt;
+      x[i][2] += dv[2]*dt;
+      
+      if (Tp_DIPOLE) {
+	
+	MathExtra::quat_to_mat_trans( quat, rotationmatrix_transpose );
+	MathExtra::transpose_matvec(rotationmatrix_transpose, dipole_body, f_rot );
+	
 	mu[i][0] = f_rot[0];
 	mu[i][1] = f_rot[1];
 	mu[i][2] = f_rot[2];
-
       }
     }
-  } else {
-
-    // if no dipole, just update quaternions and
-    // angular velocity
-
-
-    double wq[4];
-
-    double *quat;
-    int *ellipsoid = atom->ellipsoid;
-    AtomVecEllipsoid::Bonus *bonus = avec->bonus;
     
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-
-	update_x_and_omega(x[i],v[i],omega[i],f[i],torque[i],d3rot);
-	
-	quat = bonus[ellipsoid[i]].quat;
-	
-	MathExtra::vecquat(omega[i],quat,wq);
-	
-	quat[0] = quat[0] + 0.5*dt*wq[0];
-	quat[1] = quat[1] + 0.5*dt*wq[1];
-	quat[2] = quat[2] + 0.5*dt*wq[2];
-	quat[3] = quat[3] + 0.5*dt*wq[3];
-	MathExtra::qnormalize(quat);
-
-      }
-    }
   }
-  return;
-}
-
-void FixBrownianAsphere::update_x_and_omega(double *x, double *v, double *omega,
-				   double *f, double *torque, int d3rot)
-{
-  double dx, dy, dz;
-  
-  dx = dt * g1 * f[0];
-  x[0] +=  dx;
-  v[0]  =  dx/dt;
-  
-  dy = dt * g1 * f[1];
-  x[1] +=  dy;
-  v[1]  =  dy/dt;
-  
-  dz = dt * g1 * f[2];
-  x[2] +=  dz;
-  v[2]  =  dz/dt;
-  
-  omega[0] = d3rot * g3* torque[0];
-  omega[1] = d3rot * g3* torque[1];
-  omega[2] = g3* torque[2];
 
   return;
-}
-
-/* ----------------------------------------------------------------------
-   apply random force, stolen from MISC/fix_efield.cpp 
-------------------------------------------------------------------------- */
-
-void FixBrownianAsphere::post_force(int vflag)
-{
-  double **f = atom->f;
-  double **x = atom->x;
-  double **torque = atom->torque;
-  int *mask = atom->mask;
-  imageint *image = atom->image;
-  int nlocal = atom->nlocal;
-  
-  // virial setup
-
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
-
-  double fx,fy,fz;
-  double v[6];
-
-  for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) {
-      
-      fx = g2 * (random->*rng_func)()/sqrtdt;
-      fy = g2 * (random->*rng_func)()/sqrtdt;
-      fz = g2 * (random->*rng_func)()/sqrtdt;
-      f[i][0] += fx;
-      f[i][1] += fy;
-      f[i][2] += fz;
-
-      torque[i][0] = g4*(random->*rng_func)()/sqrtdt;
-      torque[i][1] = g4*(random->*rng_func)()/sqrtdt;
-      torque[i][2] = g4*(random->*rng_func)()/sqrtdt;
-
-	if (evflag) {
-	  v[0] = fx*x[i][0];
-	  v[1] = fy*x[i][1];
-	  v[2] = fz*x[i][2];
-	  v[3] = fx*x[i][1];
-	  v[4] = fx*x[i][2];
-	  v[5] = fy*x[i][2];
-	  v_tally(i, v);
-	}
-    }
-}
-
-void FixBrownianAsphere::reset_dt()
-{
-
-  dt = update->dt;
-  sqrtdt = sqrt(dt);
 }

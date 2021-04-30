@@ -20,37 +20,21 @@ FixStyle(brownian,FixBrownian)
 #ifndef LMP_FIX_BROWNIAN_H
 #define LMP_FIX_BROWNIAN_H
 
-#include "fix.h"
+#include "fix_brownian_base.h"
 
 namespace LAMMPS_NS {
 
-class FixBrownian : public Fix {
+class FixBrownian : public FixBrownianBase {
  public:
   FixBrownian(class LAMMPS *, int, char **);
   virtual ~FixBrownian();
   void init();
   void initial_integrate(int);
-  void setup(int);
-  void post_force(int);
-  int setmask();
-  void reset_dt();
 
  private:
-  int seed;               // RNG seed
-  double dt, sqrtdt;      // time step interval and its sqrt
+  template < int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D >
+  void initial_integrate_templated();
 
-
-  double gamma_t;          // translational damping param
-  double diff_t;           // translational diffusion coeff
-
-  double g1,g2;            // prefactors in time stepping
-  int noise_flag;          // 0/1 for noise off/on
-  int gaussian_noise_flag; // 0/1 for uniform/gaussian noise
-  
-protected:
-  class RanMars *random;
-  typedef double (RanMars::*rng_member)();
-  rng_member rng_func;    // placeholder for RNG function
 
 };
 

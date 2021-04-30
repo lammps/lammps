@@ -1,13 +1,12 @@
 # 3D overdamped active brownian dynamics with no interactions
 
-variable 	gamma_t equal 1.0
-variable 	gamma_r	equal 1.0
-variable	D_t equal 1.0
-variable 	D_r equal 3.0
+variable 	gamma_t string 3.0
+variable 	gamma_r	string 1.0
+variable	temp string 1.0
 variable	seed equal 1974019
-variable	fp equal 4.0
+variable	fp string 4.0
 
-variable	params string ${gamma_t}_${gamma_r}_${D_t}_${D_r}_${fp}
+variable	params string ${temp}_${gamma_t}_${gamma_r}_${fp}
 
 
 log             log_ideal_${params}_3d.lammps.log
@@ -28,7 +27,7 @@ velocity        all create 1.0 1 loop geom
 pair_style none
 
 # overdamped brownian dynamics time-step
-fix         step all brownian/sphere ${gamma_t} ${gamma_r} ${D_t} ${D_r} ${seed} dipole
+fix         step all brownian/sphere ${temp} ${seed} gamma_t ${gamma_t} gamma_r ${gamma_r} 
 # self-propulsion force along the dipole direction
 fix	    activity all propel/self dipole ${fp}
 
@@ -47,7 +46,8 @@ reset_timestep  0
 # MSD to demonstrate expected diffusive behaviour for ideal active
 # brownian motion, which is
 #
-#      MSD = (2*d*D_t + 2*fp**2/(gamma_t**2*(d-1)*D_r))*t
+#      MSD = (2*d*kb*T/gamma_t + 2*fp**2*gamma_r/(kb*T*gamma_t**2*(d-1)))*t
+#            + 2*fp**2*gamma_r**2/(gamma_t**2*(d-1)**2*(kb*T)**2)*(e^(-(d-1)*t*kb*T/gamma_r)-1)
 #
 # with d being simulation dimension
 compute         msd  all msd

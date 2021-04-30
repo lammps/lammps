@@ -1,12 +1,11 @@
-# 2d overdamped brownian dynamics with self-propulsion
-# force in direction of velocity.
+##### 2d overdamped brownian dynamics with self-propulsion force in direction of velocity. #####
 
 variable 	gamma_t equal 1.0
-variable	D_t equal 1.0
+variable	temp equal 1.0
 variable	seed equal 1974019
 variable	fp equal 4.0
 
-variable	params string ${gamma_t}_${D_t}_${fp}
+variable	params string ${gamma_t}_${temp}_${fp}
 
 
 log             log_${params}_2d.lammps.log
@@ -30,7 +29,7 @@ neigh_modify    every 1 delay 1 check yes
 
 pair_style none
 
-fix         step all brownian ${gamma_t} ${D_t} ${seed}
+fix         step all brownian ${temp} ${seed} gamma_t ${gamma_t}
 fix	    vel all propel/self velocity ${fp}
 fix         2 all enforce2d
 fix_modify  vel virial yes

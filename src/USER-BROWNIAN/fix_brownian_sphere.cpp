@@ -35,103 +35,34 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define SMALL 1e-14
 
-enum{NONE,DIPOLE};
 
 /* ---------------------------------------------------------------------- */
 
 FixBrownianSphere::FixBrownianSphere(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  FixBrownianBase(lmp, narg, arg)
 {
-  virial_flag = 1;
 
-  time_integrate = 1;
-
-  extra = NONE;
-
-  if (narg > 11 || narg < 8 )
-    error->all(FLERR,"Illegal fix brownian/sphere command.");
-
-  if (!atom->sphere_flag)
-    error->all(FLERR,"Fix brownian/sphere requires atom style sphere");
-
-  gamma_t = utils::numeric(FLERR,arg[3],false,lmp);
-  if (gamma_t <= 0.0)
-    error->all(FLERR,"Fix brownian/sphere translational viscous drag "
-	       "coefficient must be > 0.");
-
-  gamma_r = utils::numeric(FLERR,arg[4],false,lmp);
-  if (gamma_t <= 0.0)
-    error->all(FLERR,"Fix brownian/sphere rotational viscous drag "
-	       "coefficient must be > 0.");
-
-
-  diff_t = utils::numeric(FLERR,arg[5],false,lmp);
-  if (diff_t <= 0.0)
-    error->all(FLERR,"Fix brownian/sphere translational diffusion "
-	       "coefficient must be > 0.");
-  
-  diff_r = utils::numeric(FLERR,arg[6],false,lmp);
-  if (diff_r <= 0.0)
-    error->all(FLERR,"Fix brownian/sphere rotational diffusion "
-	       "coefficient must be > 0.");
-  
-  seed = utils::inumeric(FLERR,arg[7],false,lmp);
-  if (seed <= 0) error->all(FLERR,"Fix brownian/sphere seed must be > 0.");
-
-  noise_flag = 1;
-  gaussian_noise_flag = 0;
-
-  int iarg = 8;
-
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"rng") == 0) {
-      if (narg == iarg + 1) {
-	error->all(FLERR,"Illegal fix/brownian/sphere command.");
-      }
-      if (strcmp(arg[iarg + 1],"uniform") == 0) {
-	noise_flag = 1;
-      } else if (strcmp(arg[iarg + 1],"gaussian") == 0) {
-	noise_flag = 1;
-	gaussian_noise_flag = 1;
-      } else if (strcmp(arg[iarg + 1],"none") == 0) {
-	noise_flag = 0;
-      } else {
-	error->all(FLERR,"Illegal fix/brownian/sphere command.");
-      }
-      iarg = iarg + 2;
-    } else if (strcmp(arg[iarg],"dipole") == 0) {
-      extra = DIPOLE;
-      iarg = iarg + 1;
-    } else {
-      error->all(FLERR,"Illegal fix/brownian/sphere command.");
-    }
+  if (gamma_t_eigen_flag || gamma_r_eigen_flag) {
+    error->all(FLERR,"Illegal fix brownian command.");
   }
+
+  if (!gamma_t_flag || !gamma_r_flag) {
+    error->all(FLERR,"Illegal fix brownian command.");
+  }
+
   
-  if (extra == DIPOLE && !atom->mu_flag)
-    error->all(FLERR,"Fix brownian/sphere update dipole requires atom attribute mu");
+  if (!atom->mu_flag)
+    error->all(FLERR,"Fix brownian/sphere requires atom attribute mu");
 
-  // initialize Marsaglia RNG with processor-unique seed
-  random = new RanMars(lmp,seed + comm->me);
-
+    
 }
 
-/* ---------------------------------------------------------------------- */
-
-int FixBrownianSphere::setmask()
-{
-  int mask = 0;
-  mask |= INITIAL_INTEGRATE;
-  mask |= POST_FORCE;
-  return mask;
-}
 
 /* ---------------------------------------------------------------------- */
 
 FixBrownianSphere::~FixBrownianSphere()
 {
-  delete random;
 }
 
 
@@ -140,182 +71,162 @@ FixBrownianSphere::~FixBrownianSphere()
 
 void FixBrownianSphere::init()
 {
+
+  FixBrownianBase::init();
   
-  g1 =  force->ftm2v/gamma_t;
-  g3 = force->ftm2v/gamma_r;
-  if (noise_flag == 0) {
-    g2 = 0;
-    g4 = 0;
-    rng_func = &RanMars::zero_rng;
-  } else if (gaussian_noise_flag == 1) {
-    g2 = gamma_t*sqrt(2 * diff_t)/force->ftm2v;
-    g4 = gamma_r*sqrt(2 * diff_r)/force->ftm2v;
-    rng_func = &RanMars::gaussian;
-  } else {
-    g2 = gamma_t*sqrt( 24 * diff_t)/force->ftm2v;
-    g4 = gamma_r*sqrt( 24 * diff_r )/force->ftm2v;
-    rng_func = &RanMars::uniform_middle;
-  }
+  g3 = g1/gamma_r;
+  g4 = g2/sqrt(gamma_r);
+  
+  g1 /= gamma_t;
+  g2 /= sqrt(gamma_t);
 
-  dt = update->dt;
-  sqrtdt = sqrt(dt);
-}
 
-void FixBrownianSphere::setup(int vflag)
-{
-  post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixBrownianSphere::initial_integrate(int /* vflag */)
+void FixBrownianSphere::initial_integrate(int /*vflag */)
 {
-  double **x = atom->x;
-  double **v = atom->v;
-  double **f = atom->f;
-  double **omega = atom->omega;
-  double **torque = atom->torque;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  double dx,dy,dz;
-  
-  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  int d3rot;  // whether to compute angular momentum in xy plane
+  if (domain->dimension == 2) {
   
-  if (domain->dimension==2) {
-    d3rot = 0;
-  } else {
-    d3rot = 1;
-  }
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      
-      dx = dt * g1 * f[i][0];
-      x[i][0] +=  dx;
-      v[i][0]  =  dx/dt;
-      
-      dy = dt * g1 * f[i][1];
-      x[i][1] +=  dy;
-      v[i][1]  =  dy/dt;
-      
-      dz = dt * g1 * f[i][2];
-      x[i][2] +=  dz;
-      v[i][2]  =  dz/dt;
-      
-      omega[i][0] = d3rot * g3* torque[i][0];
-      omega[i][1] = d3rot * g3* torque[i][1];
-      omega[i][2] = g3* torque[i][2];
-            
+    if (!noise_flag) {
+      initial_integrate_templated<0,0,1>();
+    } else if (gaussian_noise_flag) {
+      initial_integrate_templated<0,1,1>();
+    } else {
+      initial_integrate_templated<1,0,1>();
     }
-  }
-  
-  if (extra == DIPOLE) {
-    
-    double **mu = atom->mu;
-    double dtheta;
-    double mux,muy,muz,mu_tmp,wx,wy,wz;
-    double prefac_1, prefac_2;
-    
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-	
-	dtheta = sqrt((omega[i][0]*dt)*(omega[i][0]*dt)
-		      +(omega[i][1]*dt)*(omega[i][1]*dt)
-		      +(omega[i][2]*dt)*(omega[i][2]*dt));
-	
-	
-	if (fabs(dtheta) < SMALL) {
-	  prefac_1 = dt;
-	  prefac_2 = 0.5*dt*dt;
-	} else {
-	  prefac_1 = dt*sin(dtheta)/dtheta;
-	  prefac_2 = dt*dt*(1-cos(dtheta))/(dtheta*dtheta);
-	}
-	
-	mux = mu[i][0];
-	muy = mu[i][1];
-	muz = mu[i][2];
-	
-	wx = omega[i][0];
-	wy = omega[i][1];
-	wz = omega[i][2];
-	
-	mu[i][0] = (mux + prefac_1 * ( -wz*muy + wy*muz )
-		    + prefac_2 * ( -1*( wz*wz + wy*wy ) * mux
-				   + ( wz*muz + wy*muy ) * wx));
-	
-	mu[i][1] = (muy + prefac_1 * ( wz*mux - wx*muz )
-		    + prefac_2 * ( -1*(wz*wz + wx*wx) * muy
-				   + ( wz*muz + wx*mux ) * wy));
-	
-	mu[i][2] = (muz + prefac_1 * ( -wy*mux + wx*muy )
-		    + prefac_2 * ( -1*( wx*wx + wy*wy ) * muz
-				   + ( wy*muy + wx*mux ) * wz));
-	
-	mu_tmp = sqrt(mu[i][0]*mu[i][0]+mu[i][1]*mu[i][1]+mu[i][2]*mu[i][2]);
-	
-	mu[i][0] = mu[i][0]/mu_tmp;
-	mu[i][1] = mu[i][1]/mu_tmp;
-	mu[i][2] = mu[i][2]/mu_tmp;
-      }
+  } else {
+    if (!noise_flag) {
+      initial_integrate_templated<0,0,0>();
+    } else if (gaussian_noise_flag) {
+      initial_integrate_templated<0,1,0>();
+    } else {
+      initial_integrate_templated<1,0,0>();
     }
   }
   
   return;
 }
 
-/* ----------------------------------------------------------------------
-   apply random force, stolen from MISC/fix_efield.cpp 
-------------------------------------------------------------------------- */
 
-void FixBrownianSphere::post_force(int vflag)
+/* ---------------------------------------------------------------------- */
+
+template < int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D >
+void FixBrownianSphere::initial_integrate_templated()
 {
-  double **f = atom->f;
   double **x = atom->x;
-  double **torque = atom->torque;
+  double **v = atom->v;
+  double **f = atom->f;
   int *mask = atom->mask;
-  imageint *image = atom->image;
   int nlocal = atom->nlocal;
+  double wx,wy,wz;
+  double **torque = atom->torque;
+  double **mu = atom->mu;
+  double mux,muy,muz,mulen;
   
-  // virial setup
-
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
-
-  double fx,fy,fz;
-  double v[6];
-
-  for (int i = 0; i < nlocal; i++)
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+  
+  
+  double dx,dy,dz;
+  
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      
-      fx = g2 * (random->*rng_func)()/sqrtdt;
-      fy = g2 * (random->*rng_func)()/sqrtdt;
-      fz = g2 * (random->*rng_func)()/sqrtdt;
-      f[i][0] += fx;
-      f[i][1] += fy;
-      f[i][2] += fz;
 
-      torque[i][0] = g4*(random->*rng_func)()/sqrtdt;
-      torque[i][1] = g4*(random->*rng_func)()/sqrtdt;
-      torque[i][2] = g4*(random->*rng_func)()/sqrtdt;
-
-	if (evflag) {
-	  v[0] = fx*x[i][0];
-	  v[1] = fy*x[i][1];
-	  v[2] = fz*x[i][2];
-	  v[3] = fx*x[i][1];
-	  v[4] = fx*x[i][2];
-	  v[5] = fy*x[i][2];
-	  v_tally(i, v);
+      if (Tp_2D) {
+	dz = 0;
+	wx = wy = 0;
+	if (Tp_UNIFORM) {
+	  dx = dt * (g1 * f[i][0] + g2 * (random->uniform()-0.5));
+	  dy = dt * (g1 * f[i][1] + g2 * (random->uniform()-0.5));
+	  wz = (random->uniform()-0.5)*g4;
+	  
+	} else if (Tp_GAUSS) {
+	  dx = dt * (g1 * f[i][0] + g2 * random->gaussian());
+	  dy = dt * (g1 * f[i][1] + g2 * random->gaussian());
+	  wz = random->gaussian()*g4;
+	  
+	  
+	} else {
+	  dx = dt * g1 * f[i][0];
+	  dy = dt * g1 * f[i][1];
+	  wz = 0;
+	  
 	}
+      } else {
+	if (Tp_UNIFORM) {
+	  dx = dt * (g1 * f[i][0] + g2 * (random->uniform()-0.5));
+	  dy = dt * (g1 * f[i][1] + g2 * (random->uniform()-0.5));
+	  dz = dt * (g1 * f[i][2] + g2 * (random->uniform()-0.5));
+	  wx = (random->uniform()-0.5)*g4;
+	  wy = (random->uniform()-0.5)*g4;
+	  wz = (random->uniform()-0.5)*g4;
+	  
+	} else if (Tp_GAUSS) {
+	  dx = dt * (g1 * f[i][0] + g2 * random->gaussian());
+	  dy = dt * (g1 * f[i][1] + g2 * random->gaussian());
+	  dz = dt * (g1 * f[i][2] + g2 * random->gaussian());
+	  wx = random->gaussian()*g4;
+	  wy = random->gaussian()*g4;
+	  wz = random->gaussian()*g4;
+	  
+	  
+	} else {
+	  dx = dt * g1 * f[i][0];
+	  dy = dt * g1 * f[i][1];
+	  dz = dt * g1 * f[i][2];
+	  wx = wy = wz = 0;
+	  
+	}
+      }
+      
+      x[i][0] +=  dx;
+      v[i][0]  =  dx/dt;
+      
+      
+      x[i][1] +=  dy;
+      v[i][1]  =  dy/dt;
+      
+      
+      x[i][2] +=  dz;
+      v[i][2]  =  dz/dt;
+
+
+	
+      wx += g3*torque[i][0];
+      wy += g3*torque[i][1];
+      wz += g3*torque[i][2];
+      
+      
+      // store length of dipole as we need to convert it to a unit vector and
+      // then back again
+      
+      mulen = sqrt(mu[i][0]*mu[i][0] + mu[i][1]*mu[i][1] + mu[i][2]*mu[i][2]);
+
+      // unit vector at time t
+      mux = mu[i][0]/mulen;
+      muy = mu[i][1]/mulen;
+      muz = mu[i][2]/mulen;
+
+
+
+      // un-normalised unit vector at time t + dt
+      mu[i][0] = mux + (wy*muz - wz*muy)*dt;
+      mu[i][1] = muy + (wz*mux - wx*muz)*dt;
+      mu[i][2] = muz + (wx*muy - wy*mux)*dt;
+      
+      // normalisation introduces the stochastic drift term due to changing from
+      // Stratonovich to Ito interpretation
+      MathExtra::norm3(mu[i]);
+
+      // multiply by original magnitude to obtain dipole of same length
+      mu[i][0] = mu[i][0]*mulen;
+      mu[i][1] = mu[i][1]*mulen;
+      mu[i][2] = mu[i][2]*mulen;
+      
     }
-}
+  }
 
-void FixBrownianSphere::reset_dt()
-{
-
-  dt = update->dt;
-  sqrtdt = sqrt(dt);
+  return;
 }

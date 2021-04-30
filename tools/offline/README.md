@@ -12,8 +12,7 @@ It does so by
 
 As of April 2021, all of these downloads make up around 600MB.  By
 default, it will download everything into $HOME/.cache/lammps, but this can be
-changed with the ``LAMMPS_CACHING_DIR`` environment variable. Note that due to
-a limitation in pip, the ``LAMMPS_CACHING_DIR`` can not contain spaces.
+changed with the ``LAMMPS_CACHING_DIR`` environment variable.
 
 Once the caches have been initialized, they can be used for building
 LAMMPS documentation or compiling using CMake on an offline system.

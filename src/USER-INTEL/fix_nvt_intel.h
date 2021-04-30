@@ -17,7 +17,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nvt/intel,FixNVTIntel)
+FixStyle(nvt/intel,FixNVTIntel);
 // clang-format on
 #else
 

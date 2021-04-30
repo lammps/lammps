@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(rdf,ComputeRDF)
+ComputeStyle(rdf,ComputeRDF);
 // clang-format on
 #else
 

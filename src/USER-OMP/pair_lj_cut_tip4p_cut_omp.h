@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/cut/tip4p/cut/omp,PairLJCutTIP4PCutOMP)
+PairStyle(lj/cut/tip4p/cut/omp,PairLJCutTIP4PCutOMP);
 // clang-format on
 #else
 

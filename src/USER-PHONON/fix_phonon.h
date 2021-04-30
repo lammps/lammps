@@ -25,7 +25,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(phonon,FixPhonon)
+FixStyle(phonon,FixPhonon);
 // clang-format on
 #else
 

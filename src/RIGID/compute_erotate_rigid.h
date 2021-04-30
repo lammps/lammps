@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(erotate/rigid,ComputeERotateRigid)
+ComputeStyle(erotate/rigid,ComputeERotateRigid);
 // clang-format on
 #else
 

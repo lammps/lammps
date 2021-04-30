@@ -13,7 +13,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(fourier,AngleFourier)
+AngleStyle(fourier,AngleFourier);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(create_bonds,CreateBonds)
+CommandStyle(create_bonds,CreateBonds);
 // clang-format on
 #else
 

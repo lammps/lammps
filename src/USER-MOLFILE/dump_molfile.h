@@ -15,7 +15,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(molfile,DumpMolfile)
+DumpStyle(molfile,DumpMolfile);
 // clang-format on
 #else
 

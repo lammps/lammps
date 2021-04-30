@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(beck,PairBeck)
+PairStyle(beck,PairBeck);
 // clang-format on
 #else
 

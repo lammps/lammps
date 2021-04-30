@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(gw/zbl,PairGWZBL)
+PairStyle(gw/zbl,PairGWZBL);
 // clang-format on
 #else
 

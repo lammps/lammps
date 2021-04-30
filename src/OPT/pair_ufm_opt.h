@@ -19,7 +19,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(ufm/opt,PairUFMOpt)
+PairStyle(ufm/opt,PairUFMOpt);
 // clang-format on
 #else
 

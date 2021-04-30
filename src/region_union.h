@@ -13,7 +13,7 @@
 
 #ifdef REGION_CLASS
 // clang-format off
-RegionStyle(union,RegUnion)
+RegionStyle(union,RegUnion);
 // clang-format on
 #else
 

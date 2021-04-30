@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(heat/flux,ComputeHeatFlux)
+ComputeStyle(heat/flux,ComputeHeatFlux);
 // clang-format on
 #else
 

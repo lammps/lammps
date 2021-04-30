@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(nb3b/harmonic,PairNb3bHarmonic)
+PairStyle(nb3b/harmonic,PairNb3bHarmonic);
 // clang-format on
 #else
 

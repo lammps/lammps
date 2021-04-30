@@ -13,9 +13,9 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(atomic/kk,AtomVecAtomicKokkos)
-AtomStyle(atomic/kk/device,AtomVecAtomicKokkos)
-AtomStyle(atomic/kk/host,AtomVecAtomicKokkos)
+AtomStyle(atomic/kk,AtomVecAtomicKokkos);
+AtomStyle(atomic/kk/device,AtomVecAtomicKokkos);
+AtomStyle(atomic/kk/host,AtomVecAtomicKokkos);
 // clang-format on
 #else
 

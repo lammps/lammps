@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(plugin,Plugin)
+CommandStyle(plugin,Plugin);
 // clang-format on
 #else
 

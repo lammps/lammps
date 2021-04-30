@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(harmonic/shift,BondHarmonicShift)
+BondStyle(harmonic/shift,BondHarmonicShift);
 // clang-format on
 #else
 

@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/damage,ComputeSMDDamage)
+ComputeStyle(smd/damage,ComputeSMDDamage);
 // clang-format on
 #else
 

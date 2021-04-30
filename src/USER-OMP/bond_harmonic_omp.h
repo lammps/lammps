@@ -17,7 +17,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(harmonic/omp,BondHarmonicOMP)
+BondStyle(harmonic/omp,BondHarmonicOMP);
 // clang-format on
 #else
 

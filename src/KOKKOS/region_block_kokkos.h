@@ -13,9 +13,9 @@
 
 #ifdef REGION_CLASS
 // clang-format off
-RegionStyle(block/kk,RegBlockKokkos<LMPDeviceType>)
-RegionStyle(block/kk/device,RegBlockKokkos<LMPDeviceType>)
-RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>)
+RegionStyle(block/kk,RegBlockKokkos<LMPDeviceType>);
+RegionStyle(block/kk/device,RegBlockKokkos<LMPDeviceType>);
+RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>);
 // clang-format on
 #else
 

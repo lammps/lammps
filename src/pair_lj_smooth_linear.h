@@ -13,8 +13,8 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/smooth/linear,PairLJSmoothLinear)
-PairStyle(lj/sf,PairLJSmoothLinear)
+PairStyle(lj/smooth/linear,PairLJSmoothLinear);
+PairStyle(lj/sf,PairLJSmoothLinear);
 // clang-format on
 #else
 

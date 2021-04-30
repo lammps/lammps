@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(local/gz,DumpLocalGZ)
+DumpStyle(local/gz,DumpLocalGZ);
 // clang-format on
 #else
 

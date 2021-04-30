@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(replicate,Replicate)
+CommandStyle(replicate,Replicate);
 // clang-format on
 #else
 

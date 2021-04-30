@@ -13,7 +13,7 @@
 
 #ifdef KSPACE_CLASS
 // clang-format off
-KSpaceStyle(pppm/cg/omp,PPPMCGOMP)
+KSpaceStyle(pppm/cg/omp,PPPMCGOMP);
 // clang-format on
 #else
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-AngleStyle(cosine/shift/exp,AngleCosineShiftExp)
+AngleStyle(cosine/shift/exp,AngleCosineShiftExp);
 #else
 
 #ifndef LMP_ANGLE_COSINE_SHIFT_EXP_H

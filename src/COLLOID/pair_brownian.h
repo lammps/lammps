@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(brownian,PairBrownian)
+PairStyle(brownian,PairBrownian);
 // clang-format on
 #else
 

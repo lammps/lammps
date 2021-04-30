@@ -17,8 +17,8 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/smooth/linear/omp,PairLJSmoothLinearOMP)
-PairStyle(lj/sf/omp,PairLJSmoothLinearOMP)
+PairStyle(lj/smooth/linear/omp,PairLJSmoothLinearOMP);
+PairStyle(lj/sf/omp,PairLJSmoothLinearOMP);
 // clang-format on
 #else
 

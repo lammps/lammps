@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(msd/nongauss,ComputeMSDNonGauss)
+ComputeStyle(msd/nongauss,ComputeMSDNonGauss);
 // clang-format on
 #else
 

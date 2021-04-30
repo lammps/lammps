@@ -23,7 +23,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(mgpt,PairMGPT)
+PairStyle(mgpt,PairMGPT);
 // clang-format on
 #else
 

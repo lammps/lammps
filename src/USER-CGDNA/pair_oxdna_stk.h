@@ -13,8 +13,8 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(oxdna/stk,PairOxdnaStk)
-PairStyle(oxdna2/stk,PairOxdnaStk)
+PairStyle(oxdna/stk,PairOxdnaStk);
+PairStyle(oxdna2/stk,PairOxdnaStk);
 // clang-format on
 #else
 

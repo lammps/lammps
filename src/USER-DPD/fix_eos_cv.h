@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(eos/cv,FixEOScv)
+FixStyle(eos/cv,FixEOScv);
 // clang-format on
 #else
 

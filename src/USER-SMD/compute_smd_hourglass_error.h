@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/hourglass/error,ComputeSMDHourglassError)
+ComputeStyle(smd/hourglass/error,ComputeSMDHourglassError);
 // clang-format on
 #else
 

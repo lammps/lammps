@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(npt/cauchy,FixNPTCauchy)
+FixStyle(npt/cauchy,FixNPTCauchy);
 // clang-format on
 #else
 

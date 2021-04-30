@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(image,DumpImage)
+DumpStyle(image,DumpImage);
 // clang-format on
 #else
 

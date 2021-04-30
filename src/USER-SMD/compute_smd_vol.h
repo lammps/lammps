@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/vol,ComputeSMDVol)
+ComputeStyle(smd/vol,ComputeSMDVol);
 // clang-format on
 #else
 

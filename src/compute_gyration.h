@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(gyration,ComputeGyration)
+ComputeStyle(gyration,ComputeGyration);
 // clang-format on
 #else
 

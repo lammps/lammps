@@ -18,7 +18,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(electron/stopping/fit,FixElectronStoppingFit)
+FixStyle(electron/stopping/fit,FixElectronStoppingFit);
 // clang-format on
 #else
 

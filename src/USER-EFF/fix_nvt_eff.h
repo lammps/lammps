@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nvt/eff,FixNVTEff)
+FixStyle(nvt/eff,FixNVTEff);
 // clang-format on
 #else
 

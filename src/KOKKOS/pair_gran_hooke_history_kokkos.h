@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(gran/hooke/history/kk,PairGranHookeHistoryKokkos<LMPDeviceType>)
-PairStyle(gran/hooke/history/kk/device,PairGranHookeHistoryKokkos<LMPDeviceType>)
-PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<LMPHostType>)
+PairStyle(gran/hooke/history/kk,PairGranHookeHistoryKokkos<LMPDeviceType>);
+PairStyle(gran/hooke/history/kk/device,PairGranHookeHistoryKokkos<LMPDeviceType>);
+PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<LMPHostType>);
 // clang-format on
 #else
 

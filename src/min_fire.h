@@ -13,7 +13,7 @@
 
 #ifdef MINIMIZE_CLASS
 // clang-format off
-MinimizeStyle(fire,MinFire)
+MinimizeStyle(fire,MinFire);
 // clang-format on
 #else
 

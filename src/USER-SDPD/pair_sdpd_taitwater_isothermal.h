@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(sdpd/taitwater/isothermal,PairSDPDTaitwaterIsothermal)
+PairStyle(sdpd/taitwater/isothermal,PairSDPDTaitwaterIsothermal);
 // clang-format on
 #else
 

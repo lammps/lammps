@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(reax/c/bonds,FixReaxCBonds)
+FixStyle(reax/c/bonds,FixReaxCBonds);
 // clang-format on
 #else
 

@@ -17,7 +17,7 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(harmonic/intel,DihedralHarmonicIntel)
+DihedralStyle(harmonic/intel,DihedralHarmonicIntel);
 // clang-format on
 #else
 

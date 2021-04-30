@@ -13,7 +13,7 @@
 
 #ifdef BODY_CLASS
 // clang-format off
-BodyStyle(rounded/polyhedron,BodyRoundedPolyhedron)
+BodyStyle(rounded/polyhedron,BodyRoundedPolyhedron);
 // clang-format on
 #else
 

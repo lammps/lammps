@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(mliap,ComputeMLIAP)
+ComputeStyle(mliap,ComputeMLIAP);
 // clang-format on
 #else
 

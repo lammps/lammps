@@ -13,7 +13,7 @@
 
 #ifdef REGION_CLASS
 // clang-format off
-RegionStyle(cylinder,RegCylinder)
+RegionStyle(cylinder,RegCylinder);
 // clang-format on
 #else
 

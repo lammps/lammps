@@ -14,7 +14,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(temper/npt,TemperNPT)
+CommandStyle(temper/npt,TemperNPT);
 // clang-format on
 #else
 

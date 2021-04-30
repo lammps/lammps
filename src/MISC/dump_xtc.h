@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(xtc,DumpXTC)
+DumpStyle(xtc,DumpXTC);
 // clang-format on
 #else
 

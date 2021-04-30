@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sf/dipole/sf,PairLJSFDipoleSF)
+PairStyle(lj/sf/dipole/sf,PairLJSFDipoleSF);
 // clang-format on
 #else
 

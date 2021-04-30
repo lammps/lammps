@@ -17,7 +17,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(gromos/omp,BondGromosOMP)
+BondStyle(gromos/omp,BondGromosOMP);
 // clang-format on
 #else
 

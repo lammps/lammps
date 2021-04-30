@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(langevin/drude,FixLangevinDrude)
+FixStyle(langevin/drude,FixLangevinDrude);
 // clang-format on
 #else
 

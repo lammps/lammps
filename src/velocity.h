@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(velocity,Velocity)
+CommandStyle(velocity,Velocity);
 // clang-format on
 #else
 

@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(meam/spline/omp,PairMEAMSplineOMP)
+PairStyle(meam/spline/omp,PairMEAMSplineOMP);
 // clang-format on
 #else
 

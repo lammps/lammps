@@ -13,7 +13,7 @@
 
 #ifdef INTEGRATE_CLASS
 // clang-format off
-IntegrateStyle(respa,Respa)
+IntegrateStyle(respa,Respa);
 // clang-format on
 #else
 

@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(gran/hertz/history/omp,PairGranHertzHistoryOMP)
+PairStyle(gran/hertz/history/omp,PairGranHertzHistoryOMP);
 // clang-format on
 #else
 

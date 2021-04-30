@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(airebo/intel,PairAIREBOIntel)
+PairStyle(airebo/intel,PairAIREBOIntel);
 // clang-format on
 #else
 

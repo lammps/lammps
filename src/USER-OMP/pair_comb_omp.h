@@ -12,7 +12,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(comb/omp,PairCombOMP)
+PairStyle(comb/omp,PairCombOMP);
 // clang-format on
 #else
 

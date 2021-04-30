@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nve/sphere/kk,FixNVESphereKokkos<LMPDeviceType>)
-FixStyle(nve/sphere/kk/device,FixNVESphereKokkos<LMPDeviceType>)
-FixStyle(nve/sphere/kk/host,FixNVESphereKokkos<LMPHostType>)
+FixStyle(nve/sphere/kk,FixNVESphereKokkos<LMPDeviceType>);
+FixStyle(nve/sphere/kk/device,FixNVESphereKokkos<LMPDeviceType>);
+FixStyle(nve/sphere/kk/host,FixNVESphereKokkos<LMPHostType>);
 // clang-format on
 #else
 

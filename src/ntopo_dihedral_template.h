@@ -13,7 +13,7 @@
 
 #ifdef NTOPO_CLASS
 // clang-format off
-NTopoStyle(NTOPO_DIHEDRAL_TEMPLATE,NTopoDihedralTemplate)
+NTopoStyle(NTOPO_DIHEDRAL_TEMPLATE,NTopoDihedralTemplate);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(reax/c/species,FixReaxCSpecies)
+FixStyle(reax/c/species,FixReaxCSpecies);
 // clang-format on
 #else
 

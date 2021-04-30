@@ -15,7 +15,7 @@
 
 // list all deprecated and removed compute styles here
 // clang-format off
-ComputeStyle(DEPRECATED,ComputeDeprecated)
+ComputeStyle(DEPRECATED,ComputeDeprecated);
 // clang-format on
 #else
 

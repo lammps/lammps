@@ -13,7 +13,7 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(table/cut,DihedralTableCut)
+DihedralStyle(table/cut,DihedralTableCut);
 // clang-format on
 #else
 

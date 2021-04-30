@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lebedeva/z,PairLebedevaZ)
+PairStyle(lebedeva/z,PairLebedevaZ);
 // clang-format on
 #else
 

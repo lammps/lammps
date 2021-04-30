@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(event/displace,ComputeEventDisplace)
+ComputeStyle(event/displace,ComputeEventDisplace);
 // clang-format on
 #else
 

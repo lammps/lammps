@@ -19,7 +19,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(custom/zstd,DumpCustomZstd)
+DumpStyle(custom/zstd,DumpCustomZstd);
 // clang-format on
 #else
 

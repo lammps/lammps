@@ -13,7 +13,7 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(DEPRECATED,DihedralDeprecated)
+DihedralStyle(DEPRECATED,DihedralDeprecated);
 // clang-format on
 #else
 

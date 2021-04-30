@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(agni/omp,PairAGNIOMP)
+PairStyle(agni/omp,PairAGNIOMP);
 // clang-format on
 #else
 

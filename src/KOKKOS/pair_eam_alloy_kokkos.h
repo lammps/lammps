@@ -14,9 +14,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(eam/alloy/kk,PairEAMAlloyKokkos<LMPDeviceType>)
-PairStyle(eam/alloy/kk/device,PairEAMAlloyKokkos<LMPDeviceType>)
-PairStyle(eam/alloy/kk/host,PairEAMAlloyKokkos<LMPHostType>)
+PairStyle(eam/alloy/kk,PairEAMAlloyKokkos<LMPDeviceType>);
+PairStyle(eam/alloy/kk/device,PairEAMAlloyKokkos<LMPDeviceType>);
+PairStyle(eam/alloy/kk/host,PairEAMAlloyKokkos<LMPHostType>);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(thermal/conductivity,FixThermalConductivity)
+FixStyle(thermal/conductivity,FixThermalConductivity);
 // clang-format on
 #else
 

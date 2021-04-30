@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(entropy/atom,ComputeEntropyAtom)
+ComputeStyle(entropy/atom,ComputeEntropyAtom);
 // clang-format on
 #else
 

@@ -17,7 +17,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(harmonic/intel,ImproperHarmonicIntel)
+ImproperStyle(harmonic/intel,ImproperHarmonicIntel);
 // clang-format on
 #else
 

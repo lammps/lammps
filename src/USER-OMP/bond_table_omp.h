@@ -17,7 +17,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(table/omp,BondTableOMP)
+BondStyle(table/omp,BondTableOMP);
 // clang-format on
 #else
 

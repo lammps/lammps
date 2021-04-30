@@ -15,7 +15,7 @@
 
 // list all deprecated and removed region styles here
 // clang-format off
-RegionStyle(DEPRECATED,RegionDeprecated)
+RegionStyle(DEPRECATED,RegionDeprecated);
 // clang-format on
 #else
 

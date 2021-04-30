@@ -1,6 +1,6 @@
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(momentum,ComputeMomentum)
+ComputeStyle(momentum,ComputeMomentum);
 
 #else
 

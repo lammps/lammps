@@ -13,9 +13,9 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(opls/kk,DihedralOPLSKokkos<LMPDeviceType>)
-DihedralStyle(opls/kk/device,DihedralOPLSKokkos<LMPDeviceType>)
-DihedralStyle(opls/kk/host,DihedralOPLSKokkos<LMPHostType>)
+DihedralStyle(opls/kk,DihedralOPLSKokkos<LMPDeviceType>);
+DihedralStyle(opls/kk/device,DihedralOPLSKokkos<LMPDeviceType>);
+DihedralStyle(opls/kk/host,DihedralOPLSKokkos<LMPHostType>);
 // clang-format on
 #else
 

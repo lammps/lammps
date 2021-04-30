@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(hexorder/atom,ComputeHexOrderAtom)
+ComputeStyle(hexorder/atom,ComputeHexOrderAtom);
 // clang-format on
 #else
 

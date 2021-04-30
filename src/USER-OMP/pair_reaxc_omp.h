@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(reax/c/omp,PairReaxCOMP)
+PairStyle(reax/c/omp,PairReaxCOMP);
 // clang-format on
 #else
 

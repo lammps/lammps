@@ -13,7 +13,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(table,AngleTable)
+AngleStyle(table,AngleTable);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(gauss,PairGauss)
+PairStyle(gauss,PairGauss);
 // clang-format on
 #else
 

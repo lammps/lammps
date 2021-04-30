@@ -14,7 +14,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(h5md,DumpH5MD)
+DumpStyle(h5md,DumpH5MD);
 // clang-format on
 #else
 

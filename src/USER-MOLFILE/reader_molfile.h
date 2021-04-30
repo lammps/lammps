@@ -15,7 +15,7 @@
 
 #ifdef READER_CLASS
 // clang-format off
-ReaderStyle(molfile,ReaderMolfile)
+ReaderStyle(molfile,ReaderMolfile);
 // clang-format on
 #else
 

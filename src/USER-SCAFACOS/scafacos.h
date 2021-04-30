@@ -13,7 +13,7 @@
 
 #ifdef KSPACE_CLASS
 // clang-format off
-KSpaceStyle(scafacos,Scafacos)
+KSpaceStyle(scafacos,Scafacos);
 // clang-format on
 #else
 

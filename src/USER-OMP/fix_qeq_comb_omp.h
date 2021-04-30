@@ -8,7 +8,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(qeq/comb/omp,FixQEQCombOMP)
+FixStyle(qeq/comb/omp,FixQEQCombOMP);
 // clang-format on
 #else
 

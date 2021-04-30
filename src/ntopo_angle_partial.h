@@ -13,7 +13,7 @@
 
 #ifdef NTOPO_CLASS
 // clang-format off
-NTopoStyle(NTOPO_ANGLE_PARTIAL,NTopoAnglePartial)
+NTopoStyle(NTOPO_ANGLE_PARTIAL,NTopoAnglePartial);
 // clang-format on
 #else
 

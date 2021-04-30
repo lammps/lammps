@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(oxdna/fene,BondOxdnaFene)
+BondStyle(oxdna/fene,BondOxdnaFene);
 // clang-format on
 #else
 

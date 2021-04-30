@@ -17,7 +17,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nve/asphere/intel,FixNVEAsphereIntel)
+FixStyle(nve/asphere/intel,FixNVEAsphereIntel);
 // clang-format on
 #else
 

@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(qeq/reax/kk,FixQEqReaxKokkos<LMPDeviceType>)
-FixStyle(qeq/reax/kk/device,FixQEqReaxKokkos<LMPDeviceType>)
-FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>)
+FixStyle(qeq/reax/kk,FixQEqReaxKokkos<LMPDeviceType>);
+FixStyle(qeq/reax/kk/device,FixQEqReaxKokkos<LMPDeviceType>);
+FixStyle(qeq/reax/kk/host,FixQEqReaxKokkos<LMPHostType>);
 // clang-format on
 #else
 

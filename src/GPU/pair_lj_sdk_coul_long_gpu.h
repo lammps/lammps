@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sdk/coul/long/gpu,PairLJSDKCoulLongGPU)
+PairStyle(lj/sdk/coul/long/gpu,PairLJSDKCoulLongGPU);
 // clang-format on
 #else
 

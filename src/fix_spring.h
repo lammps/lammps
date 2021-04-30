@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(spring,FixSpring)
+FixStyle(spring,FixSpring);
 // clang-format on
 #else
 

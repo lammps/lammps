@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(tersoff/zbl,PairTersoffZBL)
+PairStyle(tersoff/zbl,PairTersoffZBL);
 // clang-format on
 #else
 

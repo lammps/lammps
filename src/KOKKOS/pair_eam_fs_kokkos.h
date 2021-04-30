@@ -14,9 +14,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(eam/fs/kk,PairEAMFSKokkos<LMPDeviceType>)
-PairStyle(eam/fs/kk/device,PairEAMFSKokkos<LMPDeviceType>)
-PairStyle(eam/fs/kk/host,PairEAMFSKokkos<LMPHostType>)
+PairStyle(eam/fs/kk,PairEAMFSKokkos<LMPDeviceType>);
+PairStyle(eam/fs/kk/device,PairEAMFSKokkos<LMPDeviceType>);
+PairStyle(eam/fs/kk/host,PairEAMFSKokkos<LMPHostType>);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(fourier,ImproperFourier)
+ImproperStyle(fourier,ImproperFourier);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(dipole,AtomVecDipole)
+AtomStyle(dipole,AtomVecDipole);
 // clang-format on
 #else
 

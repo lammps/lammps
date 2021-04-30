@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/gromacs/coul/gromacs,PairLJGromacsCoulGromacs)
+PairStyle(lj/gromacs/coul/gromacs,PairLJGromacsCoulGromacs);
 // clang-format on
 #else
 

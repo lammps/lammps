@@ -17,7 +17,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nve/awpmd,FixNVEAwpmd)
+FixStyle(nve/awpmd,FixNVEAwpmd);
 // clang-format on
 #else
 

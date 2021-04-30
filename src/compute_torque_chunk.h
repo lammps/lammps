@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(torque/chunk,ComputeTorqueChunk)
+ComputeStyle(torque/chunk,ComputeTorqueChunk);
 // clang-format on
 #else
 

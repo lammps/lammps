@@ -17,7 +17,7 @@
 
 #ifdef KSPACE_CLASS
 // clang-format off
-KSpaceStyle(pppm/disp/intel,PPPMDispIntel)
+KSpaceStyle(pppm/disp/intel,PPPMDispIntel);
 // clang-format on
 #else
 

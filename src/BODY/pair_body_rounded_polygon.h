@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(body/rounded/polygon,PairBodyRoundedPolygon)
+PairStyle(body/rounded/polygon,PairBodyRoundedPolygon);
 // clang-format on
 #else
 

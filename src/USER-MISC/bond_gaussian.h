@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(gaussian,BondGaussian)
+BondStyle(gaussian,BondGaussian);
 // clang-format on
 #else
 

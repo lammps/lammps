@@ -13,7 +13,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(sdk,AngleSDK)
+AngleStyle(sdk,AngleSDK);
 // clang-format on
 #else
 

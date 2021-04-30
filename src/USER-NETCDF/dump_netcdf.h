@@ -19,7 +19,7 @@
 
 #ifdef DUMP_CLASS
 
-DumpStyle(netcdf,DumpNetCDF)
+DumpStyle(netcdf,DumpNetCDF);
 
 #else
 

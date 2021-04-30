@@ -15,7 +15,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(read_dump,ReadDump)
+CommandStyle(read_dump,ReadDump);
 // clang-format on
 #else
 

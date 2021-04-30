@@ -15,9 +15,9 @@
 
 // list all deprecated and removed fix styles here
 // clang-format off
-FixStyle(DEPRECATED,FixDeprecated)
-FixStyle(ave/spatial,FixDeprecated)
-FixStyle(ave/spatial/sphere,FixDeprecated)
+FixStyle(DEPRECATED,FixDeprecated);
+FixStyle(ave/spatial,FixDeprecated);
+FixStyle(ave/spatial/sphere,FixDeprecated);
 // clang-format on
 #else
 

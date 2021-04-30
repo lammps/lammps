@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(vashishta/table/omp,PairVashishtaTableOMP)
+PairStyle(vashishta/table/omp,PairVashishtaTableOMP);
 // clang-format on
 #else
 

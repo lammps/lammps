@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(morse/kk,PairMorseKokkos<LMPDeviceType>)
-PairStyle(morse/kk/device,PairMorseKokkos<LMPDeviceType>)
-PairStyle(morse/kk/host,PairMorseKokkos<LMPHostType>)
+PairStyle(morse/kk,PairMorseKokkos<LMPDeviceType>);
+PairStyle(morse/kk/device,PairMorseKokkos<LMPDeviceType>);
+PairStyle(morse/kk/host,PairMorseKokkos<LMPHostType>);
 // clang-format on
 #else
 

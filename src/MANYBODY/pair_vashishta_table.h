@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(vashishta/table,PairVashishtaTable)
+PairStyle(vashishta/table,PairVashishtaTable);
 // clang-format on
 #else
 

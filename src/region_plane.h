@@ -13,7 +13,7 @@
 
 #ifdef REGION_CLASS
 // clang-format off
-RegionStyle(plane,RegPlane)
+RegionStyle(plane,RegPlane);
 // clang-format on
 #else
 

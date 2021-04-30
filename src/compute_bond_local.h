@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(bond/local,ComputeBondLocal)
+ComputeStyle(bond/local,ComputeBondLocal);
 // clang-format on
 #else
 

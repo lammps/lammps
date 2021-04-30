@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(hybrid/kk,PairHybridKokkos)
+PairStyle(hybrid/kk,PairHybridKokkos);
 // clang-format on
 #else
 

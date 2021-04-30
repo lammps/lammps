@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(yukawa/colloid,PairYukawaColloid)
+PairStyle(yukawa/colloid,PairYukawaColloid);
 // clang-format on
 #else
 

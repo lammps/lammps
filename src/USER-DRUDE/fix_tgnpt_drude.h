@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(tgnpt/drude,FixTGNPTDrude)
+FixStyle(tgnpt/drude,FixTGNPTDrude);
 // clang-format on
 #else
 

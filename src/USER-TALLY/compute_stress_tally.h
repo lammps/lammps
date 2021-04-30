@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(stress/tally,ComputeStressTally)
+ComputeStyle(stress/tally,ComputeStressTally);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(sph/taitwater,PairSPHTaitwater)
+PairStyle(sph/taitwater,PairSPHTaitwater);
 // clang-format on
 #else
 

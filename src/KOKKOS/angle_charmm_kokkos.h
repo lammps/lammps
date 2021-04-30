@@ -13,9 +13,9 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(charmm/kk,AngleCharmmKokkos<LMPDeviceType>)
-AngleStyle(charmm/kk/device,AngleCharmmKokkos<LMPDeviceType>)
-AngleStyle(charmm/kk/host,AngleCharmmKokkos<LMPHostType>)
+AngleStyle(charmm/kk,AngleCharmmKokkos<LMPDeviceType>);
+AngleStyle(charmm/kk/device,AngleCharmmKokkos<LMPDeviceType>);
+AngleStyle(charmm/kk/host,AngleCharmmKokkos<LMPHostType>);
 // clang-format on
 #else
 

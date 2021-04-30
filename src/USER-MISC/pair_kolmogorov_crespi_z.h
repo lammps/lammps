@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(kolmogorov/crespi/z,PairKolmogorovCrespiZ)
+PairStyle(kolmogorov/crespi/z,PairKolmogorovCrespiZ);
 // clang-format on
 #else
 

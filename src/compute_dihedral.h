@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(dihedral,ComputeDihedral)
+ComputeStyle(dihedral,ComputeDihedral);
 // clang-format on
 #else
 

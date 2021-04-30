@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(gayberne/gpu,PairGayBerneGPU)
+PairStyle(gayberne/gpu,PairGayBerneGPU);
 // clang-format on
 #else
 

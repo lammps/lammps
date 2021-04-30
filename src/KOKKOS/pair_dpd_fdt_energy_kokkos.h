@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(dpd/fdt/energy/kk,PairDPDfdtEnergyKokkos<LMPDeviceType>)
-PairStyle(dpd/fdt/energy/kk/device,PairDPDfdtEnergyKokkos<LMPDeviceType>)
-PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>)
+PairStyle(dpd/fdt/energy/kk,PairDPDfdtEnergyKokkos<LMPDeviceType>);
+PairStyle(dpd/fdt/energy/kk/device,PairDPDfdtEnergyKokkos<LMPDeviceType>);
+PairStyle(dpd/fdt/energy/kk/host,PairDPDfdtEnergyKokkos<LMPHostType>);
 // clang-format on
 #else
 

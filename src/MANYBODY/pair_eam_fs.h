@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(eam/fs,PairEAMFS)
+PairStyle(eam/fs,PairEAMFS);
 // clang-format on
 #else
 

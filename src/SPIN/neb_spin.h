@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(neb/spin,NEBSpin)
+CommandStyle(neb/spin,NEBSpin);
 // clang-format on
 #else
 

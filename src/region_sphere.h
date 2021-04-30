@@ -13,7 +13,7 @@
 
 #ifdef REGION_CLASS
 // clang-format off
-RegionStyle(sphere,RegSphere)
+RegionStyle(sphere,RegSphere);
 // clang-format on
 #else
 

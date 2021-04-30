@@ -57,7 +57,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(STORE/KIM,FixStoreKIM)
+FixStyle(STORE/KIM,FixStoreKIM);
 // clang-format on
 #else
 

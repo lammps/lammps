@@ -17,7 +17,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(fene/expand/omp,BondFENEExpandOMP)
+BondStyle(fene/expand/omp,BondFENEExpandOMP);
 // clang-format on
 #else
 

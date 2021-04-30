@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(dpd/energy,FixDPDenergy)
+FixStyle(dpd/energy,FixDPDenergy);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lubricateU,PairLubricateU)
+PairStyle(lubricateU,PairLubricateU);
 // clang-format on
 #else
 

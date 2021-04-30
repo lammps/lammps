@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(buck/coul/msm,PairBuckCoulMSM)
+PairStyle(buck/coul/msm,PairBuckCoulMSM);
 // clang-format on
 #else
 

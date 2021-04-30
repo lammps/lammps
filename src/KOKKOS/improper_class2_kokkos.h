@@ -13,9 +13,9 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(class2/kk,ImproperClass2Kokkos<LMPDeviceType>)
-ImproperStyle(class2/kk/device,ImproperClass2Kokkos<LMPDeviceType>)
-ImproperStyle(class2/kk/host,ImproperClass2Kokkos<LMPHostType>)
+ImproperStyle(class2/kk,ImproperClass2Kokkos<LMPDeviceType>);
+ImproperStyle(class2/kk/device,ImproperClass2Kokkos<LMPDeviceType>);
+ImproperStyle(class2/kk/host,ImproperClass2Kokkos<LMPHostType>);
 // clang-format on
 #else
 

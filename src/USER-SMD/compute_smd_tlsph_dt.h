@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/tlsph/dt,ComputeSMDTlsphDt)
+ComputeStyle(smd/tlsph/dt,ComputeSMDTlsphDt);
 // clang-format on
 #else
 

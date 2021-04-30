@@ -24,7 +24,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(smd/move_tri_surf,FixSMDMoveTriSurf)
+FixStyle(smd/move_tri_surf,FixSMDMoveTriSurf);
 // clang-format on
 #else
 

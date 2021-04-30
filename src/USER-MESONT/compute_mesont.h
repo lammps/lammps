@@ -15,7 +15,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(mesont,ComputeMesoNT)
+ComputeStyle(mesont,ComputeMesoNT);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(custom/mpiio,DumpCustomMPIIO)
+DumpStyle(custom/mpiio,DumpCustomMPIIO);
 // clang-format on
 #else
 

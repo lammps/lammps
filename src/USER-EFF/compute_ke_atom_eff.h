@@ -14,7 +14,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(ke/atom/eff,ComputeKEAtomEff)
+ComputeStyle(ke/atom/eff,ComputeKEAtomEff);
 // clang-format on
 #else
 

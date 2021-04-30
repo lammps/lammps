@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(yukawa/colloid/gpu,PairYukawaColloidGPU)
+PairStyle(yukawa/colloid/gpu,PairYukawaColloidGPU);
 // clang-format on
 #else
 

@@ -15,7 +15,7 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(mesont,AtomVecMesoNT)
+AtomStyle(mesont,AtomVecMesoNT);
 // clang-format on
 #else
 

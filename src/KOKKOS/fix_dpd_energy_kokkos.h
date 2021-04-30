@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(dpd/energy/kk,FixDPDenergyKokkos<LMPDeviceType>)
-FixStyle(dpd/energy/kk/device,FixDPDenergyKokkos<LMPDeviceType>)
-FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>)
+FixStyle(dpd/energy/kk,FixDPDenergyKokkos<LMPDeviceType>);
+FixStyle(dpd/energy/kk/device,FixDPDenergyKokkos<LMPDeviceType>);
+FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>);
 // clang-format on
 #else
 

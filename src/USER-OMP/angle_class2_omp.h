@@ -17,7 +17,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(class2/omp,AngleClass2OMP)
+AngleStyle(class2/omp,AngleClass2OMP);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(sqdistharm,ImproperSQDistHarm)
+ImproperStyle(sqdistharm,ImproperSQDistHarm);
 // clang-format on
 #else
 

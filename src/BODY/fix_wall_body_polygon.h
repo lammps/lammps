@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(wall/body/polygon,FixWallBodyPolygon)
+FixStyle(wall/body/polygon,FixWallBodyPolygon);
 // clang-format on
 #else
 

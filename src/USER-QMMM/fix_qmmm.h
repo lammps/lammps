@@ -14,7 +14,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(qmmm,FixQMMM)
+FixStyle(qmmm,FixQMMM);
 // clang-format on
 #else
 

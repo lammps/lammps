@@ -12,7 +12,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(airebo/omp,PairAIREBOOMP)
+PairStyle(airebo/omp,PairAIREBOOMP);
 // clang-format on
 #else
 

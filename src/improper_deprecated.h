@@ -13,7 +13,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(DEPRECATED,ImproperDeprecated)
+ImproperStyle(DEPRECATED,ImproperDeprecated);
 // clang-format on
 #else
 

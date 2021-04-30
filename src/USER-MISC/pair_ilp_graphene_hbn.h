@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(ilp/graphene/hbn,PairILPGrapheneHBN)
+PairStyle(ilp/graphene/hbn,PairILPGrapheneHBN);
 // clang-format on
 #else
 

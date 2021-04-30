@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(pe/mol/tally,ComputePEMolTally)
+ComputeStyle(pe/mol/tally,ComputePEMolTally);
 // clang-format on
 #else
 

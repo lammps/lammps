@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(peri/pmb,PairPeriPMB)
+PairStyle(peri/pmb,PairPeriPMB);
 // clang-format on
 #else
 

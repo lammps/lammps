@@ -55,7 +55,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(kim,PairKIM)
+PairStyle(kim,PairKIM);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(exp6/rx,PairExp6rx)
+PairStyle(exp6/rx,PairExp6rx);
 // clang-format on
 #else
 

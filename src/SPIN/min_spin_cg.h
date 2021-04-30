@@ -13,7 +13,7 @@
 
 #ifdef MINIMIZE_CLASS
 // clang-format off
-MinimizeStyle(spin/cg, MinSpinCG)
+MinimizeStyle(spin/cg, MinSpinCG);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(harmonic,ImproperHarmonic)
+ImproperStyle(harmonic,ImproperHarmonic);
 // clang-format on
 #else
 

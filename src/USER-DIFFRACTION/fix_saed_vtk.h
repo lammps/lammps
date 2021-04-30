@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(saed/vtk,FixSAEDVTK)
+FixStyle(saed/vtk,FixSAEDVTK);
 // clang-format on
 #else
 

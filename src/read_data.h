@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(read_data,ReadData)
+CommandStyle(read_data,ReadData);
 // clang-format on
 #else
 

@@ -19,7 +19,7 @@
 
 #ifdef DUMP_CLASS
 
-DumpStyle(netcdf/mpiio,DumpNetCDFMPIIO)
+DumpStyle(netcdf/mpiio,DumpNetCDFMPIIO);
 
 #else
 

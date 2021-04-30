@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(freeze/kk,FixFreezeKokkos<LMPDeviceType>)
-FixStyle(freeze/kk/device,FixFreezeKokkos<LMPDeviceType>)
-FixStyle(freeze/kk/host,FixFreezeKokkos<LMPHostType>)
+FixStyle(freeze/kk,FixFreezeKokkos<LMPDeviceType>);
+FixStyle(freeze/kk/device,FixFreezeKokkos<LMPDeviceType>);
+FixStyle(freeze/kk/host,FixFreezeKokkos<LMPHostType>);
 // clang-format on
 #else
 

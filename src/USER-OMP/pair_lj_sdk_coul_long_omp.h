@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sdk/coul/long/omp,PairLJSDKCoulLongOMP)
+PairStyle(lj/sdk/coul/long/omp,PairLJSDKCoulLongOMP);
 // clang-format on
 #else
 

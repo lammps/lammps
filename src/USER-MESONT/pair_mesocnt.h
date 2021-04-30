@@ -1,6 +1,6 @@
 #ifdef PAIR_CLASS
 
-PairStyle(mesocnt, PairMesoCNT)
+PairStyle(mesocnt, PairMesoCNT);
 
 #else
 

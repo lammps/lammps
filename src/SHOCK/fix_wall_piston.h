@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(wall/piston,FixWallPiston)
+FixStyle(wall/piston,FixWallPiston);
 // clang-format on
 #else
 

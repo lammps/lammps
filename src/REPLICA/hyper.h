@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(hyper,Hyper)
+CommandStyle(hyper,Hyper);
 // clang-format on
 #else
 

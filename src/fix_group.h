@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(GROUP,FixGroup)
+FixStyle(GROUP,FixGroup);
 // clang-format on
 #else
 

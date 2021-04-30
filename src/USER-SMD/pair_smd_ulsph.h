@@ -24,7 +24,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(smd/ulsph,PairULSPH)
+PairStyle(smd/ulsph,PairULSPH);
 // clang-format on
 #else
 

@@ -19,7 +19,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(ufm/gpu,PairUFMGPU)
+PairStyle(ufm/gpu,PairUFMGPU);
 // clang-format on
 #else
 

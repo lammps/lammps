@@ -13,7 +13,7 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(peri,AtomVecPeri)
+AtomStyle(peri,AtomVecPeri);
 // clang-format on
 #else
 

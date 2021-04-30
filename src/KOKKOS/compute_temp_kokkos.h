@@ -13,9 +13,9 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(temp/kk,ComputeTempKokkos<LMPDeviceType>)
-ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>)
-ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>)
+ComputeStyle(temp/kk,ComputeTempKokkos<LMPDeviceType>);
+ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>);
+ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
 // clang-format on
 #else
 

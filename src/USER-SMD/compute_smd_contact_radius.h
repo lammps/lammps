@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/contact/radius,ComputeSMDContactRadius)
+ComputeStyle(smd/contact/radius,ComputeSMDContactRadius);
 // clang-format on
 #else
 

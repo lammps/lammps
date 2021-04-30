@@ -13,7 +13,7 @@
 
 #ifdef INTEGRATE_CLASS
 // clang-format off
-IntegrateStyle(verlet/lrt/intel,VerletLRTIntel)
+IntegrateStyle(verlet/lrt/intel,VerletLRTIntel);
 // clang-format on
 #else
 

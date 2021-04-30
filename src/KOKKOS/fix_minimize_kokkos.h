@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(MINIMIZE/kk,FixMinimizeKokkos)
-FixStyle(MINIMIZE/kk/device,FixMinimizeKokkos)
-FixStyle(MINIMIZE/kk/host,FixMinimizeKokkos)
+FixStyle(MINIMIZE/kk,FixMinimizeKokkos);
+FixStyle(MINIMIZE/kk/device,FixMinimizeKokkos);
+FixStyle(MINIMIZE/kk/host,FixMinimizeKokkos);
 // clang-format on
 #else
 

@@ -13,9 +13,9 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(coord/atom/kk,ComputeCoordAtomKokkos<LMPDeviceType>)
-ComputeStyle(coord/atom/kk/device,ComputeCoordAtomKokkos<LMPDeviceType>)
-ComputeStyle(coord/atom/kk/host,ComputeCoordAtomKokkos<LMPHostType>)
+ComputeStyle(coord/atom/kk,ComputeCoordAtomKokkos<LMPDeviceType>);
+ComputeStyle(coord/atom/kk/device,ComputeCoordAtomKokkos<LMPDeviceType>);
+ComputeStyle(coord/atom/kk/host,ComputeCoordAtomKokkos<LMPHostType>);
 // clang-format on
 #else
 

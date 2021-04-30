@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(reax/c/bonds/kk,FixReaxCBondsKokkos)
-FixStyle(reax/c/bonds/kk/device,FixReaxCBondsKokkos)
-FixStyle(reax/c/bonds/kk/host,FixReaxCBondsKokkos)
+FixStyle(reax/c/bonds/kk,FixReaxCBondsKokkos);
+FixStyle(reax/c/bonds/kk/device,FixReaxCBondsKokkos);
+FixStyle(reax/c/bonds/kk/host,FixReaxCBondsKokkos);
 // clang-format on
 #else
 

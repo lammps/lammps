@@ -13,7 +13,7 @@
 
 #ifdef ANGLE_CLASS
 
-AngleStyle(cosine/buck6d, AngleCosineBuck6d)
+AngleStyle(cosine/buck6d, AngleCosineBuck6d);
 
 #else
 

@@ -23,7 +23,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(python,PairPython)
+PairStyle(python,PairPython);
 // clang-format on
 #else
 

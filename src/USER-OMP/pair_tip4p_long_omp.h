@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(tip4p/long/omp,PairTIP4PLongOMP)
+PairStyle(tip4p/long/omp,PairTIP4PLongOMP);
 // clang-format on
 #else
 

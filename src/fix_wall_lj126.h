@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(wall/lj126,FixWallLJ126)
+FixStyle(wall/lj126,FixWallLJ126);
 // clang-format on
 #else
 

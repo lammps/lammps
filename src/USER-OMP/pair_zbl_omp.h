@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(zbl/omp,PairZBLOMP)
+PairStyle(zbl/omp,PairZBLOMP);
 // clang-format on
 #else
 

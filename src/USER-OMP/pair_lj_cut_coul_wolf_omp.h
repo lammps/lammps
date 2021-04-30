@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/cut/coul/wolf/omp,PairLJCutCoulWolfOMP)
+PairStyle(lj/cut/coul/wolf/omp,PairLJCutCoulWolfOMP);
 // clang-format on
 #else
 

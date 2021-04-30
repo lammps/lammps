@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(hbond/dreiding/lj/omp,PairHbondDreidingLJOMP)
+PairStyle(hbond/dreiding/lj/omp,PairHbondDreidingLJOMP);
 // clang-format on
 #else
 

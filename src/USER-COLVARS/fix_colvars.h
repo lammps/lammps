@@ -26,7 +26,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(colvars,FixColvars)
+FixStyle(colvars,FixColvars);
 // clang-format on
 #else
 

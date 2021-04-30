@@ -18,7 +18,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(buck/coul/cut/intel,PairBuckCoulCutIntel)
+PairStyle(buck/coul/cut/intel,PairBuckCoulCutIntel);
 // clang-format on
 #else
 

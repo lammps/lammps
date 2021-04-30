@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(mm3/switch3/coulgauss/long,PairMM3Switch3CoulGaussLong)
+PairStyle(mm3/switch3/coulgauss/long,PairMM3Switch3CoulGaussLong);
 // clang-format on
 #else
 

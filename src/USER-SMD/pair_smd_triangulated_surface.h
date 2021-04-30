@@ -25,7 +25,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(smd/tri_surface,PairTriSurf)
+PairStyle(smd/tri_surface,PairTriSurf);
 // clang-format on
 #else
 

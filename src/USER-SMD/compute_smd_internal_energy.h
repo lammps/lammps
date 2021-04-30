@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/internal/energy,ComputeSMDInternalEnergy)
+ComputeStyle(smd/internal/energy,ComputeSMDInternalEnergy);
 // clang-format on
 #else
 

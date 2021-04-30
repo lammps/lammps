@@ -22,7 +22,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(tersoff/table,PairTersoffTable)
+PairStyle(tersoff/table,PairTersoffTable);
 // clang-format on
 #else
 

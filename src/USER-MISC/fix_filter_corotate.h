@@ -18,7 +18,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(filter/corotate,FixFilterCorotate)
+FixStyle(filter/corotate,FixFilterCorotate);
 // clang-format on
 #else
 

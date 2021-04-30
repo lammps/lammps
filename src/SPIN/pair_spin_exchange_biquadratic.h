@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(spin/exchange/biquadratic,PairSpinExchangeBiquadratic)
+PairStyle(spin/exchange/biquadratic,PairSpinExchangeBiquadratic);
 // clang-format on
 #else
 

@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/charmm/coul/charmm/kk,PairLJCharmmCoulCharmmKokkos<LMPDeviceType>)
-PairStyle(lj/charmm/coul/charmm/kk/device,PairLJCharmmCoulCharmmKokkos<LMPDeviceType>)
-PairStyle(lj/charmm/coul/charmm/kk/host,PairLJCharmmCoulCharmmKokkos<LMPHostType>)
+PairStyle(lj/charmm/coul/charmm/kk,PairLJCharmmCoulCharmmKokkos<LMPDeviceType>);
+PairStyle(lj/charmm/coul/charmm/kk/device,PairLJCharmmCoulCharmmKokkos<LMPDeviceType>);
+PairStyle(lj/charmm/coul/charmm/kk/host,PairLJCharmmCoulCharmmKokkos<LMPHostType>);
 // clang-format on
 #else
 

@@ -16,7 +16,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(cosine/squared, PairCosineSquared)
+PairStyle(cosine/squared, PairCosineSquared);
 
 #else
 

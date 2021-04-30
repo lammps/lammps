@@ -17,7 +17,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(accelerate/cos,FixAccelerateCos)
+FixStyle(accelerate/cos,FixAccelerateCos);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef MINIMIZE_CLASS
 // clang-format off
-MinimizeStyle(sd,MinSD)
+MinimizeStyle(sd,MinSD);
 // clang-format on
 #else
 

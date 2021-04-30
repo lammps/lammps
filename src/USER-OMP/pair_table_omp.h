@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(table/omp,PairTableOMP)
+PairStyle(table/omp,PairTableOMP);
 // clang-format on
 #else
 

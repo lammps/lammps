@@ -23,7 +23,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(python/move,FixPythonMove)
+FixStyle(python/move,FixPythonMove);
 // clang-format on
 #else
 

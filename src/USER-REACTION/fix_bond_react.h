@@ -17,7 +17,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(bond/react,FixBondReact)
+FixStyle(bond/react,FixBondReact);
 // clang-format on
 #else
 

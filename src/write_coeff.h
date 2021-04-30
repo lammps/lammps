@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(write_coeff,WriteCoeff)
+CommandStyle(write_coeff,WriteCoeff);
 // clang-format on
 #else
 

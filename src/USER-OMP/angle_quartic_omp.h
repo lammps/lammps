@@ -17,7 +17,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(quartic/omp,AngleQuarticOMP)
+AngleStyle(quartic/omp,AngleQuarticOMP);
 // clang-format on
 #else
 

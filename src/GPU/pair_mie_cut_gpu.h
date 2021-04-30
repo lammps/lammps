@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(mie/cut/gpu,PairMIECutGPU)
+PairStyle(mie/cut/gpu,PairMIECutGPU);
 // clang-format on
 #else
 

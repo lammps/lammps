@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(eos/table,FixEOStable)
+FixStyle(eos/table,FixEOStable);
 // clang-format on
 #else
 

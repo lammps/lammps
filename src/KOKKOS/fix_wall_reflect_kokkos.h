@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(wall/reflect/kk,FixWallReflectKokkos<LMPDeviceType>)
-FixStyle(wall/reflect/kk/device,FixWallReflectKokkos<LMPDeviceType>)
-FixStyle(wall/reflect/kk/host,FixWallReflectKokkos<LMPHostType>)
+FixStyle(wall/reflect/kk,FixWallReflectKokkos<LMPDeviceType>);
+FixStyle(wall/reflect/kk/device,FixWallReflectKokkos<LMPDeviceType>);
+FixStyle(wall/reflect/kk/host,FixWallReflectKokkos<LMPHostType>);
 // clang-format on
 #else
 

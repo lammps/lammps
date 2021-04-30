@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(peri/pmb/omp,PairPeriPMBOMP)
+PairStyle(peri/pmb/omp,PairPeriPMBOMP);
 // clang-format on
 #else
 

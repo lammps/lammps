@@ -17,7 +17,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(cossq/omp,ImproperCossqOMP)
+ImproperStyle(cossq/omp,ImproperCossqOMP);
 // clang-format on
 #else
 

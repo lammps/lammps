@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lubricate/omp,PairLubricateOMP)
+PairStyle(lubricate/omp,PairLubricateOMP);
 // clang-format on
 #else
 

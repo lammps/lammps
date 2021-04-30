@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(gravity/kk,FixGravityKokkos<LMPDeviceType>)
-FixStyle(gravity/kk/device,FixGravityKokkos<LMPDeviceType>)
-FixStyle(gravity/kk/host,FixGravityKokkos<LMPHostType>)
+FixStyle(gravity/kk,FixGravityKokkos<LMPDeviceType>);
+FixStyle(gravity/kk/device,FixGravityKokkos<LMPDeviceType>);
+FixStyle(gravity/kk/host,FixGravityKokkos<LMPHostType>);
 // clang-format on
 #else
 

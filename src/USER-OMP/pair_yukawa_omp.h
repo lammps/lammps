@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(yukawa/omp,PairYukawaOMP)
+PairStyle(yukawa/omp,PairYukawaOMP);
 // clang-format on
 #else
 

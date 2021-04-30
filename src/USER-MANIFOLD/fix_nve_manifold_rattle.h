@@ -34,7 +34,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nve/manifold/rattle,FixNVEManifoldRattle)
+FixStyle(nve/manifold/rattle,FixNVEManifoldRattle);
 // clang-format on
 #else
 

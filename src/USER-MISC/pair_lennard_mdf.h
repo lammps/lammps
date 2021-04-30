@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lennard/mdf,PairLennardMDF)
+PairStyle(lennard/mdf,PairLennardMDF);
 // clang-format on
 #else
 

@@ -17,7 +17,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(cvff/omp,ImproperCvffOMP)
+ImproperStyle(cvff/omp,ImproperCvffOMP);
 // clang-format on
 #else
 

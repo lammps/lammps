@@ -17,7 +17,7 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(cosine/shift/exp/omp,DihedralCosineShiftExpOMP)
+DihedralStyle(cosine/shift/exp/omp,DihedralCosineShiftExpOMP);
 // clang-format on
 #else
 

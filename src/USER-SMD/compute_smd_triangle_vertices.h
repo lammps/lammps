@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/triangle/vertices,ComputeSMDTriangleVertices)
+ComputeStyle(smd/triangle/vertices,ComputeSMDTriangleVertices);
 // clang-format on
 #else
 

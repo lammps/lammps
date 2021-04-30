@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(SPEC/ATOM,ComputeSpecAtom)
+ComputeStyle(SPEC/ATOM,ComputeSpecAtom);
 // clang-format on
 #else
 

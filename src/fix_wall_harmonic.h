@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(wall/harmonic,FixWallHarmonic)
+FixStyle(wall/harmonic,FixWallHarmonic);
 // clang-format on
 #else
 

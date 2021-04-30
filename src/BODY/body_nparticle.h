@@ -13,7 +13,7 @@
 
 #ifdef BODY_CLASS
 // clang-format off
-BodyStyle(nparticle,BodyNparticle)
+BodyStyle(nparticle,BodyNparticle);
 // clang-format on
 #else
 

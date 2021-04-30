@@ -13,7 +13,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(mm3,AngleMM3)
+AngleStyle(mm3,AngleMM3);
 // clang-format on
 #else
 

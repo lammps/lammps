@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(dipole/chunk,ComputeDipoleChunk)
+ComputeStyle(dipole/chunk,ComputeDipoleChunk);
 // clang-format on
 #else
 

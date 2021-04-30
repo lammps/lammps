@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(morse/opt,PairMorseOpt)
+PairStyle(morse/opt,PairMorseOpt);
 // clang-format on
 #else
 

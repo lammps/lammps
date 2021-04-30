@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/ulsph/strain,ComputeSMDULSPHstrain)
+ComputeStyle(smd/ulsph/strain,ComputeSMDULSPHstrain);
 // clang-format on
 #else
 

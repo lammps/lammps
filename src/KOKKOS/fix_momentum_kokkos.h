@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(momentum/kk,FixMomentumKokkos<LMPDeviceType>)
-FixStyle(momentum/kk/device,FixMomentumKokkos<LMPDeviceType>)
-FixStyle(momentum/kk/host,FixMomentumKokkos<LMPHostType>)
+FixStyle(momentum/kk,FixMomentumKokkos<LMPDeviceType>);
+FixStyle(momentum/kk/device,FixMomentumKokkos<LMPDeviceType>);
+FixStyle(momentum/kk/host,FixMomentumKokkos<LMPHostType>);
 // clang-format on
 #else
 

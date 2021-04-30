@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(mdpd/rhosum,PairMDPDRhoSum)
+PairStyle(mdpd/rhosum,PairMDPDRhoSum);
 // clang-format on
 #else
 

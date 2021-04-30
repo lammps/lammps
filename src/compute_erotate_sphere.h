@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(erotate/sphere,ComputeERotateSphere)
+ComputeStyle(erotate/sphere,ComputeERotateSphere);
 // clang-format on
 #else
 

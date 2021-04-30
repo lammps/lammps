@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(resquared,PairRESquared)
+PairStyle(resquared,PairRESquared);
 // clang-format on
 #else
 

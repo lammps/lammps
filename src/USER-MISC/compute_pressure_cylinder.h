@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(pressure/cylinder,ComputePressureCyl)
+ComputeStyle(pressure/cylinder,ComputePressureCyl);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(GPU,FixGPU)
+FixStyle(GPU,FixGPU);
 // clang-format on
 #else
 

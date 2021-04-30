@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(sph/heatconduction,PairSPHHeatConduction)
+PairStyle(sph/heatconduction,PairSPHHeatConduction);
 // clang-format on
 #else
 

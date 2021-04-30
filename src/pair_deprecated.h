@@ -13,8 +13,8 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(DEPRECATED,PairDeprecated)
-PairStyle(reax,PairDeprecated)
+PairStyle(DEPRECATED,PairDeprecated);
+PairStyle(reax,PairDeprecated);
 // clang-format on
 #else
 

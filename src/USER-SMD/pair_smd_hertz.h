@@ -25,7 +25,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(smd/hertz,PairHertz)
+PairStyle(smd/hertz,PairHertz);
 // clang-format on
 #else
 

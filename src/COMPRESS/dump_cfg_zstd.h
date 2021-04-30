@@ -18,7 +18,7 @@
 #ifdef LAMMPS_ZSTD
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(cfg/zstd,DumpCFGZstd)
+DumpStyle(cfg/zstd,DumpCFGZstd);
 // clang-format on
 #else
 

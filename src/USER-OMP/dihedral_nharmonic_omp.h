@@ -17,7 +17,7 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(nharmonic/omp,DihedralNHarmonicOMP)
+DihedralStyle(nharmonic/omp,DihedralNHarmonicOMP);
 // clang-format on
 #else
 

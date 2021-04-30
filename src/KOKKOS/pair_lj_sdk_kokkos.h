@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/sdk/kk,PairLJSDKKokkos<LMPDeviceType>)
-PairStyle(lj/sdk/kk/device,PairLJSDKKokkos<LMPDeviceType>)
-PairStyle(lj/sdk/kk/host,PairLJSDKKokkos<LMPHostType>)
+PairStyle(lj/sdk/kk,PairLJSDKKokkos<LMPDeviceType>);
+PairStyle(lj/sdk/kk/device,PairLJSDKKokkos<LMPDeviceType>);
+PairStyle(lj/sdk/kk/host,PairLJSDKKokkos<LMPHostType>);
 // clang-format on
 #else
 

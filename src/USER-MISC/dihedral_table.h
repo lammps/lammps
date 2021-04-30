@@ -17,7 +17,7 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(table,DihedralTable)
+DihedralStyle(table,DihedralTable);
 // clang-format on
 #else
 

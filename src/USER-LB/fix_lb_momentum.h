@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(lb/momentum,FixLbMomentum)
+FixStyle(lb/momentum,FixLbMomentum);
 // clang-format on
 #else
 

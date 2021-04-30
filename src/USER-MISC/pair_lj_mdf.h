@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/mdf,PairLJMDF)
+PairStyle(lj/mdf,PairLJMDF);
 // clang-format on
 #else
 

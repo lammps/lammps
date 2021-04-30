@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(quip,PairQUIP)
+PairStyle(quip,PairQUIP);
 // clang-format on
 #else
 

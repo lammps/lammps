@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/class2/omp,PairLJClass2OMP)
+PairStyle(lj/class2/omp,PairLJClass2OMP);
 // clang-format on
 #else
 

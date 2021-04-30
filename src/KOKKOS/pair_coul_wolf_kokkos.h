@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(coul/wolf/kk,PairCoulWolfKokkos<LMPDeviceType>)
-PairStyle(coul/wolf/kk/device,PairCoulWolfKokkos<LMPDeviceType>)
-PairStyle(coul/wolf/kk/host,PairCoulWolfKokkos<LMPHostType>)
+PairStyle(coul/wolf/kk,PairCoulWolfKokkos<LMPDeviceType>);
+PairStyle(coul/wolf/kk/device,PairCoulWolfKokkos<LMPDeviceType>);
+PairStyle(coul/wolf/kk/host,PairCoulWolfKokkos<LMPHostType>);
 // clang-format on
 #else
 

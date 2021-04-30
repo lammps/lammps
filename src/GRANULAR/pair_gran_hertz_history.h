@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(gran/hertz/history,PairGranHertzHistory)
+PairStyle(gran/hertz/history,PairGranHertzHistory);
 // clang-format on
 #else
 

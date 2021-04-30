@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(dpd/fdt/energy,PairDPDfdtEnergy)
+PairStyle(dpd/fdt/energy,PairDPDfdtEnergy);
 // clang-format on
 #else
 

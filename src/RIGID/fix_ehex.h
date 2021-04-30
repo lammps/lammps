@@ -14,7 +14,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(ehex,FixEHEX)
+FixStyle(ehex,FixEHEX);
 // clang-format on
 #else
 

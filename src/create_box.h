@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(create_box,CreateBox)
+CommandStyle(create_box,CreateBox);
 // clang-format on
 #else
 

@@ -4,7 +4,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(dynamical_matrix,DynamicalMatrix)
+CommandStyle(dynamical_matrix,DynamicalMatrix);
 // clang-format on
 #else
 

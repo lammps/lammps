@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(dsmc,PairDSMC)
+PairStyle(dsmc,PairDSMC);
 // clang-format on
 #else
 

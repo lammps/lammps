@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(dpd/tstat/omp,PairDPDTstatOMP)
+PairStyle(dpd/tstat/omp,PairDPDTstatOMP);
 // clang-format on
 #else
 

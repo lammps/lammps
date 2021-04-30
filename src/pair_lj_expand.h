@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/expand,PairLJExpand)
+PairStyle(lj/expand,PairLJExpand);
 // clang-format on
 #else
 

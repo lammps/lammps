@@ -14,9 +14,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(reax/c/kk,PairReaxCKokkos<LMPDeviceType>)
-PairStyle(reax/c/kk/device,PairReaxCKokkos<LMPDeviceType>)
-PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>)
+PairStyle(reax/c/kk,PairReaxCKokkos<LMPDeviceType>);
+PairStyle(reax/c/kk/device,PairReaxCKokkos<LMPDeviceType>);
+PairStyle(reax/c/kk/host,PairReaxCKokkos<LMPHostType>);
 // clang-format on
 #else
 

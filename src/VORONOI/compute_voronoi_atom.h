@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(voronoi/atom,ComputeVoronoi)
+ComputeStyle(voronoi/atom,ComputeVoronoi);
 // clang-format on
 #else
 

@@ -23,7 +23,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(zero,PairZero)
+PairStyle(zero,PairZero);
 // clang-format on
 #else
 

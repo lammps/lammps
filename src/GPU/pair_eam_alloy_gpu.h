@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(eam/alloy/gpu,PairEAMAlloyGPU)
+PairStyle(eam/alloy/gpu,PairEAMAlloyGPU);
 // clang-format on
 #else
 

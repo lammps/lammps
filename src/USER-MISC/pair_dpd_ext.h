@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(dpd/ext,PairDPDExt)
-
+// clang-format off
+PairStyle(dpd/ext,PairDPDExt);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DPD_EXT_H

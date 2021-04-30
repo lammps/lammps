@@ -16,7 +16,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(morse/soft,PairMorseSoft)
+PairStyle(morse/soft,PairMorseSoft);
 // clang-format on
 #else
 

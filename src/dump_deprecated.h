@@ -15,7 +15,7 @@
 
 // list all deprecated and removed dump styles here
 // clang-format off
-DumpStyle(DEPRECATED,DumpDeprecated)
+DumpStyle(DEPRECATED,DumpDeprecated);
 // clang-format on
 #else
 

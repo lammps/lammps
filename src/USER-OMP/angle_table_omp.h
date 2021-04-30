@@ -17,7 +17,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(table/omp,AngleTableOMP)
+AngleStyle(table/omp,AngleTableOMP);
 // clang-format on
 #else
 

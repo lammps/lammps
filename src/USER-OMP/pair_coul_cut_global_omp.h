@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(coul/cut/global/omp,PairCoulCutGlobalOMP)
+PairStyle(coul/cut/global/omp,PairCoulCutGlobalOMP);
 // clang-format on
 #else
 

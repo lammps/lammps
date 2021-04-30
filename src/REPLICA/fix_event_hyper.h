@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(EVENT/HYPER,FixEventHyper)
+FixStyle(EVENT/HYPER,FixEventHyper);
 // clang-format on
 #else
 

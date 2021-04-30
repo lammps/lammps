@@ -232,20 +232,21 @@ void ReadDump::setup_reader(int narg, char **arg)
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (0) return;        // dummy line to enable else-if macro expansion
+  if (0) {
+    return;        // dummy line to enable else-if macro expansion
 
 #define READER_CLASS
 #define ReaderStyle(key,Class) \
-  else if (strcmp(readerstyle,#key) == 0) { \
-    for (int i = 0; i < nreader; i++) \
+  } else if (strcmp(readerstyle,#key) == 0) { \
+    for (int i = 0; i < nreader; i++) { \
       readers[i] = new Class(lmp); \
-  }
+    }
 #include "style_reader.h"       // IWYU pragma: keep
 #undef READER_CLASS
 
   // unrecognized style
 
-  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
+  } else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
 
   if (utils::strmatch(readerstyle,"^adios")) {
       // everyone is a reader with adios

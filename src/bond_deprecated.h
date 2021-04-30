@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(DEPRECATED,BondDeprecated)
+BondStyle(DEPRECATED,BondDeprecated);
 // clang-format on
 #else
 

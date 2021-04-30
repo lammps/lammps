@@ -17,7 +17,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(nve/gpu,FixNVEGPU)
+FixStyle(nve/gpu,FixNVEGPU);
 // clang-format on
 #else
 

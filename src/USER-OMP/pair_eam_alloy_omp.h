@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(eam/alloy/omp,PairEAMAlloyOMP)
+PairStyle(eam/alloy/omp,PairEAMAlloyOMP);
 // clang-format on
 #else
 

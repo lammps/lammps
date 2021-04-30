@@ -27,7 +27,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(SMD_TLSPH_NEIGHBORS,FixSMD_TLSPH_ReferenceConfiguration)
+FixStyle(SMD_TLSPH_NEIGHBORS,FixSMD_TLSPH_ReferenceConfiguration);
 // clang-format on
 #else
 

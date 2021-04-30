@@ -15,7 +15,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(cfg/uef,DumpCFGUef)
+DumpStyle(cfg/uef,DumpCFGUef);
 // clang-format on
 #else
 

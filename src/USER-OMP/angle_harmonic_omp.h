@@ -17,7 +17,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(harmonic/omp,AngleHarmonicOMP)
+AngleStyle(harmonic/omp,AngleHarmonicOMP);
 // clang-format on
 #else
 

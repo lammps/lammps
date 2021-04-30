@@ -13,8 +13,8 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(python/invoke,FixPythonInvoke)
-FixStyle(python,FixPythonInvoke)
+FixStyle(python/invoke,FixPythonInvoke);
+FixStyle(python,FixPythonInvoke);
 // clang-format on
 #else
 

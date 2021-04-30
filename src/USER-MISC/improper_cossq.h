@@ -13,7 +13,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(cossq,ImproperCossq)
+ImproperStyle(cossq,ImproperCossq);
 // clang-format on
 #else
 

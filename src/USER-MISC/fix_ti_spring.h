@@ -20,7 +20,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(ti/spring,FixTISpring)
+FixStyle(ti/spring,FixTISpring);
 // clang-format on
 #else
 

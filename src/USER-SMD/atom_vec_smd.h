@@ -24,7 +24,7 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(smd,AtomVecSMD)
+AtomStyle(smd,AtomVecSMD);
 // clang-format on
 #else
 

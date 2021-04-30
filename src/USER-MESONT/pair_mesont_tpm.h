@@ -15,7 +15,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(mesont/tpm,PairMESONTTPM)
+PairStyle(mesont/tpm,PairMESONTTPM);
 // clang-format on
 #else
 

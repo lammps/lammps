@@ -17,7 +17,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(charge/regulation,FixChargeRegulation)
+FixStyle(charge/regulation,FixChargeRegulation);
 // clang-format on
 #else
 

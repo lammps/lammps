@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(gauss/omp,PairGaussOMP)
+PairStyle(gauss/omp,PairGaussOMP);
 // clang-format on
 #else
 

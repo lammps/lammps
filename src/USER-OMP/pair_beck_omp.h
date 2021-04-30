@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(beck/omp,PairBeckOMP)
+PairStyle(beck/omp,PairBeckOMP);
 // clang-format on
 #else
 

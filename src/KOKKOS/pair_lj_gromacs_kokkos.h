@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/gromacs/kk,PairLJGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/kk/device,PairLJGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/kk/host,PairLJGromacsKokkos<LMPHostType>)
+PairStyle(lj/gromacs/kk,PairLJGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/kk/device,PairLJGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/kk/host,PairLJGromacsKokkos<LMPHostType>);
 // clang-format on
 #else
 

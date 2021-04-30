@@ -13,7 +13,7 @@
 
 #ifdef NTOPO_CLASS
 // clang-format off
-NTopoStyle(NTOPO_BOND_TEMPLATE,NTopoBondTemplate)
+NTopoStyle(NTOPO_BOND_TEMPLATE,NTopoBondTemplate);
 // clang-format on
 #else
 

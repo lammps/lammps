@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(tad,TAD)
+CommandStyle(tad,TAD);
 // clang-format on
 #else
 

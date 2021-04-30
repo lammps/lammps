@@ -13,9 +13,9 @@
 
 #ifdef MINIMIZE_CLASS
 // clang-format off
-MinimizeStyle(cg/kk,MinCGKokkos)
-MinimizeStyle(cg/kk/device,MinCGKokkos)
-MinimizeStyle(cg/kk/host,MinCGKokkos)
+MinimizeStyle(cg/kk,MinCGKokkos);
+MinimizeStyle(cg/kk/device,MinCGKokkos);
+MinimizeStyle(cg/kk/host,MinCGKokkos);
 // clang-format on
 #else
 

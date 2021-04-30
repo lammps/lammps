@@ -25,7 +25,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(smd/integrate_ulsph,FixSMDIntegrateUlsph)
+FixStyle(smd/integrate_ulsph,FixSMDIntegrateUlsph);
 // clang-format on
 #else
 

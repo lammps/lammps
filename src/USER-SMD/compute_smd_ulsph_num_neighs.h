@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/ulsph/num/neighs,ComputeSMDULSPHNumNeighs)
+ComputeStyle(smd/ulsph/num/neighs,ComputeSMDULSPHNumNeighs);
 // clang-format on
 #else
 

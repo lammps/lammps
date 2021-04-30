@@ -13,7 +13,7 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(charmm,DihedralCharmm)
+DihedralStyle(charmm,DihedralCharmm);
 // clang-format on
 #else
 

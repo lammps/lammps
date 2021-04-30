@@ -13,9 +13,9 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>)
+PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>);
+PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>);
+PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>);
 // clang-format on
 #else
 

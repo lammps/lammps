@@ -35,7 +35,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(manifoldforce,FixManifoldForce)
+FixStyle(manifoldforce,FixManifoldForce);
 // clang-format on
 #else
 

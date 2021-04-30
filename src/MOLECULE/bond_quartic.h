@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(quartic,BondQuartic)
+BondStyle(quartic,BondQuartic);
 // clang-format on
 #else
 

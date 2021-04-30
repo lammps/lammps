@@ -17,7 +17,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(stress/mop,ComputeStressMop)
+ComputeStyle(stress/mop,ComputeStressMop);
 // clang-format on
 #else
 

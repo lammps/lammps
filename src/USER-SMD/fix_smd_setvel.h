@@ -24,7 +24,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(smd/setvel,FixSMDSetVel)
+FixStyle(smd/setvel,FixSMDSetVel);
 // clang-format on
 #else
 

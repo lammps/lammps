@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(vashishta/gpu,PairVashishtaGPU)
+PairStyle(vashishta/gpu,PairVashishtaGPU);
 // clang-format on
 #else
 

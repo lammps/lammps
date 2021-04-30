@@ -13,7 +13,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(distance,ImproperDistance)
+ImproperStyle(distance,ImproperDistance);
 // clang-format on
 #else
 

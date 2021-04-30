@@ -11,7 +11,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(rhok,FixRhok)
+FixStyle(rhok,FixRhok);
 // clang-format on
 #else
 

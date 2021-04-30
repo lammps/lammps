@@ -17,7 +17,7 @@
 
 #ifdef DIHEDRAL_CLASS
 // clang-format off
-DihedralStyle(helix/omp,DihedralHelixOMP)
+DihedralStyle(helix/omp,DihedralHelixOMP);
 // clang-format on
 #else
 

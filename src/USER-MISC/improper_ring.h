@@ -13,7 +13,7 @@
 
 #ifdef IMPROPER_CLASS
 // clang-format off
-ImproperStyle(ring,ImproperRing)
+ImproperStyle(ring,ImproperRing);
 // clang-format on
 #else
 

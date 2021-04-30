@@ -13,7 +13,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(cosine/shift,AngleCosineShift)
+AngleStyle(cosine/shift,AngleCosineShift);
 // clang-format on
 #else
 

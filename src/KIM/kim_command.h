@@ -55,7 +55,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(kim,KimCommand)
+CommandStyle(kim,KimCommand);
 // clang-format on
 #else
 

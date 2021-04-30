@@ -17,7 +17,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(sdk/omp,AngleSDKOMP)
+AngleStyle(sdk/omp,AngleSDKOMP);
 // clang-format on
 #else
 

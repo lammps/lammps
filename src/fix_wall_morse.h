@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(wall/morse,FixWallMorse)
+FixStyle(wall/morse,FixWallMorse);
 // clang-format on
 #else
 

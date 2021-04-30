@@ -13,9 +13,9 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(langevin/kk,FixLangevinKokkos<LMPDeviceType>)
-FixStyle(langevin/kk/device,FixLangevinKokkos<LMPDeviceType>)
-FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>)
+FixStyle(langevin/kk,FixLangevinKokkos<LMPDeviceType>);
+FixStyle(langevin/kk/device,FixLangevinKokkos<LMPDeviceType>);
+FixStyle(langevin/kk/host,FixLangevinKokkos<LMPHostType>);
 // clang-format on
 #else
 

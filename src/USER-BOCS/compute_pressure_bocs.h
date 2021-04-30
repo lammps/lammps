@@ -16,7 +16,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(PRESSURE/BOCS,ComputePressureBocs)
+ComputeStyle(PRESSURE/BOCS,ComputePressureBocs);
 // clang-format on
 #else
 

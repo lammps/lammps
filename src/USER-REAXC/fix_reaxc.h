@@ -23,7 +23,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(REAXC,FixReaxC)
+FixStyle(REAXC,FixReaxC);
 // clang-format on
 #else
 

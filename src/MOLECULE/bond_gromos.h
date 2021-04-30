@@ -13,7 +13,7 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(gromos,BondGromos)
+BondStyle(gromos,BondGromos);
 // clang-format on
 #else
 

@@ -13,7 +13,7 @@
 
 #ifdef ATOM_CLASS
 // clang-format off
-AtomStyle(ellipsoid,AtomVecEllipsoid)
+AtomStyle(ellipsoid,AtomVecEllipsoid);
 // clang-format on
 #else
 

@@ -13,8 +13,8 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(drude/transform/direct,FixDrudeTransform<false>)
-FixStyle(drude/transform/inverse,FixDrudeTransform<true>)
+FixStyle(drude/transform/direct,FixDrudeTransform<false>);
+FixStyle(drude/transform/inverse,FixDrudeTransform<true>);
 // clang-format on
 #else
 

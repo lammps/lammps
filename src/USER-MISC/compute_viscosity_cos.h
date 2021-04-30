@@ -17,7 +17,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(viscosity/cos,ComputeViscosityCos)
+ComputeStyle(viscosity/cos,ComputeViscosityCos);
 // clang-format on
 #else
 

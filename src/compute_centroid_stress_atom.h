@@ -13,7 +13,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(centroid/stress/atom,ComputeCentroidStressAtom)
+ComputeStyle(centroid/stress/atom,ComputeCentroidStressAtom);
 // clang-format on
 #else
 

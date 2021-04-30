@@ -5,7 +5,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(third_order,ThirdOrder)
+CommandStyle(third_order,ThirdOrder);
 // clang-format on
 #else
 

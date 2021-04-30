@@ -23,7 +23,7 @@
 
 #ifdef PAIR_CLASS
 
-PairStyle(drip, PairDRIP)
+PairStyle(drip, PairDRIP);
 
 #else
 

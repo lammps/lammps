@@ -27,7 +27,7 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(pace,PairPACE)
+PairStyle(pace,PairPACE);
 // clang-format on
 #else
 

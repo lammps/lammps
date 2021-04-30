@@ -15,7 +15,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(group2ndx,Group2Ndx)
+CommandStyle(group2ndx,Group2Ndx);
 // clang-format on
 #else
 

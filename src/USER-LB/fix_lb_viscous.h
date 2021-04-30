@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(lb/viscous,FixLbViscous)
+FixStyle(lb/viscous,FixLbViscous);
 // clang-format on
 #else
 

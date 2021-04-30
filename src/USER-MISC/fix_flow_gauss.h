@@ -15,7 +15,7 @@
    ------------------------------------------------------------------------- */
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(flow/gauss,FixFlowGauss)
+FixStyle(flow/gauss,FixFlowGauss);
 // clang-format on
 #else
 

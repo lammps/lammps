@@ -13,7 +13,7 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(displace_atoms,DisplaceAtoms)
+CommandStyle(displace_atoms,DisplaceAtoms);
 // clang-format on
 #else
 

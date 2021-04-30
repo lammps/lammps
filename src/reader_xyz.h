@@ -15,7 +15,7 @@
 
 #ifdef READER_CLASS
 // clang-format off
-ReaderStyle(xyz,ReaderXYZ)
+ReaderStyle(xyz,ReaderXYZ);
 // clang-format on
 #else
 

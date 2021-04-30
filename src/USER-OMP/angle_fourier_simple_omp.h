@@ -17,7 +17,7 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(fourier/simple/omp,AngleFourierSimpleOMP)
+AngleStyle(fourier/simple/omp,AngleFourierSimpleOMP);
 // clang-format on
 #else
 

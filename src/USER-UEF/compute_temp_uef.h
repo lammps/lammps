@@ -15,7 +15,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(temp/uef,ComputeTempUef)
+ComputeStyle(temp/uef,ComputeTempUef);
 // clang-format on
 #else
 

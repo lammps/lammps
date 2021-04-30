@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(lj/charmm/coul/long/soft/omp,PairLJCharmmCoulLongSoftOMP)
+PairStyle(lj/charmm/coul/long/soft/omp,PairLJCharmmCoulLongSoftOMP);
 // clang-format on
 #else
 

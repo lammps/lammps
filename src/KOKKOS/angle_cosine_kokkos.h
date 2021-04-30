@@ -13,9 +13,9 @@
 
 #ifdef ANGLE_CLASS
 // clang-format off
-AngleStyle(cosine/kk,AngleCosineKokkos<LMPDeviceType>)
-AngleStyle(cosine/kk/device,AngleCosineKokkos<LMPDeviceType>)
-AngleStyle(cosine/kk/host,AngleCosineKokkos<LMPHostType>)
+AngleStyle(cosine/kk,AngleCosineKokkos<LMPDeviceType>);
+AngleStyle(cosine/kk/device,AngleCosineKokkos<LMPDeviceType>);
+AngleStyle(cosine/kk/host,AngleCosineKokkos<LMPHostType>);
 // clang-format on
 #else
 

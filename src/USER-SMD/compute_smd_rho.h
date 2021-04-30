@@ -25,7 +25,7 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(smd/rho,ComputeSMDRho)
+ComputeStyle(smd/rho,ComputeSMDRho);
 // clang-format on
 #else
 

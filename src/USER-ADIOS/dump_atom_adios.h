@@ -13,7 +13,7 @@
 
 #ifdef DUMP_CLASS
 // clang-format off
-DumpStyle(atom/adios, DumpAtomADIOS)
+DumpStyle(atom/adios, DumpAtomADIOS);
 // clang-format on
 #else
 

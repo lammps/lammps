@@ -13,7 +13,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(spin/dipole/cut,PairSpinDipoleCut)
+PairStyle(spin/dipole/cut,PairSpinDipoleCut);
 // clang-format on
 #else
 

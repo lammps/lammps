@@ -17,7 +17,7 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(gran/hooke/omp,PairGranHookeOMP)
+PairStyle(gran/hooke/omp,PairGranHookeOMP);
 // clang-format on
 #else
 

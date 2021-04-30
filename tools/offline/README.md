@@ -68,7 +68,7 @@ source tools/offline/use_caches.sh
 
 mkdir build
 cd build
-cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C ${LAMMPS_HTTP_CACHE_CONFIG} -C ../cmake/presets/most.cmake ../cmake
+cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake ../cmake
 make -j 8
 
 deactivate_caches

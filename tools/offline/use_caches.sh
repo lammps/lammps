@@ -57,11 +57,11 @@ echo "##########################################################################
 echo
 echo "Prepend the following CMake options to your builds:"
 echo
-echo "-D LAMMPS_DOWNLOADS_URL=\${HTTP_CACHE_URL} -C \${LAMMPS_HTTP_CACHE_CONFIG}"
+echo "-D LAMMPS_DOWNLOADS_URL=\${HTTP_CACHE_URL} -C \"\${LAMMPS_HTTP_CACHE_CONFIG}\""
 echo
 echo "or"
 echo
-echo "-D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C ${LAMMPS_HTTP_CACHE_CONFIG}"
+echo "-D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C \"${LAMMPS_HTTP_CACHE_CONFIG}\""
 echo
 echo "pip installations and git clones (from git://) are automatically redirected"
 echo

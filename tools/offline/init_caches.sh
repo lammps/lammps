@@ -40,6 +40,6 @@ mkdir -p "$HTTP_CACHE_DIR"
 echo "##############################################################################"
 echo
 echo "To activate:"
-echo "source ${SCRIPT_DIR}/use_caches.sh"
+echo "source \"${SCRIPT_DIR}/use_caches.sh\""
 echo
 echo "##############################################################################"

@@ -24,11 +24,11 @@ then
     exit 1
 fi
 
-python3 -m http.server $HTTP_CACHE_PORT --directory $HTTP_CACHE_DIR 2>&1 > ${LOGGING_DIR}/http.log &
+python3 -m http.server $HTTP_CACHE_PORT --directory "$HTTP_CACHE_DIR" 2>&1 > "${LOGGING_DIR}/http.log" &
 export HTTP_CACHE_PID=$!
 
-export HTTP_CACHE_URL=http://localhost:$HTTP_CACHE_PORT
-export LAMMPS_HTTP_CACHE_CONFIG=$HTTP_CACHE_DIR/proxy.cmake
+export HTTP_CACHE_URL="http://localhost:$HTTP_CACHE_PORT"
+export LAMMPS_HTTP_CACHE_CONFIG="$HTTP_CACHE_DIR/proxy.cmake"
 echo "Running local HTTP cache server on $HTTP_CACHE_URL (pid: $HTTP_CACHE_PID)"
 
 function deactivate_http_cache {

@@ -6,8 +6,8 @@ then
     exit 1
 fi
 
-mkdir -p $GITHUB_PROXY_DIR
-cd $GITHUB_PROXY_DIR
+mkdir -p "$GITHUB_PROXY_DIR"
+cd "$GITHUB_PROXY_DIR"
 
 PROJECTS=(
     akohlmey/sphinx-fortran
@@ -16,8 +16,8 @@ PROJECTS=(
 
 for project in ${PROJECTS[@]}
 do
-    GH_NAMESPACE=$(dirname $project)
-    GH_PROJECT=$(basename $project)
-    mkdir -p $GH_NAMESPACE
-    git clone --bare https://github.com/$GH_NAMESPACE/$GH_PROJECT.git $GH_NAMESPACE/$GH_PROJECT.git
+    GH_NAMESPACE="$(dirname $project)"
+    GH_PROJECT="$(basename $project)"
+    mkdir -p "$GH_NAMESPACE"
+    git clone --bare "https://github.com/$GH_NAMESPACE/$GH_PROJECT.git" "$GH_NAMESPACE/$GH_PROJECT.git"
 done

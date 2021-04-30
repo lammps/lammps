@@ -14,9 +14,9 @@ fi
 
 set -x
 
-mkdir -p $PIP_CACHE_DIR
+mkdir -p "$PIP_CACHE_DIR"
 
 # download packages that might be needed
-cd $PIP_CACHE_DIR
+cd "$PIP_CACHE_DIR"
 pip3 download pip setuptools wheel
-pip3 download -r $LAMMPS_DIR/doc/utils/requirements.txt
+pip3 download -r "$LAMMPS_DIR/doc/utils/requirements.txt"

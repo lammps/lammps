@@ -6,9 +6,9 @@ then
     exit 1
 fi
 
-mkdir -p $HTTP_CACHE_DIR
-mkdir -p $HTTP_CACHE_DIR/potentials
-mkdir -p $HTTP_CACHE_DIR/thirdparty
+mkdir -p "$HTTP_CACHE_DIR"
+mkdir -p "$HTTP_CACHE_DIR/potentials"
+mkdir -p "$HTTP_CACHE_DIR/thirdparty"
 cd $HTTP_CACHE_DIR
 
 LAMMPS_DOWNLOADS_URL="https://download.lammps.org"
@@ -27,9 +27,9 @@ POTENTIALS=(
 echo "Dowloading potentials..."
 for p in ${POTENTIALS[@]}
 do
-    if [ ! -f $HTTP_CACHE_DIR/potentials/$p ]
+    if [ ! -f "$HTTP_CACHE_DIR/potentials/$p" ]
     then
-        wget -O $HTTP_CACHE_DIR/potentials/$p $LAMMPS_POTENTIALS_URL/$p
+        wget -O "$HTTP_CACHE_DIR/potentials/$p" "$LAMMPS_POTENTIALS_URL/$p"
     fi
 done
 
@@ -85,22 +85,22 @@ TARBALLS=(
 
 ###############################################################################
 # generate proxy cmake file to trick CMake to download from local HTTP server
-echo "# auto-generated proxy preset file" > $HTTP_CACHE_DIR/proxy.cmake
+echo "# auto-generated proxy preset file" > "$HTTP_CACHE_DIR/proxy.cmake"
 
 for t in ${TARBALLS[@]}
 do
-    FILENAME_VAR=${t/_URL/_FILENAME}
-    if [ -z ${!FILENAME_VAR} ]
+    FILENAME_VAR="${t/_URL/_FILENAME}"
+    if [ -z "${!FILENAME_VAR}" ]
     then
-        filename=$(basename ${!t})
+        filename="$(basename ${!t})"
     else
-        filename=${!FILENAME_VAR}
+        filename="${!FILENAME_VAR}"
     fi
 
-    if [ ! -f $HTTP_CACHE_DIR/thirdparty/$filename ]
+    if [ ! -f "$HTTP_CACHE_DIR/thirdparty/$filename" ]
     then
-        wget -O $HTTP_CACHE_DIR/thirdparty/$filename ${!t}
+        wget -O "$HTTP_CACHE_DIR/thirdparty/$filename" "${!t}"
     fi
 
-    echo "set(${t} \"\${LAMMPS_DOWNLOADS_URL}/thirdparty/$filename\" CACHE STRING \"\" FORCE)" >> $HTTP_CACHE_DIR/proxy.cmake
+    echo "set(${t} \"\${LAMMPS_DOWNLOADS_URL}/thirdparty/$filename\" CACHE STRING \"\" FORCE)" >> "$HTTP_CACHE_DIR/proxy.cmake"
 done

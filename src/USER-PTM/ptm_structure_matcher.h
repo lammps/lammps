@@ -10,9 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef PTM_STRUCTURE_MATCHER_H
 #define PTM_STRUCTURE_MATCHER_H
 
-#include "ptm_initialize_data.h"
 #include "ptm_constants.h"
 #include "ptm_convex_hull_incremental.h"
+#include "ptm_initialize_data.h"
 
 namespace ptm {
 

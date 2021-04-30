@@ -10,13 +10,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef PTM_INITIALIZE_DATA_H
 #define PTM_INITIALIZE_DATA_H
 
-
-#include "ptm_graph_data.h"
+#include "ptm_alt_templates.h"
+#include "ptm_constants.h"
 #include "ptm_deformation_gradient.h"
 #include "ptm_fundamental_mappings.h"
-#include "ptm_alt_templates.h"
-#include <cstddef>
-
+#include "ptm_graph_data.h"
 
 namespace ptm {
 

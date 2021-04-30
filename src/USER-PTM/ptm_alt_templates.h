@@ -10,8 +10,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifndef PTM_ALT_TEMPLATES_H
 #define PTM_ALT_TEMPLATES_H
 
-#include <cmath>
+#include "ptm_constants.h"
 
+#include <cmath>
 
 const double ptm_template_hcp_alt1[PTM_NUM_POINTS_HCP][3] = {
                                                                 {          0,          0,          0 },

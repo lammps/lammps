@@ -185,7 +185,10 @@ Argument processing
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: logmesg
+.. doxygenfunction:: logmesg(LAMMPS *lmp, const S &format, Args&&... args)
+   :project: progguide
+
+.. doxygenfunction:: logmesg(LAMMPS *lmp, const std::string &mesg)
    :project: progguide
 
 .. doxygenfunction:: getsyserror

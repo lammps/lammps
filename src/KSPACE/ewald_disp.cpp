@@ -274,8 +274,8 @@ void EwaldDisp::init()
   }
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  G vector = {:.8g},   accuracy = {:.8g}\n",
-                                   g_ewald,accuracy));
+    utils::logmesg(lmp,"  G vector = {:.8g},   accuracy = {:.8g}\n",
+                   g_ewald,accuracy);
 
   // apply coulomb g_ewald to dispersion unless it is explicitly set
 
@@ -339,8 +339,7 @@ void EwaldDisp::setup()
 
   if (!(first_output||comm->me)) {
     first_output = 1;
-    utils::logmesg(lmp,fmt::format("  vectors: nbox = {}, nkvec = {}\n",
-                                   nbox, nkvec));
+    utils::logmesg(lmp,"  vectors: nbox = {}, nkvec = {}\n", nbox, nkvec);
   }
 }
 

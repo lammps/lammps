@@ -131,5 +131,5 @@ void KimCommand::command(int narg, char **arg)
     KimQuery *cmd = new KimQuery(lmp);
     cmd->command(narg, arg);
     delete cmd;
-  } else error->all(FLERR, fmt::format("Unknown kim subcommand {}", subcmd));
+  } else error->all(FLERR,"Unknown kim subcommand {}", subcmd);
 }

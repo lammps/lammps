@@ -155,7 +155,7 @@ void PairPACE::compute(int eflag, int vflag) {
   firstneigh = list->firstneigh;
 
   if (inum != nlocal)
-    error->all(FLERR,fmt::format("inum: {} nlocal: {} are different",inum, nlocal));
+    error->all(FLERR,"inum: {} nlocal: {} are different",inum, nlocal);
 
   // Aidan Thompson told RD (26 July 2019) that practically always holds:
   // inum = nlocal
@@ -279,8 +279,8 @@ void PairPACE::settings(int narg, char **arg) {
   }
 
   if (comm->me == 0) {
-    utils::logmesg(lmp,fmt::format("ACE version: {}.{}.{}\n",
-                                   VERSION_YEAR, VERSION_MONTH, VERSION_DAY));
+    utils::logmesg(lmp,"ACE version: {}.{}.{}\n",
+                   VERSION_YEAR, VERSION_MONTH, VERSION_DAY);
     if (recursive) utils::logmesg(lmp,"Recursive evaluator is used\n");
     else utils::logmesg(lmp,"Product evaluator is used\n");
   }
@@ -302,7 +302,7 @@ void PairPACE::coeff(int narg, char **arg) {
   //load potential file
   aceimpl->basis_set = new ACECTildeBasisSet();
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Loading {}\n", potential_file_name));
+    utils::logmesg(lmp,"Loading {}\n", potential_file_name);
   aceimpl->basis_set->load(potential_file_name);
 
   if (comm->me == 0) {
@@ -311,7 +311,7 @@ void PairPACE::coeff(int narg, char **arg) {
     for (SPECIES_TYPE mu = 0; mu < aceimpl->basis_set->nelements; mu++) {
       int n_r1 = aceimpl->basis_set->total_basis_size_rank1[mu];
       int n = aceimpl->basis_set->total_basis_size[mu];
-      utils::logmesg(lmp,fmt::format("\t{}: {} (r=1) {} (r>1)\n", aceimpl->basis_set->elements_name[mu], n_r1, n));
+      utils::logmesg(lmp,"\t{}: {} (r=1) {} (r>1)\n", aceimpl->basis_set->elements_name[mu], n_r1, n);
     }
   }
 
@@ -328,17 +328,17 @@ void PairPACE::coeff(int narg, char **arg) {
     char *elemname = elemtypes[i - 1];
     int atomic_number = AtomicNumberByName_pace(elemname);
     if (atomic_number == -1)
-      error->all(FLERR,fmt::format("'{}' is not a valid element\n", elemname));
+      error->all(FLERR,"'{}' is not a valid element\n", elemname);
 
     SPECIES_TYPE mu = aceimpl->basis_set->get_species_index_by_name(elemname);
     if (mu != -1) {
       if (comm->me == 0)
-        utils::logmesg(lmp,fmt::format("Mapping LAMMPS atom type #{}({}) -> "
-                                       "ACE species type #{}\n", i, elemname, mu));
+        utils::logmesg(lmp,"Mapping LAMMPS atom type #{}({}) -> "
+                       "ACE species type #{}\n", i, elemname, mu);
       map[i] = mu;
       aceimpl->ace->element_type_mapping(i) = mu; // set up LAMMPS atom type to ACE species  mapping for ace evaluator
     } else {
-      error->all(FLERR, fmt::format("Element {} is not supported by ACE-potential from file {}", elemname,potential_file_name));
+      error->all(FLERR,"Element {} is not supported by ACE-potential from file {}", elemname,potential_file_name);
     }
   }
 

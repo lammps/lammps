@@ -685,8 +685,8 @@ void PairBOP::init_style()
   // check that user sets comm->cutghostuser to 3x the max BOP cutoff
 
   if (comm->cutghostuser < 3.0*cutmax - EPSILON)
-    error->all(FLERR,fmt::format("Pair style bop requires comm ghost cutoff "
-                                 "at least 3x larger than {}",cutmax));
+    error->all(FLERR,"Pair style bop requires comm ghost cutoff "
+                                 "at least 3x larger than {}",cutmax);
 
   // need a full neighbor list and neighbors of ghosts
 

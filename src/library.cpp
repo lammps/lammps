@@ -4733,13 +4733,13 @@ void lammps_set_fix_external_callback(void *handle, char *id, FixExternalFnPtr c
   {
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0)
-      lmp->error->all(FLERR,fmt::format("Cannot find fix with ID '{}'!", id));
+      lmp->error->all(FLERR,"Cannot find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style "
-                                        "external!", id));
+      lmp->error->all(FLERR,"Fix '{}' is not of style "
+                                        "external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_callback(callback, caller);
@@ -4757,12 +4757,12 @@ void lammps_fix_external_set_energy_global(void *handle, char *id,
   {
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0)
-      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_energy_global(energy);
@@ -4780,12 +4780,12 @@ void lammps_fix_external_set_virial_global(void *handle, char *id,
   {
     int ifix = lmp->modify->find_fix(id);
     if (ifix < 0)
-      lmp->error->all(FLERR,fmt::format("Can not find fix with ID '{}'!", id));
+      lmp->error->all(FLERR,"Can not find fix with ID '{}'!", id);
 
     Fix *fix = lmp->modify->fix[ifix];
 
     if (strcmp("external",fix->style) != 0)
-      lmp->error->all(FLERR,fmt::format("Fix '{}' is not of style external!", id));
+      lmp->error->all(FLERR,"Fix '{}' is not of style external!", id);
 
     FixExternal * fext = (FixExternal*) fix;
     fext->set_virial_global(virial);

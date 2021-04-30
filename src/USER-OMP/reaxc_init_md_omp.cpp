@@ -129,29 +129,29 @@ void InitializeOMP(reax_system *system, control_params *control,
                "Mpi_data could not be initialized! Terminating.");
 
   if (Init_System(system,control,msg) == FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. System could not be "
-                                  "initialized! Terminating.",msg));
+    error->one(FLERR,"Error on: {}. System could not be "
+                                  "initialized! Terminating.",msg);
 
   if (Init_Simulation_Data(system,control,data,msg) == FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. Sim_data could not be "
-                                  "initialized! Terminating.",msg));
+    error->one(FLERR,"Error on: {}. Sim_data could not be "
+                                  "initialized! Terminating.",msg);
 
   if (Init_Workspace(system,control,workspace,msg) == FAILURE)
     error->one(FLERR,"init_workspace: not enough memory. "
                "Workspace could not be initialized. Terminating.");
 
   if (Init_ListsOMP(system,control,data,workspace,lists,mpi_data,msg) == FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. System could not be "
-                                  "initialized. Terminating.",msg));
+    error->one(FLERR,"Error on: {}. System could not be "
+                                  "initialized. Terminating.",msg);
 
   if (Init_Output_Files(system,control,out_control,mpi_data,msg)== FAILURE)
-    error->one(FLERR,fmt::format("Error on: {}. Could not open output files! "
-                                  "Terminating.",msg));
+    error->one(FLERR,"Error on: {}. Could not open output files! "
+                                  "Terminating.",msg);
 
   if (control->tabulate)
     if (Init_Lookup_Tables(system,control,workspace,mpi_data,msg) == FAILURE)
-      error->one(FLERR,fmt::format("Error on: {}. Could not create lookup "
-                                    "table. Terminating.",msg));
+      error->one(FLERR,"Error on: {}. Could not create lookup "
+                                    "table. Terminating.",msg);
 
   Init_Force_FunctionsOMP(control);
 }

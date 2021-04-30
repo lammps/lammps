@@ -80,13 +80,13 @@ void NTopoDihedralTemplate::build()
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
         if (lostbond == Thermo::ERROR)
-          error->one(FLERR,fmt::format("Dihedral atoms {} {} {} {} missing on "
+          error->one(FLERR,"Dihedral atoms {} {} {} {} missing on "
                                        "proc {} at step {}",
                                        dihedral_atom1[iatom][m]+tagprev,
                                        dihedral_atom2[iatom][m]+tagprev,
                                        dihedral_atom3[iatom][m]+tagprev,
                                        dihedral_atom4[iatom][m]+tagprev,
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i,atom1);

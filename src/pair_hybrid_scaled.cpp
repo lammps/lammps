@@ -72,8 +72,8 @@ void PairHybridScaled::compute(int eflag, int vflag)
     for (i = 0; i < nvars; ++i) {
       j = input->variable->find(scalevars[i].c_str());
       if (j < 0)
-        error->all(FLERR,fmt::format("Variable '{}' not found when updating "
-                                     "scale factors",scalevars[i]));
+        error->all(FLERR,"Variable '{}' not found when updating "
+                                     "scale factors",scalevars[i]);
       vals[i] = input->variable->compute_equal(j);
     }
     for (i = 0; i < nstyles; ++i) {
@@ -245,8 +245,8 @@ void PairHybridScaled::settings(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal pair_style command");
   if (lmp->kokkos && !utils::strmatch(force->pair_style,"^hybrid.*/kk$"))
-    error->all(FLERR,fmt::format("Must use pair_style {}/kk with Kokkos",
-                                 force->pair_style));
+    error->all(FLERR,"Must use pair_style {}/kk with Kokkos",
+                                 force->pair_style);
 
   if (atom->avec->forceclearflag)
     error->all(FLERR,"Atom style is not compatible with pair_style hybrid/scaled");
@@ -397,8 +397,8 @@ double PairHybridScaled::single(int i, int j, int itype, int jtype, double rsq,
     for (i = 0; i < nvars; ++i) {
       j = input->variable->find(scalevars[i].c_str());
       if (j < 0)
-        error->all(FLERR,fmt::format("Variable '{}' not found when updating "
-                                     "scale factors",scalevars[i]));
+        error->all(FLERR,"Variable '{}' not found when updating "
+                                     "scale factors",scalevars[i]);
       vals[i] = input->variable->compute_equal(j);
     }
     for (i = 0; i < nstyles; ++i) {

@@ -226,8 +226,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   find_clusters();
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("  find clusters CPU = {:.3f} seconds\n",
-                                   MPI_Wtime()-time1));
+    utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",
+                   MPI_Wtime()-time1);
 
   // initialize list of SHAKE clusters to constrain
 
@@ -524,19 +524,19 @@ void FixShake::pre_neighbor()
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         if (atom1 == -1 || atom2 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} missing on proc "
+          error->one(FLERR,"Shake atoms {} {} missing on proc "
                                        "{} at step {}",shake_atom[i][0],
-                                       shake_atom[i][1],me,update->ntimestep));
+                                       shake_atom[i][1],me,update->ntimestep);
         if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} {} missing on proc "
+          error->one(FLERR,"Shake atoms {} {} {} missing on proc "
                                        "{} at step {}",shake_atom[i][0],
                                        shake_atom[i][1],shake_atom[i][2],
-                                       me,update->ntimestep));
+                                       me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
         atom1 = atom->map(shake_atom[i][0]);
@@ -544,10 +544,10 @@ void FixShake::pre_neighbor()
         atom3 = atom->map(shake_atom[i][2]);
         atom4 = atom->map(shake_atom[i][3]);
         if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
-          error->one(FLERR,fmt::format("Shake atoms {} {} {} {} missing on "
+          error->one(FLERR,"Shake atoms {} {} {} {} missing on "
                                        "proc {} at step {}",shake_atom[i][0],
                                        shake_atom[i][1],shake_atom[i][2],
-                                       shake_atom[i][3],me,update->ntimestep));
+                                       shake_atom[i][3],me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)
           list[nlist++] = i;
       }
@@ -1007,11 +1007,11 @@ void FixShake::find_clusters()
   MPI_Allreduce(&tmp,&count4,1,MPI_INT,MPI_SUM,world);
 
   if (me == 0) {
-    auto mesg = fmt::format("{:>8} = # of size 2 clusters\n",count2/2);
-    mesg += fmt::format("{:>8} = # of size 3 clusters\n",count3/3);
-    mesg += fmt::format("{:>8} = # of size 4 clusters\n",count4/4);
-    mesg += fmt::format("{:>8} = # of frozen angles\n",count1/3);
-    utils::logmesg(lmp,mesg);
+    utils::logmesg(lmp,"{:>8} = # of size 2 clusters\n"
+                   "{:>8} = # of size 3 clusters\n"
+                   "{:>8} = # of size 4 clusters\n"
+                   "{:>8} = # of frozen angles\n",
+                   count2/2,count3/3,count4/4,count1/3);
   }
 }
 

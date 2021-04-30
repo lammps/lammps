@@ -294,8 +294,7 @@ void Timer::modify_params(int narg, char **arg)
       strftime(timebuf,32,"%H:%M:%S",tm);
     }
 
-    utils::logmesg(lmp,fmt::format("New timer settings: style={}  mode={}  "
-                                   "timeout={}\n",timer_style[_level],
-                                   timer_mode[_sync],timebuf));
+    utils::logmesg(lmp,"New timer settings: style={}  mode={}  timeout={}\n",
+                   timer_style[_level],timer_mode[_sync],timebuf);
   }
 }

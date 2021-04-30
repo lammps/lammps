@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(skip/half/size,
            NPairSkipSize,
            NP_SKIP | NP_SIZE | NP_HALF | NP_FULL | NP_NSQ | NP_BIN | NP_MULTI |
-           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
-
+           NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_SKIP_SIZE_H

@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/nsq/newtoff/ghost/omp,
            NPairHalfNsqNewtoffGhostOmp,
            NP_HALF | NP_NSQ | NP_NEWTOFF | NP_GHOST | NP_OMP |
-           NP_ORTHO | NP_TRI)
-
+           NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_NSQ_NEWTOFF_GHOST_OMP_H

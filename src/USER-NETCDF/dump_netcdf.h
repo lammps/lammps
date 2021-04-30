@@ -18,9 +18,9 @@
 #if defined(LMP_HAS_NETCDF)
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(netcdf,DumpNetCDF);
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_NETCDF_H

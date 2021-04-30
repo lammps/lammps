@@ -15,9 +15,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(cosine/squared, PairCosineSquared);
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_COS_SQ_H

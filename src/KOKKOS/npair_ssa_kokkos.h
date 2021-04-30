@@ -12,17 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 typedef NPairSSAKokkos<LMPHostType> NPairSSAKokkosHost;
 NPairStyle(half/bin/newton/ssa/kk/host,
            NPairSSAKokkosHost,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST)
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_HOST);
 
 typedef NPairSSAKokkos<LMPDeviceType> NPairSSAKokkosDevice;
 NPairStyle(half/bin/newton/ssa/kk/device,
            NPairSSAKokkosDevice,
-           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE)
-
+           NP_HALF | NP_BIN | NP_NEWTON | NP_ORTHO | NP_SSA | NP_GHOST | NP_KOKKOS_DEVICE);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_SSA_KOKKOS_H

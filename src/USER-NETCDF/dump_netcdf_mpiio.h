@@ -18,9 +18,9 @@
 #if defined(LMP_HAS_PNETCDF)
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 DumpStyle(netcdf/mpiio,DumpNetCDFMPIIO);
-
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_NETCDF_MPIIO_H

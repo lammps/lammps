@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
+// clang-format off
 AngleStyle(cosine/buck6d, AngleCosineBuck6d);
-
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_BUCK6D_H

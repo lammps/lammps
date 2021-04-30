@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(half/size/bin/newtoff,
            NPairHalfSizeBinNewtoff,
-           NP_HALF | NP_SIZE | NP_BIN | NP_NEWTOFF | NP_ORTHO | NP_TRI)
-
+           NP_HALF | NP_SIZE | NP_BIN | NP_NEWTOFF | NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALF_SIZE_BIN_NEWTOFF_H

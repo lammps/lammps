@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NBIN_CLASS
-
+// clang-format off
 NBinStyle(intel,
           NBinIntel,
-          NB_INTEL)
-
+          NB_INTEL);
+// clang-format on
 #else
 
 #ifndef LMP_NBIN_INTEL_H

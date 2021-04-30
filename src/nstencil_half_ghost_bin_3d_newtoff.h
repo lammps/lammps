@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NSTENCIL_CLASS
-
+// clang-format off
 NStencilStyle(half/ghost/bin/3d/newtoff,
               NStencilHalfGhostBin3dNewtoff,
               NS_HALF | NS_GHOST | NS_BIN | NS_3D |
-              NS_NEWTOFF | NS_ORTHO | NS_TRI)
-
+              NS_NEWTOFF | NS_ORTHO | NS_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NSTENCIL_HALF_GHOST_BIN_3D_NEWTOFF_H

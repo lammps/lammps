@@ -22,9 +22,9 @@
 
 
 #ifdef PAIR_CLASS
-
+// clang-format off
 PairStyle(drip, PairDRIP);
-
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_DRIP_H

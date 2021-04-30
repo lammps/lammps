@@ -12,16 +12,17 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(halffull/newtoff/omp,
            NPairHalffullNewtoffOmp,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
-           NP_ORTHO | NP_TRI |NP_OMP)
+           NP_ORTHO | NP_TRI |NP_OMP);
 
 NPairStyle(halffull/newtoff/skip/omp,
            NPairHalffullNewtoffOmp,
            NP_HALF_FULL | NP_NEWTOFF | NP_NSQ | NP_BIN | NP_MULTI | NP_HALF |
-           NP_ORTHO | NP_TRI | NP_SKIP | NP_OMP)
+           NP_ORTHO | NP_TRI | NP_SKIP | NP_OMP);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_HALFFULL_NEWTOFF_OMP_H

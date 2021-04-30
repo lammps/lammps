@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NSTENCIL_CLASS
-
+// clang-format off
 NStencilStyle(half/bin/2d/newton,
               NStencilHalfBin2dNewton,
-              NS_HALF | NS_BIN | NS_2D | NS_NEWTON | NS_ORTHO)
-
+              NS_HALF | NS_BIN | NS_2D | NS_NEWTON | NS_ORTHO);
+// clang-format on
 #else
 
 #ifndef LMP_NSTENCIL_HALF_BIN_2D_NEWTON_H

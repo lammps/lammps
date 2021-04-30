@@ -12,12 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 NPairStyle(full/bin/ghost,
            NPairFullBinGhost,
            NP_FULL | NP_BIN | NP_GHOST | NP_NEWTON | NP_NEWTOFF |
-           NP_ORTHO | NP_TRI)
-
+           NP_ORTHO | NP_TRI);
+// clang-format on
 #else
 
 #ifndef LMP_NPAIR_FULL_BIN_GHOST_H

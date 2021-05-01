@@ -175,7 +175,6 @@ void PairBOP::compute(int eflag, int vflag)
 
   int newton_pair = force->newton_pair;
   int nlocal = atom->nlocal;
-  double **x = atom->x;
   double **f = atom->f;
   int *type = atom->type;
   tagint *tag = atom->tag;
@@ -651,8 +650,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
   int itype, jtype, ktype;
   int nb_t, nb_ij, nb_ik, nb_jk, bt_i, bt_j;
   int n_ji, n_jk, n_ki, n_kj, n_jik, n_ijk, n_ikj, pass_jk;
-  int temp_ij, temp_ik, temp_ji, temp_jk, temp_ki, temp_kj, temp_kk,
-    temp_jik, temp_ijk, temp_ikj;
+  int temp_ij, temp_ik, temp_jk, temp_kk, temp_jik, temp_ijk, temp_ikj;
   int *ilist, *jlist, *klist;
   int nlisti, nlistj, nlistk;
   double r_ij, dis_ij[3], r_ik, dis_ik[3], r_ji, dis_ji[3],
@@ -663,7 +661,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
   double cosAng_jik, dcA_jik[3][2], cosAng_ijk, dcA_ijk[3][2],
     cosAng_ikj, dcA_ikj[3][2];
   int nfound, loop, temp_loop, nei_loop, nei;
-  double AA, BB, CC, DD, EE, EE1, FF, AAC, pp1;
+  double AA, BB, EE1, FF, AAC, pp1;
   double gfactor1, gprime1, gfactor2, gprime2, gfactor3, gprime3,
     gfactor, gfactorsq, gsqprime, gcm1, gcm2, gcm3,
     rfactor, rcm1, rcm2;
@@ -714,7 +712,6 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
     nei_loop = neigh_index[temp_loop];
     nei = jlist[nei_loop];
     if(x[nei][0]==x[i][0] && x[nei][1]==x[i][1] && x[nei][2]==x[i][2]) {
-      temp_ji = temp_loop;
       n_ji = loop;
       break;
     }
@@ -735,9 +732,6 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
 
   AA = 0.0;
   BB = 0.0;
-  CC = 0.0;
-  DD = 0.0;
-  EE = 0.0;
   EE1 = 0.0;
 
 //FF is the Beta_sigma^2 term
@@ -787,13 +781,11 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
       nei_loop = neigh_index[temp_loop];
       nei = klist[nei_loop];
       if(x[nei][0]==x[i][0] && x[nei][1]==x[i][1] && x[nei][2]==x[i][2]) {
-        temp_ki = temp_loop;
         n_ki = loop;
         nfound++;
         if (nfound == 2) break;
       }
       if(x[nei][0]==x[j][0] && x[nei][1]==x[j][1] && x[nei][2]==x[j][2]) {
-        temp_kj = temp_loop;
         n_kj = loop;
         pass_jk = 1;
         nfound++;
@@ -1237,7 +1229,6 @@ double PairBOP::PiBo(int itmp, int jtmp)
   jlist = firstneigh[j];
   nlistj = BOP_total[j];
   int param_ij = elem2param[itype][jtype];
-  PairParameters & p_ij = pairParameters[param_ij];
   nb_ij = nb_t;
   bt_pi[nb_ij].i = i;
   bt_pi[nb_ij].j = j;
@@ -2247,7 +2238,7 @@ void PairBOP::grab(FILE *fp, int n, double *list)
     utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
     ptr = strtok(line," \t\n\r\f");
     list[i++] = atof(ptr);
-    while (ptr = strtok(NULL," \t\n\r\f")) list[i++] = atof(ptr);
+    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
   }
 }
 

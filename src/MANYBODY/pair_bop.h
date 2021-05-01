@@ -51,14 +51,14 @@ class PairBOP : public Pair {
       xmin = 0.0;
       xmax = 0.0;
       xmaxsq = 0.0;
-      xs = NULL;
-      ys = NULL;
-      ys1 = NULL;
-      ys2 = NULL;
-      ys3 = NULL;
-      ys4 = NULL;
-      ys5 = NULL;
-      ys6 = NULL;
+      xs = nullptr;
+      ys = nullptr;
+      ys1 = nullptr;
+      ys2 = nullptr;
+      ys3 = nullptr;
+      ys4 = nullptr;
+      ys5 = nullptr;
+      ys6 = nullptr;
     }
     tabularFunction(int n)
     {
@@ -67,14 +67,14 @@ class PairBOP : public Pair {
       xmax = 0.0;
       xmaxsq = 0.0;
       if (n == 0) {
-        xs = NULL;
-        ys = NULL;
-        ys1 = NULL;
-        ys2 = NULL;
-        ys3 = NULL;
-        ys4 = NULL;
-        ys5 = NULL;
-        ys6 = NULL;
+        xs = nullptr;
+        ys = nullptr;
+        ys1 = nullptr;
+        ys2 = nullptr;
+        ys3 = nullptr;
+        ys4 = nullptr;
+        ys5 = nullptr;
+        ys6 = nullptr;
       } else {
         xs = new double[n];
         ys = new double[n];
@@ -93,14 +93,14 @@ class PairBOP : public Pair {
       xmax = x2;
       xmaxsq = xmax * xmax;
       if (n == 0) {
-        xs = NULL;
-        ys = NULL;
-        ys1 = NULL;
-        ys2 = NULL;
-        ys3 = NULL;
-        ys4 = NULL;
-        ys5 = NULL;
-        ys6 = NULL;
+        xs = nullptr;
+        ys = nullptr;
+        ys1 = nullptr;
+        ys2 = nullptr;
+        ys3 = nullptr;
+        ys4 = nullptr;
+        ys5 = nullptr;
+        ys6 = nullptr;
       } else {
         xs = new double[n];
         ys = new double[n];
@@ -229,17 +229,17 @@ class PairBOP : public Pair {
       cutBsq = 0.0;
       cutL = 0.0;
       cutLsq = 0.0;
-      betaS = NULL;
-      betaP = NULL;
-      rep = NULL;
-      cphi = NULL;
-      bo = NULL;
+      betaS = nullptr;
+      betaP = nullptr;
+      rep = nullptr;
+      cphi = nullptr;
+      bo = nullptr;
     };
   };
 
   struct TripletParameters {
     class tabularFunction *G;
-    TripletParameters() { G = NULL; };
+    TripletParameters() { G = nullptr; };
   };
 
   struct PairList1 {

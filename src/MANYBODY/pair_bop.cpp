@@ -63,48 +63,48 @@ PairBOP::PairBOP(LAMMPS *lmp) : Pair(lmp)
   ghostneigh = 1;
   allocated = 0;
 
-  pairParameters = NULL;
-  tripletParameters = NULL;
-  elem2param = NULL;
-  elem3param = NULL;
-  elements = NULL;
+  pairParameters = nullptr;
+  tripletParameters = nullptr;
+  elem2param = nullptr;
+  elem3param = nullptr;
+  elements = nullptr;
 
-  pairlist1 = NULL;
-  pairlist2 = NULL;
-  triplelist = NULL;
+  pairlist1 = nullptr;
+  pairlist2 = nullptr;
+  triplelist = nullptr;
   neineilimit = -1;
 
-  BOP_index = NULL;
-  BOP_index2 = NULL;
-  BOP_total = NULL;
-  BOP_total2 = NULL;
-  neigh_index = NULL;
-  neigh_index2 = NULL;
-  cos_index = NULL;
+  BOP_index = nullptr;
+  BOP_index2 = nullptr;
+  BOP_total = nullptr;
+  BOP_total2 = nullptr;
+  neigh_index = nullptr;
+  neigh_index2 = nullptr;
+  cos_index = nullptr;
   atomlimit = -1;
   neighlimit = -1;
   neighlimit2 = -1;
 
-  map = NULL;
+  map = nullptr;
   bytes = 0.0;
-  pi_a = NULL;
-  pro_delta = NULL;
-  pi_delta = NULL;
-  pi_p = NULL;
-  pi_c = NULL;
-  pro = NULL;
-  sigma_delta = NULL;
-  sigma_c = NULL;
-  sigma_a = NULL;
-  sigma_f = NULL;
-  sigma_k = NULL;
-  small3 = NULL;
-  setflag = NULL;
-  cutsq = NULL;
-  cutghost = NULL;
+  pi_a = nullptr;
+  pro_delta = nullptr;
+  pi_delta = nullptr;
+  pi_p = nullptr;
+  pi_c = nullptr;
+  pro = nullptr;
+  sigma_delta = nullptr;
+  sigma_c = nullptr;
+  sigma_a = nullptr;
+  sigma_f = nullptr;
+  sigma_k = nullptr;
+  small3 = nullptr;
+  setflag = nullptr;
+  cutsq = nullptr;
+  cutghost = nullptr;
 
-  bt_sg = NULL;
-  bt_pi = NULL;
+  bt_sg = nullptr;
+  bt_pi = nullptr;
   sglimit = -1;
   pilimit = -1;
 }
@@ -1858,8 +1858,8 @@ void PairBOP::read_table(char *filename)
   char s[MAXLINE], *ptr, cbuf[10];
   double *singletable;
   int nr, nBOt, ntheta, npower;
-  double *rcut = NULL;
-  double ****gpara = NULL;
+  double *rcut = nullptr;
+  double ****gpara = nullptr;
 
   nr=2000;
   nBOt=2000;
@@ -1868,7 +1868,7 @@ void PairBOP::read_table(char *filename)
  
   if (me == 0) {
     fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == NULL) {
+    if (fp == nullptr) {
       char str[128];
       snprintf(str,128,"Cannot open BOP potential file %s",filename);
       error->one(FLERR,str);
@@ -1893,7 +1893,7 @@ void PairBOP::read_table(char *filename)
     delete [] elements;
   }
   elements = new char*[bop_types];
-  for(i = 0; i < bop_types; i++) elements[i] = NULL;
+  for(i = 0; i < bop_types; i++) elements[i] = nullptr;
 
   for(i = 0; i< bop_types; i++) {
     if (me == 0) {
@@ -1915,17 +1915,17 @@ void PairBOP::read_table(char *filename)
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
     nwords = 0;
     ptr = strtok(s," \t\n\r\f"); //the first token
-    if (ptr != NULL) {
+    if (ptr != nullptr) {
        nr = atoi(ptr);
        nwords++;
     }
-    ptr = strtok(NULL," \t\n\r\f"); //the second token
-    if (ptr != NULL) {
+    ptr = strtok(nullptr," \t\n\r\f"); //the second token
+    if (ptr != nullptr) {
        nbuf = atoi(ptr);
        nwords++;
     }
-    ptr = strtok(NULL," \t\n\r\f"); //the third token
-    if (ptr != NULL) {
+    ptr = strtok(nullptr," \t\n\r\f"); //the third token
+    if (ptr != nullptr) {
        nBOt = atoi(ptr);
        nwords++;
     }
@@ -2235,10 +2235,10 @@ void PairBOP::grab(FILE *fp, int n, double *list)
  
   int i = 0;
   while (i < n) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,NULL,error);
+    utils::sfgets(FLERR,line,MAXLINE,fp,nullptr,error);
     ptr = strtok(line," \t\n\r\f");
     list[i++] = atof(ptr);
-    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
+    while ((ptr = strtok(nullptr," \t\n\r\f"))) list[i++] = atof(ptr);
   }
 }
 
@@ -2248,7 +2248,7 @@ void PairBOP::write_tables(int npts)
 {
   char line[MAXLINE];
   char tag[6] = "";
-  FILE* fp =  NULL;
+  FILE* fp =  nullptr;
   double  xmin,xmax,x,uf,vf,wf,ufp,vfp,wfp;
  
   sprintf(tag,"%d",me);

@@ -28,6 +28,7 @@ PairStyle(bop,PairBOP);
 #include "pair.h"
 
 namespace LAMMPS_NS {
+  class TabularFunction;
 
 class PairBOP : public Pair {
 
@@ -42,187 +43,14 @@ class PairBOP : public Pair {
   double memory_usage();
 
  private:
-  class tabularFunction {
-
-   public:
-    tabularFunction()
-    {
-      size = 0;
-      xmin = 0.0;
-      xmax = 0.0;
-      xmaxsq = 0.0;
-      xs = nullptr;
-      ys = nullptr;
-      ys1 = nullptr;
-      ys2 = nullptr;
-      ys3 = nullptr;
-      ys4 = nullptr;
-      ys5 = nullptr;
-      ys6 = nullptr;
-    }
-    tabularFunction(int n)
-    {
-      size = n;
-      xmin = 0.0;
-      xmax = 0.0;
-      xmaxsq = 0.0;
-      if (n == 0) {
-        xs = nullptr;
-        ys = nullptr;
-        ys1 = nullptr;
-        ys2 = nullptr;
-        ys3 = nullptr;
-        ys4 = nullptr;
-        ys5 = nullptr;
-        ys6 = nullptr;
-      } else {
-        xs = new double[n];
-        ys = new double[n];
-        ys1 = new double[n];
-        ys2 = new double[n];
-        ys3 = new double[n];
-        ys4 = new double[n];
-        ys5 = new double[n];
-        ys6 = new double[n];
-      }
-    }
-    tabularFunction(int n, double x1, double x2)
-    {
-      size = n;
-      xmin = x1;
-      xmax = x2;
-      xmaxsq = xmax * xmax;
-      if (n == 0) {
-        xs = nullptr;
-        ys = nullptr;
-        ys1 = nullptr;
-        ys2 = nullptr;
-        ys3 = nullptr;
-        ys4 = nullptr;
-        ys5 = nullptr;
-        ys6 = nullptr;
-      } else {
-        xs = new double[n];
-        ys = new double[n];
-        ys1 = new double[n];
-        ys2 = new double[n];
-        ys3 = new double[n];
-        ys4 = new double[n];
-        ys5 = new double[n];
-        ys6 = new double[n];
-      }
-    }
-
-    virtual ~tabularFunction()
-    {
-      if (xs) delete[] xs;
-      if (ys) delete[] ys;
-      if (ys1) delete[] ys1;
-      if (ys2) delete[] ys2;
-      if (ys3) delete[] ys3;
-      if (ys4) delete[] ys4;
-      if (ys5) delete[] ys5;
-      if (ys6) delete[] ys6;
-    }
-
-    void set_xrange(double x1, double x2)
-    {
-      xmin = x1;
-      xmax = x2;
-      xmaxsq = xmax * xmax;
-    }
-
-    void set_values(int n, double x1, double x2, double *values)
-    {
-      reset_size(n);
-      xmin = x1;
-      xmax = x2;
-      xmaxsq = xmax * xmax;
-      memcpy(ys, values, n * sizeof(double));
-      initialize();
-    }
-
-    double get_xmin() { return xmin; }
-
-    double get_xmax() { return xmax; }
-
-    double get_xmaxsq() { return xmaxsq; }
-
-    void value(double x, double &y, int ny, double &y1, int ny1)
-    {
-      double ps = (x - xmin) * rdx + 1.0;
-      int ks = ps;
-      if (ks > size - 1) ks = size - 1;
-      ps = ps - ks;
-      if (ps > 1.0) ps = 1.0;
-      if (ny)
-        y = ((ys3[ks - 1] * ps + ys2[ks - 1]) * ps + ys1[ks - 1]) * ps +
-            ys[ks - 1];
-      if (ny1) y1 = (ys6[ks - 1] * ps + ys5[ks - 1]) * ps + ys4[ks - 1];
-    }
-
-   protected:
-    void reset_size(int n)
-    {
-      if (n != size) {
-        size = n;
-        if (xs) delete[] xs;
-        xs = new double[n];
-        if (ys) delete[] ys;
-        ys = new double[n];
-        if (ys1) delete[] ys1;
-        ys1 = new double[n];
-        if (ys2) delete[] ys2;
-        ys2 = new double[n];
-        if (ys3) delete[] ys3;
-        ys3 = new double[n];
-        if (ys4) delete[] ys4;
-        ys4 = new double[n];
-        if (ys5) delete[] ys5;
-        ys5 = new double[n];
-        if (ys6) delete[] ys6;
-        ys6 = new double[n];
-      }
-    }
-
-    void initialize()
-    {
-      rdx = (xmax - xmin) / (size - 1.0);
-      for (int i = 0; i < size; i++) { xs[i] = xmin + i * rdx; }
-      rdx = 1.0 / rdx;
-      ys1[0] = ys[1] - ys[0];
-      ys1[1] = 0.5 * (ys[2] - ys[0]);
-      ys1[size - 2] = 0.5 * (ys[size - 1] - ys[size - 3]);
-      ys1[size - 1] = ys[size - 1] - ys[size - 2];
-      for (int i = 2; i < size - 2; i++) {
-        ys1[i] =
-            ((ys[i - 2] - ys[i + 2]) + 8.0 * (ys[i + 1] - ys[i - 1])) / 12.0;
-      }
-      for (int i = 0; i < size - 1; i++) {
-        ys2[i] = 3.0 * (ys[i + 1] - ys[i]) - 2.0 * ys1[i] - ys1[i + 1];
-        ys3[i] = ys1[i] + ys1[i + 1] - 2.0 * (ys[i + 1] - ys[i]);
-      }
-      ys2[size - 1] = 0.0;
-      ys3[size - 1] = 0.0;
-      for (int i = 0; i < size; i++) {
-        ys4[i] = ys1[i] * rdx;
-        ys5[i] = 2.0 * ys2[i] * rdx;
-        ys6[i] = 3.0 * ys3[i] * rdx;
-      }
-    }
-
-    int size;
-    double xmin, xmax, xmaxsq, rdx;
-    double *xs, *ys, *ys1, *ys2, *ys3, *ys4, *ys5, *ys6;
-  };
 
   struct PairParameters {
     double cutB, cutBsq, cutL, cutLsq;
-    class tabularFunction *betaS;
-    class tabularFunction *betaP;
-    class tabularFunction *rep;
-    class tabularFunction *cphi;
-    class tabularFunction *bo;
+    TabularFunction *betaS;
+    TabularFunction *betaP;
+    TabularFunction *rep;
+    TabularFunction *cphi;
+    TabularFunction *bo;
     PairParameters()
     {
       cutB = 0.0;
@@ -238,7 +66,7 @@ class PairBOP : public Pair {
   };
 
   struct TripletParameters {
-    class tabularFunction *G;
+    TabularFunction *G;
     TripletParameters() { G = nullptr; };
   };
 

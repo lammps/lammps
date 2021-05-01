@@ -1249,8 +1249,6 @@
 /smd_material_models.cpp
 /smd_material_models.h
 /smd_math.h
-/tabular_function.cpp
-/tabular_function.h
 /tad.cpp
 /tad.h
 /temper.cpp

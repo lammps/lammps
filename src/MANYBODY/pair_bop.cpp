@@ -45,6 +45,8 @@
 #include "neighbor.h"
 #include "utils.h"
 
+#include "tabular_function.h"
+
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -2021,7 +2023,7 @@ void PairBOP::read_table(char *filename)
       }
     }
     MPI_Bcast(singletable,ntheta,MPI_DOUBLE,0,world);
-    p.G = new tabularFunction();
+    p.G = new TabularFunction();
     (p.G)->set_values(ntheta, -1.0, 1.0, singletable);
     elem3param[j][i][k] = nbuf;
     if (k != j) elem3param[k][i][j] = nbuf;
@@ -2037,7 +2039,7 @@ void PairBOP::read_table(char *filename)
       grab(fp, nr, singletable);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
-    p.rep = new tabularFunction();
+    p.rep = new TabularFunction();
     (p.rep)->set_values(nr, 0.0, rcut[i], singletable);
     p.cutB = rcut[i];
     p.cutBsq = rcut[i]*rcut[i];
@@ -2049,7 +2051,7 @@ void PairBOP::read_table(char *filename)
       grab(fp, nr, singletable);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
-    p.betaS = new tabularFunction();
+    p.betaS = new TabularFunction();
     (p.betaS)->set_values(nr, 0.0, rcut[i], singletable);
   }
 
@@ -2059,7 +2061,7 @@ void PairBOP::read_table(char *filename)
       grab(fp, nr, singletable);
     }
     MPI_Bcast(singletable,nr,MPI_DOUBLE,0,world);
-    p.betaP = new tabularFunction();
+    p.betaP = new TabularFunction();
     (p.betaP)->set_values(nr, 0.0, rcut[i], singletable);
   }
 
@@ -2072,7 +2074,7 @@ void PairBOP::read_table(char *filename)
       grab(fp, nBOt, singletable);
     }
     MPI_Bcast(singletable,nBOt,MPI_DOUBLE,0,world);
-    p.bo = new tabularFunction();
+    p.bo = new TabularFunction();
     (p.bo)->set_values(nBOt, 0.0, 1.0, singletable);
   }
   delete [] singletable;
@@ -2137,7 +2139,7 @@ void PairBOP::read_table(char *filename)
         p.cutLsq = rcut[i]*rcut[i];
       }
       if (rcut[i] != 0.0) {
-        p.cphi = new tabularFunction();
+        p.cphi = new TabularFunction();
         (p.cphi)->set_values(nr, 0.0, rcut[i], singletable);
       }
     }
